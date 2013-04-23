@@ -12,6 +12,9 @@ static constexpr auto name() phc_decltype_return(value)
 
 #define phc_declare_funct_macro template <typename real_t>
 
+#include <boost/math/constants/constants.hpp>
+using boost::math::constants::pi;
+
 namespace phc
 {
   using mixing_ratio = si::dimensionless;
