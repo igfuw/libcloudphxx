@@ -14,6 +14,8 @@
 #include <libcloudph++/common/phc_const_cp.hpp>
 #include <libcloudph++/common/phc_theta.hpp>
 
+#include <libcloudph++/common/zip.hpp>
+
 namespace libcloudphxx
 {
   namespace bulk
@@ -75,10 +77,10 @@ namespace libcloudphxx
     template <class container_t, typename real_t>
     void condevap(
 //      const container_t &rhod,    // TODO: 
-      container_t &rhod_th, 
-      container_t &rhod_rv,
-      container_t &rhod_rc,
-      container_t &rhod_rr
+      container_t &rhod_th_cont, 
+      container_t &rhod_rv_cont,
+      container_t &rhod_rc_cont,
+      container_t &rhod_rr_cont
     )
     {
       // odeint::euler< // TODO: opcja?
@@ -95,10 +97,16 @@ namespace libcloudphxx
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
       //typename detail::rhs F;
 
-      for (auto elem : rhod_th)
+      for (auto tup : zip(rhod_th_cont, rhod_rv_cont, rhod_rc_cont, rhod_rr_cont))
       {
-std::cerr << elem << std::endl;
+        real_t 
+          &rhod_th = boost::get<0>(tup), 
+          &rhod_rv = boost::get<1>(tup), 
+          &rhod_rc = boost::get<2>(tup), 
+          &rhod_rr = boost::get<3>(tup);
+std::cerr << rhod_th << " " << rhod_rv << " " << rhod_rc << " " << rhod_rr << std::endl;
       }
+
 /*
     for (int k = rhod.lbound(mtx::k); k <= rhod.ubound(mtx::k); ++k)
       for (int j = rhod.lbound(mtx::j); j <= rhod.ubound(mtx::j); ++j)
