@@ -111,79 +111,80 @@ quantity<si::time, real_t> dt = 0 * si::seconds; // TODO!
           &rhod_rc = boost::get<3>(tup), 
           &rhod_rr = boost::get<4>(tup);
 
-          F.init(
-            rhod * si::kilograms / si::cubic_metres,
-            rhod_th * si::kilograms / si::cubic_metres * si::kelvins,
-            rhod_rv * si::kilograms / si::cubic_metres
-          );
+	F.init(
+	  rhod * si::kilograms / si::cubic_metres,
+	  rhod_th * si::kilograms / si::cubic_metres * si::kelvins,
+	  rhod_rv * si::kilograms / si::cubic_metres
+	);
 
-          real_t // TODO: quantity<si::mass_density
-            rho_eps = .00002, // TODO: as an option?
-            vapour_excess;
-          real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
-          if (F.rs > F.r && rhod_rr > 0 && opt_revp)
-            drho_rr_max = (dt / si::seconds) * (1 - F.r / F.rs) * (1.6 + 124.9 * pow(1e-3 * rhod_rr, .2046)) * pow(1e-3 * rhod_rr, .525) /
-              (5.4e2 + 2.55e5 * (1. / (F.p / si::pascals) / F.rs)); // TODO: move to phc!!!
-          bool incloud;
+	real_t // TODO: quantity<si::mass_density
+	  rho_eps = .00002, // TODO: as an option?
+	  vapour_excess;
+	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
+	if (F.rs > F.r && rhod_rr > 0 && opt_revp)
+	  drho_rr_max = (dt / si::seconds) * (1 - F.r / F.rs) * (1.6 + 124.9 * pow(1e-3 * rhod_rr, .2046)) * pow(1e-3 * rhod_rr, .525) /
+	    (5.4e2 + 2.55e5 * (1. / (F.p / si::pascals) / F.rs)); // TODO: move to phc!!!
+	bool incloud;
 
-          // TODO: rethink and document 2*rho_eps!!!
-          while (
-            // condensation of cloud water if supersaturated
-            (vapour_excess = rhod_rv - rhod * F.rs) > rho_eps
-            || (opt_cevp && vapour_excess < -rho_eps && ( // or if subsaturated
-              (incloud = (rhod_rc > 0)) // cloud evaporation if in cloud
-              || (opt_revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
-            ))
-          )
-          {
-            real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess);
-            drho_rv = (vapour_excess > 0 || incloud)
-              ? std::min(rhod_rc, drho_rv)
-              : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // preventing negative mixing ratios
-            assert(drho_rv != 0); // otherwise it should not pass the while condition!
+	// TODO: rethink and document rho_eps!!!
+	while (
+	  // condensation of cloud water if supersaturated
+	  (vapour_excess = rhod_rv - rhod * F.rs) > rho_eps
+	  || (opt_cevp && vapour_excess < -rho_eps && ( // or if subsaturated
+	    (incloud = (rhod_rc > 0)) // cloud evaporation if in cloud
+	    || (opt_revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
+	  ))
+	)
+	{
+	  real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess);
+	  drho_rv = (vapour_excess > 0 || incloud)
+	    ? std::min(rhod_rc, drho_rv)
+	    : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // preventing negative mixing ratios
+	  //assert(drho_rv != 0); // otherwise it should not pass the while condition!
 
-            // theta is modified by do_step, and hence we cannot pass an expression and we need a temp. var.
-            quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>
-              tmp = rhod_th * si::kilograms / si::cubic_metres * si::kelvins;
+	  // theta is modified by do_step, and hence we cannot pass an expression and we need a temp. var.
+	  quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>
+	    tmp = rhod_th * si::kilograms / si::cubic_metres * si::kelvins;
 
-            // integrating the First Law for moist air
-            S.do_step(
-              boost::ref(F),
-              tmp,
-              rhod_rv * si::kilograms / si::cubic_metres,
-              drho_rv * si::kilograms / si::cubic_metres
-            );
+	  // integrating the First Law for moist air
+	  S.do_step(
+	    boost::ref(F),
+	    tmp,
+	    rhod_rv * si::kilograms / si::cubic_metres,
+	    drho_rv * si::kilograms / si::cubic_metres
+	  );
 
-            // latent heat source/sink due to evaporation/condensation
-            rhod_th = tmp / (si::kilograms / si::cubic_metres * si::kelvins);
+	  // latent heat source/sink due to evaporation/condensation
+	  rhod_th = tmp / (si::kilograms / si::cubic_metres * si::kelvins);
 
-            // updating rhod_rv
-            rhod_rv += drho_rv;
-            assert(rhod_rv >= 0);
-            assert(isfinite(rhod_rv));
-            
-            if (vapour_excess > 0 || incloud)
-            {
-              rhod_rc -= drho_rv; // cloud water
-              assert(rhod_rc >= 0);
-              assert(isfinite(rhod_rc));
-            }
-            else // or rain water
-            {
-              assert(opt_revp); // should be guaranteed by the while() condition above
-              rhod_rr -= drho_rv;
-              assert(rhod_rr >= 0);
-              assert(isfinite(rhod_rr));
-              if ((drho_rr_max -= drho_rv) == 0) break; // but not more than Kessler allows
-            }
-          }
-          // hopefully true for RK4
-          assert(F.r == real_t(rhod_rv / rhod));
-          // double-checking....
-          assert(rhod_rc >= 0);
-          assert(rhod_rv >= 0);
-          assert(rhod_rr >= 0);
-        }
+	  // updating rhod_rv
+	  rhod_rv += drho_rv;
+	  assert(rhod_rv >= 0);
+	  assert(isfinite(rhod_rv));
+	  
+	  if (vapour_excess > 0 || incloud)
+	  {
+	    rhod_rc -= drho_rv; // cloud water
+	    assert(rhod_rc >= 0);
+	    assert(isfinite(rhod_rc));
+	  }
+	  else // or rain water
+	  {
+	    assert(opt_revp); // should be guaranteed by the while() condition above
+	    rhod_rr -= drho_rv;
+	    assert(rhod_rr >= 0);
+	    assert(isfinite(rhod_rr));
+	    if ((drho_rr_max -= drho_rv) == 0) break; // but not more than Kessler allows
+	  }
+	}
+
+	// hopefully true for RK4
+	assert(F.r == real_t(rhod_rv / rhod));
+	// double-checking....
+	assert(rhod_rc >= 0);
+	assert(rhod_rv >= 0);
+	assert(rhod_rr >= 0);
+      }
     }
   }
 };
