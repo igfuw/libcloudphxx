@@ -76,16 +76,20 @@ namespace libcloudphxx
 
     template <class container_t, typename real_t>
     void condevap(
-//      const container_t &rhod,    // TODO: 
+      const container_t &rhod_cont,   
       container_t &rhod_th_cont, 
       container_t &rhod_rv_cont,
       container_t &rhod_rc_cont,
       container_t &rhod_rr_cont
     )
     {
-      // odeint::euler< // TODO: opcja?
+      // TODO: as options!
+      bool opt_cevp = true, opt_revp = true;
+quantity<si::time, real_t> dt = 0 * si::seconds; // TODO!
+
       namespace odeint = boost::numeric::odeint;
 
+      // odeint::euler< // TODO: opcja?
       odeint::runge_kutta4<
 	quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>, // state_type
 	real_t, // value_type
@@ -95,97 +99,91 @@ namespace libcloudphxx
 	odeint::default_operations,
 	odeint::never_resizer
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
-      //typename detail::rhs F;
+      typename detail::rhs<real_t> F;
 
-      for (auto tup : zip(rhod_th_cont, rhod_rv_cont, rhod_rc_cont, rhod_rr_cont))
+      for (auto tup : zip(rhod_cont, rhod_th_cont, rhod_rv_cont, rhod_rc_cont, rhod_rr_cont))
       {
+        const real_t
+          &rhod = boost::get<0>(tup);
         real_t 
-          &rhod_th = boost::get<0>(tup), 
-          &rhod_rv = boost::get<1>(tup), 
-          &rhod_rc = boost::get<2>(tup), 
-          &rhod_rr = boost::get<3>(tup);
-std::cerr << rhod_th << " " << rhod_rv << " " << rhod_rc << " " << rhod_rr << std::endl;
-      }
-
-/*
-    for (int k = rhod.lbound(mtx::k); k <= rhod.ubound(mtx::k); ++k)
-      for (int j = rhod.lbound(mtx::j); j <= rhod.ubound(mtx::j); ++j)
-        for (int i = rhod.lbound(mtx::i); i <= rhod.ubound(mtx::i); ++i)
-        {
+          &rhod_th = boost::get<1>(tup), 
+          &rhod_rv = boost::get<2>(tup), 
+          &rhod_rc = boost::get<3>(tup), 
+          &rhod_rr = boost::get<4>(tup);
 
           F.init(
-            rhod(i,j,k) * si::kilograms / si::cubic_metres,
-            rhod_th(i,j,k) * si::kilograms / si::cubic_metres * si::kelvins,
-            rhod_rv(i,j,k) * si::kilograms / si::cubic_metres
+            rhod * si::kilograms / si::cubic_metres,
+            rhod_th * si::kilograms / si::cubic_metres * si::kelvins,
+            rhod_rv * si::kilograms / si::cubic_metres
           );
+
           real_t // TODO: quantity<si::mass_density
             rho_eps = .00002, // TODO: as an option?
             vapour_excess;
           real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
-          if (F.rs > F.r && rhod_rr(i,j,k) > 0 && opt_revp)
-            drho_rr_max = (dt / si::seconds) * (1 - F.r / F.rs) * (1.6 + 124.9 * pow(1e-3 * rhod_rr(i,j,k), .2046)) * pow(1e-3 * rhod_rr(i,j,k), .525) /
+          if (F.rs > F.r && rhod_rr > 0 && opt_revp)
+            drho_rr_max = (dt / si::seconds) * (1 - F.r / F.rs) * (1.6 + 124.9 * pow(1e-3 * rhod_rr, .2046)) * pow(1e-3 * rhod_rr, .525) /
               (5.4e2 + 2.55e5 * (1. / (F.p / si::pascals) / F.rs)); // TODO: move to phc!!!
           bool incloud;
 
           // TODO: rethink and document 2*rho_eps!!!
           while (
             // condensation of cloud water if supersaturated
-            (vapour_excess = rhod_rv(i,j,k) - rhod(i,j,k) * F.rs) > rho_eps
+            (vapour_excess = rhod_rv - rhod * F.rs) > rho_eps
             || (opt_cevp && vapour_excess < -rho_eps && ( // or if subsaturated
-              (incloud = (rhod_rc(i,j,k) > 0)) // cloud evaporation if in cloud
-              || (opt_revp && rhod_rr(i,j,k) > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
+              (incloud = (rhod_rc > 0)) // cloud evaporation if in cloud
+              || (opt_revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
             ))
           )
           {
             real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess);
             drho_rv = (vapour_excess > 0 || incloud)
-              ? std::min(rhod_rc(i,j,k), drho_rv)
-              : std::min(drho_rr_max, std::min(rhod_rr(i,j,k), drho_rv)); // preventing negative mixing ratios
+              ? std::min(rhod_rc, drho_rv)
+              : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // preventing negative mixing ratios
             assert(drho_rv != 0); // otherwise it should not pass the while condition!
 
             // theta is modified by do_step, and hence we cannot pass an expression and we need a temp. var.
             quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>
-              tmp = rhod_th(i,j,k) * si::kilograms / si::cubic_metres * si::kelvins;
+              tmp = rhod_th * si::kilograms / si::cubic_metres * si::kelvins;
 
             // integrating the First Law for moist air
             S.do_step(
               boost::ref(F),
               tmp,
-              rhod_rv(i,j,k) * si::kilograms / si::cubic_metres,
+              rhod_rv * si::kilograms / si::cubic_metres,
               drho_rv * si::kilograms / si::cubic_metres
             );
 
             // latent heat source/sink due to evaporation/condensation
-            rhod_th(i,j,k) = tmp / (si::kilograms / si::cubic_metres * si::kelvins);
+            rhod_th = tmp / (si::kilograms / si::cubic_metres * si::kelvins);
 
             // updating rhod_rv
-            rhod_rv(i,j,k) += drho_rv;
-            assert(rhod_rv(i,j,k) >= 0);
-            assert(isfinite(rhod_rv(i,j,k)));
+            rhod_rv += drho_rv;
+            assert(rhod_rv >= 0);
+            assert(isfinite(rhod_rv));
             
             if (vapour_excess > 0 || incloud)
             {
-              rhod_rc(i,j,k) -= drho_rv; // cloud water
-              assert(rhod_rc(i,j,k) >= 0);
-              assert(isfinite(rhod_rc(i,j,k)));
+              rhod_rc -= drho_rv; // cloud water
+              assert(rhod_rc >= 0);
+              assert(isfinite(rhod_rc));
             }
             else // or rain water
             {
               assert(opt_revp); // should be guaranteed by the while() condition above
-              rhod_rr(i,j,k) -= drho_rv;
-              assert(rhod_rr(i,j,k) >= 0);
-              assert(isfinite(rhod_rr(i,j,k)));
+              rhod_rr -= drho_rv;
+              assert(rhod_rr >= 0);
+              assert(isfinite(rhod_rr));
               if ((drho_rr_max -= drho_rv) == 0) break; // but not more than Kessler allows
             }
           }
           // hopefully true for RK4
-          assert(F.r == real_t(rhod_rv(i,j,k) / rhod(i,j,k)));
+          assert(F.r == real_t(rhod_rv / rhod));
           // double-checking....
-          assert(rhod_rc(i,j,k) >= 0);
-          assert(rhod_rv(i,j,k) >= 0);
-          assert(rhod_rr(i,j,k) >= 0);
+          assert(rhod_rc >= 0);
+          assert(rhod_rv >= 0);
+          assert(rhod_rr >= 0);
         }
-*/
     }
   }
 };
