@@ -85,7 +85,7 @@ namespace libcloudphxx
     {
       // TODO: as options!
       bool opt_cevp = true, opt_revp = true;
-quantity<si::time, real_t> dt = 0 * si::seconds; // TODO!
+quantity<si::time, real_t> dt = 4 * si::seconds; // TODO!
 
       namespace odeint = boost::numeric::odeint;
 
@@ -136,7 +136,7 @@ quantity<si::time, real_t> dt = 0 * si::seconds; // TODO!
 	  ))
 	)
 	{
-	  real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess);
+	  real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess); // TODO: .5 - arbitrary!!!
 	  drho_rv = (vapour_excess > 0 || incloud)
 	    ? std::min(rhod_rc, drho_rv)
 	    : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // preventing negative mixing ratios
@@ -160,20 +160,17 @@ quantity<si::time, real_t> dt = 0 * si::seconds; // TODO!
 	  // updating rhod_rv
 	  rhod_rv += drho_rv;
 	  assert(rhod_rv >= 0);
-	  assert(isfinite(rhod_rv));
 	  
 	  if (vapour_excess > 0 || incloud)
 	  {
 	    rhod_rc -= drho_rv; // cloud water
 	    assert(rhod_rc >= 0);
-	    assert(isfinite(rhod_rc));
 	  }
 	  else // or rain water
 	  {
 	    assert(opt_revp); // should be guaranteed by the while() condition above
 	    rhod_rr -= drho_rv;
 	    assert(rhod_rr >= 0);
-	    assert(isfinite(rhod_rr));
 	    if ((drho_rr_max -= drho_rv) == 0) break; // but not more than Kessler allows
 	  }
 	}
