@@ -7,7 +7,7 @@ namespace libcloudphxx
   namespace bulk
   {
     template <class container_t, typename real_t>
-    void autoconv(
+    void collect(
       real_t dt,
       const container_t &rhod_cont,   
       container_t &rhod_rc_cont,
@@ -23,7 +23,8 @@ namespace libcloudphxx
           &rhod_rc = boost::get<1>(tup),
           &rhod_rr = boost::get<2>(tup);
 
-	tmp = std::max( 0., .001 * rhod * (rhod_rc / rhod - .0005)); //should be .001
+        tmp = 2.2 * rhod_rc * ( pow(rhod_rr / rhod, .875));
+
 	rhod_rr += dt * tmp;
 	rhod_rc -= dt * tmp;
       }
