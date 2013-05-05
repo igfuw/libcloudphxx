@@ -76,7 +76,7 @@ namespace libcloudphxx
 
     template <typename real_t, class container_t>
     void condevap(
-      const container_t &rhod_cont,   
+      const container_t &rhod_cont,  // TODO: ref vs. value - should be the same in all functions!
       container_t &rhod_th_cont, 
       container_t &rhod_rv_cont,
       container_t &rhod_rc_cont,
@@ -85,7 +85,7 @@ namespace libcloudphxx
     {
       // TODO: as options!
       bool opt_cevp = true, opt_revp = true;
-quantity<si::time, real_t> dt = 2 * si::seconds; // TODO!
+quantity<si::time, real_t> dt = 2 * si::seconds; // TODO!!!
 
       namespace odeint = boost::numeric::odeint;
 

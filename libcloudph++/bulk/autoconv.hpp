@@ -8,11 +8,11 @@ namespace libcloudphxx
   {
     template <typename real_t, class container_t>
     void autoconv(
-      container_t &drhod_rc_cont,
-      container_t &drhod_rr_cont,
-      const container_t &rhod_cont,   
-      const container_t &rhod_rc_cont,
-      const container_t &rhod_rr_cont
+      container_t drhod_rc_cont,
+      container_t drhod_rr_cont,
+      const container_t rhod_cont,   
+      const container_t rhod_rc_cont,
+      const container_t rhod_rr_cont
     )   
     {
       for (auto tup : zip(drhod_rc_cont, drhod_rr_cont, rhod_cont, rhod_rc_cont, rhod_rr_cont))
