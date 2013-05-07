@@ -13,6 +13,7 @@
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/phc_const_cp.hpp>
 #include <libcloudph++/common/phc_theta.hpp>
+#include <libcloudph++/common/phc_kessler.hpp>
 
 #include <libcloudph++/common/zip.hpp>
 
@@ -75,7 +76,8 @@ namespace libcloudphxx
     }    
 
     template <typename real_t, class container_t>
-    void condevap(
+    void adjustments(
+      const opts<real_t> &opt,
       const container_t &rhod_cont,  // TODO: ref vs. value - should be the same in all functions!
       container_t &rhod_th_cont, 
       container_t &rhod_rv_cont,
@@ -83,9 +85,7 @@ namespace libcloudphxx
       container_t &rhod_rr_cont
     )
     {
-      // TODO: as options!
-      bool opt_cevp = true, opt_revp = true;
-quantity<si::time, real_t> dt = 2 * si::seconds; // TODO!!!
+      assert(opt.dt != 0);
 
       namespace odeint = boost::numeric::odeint;
 
@@ -121,18 +121,19 @@ quantity<si::time, real_t> dt = 2 * si::seconds; // TODO!!!
 	  rho_eps = .00002, // TODO: as an option?
 	  vapour_excess;
 	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
-	if (F.rs > F.r && rhod_rr > 0 && opt_revp)
-	  drho_rr_max = (dt / si::seconds) * (1 - F.r / F.rs) * (1.6 + 124.9 * pow(1e-3 * rhod_rr, .2046)) * pow(1e-3 * rhod_rr, .525) /
-	    (5.4e2 + 2.55e5 * (1. / (F.p / si::pascals) / F.rs)); // TODO: move to phc!!!
+	if (F.rs > F.r && rhod_rr > 0 && opt.revp)
+	  drho_rr_max = 
+            (opt.dt * si::seconds) * phc::evaporation_rate(F.r, F.rs, rhod_rr * si::kilograms / si::cubic_metres, F.p)
+            / si::kilograms * si::cubic_metres; // to make it dimensionless
 	bool incloud;
 
 	// TODO: rethink and document rho_eps!!!
 	while (
 	  // condensation of cloud water if supersaturated
 	  (vapour_excess = rhod_rv - rhod * F.rs) > rho_eps
-	  || (opt_cevp && vapour_excess < -rho_eps && ( // or if subsaturated
+	  || (opt.cevp && vapour_excess < -rho_eps && ( // or if subsaturated
 	    (incloud = (rhod_rc > 0)) // cloud evaporation if in cloud
-	    || (opt_revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
+	    || (opt.revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
 	  ))
 	)
 	{
@@ -168,7 +169,7 @@ quantity<si::time, real_t> dt = 2 * si::seconds; // TODO!!!
 	  }
 	  else // or rain water
 	  {
-	    assert(opt_revp); // should be guaranteed by the while() condition above
+	    assert(opt.revp); // should be guaranteed by the while() condition above
 	    rhod_rr -= drho_rv;
 	    assert(rhod_rr >= 0);
 	    if ((drho_rr_max -= drho_rv) == 0) break; // but not more than Kessler allows

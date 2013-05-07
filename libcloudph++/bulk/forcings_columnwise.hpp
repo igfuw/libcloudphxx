@@ -8,13 +8,16 @@ namespace libcloudphxx
   {
     // expects the arguments to be columns with begin() pointing to the lowest level
     template <typename real_t, class container_t>
-    void sediment(
+    void forcings_columnwise(
+      const opts<real_t> &opt,
       container_t drhod_rr_cont,
       const container_t rhod_cont,   
       const container_t rhod_rr_cont,
       real_t dz
     )   
     {
+      if (!opt.sedi) return;
+
       // TODO: return accumulated rainfall?
 
       // 
