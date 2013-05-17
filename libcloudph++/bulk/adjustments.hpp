@@ -54,14 +54,14 @@ namespace libcloudphxx
 	)
 	{
 	  r = rhod_rv / rhod;
-	  p = common::theta::p<real_t>(rhod_th, r);
-	  T = common::theta::T<real_t>(rhod_th / rhod, p, r);
+	  T = common::theta::T<real_t>(rhod_th, rhod);
+	  p = common::theta::p<real_t>(rhod, r, T);
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
 	public: 
 
-	// F = d (rho_d * th) / d (rho_d * r) = rho_d ()
+	// F = d (rho_d * th) / d (rho_d * r) 
         void operator()(
 	  const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> rhod_th,
 	  quantity<si::temperature, real_t> &F,
@@ -69,7 +69,7 @@ namespace libcloudphxx
 	)
 	{
 	  update(rhod_th, rhod_rv);
-	  F = common::theta::dtheta_drv<real_t>(T, p, r, rhod_th, rhod); // TODO: option : which dtheta...
+	  F = common::theta::d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod; 
 	}
       };
     }    
