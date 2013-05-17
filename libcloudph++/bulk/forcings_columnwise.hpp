@@ -1,5 +1,5 @@
 #pragma once
-#include <libcloudph++/common/phc_kessler.hpp>
+#include <libcloudph++/bulk/formulae.hpp>
 #include <algorithm>
 
 namespace libcloudphxx
@@ -37,12 +37,12 @@ namespace libcloudphxx
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
 	  quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> flux_out = -.5 * ( // averaging + axis orientation
-	    phc::v_term(
+	    formulae::v_term(
               *rhod_rr_below     * si::kilograms / si::cubic_metres, 
               *rhod_below        * si::kilograms / si::cubic_metres, 
               *rhod_cont.begin() * si::kilograms / si::cubic_metres
             ) + 
-	    phc::v_term(
+	    formulae::v_term(
               *rhod_rr           * si::kilograms / si::cubic_metres,    
               *rhod              * si::kilograms / si::cubic_metres, 
               *rhod_cont.begin() * si::kilograms / si::cubic_metres

@@ -11,3 +11,6 @@ using boost::units::root;
 using boost::units::multiply_typeof_helper;
 using boost::units::divide_typeof_helper;
 using boost::units::power_typeof_helper;
+
+#include <boost/math/constants/constants.hpp>
+using boost::math::constants::pi;

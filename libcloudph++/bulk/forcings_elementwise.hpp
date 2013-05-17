@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <libcloudph++/common/phc_kessler.hpp>
+#include <libcloudph++/bulk/formulae.hpp>
 
 namespace libcloudphxx
 {
@@ -32,7 +32,7 @@ namespace libcloudphxx
         if (opt.conv)
         {
 	  tmp += rhod * ( 
-	    phc::autoconversion_rate(rhod_rc / rhod * si::dimensionless()) 
+	    formulae::autoconversion_rate(rhod_rc / rhod * si::dimensionless()) 
 	    * si::seconds // to make it dimensionless
 	  );
         }
@@ -41,7 +41,7 @@ namespace libcloudphxx
         if (opt.clct)
         {
 	  tmp += rhod * (
-	    phc::collection_rate(rhod_rc/rhod * si::dimensionless(), rhod_rr/rhod * si::dimensionless()) * si::seconds
+	    formulae::collection_rate(rhod_rc/rhod * si::dimensionless(), rhod_rr/rhod * si::dimensionless()) * si::seconds
 	  );
         }
 

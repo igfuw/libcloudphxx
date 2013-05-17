@@ -10,10 +10,9 @@
 
 #include <boost/numeric/odeint.hpp>
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/phc_const_cp.hpp>
-#include <libcloudph++/common/phc_theta.hpp>
-#include <libcloudph++/common/phc_kessler.hpp>
+#include <libcloudph++/common/const_cp.hpp>
+#include <libcloudph++/common/theta.hpp>
+#include <libcloudph++/bulk/formulae.hpp>
 
 #include <libcloudph++/common/zip.hpp>
 
@@ -43,7 +42,7 @@ namespace libcloudphxx
 	  update(rhod_th, rhod_rv);
 	}
 
-	quantity<phc::mixing_ratio, real_t> r, rs;
+	quantity<si::dimensionless, real_t> r, rs;
 	quantity<si::pressure, real_t> p;
 	quantity<si::temperature, real_t> T;
 
@@ -55,9 +54,9 @@ namespace libcloudphxx
 	)
 	{
 	  r = rhod_rv / rhod;
-	  p = phc::p<real_t>(rhod_th, r);
-	  T = phc::T<real_t>(rhod_th / rhod, p, r);
-	  rs = phc::r_vs<real_t>(T, p);
+	  p = common::theta::p<real_t>(rhod_th, r);
+	  T = common::theta::T<real_t>(rhod_th / rhod, p, r);
+	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
 	public: 
@@ -70,7 +69,7 @@ namespace libcloudphxx
 	)
 	{
 	  update(rhod_th, rhod_rv);
-	  F = phc::dtheta_drv<real_t>(T, p, r, rhod_th, rhod); // TODO: option : which dtheta...
+	  F = common::theta::dtheta_drv<real_t>(T, p, r, rhod_th, rhod); // TODO: option : which dtheta...
 	}
       };
     }    
@@ -123,7 +122,7 @@ namespace libcloudphxx
 	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
 	if (F.rs > F.r && rhod_rr > 0 && opt.revp)
 	  drho_rr_max = 
-            (opt.dt * si::seconds) * phc::evaporation_rate(F.r, F.rs, rhod_rr * si::kilograms / si::cubic_metres, F.p)
+            (opt.dt * si::seconds) * formulae::evaporation_rate(F.r, F.rs, rhod_rr * si::kilograms / si::cubic_metres, F.p)
             / si::kilograms * si::cubic_metres; // to make it dimensionless
 	bool incloud;
 
