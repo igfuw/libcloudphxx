@@ -11,7 +11,7 @@
 #include <boost/numeric/odeint.hpp>
 
 #include <libcloudph++/common/const_cp.hpp>
-#include <libcloudph++/common/theta.hpp>
+#include <libcloudph++/common/theta_dry.hpp>
 #include <libcloudph++/bulk/formulae.hpp>
 
 #include <libcloudph++/common/zip.hpp>
@@ -54,8 +54,8 @@ namespace libcloudphxx
 	)
 	{
 	  r = rhod_rv / rhod;
-	  T = common::theta::T<real_t>(rhod_th, rhod);
-	  p = common::theta::p<real_t>(rhod, r, T);
+	  T = common::theta_dry::T<real_t>(rhod_th, rhod);
+	  p = common::theta_dry::p<real_t>(rhod, r, T);
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
@@ -69,7 +69,7 @@ namespace libcloudphxx
 	)
 	{
 	  update(rhod_th, rhod_rv);
-	  F = common::theta::d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod; 
+	  F = common::theta_dry::d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod; 
 	}
       };
     }    

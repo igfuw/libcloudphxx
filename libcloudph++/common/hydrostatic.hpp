@@ -2,6 +2,7 @@
 
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp>
+#include <libcloudph++/common/theta_std.hpp>
 
 namespace libcloudphxx
 {
@@ -9,8 +10,7 @@ namespace libcloudphxx
   {
     namespace hydrostatic
     {
-      using theta::p_1000;
-      using moist_air::R_d_over_c_pd;
+      using theta_std::p_1000;
       using moist_air::R; // TODO: czy na pewno potzebne?
       using moist_air::c_pd;
       using moist_air::R_d;
@@ -29,9 +29,9 @@ namespace libcloudphxx
       )
       {
 	return p_1000<real_t>() * real_t(pow(
-	  pow(p_0 / p_1000<real_t>(), R_d_over_c_pd<real_t>())
+	  pow(p_0 / p_1000<real_t>(), R_d<real_t>()/c_pd<real_t>())
 	  -
-	  R_d_over_c_pd<real_t>() * g<real_t>() / th_0 / R<real_t>(r_0) * (z - z_0),
+	  R_d<real_t>()/c_pd<real_t>() * g<real_t>() / th_0 / R<real_t>(r_0) * (z - z_0),
 	  c_pd<real_t>() / R_d<real_t>()
 	));
       }
