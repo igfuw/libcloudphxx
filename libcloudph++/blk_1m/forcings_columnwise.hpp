@@ -1,10 +1,10 @@
 #pragma once
-#include <libcloudph++/bulk/formulae.hpp>
+#include <libcloudph++/blk_1m/formulae.hpp>
 #include <algorithm>
 
 namespace libcloudphxx
 {
-  namespace bulk
+  namespace blk_1m
   {
     // expects the arguments to be columns with begin() pointing to the lowest level
     template <typename real_t, class container_t>

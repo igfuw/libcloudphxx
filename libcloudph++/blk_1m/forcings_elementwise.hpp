@@ -1,11 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include <libcloudph++/bulk/formulae.hpp>
+#include <libcloudph++/blk_1m/formulae.hpp>
 
 namespace libcloudphxx
 {
-  namespace bulk
+  namespace blk_1m
   {
     template <typename real_t, class container_t>
     void forcings_elementwise(

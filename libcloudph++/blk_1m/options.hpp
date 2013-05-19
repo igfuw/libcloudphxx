@@ -2,7 +2,7 @@
 
 namespace libcloudphxx
 {
-  namespace bulk
+  namespace blk_1m
   {
     template<typename real_t>
     struct opts

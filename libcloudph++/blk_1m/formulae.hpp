@@ -4,7 +4,7 @@
 
 namespace libcloudphxx
 {
-  namespace bulk
+  namespace blk_1m
   {
     namespace formulae
     {

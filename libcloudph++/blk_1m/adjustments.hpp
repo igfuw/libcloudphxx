@@ -12,13 +12,13 @@
 
 #include <libcloudph++/common/const_cp.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
-#include <libcloudph++/bulk/formulae.hpp>
+#include <libcloudph++/blk_1m/formulae.hpp>
 
 #include <libcloudph++/common/zip.hpp>
 
 namespace libcloudphxx
 {
-  namespace bulk
+  namespace blk_1m
   {
     namespace detail
     {
