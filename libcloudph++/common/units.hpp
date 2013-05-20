@@ -1,3 +1,10 @@
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  * @brief Common include directives and using statements for Boost.units
+  */
+
 #pragma once
 
 # include <boost/units/systems/si.hpp>

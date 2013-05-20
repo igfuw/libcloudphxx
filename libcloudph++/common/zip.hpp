@@ -1,3 +1,10 @@
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  * @brief Zip iterator implementation using C++11 variadic templates
+  */
+
 #pragma once
 
 // http://stackoverflow.com/questions/8511035/sequence-zip-function-for-c11

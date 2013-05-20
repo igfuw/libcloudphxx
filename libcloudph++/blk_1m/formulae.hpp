@@ -1,3 +1,11 @@
+/** @file
+  * @copyright University of Warsaw
+  * @brief single-moment bulk parameterisation formulae (Kessler)
+  *   from @copydetails bib::Grabowski_and_Smolarkiewicz_1996
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
 #pragma once
 
 #include <libcloudph++/common/moist_air.hpp>

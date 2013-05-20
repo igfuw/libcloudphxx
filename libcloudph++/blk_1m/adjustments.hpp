@@ -12,9 +12,9 @@
 
 #include <libcloudph++/common/const_cp.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
-#include <libcloudph++/blk_1m/formulae.hpp>
-
 #include <libcloudph++/common/zip.hpp>
+
+#include <libcloudph++/blk_1m/formulae.hpp>
 
 namespace libcloudphxx
 {
@@ -43,8 +43,8 @@ namespace libcloudphxx
 	}
 
 	quantity<si::dimensionless, real_t> r, rs;
-	quantity<si::pressure, real_t> p;
-	quantity<si::temperature, real_t> T;
+	quantity<si::pressure,      real_t> p;
+	quantity<si::temperature,   real_t> T;
 
 	private: 
 
@@ -53,9 +53,9 @@ namespace libcloudphxx
 	  const quantity<si::mass_density, real_t> rhod_rv
 	)
 	{
-	  r = rhod_rv / rhod;
-	  T = common::theta_dry::T<real_t>(rhod_th, rhod);
-	  p = common::theta_dry::p<real_t>(rhod, r, T);
+	  r  = rhod_rv / rhod;
+	  T  = common::theta_dry::T<real_t>(rhod_th, rhod);
+	  p  = common::theta_dry::p<real_t>(rhod, r, T);
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 

@@ -1,3 +1,10 @@
+/** @file
+  * @copyright University of Warsaw
+  * @brief Autoconversion and collection righ-hand side terms using Kessler formulae
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
 #pragma once
 
 #include <algorithm>

@@ -1,6 +1,16 @@
+/** @file
+  * @copyright University of Warsaw
+  * @brief Rain sedimentation representation for single-moment bulk microphysics
+  *   using forcing terms based on the upstrem advection scheme 
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
 #pragma once
-#include <libcloudph++/blk_1m/formulae.hpp>
+
 #include <algorithm>
+
+#include <libcloudph++/blk_1m/formulae.hpp>
 
 namespace libcloudphxx
 {
