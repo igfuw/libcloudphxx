@@ -11,10 +11,10 @@
 namespace bib
 {
   /// @brief
-  /// Two-Time-Level Semi-Lagrangian Modeling of Precipitating  Clouds
-  /// Mon. Wea. Rev., 124, 487-497.
-  /// @details
   /// [Grabowski and Smolarkiewicz 1996]: http://dx.doi.org/TODO
   /// [Grabowski and Smolarkiewicz 1996][]
+  /// @details
+  /// Two-Time-Level Semi-Lagrangian Modeling of Precipitating  Clouds
+  /// Mon. Wea. Rev., 124, 487-497.
   typedef void Grabowski_and_Smolarkiewicz_1996;
 }
