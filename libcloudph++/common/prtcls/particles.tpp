@@ -14,6 +14,13 @@
 
 #include <thrust/device_vector.h>
 
+namespace libcloudphxx
+{
+  namespace common
+  {
+    namespace prtcls
+    {
+
 template <typename real_t, int device>
 void particles<real_t, device>::func()
 {
@@ -30,3 +37,6 @@ void particles<real_t, device>::func()
   std::cerr << "CUDA/OpenMP/CPP: " << device << std::endl;
   thrust::device_vector<real_t> vec(1024*1024);
 }
+    };
+  };
+};

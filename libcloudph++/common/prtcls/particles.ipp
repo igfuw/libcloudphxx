@@ -25,8 +25,19 @@
 
 #include "particles.tpp"
 
+namespace libcloudphxx
+{ 
+  namespace common
+  {
+    namespace prtcls
+    {
+
 // instantiation 
 template class particles<
   libcloudphxx_particles_real_t, // float, double, ... 
   libcloudphxx_particles_device  // openmp, cuda, cpp
 >;
+
+    };
+  };
+};

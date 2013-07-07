@@ -1,30 +1,33 @@
 #include <iostream>
-#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "particles.hpp"
 
-int main()
+namespace libcloudphxx
 {
-  boost::ptr_vector<particles_proto<float>> ptrs;
-
-  std::cerr << "allocating CPP..." << std::endl;
-  ptrs.push_back(new particles<float, cpp>());
+  namespace common
+  {
+    namespace prtcls
+    {
+      template <typename real_t>
+      particles_proto<real_t> *factory()
+      {
+        std::cerr << "allocating CPP..." << std::endl;
+        return new particles<real_t, cpp>();
 
 #if defined(_OPENMP)
-  std::cerr << "allocating OpenMP..." << std::endl;
-  ptrs.push_back(new particles<float, openmp>());
+        std::cerr << "allocating OpenMP..." << std::endl;
+        return new particles<real_t, openmp>();
 #endif
 
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
-  std::cerr << "allocating CUDA..." << std::endl;
-  ptrs.push_back(new particles<float, cuda>());
+        std::cerr << "allocating CUDA..." << std::endl;
+        return new particles<real_t, cuda>();
 #endif
-
-  std::cerr << "looping (using C++11)..." << std::endl;
-  for (auto &ptr : ptrs)
-  {
-    ptr.func();
-  }
-
-  std::cerr << "done." << std::endl;
-}
+      }
+      
+      // explicit instantiation
+      template particles_proto<float> *factory();
+      //template particles_proto<double> *factory();
+    };
+  };
+};
