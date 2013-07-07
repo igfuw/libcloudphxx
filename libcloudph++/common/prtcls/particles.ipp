@@ -4,7 +4,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   *
   * @brief Thrust-based CPU/GPU particle-tracking logic for Lagrangian microphysics
-  * @details this file is to included in a .cpp file! For example:
+  * @details this file is to be included in a .cpp file! For example:
   * 
   * a cpp file with a CUDA instance (to be conpiled with nvcc):
   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +23,7 @@
   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   */
 
-#include <libcloudph++/lgrngn/particles.tpp>
+#include "particles.tpp"
 
 // instantiation 
 template class particles<

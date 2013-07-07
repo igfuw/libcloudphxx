@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include <libcloudph++/lgrngn/particles.hpp>
+#include "particles.hpp"
 
 #include <thrust/device_vector.h>
 

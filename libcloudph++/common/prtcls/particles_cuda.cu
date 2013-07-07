@@ -4,4 +4,4 @@
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #define libcloudphxx_particles_device cuda
 #define libcloudphxx_particles_real_t float
-#include <libcloudph++/lgrngn/particles.ipp>
+#include "particles.ipp"
