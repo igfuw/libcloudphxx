@@ -1,0 +1,39 @@
+0.09 (pre-submission, things that need to be explicitely mentioned in the text):
+- 0-d parcel/box framework (could make the drops model obsolete in a longer run!)
+- ventilation as an option in all schemes
+- think of some sexy animation showing some aerosol-indirect-effect-related stuff
+- sdm: coalescence Kernel choice: constant, Long, ...
+- out-of-source build tests, hints and encouragement :)
+- test testing if id/ln/p2/... wrks in sdm and hinting which to use...
+
+
+0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
+
+
+0.2: (near future enhancements, things important for the initial stages of the HARMONIA project)
+- sat. vap. pressure approximation as a template class for thermodynamics-related classes (e.g. Flatau's polynomial approximations vs. const-cp analytical formulas) 
+- non-kappa Koehler curves?
+  - insoluble core: http://www.atmos-chem-phys.org/8/1985/2008/acp-8-1985-2008.pdf
+  - surface active organic aerosol: http://www.atmos-chem-phys.net/11/4073/2011/acp-11-4073-2011.pdf
+- optionally include radiative effects on drop growth?  see below:
+  - Bott et al. 1990: ... diffusional growth of the particles is calculated by considering radiative effects in the droplet growth equation. Numerical results elucidate that the strong interaction between the radiatively induced droplet growth and their gravitational settling is responsible for a distinct reduction of the liquid water content ...
+  - Austin et al. 1995: ... Radiative cooling near the top of a layer cloud plays a dominant role in droplet condensation growth. ...
+  - Harrington et al. 2000: ... production of drizzle-sized drops is strongly dependent upon parcel cloud-top residence time for both radiative- and nonradiative-influenced growth. Drizzle-sized drops can be produced between 20 and 50 min earlier through the inclusion of the radiative term, which corroborates earlier results...
+  - Marquis et al. 2005: ... shortwave (SW) heating of individual drops can be strong enough that drop temperatures at equilibrium deviate by as much as 6°C from the surrounding environment ...
+- a simple test with libradtran for schemes with dagnosable r_eff
+
+
+0.3: (not-so-near future enhancements, applicable to HARMONIA)
+- a Barbados set-up aimed at the Hoppel gap! (CARRIBA?, http://www.mpimet.mpg.de/en/science/the-atmosphere-in-the-earth-system/initiatives/barbadosstation/barbados-workshop-oct-2011.html , aerosol composition: aerosol composition mentioned on Heike's slides: http://www.mpimet.mpg.de/fileadmin/atmosphaere/barbados/Workshop/Barbados_Workshop_10_2011_Wex.pdf)
+- sdm: aerosol sources
+- other microphysics schemes?
+  - Morrison et al. 2005; Morrison & Grabowski 2007, 2008: two-moment
+  - Yano, Bouniol 2010: "A minimum bulk microphysics" ?
+  - Seifert & Beheng 2001: "A double-moment parameterization for simulating autoconversion, accretion and selfcollection"
+  - TAU Cloud Microphysical Code: Method of Moments (http://www.esrl.noaa.gov/csd/staff/graham.feingold/code/)
+
+
+
+0.4: (far future, not relevant to HARMONIA)
+
+
