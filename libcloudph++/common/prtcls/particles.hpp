@@ -30,12 +30,12 @@ namespace libcloudphxx
     
         // the public API
         public:  
-        void func();
+        particles(real_t sd_conc_mean); // 0D ctor
       };
 
       // to be explicitely instantiated
       template <typename real_t>
-      particles_proto<real_t> *factory();
+      particles_proto<real_t> *factory(real_t sd_conc_mean); // 0D factory
     };
   };
 };

@@ -20,28 +20,53 @@ namespace libcloudphxx
   {
     namespace prtcls
     {
+      typedef thrust::device_vector<int>::size_type thrust_size_t;
+
+      // pimpl stuff
       template <typename real_t, int device>
       struct particles<real_t, device>::detail
       { 
+        const int n_dims;
+        thrust_size_t n_part;
+        thrust::device_vector<real_t> 
+          rd3, // dry radii cubed 
+          xi, 
+          x, 
+          y, 
+          z;
 
-      };
-
-      template <typename real_t, int device>
-      void particles<real_t, device>::func()
-      {
+        //
+        void init()
+        {
+	  // sanity checks (Thrust preprocessor macro names vs. local enum names)
 #if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_OMP) 
-	assert(device == omp);
+	  assert(device == omp);
 #elif (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA) 
-	assert(device == cuda);
+	  assert(device == cuda);
 #elif (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CPP) 
-	assert(device == cpp);
+	  assert(device == cpp);
 #else
-	assert(false);
+	  assert(false);
 #endif
 
-	std::cerr << "CUDA/OpenMP/CPP: " << device << std::endl;
-	thrust::device_vector<real_t> vec(1024*1024);
-      }
+          // 
+          rd3.resize(n_part);
+        }
+
+        // 0D ctor 
+        detail(real_t sd_conc_mean)
+          : n_dims(0), n_part(sd_conc_mean)
+        {
+std::cerr << "aqq" << std::endl;
+          init();
+        }
+      };
+
+      // 0D ctor
+      template <typename real_t, int device>
+      particles<real_t, device>::particles(real_t sd_conc_mean)
+        : pimpl(new detail(sd_conc_mean)) 
+      {}
     };
   };
 };
