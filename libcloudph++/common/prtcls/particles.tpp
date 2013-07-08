@@ -20,6 +20,11 @@ namespace libcloudphxx
   {
     namespace prtcls
     {
+      template <typename real_t, int device>
+      struct particles<real_t, device>::detail
+      { 
+
+      };
 
       template <typename real_t, int device>
       void particles<real_t, device>::func()

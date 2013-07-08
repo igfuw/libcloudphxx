@@ -1,4 +1,7 @@
+#pragma once 
+
 #include <cassert>
+#include <memory>
 
 namespace libcloudphxx
 {
@@ -21,6 +24,11 @@ namespace libcloudphxx
       template <typename real_t, int thrust_device_system>
       class particles : public particles_proto<real_t>
       {
+        // pimpl stuff
+        struct detail;
+        std::auto_ptr<detail> pimpl;
+    
+        // the public API
         public:  
         void func();
       };
