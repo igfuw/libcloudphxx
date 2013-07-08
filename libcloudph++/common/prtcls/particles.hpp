@@ -7,7 +7,7 @@ namespace libcloudphxx
     namespace prtcls
     {
       // to make inclusion of Thrust not neccesarry
-      enum {cpp, openmp, cuda};
+      enum {cpp, omp, cuda};
 
       // to allow storing instances for multiple backends in one container/pointer
       template <typename real_t>
@@ -26,7 +26,7 @@ namespace libcloudphxx
       };
 
       // to be explicitely instantiated
-      template <typename real_t>
+      template <typename real_t, int backend>
       particles_proto<real_t> *factory();
     };
   };

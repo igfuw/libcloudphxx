@@ -6,11 +6,11 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
 
 # trying to allow runtime choice betwee CUDA, CPP and OpenMP backends
 set(files "")
-set(files "${files};particles_lib.cpp")
+set(files "${files};particles.cpp")
 set(files "${files};particles_cpp.cpp")
 
 if (OPENMP_FOUND)
-  set(files "${files};particles_openmp.cpp")
+  set(files "${files};particles_omp.cpp")
 endif()
 
 if (CUDA_FOUND)

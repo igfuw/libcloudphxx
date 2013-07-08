@@ -21,22 +21,22 @@ namespace libcloudphxx
     namespace prtcls
     {
 
-template <typename real_t, int device>
-void particles<real_t, device>::func()
-{
+      template <typename real_t, int device>
+      void particles<real_t, device>::func()
+      {
 #if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_OMP) 
-  assert(device == openmp);
+	assert(device == omp);
 #elif (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA) 
-  assert(device == cuda);
+	assert(device == cuda);
 #elif (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CPP) 
-  assert(device == cpp);
+	assert(device == cpp);
 #else
-  assert(false);
+	assert(false);
 #endif
 
-  std::cerr << "CUDA/OpenMP/CPP: " << device << std::endl;
-  thrust::device_vector<real_t> vec(1024*1024);
-}
+	std::cerr << "CUDA/OpenMP/CPP: " << device << std::endl;
+	thrust::device_vector<real_t> vec(1024*1024);
+      }
     };
   };
 };

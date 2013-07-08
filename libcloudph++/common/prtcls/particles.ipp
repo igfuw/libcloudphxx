@@ -31,13 +31,11 @@ namespace libcloudphxx
   {
     namespace prtcls
     {
-
-// instantiation 
-template class particles<
-  libcloudphxx_particles_real_t, // float, double, ... 
-  libcloudphxx_particles_device  // openmp, cuda, cpp
->;
-
+      // instantiation 
+      template class particles<
+	libcloudphxx_particles_real_t, // float, double, ... 
+	libcloudphxx_particles_device  // omp, cuda, cpp
+      >;
     };
   };
 };
