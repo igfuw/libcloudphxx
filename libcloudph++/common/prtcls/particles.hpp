@@ -35,7 +35,7 @@ namespace libcloudphxx
 
       // to be explicitely instantiated
       template <typename real_t>
-      particles_proto<real_t> *factory(real_t sd_conc_mean); // 0D factory
+      particles_proto<real_t> *factory(real_t sd_conc_mean, int nx = 0, int ny = 0, int nz = 0); 
     };
   };
 };
