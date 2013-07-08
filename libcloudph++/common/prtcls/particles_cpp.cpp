@@ -1,4 +1,16 @@
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-#define libcloudphxx_particles_device cpp
-#define libcloudphxx_particles_real_t float
-#include "particles.ipp"
+
+#include "particles.tpp"
+
+namespace libcloudphxx
+{ 
+  namespace common
+  {
+    namespace prtcls
+    {
+      // instantiation 
+      template class particles<float, cpp>;
+      template class particles<double, cpp>;
+    };
+  };
+};

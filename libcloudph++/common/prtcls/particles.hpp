@@ -26,7 +26,7 @@ namespace libcloudphxx
       };
 
       // to be explicitely instantiated
-      template <typename real_t, int backend>
+      template <typename real_t>
       particles_proto<real_t> *factory();
     };
   };
