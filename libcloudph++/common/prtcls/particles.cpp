@@ -15,16 +15,16 @@ namespace libcloudphxx
 
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
         std::cerr << "allocating CUDA..." << std::endl;
-        return new particles<real_t, cuda>(sd_conc_mean);
+        return new particles<real_t, cuda>(sd_conc_mean, nx, ny, nz);
 #endif
          
 #if defined(_OPENMP)
         std::cerr << "allocating OpenMP..." << std::endl;
-        return new particles<real_t, omp>(sd_conc_mean);
+        return new particles<real_t, omp>(sd_conc_mean, nx, ny, nz);
 #endif
  
         std::cerr << "allocating CPP..." << std::endl;
-        return new particles<real_t, cpp>(sd_conc_mean);
+        return new particles<real_t, cpp>(sd_conc_mean, nx, ny, nz);
       }
       
       // explicit instantiation

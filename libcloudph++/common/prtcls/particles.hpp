@@ -25,12 +25,12 @@ namespace libcloudphxx
       class particles : public particles_proto<real_t>
       {
         // pimpl stuff
-        struct detail;
-        std::auto_ptr<detail> pimpl;
+        struct impl;
+        std::auto_ptr<impl> pimpl;
     
         // the public API
         public:  
-        particles(real_t sd_conc_mean); // 0D ctor
+        particles(real_t sd_conc_mean, int nx, int ny, int nz); // ctor
       };
 
       // to be explicitely instantiated
