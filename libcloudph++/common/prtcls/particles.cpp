@@ -29,7 +29,7 @@ namespace libcloudphxx
       
       // explicit instantiation
       template particles_proto<float>  *factory(float  sd_conc_mean, int nx, int ny, int nz);
-      template particles_proto<double> *factory(double sd_conc_mean, int nx, int ny, int nz);
+//      template particles_proto<double> *factory(double sd_conc_mean, int nx, int ny, int nz);
     };
   };
 };

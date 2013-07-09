@@ -83,7 +83,9 @@ std::cerr << "impl ctor (n_part = " << n_part << ", n_dims = " << n_dims << ")" 
       template <typename real_t, int device>
       void particles<real_t, device>::init()
       {
+std::cerr << "init called, calling urand..." << std::endl;
         pimpl->urand(pimpl->n_part);
+std::cerr << "done." << std::endl;
 debug::print(pimpl->u01);
       }
     };

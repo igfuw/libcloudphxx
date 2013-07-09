@@ -2,7 +2,6 @@
 
 #include "thrust.hpp"
 
-
 #if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
 #  include <curand.h>
 #else
@@ -23,11 +22,38 @@ namespace libcloudphxx
         {
 #if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
           // CUDA parallel version using curand
+
+          // private member fields
+          curandGenerator_t gen;
+          
+          public:
+
+          u01()
+          {
+            // TODO: error handling
+            if (curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32)
+              != CURAND_STATUS_SUCCESS) throw std::exception();
+            if (curandSetPseudoRandomGeneratorSeed(gen, 44)
+              != CURAND_STATUS_SUCCESS) throw std::exception();
+          }
+
+          ~u01()
+          {
+            curandDestroyGenerator(gen); 
+          }
+
+          void generate_n(
+	    thrust::device_vector<real_t> &u01, 
+	    const thrust_size_t n
+          )
+          {
+            if (curandGenerateUniform(gen, thrust::raw_pointer_cast(u01.data()), n)
+              != CURAND_STATUS_SUCCESS) throw std::exception();
+          }
 #else
           // serial version using C++11's <random>
           using engine_t = std::mt19937;
 
-          // private member fields
           struct fnctr
           {
 	    engine_t engine;
@@ -38,7 +64,6 @@ namespace libcloudphxx
 
           public:
 
-          // public methods
           void generate_n(
 	    thrust::device_vector<real_t> &u01, 
 	    const thrust_size_t n
