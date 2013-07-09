@@ -2,50 +2,53 @@
 
 #include "thrust.hpp"
 
+
 #if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
+#  include <curand.h>
 #else
-#  include <thrust/random.h>
+#  include <random>
+#  include <algorithm>
 #endif
 
 namespace libcloudphxx
 {
-namespace common
-{
-namespace prtcls
-{
-namespace detail
-{
-
-template <typename real_t>
-void urand(
-  thrust::device_vector<real_t> &u01, 
-  const thrust_size_t n,
-  real_t *seed
-)
-{
-#if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CPP)
-  struct rng
+  namespace common
   {
-    // member fields
-    real_t *seed;
-    thrust::random::taus88 engine;
-    thrust::uniform_real_distribution<real_t> dist;
+    namespace prtcls
+    {
+      namespace detail
+      {
+	template <typename real_t>
+        class u01
+        {
+#if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
+          // CUDA parallel version using curand
+#else
+          // serial version using C++11's <random>
+          using engine_t = std::mt19937;
 
-    // ctor
-    rng(real_t *seed) : seed(seed), engine(*seed), dist(0, 1) {}
+          // private member fields
+          struct fnctr
+          {
+	    engine_t engine;
+	    std::uniform_real_distribution<real_t> dist;
+            fnctr() : engine(44), dist(0,1) {} // hardcoded seed value
+	    real_t operator()() { return dist(engine); }
+          } fnctri;
 
-    // dtor
-    ~rng() { *seed = this->operator()(); }
+          public:
 
-    // overloaded op invoked by generate()
-    real_t operator()() { return dist(engine); }
-  };
-
-  thrust::generate_n(u01.begin(), n, rng(seed));
+          // public methods
+          void generate_n(
+	    thrust::device_vector<real_t> &u01, 
+	    const thrust_size_t n
+          )
+          {
+	    std::generate_n(u01.begin(), n, fnctri); 
+          }
 #endif
-}
-
-};
-};
-};
+        };
+      };
+    };
+  };
 };
