@@ -30,25 +30,26 @@ namespace libcloudphxx
 
           u01()
           {
-            // TODO: error handling
-            if (curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32)
-              != CURAND_STATUS_SUCCESS) throw std::exception();
-            if (curandSetPseudoRandomGeneratorSeed(gen, 44)
-              != CURAND_STATUS_SUCCESS) throw std::exception();
+            int status;
+            status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
+            assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
+            status = curandSetPseudoRandomGeneratorSeed(gen, 44);
+            assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
           }
 
           ~u01()
           {
-            curandDestroyGenerator(gen); 
+            int status = curandDestroyGenerator(gen); 
+            assert(status == CURAND_STATUS_SUCCESS /* && "curandDestroyGenerator failed"*/);
           }
 
           void generate_n(
-	    thrust::device_vector<real_t> &u01, 
+	    thrust::device_vector<real_t> &v, 
 	    const thrust_size_t n
           )
           {
-            if (curandGenerateUniform(gen, thrust::raw_pointer_cast(u01.data()), n)
-              != CURAND_STATUS_SUCCESS) throw std::exception();
+            int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
+            assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           }
 #else
           // serial version using C++11's <random>
