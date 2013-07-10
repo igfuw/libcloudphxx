@@ -9,7 +9,7 @@ namespace libcloudphxx
     namespace prtcls
     {
       template <typename real_t>
-      particles_proto<real_t> *factory(real_t sd_conc_mean, int nx = 0, int ny = 0, int nz = 0)
+      particles_proto<real_t> *factory(real_t sd_conc_mean, int nx, int ny, int nz)
       {
         // TODO: provide some controll over the choice
 

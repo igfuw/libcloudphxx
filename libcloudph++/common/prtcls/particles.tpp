@@ -61,9 +61,9 @@ std::cerr << "impl ctor (n_part = " << n_part << ", n_dims = " << n_dims << ")" 
       template <typename real_t, int device>
       particles<real_t, device>::particles(
         real_t sd_conc_mean,
-        int nx = 0,
-        int ny = 0,
-        int nz = 0
+        int nx,
+        int ny,
+        int nz
       )
         : pimpl(new impl(sd_conc_mean, nx, ny, nz)) 
       {
