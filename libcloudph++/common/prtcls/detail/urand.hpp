@@ -2,7 +2,7 @@
 
 #include "thrust.hpp"
 
-#if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
+#if defined(__NVCC__)
 #  include <curand.h>
 #else
 #  include <random>
@@ -20,7 +20,7 @@ namespace libcloudphxx
 	template <typename real_t>
         class u01
         {
-#if (THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA)
+#if defined(__NVCC__)
           // CUDA parallel version using curand
 
           // private member fields
@@ -44,7 +44,7 @@ namespace libcloudphxx
           }
 
           void generate_n(
-	    thrust::device_vector<real_t> &v, 
+	    thrust_device::vector<real_t> &v, 
 	    const thrust_size_t n
           )
           {
@@ -66,7 +66,7 @@ namespace libcloudphxx
           public:
 
           void generate_n(
-	    thrust::device_vector<real_t> &u01, 
+	    thrust_device::vector<real_t> &u01, 
 	    const thrust_size_t n
           )
           {
