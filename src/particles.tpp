@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "particles.hpp"
+#include "../include/lgrngn/particles.hpp"
 
 #include "detail/urand.hpp"
 #include "detail/thrust.hpp"

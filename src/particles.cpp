@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "particles.hpp"
+#include "../include/lgrngn/particles.hpp"
 
 namespace libcloudphxx
 {

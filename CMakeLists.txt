@@ -4,7 +4,8 @@ project(libcloudph++ CXX C)
 # requireing C++11 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-add_subdirectory(libcloudph++) 
+add_subdirectory(include) 
+add_subdirectory(src) 
 
 #TODO: search for Blitz
 #TODO: search for libmpdata++

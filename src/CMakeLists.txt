@@ -21,5 +21,4 @@ else()
   add_library(cloudphxx_common_prtcls SHARED ${files})
 endif()
 
-install(FILES particles.hpp DESTINATION include/libcloudph++/common/prtcls)
 install(TARGETS cloudphxx_common_prtcls LIBRARY DESTINATION lib)

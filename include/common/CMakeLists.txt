@@ -1,5 +1,3 @@
-add_subdirectory(prtcls)
-
 install(
   FILES 
     const_cp.hpp

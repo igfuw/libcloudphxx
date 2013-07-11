@@ -2,6 +2,7 @@
 install(
   FILES 
     options.hpp 
+    particles.hpp 
   DESTINATION 
     include/libcloudph++/lgrngn
 )

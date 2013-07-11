@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-#include "particles.hpp"
-
 #include "detail/urand.hpp"
 #include "detail/thrust.hpp"
 
