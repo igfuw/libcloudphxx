@@ -22,7 +22,7 @@ namespace libcloudphxx
         const int n_dims;
         const thrust_size_t n_part; 
         const real_t sd_conc_mean; //, dx, dy, dz;
-        detail::u01<real_t> rng;
+        detail::u01<real_t, device> rng;
         thrust_device::vector<real_t> 
           // particle attributes
           rd3, // dry radii cubed 

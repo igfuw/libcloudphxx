@@ -1,11 +1,11 @@
-#if defined(CUDA_FOUND)
-#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
-#else
-#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-#endif
+//#if defined(CUDA_FOUND)
+//#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
+//#else
+//#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+//#endif
 
 #include <thrust/system/cpp/vector.h>
-#define thrust_device ::thrust::cpp
+#define thrust_device ::thrust::cpp // TODO: namespace
 
 #include "particles.tpp"
 
