@@ -1,7 +1,7 @@
 //#if defined(CUDA_FOUND)
 //#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 //#else
-//#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 //#endif
 
 #include <thrust/system/omp/vector.h>
