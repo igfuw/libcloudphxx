@@ -8,6 +8,8 @@ install(
     theta_std.hpp
     units.hpp
     zip.hpp
+    lognormal.hpp
+    unary_function.hpp
   DESTINATION 
     include/libcloudph++/common
 )

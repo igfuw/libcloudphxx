@@ -3,6 +3,8 @@
 #include <cassert>
 #include <memory>
 
+#include "../common/unary_function.hpp"
+
 namespace libcloudphxx
 {
   namespace common
@@ -17,7 +19,7 @@ namespace libcloudphxx
       class particles_proto // TODO: rename to any?
       {
         public: 
-        virtual void init(real_t, real_t) { assert(false); }  
+        virtual void init(unary_function<real_t> *pdf) { assert(false); }  
       };  
 
       // prototype of what's implemented in the .tpp file
@@ -31,12 +33,15 @@ namespace libcloudphxx
         // the public API
         public:  
         particles(real_t sd_conc_mean, int nx, int ny, int nz); // ctor
-        void init(real_t rd_min, real_t rd_max);
+        void init(unary_function<real_t> *pdf);
       };
 
       // to be explicitely instantiated
       template <typename real_t>
-      particles_proto<real_t> *factory(real_t sd_conc_mean, int nx = 0, int ny = 0, int nz = 0); 
+      particles_proto<real_t> *factory(
+        real_t sd_conc_mean, 
+        int nx = 0, int ny = 0, int nz = 0
+      ); 
     };
   };
 };
