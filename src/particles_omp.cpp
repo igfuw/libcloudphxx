@@ -5,19 +5,16 @@
 //#endif
 
 #include <thrust/system/omp/vector.h>
-#define thrust_device ::thrust::omp // TODO: change to namespace thrust_device = ::thrust::omp?
+namespace thrust_device = ::thrust::omp;
 
 #include "particles.tpp"
 
 namespace libcloudphxx
 { 
-  namespace common
+  namespace lgrngn
   {
-    namespace prtcls
-    {
-      // instantiation 
-      template class particles<float, omp>;
-      template class particles<double, omp>;
-    };
+    // instantiation 
+    template class particles<float, omp>;
+    template class particles<double, omp>;
   };
 };

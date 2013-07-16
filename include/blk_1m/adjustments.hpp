@@ -12,7 +12,7 @@
 
 #include <libcloudph++/common/const_cp.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
-#include <libcloudph++/common/zip.hpp>
+#include <libcloudph++/common/detail/zip.hpp>
 
 #include <libcloudph++/blk_1m/formulae.hpp>
 

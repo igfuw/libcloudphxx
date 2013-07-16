@@ -8,36 +8,32 @@
 
 namespace libcloudphxx
 {
-  namespace common
+  namespace lgrngn
   {
-    namespace prtcls
+    namespace detail
     {
-      namespace detail
-      {
 
-        template <typename real_t>
-	struct exp3x
+      template <typename real_t>
+      struct exp3x
+      { 
+	__device__ 
+	real_t operator()(real_t x) 
 	{ 
-	  __device__ 
-	  real_t operator()(real_t x) 
-	  { 
-	    return exp(3*x); 
-	  } 
-	};
-
-
-        template <typename T>
-	struct equals_zero
-	{ 
-	  __device__ 
-	  bool operator()(T x) 
-	  { 
-	    return x == 0; 
-	  } 
-	};
-
-
+	  return exp(3*x); 
+	} 
       };
+
+
+      template <typename T>
+      struct equals_zero
+      { 
+	__device__ 
+	bool operator()(T x) 
+	{ 
+	  return x == 0; 
+	} 
+      };
+
     };
   };
 };

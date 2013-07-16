@@ -8,19 +8,16 @@
 //       but as of now there's a conficlict of definition of default::... TODO!
 //#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 #include <thrust/system/cuda/vector.h>
-#define thrust_device ::thrust::cuda // TODO: namespace thrust_device = ::thrust::cuda
+namespace thrust_device = ::thrust::cuda;
 
 #include "particles.tpp"
 
 namespace libcloudphxx
 { 
-  namespace common
+  namespace lgrngn
   {
-    namespace prtcls
-    {
-      // instantiation 
-      template class particles<float, cuda>;
-//      template class particles<double, cuda>;
-    };
+    // instantiation 
+    template class particles<float, cuda>;
+//    template class particles<double, cuda>;
   };
 };
