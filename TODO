@@ -11,6 +11,7 @@
 
 
 0.2: (near future enhancements, things important for the initial stages of the HARMONIA project)
+- initialisation with multiple dry pdfs (with multiple kappas)
 - sat. vap. pressure approximation as a template class for thermodynamics-related classes (e.g. Flatau's polynomial approximations vs. const-cp analytical formulas) 
 - non-kappa Koehler curves?
   - insoluble core: http://www.atmos-chem-phys.org/8/1985/2008/acp-8-1985-2008.pdf

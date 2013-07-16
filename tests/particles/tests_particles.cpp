@@ -1,6 +1,6 @@
 #include <libcloudph++/lgrngn/particles.hpp>
 
-using namespace libcloudphxx::common::prtcls;
+using namespace libcloudphxx::lgrngn;
 
 int main()
 {

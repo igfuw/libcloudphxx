@@ -14,4 +14,9 @@
 #include "detail/urand.hpp"
 
 #include "particles_pimpl_ctor.ipp"
+
+#include "particles_init_dry.ipp"
+#include "particles_init_wet.ipp"
+#include "particles_init_xyz.ipp"
+#include "particles_init_Tpr.ipp"
 #include "particles_init.ipp"
