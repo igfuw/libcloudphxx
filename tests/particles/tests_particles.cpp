@@ -1,6 +1,6 @@
-#include <libcloudph++/lgrngn/particles.hpp>
+//#include <libcloudph++/lgrngn/particles.hpp> // cannot include berfore "make install" :(
 
-using namespace libcloudphxx::lgrngn;
+//using namespace libcloudphxx::lgrngn;
 
 int main()
 {
