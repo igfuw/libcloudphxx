@@ -20,8 +20,10 @@ namespace libcloudphxx
      
       for (int i = 0; i < 3; ++i)
       {
+        if (n[i] == 0) continue;
+
         // memory allocation
-        if (n[i] != 0) v[i]->resize(n_part);
+        v[i]->resize(n_part);
 
         // tossing random numbers [0,1] 
         urand(n_part);
