@@ -1,3 +1,5 @@
+#include "lib.hpp"
+
 // including it first not to require pthread option to nvcc
 //#include <blitz/array.h>
 
