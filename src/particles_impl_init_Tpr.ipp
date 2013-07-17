@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::init_Tpr()
+    void particles<real_t, device>::impl::init_Tpr()
     {
     }
   };

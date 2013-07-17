@@ -17,9 +17,10 @@ namespace libcloudphxx
       typedef unsigned long n_t;
 
       // member fields
+      const opts_t<real_t> opts; // nx, ny, nz, dx, dy, dz, ...;
       const int n_dims;
+      const int n_cell; 
       const thrust_size_t n_part; 
-      const real_t sd_conc_mean; //, dx, dy, dz;
       detail::u01<real_t, device> rng;
 
       // particle attributes
@@ -38,8 +39,8 @@ namespace libcloudphxx
 	u01; // uniform random numbers between 0 and 1
 
       // Eulerian-Lagrangian interface vers
-      thrust_device::vector<thrust_size_t>
-        ijk; // Eulerian grid cell index (always zero for 0D)
+      thrust_device::vector<int>
+        i, j, k, ijk; // Eulerian grid cell indices (always zero for 0D)
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         rhod_th, // energy volume density divided by c_p
@@ -56,18 +57,34 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_t<real_t> opts) : 
-	sd_conc_mean(opts.sd_conc_mean),
+	opts(opts),
 	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
-	n_part(opts.sd_conc_mean * m1(opts.nx) * m1(opts.ny) * m1(opts.nz)) // sd_conc_mean * nx * ny * nz (with ni=min(ni,1))
+        n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
+	n_part(opts.sd_conc_mean * n_cell) // sd_conc_mean * nx * ny * nz (with ni=min(ni,1))
       {
 	u01.resize(n_part);
+        i.resize(opts.nx);
+        j.resize(opts.ny);
+        k.resize(opts.nz);
+        ijk.resize(n_cell);
       }
+
+      // methods
+      void init_dry(const unary_function<real_t> *n_of_lnrd);
+      void init_xyz();
+      void init_Tpr();
+      void init_wet();
+      void hskpng();
     };
 
     // ctor
     template <typename real_t, int device>
     particles<real_t, device>::particles(const opts_t<real_t> opts) :
       pimpl(new impl(opts))
-    {}
+    {
+      assert(opts.dx != 0);
+      assert(opts.dy != 0);
+      assert(opts.dz != 0);
+    }
   };
 };

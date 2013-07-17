@@ -13,10 +13,14 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 
+// public API
 #include "particles_pimpl_ctor.ipp"
-
-#include "particles_init_dry.ipp"
-#include "particles_init_wet.ipp"
-#include "particles_init_xyz.ipp"
-#include "particles_init_Tpr.ipp"
 #include "particles_init.ipp"
+#include "particles_step.ipp"
+
+// details
+#include "particles_impl_init_dry.ipp"
+#include "particles_impl_init_wet.ipp"
+#include "particles_impl_init_xyz.ipp"
+#include "particles_impl_init_Tpr.ipp"
+#include "particles_impl_hskpng.ipp"

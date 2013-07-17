@@ -20,12 +20,7 @@ namespace libcloudphxx
     {
       public: 
       virtual void init(unary_function<real_t> *pdf) { assert(false); }  
-
-      // TODO: -> pimpl? / private?
-      virtual void init_dry(unary_function<real_t> *pdf) { assert(false); }  
-      virtual void init_xyz() { assert(false); }  
-      virtual void init_Tpr() { assert(false); }  
-      virtual void init_wet() { assert(false); }  
+      virtual void step() { assert(false); }  
     };  
 
     template <typename real_t>
@@ -55,13 +50,8 @@ namespace libcloudphxx
       // the public API
       public:  
       particles(const opts_t<real_t>); // ctor
-
-      void init(unary_function<real_t> *pdf);
-      // TODO: -> pimpl? / private?
-      void init_dry(unary_function<real_t> *pdf);
-      void init_xyz();
-      void init_Tpr();
-      void init_wet();
+      void init(unary_function<real_t> *pdf); // TODO: explain why init not within constructor? (e.g. NaNs in Eulerian part?)
+      void step();
     };
 
     // to be explicitely instantiated
