@@ -4,6 +4,15 @@ project(libcloudph++ CXX C)
 # requireing C++11 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
+# TODO: libmpdataxx-config?
+# -DNDEBUG?
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Wfatal-errors -Ofast -march=native")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Wfatal-errors -O3 -march=native -ffast-math") 
+endif()
+
+
 add_subdirectory(include) 
 add_subdirectory(src) 
 
