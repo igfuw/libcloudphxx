@@ -14,6 +14,7 @@ namespace libcloudphxx
     template <typename real_t, int device>
     void particles<real_t, device>::step()
     {
+std::cerr << "\n\n STEP \n\n";
       pimpl->hskpng();
     }
   };

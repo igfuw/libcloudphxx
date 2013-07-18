@@ -16,9 +16,13 @@ namespace libcloudphxx
       unary_function<real_t> *n_of_lnrd 
     )
     {
+std::cerr << "\n\n INIT \n\n";
+
       pimpl->init_dry(n_of_lnrd);
       pimpl->init_xyz();
-      pimpl->init_Tpr();
+      pimpl->init_Tpr(); // only alloc here?
+      pimpl->hskpng(); // could be part of sync_in?
+      //pimpl->sync_in();
       pimpl->init_wet();
     }
   };

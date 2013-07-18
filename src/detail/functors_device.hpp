@@ -40,21 +40,6 @@ namespace libcloudphxx
         }
       };
 
-
-      /// @brief returns i+j*n (ravels {i,j} index pairs into a single index)
-// TODO: what about 3D
-// TODO: probably can be done using placeholders!
-      struct ravel_indices
-      {
-        int n;
-        ravel_indices(int n) : n(n) {}
-      
-        __device__
-        int operator()(int i, int j) 
-        { 
-          return i + j * n; 
-        }
-      };
     };
   };
 };

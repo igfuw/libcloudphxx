@@ -12,6 +12,13 @@ namespace libcloudphxx
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_Tpr()
     {
+      // memory allocation
+      rhod.resize(n_cell);
+      rhod_th.resize(n_cell);
+      rhod_rv.resize(n_cell);
+      T.resize(n_cell);
+      p.resize(n_cell);
+      r.resize(n_cell); 
     }
   };
 };

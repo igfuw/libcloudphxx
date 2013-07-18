@@ -18,12 +18,12 @@ namespace libcloudphxx
       const int    n[3] = { opts.nx, opts.ny, opts.nz};
       const real_t d[3] = { opts.dx, opts.dy, opts.dz};
      
-      for (int i = 0; i < 3; ++i)
+      for (int ix = 0; ix < 3; ++ix)
       {
-        if (n[i] == 0) continue;
+        if (n[ix] == 0) continue;
 
         // memory allocation
-        v[i]->resize(n_part);
+        v[ix]->resize(n_part);
 
         // tossing random numbers [0,1] 
         urand(n_part);
@@ -34,8 +34,8 @@ namespace libcloudphxx
 	  thrust::transform(
 	    u01.begin(), 
 	    u01.end(), 
-	    v[i]->begin(), 
-	    _1 * n[i] * d[i]
+	    v[ix]->begin(), 
+	    _1 * n[ix] * d[ix]
 	  );
         }
       }
