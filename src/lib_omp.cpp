@@ -7,11 +7,23 @@
 namespace thrust_device = ::thrust::omp;
 
 #include "particles.tpp"
+#include <omp.h>
 
 namespace libcloudphxx
 { 
   namespace lgrngn
   {
+    template <typename real_t, int backend>
+    void particles<real_t, backend>::impl::sanity_checks()
+    {   
+      if (omp_get_max_threads() == 1) return;
+      thrust::omp::vector<int> v(100);
+      struct { int operator()(int) { return omp_get_thread_num(); } } thread_id;
+      thrust::transform(v.begin(), v.end(), v.begin(), thread_id);
+      auto minmax = thrust::minmax_element(v.begin(), v.end());
+      assert(*minmax.first != *minmax.second);
+    }
+
     // instantiation 
     template class particles<float, omp>;
     template class particles<double, omp>;

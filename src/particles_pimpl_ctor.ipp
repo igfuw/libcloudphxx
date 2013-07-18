@@ -70,6 +70,7 @@ namespace libcloudphxx
       }
 
       // methods
+      void sanity_checks();
       void init_dry(const unary_function<real_t> *n_of_lnrd);
       void init_xyz();
       void init_Tpr();
@@ -82,6 +83,7 @@ namespace libcloudphxx
     particles<real_t, device>::particles(const opts_t<real_t> opts) :
       pimpl(new impl(opts))
     {
+      pimpl->sanity_checks();
       assert(opts.dx != 0);
       assert(opts.dy != 0);
       assert(opts.dz != 0);

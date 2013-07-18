@@ -2,21 +2,6 @@
 
 #include "../include/lgrngn/particles.hpp"
 
-#if defined(_OPENMP)
-#  include <omp.h>
-#  include "lib.hpp"
-#  include <thrust/system/omp/vector.h>
-void omp_sanity_check()
-{
-  if (omp_get_max_threads() == 1) return;
-  thrust::omp::vector<int> v(100);
-  struct { int operator()(int) { return omp_get_thread_num(); } } thread_id;
-  thrust::transform(v.begin(), v.end(), v.begin(), thread_id);
-  auto minmax = thrust::minmax_element(v.begin(), v.end());
-  assert(*minmax.first != *minmax.second);
-}
-#endif
-
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -38,7 +23,6 @@ namespace libcloudphxx
 #endif
 	case omp:
 #if defined(_OPENMP)
-          omp_sanity_check();
 	  return new particles<real_t, omp>(opts);
 #else
 	  assert(false && "OpenMP backend was not compiled"); throw;

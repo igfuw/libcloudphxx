@@ -12,6 +12,11 @@ namespace libcloudphxx
 { 
   namespace lgrngn
   {
+    template <typename real_t, int backend>
+    void particles<real_t, backend>::impl::sanity_checks()
+    {   
+    }  
+
     // instantiation 
     template class particles<float, cpp>;
     template class particles<double, cpp>;
