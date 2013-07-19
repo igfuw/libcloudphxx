@@ -22,6 +22,6 @@ namespace libcloudphxx
 
     // instantiation 
     template class particles<float, cuda>;
-//    template class particles<double, cuda>; // TODO?
+    template class particles<double, cuda>; 
   };
 };

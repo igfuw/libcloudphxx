@@ -69,11 +69,20 @@ namespace libcloudphxx
 	}
 
 	void generate_n(
-	  thrust_device::vector<real_t> &v, 
+	  thrust_device::vector<float> &v, 
 	  const thrust_size_t n
 	)
 	{
 	  int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
+	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+	}
+
+	void generate_n(
+	  thrust_device::vector<double> &v, 
+	  const thrust_size_t n
+	)
+	{
+	  int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
 	}
 #endif

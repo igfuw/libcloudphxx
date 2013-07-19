@@ -12,13 +12,13 @@ namespace libcloudphxx
   {
     // init
     template <typename real_t, int device>
-    void particles<real_t, device>::init(
-      unary_function<real_t> *n_of_lnrd 
-    )
+    void particles<real_t, device>::init()
     {
 std::cerr << "\n\n INIT \n\n";
 
-      pimpl->init_dry(n_of_lnrd);
+      assert(pimpl->opts.dry_distros.size() == 1); // TODO
+      pimpl->init_dry(pimpl->opts.dry_distros.begin()->second); // TODO: document that n_of_lnrd is expected!
+
       pimpl->init_xyz();
       pimpl->init_Tpr(); // only alloc here?
       pimpl->hskpng(); // could be part of sync_in?

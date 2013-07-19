@@ -15,6 +15,7 @@
 
 // public API
 #include "particles_pimpl_ctor.ipp"
+#include "particles_sync.ipp"
 #include "particles_init.ipp"
 #include "particles_step.ipp"
 

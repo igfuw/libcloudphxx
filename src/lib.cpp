@@ -11,7 +11,7 @@ namespace libcloudphxx
     // - to manage 0D/1D/2D/3D parameter defaults
     // - to shorten the code on the caller side
     template <typename real_t>
-    particles_proto<real_t> *factory(const int backend, const opts_t<real_t> opts)
+    particles_proto<real_t> *factory_helper(const int backend, const opts_t<real_t> opts)
     {
       switch (backend)
       {
@@ -35,75 +35,49 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
-    particles_proto<real_t> *factory(
-      const int backend, 
-      const real_t sd_conc_mean
-    )
-    {
-      opts_t<real_t> opts;
-      opts.sd_conc_mean = sd_conc_mean;
-      return factory(backend, opts);
-    }
-
-    template <typename real_t>
-    particles_proto<real_t> *factory(
+    particles_proto<real_t>* factory<real_t>::make(
       const int backend, 
       const real_t sd_conc_mean,
-      const int nz, const real_t dz
+      typename opts_t<real_t>::dry_distros_t dry_distros,
+      const int n1, const real_t d1,
+      const int n2, const real_t d2,
+      const int n3, const real_t d3
     )
     {
       opts_t<real_t> opts;
       opts.sd_conc_mean = sd_conc_mean;
-      opts.nz = nz;
-      opts.dz = dz;
-      return factory(backend, opts);
+      opts.dry_distros = std::move(dry_distros);
+
+      if (n1 == -1 && n2 == -1 && n3 == -1) // 0D
+      {
+	opts.nz = 0;  opts.dz = 1;
+	opts.nx = 0;  opts.dx = 1; 
+	opts.ny = 0;  opts.dy = 1; 
+      }
+      else if (n1 > 0 && n2 == -1 && n3 == -1) // 1D
+      {
+	opts.nz = n1; opts.dz = d1;
+	opts.nx = 0;  opts.dx = 1; 
+	opts.ny = 0;  opts.dy = 1; 
+      }
+      else if (n1 > 0 && n2 > 0 && n3 == -1) // 2D
+      {
+	opts.nx = n1; opts.dx = d1;
+	opts.nz = n2; opts.dz = d2;
+	opts.ny = 0;  opts.dy =  1;
+      }
+      else if (n1 > 0 && n2 > 0 && n3 > 0) // 3D
+      {
+	opts.nx = n1; opts.dx = d1;
+	opts.ny = n2; opts.dy = d2;
+	opts.nz = n3; opts.dz = d3;
+      }
+      else assert(false);
+      return factory_helper(backend, opts);
     }
 
-    template <typename real_t>
-    particles_proto<real_t> *factory(
-      const int backend, 
-      const real_t sd_conc_mean,
-      const int nx, const int nz,
-      const real_t dx, const real_t dz
-    )
-    {
-      opts_t<real_t> opts;
-      opts.sd_conc_mean = sd_conc_mean;
-      opts.nx = nx;
-      opts.nz = nz;
-      opts.dx = dx;
-      opts.dz = dz;
-      return factory(backend, opts);
-    }
-
-    template <typename real_t>
-    particles_proto<real_t> *factory(
-      const int backend, 
-      const real_t sd_conc_mean,
-      const int nx,
-      const int ny,
-      const int nz,
-      const real_t dx,
-      const real_t dy,
-      const real_t dz
-    )
-    {
-      opts_t<real_t> opts;
-      opts.sd_conc_mean = sd_conc_mean;
-      opts.nx = nx;
-      opts.ny = ny;
-      opts.nz = nz;
-      opts.dx = dx;
-      opts.dy = dy;
-      opts.dz = dz;
-      return factory(backend, opts);
-    }
-    
     // explicit instantiation
-    // TODO: what about double precision version?
-    template particles_proto<float>  *factory(const int, const float); // 0D
-    template particles_proto<float>  *factory(const int, const float, const int, const float); // 1D
-    template particles_proto<float>  *factory(const int, const float, const int, const int, const float, const float); // 2D
-    template particles_proto<float>  *factory(const int, const float, const int, const int, const int, const float, const float, const float); // 2D
+    template struct factory<float>;
+    template struct factory<double>;
   };
 };
