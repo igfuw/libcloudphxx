@@ -6,7 +6,7 @@
   */
 
 #include "detail/functors_host.hpp"
-#include <thrust/for_each.h>
+#include <thrust/iterator/discard_iterator.h>
 
 namespace libcloudphxx
 {
@@ -19,13 +19,20 @@ namespace libcloudphxx
     )
     {   
       if (from == NULL) return;
-      struct copy
-      {
-        real_t *from; // member field
-        copy(real_t *from) : from(from) {} // ctor
-        real_t operator()(thrust_size_t ix) { return from[ix]; } // op invoked by transform
-      };
-      thrust::transform(l2e.begin(), l2e.end(), to.begin(), copy(from));
+
+      thrust::transform(
+        l2e.begin(), l2e.end(), 
+#if defined(__NVCC__) // TODO: better condition (same addressing space)
+        tmp_host_real_cell.begin(), 
+#else
+        to.begin(),
+#endif
+        detail::c_arr_get<real_t>(from)
+      );
+
+#if defined(__NVCC__)
+      thrust::copy(tmp_host_real_cell.begin(), tmp_host_real_cell.end(), to.begin());
+#endif
     }   
 
     template <typename real_t, int device>
@@ -35,27 +42,21 @@ namespace libcloudphxx
     )
     {   
       if (to == NULL) return;
-      struct copy
-      {
-        // member fields
-        const thrust_device::vector<real_t> &from;
-        real_t *to; 
-        const thrust_device::vector<thrust_size_t> &l2e;
 
-        // ctor
-        copy(
-          const thrust_device::vector<real_t> &from, 
-          real_t *to, 
-          const thrust_device::vector<thrust_size_t> &l2e
-        ) : from(from), to(to), l2e(l2e) {}
+#if defined(__NVCC__)
+      thrust::copy(from.begin(), from.end(), tmp_host_real_cell.begin());
+#endif
 
-        // operator to be invoked by for_each
-        void operator()(thrust_size_t ix)
-        {
-          to[l2e[ix]] = from[ix];
-        } 
-      };
-      thrust::for_each(zero, zero + n_cell, copy(from, to, l2e));
+      thrust::transform(
+        l2e.begin(), l2e.end(), 
+#if defined(__NVCC__) // TODO: better condition (same addressing space)
+        tmp_host_real_cell.begin(), 
+#else
+        from.begin(),
+#endif
+        thrust::make_discard_iterator(),
+        detail::c_arr_set<real_t>(to)
+      );
     }   
   };  
 };

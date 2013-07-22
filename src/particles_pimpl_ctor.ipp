@@ -6,6 +6,8 @@
   * @brief Thrust-based CPU/GPU particle-tracking logic for Lagrangian microphysics
   */
 
+#include <thrust/host_vector.h>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -48,8 +50,11 @@ namespace libcloudphxx
         T, // temperature [K]
         p, // pressure [Pa]
         r; // water vapour mixing ratio [kg/kg]
-      thrust_device::vector<thrust_size_t> 
+
+      thrust::host_vector<thrust_size_t> 
         l2e; // maps linear Lagrangian component indices into Eulerian component linear indices
+      thrust::host_vector<real_t>
+        tmp_host_real_cell;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -73,6 +78,7 @@ namespace libcloudphxx
         j.resize(n_part); //  > TODO: are they needed at all?
         k.resize(n_part); // 
         ijk.resize(n_part);
+        tmp_host_real_cell.resize(n_cell);
       }
 
       // methods

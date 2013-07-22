@@ -6,7 +6,7 @@
   */
 
 #include "detail/functors_device.hpp"
-#include "../include/common/theta_dry.hpp"
+//#include "../include/common/theta_dry.hpp"
 
 namespace libcloudphxx
 {
