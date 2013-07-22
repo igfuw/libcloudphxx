@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: preprocessor versions for non-C++11 compiler? (NVCC)
+
 #define libcloudphxx_decltype_return_macro(expr) -> decltype(expr) { return expr; }
 
 #define libcloudphxx_declare_const_macro(name, value, unit) template <typename real_t> \

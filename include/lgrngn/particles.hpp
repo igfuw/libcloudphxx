@@ -22,20 +22,17 @@ namespace libcloudphxx
     template <typename real_t>
     struct particles_proto // TODO: rename to any?
     {
-      // workaround for a clang bug
-      typedef std::pair<const real_t*, const ptrdiff_t*> arrinfo_t;
-
-      virtual void init() { assert(false); }  
-      virtual void step() { assert(false); }  
-      virtual void sync_e2l(
-        arrinfo_t rhod_th,
-        arrinfo_t rhod_rv,
-        arrinfo_t rhod = arrinfo_t(NULL, NULL)
-      ) { assert(false); }
-      virtual void sync_l2e(
-        arrinfo_t rhod_th,
-        arrinfo_t rhod_rv
-      ) { assert(false); }
+      virtual void init(
+        const ptrdiff_t* strides,
+        real_t *rhod_th,
+        real_t *rhod_rv,
+        real_t *rhod 
+      ) { assert(false); }  
+      virtual void step(
+        real_t *rhod_th,
+        real_t *rhod_rv,
+        real_t *rhod = NULL
+      ) { assert(false); }  
     };  
 
     template <typename real_t>
@@ -63,21 +60,18 @@ namespace libcloudphxx
       public:  
       particles(const opts_t<real_t>); // ctor
 
-      //
-      // pair.first -> blitz::Array.dataZero()
-      // pair.second -> blitz::Array.stride().data()
-      void sync_e2l(
-        typename parent_t::arrinfo_t rhod_th,
-        typename parent_t::arrinfo_t rhod_rv,
-        typename parent_t::arrinfo_t rhod = typename parent_t::arrinfo_t(NULL, NULL)
+      // init separated from the ctor as not all data might be available
+      void init(
+        const ptrdiff_t* strides,
+        real_t *rhod_th,
+        real_t *rhod_rv,
+        real_t *rhod 
       );
-      void sync_l2e(
-        typename parent_t::arrinfo_t rhod_th,
-        typename parent_t::arrinfo_t rhod_rv
+      void step(
+        real_t *rhod_th,
+        real_t *rhod_rv,
+        real_t *rhod = NULL
       );
-
-      void init(); // TODO: explain why init not within constructor? (e.g. NaNs in Eulerian part?)
-      void step();
     };
 
     // to be explicitely instantiated

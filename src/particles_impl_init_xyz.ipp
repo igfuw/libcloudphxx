@@ -13,6 +13,7 @@ namespace libcloudphxx
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_xyz()
     {
+      // TODO: wouldn't it be simpler to call a helper method 3 times?
       thrust_device::vector<real_t> 
                   *v[3] = {&x,      &y,      &z      };
       const int    n[3] = { opts.nx, opts.ny, opts.nz};

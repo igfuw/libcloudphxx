@@ -2,7 +2,7 @@
 - 0-d parcel/box framework (could make the drops model obsolete in a longer run!)
 - ventilation as an option in all schemes
 - think of some sexy animation showing some aerosol-indirect-effect-related stuff
-- sdm: coalescence Kernel choice: constant, Long, ...
+- sdm: coalescence Kernel choice: constant, Long, B\"ohm
 - out-of-source build tests, hints and encouragement :)
 - test testing if id/ln/p2/... wrks in sdm and hinting which to use...
 
