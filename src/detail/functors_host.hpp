@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../../include/common/unary_function.hpp"
+#include <libcloudph++/common/unary_function.hpp>
 
 namespace libcloudphxx
 {

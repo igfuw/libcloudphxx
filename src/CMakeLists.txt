@@ -14,7 +14,10 @@ if (OPENMP_FOUND)
   set(files "${files};lib_omp.cpp")
 endif()
 
+set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
+
 if (CUDA_FOUND)
+  set(CUDA_NVCC_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CUDA_NVCC_FLAGS}")
   set(files "${files};lib_cuda.cu")
   add_definitions(-DCUDA_FOUND)
   cuda_add_library(cloudphxx_lgrngn SHARED ${files})

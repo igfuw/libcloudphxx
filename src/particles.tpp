@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "../include/lgrngn/particles.hpp"
+#include <libcloudph++/lgrngn/particles.hpp>
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"

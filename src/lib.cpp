@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../include/lgrngn/particles.hpp"
+#include <libcloudph++/lgrngn/particles.hpp>
 
 namespace libcloudphxx
 {
@@ -42,8 +42,7 @@ namespace libcloudphxx
       const int n1, const real_t d1,
       const int n2, const real_t d2,
       const int n3, const real_t d3
-    )
-    {
+    ) {
       opts_t<real_t> opts;
       opts.sd_conc_mean = sd_conc_mean;
       opts.dry_distros = std::move(dry_distros);

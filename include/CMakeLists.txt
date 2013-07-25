@@ -1,9 +1,6 @@
 install(
   DIRECTORY
-    common
-    blk_1m
-    blk_2m
-    lgrngn
+    libcloudph++
   DESTINATION 
-    include/libcloudph++
+    include
 )
