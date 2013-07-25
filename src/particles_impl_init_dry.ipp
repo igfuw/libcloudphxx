@@ -25,7 +25,7 @@ namespace libcloudphxx
     // init
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_dry(
-      const unary_function<real_t> *n_of_lnrd 
+      const common::unary_function<real_t> *n_of_lnrd 
     )
     {
       // memory allocation

@@ -76,7 +76,7 @@ namespace libcloudphxx
 
     template <typename real_t, class container_t>
     void adjustments(
-      const opts<real_t> &opt,
+      const opts_t<real_t> &opt,
       const container_t &rhod_cont,  // TODO: ref vs. value - should be the same in all functions!
       container_t &rhod_th_cont, 
       container_t &rhod_rv_cont,

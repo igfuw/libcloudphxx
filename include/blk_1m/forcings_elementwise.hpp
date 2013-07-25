@@ -16,7 +16,7 @@ namespace libcloudphxx
   {
     template <typename real_t, class container_t>
     void forcings_elementwise(
-      const opts<real_t> &opt,
+      const opts_t<real_t> &opt,
       container_t drhod_rc_cont,
       container_t drhod_rr_cont,
       const container_t rhod_cont,   

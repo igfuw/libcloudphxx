@@ -4,19 +4,14 @@
 #include <cstddef> // ptrdiff_t
 #include <memory>
 
-
-#include <boost/ptr_container/ptr_unordered_map.hpp>
-
-#include "../common/unary_function.hpp"
+#include "options.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
-    using libcloudphxx::common::unary_function;
-
     // to make inclusion of Thrust not neccesarry
-    enum {cpp, omp, cuda};
+    enum {cpp, omp, cuda}; // TODO: move to opts?
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
@@ -33,17 +28,6 @@ namespace libcloudphxx
         real_t *rhod_rv,
         real_t *rhod = NULL
       ) { assert(false); }  
-    };  
-
-    template <typename real_t>
-    struct opts_t 
-    {   
-      typedef boost::ptr_unordered_map<real_t, unary_function<real_t> > dry_distros_t;
-
-      int nx, ny, nz;
-      real_t sd_conc_mean; 
-      real_t dx, dy, dz;
-      dry_distros_t dry_distros;
     };  
 
     // prototype of what's implemented in the .tpp file

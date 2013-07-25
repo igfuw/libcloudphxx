@@ -19,18 +19,18 @@ namespace libcloudphxx
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
 	  return new particles<real_t, cuda>(opts);
 #else
-	  assert(false && "CUDA backend was not compiled"); throw;
+	  assert(false && "CUDA backend was not compiled"); throw; // TODO: convert into exception
 #endif
 	case omp:
 #if defined(_OPENMP)
 	  return new particles<real_t, omp>(opts);
 #else
-	  assert(false && "OpenMP backend was not compiled"); throw;
+	  assert(false && "OpenMP backend was not compiled"); throw; // TODO: convert into exception
 #endif
 	case cpp:
 	  return new particles<real_t, cpp>(opts);
 	default:
-	  assert(false && "unknown backend"); throw;
+	  assert(false && "unknown backend"); throw; // TODO: convert into exception
       }
     }
 

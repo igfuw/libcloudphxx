@@ -84,7 +84,7 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
 
-      void init_dry(const unary_function<real_t> *n_of_lnrd);
+      void init_dry(const common::unary_function<real_t> *n_of_lnrd);
       void init_xyz();
       void init_e2l(const ptrdiff_t *);
       void init_Tpr();

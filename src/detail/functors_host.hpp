@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "../../include/common/unary_function.hpp"
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -17,12 +19,12 @@ namespace libcloudphxx
       template <typename real_t>
       struct eval_and_multiply
       { 
-	const unary_function<real_t> &fun;
+	const common::unary_function<real_t> &fun;
 	const real_t &mul;
 
 	// ctor
 	eval_and_multiply(
-	  const unary_function<real_t> &fun, 
+	  const common::unary_function<real_t> &fun, 
 	  const real_t &mul
 	) 
 	  : fun(fun), mul(mul)

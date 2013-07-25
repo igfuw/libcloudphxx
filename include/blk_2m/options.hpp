@@ -12,7 +12,7 @@ namespace libcloudphxx
   namespace blk_2m
   {
     template<typename real_t>
-    struct opts
+    struct opts_t
     {
       bool 
         acti = true, 

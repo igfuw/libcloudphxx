@@ -12,7 +12,7 @@ namespace libcloudphxx
   namespace blk_1m
   {
     template<typename real_t>
-    struct opts
+    struct opts_t
     {
       bool 
         cevp = true, 
