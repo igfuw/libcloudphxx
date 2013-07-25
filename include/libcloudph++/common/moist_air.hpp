@@ -1,0 +1,78 @@
+#pragma once
+
+#include <libcloudph++/common/units.hpp>
+#include <boost/units/systems/si/codata/physico-chemical_constants.hpp> // TODO: get rid of it
+
+#include <libcloudph++/common/macros.hpp> 
+
+namespace libcloudphxx
+{
+  namespace common
+  {
+    namespace moist_air
+    {
+      using boost::units::si::constants::codata::energy_over_temperature_amount;
+      using boost::units::si::constants::codata::energy_over_temperature;
+      using boost::units::si::constants::codata::mass_over_amount;
+      typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
+
+      // specific heat capacities
+      libcloudphxx_const(energy_over_temperature_mass, c_pd, 1005, si::joules / si::kilograms / si::kelvins) // dry air
+      libcloudphxx_const(energy_over_temperature_mass, c_pv, 1850, si::joules / si::kilograms / si::kelvins) // water vapour
+      libcloudphxx_const(energy_over_temperature_mass, c_pw, 4218, si::joules / si::kilograms / si::kelvins) // liquid water
+
+      // molar masses
+      libcloudphxx_const(mass_over_amount, M_d, 0.02896, si::kilograms / si::moles) // dry air
+      libcloudphxx_const(mass_over_amount, M_v, 0.01802, si::kilograms / si::moles) // water vapour
+      libcloudphxx_const_derived(si::dimensionless, eps, M_v<real_t>() / M_d<real_t>()) // aka epsilon
+
+      // universal gas constant (i.e. the Boltzmann times the Avogadro constants)
+      libcloudphxx_const(energy_over_temperature_amount, kaBoNA, 8.314472, si::joules / si::kelvin / si::mole)
+
+      // gas constants
+      libcloudphxx_const_derived(energy_over_temperature_mass, R_d, kaBoNA<real_t>() / M_d<real_t>()) // dry air
+      libcloudphxx_const_derived(energy_over_temperature_mass, R_v, kaBoNA<real_t>() / M_v<real_t>()) // water vapour
+
+      // Exner function exponent for dry air
+      libcloudphxx_const_derived(si::dimensionless, R_d_over_c_pd, R_d<real_t>() / c_pd<real_t>())
+
+      // water density
+      libcloudphxx_const(si::mass_density, rho_w, 1e3, si::kilograms / si::cubic_metres)
+
+      // mixing rule for extensive quantitites (i.e. using mass mixing ratio)
+      template <typename real_t, typename quant>
+      quant constexpr mix(
+	const quant &dry, 
+	const quant &vap, 
+	const quantity<si::dimensionless, real_t> &r
+      ) {
+	return (dry + r * vap) / (1 + r);
+      }
+
+      // gas constant for moist air
+      template <typename real_t>
+      quantity<energy_over_temperature_mass, real_t> R(
+	const quantity<si::dimensionless, real_t> &r
+      ) {
+	return mix(R_d<real_t>(), R_v<real_t>(), r);
+      }
+     
+      // specific heat capacity of moist air
+      template <typename real_t>
+      quantity<energy_over_temperature_mass, real_t> c_p(
+	const quantity<si::dimensionless, real_t> &r
+      ) {
+	return mix(c_pd<real_t>(), c_pv<real_t>(), r);
+      }
+
+      // water vapour partial pressure as a function of mixing ratio
+      template <typename real_t>
+      quantity<si::pressure, real_t> p_v(
+	const quantity<si::pressure, real_t> &p,
+	const quantity<si::dimensionless, real_t> &r
+      ) {
+	return p * r / (r + eps<real_t>());
+      }
+    };
+  };
+};
