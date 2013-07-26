@@ -26,6 +26,7 @@ namespace libcloudphxx
       // with constants taken at triple point
       // (solution to the Clausius-Clapeyron equation assuming rho_vapour << rho_liquid)
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p_vs(
 	const quantity<si::temperature, real_t> &T
       ) {
@@ -37,6 +38,7 @@ namespace libcloudphxx
 
       // saturation vapour mixing ratio for water as a function of pressure and temperature
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> r_vs(
 	const quantity<si::temperature, real_t> &T,
 	const quantity<si::pressure, real_t> &p
@@ -46,6 +48,7 @@ namespace libcloudphxx
 
       // latent heat for constant c_p
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<divide_typeof_helper<si::energy, si::mass>::type , real_t> l_v(
 	const quantity<si::temperature, real_t> &T
       ) {

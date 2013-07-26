@@ -12,6 +12,18 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+
+      template <typename real_t>
+      struct functor : thrust::binary_function<real_t, real_t, real_t> {
+        __device__ real_t operator()(const real_t &rhod_th, const real_t &rhod)
+       {   
+         return common::theta_dry::T<real_t>(
+           rhod_th * si::kilograms / si::cubic_metres * si::kelvins,
+           rhod * si::kilograms / si::cubic_metres
+         ) / si::kelvins;
+       }   
+      }; 
+
     template <typename real_t, int device>
     void particles<real_t, device>::impl::hskpng_ijk()
     {   
@@ -91,7 +103,7 @@ namespace libcloudphxx
       // r  = rhod_rv / rhod;
       thrust::transform(rhod_rv.begin(), rhod_rv.end(), rhod.begin(), r.begin(), _1 / _2);
       // T  = common::theta_dry::T<real_t>(rhod_th, rhod);
-      //thrust::transform(rhod_th.begin(), rhod_th.end(), rhod.begin(), T.begin(), common::theta_dry::T<real_t>(_1, _2));
+      thrust::transform(rhod_th.begin(), rhod_th.end(), rhod.begin(), T.begin(), functor<real_t>());
       // p  = common::theta_dry::p<real_t>(rhod, r, T); 
 
     }

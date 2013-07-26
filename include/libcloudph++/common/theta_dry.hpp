@@ -21,7 +21,8 @@ namespace libcloudphxx
 
       // TODO: eq. no
       template <typename real_t>
-      quantity<si::temperature, real_t> T(
+      BOOST_GPU_ENABLED
+      inline quantity<si::temperature, real_t> T(
         const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_th, // theta dry!!!
         const quantity<si::mass_density, real_t> &rhod
       ) {
@@ -35,6 +36,7 @@ namespace libcloudphxx
 
       // TODO: eq. 
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p(
         const quantity<si::mass_density, real_t> &rhod,
 	const quantity<si::dimensionless, real_t> &r,
@@ -46,6 +48,7 @@ namespace libcloudphxx
 
       // see eq. TODO
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> d_rhodtheta_d_rv(
 	const quantity<si::temperature, real_t> &T,
 	const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_th // theta dry!!!

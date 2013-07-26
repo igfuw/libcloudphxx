@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libcloudph++/common/units.hpp>
-#include <boost/units/systems/si/codata/physico-chemical_constants.hpp> // TODO: get rid of it
 
 #include <libcloudph++/common/macros.hpp> 
 
@@ -11,9 +10,9 @@ namespace libcloudphxx
   {
     namespace moist_air
     {
-      using boost::units::si::constants::codata::energy_over_temperature_amount;
-      using boost::units::si::constants::codata::energy_over_temperature;
-      using boost::units::si::constants::codata::mass_over_amount;
+      typedef divide_typeof_helper<si::energy, si::temperature>::type energy_over_temperature;
+      typedef divide_typeof_helper<si::mass, si::amount>::type mass_over_amount;
+      typedef divide_typeof_helper<energy_over_temperature, si::amount>::type energy_over_temperature_amount;
       typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
 
       // specific heat capacities
