@@ -111,13 +111,13 @@ namespace libcloudphxx
           &rhod_rr = boost::get<4>(tup);
 
 	F.init(
-	  rhod * si::kilograms / si::cubic_metres,
+	  rhod    * si::kilograms / si::cubic_metres,
 	  rhod_th * si::kilograms / si::cubic_metres * si::kelvins,
 	  rhod_rv * si::kilograms / si::cubic_metres
 	);
 
 	real_t // TODO: quantity<si::mass_density
-	  rho_eps = .00002, // TODO: as an option?
+	  rho_eps = .00002, // TODO: as an option? // TODO: is it OK that we use rho_eps and integrate over r_v?
 	  vapour_excess;
 	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
 	if (F.rs > F.r && rhod_rr > 0 && opt.revp)
@@ -127,20 +127,27 @@ namespace libcloudphxx
 	bool incloud;
 
 	// TODO: rethink and document rho_eps!!!
+        // TODO: rho_eps as parameter
 	while (
-	  // condensation of cloud water if supersaturated
+	  // condensation of cloud water if supersaturated more than threshold
 	  (vapour_excess = rhod_rv - rhod * F.rs) > rho_eps
-	  || (opt.cevp && vapour_excess < -rho_eps && ( // or if subsaturated
-	    (incloud = (rhod_rc > 0)) // cloud evaporation if in cloud
-	    || (opt.revp && rhod_rr > 0) // or rain evaportation if in a rain shaft (and out-of-cloud)
-	  ))
+	  || 
+          ( 
+            opt.cevp && vapour_excess < -rho_eps && ( // or if subsaturated and 
+	      (incloud = (rhod_rc > 0)) // in cloud (then cloud evaporation first)
+	      ||                        // or 
+              (opt.revp && rhod_rr > 0) // in rain shaft (rain evaporation out-of-cloud)
+	    )
+          )
 	)
 	{
-	  real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess); // TODO: .5 - arbitrary!!!
-	  drho_rv = (vapour_excess > 0 || incloud)
-	    ? std::min(rhod_rc, drho_rv)
-	    : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // preventing negative mixing ratios
-	  //assert(drho_rv != 0); // otherwise it should not pass the while condition!
+          // initial guess for drho_rv
+	  real_t drho_rv = - copysign(.5 * rho_eps, vapour_excess); // TODO: .5 - arbitrary!!! 
+          // preventing negative mixing ratios if evaporating
+	  if (vapour_excess < 0) drho_rv = 
+            incloud ? std::min(rhod_rc, drho_rv) // limiting by rhod_rc
+	            : std::min(drho_rr_max, std::min(rhod_rr, drho_rv)); // limiting by rhod_rr and drho_rr_max
+	  assert(drho_rv != 0); // otherwise it should not pass the while condition!
 
 	  // theta is modified by do_step, and hence we cannot pass an expression and we need a temp. var.
 	  quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>
@@ -163,11 +170,13 @@ namespace libcloudphxx
 	  
 	  if (vapour_excess > 0 || incloud)
 	  {
-	    rhod_rc -= drho_rv; // cloud water
+            // condensation or evaporation of cloud water
+	    rhod_rc -= drho_rv;
 	    assert(rhod_rc >= 0);
 	  }
-	  else // or rain water
+	  else 
 	  {
+            // evaporation of rain water
 	    assert(opt.revp); // should be guaranteed by the while() condition above
 	    rhod_rr -= drho_rv;
 	    assert(rhod_rr >= 0);
