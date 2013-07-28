@@ -44,6 +44,14 @@ namespace libcloudphxx
       ) {
         return rhod * (R_d<real_t>() + r * R_v<real_t>()) * T;
       }
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::pressure, real_t> p(
+        const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_T,
+	const quantity<si::dimensionless, real_t> &r
+      ) {
+        return rhod_T * (R_d<real_t>() + r * R_v<real_t>());
+      }
 
 
       // see eq. TODO

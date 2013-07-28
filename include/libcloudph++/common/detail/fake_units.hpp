@@ -38,6 +38,7 @@ namespace libcloudphxx
           inline operator real_t() const { return value; }
 	};
 
+        // pow function
 	template <typename qntt_t, typename real_t>
         inline quantity<qntt_t, real_t> pow(
           const quantity<qntt_t, real_t> &a,
@@ -71,9 +72,6 @@ namespace libcloudphxx
 
 	  template <typename real_t>
 	  inline quantity<qntt_t, real_t> operator*(const unit_t &, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(a); }
-
-	  //template <typename real_t>
-	  //inline quantity<qntt_t, real_t> operator/(const unit_t &, quantity<qntt_t, real_t> a) { return pow(a, -1); }
 	}
 
 	namespace si

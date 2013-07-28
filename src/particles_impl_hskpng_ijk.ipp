@@ -1,0 +1,68 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
+#include "detail/functors_device.hpp"
+#include <libcloudph++/common/theta_dry.hpp>
+
+namespace libcloudphxx
+{
+  namespace lgrngn
+  {
+    namespace detail
+    {
+      // TODO: move divide_by_constand here?
+    };
+
+    template <typename real_t, int device>
+    void particles<real_t, device>::impl::hskpng_ijk()
+    {   
+      // helper functor
+      struct {
+        void operator()(
+          thrust_device::vector<real_t> &vx,
+          thrust_device::vector<int> &vi,
+          const real_t &vd
+        ) {
+	  thrust::transform(
+	    vx.begin(), vx.end(),                                // input
+	    vi.begin(),                                          // output
+	    detail::divide_by_constant_and_cast<real_t, int>(vd) // operation
+	  );
+        }
+      } helper;
+      
+      if (opts.nx != 0) helper(x, i, opts.dx);
+      if (opts.ny != 0) helper(y, j, opts.dy);
+      if (opts.nz != 0) helper(z, k, opts.dz);
+
+      // raveling i, j & k into ijk
+      switch (n_dims)
+      {
+        case 0: 
+          ijk[0] = 0;
+          break;
+        case 1:
+          thrust::copy(k.begin(), k.end(), ijk.begin());
+          break;
+        case 2:
+          using namespace thrust::placeholders;
+          thrust::transform(
+            i.begin(), i.end(), // input - first arg
+            k.begin(),          // input - second arg
+            ijk.begin(),        // output
+            _1 * opts.nz + _2   // assuming z varies first (as in many other cases)
+          );
+          break;
+        case 3:
+          assert(false); // TODO!
+          break;
+        default:
+          assert(false);
+      }
+    }   
+  };  
+};
