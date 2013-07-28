@@ -19,7 +19,7 @@ namespace libcloudphxx
     // expects the arguments to be columns with begin() pointing to the lowest level
     // returns rain flux out of the domain
     template <typename real_t, class container_t>
-    quantity<divite_typeof_helper<si::mass_density, si::time>::type, real_t> forcings_columnwise(
+    quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> forcings_columnwise(
       const opts_t<real_t> &opt,
       container_t drhod_rr_cont,
       const container_t rhod_cont,   
@@ -29,9 +29,10 @@ namespace libcloudphxx
     {
       if (!opt.sedi) return;
 
+      using flux_t = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
+
       // 
-      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> 
-        flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
+      flux_t flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       real_t *drhod_rr = NULL;
       const real_t zero = 0;
       const real_t *rhod, *rhod_rr = &zero;
@@ -46,7 +47,7 @@ namespace libcloudphxx
         if (drhod_rr != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
-	  quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> flux_out = -.5 * ( // averaging + axis orientation
+	  flux_t flux_out = -.5 * ( // averaging + axis orientation
 	    formulae::v_term(
               *rhod_rr_below     * si::kilograms / si::cubic_metres, 
               *rhod_below        * si::kilograms / si::cubic_metres, 
@@ -67,8 +68,15 @@ namespace libcloudphxx
          rhod    = rhod_below;
          rhod_rr = rhod_rr_below;
       }
-      // assumption: inflow to the bottom grid cell = outflow from the domain
-      return flux_in; // (was: *drhod_rr -= ...)
+      // the bottom grid cell (with mid-cell vterm approximation)
+      flux_t flux_out = - formulae::v_term(
+	*rhod_rr           * si::kilograms / si::cubic_metres,    
+	*rhod              * si::kilograms / si::cubic_metres, 
+	*rhod_cont.begin() * si::kilograms / si::cubic_metres
+      ) * (*rhod_rr * si::kilograms / si::cubic_metres) / (dz * si::metres);
+      *drhod_rr -= (flux_in - flux_out) * si::seconds * si::cubic_metres / si::kilograms;
+      // outflow from the domain
+      return flux_out;
     }    
   }
 };
