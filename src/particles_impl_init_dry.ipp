@@ -12,7 +12,6 @@
 #include "detail/urand.hpp"
 #include "detail/thrust.hpp"
 #include "detail/functors_host.hpp"
-#include "detail/functors_device.hpp"
 
 #include <thrust/host_vector.h>
 #include <thrust/sort.h>
@@ -22,6 +21,20 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      /// @brief returns real_t(exp(3*x))
+      template <typename real_t>
+      struct exp3x
+      { 
+	__device__ 
+	real_t operator()(real_t x) 
+	{ 
+	  return exp(3*x); 
+	} 
+      };
+    };
+
     // init
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_dry(

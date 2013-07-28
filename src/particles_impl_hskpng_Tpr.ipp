@@ -5,7 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include "detail/functors_device.hpp"
 #include <libcloudph++/common/theta_dry.hpp>
 
 namespace libcloudphxx

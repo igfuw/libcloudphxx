@@ -5,7 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include "detail/functors_device.hpp"
 #include <libcloudph++/common/theta_dry.hpp>
 
 namespace libcloudphxx
@@ -14,7 +13,19 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      // TODO: move divide_by_constand here?
+      /// @brief returns ret_t(x/c) 
+      template <typename arg_t, typename ret_t>
+      struct divide_by_constant_and_cast
+      {
+        arg_t c;
+        divide_by_constant_and_cast(arg_t c) : c(c) {}
+
+        __device__
+        ret_t operator()(arg_t x) 
+        { 
+          return ret_t(x/c); 
+        }
+      };
     };
 
     template <typename real_t, int device>
