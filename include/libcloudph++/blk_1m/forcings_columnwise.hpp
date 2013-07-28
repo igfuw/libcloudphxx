@@ -17,8 +17,9 @@ namespace libcloudphxx
   namespace blk_1m
   {
     // expects the arguments to be columns with begin() pointing to the lowest level
+    // returns rain flux out of the domain
     template <typename real_t, class container_t>
-    void forcings_columnwise(
+    quantity<divite_typeof_helper<si::mass_density, si::time>::type, real_t> forcings_columnwise(
       const opts_t<real_t> &opt,
       container_t drhod_rr_cont,
       const container_t rhod_cont,   
@@ -28,10 +29,9 @@ namespace libcloudphxx
     {
       if (!opt.sedi) return;
 
-      // TODO: return accumulated rainfall?
-
       // 
-      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
+      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> 
+        flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       real_t *drhod_rr = NULL;
       const real_t zero = 0;
       const real_t *rhod, *rhod_rr = &zero;
@@ -64,12 +64,11 @@ namespace libcloudphxx
         }
 
         drhod_rr = &boost::get<0>(*tup_ptr);
-        rhod = rhod_below;
-        rhod_rr = rhod_rr_below;
+         rhod    = rhod_below;
+         rhod_rr = rhod_rr_below;
       }
-      // inflow to the bottom grid cell
-      *drhod_rr -= flux_in * si::seconds * si::cubic_metres / si::kilograms;
-      // TODO: outflow from the bottom grid-cell
+      // assumption: inflow to the bottom grid cell = outflow from the domain
+      return flux_in; // (was: *drhod_rr -= ...)
     }    
   }
 };
