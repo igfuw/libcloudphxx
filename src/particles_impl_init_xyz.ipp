@@ -27,7 +27,7 @@ namespace libcloudphxx
         v[ix]->resize(n_part);
 
         // tossing random numbers [0,1] 
-        urand(n_part);
+        rand_u01(n_part);
 
 	// shifting from [0,1] to [0,nx*dx] 
         {

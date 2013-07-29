@@ -16,7 +16,7 @@ namespace libcloudphxx
     template <typename real_t, int device>
     struct particles<real_t, device>::impl
     { 
-      typedef unsigned long n_t;
+      typedef unsigned long n_t; // thrust_size_t?
 
       // member fields
       const opts_t<real_t> opts; // nx, ny, nz, dx, dy, dz, ...;
@@ -41,8 +41,18 @@ namespace libcloudphxx
 	u01; // uniform random numbers between 0 and 1
 
       // Eulerian-Lagrangian interface vers
-      thrust_device::vector<int> 
-        i, j, k, ijk; // Eulerian grid cell indices (always zero for 0D)
+      thrust_device::vector<thrust_size_t> 
+        i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
+        sorted_id, sorted_ijk;
+
+      //
+      thrust_device::vector<thrust_size_t> 
+        count_ijk; // key-value pair for sorting particles by cell index
+      thrust_device::vector<n_t>
+        count_num; // number of particles in a given grid cell
+      thrust_size_t count_n;
+
+      //
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         rhod_th, // energy volume density divided by c_p
@@ -50,6 +60,9 @@ namespace libcloudphxx
         T, // temperature [K]
         p, // pressure [Pa]
         r; // water vapour mixing ratio [kg/kg]
+
+      // sorting needed only for diagnostics and coalescence
+      bool sorted = false;
 
       thrust::host_vector<thrust_size_t> 
         l2e; // maps linear Lagrangian component indices into Eulerian component linear indices
@@ -60,7 +73,7 @@ namespace libcloudphxx
       const thrust::counting_iterator<thrust_size_t> zero;
 
       // fills u01[0:n] with random numbers
-      void urand(thrust_size_t n) { rng.generate_n(u01, n); }
+      void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
       // compile-time min(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
@@ -74,10 +87,6 @@ namespace libcloudphxx
         zero(0)
       {
 	u01.resize(n_part);
-        i.resize(n_part); // 
-        j.resize(n_part); //  > TODO: are they needed at all?
-        k.resize(n_part); // 
-        ijk.resize(n_part);
         tmp_host_real_cell.resize(n_cell);
       }
 
@@ -87,11 +96,16 @@ namespace libcloudphxx
       void init_dry(const common::unary_function<real_t> *n_of_lnrd);
       void init_xyz();
       void init_e2l(const ptrdiff_t *);
-      void init_Tpr();
       void init_wet();
+      void init_hskpng();
 
+           // rename step_?
+      void hskpng_shuffle();
+      void hskpng_sort();
+      void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+
       void sync(
         real_t *, // from // TODO: const
         thrust_device::vector<real_t> & // to

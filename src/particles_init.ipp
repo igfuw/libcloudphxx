@@ -41,12 +41,10 @@ std::cerr << "\n\n INIT \n\n";
       pimpl->sync(rhod_rv, pimpl->rhod_rv);
       pimpl->sync(rhod,    pimpl->rhod);
 
-      // calculating derived quantitites
-      pimpl->init_Tpr(); // ?
-
-      // 
+      // initialising wet radii
+      pimpl->init_hskpng(); 
       pimpl->hskpng_Tpr(); 
-      pimpl->hskpng_ijk(); // is it needed here? 
+      pimpl->hskpng_ijk(); 
       pimpl->init_wet();
     }
   };

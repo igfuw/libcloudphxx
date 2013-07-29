@@ -9,7 +9,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "detail/urand.hpp"
 #include "detail/thrust.hpp"
 #include "detail/functors_host.hpp"
 
@@ -46,7 +45,7 @@ namespace libcloudphxx
       n.resize(n_part);
 
       // tossing random numbers [0,1] for dry radii
-      urand(n_part);
+      rand_u01(n_part);
 
       // sorting them (does not harm and makes rd_min/rd_max search simpler)
       thrust::sort(u01.begin(), u01.end());

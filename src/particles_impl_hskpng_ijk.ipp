@@ -35,7 +35,7 @@ namespace libcloudphxx
       struct {
         void operator()(
           thrust_device::vector<real_t> &vx,
-          thrust_device::vector<int> &vi,
+          thrust_device::vector<thrust_size_t> &vi,
           const real_t &vd
         ) {
 	  thrust::transform(
@@ -74,6 +74,9 @@ namespace libcloudphxx
         default:
           assert(false);
       }
+      
+      // flagging that particles are no longer sorted
+      sorted = false;
     }   
   };  
 };

@@ -21,23 +21,28 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
 	// serial version using C++11's <random>
 	using engine_t = std::mt19937;
+        using dist_t = std::uniform_real_distribution<real_t>;
+	engine_t engine;
+	dist_t dist;
 
 	struct fnctr
 	{
-	  engine_t engine;
-	  std::uniform_real_distribution<real_t> dist;
-	  fnctr() : engine(44), dist(0,1) {} // hardcoded seed value
+          engine_t &engine;
+          dist_t &dist;
 	  real_t operator()() { return dist(engine); }
-	} fnctri;
+	};// fnctri({.engine = engine, .dist = dist});
 
 	public:
+
+        // ctor
+        u01() : engine(44), dist(0,1) {}
 
 	void generate_n(
 	  thrust_device::vector<real_t> &u01, 
 	  const thrust_size_t n
-	)
-	{
-	  std::generate_n(u01.begin(), n, fnctri); 
+	) {
+          // note: generate_n copies the third argument!!!
+	  std::generate_n(u01.begin(), n, fnctr({.engine = engine, .dist = dist})); 
 	}
 #endif
       };

@@ -14,7 +14,8 @@ namespace libcloudphxx
     void particles<real_t, device>::diag()
     {
 std::cerr << "\n\n DIAG \n\n";
-
+      // super-droplet concentration per grid cell
+      pimpl->hskpng_count();
     }
   };
 };
