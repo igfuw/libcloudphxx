@@ -20,11 +20,13 @@ namespace libcloudphxx
       // processes
       bool 
         adve,// = true, 
-        cond,// = true, 
         sedi,// = true, 
-        coal,// = true, 
-        chem;// = false;
-// TODO: vent?, recycling
+        rcyc,// = false;
+        cond,// = true, 
+        chem,// = false,
+        coal;// = true, 
+// TODO: vent? (as a coefficient?)
+// TODO: MAC
 
       // initial dry spectra
       typedef boost::ptr_unordered_map<real_t, common::unary_function<real_t> > dry_distros_t;

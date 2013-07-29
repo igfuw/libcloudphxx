@@ -17,6 +17,7 @@
 #include "particles_pimpl_ctor.ipp"
 #include "particles_init.ipp"
 #include "particles_step.ipp"
+#include "particles_diag.ipp"
 
 // details
 #include "particles_impl_init_dry.ipp"

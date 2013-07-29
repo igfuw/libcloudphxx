@@ -23,11 +23,15 @@ namespace libcloudphxx
         real_t *rhod_rv,
         real_t *rhod 
       ) { assert(false); }  
+
       virtual void step(
         real_t *rhod_th,
         real_t *rhod_rv,
         real_t *rhod = NULL
       ) { assert(false); }  
+
+      virtual void diag(
+      ) { assert(false); }
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -51,11 +55,14 @@ namespace libcloudphxx
         real_t *rhod_rv,
         real_t *rhod 
       );
+
       void step(
         real_t *rhod_th,
         real_t *rhod_rv,
         real_t *rhod = NULL
       );
+
+      void diag();
     };
 
     // to be explicitely instantiated

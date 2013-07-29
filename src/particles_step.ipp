@@ -22,13 +22,42 @@ std::cerr << "\n\n STEP \n\n";
       assert(rhod_th != NULL);
       assert(rhod_rv != NULL);
 
-      // syncing in
+      if (pimpl->opts.adve) 
+      {
+        // advection
+        ;
+        // periodic boundaries
+        ;
+      }
+
+      if (pimpl->opts.sedi)
+      {
+        // sedimentation
+        ;
+        // recycling
+        if (pimpl->opts.rcyc) ;
+      }
+
+      // updating particle->cell look-up table
+      if (pimpl->opts.adve || pimpl->opts.sedi) 
+        pimpl->hskpng_ijk();
+
+      // syncing in Eulerian fields
       pimpl->sync(rhod_th, pimpl->rhod_th);
       pimpl->sync(rhod_rv, pimpl->rhod_rv);
       pimpl->sync(rhod,    pimpl->rhod);
 
-      //
-      pimpl->hskpng_ijk();
+      // updating Tpr look-up table
+      pimpl->hskpng_Tpr();
+
+      // condensation/evaporation
+      if (pimpl->opts.cond) ;
+
+      // chemistry
+      if (pimpl->opts.chem) ;
+
+      // coalescence
+      if (pimpl->opts.coal) ;
 
       // syncing out
       pimpl->sync(pimpl->rhod_th, rhod_th);
