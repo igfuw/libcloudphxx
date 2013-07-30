@@ -42,7 +42,7 @@ namespace libcloudphxx
 	const quantity<si::dimensionless, real_t> &r,
 	const quantity<si::temperature, real_t> &T
       ) {
-        return rhod * T * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
+        return rhod * T * (quantity<si::dimensionless, real_t>(1)+r) * (R_d<real_t>() + r * R_v<real_t>());
       }
       template <typename real_t>
       BOOST_GPU_ENABLED
@@ -50,7 +50,8 @@ namespace libcloudphxx
         const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_T,
 	const quantity<si::dimensionless, real_t> &r
       ) {
-        return rhod_T   * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
+        return rhod_T   * (quantity<si::dimensionless, real_t>(1)+r) * (R_d<real_t>() + r * R_v<real_t>());
+                         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ TODO !!! (same above)
       }
 
 

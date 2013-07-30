@@ -62,7 +62,7 @@ namespace libcloudphxx
         r; // water vapour mixing ratio [kg/kg]
 
       // sorting needed only for diagnostics and coalescence
-      bool sorted = false;
+      bool sorted;
 
       thrust::host_vector<thrust_size_t> 
         l2e; // maps linear Lagrangian component indices into Eulerian component linear indices
@@ -84,7 +84,8 @@ namespace libcloudphxx
 	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
         n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
 	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
-        zero(0)
+        zero(0), // TODO: is it used anywhere?
+        sorted(false)
       {
 	u01.resize(n_part);
         tmp_host_real_cell.resize(n_cell);
