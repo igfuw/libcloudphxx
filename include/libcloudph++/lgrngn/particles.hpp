@@ -32,6 +32,12 @@ namespace libcloudphxx
 
       virtual void diag(
       ) { assert(false); }
+
+      virtual real_t *outbuf() 
+      { 
+        assert(false);
+        return NULL;
+      }
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -63,6 +69,8 @@ namespace libcloudphxx
       );
 
       void diag();
+
+      real_t *outbuf();
     };
 
     // to be explicitely instantiated

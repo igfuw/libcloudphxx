@@ -34,6 +34,7 @@ namespace libcloudphxx
 	  BOOST_GPU_ENABLED inline quantity operator/(const quantity &q) const { return quantity(value / q.value); };
 	  BOOST_GPU_ENABLED inline quantity operator-(const quantity &q) const { return quantity(value - q.value); };
 	  BOOST_GPU_ENABLED inline quantity operator+(const quantity &q) const { return quantity(value + q.value); };
+	  BOOST_GPU_ENABLED inline quantity operator+(const int         &q) const { return quantity(value + q); };
 
           // cast to real_t
           BOOST_GPU_ENABLED inline operator real_t() const { return value; }
@@ -73,6 +74,9 @@ namespace libcloudphxx
 
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(const unit_t &, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(a); }
+
+	  template <typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator+(const int &c, quantity<qntt_t, real_t> a) { return a+c; }
 	}
 
 	namespace si

@@ -127,5 +127,12 @@ namespace libcloudphxx
       assert(opts.dy != 0);
       assert(opts.dz != 0);
     }
+
+    // outbuf
+    template <typename real_t, int device>
+    real_t *particles<real_t, device>::outbuf() 
+    {
+      return &(*(pimpl->tmp_host_real_cell.begin()));
+    }
   };
 };

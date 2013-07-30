@@ -25,17 +25,17 @@ std::cerr << "\n\n STEP \n\n";
       if (pimpl->opts.adve) 
       {
         // advection
-        ;
+        ; // TODO
         // periodic boundaries
-        ;
+        ; // TODO? (if needed)
       }
 
       if (pimpl->opts.sedi)
       {
         // sedimentation
-        ;
+        ; // TODO
         // recycling
-        if (pimpl->opts.rcyc) ;
+        if (pimpl->opts.rcyc) ; // TODO
       }
 
       // updating particle->cell look-up table
@@ -51,13 +51,13 @@ std::cerr << "\n\n STEP \n\n";
       pimpl->hskpng_Tpr();
 
       // condensation/evaporation
-      if (pimpl->opts.cond) ;
+      if (pimpl->opts.cond) ; // TODO
 
       // chemistry
-      if (pimpl->opts.chem) ;
+      if (pimpl->opts.chem) assert(false && "unimplemented");
 
       // coalescence
-      if (pimpl->opts.coal) ;
+      if (pimpl->opts.coal) ; // TODO
 
       // syncing out
       pimpl->sync(pimpl->rhod_th, rhod_th);
