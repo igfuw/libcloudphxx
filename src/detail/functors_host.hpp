@@ -7,6 +7,8 @@
 
 #pragma once
 
+// TODO: place contents of ths function into files which use them (apparently, there's no reuse)
+
 #include <libcloudph++/common/unary_function.hpp>
 
 namespace libcloudphxx

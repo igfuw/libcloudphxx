@@ -10,31 +10,36 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::init_e2l(const ptrdiff_t *strides)
+    void particles<real_t, device>::impl::init_e2l(
+      const arrinfo_t<real_t> &arr,
+      thrust_device::vector<real_t> * key,
+      const int ext_x = 0, const int ext_y = 0, const int ext_z = 0
+    )
     {
-      // memory allocation
-      rhod.resize(n_cell);
-      rhod_th.resize(n_cell);
-      rhod_rv.resize(n_cell);
-      l2e.resize(n_cell);
-    
-      // filling in l2e with values
+      // allocating and filling in l2e with values
+std::cerr << "init_e2l key=" << key << " ext_x=" << ext_x << " ext_y=" << ext_y << " ext_z=" << ext_z << std::endl;
+      l2e[key].resize(key->size());
       switch (n_dims)
       {
 	using namespace thrust::placeholders;
 	case 0:  
-	  l2e[0] = 0;  
+	  l2e[key][0] = 0;  
 	  break;
 	case 1:  
-	  thrust::transform(zero, zero + n_cell, l2e.begin(), strides[0] * _1); 
+          assert(arr.strides[0] == 1);
+          assert(false && "TODO");
 	  break;
 	case 2:
-          // z likely veries fastest as parallelising over x is simpler
-	  thrust::transform(zero, zero + n_cell, l2e.begin(), 
-	    strides[1] * /* i = */ (_1 % opts.nz) + 
-	    strides[0] * /* j = */ (_1 / opts.nz)  
+          // assumes z veries fastest
+          assert(arr.strides[1] == 1);
+	  thrust::transform(zero, zero + l2e[key].size(), l2e[key].begin(), 
+	    arr.strides[0] * /* i = */ (_1 / (opts.nz+ext_z)) +
+	    arr.strides[1] * /* j = */ (_1 % (opts.nz+ext_z))  
 	  );
 	  break;
+        case 3:
+          assert(arr.strides[2] == 1);
+          assert(false && "TODO");
         // TODO: 3D case
 	default: assert(false);
       }

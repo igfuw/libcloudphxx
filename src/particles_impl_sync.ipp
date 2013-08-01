@@ -14,20 +14,20 @@ namespace libcloudphxx
   {
     template <typename real_t, int device>
     void particles<real_t, device>::impl::sync(
-      real_t *from,
+      const arrinfo_t<real_t> &from,
       thrust_device::vector<real_t> &to
     )
     {   
-      if (from == NULL) return;
+      if (from.is_null()) return;
 
       thrust::transform(
-        l2e.begin(), l2e.end(), 
+        l2e[&to].begin(), l2e[&to].end(),
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_cell.begin(), 
 #else
         to.begin(),
 #endif
-        detail::c_arr_get<real_t>(from)
+        detail::c_arr_get<real_t>(from.dataZero)
       );
 
 #if defined(__NVCC__)
@@ -38,24 +38,24 @@ namespace libcloudphxx
     template <typename real_t, int device>
     void particles<real_t, device>::impl::sync(
       const thrust_device::vector<real_t> &from,
-      real_t *to
+      arrinfo_t<real_t> &to
     )
     {   
-      if (to == NULL) return;
+      if (to.is_null()) return;
 
 #if defined(__NVCC__)
       thrust::copy(from.begin(), from.end(), tmp_host_real_cell.begin());
 #endif
 
       thrust::transform(
-        l2e.begin(), l2e.end(), 
+        l2e[&from].begin(), l2e[&from].end(), 
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_cell.begin(), 
 #else
         from.begin(),
 #endif
         thrust::make_discard_iterator(),
-        detail::c_arr_set<real_t>(to)
+        detail::c_arr_set<real_t>(to.dataZero)
       );
     }   
   };  

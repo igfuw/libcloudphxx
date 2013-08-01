@@ -11,7 +11,7 @@ namespace libcloudphxx
     // - to manage 0D/1D/2D/3D parameter defaults
     // - to shorten the code on the caller side
     template <typename real_t>
-    particles_proto<real_t> *factory_helper(const int backend, const opts_t<real_t> opts)
+    particles_proto<real_t> *factory_helper(const int backend, const opts_t<real_t> &opts)
     {
       switch (backend)
       {
@@ -37,6 +37,11 @@ namespace libcloudphxx
     template <typename real_t>
     particles_proto<real_t>* factory<real_t>::make(
       const int backend, 
+      const opts_t<real_t> &opts
+    ) {
+      return factory_helper(backend, opts);
+    }
+/*    
       const real_t sd_conc_mean,
       typename opts_t<real_t>::dry_distros_t dry_distros,
       const int n1, const real_t d1,
@@ -74,6 +79,7 @@ namespace libcloudphxx
       else assert(false);
       return factory_helper(backend, opts);
     }
+*/
 
     // explicit instantiation
     template struct factory<float>;

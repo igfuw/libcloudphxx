@@ -7,12 +7,14 @@
   */
 
 #include <thrust/host_vector.h>
+#include <unordered_map>
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // pimpl stuff
+ 
+    // pimpl stuff 
     template <typename real_t, int device>
     struct particles<real_t, device>::impl
     { 
@@ -40,7 +42,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
 	u01; // uniform random numbers between 0 and 1
 
-      // Eulerian-Lagrangian interface vers
+      //
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
@@ -52,11 +54,16 @@ namespace libcloudphxx
         count_num; // number of particles in a given grid cell
       thrust_size_t count_n;
 
-      //
+      // Eulerian-Lagrangian interface vers
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         rhod_th, // energy volume density divided by c_p
         rhod_rv, // water vapour density (=rhod * r_v)
+        courant_x, 
+        courant_y, 
+        courant_z;
+  
+      thrust_device::vector<real_t> 
         T, // temperature [K]
         p, // pressure [Pa]
         r; // water vapour mixing ratio [kg/kg]
@@ -64,8 +71,15 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
-      thrust::host_vector<thrust_size_t> 
-        l2e; // maps linear Lagrangian component indices into Eulerian component linear indices
+
+      // maps linear Lagrangian component indices into Eulerian component linear indices
+      // the map key is the address of the Thrust vector
+      std::unordered_map<
+        const thrust_device::vector<real_t>*, 
+        thrust::host_vector<thrust_size_t> 
+      > l2e; 
+
+      //
       thrust::host_vector<real_t>
         tmp_host_real_cell;
 
@@ -96,8 +110,9 @@ namespace libcloudphxx
 
       void init_dry(const common::unary_function<real_t> *n_of_lnrd);
       void init_xyz();
-      void init_e2l(const ptrdiff_t *);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int, const int, const int);
       void init_wet();
+      void init_sync();
       void init_hskpng();
 
            // rename step_?
@@ -108,13 +123,15 @@ namespace libcloudphxx
       void hskpng_Tpr();
 
       void sync(
-        real_t *, // from // TODO: const
+        const arrinfo_t<real_t> &, // from // TODO: const
         thrust_device::vector<real_t> & // to
       );
       void sync(
         const thrust_device::vector<real_t> &, // from
-        real_t * // to
+        arrinfo_t<real_t> &// to
       );
+
+      void adve();
     };
 
     // ctor

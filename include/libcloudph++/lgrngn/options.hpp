@@ -37,7 +37,14 @@ namespace libcloudphxx
       real_t dx, dy, dz; 
       dry_distros_t dry_distros;
 
-      //real_t dt = 0;
+      real_t dt;
+
+      // ctor
+      opts_t() : 
+        nx(0), ny(0), nz(0), 
+        dx(1), dy(1), dz(1), 
+        sd_conc_mean(0)
+      { }
     };
   }
 };

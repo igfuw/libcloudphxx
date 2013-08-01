@@ -13,22 +13,102 @@ namespace libcloudphxx
     // to make inclusion of Thrust not neccesarry
     enum {cpp, omp, cuda}; // TODO: move to opts?
 
+    template <typename real_t>
+    struct arrinfo_t
+    {
+      real_t * const dataZero;
+      const ptrdiff_t *strides;
+      arrinfo_t()
+        : dataZero(NULL), strides(NULL) 
+      {} 
+      arrinfo_t(real_t * const dataZero, const ptrdiff_t *strides) 
+        : dataZero(dataZero), strides(strides) 
+      {} 
+      bool is_null() const { return dataZero==NULL || strides==NULL; }
+    };
+
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
     struct particles_proto // TODO: rename to any?
     {
+      // dataZero + strides
+
+      // 3D version
       virtual void init(
-        const ptrdiff_t* strides,
-        real_t *rhod_th,
-        real_t *rhod_rv,
-        real_t *rhod 
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> rhod, 
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z
       ) { assert(false); }  
 
+      // 2D version
+      void init(
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_z
+      ) { this->init(rhod_th, rhod_rv, rhod, courant_x, arrinfo_t<real_t>(), courant_z); }  
+ 
+      // 1D version
+      void init(
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_z
+      ) { this->init(rhod_th, rhod_rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z); }  
+
+      // 0D version
+      void init(
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> rhod
+      ) { this->init(rhod_th, rhod_th, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
+
+
+
+
+      // 3D variable density version
       virtual void step(
-        real_t *rhod_th,
-        real_t *rhod_rv,
-        real_t *rhod = NULL
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> rhod
       ) { assert(false); }  
+
+      // 3D constant density version
+      void step(
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z
+      ) { this->step(rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
+
+      // 2D constant density version
+      void step(
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_z
+      ) { this->step(rhod_th, rhod_rv, courant_x, arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+
+      // 1D constant density version
+      void step(
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> courant_z
+      ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+
+      // 0D constant density version
+      void step(
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv
+      ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
 
       virtual void diag(
       ) { assert(false); }
@@ -56,16 +136,21 @@ namespace libcloudphxx
 
       // init separated from the ctor as not all data might be available
       void init(
-        const ptrdiff_t* strides,
-        real_t *rhod_th,
-        real_t *rhod_rv,
-        real_t *rhod 
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y, 
+        const arrinfo_t<real_t> courant_z
       );
 
       void step(
-        real_t *rhod_th,
-        real_t *rhod_rv,
-        real_t *rhod = NULL
+        const arrinfo_t<real_t> rhod_th,
+        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> rhod 
       );
 
       void diag();
@@ -77,13 +162,7 @@ namespace libcloudphxx
     template <typename real_t>
     struct factory
     {
-      static particles_proto<real_t> *make(const int backend, 
-	const real_t sd_conc_mean,
-	typename opts_t<real_t>::dry_distros_t dry_distros,
-	const int = -1, const real_t = 0, 
-	const int = -1, const real_t = 0, 
-	const int = -1, const real_t = 0
-      );
+      static particles_proto<real_t> *make(const int backend, const opts_t<real_t> &);
     };
   };
 };

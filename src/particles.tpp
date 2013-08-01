@@ -24,6 +24,7 @@
 #include "particles_impl_init_wet.ipp"
 #include "particles_impl_init_xyz.ipp"
 #include "particles_impl_init_e2l.ipp"
+#include "particles_impl_init_sync.ipp"
 #include "particles_impl_init_hskpng.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
@@ -32,3 +33,5 @@
 #include "particles_impl_hskpng_count.ipp"
 
 #include "particles_impl_sync.ipp"
+
+#include "particles_impl_adve.ipp"

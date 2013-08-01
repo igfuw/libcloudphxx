@@ -10,42 +10,43 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // init
     template <typename real_t, int device>
     void particles<real_t, device>::step(
-      real_t *rhod_th,
-      real_t *rhod_rv,
-      real_t *rhod // defaults to NULL (e.g. kinematic model)
+      arrinfo_t<real_t> rhod_th,
+      arrinfo_t<real_t> rhod_rv,
+      const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
     )
     {
 std::cerr << "\n\n STEP \n\n";
-      assert(rhod_th != NULL);
-      assert(rhod_rv != NULL);
 
+      // syncing in Eulerian fields (if not null)
+      pimpl->sync(rhod_th,   pimpl->rhod_th);
+      pimpl->sync(rhod_rv,   pimpl->rhod_rv);
+      pimpl->sync(courant_x, pimpl->courant_x);
+      pimpl->sync(courant_y, pimpl->courant_y);
+      pimpl->sync(courant_z, pimpl->courant_z);
+      pimpl->sync(rhod,      pimpl->rhod);
+
+      // changing droplet positions
       if (pimpl->opts.adve) 
       {
         // advection
-        ; // TODO
+        pimpl->adve();
         // periodic boundaries
         ; // TODO? (if needed)
       }
-
-      if (pimpl->opts.sedi)
-      {
-        // sedimentation
-        ; // TODO
-        // recycling
-        if (pimpl->opts.rcyc) ; // TODO
-      }
-
-      // updating particle->cell look-up table
+      if (pimpl->opts.sedi) ; //pimpl->sedi(); // TODO
       if (pimpl->opts.adve || pimpl->opts.sedi) 
-        pimpl->hskpng_ijk();
+      {
+        // recycling out-of-domain particles (due to precipitation or advection errors)
+        if (pimpl->opts.rcyc) ; // TODO
 
-      // syncing in Eulerian fields
-      pimpl->sync(rhod_th, pimpl->rhod_th);
-      pimpl->sync(rhod_rv, pimpl->rhod_rv);
-      pimpl->sync(rhod,    pimpl->rhod);
+        // updating particle->cell look-up table
+        pimpl->hskpng_ijk();
+      }
 
       // updating Tpr look-up table
       pimpl->hskpng_Tpr();
@@ -62,7 +63,6 @@ std::cerr << "\n\n STEP \n\n";
       // syncing out
       pimpl->sync(pimpl->rhod_th, rhod_th);
       pimpl->sync(pimpl->rhod_rv, rhod_rv);
-      pimpl->sync(pimpl->rhod,    rhod);
     }
   };
 };
