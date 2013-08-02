@@ -110,7 +110,7 @@ namespace libcloudphxx
 
       void init_dry(const common::unary_function<real_t> *n_of_lnrd);
       void init_xyz();
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int, const int, const int);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
       void init_hskpng();
