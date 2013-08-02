@@ -33,7 +33,6 @@ namespace libcloudphxx
         );
       }
 
-
       // TODO: eq. 
       template <typename real_t>
       BOOST_GPU_ENABLED
