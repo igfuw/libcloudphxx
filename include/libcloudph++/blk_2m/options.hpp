@@ -16,12 +16,22 @@ namespace libcloudphxx
     {
       bool 
         acti = true, 
-        cond = true, 
-        accr = true, 
-        acnv = true, 
-        turb = true,
-        sedi = true;
-      real_t dt = 0;
+        cond = false, 
+        accr = false, 
+        acnv = false, 
+        turb = false,
+        sedi = false;
+      
+      real_t 
+        dt = 0;
+
+      //assumed aerosol size distribution (for activation)
+      quantity<si::length, real_t> mean_rd;
+      quantity<si::dimensionless, real_t> sdev_rd;
+      quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> N_tot;
+      //assumed aerosol chemical composition (also for activation)
+      quantity<si::dimensionless, real_t> chem_b;
+
     };
   }
-};
+ };

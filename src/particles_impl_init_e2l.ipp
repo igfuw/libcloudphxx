@@ -13,7 +13,7 @@ namespace libcloudphxx
     void particles<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
       thrust_device::vector<real_t> * key,
-      const int ext_x = 0, const int ext_y = 0, const int ext_z = 0
+      const int ext_x, const int ext_y, const int ext_z
     )
     {
       // allocating and filling in l2e with values
