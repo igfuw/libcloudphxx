@@ -11,37 +11,21 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      template <typename real_t, int d>
+      template <typename real_t>
       struct adve_2d
       {
-        thrust_device::vector<real_t> &x;
-        const thrust_device::vector<real_t> &C;
-        const thrust_device::vector<thrust_size_t> &i, &j, &floor_x;
-        const thrust_size_t nz;
-        const real_t dx, nxdx;
-	const int di, dj;
+        const real_t dx;
 
-        adve_2d(
-	  thrust_device::vector<real_t> &x,
-	  const thrust_device::vector<real_t> &C,
-          const real_t dx,
-	  const thrust_device::vector<thrust_size_t> &i,
-	  const thrust_device::vector<thrust_size_t> &j,
-	  const thrust_size_t nx,
-	  const thrust_size_t nz
-        ) : 
-          // copies of the ctor arguments
-          C(C), x(x), dx(dx), 
-          i(i), j(j), nxdx(nx * dx), nz(nz), 
-          // helper vars to work in both dimensions with the same functor
-	  di(d == 0 ? 1 : 0),
-	  dj(d == 0 ? 0 : 1),
-          floor_x(d==0 ? i : j) 
-        {} 
+        adve_2d(const real_t dx) : dx(dx) {} 
 
-        BOOST_GPU_ENABLED
-        void operator()(thrust_size_t ix)
+        __device__
+        real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
         {
+          real_t x = thrust::get<0>(tpl);
+          const thrust_size_t floor_x = thrust::get<1>(tpl);
+          real_t C_l = thrust::get<2>(tpl);
+          real_t C_r = thrust::get<3>(tpl);
+
           // integrating using backward Euler scheme + interpolation/extrapolation
           // 
           // x_new = x_old + v(x_new) * dt = x_old + C(x_new) * dx
@@ -54,20 +38,24 @@ namespace libcloudphxx
           // 
           // x_new * (1 - C_r + C_l) = x_old + C_l * dx - floor(x_old) * (C_r - C_l)
           // x_new =  (x_old + C_l * dx - floor(x_old) * (C_r - C_l)) / (1 - C_r + C_l)
-          const real_t 
-            C_l = C[(i[ix]   ) * (nz+dj) + j[ix]   ],
-            C_r = C[(i[ix]+di) * (nz+dj) + j[ix]+dj];
 
-          x[ix] = (
-            x[ix] + C_l * dx - floor_x[ix] * (C_r - C_l)
+          return (
+            x + C_l * dx - floor_x * (C_r - C_l)
           ) / (
             1 - C_r + C_l
           );
+        }
+      };
 
-          // TODO: warning: hardcoded periodic boundary in x!
-          if (d==0) x[ix] = fmod(nxdx + x[ix], nxdx);
-          
-          // TODO: perhaps update i,j,k here?...
+      template <typename real_t>
+      struct fmod
+      { 
+        real_t nxdx;
+        fmod(real_t nxdx) : nxdx(nxdx) {}
+        __device__
+        real_t operator()(real_t x)
+        {
+          return std::fmod(x + nxdx, nxdx);
         }
       };
     };
@@ -81,9 +69,44 @@ namespace libcloudphxx
           assert(false && "TODO");
           break; 
         case 2:
-	  thrust::for_each(zero, zero + n_part, detail::adve_2d<real_t, 0>(x, courant_x, opts.dx, i, k, opts.nx, opts.nz));
-	  thrust::for_each(zero, zero + n_part, detail::adve_2d<real_t, 1>(z, courant_z, opts.dz, i, k, opts.nx, opts.nz));
+        {
+          // advection
+          typedef thrust::permutation_iterator<
+            typename thrust_device::vector<thrust_size_t>::iterator, 
+            typename thrust_device::vector<thrust_size_t>::iterator
+          > pi_size_size;
+          typedef thrust::permutation_iterator<
+            typename thrust_device::vector<real_t>::iterator, 
+            pi_size_size
+          > pi_real_size;
+
+          const pi_real_size
+            C_lft(courant_x.begin(), pi_size_size(lft.begin(), ijk.begin())),
+            C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), ijk.begin())),
+            C_abv(courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
+            C_blw(courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
+
+          thrust::transform(
+            thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft, C_rgt)), // input - begin
+            thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft, C_rgt)), // input - end
+            x.begin(), // output
+            detail::adve_2d<real_t>(opts.dx)
+          );
+          thrust::transform(
+            thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw, C_abv)), // input - begin
+            thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw, C_abv)), // input - end
+            z.begin(), // output
+            detail::adve_2d<real_t>(opts.dz)
+          );
+
+          // hardcoded periodic boundary in x! (TODO - not here?)
+          thrust::transform(
+            x.begin(), x.end(),
+            x.begin(),
+            detail::fmod<real_t>(opts.nx * opts.dx)
+          );
           break; 
+        }
         case 1:
           assert(false && "TODO");
           break;

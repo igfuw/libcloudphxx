@@ -17,7 +17,6 @@ namespace libcloudphxx
     )
     {
       // allocating and filling in l2e with values
-std::cerr << "init_e2l key=" << key << " ext_x=" << ext_x << " ext_y=" << ext_y << " ext_z=" << ext_z << std::endl;
       l2e[key].resize(key->size());
       switch (n_dims)
       {

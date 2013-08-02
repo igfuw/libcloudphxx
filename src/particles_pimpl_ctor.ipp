@@ -7,7 +7,8 @@
   */
 
 #include <thrust/host_vector.h>
-#include <unordered_map>
+//#include <unordered_map> // requires C++11
+#include <map>
 
 namespace libcloudphxx
 {
@@ -47,6 +48,10 @@ namespace libcloudphxx
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
 
+      // 2D Arakawa-C grid helper vars
+      thrust_device::vector<thrust_size_t> 
+        lft, rgt, abv, blw;
+
       //
       thrust_device::vector<thrust_size_t> 
         count_ijk; // key-value pair for sorting particles by cell index
@@ -74,14 +79,16 @@ namespace libcloudphxx
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
-      std::unordered_map<
+      std::map<
         const thrust_device::vector<real_t>*, 
         thrust::host_vector<thrust_size_t> 
       > l2e; 
 
-      //
+      // temporary data
       thrust::host_vector<real_t>
         tmp_host_real_cell;
+      thrust::host_vector<thrust_size_t>
+        tmp_host_size_cell;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -103,6 +110,7 @@ namespace libcloudphxx
       {
 	u01.resize(n_part);
         tmp_host_real_cell.resize(n_cell);
+        tmp_host_size_cell.resize(n_cell);
       }
 
       // methods
@@ -113,6 +121,7 @@ namespace libcloudphxx
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
+      void init_grid();
       void init_hskpng();
 
            // rename step_?

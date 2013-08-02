@@ -39,17 +39,11 @@ std::cerr << "\n\n INIT \n\n";
 
       // initialising Eulerian-Lagrandian coupling
       pimpl->init_sync();
-std::cerr << "initing rhod_th" << std::endl;
       pimpl->init_e2l(rhod_th, &pimpl->rhod_th);
-std::cerr << "initing rhod_rv" << std::endl;
       pimpl->init_e2l(rhod_rv, &pimpl->rhod_rv);
-std::cerr << "initing rhod" << std::endl;
       pimpl->init_e2l(rhod,    &pimpl->rhod);
-std::cerr << "initing cx" << std::endl;
       if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-std::cerr << "initing cy" << std::endl;
       if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0);
-std::cerr << "initing cz" << std::endl;
       if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
 
       // feeding in Eulerian fields
@@ -65,6 +59,9 @@ std::cerr << "initing cz" << std::endl;
       pimpl->hskpng_Tpr(); 
       pimpl->hskpng_ijk(); 
       pimpl->init_wet();
+  
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      pimpl->init_grid();
     }
   };
 };
