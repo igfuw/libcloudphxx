@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libcloudph++/common/units.hpp>
-
 #include <libcloudph++/common/macros.hpp> 
 
 namespace libcloudphxx
@@ -56,14 +55,6 @@ namespace libcloudphxx
 	return mix(R_d<real_t>(), R_v<real_t>(), r);
       }
      
-      // specific heat capacity of moist air
-      template <typename real_t>
-      quantity<energy_over_temperature_mass, real_t> c_p(
-	const quantity<si::dimensionless, real_t> &r
-      ) {
-	return mix(c_pd<real_t>(), c_pv<real_t>(), r);
-      }
-
       // water vapour partial pressure as a function of mixing ratio
       template <typename real_t>
       quantity<si::pressure, real_t> p_v(
