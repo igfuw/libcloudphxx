@@ -1,31 +1,19 @@
 #pragma once 
 
 #include <cassert>
-#include <cstddef> // ptrdiff_t
 #include <memory>
+#include <map>
 
 #include "options.hpp"
+#include "arrinfo.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
     // to make inclusion of Thrust not neccesarry
-    enum {cpp, omp, cuda}; // TODO: move to opts?
+    enum {cpp, omp, cuda}; 
 
-    template <typename real_t>
-    struct arrinfo_t
-    {
-      real_t * const dataZero;
-      const ptrdiff_t *strides;
-      arrinfo_t()
-        : dataZero(NULL), strides(NULL) 
-      {} 
-      arrinfo_t(real_t * const dataZero, const ptrdiff_t *strides) 
-        : dataZero(dataZero), strides(strides) 
-      {} 
-      bool is_null() const { return dataZero==NULL || strides==NULL; }
-    };
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>

@@ -8,7 +8,10 @@
 #pragma once
 
 #include <boost/ptr_container/ptr_unordered_map.hpp>
+#include <vector>
+
 #include "../common/unary_function.hpp"
+#include "../common/units.hpp"
 
 namespace libcloudphxx
 {
@@ -17,6 +20,11 @@ namespace libcloudphxx
     template<typename real_t>
     struct opts_t
     {
+      typedef std::map<std::pair<
+	quantity<si::length, real_t>,
+	quantity<si::length, real_t>
+      >, std::vector<int>> outmom_t;
+
       // processes
       bool 
         adve,// = true, 
@@ -28,7 +36,7 @@ namespace libcloudphxx
 // TODO: vent? (as a coefficient?)
 // TODO: MAC
 
-      // initial dry spectra
+      // initial dry spectra // TODO: simensionalise this function!
       typedef boost::ptr_unordered_map<real_t, common::unary_function<real_t> > dry_distros_t;
 
       //
