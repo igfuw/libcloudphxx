@@ -29,6 +29,9 @@ namespace libcloudphxx
         // tossing random numbers [0,1] 
         rand_u01(n_part);
 
+// TODO: what about density? constant concentration in space with variable density leads to 
+//       variable concentration for t>0
+
 	// shifting from [0,1] to [0,nx*dx] 
         {
           using namespace thrust::placeholders;
