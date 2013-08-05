@@ -86,7 +86,7 @@ namespace libcloudphxx
 
       // temporary data
       thrust::host_vector<real_t>
-        tmp_host_real_cell;
+        &tmp_host_real_cell, tmp_host_real_grid;
       thrust::host_vector<thrust_size_t>
         tmp_host_size_cell;
 
@@ -106,10 +106,23 @@ namespace libcloudphxx
         n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
 	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
         zero(0), // TODO: is it used anywhere?
-        sorted(false)
+        sorted(false),
+        tmp_host_real_cell(tmp_host_real_grid)
       {
 	u01.resize(n_part);
-        tmp_host_real_cell.resize(n_cell);
+        {
+          int n_grid;
+          switch (n_dims)
+          {
+            case 0: 
+              break;
+            case 2:
+              n_grid = std::max((opts.nx+1)*opts.nz, opts.nx*(opts.nz+1));
+              break;
+            default: assert(false);
+          }
+	  tmp_host_real_grid.resize(n_grid);
+        }
         tmp_host_size_cell.resize(n_cell);
       }
 
