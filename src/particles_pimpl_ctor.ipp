@@ -86,7 +86,8 @@ namespace libcloudphxx
 
       // temporary data
       thrust::host_vector<real_t>
-        &tmp_host_real_cell, tmp_host_real_grid;
+        tmp_host_real_grid,
+        &tmp_host_real_cell;
       thrust::host_vector<thrust_size_t>
         tmp_host_size_cell;
 
@@ -162,9 +163,6 @@ namespace libcloudphxx
       pimpl(new impl(opts))
     {
       pimpl->sanity_checks();
-      assert(opts.dx != 0);
-      assert(opts.dy != 0);
-      assert(opts.dz != 0);
     }
 
     // outbuf
