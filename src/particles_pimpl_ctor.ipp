@@ -121,6 +121,7 @@ namespace libcloudphxx
               break;
             default: assert(false);
           }
+          assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
         tmp_host_size_cell.resize(n_cell);
