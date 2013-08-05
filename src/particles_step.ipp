@@ -55,7 +55,7 @@ std::cerr << "\n\n STEP \n\n";
       if (pimpl->opts.cond) ; // TODO
 
       // chemistry
-      if (pimpl->opts.chem) assert(false && "unimplemented");
+      if (pimpl->opts.chem) ; // TODO assert(false && "unimplemented");
 
       // coalescence
       if (pimpl->opts.coal) ; // TODO

@@ -47,6 +47,8 @@ namespace libcloudphxx
 
       real_t dt;
 
+      outmom_t out_dry, out_wet;
+
       // ctor
       opts_t() : 
         nx(0), ny(0), nz(0), 
