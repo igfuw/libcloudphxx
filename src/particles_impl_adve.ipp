@@ -22,7 +22,7 @@ namespace libcloudphxx
         real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
         {
           real_t x = thrust::get<0>(tpl);
-          const thrust_size_t floor_x = thrust::get<1>(tpl);
+          const thrust_size_t floor_x_over_dx = thrust::get<1>(tpl);
           real_t C_l = thrust::get<2>(tpl);
           real_t C_r = thrust::get<3>(tpl);
 
@@ -40,22 +40,22 @@ namespace libcloudphxx
           // x_new =  (x_old + C_l * dx - floor(x_old) * (C_r - C_l)) / (1 - C_r + C_l)
 
           return (
-            x + C_l * dx - floor_x * (C_r - C_l)
+            x + dx * (C_l - floor_x_over_dx * (C_r - C_l))
           ) / (
-            1 - C_r + C_l
+            1 - (C_r - C_l)
           );
         }
       };
 
       template <typename real_t>
-      struct fmod
+      struct periodic
       { 
         real_t nxdx;
-        fmod(real_t nxdx) : nxdx(nxdx) {}
+        periodic(real_t nxdx) : nxdx(nxdx) {}
         __device__
         real_t operator()(real_t x)
         {
-          return std::fmod(x + nxdx, nxdx);
+          return fmod(x + nxdx, nxdx); // this should call CUDA's fmod!
         }
       };
     };
@@ -87,14 +87,14 @@ namespace libcloudphxx
             C_blw(courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
 
           thrust::transform(
-            thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft, C_rgt)), // input - begin
-            thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft, C_rgt)), // input - end
+            thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt)), // input - begin
+            thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
             x.begin(), // output
             detail::adve_2d<real_t>(opts.dx)
           );
           thrust::transform(
-            thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw, C_abv)), // input - begin
-            thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw, C_abv)), // input - end
+            thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv)), // input - begin
+            thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
             z.begin(), // output
             detail::adve_2d<real_t>(opts.dz)
           );
@@ -103,7 +103,7 @@ namespace libcloudphxx
           thrust::transform(
             x.begin(), x.end(),
             x.begin(),
-            detail::fmod<real_t>(opts.nx * opts.dx)
+            detail::periodic<real_t>(opts.nx * opts.dx)
           );
           break; 
         }
