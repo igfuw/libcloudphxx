@@ -12,8 +12,8 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // to make inclusion of Thrust not neccesarry
-    enum {cpp, omp, cuda}; 
-
+    enum { cpp, omp, cuda }; 
+    enum { outbuf_default_arg = -666 };
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
@@ -98,10 +98,11 @@ namespace libcloudphxx
         arrinfo_t<real_t> rhod_rv
       ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
 
-      virtual void diag(
-      ) { assert(false); }
+      virtual void diag_sd_conc()    { assert(false); }
+      virtual void diag_rd_moms(int) { assert(false); }
+      virtual void diag_rw_moms(int) { assert(false); }
 
-      virtual real_t *outbuf() 
+      virtual real_t *outbuf(int = outbuf_default_arg) 
       { 
         assert(false);
         return NULL;
@@ -120,7 +121,7 @@ namespace libcloudphxx
   
       // the public API
       public:  
-      particles(const opts_t<real_t>); // ctor
+      particles(const opts_t<real_t> &); // ctor
 
       // init separated from the ctor as not all data might be available
       void init(
@@ -141,9 +142,11 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod 
       );
 
-      void diag();
+      void diag_sd_conc();
+      void diag_rd_moms(int);
+      void diag_rw_moms(int);
 
-      real_t *outbuf();
+      real_t *outbuf(int = outbuf_default_arg);
     };
 
     // to be explicitely instantiated

@@ -22,7 +22,7 @@ namespace libcloudphxx
       typedef unsigned long n_t; // thrust_size_t?
 
       // member fields
-      const opts_t<real_t> opts; // nx, ny, nz, dx, dy, dz, ...;
+      const opts_t<real_t> &opts; // nx, ny, nz, dx, dy, dz, ...;
       const int n_dims;
       const int n_cell; 
       const thrust_size_t n_part; 
@@ -57,6 +57,7 @@ namespace libcloudphxx
         count_ijk; // key-value pair for sorting particles by cell index
       thrust_device::vector<n_t>
         count_num; // number of particles in a given grid cell
+      thrust_device::vector<real_t> count_mom[6]; // assuming nothing higher than six-th moment is of interest
       thrust_size_t count_n;
 
       // Eulerian-Lagrangian interface vers
@@ -101,16 +102,20 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_t<real_t> opts) : 
+      impl(const opts_t<real_t> &opts) : 
 	opts(opts),
 	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
         n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
 	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
         zero(0), // TODO: is it used anywhere?
-        sorted(false),
+        sorted(false), 
         tmp_host_real_cell(tmp_host_real_grid)
       {
+        // initialising device temporary arrays
 	u01.resize(n_part);
+        // TODO: initialise count_mom[]
+
+        // initialising host temporary arrays
         {
           int n_grid;
           switch (n_dims)
@@ -139,10 +144,13 @@ namespace libcloudphxx
       void init_grid();
       void init_hskpng();
 
-           // rename step_?
+      void fill_outbuf(int);
+
+           // rename hskpng_ -> step_?
       void hskpng_shuffle();
       void hskpng_sort();
       void hskpng_count();
+      void hskpng_rd_moms();
       void hskpng_ijk();
       void hskpng_Tpr();
 
@@ -160,7 +168,7 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, int device>
-    particles<real_t, device>::particles(const opts_t<real_t> opts) :
+    particles<real_t, device>::particles(const opts_t<real_t> &opts) :
       pimpl(new impl(opts))
     {
       pimpl->sanity_checks();
@@ -168,8 +176,9 @@ namespace libcloudphxx
 
     // outbuf
     template <typename real_t, int device>
-    real_t *particles<real_t, device>::outbuf() 
+    real_t *particles<real_t, device>::outbuf(int n) 
     {
+      pimpl->fill_outbuf(n);
       return &(*(pimpl->tmp_host_real_cell.begin()));
     }
   };

@@ -75,7 +75,7 @@ namespace libcloudphxx
           assert(false);
       }
       
-      // flagging that particles are no longer sorted
+      // flagging that particles are no longer sorted 
       sorted = false;
     }   
   };  

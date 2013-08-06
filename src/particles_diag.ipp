@@ -9,33 +9,28 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // init
+    // records super-droplet concentration per grid cell
     template <typename real_t, int device>
-    void particles<real_t, device>::diag()
+    void particles<real_t, device>::diag_sd_conc()
     {
-std::cerr << "\n\n DIAG \n\n";
-      // super-droplet concentration per grid cell
-      pimpl->hskpng_count();
-      
-      thrust::fill(pimpl->tmp_host_real_cell.begin(), pimpl->tmp_host_real_cell.end(), 0);
-#if defined(__NVCC__)
-      thrust::copy(
-        pimpl->count_ijk.begin(), pimpl->count_ijk.end(), // from
-        pimpl->tmp_host_size_cell.begin()
-      );
-#endif
-      thrust::copy(
-        pimpl->count_num.begin(),                  // input - begin
-        pimpl->count_num.begin() + pimpl->count_n, // input - end
-        thrust::make_permutation_iterator(         // output
-          pimpl->tmp_host_real_cell.begin(),     
-#if !defined(__NVCC__)
-          pimpl->count_ijk.begin()
-#else
-          pimpl->tmp_host_size_cell.begin()
-#endif
-        )
-      );
+      pimpl->hskpng_count(); // common code with coalescence, hence separated into a method
+    }
+
+    // 
+    template <typename real_t, int device>
+    void particles<real_t, device>::diag_rw_moms(int)
+    {
+    }
+
+    //
+    template <typename real_t, int device>
+    void particles<real_t, device>::diag_rd_moms(int n)
+    {
+      // locating the requested range
+      typename opts_t<real_t>::outmom_t::const_iterator it = pimpl->opts.out_dry.begin();
+      while (n-- > 0) it++; 
+
+      pimpl->hskpng_rd_moms(); 
     }
   };
 };

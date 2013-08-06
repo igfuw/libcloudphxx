@@ -33,6 +33,8 @@
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
 
+#include "particles_impl_fill_outbuf.ipp"
+
 #include "particles_impl_sync.ipp"
 
 #include "particles_impl_adve.ipp"
