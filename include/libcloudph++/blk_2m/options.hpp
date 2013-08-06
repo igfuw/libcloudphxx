@@ -16,7 +16,7 @@ namespace libcloudphxx
     {
       bool 
         acti = true, 
-        cond = false, 
+        cond = true, 
         accr = false, 
         acnv = false, 
         turb = false,
