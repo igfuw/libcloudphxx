@@ -24,15 +24,12 @@ namespace libcloudphxx
        __device__ 
        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
        {
-         const real_t rd3 = thrust::get<0>(tpl);
-         const real_t kpa = thrust::get<1>(tpl); 
-         const real_t RH  = thrust::get<2>(tpl);
-         const real_t T   = thrust::get<3>(tpl);
+         const quantity<si::volume,        real_t> rd3 = thrust::get<0>(tpl) * si::cubic_metres;
+         const quantity<si::dimensionless, real_t> kpa = thrust::get<1>(tpl); 
+         const quantity<si::dimensionless, real_t> RH  = std::max(thrust::get<2>(tpl), RH_max);
+         const quantity<si::temperature,   real_t> T   = thrust::get<3>(tpl) * si::kelvins;
          return pow(common::kappa_koehler::rw3_eq_nokelvin( // TODO: include kelvin effect!
-           rd3 * si::cubic_metres, 
-           kpa * si::dimensionless(), 
-           std::max(RH, RH_max) * si::dimensionless()//, 
-//           T * si::kelvins
+           rd3, kpa, RH//, T 
          ) / si::cubic_metres, 2./3);
        }
       }; 
