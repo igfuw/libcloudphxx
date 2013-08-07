@@ -37,12 +37,17 @@ namespace libcloudphxx
     // init
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_dry(
-      const common::unary_function<real_t> *n_of_lnrd 
+      const common::unary_function<real_t> *n_of_lnrd, // TODO: kappa-spectrum map
+      const real_t kappa
     )
     {
       // memory allocation
       rd3.resize(n_part);
       n.resize(n_part);
+      kpa.resize(n_part); 
+
+      // filling kappas
+      thrust::fill(kpa.begin(), kpa.end(), kappa);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);

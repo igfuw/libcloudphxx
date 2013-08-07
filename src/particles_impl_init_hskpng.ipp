@@ -21,6 +21,7 @@ namespace libcloudphxx
       T.resize(n_cell);
       p.resize(n_cell);
       r.resize(n_cell); 
+      RH.resize(n_cell); 
 
       sorted_id.resize(n_part);
       sorted_ijk.resize(n_part);

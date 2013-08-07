@@ -32,7 +32,7 @@ std::cerr << "\n\n INIT \n\n";
 
       // initialising dry radii
       assert(pimpl->opts.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      pimpl->init_dry(pimpl->opts.dry_distros.begin()->second); // TODO: document that n_of_lnrd is expected!
+      pimpl->init_dry(pimpl->opts.dry_distros.begin()->second, pimpl->opts.dry_distros.begin()->first); // TODO: document that n_of_lnrd is expected!
 
       // initialising particle positions
       pimpl->init_xyz();

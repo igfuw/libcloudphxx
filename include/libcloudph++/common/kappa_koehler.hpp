@@ -63,17 +63,17 @@ namespace libcloudphxx
 	// local functor to be passed to the minimisation func
 	struct f 
 	{   
-	  quantity<si::dimensionless, real_t> vap_ratio;
-	  quantity<si::volume, real_t> rd3;
-	  quantity<si::dimensionless, real_t> kappa;
-	  quantity<si::temperature, real_t> T;
+	  const quantity<si::dimensionless, real_t> vap_ratio;
+	  const quantity<si::volume, real_t> rd3;
+	  const quantity<si::dimensionless, real_t> kappa;
+	  const quantity<si::temperature, real_t> T;
 
           // ctor
           f(
-	    quantity<si::dimensionless, real_t> &vap_ratio,
-	    quantity<si::volume, real_t> &rd3,
-	    quantity<si::dimensionless, real_t> &kappa,
-	    quantity<si::temperature, real_t> &T
+	    const quantity<si::dimensionless, real_t> &vap_ratio,
+	    const quantity<si::volume, real_t> &rd3,
+	    const quantity<si::dimensionless, real_t> &kappa,
+	    const quantity<si::temperature, real_t> &T
           ) : vap_ratio(vap_ratio), rd3(rd3), kappa(kappa), T(T) {}
       
 	  real_t operator()(real_t rw3)
