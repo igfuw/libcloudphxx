@@ -84,12 +84,14 @@ namespace libcloudphxx
 	  typedef detail::qntt_t amount;
 	  typedef detail::qntt_t dimensionless;
 	  typedef detail::qntt_t energy;
+	  typedef detail::qntt_t force;
 	  typedef detail::qntt_t length;
 	  typedef detail::qntt_t mass;
 	  typedef detail::qntt_t mass_density;
 	  typedef detail::qntt_t pressure;
 	  typedef detail::qntt_t temperature;
 	  typedef detail::qntt_t velocity;
+	  typedef detail::qntt_t volume;
 
 	  static const detail::unit_t 
 	    cubic_metre, cubic_metres,
@@ -98,6 +100,7 @@ namespace libcloudphxx
 	    kilogram, kilograms,
 	    metre, metres, 
 	    mole, moles,
+            newton, newtons,
 	    pascal, pascals;
         };
 

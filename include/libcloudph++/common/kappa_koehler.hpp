@@ -67,6 +67,14 @@ namespace libcloudphxx
 	  quantity<si::volume, real_t> rd3;
 	  quantity<si::dimensionless, real_t> kappa;
 	  quantity<si::temperature, real_t> T;
+
+          // ctor
+          f(
+	    quantity<si::dimensionless, real_t> &vap_ratio,
+	    quantity<si::volume, real_t> &rd3,
+	    quantity<si::dimensionless, real_t> &kappa,
+	    quantity<si::temperature, real_t> &T
+          ) : vap_ratio(vap_ratio), rd3(rd3), kappa(kappa), T(T) {}
       
 	  real_t operator()(real_t rw3)
 	  {
@@ -78,7 +86,7 @@ namespace libcloudphxx
 
 	boost::uintmax_t iters = 20; 
 	std::pair<real_t, real_t> range = boost::math::tools::toms748_solve(
-	  f({vap_ratio, rd3, kappa, T}), // the above-defined functor
+	  f(vap_ratio, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, vap_ratio) / si::cubic_metres), // max
 	  boost::math::tools::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2),
