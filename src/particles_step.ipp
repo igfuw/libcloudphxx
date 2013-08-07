@@ -61,8 +61,8 @@ std::cerr << "\n\n STEP \n\n";
       if (pimpl->opts.coal) ; // TODO
 
       // syncing out
-      //pimpl->sync(pimpl->rhod_th, rhod_th);
-      //pimpl->sync(pimpl->rhod_rv, rhod_rv);
+      pimpl->sync(pimpl->rhod_th, rhod_th);
+      pimpl->sync(pimpl->rhod_rv, rhod_rv);
     }
   };
 };

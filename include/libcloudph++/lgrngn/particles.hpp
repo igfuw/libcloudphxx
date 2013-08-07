@@ -131,8 +131,8 @@ namespace libcloudphxx
       );
 
       void step(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
+        arrinfo_t<real_t> rhod_th,
+        arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,

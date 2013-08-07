@@ -18,7 +18,8 @@ namespace libcloudphxx
     {
       //done to avoid BOOST_COMMA in preprocesor macro below
       typedef divide_typeof_helper<si::force, si::length>::type force_over_length;
-      // water surface tension (Petters and Kreidenweis 2007 //TODO - check)
+
+      // water surface tension (as used in Petters and Kreidenweis 2007)
       libcloudphxx_const(force_over_length, sg_surf, 0.072, si::newton/si::metres)
 
       // Kelvin curvature parameter (see eq. 7 in Kvorostyanov and Curry 2006)
@@ -26,9 +27,20 @@ namespace libcloudphxx
       quantity<si::length, real_t> A(
         quantity<si::temperature, real_t> T
       ) {
-        return real_t(2.) * sg_surf<real_t>() / moist_air::R_v<real_t>() / T / moist_air::rho_w<real_t>();
+        using namespace moist_air;
+        return real_t(2.) * sg_surf<real_t>() / R_v<real_t>() / T / rho_w<real_t>();
       }
 
+      // Kelvin term in Koehler equation (see eq. 1 in Petters and Kreidenweis 2007)
+      template <typename real_t>
+      quantity<si::dimensionless, real_t> klvntrm(
+	quantity<si::length, real_t> r,
+	quantity<si::temperature, real_t> T
+      )   
+      {   
+        using namespace moist_air;
+	return exp(real_t(2.) * sg_surf<real_t>() / r / R_v<real_t>() / rho_w<real_t>() / T); 
+      }   
     }
   }
 };

@@ -164,7 +164,7 @@ namespace libcloudphxx
       );
 
       void sync(
-        const arrinfo_t<real_t> &, // from // TODO: const
+        const arrinfo_t<real_t> &, // from 
         thrust_device::vector<real_t> & // to
       );
       void sync(

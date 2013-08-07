@@ -5,6 +5,8 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <libcloudph++/common/kappa_koehler.hpp>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -16,6 +18,8 @@ namespace libcloudphxx
       // memory allocation
       rw2.resize(n_part);
       kpa.resize(n_part);
+
+      
     }
   };
 };
