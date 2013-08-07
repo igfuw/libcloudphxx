@@ -7,7 +7,6 @@
   */
 
 #include <thrust/host_vector.h>
-//#include <unordered_map> // requires C++11
 #include <map>
 
 namespace libcloudphxx
@@ -22,7 +21,7 @@ namespace libcloudphxx
       typedef unsigned long n_t; // thrust_size_t?
 
       // member fields
-      const opts_t<real_t> &opts; // nx, ny, nz, dx, dy, dz, ...;
+      const opts_t<real_t> opts; // a copy
       const int n_dims;
       const int n_cell; 
       const thrust_size_t n_part; 
@@ -31,17 +30,13 @@ namespace libcloudphxx
       // particle attributes
       thrust_device::vector<real_t> 
 	rd3, // dry radii cubed 
-	xi,  // wet radius proxy variable (e.g. xi = ln(rw))
+	rw2, // wet radius square
         kpa, // kappa
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
       thrust_device::vector<n_t>
 	n;  // multiplicity
-
-      // helper vectors
-      thrust_device::vector<real_t>
-	u01; // uniform random numbers between 0 and 1
 
       //
       thrust_device::vector<thrust_size_t> 
@@ -57,7 +52,8 @@ namespace libcloudphxx
         count_ijk; // key-value pair for sorting particles by cell index
       thrust_device::vector<n_t>
         count_num; // number of particles in a given grid cell
-      thrust_device::vector<real_t> count_mom[6]; // assuming nothing higher than six-th moment is of interest
+      thrust_device::vector<real_t> 
+        count_mom; // statistical moment
       thrust_size_t count_n;
 
       // Eulerian-Lagrangian interface vers
@@ -92,6 +88,11 @@ namespace libcloudphxx
       thrust::host_vector<thrust_size_t>
         tmp_host_size_cell;
 
+      // helper vectors
+      thrust_device::vector<real_t>
+        tmp_device_real_part,
+	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
@@ -109,11 +110,11 @@ namespace libcloudphxx
 	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
         zero(0), // TODO: is it used anywhere?
         sorted(false), 
-        tmp_host_real_cell(tmp_host_real_grid)
+        tmp_host_real_cell(tmp_host_real_grid),
+        u01(tmp_device_real_part)
       {
         // initialising device temporary arrays
-	u01.resize(n_part);
-        // TODO: initialise count_mom[]
+	tmp_device_real_part.resize(n_part);
 
         // initialising host temporary arrays
         {
@@ -144,15 +145,23 @@ namespace libcloudphxx
       void init_grid();
       void init_hskpng();
 
-      void fill_outbuf(int);
+      void fill_outbuf();
 
            // rename hskpng_ -> step_?
       void hskpng_shuffle();
       void hskpng_sort();
       void hskpng_count();
-      void hskpng_rd_moms();
       void hskpng_ijk();
       void hskpng_Tpr();
+
+      void moms_rng(
+        const real_t &min, const real_t &max, 
+        const thrust_device::vector<real_t> &radii
+      ); 
+      void moms_calc(
+	const thrust_device::vector<real_t> &radii,
+	const real_t power
+      );
 
       void sync(
         const arrinfo_t<real_t> &, // from // TODO: const
@@ -176,9 +185,9 @@ namespace libcloudphxx
 
     // outbuf
     template <typename real_t, int device>
-    real_t *particles<real_t, device>::outbuf(int n) 
+    real_t *particles<real_t, device>::outbuf() 
     {
-      pimpl->fill_outbuf(n);
+      pimpl->fill_outbuf();
       return &(*(pimpl->tmp_host_real_cell.begin()));
     }
   };

@@ -13,7 +13,6 @@ namespace libcloudphxx
   {
     // to make inclusion of Thrust not neccesarry
     enum { cpp, omp, cuda }; 
-    enum { outbuf_default_arg = -666 };
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
@@ -98,15 +97,13 @@ namespace libcloudphxx
         arrinfo_t<real_t> rhod_rv
       ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
 
-      virtual void diag_sd_conc()    { assert(false); }
-      virtual void diag_rd_moms(int) { assert(false); }
-      virtual void diag_rw_moms(int) { assert(false); }
-
-      virtual real_t *outbuf(int = outbuf_default_arg) 
-      { 
-        assert(false);
-        return NULL;
-      }
+      // method for accessing super-droplet statistics
+      virtual void diag_sd_conc()                             { assert(false); }
+      virtual void diag_dry_rng(const real_t&, const real_t&) { assert(false); }
+      virtual void diag_wet_rng(const real_t&, const real_t&) { assert(false); }
+      virtual void diag_dry_mom(const int&)                   { assert(false); }
+      virtual void diag_wet_mom(const int&)                   { assert(false); }
+      virtual real_t *outbuf()                                { assert(false); return NULL; }
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -143,10 +140,11 @@ namespace libcloudphxx
       );
 
       void diag_sd_conc();
-      void diag_rd_moms(int);
-      void diag_rw_moms(int);
-
-      real_t *outbuf(int = outbuf_default_arg);
+      void diag_dry_rng(const real_t&, const real_t&);
+      void diag_wet_rng(const real_t&, const real_t&);
+      void diag_dry_mom(const int&);
+      void diag_wet_mom(const int&);
+      real_t *outbuf();
     };
 
     // to be explicitely instantiated

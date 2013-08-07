@@ -27,6 +27,7 @@ namespace libcloudphxx
 
       count_ijk.resize(n_cell);
       count_num.resize(n_cell);
+      count_mom.resize(n_cell);
       count_n = 0;
     }
   };

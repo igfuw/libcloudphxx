@@ -20,11 +20,6 @@ namespace libcloudphxx
     template<typename real_t>
     struct opts_t
     {
-      typedef std::map<std::pair<
-	quantity<si::length, real_t>,
-	quantity<si::length, real_t>
-      >, std::vector<int> > outmom_t;
-
       // processes
       bool 
         adve,// = true, 
@@ -46,8 +41,6 @@ namespace libcloudphxx
       dry_distros_t dry_distros;
 
       real_t dt;
-
-      outmom_t out_dry, out_wet;
 
       // ctor
       opts_t() : 

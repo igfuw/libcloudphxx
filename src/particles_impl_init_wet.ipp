@@ -14,7 +14,7 @@ namespace libcloudphxx
     void particles<real_t, device>::impl::init_wet()
     {
       // memory allocation
-      xi.resize(n_part);
+      rw2.resize(n_part);
       kpa.resize(n_part);
     }
   };
