@@ -42,8 +42,6 @@ namespace libcloudphxx
       // transforming n -> n/dv if within range, else 0
       thrust_device::vector<real_t> &sorted_n_over_dv_within_range(tmp_device_real_part);
 
-      real_t dv = opts.dx * opts.dy * opts.dz;
-
       thrust::permutation_iterator<
 	typename thrust_device::vector<n_t>::iterator, 
 	typename thrust_device::vector<thrust_size_t>::iterator
@@ -90,16 +88,16 @@ namespace libcloudphxx
       // same as above
       thrust_device::vector<real_t> &sorted_n_over_dv_within_range(tmp_device_real_part);
 
-      using pi_t = thrust::permutation_iterator<
+      typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
-      >;
-      using zip_it_t = thrust::zip_iterator<
+      > pi_t;
+      typedef thrust::zip_iterator<
 	thrust::tuple<
 	  typename thrust_device::vector<real_t>::iterator,
 	  pi_t
 	>
-      >;
+      > zip_it_t;
 
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
