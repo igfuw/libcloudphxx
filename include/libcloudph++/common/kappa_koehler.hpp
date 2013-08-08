@@ -49,11 +49,13 @@ namespace libcloudphxx
       {
 	return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
       }
-// TODO:namespace detail
 
+
+      namespace detail
+      {
 	// local functor to be passed to the minimisation func
         template <typename real_t>
-	struct f 
+	struct rw3_eq_minfun 
 	{   
 	  const quantity<si::dimensionless, real_t> RH;
 	  const quantity<si::volume, real_t> rd3;
@@ -62,7 +64,7 @@ namespace libcloudphxx
 
           // ctor
           BOOST_GPU_ENABLED
-          f(
+          rw3_eq_minfun(
 	    const quantity<si::dimensionless, real_t> &RH,
 	    const quantity<si::volume, real_t> &rd3,
 	    const quantity<si::dimensionless, real_t> &kappa,
@@ -77,6 +79,7 @@ namespace libcloudphxx
 	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
 	  }
 	};  
+      };
 
 
       // @brief equilibrium wet radius to the third power for a given:
@@ -90,15 +93,16 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> kappa,
 	quantity<si::dimensionless, real_t> RH,
 	quantity<si::temperature, real_t> T
+        // TODO: tolerance with a reasonable default value?
       )   
       {   
         assert(RH < 1); // no equilibrium over RH=100%
 
         return common::detail::bisect(
-	  f<real_t>(RH, rd3, kappa, T), // the above-defined functor
+	  detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
-          real_t(real_t(.001) * rd3 / si::cubic_metres) // tolarance (~r3) TODO!!!!  
+          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolarance (~r3) TODO!!!!  
 	) * si::cubic_metres;
       }
     };

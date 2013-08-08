@@ -3,8 +3,9 @@
 - ventilation as an option in all schemes
 - think of some sexy animation showing some aerosol-indirect-effect-related stuff
 - sdm: coalescence Kernel choice: constant, Long, B\"ohm
-- out-of-source build tests, hints and encouragement :)
-- test testing if id/ln/p2/... wrks in sdm and hinting which to use...
+- accumulated rainfall plots (and output)
+- Kessler: ac_thres as option
+- sdm: MAC/HAC, vent_coef as options
 
 
 0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
@@ -22,7 +23,7 @@
   - Austin et al. 1995: ... Radiative cooling near the top of a layer cloud plays a dominant role in droplet condensation growth. ...
   - Harrington et al. 2000: ... production of drizzle-sized drops is strongly dependent upon parcel cloud-top residence time for both radiative- and nonradiative-influenced growth. Drizzle-sized drops can be produced between 20 and 50 min earlier through the inclusion of the radiative term, which corroborates earlier results...
   - Marquis et al. 2005: ... shortwave (SW) heating of individual drops can be strong enough that drop temperatures at equilibrium deviate by as much as 6°C from the surrounding environment ...
-- a simple test with libradtran for schemes with dagnosable r_eff
+- a simple test with libradtran for schemes with diagnosable r_eff
 
 
 0.3: (not-so-near future enhancements, applicable to HARMONIA)
