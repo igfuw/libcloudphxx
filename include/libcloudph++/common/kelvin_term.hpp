@@ -24,6 +24,7 @@ namespace libcloudphxx
 
       // Kelvin curvature parameter (see eq. 7 in Kvorostyanov and Curry 2006)
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::length, real_t> A(
         quantity<si::temperature, real_t> T
       ) {
@@ -33,6 +34,7 @@ namespace libcloudphxx
 
       // Kelvin term in Koehler equation (see eq. 1 in Petters and Kreidenweis 2007)
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> klvntrm(
 	quantity<si::length, real_t> r,
 	quantity<si::temperature, real_t> T

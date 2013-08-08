@@ -82,7 +82,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::const_iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t>> zip_it_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t> > zip_it_t;
 
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
