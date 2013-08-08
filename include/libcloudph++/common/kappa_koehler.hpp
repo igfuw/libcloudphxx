@@ -28,6 +28,7 @@ namespace libcloudphxx
       /// 
       /// for the kappa-Koehler parameterisation rw3 is linear with rd3
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::volume, real_t> rw3_eq_nokelvin(
 	quantity<si::volume, real_t> rd3, 
 	quantity<si::dimensionless, real_t> kappa,
@@ -39,6 +40,7 @@ namespace libcloudphxx
 
       /// @brief activity of water in solution (eqs. 1,6) in @copydetails Petters_and_Kreidenweis_2007
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> a_w(
 	quantity<si::volume, real_t> rw3,
 	quantity<si::volume, real_t> rd3,
@@ -53,6 +55,7 @@ namespace libcloudphxx
       /// @arg the solubility parameter kappa
       /// @arg ratio of abmient vapour density/pressure to saturation vapour density/pressure for pure water
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::volume, real_t> rw3_eq(
 	quantity<si::volume, real_t> rd3, 
 	quantity<si::dimensionless, real_t> kappa,
@@ -94,7 +97,6 @@ namespace libcloudphxx
 	); // TODO: ignore error?
 	return (range.first + range.second) / 2 * si::cubic_metres;
       }
-
     };
   };
 };
