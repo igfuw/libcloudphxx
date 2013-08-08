@@ -1,3 +1,5 @@
+set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
+
 add_subdirectory(parcel)
 add_subdirectory(theta)
 add_subdirectory(particles)

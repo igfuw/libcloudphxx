@@ -1,0 +1,2 @@
+add_executable(test_fake_units test_fake_units.cpp)
+add_test(test_fake_units test_fake_units)

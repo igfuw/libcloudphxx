@@ -31,8 +31,8 @@ namespace libcloudphxx
 	const quantity<si::temperature, real_t> &T
       ) {
 	return p_tri<real_t>() * exp(
-	  (l_tri<real_t>() + (c_pw<real_t>() - c_pv<real_t>()) * T_tri<real_t>()) / R_v<real_t>() * (real_t(1) / T_tri<real_t>() - real_t(1) / T)
-	  - (c_pw<real_t>() - c_pv<real_t>()) / R_v<real_t>() * log(T / T_tri<real_t>())
+	  (l_tri<real_t>() + (c_pw<real_t>() - c_pv<real_t>()) * T_tri<real_t>()) / R_v<real_t>() * (1 / T_tri<real_t>() - 1 / T)
+	  - (c_pw<real_t>() - c_pv<real_t>()) / R_v<real_t>() * std::log(T / T_tri<real_t>())
 	);
       }
 

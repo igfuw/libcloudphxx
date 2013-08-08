@@ -34,6 +34,7 @@ namespace libcloudphxx
 	  BOOST_GPU_ENABLED inline quantity operator/(const quantity &q) const { return quantity(value / q.value); };
 	  BOOST_GPU_ENABLED inline quantity operator-(const quantity &q) const { return quantity(value - q.value); };
 	  BOOST_GPU_ENABLED inline quantity operator+(const quantity &q) const { return quantity(value + q.value); };
+
 	  BOOST_GPU_ENABLED inline quantity operator+(const int         &q) const { return quantity(value + q); };
 
           // cast to real_t
@@ -60,23 +61,41 @@ namespace libcloudphxx
 	    unit_t() {}
 	  };
 
+          // real_t vs. unit
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(const real_t &a, const unit_t &) { return quantity<qntt_t, real_t>(a); }
-
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator/(const real_t &a, const unit_t &) { return quantity<qntt_t, real_t>(a); }
 
+          // quantity vs. unit
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(quantity<qntt_t, real_t> a, const unit_t &) { return quantity<qntt_t, real_t>(a); }
-
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator/(quantity<qntt_t, real_t> a, const unit_t &) { return quantity<qntt_t, real_t>(a); }
 
+          // unit vs. quantity
 	  template <typename real_t>
 	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(const unit_t &, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(a); }
 
-	  template <typename real_t>
-	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator+(const int &c, quantity<qntt_t, real_t> a) { return a+c; }
+          // num_t vs. quantity
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator+(const num_t &c, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(c)+a; }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator-(const num_t &c, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(c)-a; }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator/(const num_t &c, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(c)/a; }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(const num_t &c, quantity<qntt_t, real_t> a) { return quantity<qntt_t, real_t>(c)*a; }
+
+          // quantity vs. num_t
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator+(quantity<qntt_t, real_t> a, const num_t &c) { return a+quantity<qntt_t, real_t>(c); }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator-(quantity<qntt_t, real_t> a, const num_t &c) { return a-quantity<qntt_t, real_t>(c); }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator/(quantity<qntt_t, real_t> a, const num_t &c) { return a/quantity<qntt_t, real_t>(c); }
+	  template <typename num_t, typename real_t>
+	  BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> operator*(quantity<qntt_t, real_t> a, const num_t &c) { return a*quantity<qntt_t, real_t>(c); }
 	}
 
 	namespace si

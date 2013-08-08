@@ -52,6 +52,34 @@ void test()
   // addition to int
   p0 = p1 * (1 + p1);
   if (p0.value != 200*201) assert(false),throw;
+
+  // int over quantity
+  p0 = p1 * (1 / p1);
+  if (p0.value != 200*(1./200)) assert(false),throw;
+
+  // int times quantity
+  p0 = p1 * (2 * p1);
+  if (p0.value != 200*(2. * 200)) assert(false),throw;
+
+  // int minus quantity
+  p0 = p1 * (2 - p1);
+  if (p0.value != 200*(2. - 200)) assert(false),throw;
+
+  // q + int
+  p0 = p1 * (p1 + 1);
+  if (p0.value != 200*201) assert(false),throw;
+
+  // q / int
+  p0 = p1 * (p1 / 2);
+  if (p0.value != 200*(200. / 2)) assert(false),throw;
+
+  // q * int
+  p0 = p1 * (p1 * 2);
+  if (p0.value != 200*(2. * 200)) assert(false),throw;
+
+  // quantity - int
+  p0 = p1 * (p1 - 2);
+  if (p0.value != 200*(200-2)) assert(false),throw;
 }
 
 int main()
