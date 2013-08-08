@@ -3,8 +3,7 @@
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
-
-#include <boost/math/tools/toms748_solve.hpp>
+#include <libcloudph++/common/detail/bisect.hpp>
 
 namespace libcloudphxx
 {
@@ -90,15 +89,12 @@ namespace libcloudphxx
 	  }
 	};  
 
-	boost::uintmax_t iters = 20; 
-	std::pair<real_t, real_t> range = boost::math::tools::toms748_solve(
+        return common::detail::bisect(
 	  f(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
-	  boost::math::tools::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2),
-	  iters // the highest attainable precision with the algorithm according to Boost docs
-	); // TODO: ignore error?
-	return (range.first + range.second) / 2 * si::cubic_metres;
+          real_t(real_t(.001) * rd3 / si::cubic_metres) // tolarance (~r3) TODO!!!!  
+	) * si::cubic_metres;
       }
     };
   };

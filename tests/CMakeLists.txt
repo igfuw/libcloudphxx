@@ -4,5 +4,6 @@ add_subdirectory(parcel)
 add_subdirectory(theta)
 add_subdirectory(particles)
 add_subdirectory(fake_units)
+add_subdirectory(bisect)
 
 # TODO: target_compile_options() // added to CMake on Jun 3rd 2013
