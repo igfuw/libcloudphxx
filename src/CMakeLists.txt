@@ -14,8 +14,6 @@ if (OPENMP_FOUND)
   set(files "${files};lib_omp.cpp")
 endif()
 
-set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
-
 # TODO: detecd CUDA arch (native functionality would be best?)
 if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CUDA_NVCC_FLAGS}")

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.6) # for CMakePushCheckState
 project(libcloudph++ CXX C)
 
-# requireing C++11 
-set(CMAKE_CXX_FLAGS "-std=c++11") # TODO: move to src?
+# requireing C++11 and pointing to local headers
+set(CMAKE_CXX_FLAGS "-std=c++11 -I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 
 # TODO: libmpdataxx-config?
 # -DNDEBUG?
