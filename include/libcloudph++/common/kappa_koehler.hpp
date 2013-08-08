@@ -32,10 +32,11 @@ namespace libcloudphxx
       quantity<si::volume, real_t> rw3_eq_nokelvin(
 	quantity<si::volume, real_t> rd3, 
 	quantity<si::dimensionless, real_t> kappa,
-	quantity<si::dimensionless, real_t> vap_ratio
+	quantity<si::dimensionless, real_t> RH
       )   
       {   
-	return rd3 * (1 - vap_ratio * (1 - kappa)) / (1 - vap_ratio);
+        assert(RH < 1); // no equilibrium over RH=100%
+	return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
       }   
 
       /// @brief activity of water in solution (eqs. 1,6) in @copydetails Petters_and_Kreidenweis_2007
@@ -59,39 +60,41 @@ namespace libcloudphxx
       quantity<si::volume, real_t> rw3_eq(
 	quantity<si::volume, real_t> rd3, 
 	quantity<si::dimensionless, real_t> kappa,
-	quantity<si::dimensionless, real_t> vap_ratio,
+	quantity<si::dimensionless, real_t> RH,
 	quantity<si::temperature, real_t> T
       )   
       {   
+        assert(RH < 1); // no equilibrium over RH=100%
+
 	// local functor to be passed to the minimisation func
 	struct f 
 	{   
-	  const quantity<si::dimensionless, real_t> vap_ratio;
+	  const quantity<si::dimensionless, real_t> RH;
 	  const quantity<si::volume, real_t> rd3;
 	  const quantity<si::dimensionless, real_t> kappa;
 	  const quantity<si::temperature, real_t> T;
 
           // ctor
           f(
-	    const quantity<si::dimensionless, real_t> &vap_ratio,
+	    const quantity<si::dimensionless, real_t> &RH,
 	    const quantity<si::volume, real_t> &rd3,
 	    const quantity<si::dimensionless, real_t> &kappa,
 	    const quantity<si::temperature, real_t> &T
-          ) : vap_ratio(vap_ratio), rd3(rd3), kappa(kappa), T(T) {}
+          ) : RH(RH), rd3(rd3), kappa(kappa), T(T) {}
       
 	  real_t operator()(real_t rw3)
 	  {
-	    return vap_ratio 
-	      - a_w(rw3 * si::cubic_metres, rd3, kappa) 
-	      * kelvin::klvntrm(pow(rw3, 1./3) * si::metres, T); 
+	    return this->RH
+	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
+	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
 	  }
 	};  
 
 	boost::uintmax_t iters = 20; 
 	std::pair<real_t, real_t> range = boost::math::tools::toms748_solve(
-	  f(vap_ratio, rd3, kappa, T), // the above-defined functor
+	  f(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
-	  real_t(rw3_eq_nokelvin(rd3, kappa, vap_ratio) / si::cubic_metres), // max
+	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
 	  boost::math::tools::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2),
 	  iters // the highest attainable precision with the algorithm according to Boost docs
 	); // TODO: ignore error?

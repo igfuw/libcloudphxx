@@ -25,15 +25,15 @@ namespace libcloudphxx
        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
        {
 #if !defined(__NVCC__)
-         using std::max;
+         using std::min;
          using std::pow;
 #endif
          const quantity<si::volume,        real_t> rd3 = thrust::get<0>(tpl) * si::cubic_metres;
          const quantity<si::dimensionless, real_t> kpa = thrust::get<1>(tpl); 
-         const quantity<si::dimensionless, real_t> RH  = max(thrust::get<2>(tpl), RH_max);
+         const quantity<si::dimensionless, real_t> RH  = min(thrust::get<2>(tpl), RH_max);
          const quantity<si::temperature,   real_t> T   = thrust::get<3>(tpl) * si::kelvins;
-         return pow(common::kappa_koehler::rw3_eq_nokelvin( // TODO: include kelvin effect!
-           rd3, kpa, RH//, T 
+         return pow(common::kappa_koehler::rw3_eq( // TODO: include kelvin effect!
+           rd3, kpa, RH, T 
          ) / si::cubic_metres, real_t(2./3));
        }
       }; 
@@ -53,6 +53,7 @@ namespace libcloudphxx
             typename thrust_device::vector<real_t>::iterator,
             typename thrust_device::vector<thrust_size_t>::iterator
           > pi_t;
+
           typedef thrust::zip_iterator<
             thrust::tuple<
               typename thrust_device::vector<real_t>::iterator,
