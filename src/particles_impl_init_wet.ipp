@@ -34,7 +34,7 @@ namespace libcloudphxx
          const quantity<si::temperature,   real_t> T   = thrust::get<3>(tpl) * si::kelvins;
          return pow(common::kappa_koehler::rw3_eq_nokelvin( // TODO: include kelvin effect!
            rd3, kpa, RH//, T 
-         ) / si::cubic_metres, 2./3);
+         ) / si::cubic_metres, real_t(2./3));
        }
       }; 
     };
