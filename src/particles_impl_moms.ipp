@@ -40,22 +40,12 @@ namespace libcloudphxx
       hskpng_sort(); 
 
       // transforming n -> n/dv if within range, else 0
-      thrust_device::vector<real_t> &sorted_n_over_dv_within_range(tmp_device_real_part);
-
-      thrust::permutation_iterator<
-	typename thrust_device::vector<n_t>::iterator, 
-	typename thrust_device::vector<thrust_size_t>::iterator
-      > sorted_n(n.begin(), sorted_id.begin());
-
-      thrust::permutation_iterator<
-	typename thrust_device::vector<real_t>::const_iterator, 
-	typename thrust_device::vector<thrust_size_t>::iterator
-      > sorted_radii(radii.begin(), sorted_id.begin());
+      thrust_device::vector<real_t> &n_over_dv_within_range(tmp_device_real_part);
 
       thrust::transform(
-	sorted_n, sorted_n + n_part,           // input - 1st arg
-	sorted_radii,                          // input - 2nd arg
-	sorted_n_over_dv_within_range.begin(), // output
+        n.begin(), n.end(),             // input - 1st arg
+	radii.begin(),                  // input - 2nd arg
+	n_over_dv_within_range.begin(), // output
 	detail::range_filter<real_t>(min, max, 1/(opts.dx * opts.dy * opts.dz)) 
       );
     }
@@ -86,18 +76,13 @@ namespace libcloudphxx
     )
     {
       // same as above
-      thrust_device::vector<real_t> &sorted_n_over_dv_within_range(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_over_dv_within_range(tmp_device_real_part);
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
-      typedef thrust::zip_iterator<
-	thrust::tuple<
-	  typename thrust_device::vector<real_t>::iterator,
-	  pi_t
-	>
-      > zip_it_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t>> zip_it_t;
 
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
@@ -112,8 +97,8 @@ namespace libcloudphxx
           real_t
         >(
 	  zip_it_t(thrust::make_tuple(
-            sorted_n_over_dv_within_range.begin(),
-            pi_t(radii.begin(), sorted_id.begin())
+            pi_t(n_over_dv_within_range.begin(), sorted_id.begin()),
+            pi_t(radii.begin(),                  sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
