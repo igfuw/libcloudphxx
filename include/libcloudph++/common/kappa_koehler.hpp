@@ -49,6 +49,35 @@ namespace libcloudphxx
       {
 	return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
       }
+// TODO:namespace detail
+
+	// local functor to be passed to the minimisation func
+        template <typename real_t>
+	struct f 
+	{   
+	  const quantity<si::dimensionless, real_t> RH;
+	  const quantity<si::volume, real_t> rd3;
+	  const quantity<si::dimensionless, real_t> kappa;
+	  const quantity<si::temperature, real_t> T;
+
+          // ctor
+          BOOST_GPU_ENABLED
+          f(
+	    const quantity<si::dimensionless, real_t> &RH,
+	    const quantity<si::volume, real_t> &rd3,
+	    const quantity<si::dimensionless, real_t> &kappa,
+	    const quantity<si::temperature, real_t> &T
+          ) : RH(RH), rd3(rd3), kappa(kappa), T(T) {}
+      
+          BOOST_GPU_ENABLED
+	  real_t operator()(real_t rw3)
+	  {
+	    return this->RH
+	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
+	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
+	  }
+	};  
+
 
       // @brief equilibrium wet radius to the third power for a given:
       /// @arg dry radius to the third power
@@ -65,32 +94,8 @@ namespace libcloudphxx
       {   
         assert(RH < 1); // no equilibrium over RH=100%
 
-	// local functor to be passed to the minimisation func
-	struct f 
-	{   
-	  const quantity<si::dimensionless, real_t> RH;
-	  const quantity<si::volume, real_t> rd3;
-	  const quantity<si::dimensionless, real_t> kappa;
-	  const quantity<si::temperature, real_t> T;
-
-          // ctor
-          f(
-	    const quantity<si::dimensionless, real_t> &RH,
-	    const quantity<si::volume, real_t> &rd3,
-	    const quantity<si::dimensionless, real_t> &kappa,
-	    const quantity<si::temperature, real_t> &T
-          ) : RH(RH), rd3(rd3), kappa(kappa), T(T) {}
-      
-	  real_t operator()(real_t rw3)
-	  {
-	    return this->RH
-	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
-	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
-	  }
-	};  
-
         return common::detail::bisect(
-	  f(RH, rd3, kappa, T), // the above-defined functor
+	  f<real_t>(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
           real_t(real_t(.001) * rd3 / si::cubic_metres) // tolarance (~r3) TODO!!!!  
