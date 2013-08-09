@@ -13,13 +13,12 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
- 
     // pimpl stuff 
     template <typename real_t, int device>
     struct particles<real_t, device>::impl
     { 
       typedef unsigned long n_t; // thrust_size_t?
-
+ 
       // member fields
       const opts_t<real_t> opts; // a copy
       const int n_dims;
@@ -85,13 +84,12 @@ namespace libcloudphxx
       // temporary data
       thrust::host_vector<real_t>
         tmp_host_real_grid,
-        &tmp_host_real_cell;
+        tmp_host_real_cell;
       thrust::host_vector<thrust_size_t>
         tmp_host_size_cell;
-
-      // helper vectors
       thrust_device::vector<real_t>
         tmp_device_real_part,
+        tmp_device_real_cell,
 	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
 
       // to simplify foreach calls
@@ -109,13 +107,16 @@ namespace libcloudphxx
 	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
         n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
 	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
-        zero(0), // TODO: is it used anywhere?
+        zero(0), 
         sorted(false), 
-        tmp_host_real_cell(tmp_host_real_grid),
         u01(tmp_device_real_part)
       {
+        // note: there could be less tmp data spaces if _cell vectors
+        //       would point to _part vector data... but using.end() would not possible
+
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
+        tmp_device_real_cell.resize(n_cell);
 
         // initialising host temporary arrays
         {
@@ -133,6 +134,7 @@ namespace libcloudphxx
 	  tmp_host_real_grid.resize(n_grid);
         }
         tmp_host_size_cell.resize(n_cell);
+        tmp_host_real_cell.resize(n_cell);
       }
 
       // methods
@@ -161,7 +163,7 @@ namespace libcloudphxx
       ); 
       void moms_calc(
 	const thrust_device::vector<real_t> &radii,
-	const real_t power
+        const real_t power
       );
 
       void sync(
@@ -174,6 +176,10 @@ namespace libcloudphxx
       );
 
       void adve();
+
+      void cond_dm3_helper();
+      void cond(real_t dt);
+      // TODO: sedi, coal, rcyc
     };
 
     // ctor

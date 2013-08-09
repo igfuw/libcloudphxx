@@ -1,4 +1,5 @@
 0.09 (pre-submission, things that need to be explicitely mentioned in the text):
+- auto cond_dt choice for blk_2m & lgrngn
 - 0-d parcel/box framework (could make the drops model obsolete in a longer run!)
 - ventilation as an option in all schemes
 - think of some sexy animation showing some aerosol-indirect-effect-related stuff
@@ -9,7 +10,7 @@
 
 
 0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
-
+- cleanup file extensions for lgrngn (.ipp, .tpp, ...)
 
 0.2: (near future enhancements, things important for the initial stages of the HARMONIA project)
 - super-droplet initialisation: uniform in volume -> uniform in mass of air

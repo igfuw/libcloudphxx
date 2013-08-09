@@ -10,9 +10,17 @@ namespace libcloudphxx
     namespace moist_air
     {
       typedef divide_typeof_helper<si::energy, si::temperature>::type energy_over_temperature;
+      typedef divide_typeof_helper<si::energy, si::mass>::type energy_over_mass;
       typedef divide_typeof_helper<si::mass, si::amount>::type mass_over_amount;
       typedef divide_typeof_helper<energy_over_temperature, si::amount>::type energy_over_temperature_amount;
       typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
+
+      typedef multiply_typeof_helper<si::velocity, si::length>::type diffusivity;
+      typedef multiply_typeof_helper<si::time, si::area>::type time_area;
+      typedef divide_typeof_helper<si::mass, time_area>::type mass_flux;
+      typedef multiply_typeof_helper<energy_over_mass, mass_flux>::type energy_flux;
+      typedef divide_typeof_helper<si::temperature, si::length>::type temperature_gradient;
+      typedef divide_typeof_helper<energy_flux, temperature_gradient>::type thermal_conductivity;
 
       // specific heat capacities
       libcloudphxx_const(energy_over_temperature_mass, c_pd, 1005, si::joules / si::kilograms / si::kelvins) // dry air
@@ -71,6 +79,25 @@ namespace libcloudphxx
       ) {
 	return p * r / (r + eps<real_t>());
       }
+
+      //vapour diffusivity in air (see Properties of air, Tracy, Welch & Porter 1980)
+      template<typename real_t>
+      quantity<diffusivity, real_t> D(
+        const quantity<si::temperature, real_t> &T, 
+        const quantity<si::pressure, real_t> &p
+      ) { 
+        const quantity<diffusivity, real_t> 
+          D_0 = real_t(2.26e-5) * si::square_metres / si::seconds;
+        const quantity<si::pressure, real_t> 
+          p_0 = real_t(100000) * si::pascal;
+        const quantity<si::temperature, real_t> 
+          T_0 = real_t(273.15) * si::kelvin;
+ 
+        return D_0 * std::pow(T / T_0, real_t(1.81)) * (p_0 / p); 
+      }   
+
+      // thermal conductivity of air
+      libcloudphxx_const(thermal_conductivity, K_0, 2.4e-2, si::joules / si::metres / si::seconds / si::kelvins) 
     };
   };
 };

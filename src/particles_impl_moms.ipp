@@ -53,7 +53,7 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct moment_counter
+      struct moment_counter : thrust::unary_function<const thrust::tuple<real_t, real_t>&, real_t>
       {
         real_t xp;
 
@@ -91,11 +91,7 @@ namespace libcloudphxx
         // input - keys
         sorted_ijk.begin(), sorted_ijk.end(),  
         // input - values
-        thrust::transform_iterator<
-          typename detail::moment_counter<real_t>,
-          zip_it_t,
-          real_t
-        >(
+        thrust::make_transform_iterator(
 	  zip_it_t(thrust::make_tuple(
             pi_t(n_over_dv_within_range.begin(), sorted_id.begin()),
             pi_t(radii.begin(),                  sorted_id.begin())

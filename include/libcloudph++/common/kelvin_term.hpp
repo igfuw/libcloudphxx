@@ -29,7 +29,7 @@ namespace libcloudphxx
         quantity<si::temperature, real_t> T
       ) {
         using namespace moist_air;
-        return real_t(2.) * sg_surf<real_t>() / R_v<real_t>() / T / rho_w<real_t>();
+        return real_t(2) * sg_surf<real_t>() / R_v<real_t>() / T / rho_w<real_t>();
       }
 
       // Kelvin term in Koehler equation (see eq. 1 in Petters and Kreidenweis 2007)
@@ -40,8 +40,7 @@ namespace libcloudphxx
 	quantity<si::temperature, real_t> T
       )   
       {   
-        using namespace moist_air;
-	return exp(real_t(2.) * sg_surf<real_t>() / r / R_v<real_t>() / rho_w<real_t>() / T); 
+	return exp(A<real_t>(T) / r);
       }   
     }
   }

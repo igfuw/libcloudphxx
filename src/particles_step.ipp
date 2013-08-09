@@ -30,29 +30,39 @@ std::cerr << "\n\n STEP \n\n";
       pimpl->sync(courant_z, pimpl->courant_z);
       pimpl->sync(rhod,      pimpl->rhod);
 
+      // updating Tpr look-up table
+      pimpl->hskpng_Tpr(); // note: before sedi (needed by v_term)
+
       // changing droplet positions
       if (pimpl->opts.adve) 
       {
-        // advection
+        // advection (TODO temporarily it also includes periodic boundaries)
         pimpl->adve();
-        // periodic boundaries
-        ; // TODO? (if needed)
+        // boundary condition
+        ; // TODO
       }
-      if (pimpl->opts.sedi) ; //pimpl->sedi(); // TODO
-      if (pimpl->opts.adve || pimpl->opts.sedi) 
+      if (pimpl->opts.sedi) 
       {
-        // recycling out-of-domain particles (due to precipitation or advection errors)
+        // advection with terminal velocity
+        //pimpl->sedi(); // TODO
+
+        // recycling out-of-domain particles (due to precipitation)
         if (pimpl->opts.rcyc) ; // TODO
 
         // updating particle->cell look-up table
+      }
+      if (pimpl->opts.adve || pimpl->opts.sedi)
+      {
         pimpl->hskpng_ijk();
       }
 
-      // updating Tpr look-up table
-      pimpl->hskpng_Tpr();
-
       // condensation/evaporation
-      if (pimpl->opts.cond) ; // TODO
+const int n_steps = 10; // TODO!
+      if (pimpl->opts.cond) for (int step = 0; step < n_steps; ++step) 
+      { 
+        pimpl->cond(pimpl->opts.dt / n_steps); 
+        pimpl->hskpng_Tpr(); // needed even at last iteration (chem & v_term in sedi)
+      }
 
       // chemistry
       if (pimpl->opts.chem) ; // TODO assert(false && "unimplemented");
@@ -60,7 +70,7 @@ std::cerr << "\n\n STEP \n\n";
       // coalescence
       if (pimpl->opts.coal) ; // TODO
 
-      // syncing out
+      // syncing out (TODO: if cond || ...)
       pimpl->sync(pimpl->rhod_th, rhod_th);
       pimpl->sync(pimpl->rhod_rv, rhod_rv);
     }

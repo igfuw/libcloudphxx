@@ -15,22 +15,8 @@ namespace libcloudphxx
   {
     namespace formulae
     {
-
       using namespace common::moist_air;
       using namespace common::const_cp;
-
-      //vapour diffusivity in air (see Properties of air, Tracy, Welch, Porter)
-      typedef divide_typeof_helper<si::area, si::time>::type diffusion;
-      template<typename real_t>
-      quantity<diffusion, real_t> air_vap_diff(
-        quantity<si::temperature, real_t> T, 
-        quantity<si::pressure, real_t> pres,
-        quantity<diffusion, real_t> D_0 = 2.26 * 1e-5 *si::square_metres/si::seconds,
-        quantity<si::pressure, real_t> p_0 = 100000 * si::pascal,
-        quantity<si::temperature, real_t> T_0 = 273.15 * si::kelvin 
-      ) {
-        return D_0 * pow(T / T_0, 1.81) * (p_0 / pres);
-      }
 
       // relaxation time for condensation/evaporation term for cloud and rain droplets
       // (see Khvorostyaov at al 2001 eq. 5)
@@ -41,7 +27,7 @@ namespace libcloudphxx
         quantity<si::length, real_t> r, //droplet radius
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
-        return 1. / (4 * pi<real_t>() * air_vap_diff(T, p) * N * r);
+        return 1. / (4 * pi<real_t>() * D(T, p) * N * r);
       }
  
       //drv_s/dT (derived from Clapeyron equation and pv = rv * rho_d * R_v * T)

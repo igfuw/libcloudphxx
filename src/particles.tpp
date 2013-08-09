@@ -40,3 +40,4 @@
 #include "particles_impl_sync.ipp"
 
 #include "particles_impl_adve.ipp"
+#include "particles_impl_cond.ipp"
