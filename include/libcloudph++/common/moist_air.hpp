@@ -82,6 +82,7 @@ namespace libcloudphxx
 
       //vapour diffusivity in air (see Properties of air, Tracy, Welch & Porter 1980)
       template<typename real_t>
+      BOOST_GPU_ENABLED
       quantity<diffusivity, real_t> D(
         const quantity<si::temperature, real_t> &T, 
         const quantity<si::pressure, real_t> &p

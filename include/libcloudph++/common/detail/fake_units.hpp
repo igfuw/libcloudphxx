@@ -101,6 +101,7 @@ namespace libcloudphxx
 	namespace si
 	{
 	  typedef detail::qntt_t amount;
+	  typedef detail::qntt_t area;
 	  typedef detail::qntt_t dimensionless;
 	  typedef detail::qntt_t energy;
 	  typedef detail::qntt_t force;
@@ -109,18 +110,21 @@ namespace libcloudphxx
 	  typedef detail::qntt_t mass_density;
 	  typedef detail::qntt_t pressure;
 	  typedef detail::qntt_t temperature;
+	  typedef detail::qntt_t time;
 	  typedef detail::qntt_t velocity;
 	  typedef detail::qntt_t volume;
 
 	  static const detail::unit_t 
-	    cubic_metre, cubic_metres,
+	    cubic_metre, cubic_metres, cubic_meter, cubic_meters,
 	    joule, joules,
 	    kelvin, kelvins,
 	    kilogram, kilograms,
-	    metre, metres, 
+	    metre, metres, meter, meters, 
 	    mole, moles,
             newton, newtons,
-	    pascal, pascals;
+	    pascal, pascals,
+            second, seconds,
+            square_metre, square_metres, square_meter, square_meters;
         };
 
         template <typename, typename>    

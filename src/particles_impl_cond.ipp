@@ -84,8 +84,11 @@ namespace libcloudphxx
           const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> 
             rhod_th  = thrust::get<3>(tpl) * si::kilograms / si::cubic_metres * si::kelvins;
 
-          return (drhod_rv / rhod) * common::theta_dry::d_rhodtheta_d_rv(T, rhod_th) 
-            / (si::kilograms / si::cubic_metres * si::kelvins / si::seconds);
+          return 
+            drhod_rv 
+            / rhod 
+            * common::theta_dry::d_rhodtheta_d_rv(T, rhod_th) 
+            / si::kilograms * si::cubic_metres / si::kelvins * si::seconds;
         }
       };
 
