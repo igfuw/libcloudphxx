@@ -104,14 +104,15 @@ namespace libcloudphxx
 	const quantity<si::dimensionless, real_t> RH;
 	const quantity<si::volume,        real_t> rd3;
 	const quantity<si::dimensionless, real_t> kpa;
-
-const quantity<si::dimensionless, real_t> RH_max = 1.01; // TODO!
+        const quantity<si::dimensionless, real_t> RH_max;
 
         // ctor
+        BOOST_GPU_ENABLED
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl,
+          const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
           rw2_old(rw2 * si::square_metres),
@@ -120,7 +121,8 @@ const quantity<si::dimensionless, real_t> RH_max = 1.01; // TODO!
           p(thrust::get<2>(tpl) * si::pascals),
           RH(thrust::get<3>(tpl)),
           rd3(thrust::get<4>(tpl) * si::cubic_metres),
-          kpa(thrust::get<5>(tpl))
+          kpa(thrust::get<5>(tpl)),
+          RH_max(RH_max)
         {}
 
         BOOST_GPU_ENABLED
@@ -156,8 +158,11 @@ using std::sqrt;
       template <typename real_t>
       struct advance_rw2
       {
-        const real_t dt;
-        advance_rw2(const real_t &dt) : dt(dt) {}
+        const real_t dt, RH_max;
+
+        advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
+
+        BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
           const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl
@@ -170,7 +175,7 @@ using std::sqrt;
 #endif
 
           // ''predictor'' step using explicit Euler scheme
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl);
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
           if (drw2 == 0) return rw2_old;
@@ -194,7 +199,7 @@ using std::sqrt;
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::cond(real_t dt)
+    void particles<real_t, device>::impl::cond(const real_t &dt, const real_t &RH_max)
     {   
       // prerequisites
       hskpng_sort(); // TODO: the same with T,p,r,RH? (and dependencies among T,p,r,RH!)
@@ -227,7 +232,7 @@ using std::sqrt;
           )
         ), 
 	rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt)
+        detail::advance_rw2<real_t>(dt, RH_max)
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)

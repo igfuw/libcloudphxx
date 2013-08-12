@@ -57,10 +57,9 @@ std::cerr << "\n\n STEP \n\n";
       }
 
       // condensation/evaporation
-const int n_steps = 100; // TODO!
-      if (pimpl->opts.cond) for (int step = 0; step < n_steps; ++step) 
+      if (pimpl->opts.cond) for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
       { 
-        pimpl->cond(pimpl->opts.dt / n_steps); 
+        pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond, pimpl->opts.RH_max); 
         pimpl->hskpng_Tpr(); // needed even at last iteration (chem & v_term in sedi)
       }
 

@@ -178,7 +178,7 @@ namespace libcloudphxx
       void adve();
 
       void cond_dm3_helper();
-      void cond(real_t dt);
+      void cond(const real_t &dt, const real_t &RH_max);
       // TODO: sedi, coal, rcyc
     };
 
