@@ -25,12 +25,12 @@ namespace libcloudphxx
       libcloudphxx_const(si::length, drizzle_radius, 25 * 1e-6, si::metres);
 
       template<typename real_t>
-      quantity<si::frequency, real_t> autoconv_rate(
+      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> autoconv_rate(
         quantity<si::mass_density, real_t> rhod,
         quantity<si::mass_density, real_t> rhod_rc,
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_c
       ) {
-        return A_auto<real_t>() / si::seconds
+        return A_auto<real_t>() * si::kilograms / si::cubic_metres / si::seconds
                * pow(rhod_rc * si::cubic_metres / si::kilograms, 2.47) 
                * pow(N_c * si::cubic_metres, -1.79) 
                * pow(rhod * si::cubic_metres / si::kilograms, -1.47);

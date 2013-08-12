@@ -18,9 +18,8 @@ namespace libcloudphxx
         acti = true, 
         cond = true, 
         acnv = true, 
-        accr = false, 
-        turb = false,
-        sedi = false;
+        accr = true, 
+        sedi = true;
       
       real_t 
         dt = 0;
