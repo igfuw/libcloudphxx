@@ -27,10 +27,11 @@ namespace libcloudphxx
       bool 
         adve,// = true, 
         sedi,// = true, 
-        rcyc,// = false;
         cond,// = true, 
         chem,// = false,
+        rcyc,// = false;
         coal;// = true, 
+// TODO: all true in constructor?
 // TODO: vent? (as a coefficient?)
 // TODO: MAC
 
@@ -45,14 +46,14 @@ namespace libcloudphxx
 
       real_t dt;
       real_t RH_max;
-      int sstp_cond, sstp_coal, sstp_sedi;
+      int sstp_cond, sstp_coal;
 
       // ctor
       opts_t() : 
         // meaningful default values:
         nx(0), ny(0), nz(0), 
         dx(1), dy(1), dz(1), 
-        sstp_cond(1), sstp_coal(1), sstp_sedi(1),
+        sstp_cond(1), sstp_coal(1),
         // invalid default values:
         sd_conc_mean(0),
         RH_max(0)

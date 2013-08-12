@@ -30,6 +30,7 @@
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
+#include "particles_impl_hskpng_vterm.ipp"
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
 
@@ -41,3 +42,5 @@
 
 #include "particles_impl_adve.ipp"
 #include "particles_impl_cond.ipp"
+#include "particles_impl_sedi.ipp"
+#include "particles_impl_coal.ipp"

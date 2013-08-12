@@ -199,7 +199,7 @@ using std::sqrt;
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::cond(const real_t &dt, const real_t &RH_max)
+    void particles<real_t, device>::impl::cond(const real_t &dt)
     {   
       // prerequisites
       hskpng_sort(); // TODO: the same with T,p,r,RH? (and dependencies among T,p,r,RH!)
@@ -232,7 +232,7 @@ using std::sqrt;
           )
         ), 
 	rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max)
+        detail::advance_rw2<real_t>(dt, opts.RH_max)
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)

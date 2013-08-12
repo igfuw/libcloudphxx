@@ -21,6 +21,7 @@ namespace libcloudphxx
     )
     {
 std::cerr << "\n\n STEP \n\n";
+      // TODO: some processes below could perhaps run simultaneously (one on GPU, on one CPU)
 
       // syncing in Eulerian fields (if not null)
       pimpl->sync(rhod_th,   pimpl->rhod_th);
@@ -30,48 +31,68 @@ std::cerr << "\n\n STEP \n\n";
       pimpl->sync(courant_z, pimpl->courant_z);
       pimpl->sync(rhod,      pimpl->rhod);
 
-      // updating Tpr look-up table
-      pimpl->hskpng_Tpr(); // note: before sedi (needed by v_term)
+      // updating particle->cell look-up table
+      // (before advection and sedimentation so that their order does not matter,
+      if (pimpl->opts.adve || pimpl->opts.sedi)
+        pimpl->hskpng_ijk();
+
+      // updating Tpr look-up table (includes RH update)
+      pimpl->hskpng_Tpr(); 
 
       // changing droplet positions
       if (pimpl->opts.adve) 
       {
-        // advection (TODO temporarily it also includes periodic boundaries)
-        pimpl->adve();
+        // advection 
+        pimpl->adve(); 
         // boundary condition
-        ; // TODO
+        ; // TODO temporarily included in advection
       }
+
+      // updating terminal velocities
+      if (pimpl->opts.sedi || pimpl->opts.coal) 
+        pimpl->hskpng_vterm();
+
       if (pimpl->opts.sedi) 
       {
         // advection with terminal velocity
-        //pimpl->sedi(); // TODO
+        pimpl->sedi();
 
         // recycling out-of-domain particles (due to precipitation)
-        if (pimpl->opts.rcyc) ; // TODO
-
-        // updating particle->cell look-up table
-      }
-      if (pimpl->opts.adve || pimpl->opts.sedi)
-      {
-        pimpl->hskpng_ijk();
-      }
-
-      // condensation/evaporation
-      if (pimpl->opts.cond) for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
-      { 
-        pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond, pimpl->opts.RH_max); 
-        pimpl->hskpng_Tpr(); // needed even at last iteration (chem & v_term in sedi)
+        if (pimpl->opts.rcyc) 
+          assert(false && "unimplemented"); // TODO
       }
 
       // chemistry
-      if (pimpl->opts.chem) ; // TODO assert(false && "unimplemented");
+      if (pimpl->opts.chem) 
+        assert(false && "unimplemented"); // TODO
 
       // coalescence
-      if (pimpl->opts.coal) ; // TODO
+      if (pimpl->opts.coal) 
+      {
+        for (int step = 0; step < pimpl->opts.sstp_coal; ++step) 
+        {
+          // collide
+          pimpl->coal(pimpl->opts.dt / pimpl->opts.sstp_coal);
 
-      // syncing out (TODO: if cond || ...)
-      pimpl->sync(pimpl->rhod_th, rhod_th);
-      pimpl->sync(pimpl->rhod_rv, rhod_rv);
+          // update invalid vterm 
+          if (step + 1 != pimpl->opts.sstp_coal)
+            pimpl->hskpng_vterm(); // TODO: update only flagged ones
+        }
+      }
+
+      // condensation/evaporation (last -> one Tpr update less)
+      if (pimpl->opts.cond) 
+      {
+        for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
+        {   
+          pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond); 
+          if (step+1 != pimpl->opts.sstp_cond) pimpl->hskpng_Tpr(); 
+        } 
+
+        // syncing out 
+        pimpl->sync(pimpl->rhod_th, rhod_th);
+        pimpl->sync(pimpl->rhod_rv, rhod_rv);
+      }
     }
   };
 };

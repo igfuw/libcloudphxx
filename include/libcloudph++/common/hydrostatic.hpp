@@ -2,6 +2,7 @@
 
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp>
+#include <libcloudph++/common/earth.hpp>
 #include <libcloudph++/common/theta_std.hpp>
 
 namespace libcloudphxx
@@ -14,9 +15,7 @@ namespace libcloudphxx
       using moist_air::R; // TODO: czy na pewno potzebne?
       using moist_air::c_pd;
       using moist_air::R_d;
-
-      // acceleration due to gravity
-      libcloudphxx_const(si::acceleration, g, 9.81, si::metres_per_second_squared)
+      using earth::g;
 
       // pressure profile derived by integrating the hydrostatic eq.
       // assuming constant theta, constant rv and R=R(rv)

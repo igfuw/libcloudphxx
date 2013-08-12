@@ -35,7 +35,11 @@ namespace libcloudphxx
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
       thrust_device::vector<n_t>
-	n;  // multiplicity
+	n;   // multiplicity
+
+      // particle helper attributes (purely diagnostic)
+      thrust_device::vector<real_t>
+        vt;  // terminal velocity
 
       //
       thrust_device::vector<thrust_size_t> 
@@ -156,6 +160,7 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+      void hskpng_vterm();
 
       void moms_rng(
         const real_t &min, const real_t &max, 
@@ -176,10 +181,14 @@ namespace libcloudphxx
       );
 
       void adve();
+      void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max);
-      // TODO: sedi, coal, rcyc
+      void cond(const real_t &dt);
+
+      void coal(const real_t &dt);
+
+      // TODO: rcyc, chem
     };
 
     // ctor

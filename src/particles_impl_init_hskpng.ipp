@@ -18,6 +18,8 @@ namespace libcloudphxx
       k.resize(n_part); // 
       ijk.resize(n_part);
 
+      vt.resize(n_part);
+
       T.resize(n_cell);
       p.resize(n_cell);
       r.resize(n_cell); 
