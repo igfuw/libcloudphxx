@@ -57,7 +57,7 @@ std::cerr << "\n\n STEP \n\n";
       }
 
       // condensation/evaporation
-const int n_steps = 10; // TODO!
+const int n_steps = 100; // TODO!
       if (pimpl->opts.cond) for (int step = 0; step < n_steps; ++step) 
       { 
         pimpl->cond(pimpl->opts.dt / n_steps); 

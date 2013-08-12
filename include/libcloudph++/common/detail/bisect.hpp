@@ -1,5 +1,5 @@
 #pragma once
-// based on http://pegasus.rutgers.edu/~randall/473fall2004/hand02.pdf
+// adapten from Boost's bisection
 
 #include <boost/config.hpp>
 
@@ -8,30 +8,76 @@
 #  include <cassert>
 #endif
 
+#include <iostream>
+
 namespace libcloudphxx
 {
   namespace common
   {
     namespace detail
     {
+
       template <class f_t, typename real_t>
       BOOST_GPU_ENABLED
-      real_t bisect(f_t f, real_t a, real_t b, real_t tolerance)
+      inline real_t bisect(
+        const f_t f, 
+        real_t min, real_t max, 
+        const real_t &tol,
+        real_t fmin, real_t fmax
+      )
       {
+        if (fmin == 0) return min;
+        if (fmax == 0) return max;
+
+        // 
+
 #if !defined(__NVCC__)
-	assert(f(a) * f(b) < 0); // must have different signs
+        assert(min < max); // assumes in order
+	assert(fmin * fmax < 0); // must have different signs
 	using std::abs;
 #endif
-	real_t m;
-	while (abs(b-a) > tolerance)
+        if (fmin * fmax >= 0) return (min + max) / 2; // checked in the assertion above
+
+	real_t mid; 
+	while (
+          mid = (min + max) / 2, 
+          abs(max - min) > tol
+        )
 	{
-	  m = (a + b) / 2;
-	  if (f(a) * f(m) > 0) 
-	    a = m; 
+          if (mid == max || mid == min) break;
+
+          real_t fmid = f(mid);
+
+          if (fmid == 0) break;
+          else if (fmid * fmin > 0) 
+	    min = mid, fmin = fmid;
 	  else 
-	    b = m;
+	    max = mid, fmax = fmid;
 	}
-	return m;
+	return mid;
+      }
+
+      template <class f_t, typename real_t>
+      BOOST_GPU_ENABLED
+      inline real_t bisect(
+        const f_t f, 
+        const real_t &min, const real_t &max, 
+        const real_t &tol,
+        const real_t &fmin
+      )
+      {
+        return bisect(f, min, max, tol, fmin, f(max));
+      }
+
+      template <class f_t, typename real_t>
+      BOOST_GPU_ENABLED
+      inline real_t bisect(
+        const f_t f, 
+        const real_t &min, const real_t &max, 
+        const real_t &tol
+      )
+      {
+        return bisect(f, min, max, tol, f(min), f(max));
       }
     };
   };

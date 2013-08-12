@@ -1,4 +1,7 @@
 0.09 (pre-submission, things that need to be explicitely mentioned in the text):
+- czy thrust::get(tuple) nie moga zwracac referencji? (o ile nie ma jednostek to by sie przydalo
+- kappe dla imcw8::case1 ustalic
+- tolerances for bisect in kappa and max-mason (+something better than bisect?)
 - auto cond_dt choice for blk_2m & lgrngn
 - 0-d parcel/box framework (could make the drops model obsolete in a longer run!)
 - ventilation as an option in all schemes

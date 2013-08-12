@@ -72,7 +72,7 @@ namespace libcloudphxx
           ) : RH(RH), rd3(rd3), kappa(kappa), T(T) {}
       
           BOOST_GPU_ENABLED
-	  real_t operator()(real_t rw3)
+	  real_t operator()(real_t rw3) const
 	  {
 	    return this->RH
 	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 

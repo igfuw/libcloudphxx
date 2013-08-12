@@ -9,6 +9,7 @@
 #include <libcloudph++/common/maxwell-mason.hpp>
 #include <libcloudph++/common/kappa_koehler.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
+#include <libcloudph++/common/detail/bisect.hpp>
 
 namespace libcloudphxx
 {
@@ -20,7 +21,7 @@ namespace libcloudphxx
       struct dm_3_summator
       {   
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<n_t, real_t> &tpl)
+        real_t operator()(const thrust::tuple<n_t, real_t> &tpl) const
         {
           const n_t n = thrust::get<0>(tpl);
           const real_t rw2 = thrust::get<1>(tpl);
@@ -73,7 +74,7 @@ namespace libcloudphxx
       struct drhod_th
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<divide_typeof_helper<si::mass_density, si::time >::type, real_t> 
             drhod_rv = thrust::get<0>(tpl) * si::kilograms / si::cubic_metres / si::seconds;
@@ -93,40 +94,101 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct advance_rw2
+      struct advance_rw2_minfun
       {
-        quantity<si::time, real_t> dt;
+        const quantity<si::area,          real_t> rw2_old;
+        const quantity<si::time,          real_t> dt;
+	const quantity<si::mass_density,  real_t> rhod_rv;
+	const quantity<si::temperature,   real_t> T;
+	const quantity<si::pressure,      real_t> p;
+	const quantity<si::dimensionless, real_t> RH;
+	const quantity<si::volume,        real_t> rd3;
+	const quantity<si::dimensionless, real_t> kpa;
+
+const quantity<si::dimensionless, real_t> RH_max = 1.01; // TODO!
 
         // ctor
-        advance_rw2(const real_t &dt) : dt(dt * si::seconds) {}
-
-	// rw2_new = rw2_old + f_rw2(rw2_new) * dt
-	// rw2_new = rw2_old + 2 * rw * f_rw(rw2_new) * dt
-// TODO: now it's Euler scheme!!
-        BOOST_GPU_ENABLED
-        real_t operator()(
-          const real_t &rw2_unitless,
+        advance_rw2_minfun(
+          const real_t &dt,
+          const real_t &rw2,
           const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl
-        ) {
-          const quantity<si::length,        real_t> rw      = std::sqrt(rw2_unitless) * si::metres;
-          const quantity<si::area,          real_t> rw2     = rw2_unitless * si::square_metres;
-          const quantity<si::volume,        real_t> rw3     = rw * rw * rw;
-          const quantity<si::mass_density,  real_t> rhod_rv = thrust::get<0>(tpl) * si::kilograms / si::cubic_metres;
-          const quantity<si::temperature,   real_t> T       = thrust::get<1>(tpl) * si::kelvins;
-	  const quantity<si::pressure,      real_t> p       = thrust::get<2>(tpl) * si::pascals;
-	  const quantity<si::dimensionless, real_t> RH      = thrust::get<3>(tpl);
-	  const quantity<si::volume,        real_t> rd3     = thrust::get<4>(tpl) * si::cubic_metres;
-	  const quantity<si::dimensionless, real_t> kpa     = thrust::get<5>(tpl);
+        ) : 
+          dt(dt * si::seconds), 
+          rw2_old(rw2 * si::square_metres),
+          rhod_rv(thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
+          T(thrust::get<1>(tpl) * si::kelvins),
+          p(thrust::get<2>(tpl) * si::pascals),
+          RH(thrust::get<3>(tpl)),
+          rd3(thrust::get<4>(tpl) * si::cubic_metres),
+          kpa(thrust::get<5>(tpl))
+        {}
 
+        BOOST_GPU_ENABLED
+        quantity<divide_typeof_helper<si::area, si::time>::type, real_t> drw2_dt(const quantity<si::area, real_t> &rw2) const
+        {
           using namespace common::maxwell_mason;
           using namespace common::kappa_koehler;
           using namespace common::kelvin;
 
-          return (rw2 + dt * real_t(2) * rdrdt( 
-            rhod_rv, T, p, RH, 
+using std::sqrt;
+
+	  const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
+	  const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
+
+          return real_t(2) * rdrdt( 
+            rhod_rv, T, p, RH > RH_max ? RH_max : RH, 
             a_w(rw3, rd3, kpa),
             klvntrm(rw, T)
-          )) / si::square_metres;
+          );
+        }
+
+        // backward Euler scheme:
+	// rw2_new = rw2_old + f_rw2(rw2_new) * dt
+	// rw2_new = rw2_old + 2 * rw * f_rw(rw2_new) * dt
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2_unitless) const
+        {
+	  const quantity<si::area, real_t> rw2 = rw2_unitless * si::square_metres; 
+          return (rw2_old + dt * drw2_dt(rw2) - rw2) / si::square_metres;
+        }
+      };
+
+      template <typename real_t>
+      struct advance_rw2
+      {
+        const real_t dt;
+        advance_rw2(const real_t &dt) : dt(dt) {}
+        real_t operator()(
+          const real_t &rw2_old, 
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+        ) const {
+#if !defined(__NVCC__)
+	  using std::min;
+	  using std::max;
+	  using std::pow;
+	  using std::abs;
+#endif
+
+          // ''predictor'' step using explicit Euler scheme
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl);
+          const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
+
+          if (drw2 == 0) return rw2_old;
+
+          // ''corrector'' step using implicit Euler scheme
+          const real_t rd2 = pow(thrust::get<4>(tpl), real_t(2./3));
+          const real_t tol_r2 = rd2 / 10; // TODO !!!
+
+          const real_t mlt = 2; // results in explicit Euler scheme if root not found // TODO: investidate why not found...
+          
+          const real_t 
+            a = max(rd2, rw2_old + min(real_t(0), mlt * drw2)),
+            b =          rw2_old + max(real_t(0), mlt * drw2);
+ 
+          if (drw2 > 0) 
+            return common::detail::bisect(f, a, b, tol_r2, drw2); // for implicit Euler its equal to min_fun(x_old) 
+          else
+            return common::detail::bisect(f, a, b, tol_r2, f(a), drw2);
         }
       };
     };
@@ -156,10 +218,10 @@ namespace libcloudphxx
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
-	    rhod_rv.begin(),
-	    T.begin(),
-	    p.begin(),
-	    RH.begin(),
+	    thrust::make_permutation_iterator(rhod_rv.begin(), ijk.begin()),
+	    thrust::make_permutation_iterator(T.begin(),       ijk.begin()),
+	    thrust::make_permutation_iterator(p.begin(),       ijk.begin()),
+	    thrust::make_permutation_iterator(RH.begin(),      ijk.begin()),
 	    rd3.begin(),
 	    kpa.begin()
           )
