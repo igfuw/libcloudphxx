@@ -27,9 +27,9 @@ namespace libcloudphxx
       real_t dz
     )   
     {
-      if (!opt.sedi) return;
-
       using flux_t = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
+
+      if (!opt.sedi) return flux_t(0);
 
       // 
       flux_t flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
