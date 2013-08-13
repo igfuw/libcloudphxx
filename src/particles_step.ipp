@@ -50,7 +50,7 @@ std::cerr << "\n\n STEP \n\n";
 
       // updating terminal velocities
       if (pimpl->opts.sedi || pimpl->opts.coal) 
-        pimpl->hskpng_vterm();
+        pimpl->hskpng_vterm_all();
 
       if (pimpl->opts.sedi) 
       {
@@ -66,7 +66,7 @@ std::cerr << "\n\n STEP \n\n";
       if (pimpl->opts.chem) 
         assert(false && "unimplemented"); // TODO
 
-      // coalescence
+      // coalescence (before condensationand siagnostics - one sort less)
       if (pimpl->opts.coal) 
       {
         for (int step = 0; step < pimpl->opts.sstp_coal; ++step) 
@@ -76,7 +76,7 @@ std::cerr << "\n\n STEP \n\n";
 
           // update invalid vterm 
           if (step + 1 != pimpl->opts.sstp_coal)
-            pimpl->hskpng_vterm(); // TODO: update only flagged ones
+            pimpl->hskpng_vterm_invalid(); 
         }
       }
 

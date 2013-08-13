@@ -56,7 +56,7 @@ namespace libcloudphxx
       thrust_device::vector<n_t>
         count_num; // number of particles in a given grid cell
       thrust_device::vector<real_t> 
-        count_mom; // statistical moment
+        count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
       // Eulerian-Lagrangian interface vers
@@ -155,12 +155,16 @@ namespace libcloudphxx
       void fill_outbuf();
 
            // rename hskpng_ -> step_?
-      void hskpng_shuffle();
+      void hskpng_sort_helper(bool);
       void hskpng_sort();
+      void hskpng_shuffle_and_sort();
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
-      void hskpng_vterm();
+
+      enum { invalid = -1 };
+      void hskpng_vterm_all();
+      void hskpng_vterm_invalid();
 
       void moms_rng(
         const real_t &min, const real_t &max, 

@@ -30,7 +30,7 @@ namespace libcloudphxx
           engine_t &engine;
           dist_t &dist;
 	  real_t operator()() { return dist(engine); }
-	};// fnctri({.engine = engine, .dist = dist});
+	};
 
 	public:
 

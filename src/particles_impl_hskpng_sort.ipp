@@ -12,19 +12,37 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_sort()
+    void particles<real_t, device>::impl::hskpng_sort_helper(bool shuffle)
     {   
-      // e.g. after shuffling
-      if (sorted) return;
-
       // filling-in sorted_id with a sequence
       thrust::sequence(sorted_id.begin(), sorted_id.end());
 
-      // making a copy of ijk
-      thrust::copy(
-        ijk.begin(), ijk.end(), // from
-        sorted_ijk.begin()      // to
-      );
+      if (!shuffle)
+      {
+	// making a copy of ijk
+	thrust::copy(
+	  ijk.begin(), ijk.end(), // from
+	  sorted_ijk.begin()      // to
+	);
+      }
+      else
+      {
+        // generating a random sorting key
+        rand_u01(n_part);
+
+        // sorting the sequence with the random key
+        thrust::sort_by_key(
+          u01.begin(), u01.end(),
+          sorted_id.begin()
+        );
+
+        // permuting sorted_ijk accordingly
+        thrust::copy(
+          thrust::make_permutation_iterator(ijk.begin(), sorted_id.begin()), // input - begin
+          thrust::make_permutation_iterator(ijk.end(),   sorted_id.end()  ), // input - end
+          sorted_ijk.begin()                                                 // output
+        );
+      }
 
       // sorting sorted_ijk and sorted_id
       thrust::sort_by_key(
@@ -35,5 +53,18 @@ namespace libcloudphxx
       // flagging that particles are now sorted
       sorted = true;
     }   
+
+    template <typename real_t, int device>
+    void particles<real_t, device>::impl::hskpng_sort()
+    {   
+      if (sorted) return; // e.g. after shuffling
+      hskpng_sort_helper(false);
+    }
+
+    template <typename real_t, int device>
+    void particles<real_t, device>::impl::hskpng_shuffle_and_sort()
+    {   
+      hskpng_sort_helper(true);
+    }
   };  
 };

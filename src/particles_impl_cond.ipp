@@ -201,8 +201,8 @@ using std::sqrt;
     template <typename real_t, int device>
     void particles<real_t, device>::impl::cond(const real_t &dt)
     {   
-      // prerequisites
-      hskpng_sort(); // TODO: the same with T,p,r,RH? (and dependencies among T,p,r,RH!)
+      // prerequisite
+      hskpng_sort(); 
 
       //
       thrust_device::vector<real_t> &drhod_rv(tmp_device_real_cell);
