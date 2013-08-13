@@ -100,9 +100,11 @@ namespace libcloudphxx
 
 	namespace si
 	{
+	  typedef detail::qntt_t acceleration;
 	  typedef detail::qntt_t amount;
 	  typedef detail::qntt_t area;
 	  typedef detail::qntt_t dimensionless;
+	  typedef detail::qntt_t dynamic_viscosity;
 	  typedef detail::qntt_t energy;
 	  typedef detail::qntt_t force;
 	  typedef detail::qntt_t length;
@@ -120,6 +122,8 @@ namespace libcloudphxx
 	    kelvin, kelvins,
 	    kilogram, kilograms,
 	    metre, metres, meter, meters, 
+	    metres_per_second, meters_per_second, 
+	    metres_per_second_squared, meters_per_second_squared, 
 	    mole, moles,
             newton, newtons,
 	    pascal, pascals,

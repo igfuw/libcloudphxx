@@ -20,7 +20,7 @@ namespace libcloudphxx
 	quantity<si::temperature, real_t> T
       ) {   
 	return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
-	  * real_t(pow(T/si::kelvins/273, 3./2)) * si::kilograms / si::metres / si::seconds ;
+	  * real_t(pow(T/si::kelvins/273, real_t(3./2))) * si::kilograms / si::metres / si::seconds ;
       }
 
       // terminal fall velocity of spherical droplets 
