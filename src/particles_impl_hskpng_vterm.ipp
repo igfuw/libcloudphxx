@@ -53,7 +53,7 @@ namespace libcloudphxx
         vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
 	detail::common__vterm__vt<real_t>(),
-        _1 == invalid
+        _1 == real_t(invalid)
       );
     }
 
