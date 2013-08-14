@@ -127,7 +127,7 @@ namespace libcloudphxx
                 sqrt(thrust::get<rw2_a_ix>(tpl_rw)) + 
                 sqrt(thrust::get<rw2_b_ix>(tpl_rw)),
               real_t(2)) 
-            * real_t(10); // TODO: collection efficiency
+            * real_t(1); // TODO: collection efficiency
 
           // sanity check for random sampling validity
           assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009

@@ -58,7 +58,7 @@ namespace libcloudphxx
 
 
       // 3D variable density version
-      virtual void step(
+      virtual void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
@@ -67,35 +67,37 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod
       ) { assert(false); }  
 
+      virtual void step_async() { assert(false); }  
+
       // 3D constant density version
-      void step(
+      void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z
-      ) { this->step(rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
+      ) { this->step_sync(rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
 
       // 2D constant density version
-      void step(
+      void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_z
-      ) { this->step(rhod_th, rhod_rv, courant_x, arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+      ) { this->step_sync(rhod_th, rhod_rv, courant_x, arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
 
       // 1D constant density version
-      void step(
+      void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_z
-      ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+      ) { this->step_sync(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
 
       // 0D constant density version
-      void step(
+      void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv
-      ) { this->step(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
+      ) { this->step_sync(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
 
       // method for accessing super-droplet statistics
       virtual void diag_sd_conc()                             { assert(false); }
@@ -130,7 +132,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_z
       );
 
-      void step(
+      void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
@@ -138,6 +140,8 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> rhod 
       );
+
+      void step_async();
 
       void diag_sd_conc();
       void diag_dry_rng(const real_t&, const real_t&);

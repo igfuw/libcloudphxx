@@ -25,6 +25,9 @@ namespace libcloudphxx
       // CUDA does not support max(unsigned long, unsigned long) -> using unsigned long long
       typedef unsigned long long n_t; // thrust_size_t?
  
+      // sync/async flag
+      bool should_now_run_async;
+
       // member fields
       const opts_t<real_t> opts; // a copy
       const int n_dims;
@@ -115,6 +118,7 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_t<real_t> &opts) : 
+        should_now_run_async(false),
 	opts(opts),
 	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
         n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),

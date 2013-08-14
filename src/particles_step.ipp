@@ -11,7 +11,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::step(
+    void particles<real_t, device>::step_sync(
       arrinfo_t<real_t> rhod_th,
       arrinfo_t<real_t> rhod_rv,
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
@@ -20,8 +20,8 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
     )
     {
-std::cerr << "\n\n STEP \n\n";
-      // TODO: some processes below could perhaps run simultaneously (one on GPU, on one CPU)
+      assert(!pimpl->should_now_run_async);
+std::cerr << "\n\n STEP SYNC \n\n";
 
       // syncing in Eulerian fields (if not null)
       pimpl->sync(rhod_th,   pimpl->rhod_th);
@@ -38,6 +38,29 @@ std::cerr << "\n\n STEP \n\n";
 
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
+
+      // condensation/evaporation 
+      if (pimpl->opts.cond) 
+      {
+        for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
+        {   
+          pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond); 
+          pimpl->hskpng_Tpr(); 
+        } 
+
+        // syncing out 
+        pimpl->sync(pimpl->rhod_th, rhod_th);
+        pimpl->sync(pimpl->rhod_rv, rhod_rv);
+      }
+
+      pimpl->should_now_run_async = true;
+    }
+
+    template <typename real_t, int device>
+    void particles<real_t, device>::step_async()
+    {
+      assert(pimpl->should_now_run_async);
+std::cerr << "\n\n STEP ASYNC \n\n";
 
       // changing droplet positions
       if (pimpl->opts.adve) 
@@ -64,7 +87,7 @@ std::cerr << "\n\n STEP \n\n";
       // chemistry
       if (pimpl->opts.chem) assert(false && "unimplemented"), throw; // TODO
 
-      // coalescence (before condensationand siagnostics - one sort less)
+      // coalescence (before diagnostics -> one sort less)
       if (pimpl->opts.coal) 
       {
         for (int step = 0; step < pimpl->opts.sstp_coal; ++step) 
@@ -78,19 +101,7 @@ std::cerr << "\n\n STEP \n\n";
         }
       }
 
-      // condensation/evaporation (last -> one Tpr update less)
-      if (pimpl->opts.cond) 
-      {
-        for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
-        {   
-          pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond); 
-          if (step+1 != pimpl->opts.sstp_cond) pimpl->hskpng_Tpr(); 
-        } 
-
-        // syncing out 
-        pimpl->sync(pimpl->rhod_th, rhod_th);
-        pimpl->sync(pimpl->rhod_rv, rhod_rv);
-      }
+      pimpl->should_now_run_async = false;
     }
   };
 };
