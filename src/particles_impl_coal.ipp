@@ -21,6 +21,133 @@ namespace libcloudphxx
           return real_t((n*(n-1))/2) / (n/2); 
         }
       };
+
+      // assumes _a have higher multiplicities
+      template <typename tup_t, typename real_t,
+        int   n_a, int   n_b,
+        int rw2_a, int rw2_b,
+        int rd3_a, int rd3_b,
+        int  vt_a, int  vt_b
+      >
+      void collide(tup_t &tpl)
+      {
+	// multiplicity change (eq. 12 in Shima et al. 2009)
+	thrust::get<n_a>(tpl) -= thrust::get<n_b>(tpl);
+
+	// wet radius change (eq. 13 in Shima et al. 2009)
+	thrust::get<rw2_b>(tpl) = pow(
+	  pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
+	  pow(thrust::get<rw2_b>(tpl), real_t(3./2))
+	  ,
+	  real_t(2./3)
+	);
+
+	// dry radius change (eq. 13 in Shima et al. 2009)
+	thrust::get<rd3_b>(tpl) 
+	  = thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+
+	// invalidating vt
+	thrust::get<vt_b>(tpl) = detail::invalid;
+
+	// TODO: kappa
+      }
+
+      template <typename real_t, typename n_t>
+      struct collider
+      {
+        // read-only parameters
+        typedef thrust::tuple<
+          real_t,                       // random number (u01)
+          real_t,                       // scaling factor
+          thrust_size_t, thrust_size_t, // ix
+          thrust_size_t, thrust_size_t  // off (index within cell)
+        > tpl_ro_t;
+        enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix };
+
+        // read-write parameters = return type
+        typedef thrust::tuple<
+          n_t,           n_t,           // n   (multiplicity)
+          real_t,        real_t,        // rw2 (wet radius squared)
+          real_t,        real_t,        // vt  (terminal velocity)
+          real_t,        real_t         // rd3 (dry radius cubed)
+        > tpl_rw_t;
+        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+
+        const real_t dt, dv;
+       
+        collider(const real_t &dt, const real_t &dv) : dt(dt), dv(dv) {}
+
+        BOOST_GPU_ENABLED
+        tpl_rw_t operator()(const tpl_ro_t &tpl_ro, tpl_rw_t tpl_rw)
+        {
+          // sanity checks
+          assert(thrust::get<ix_a_ix>(tpl_ro) + 1 == thrust::get<ix_b_ix>(tpl_ro));
+ 
+          // checking if valid candidates for collision
+          {
+            const thrust_size_t &cix_a = thrust::get<ix_a_ix>(tpl_ro) - thrust::get<off_a_ix>(tpl_ro);
+
+            // only every second droplet within a cell
+            if (cix_a % 2 != 0) return tpl_rw;
+
+            const thrust_size_t &cix_b = thrust::get<ix_b_ix>(tpl_ro) - thrust::get<off_b_ix>(tpl_ro);
+
+            // only droplets within the same cell
+            if (cix_a != cix_b - 1) return tpl_rw;
+          }
+          
+#if !defined(__NVCC__)
+          using std::max;
+          using std::abs;
+          using std::pow;
+#endif
+
+          // computing the probability of collision
+          real_t prob = dt / dv * pi<real_t>() 
+            * thrust::get<scl_ix>(tpl_ro)
+            * max(
+                thrust::get<n_a_ix>(tpl_rw), 
+                thrust::get<n_b_ix>(tpl_rw)
+              ) 
+            * abs(
+                thrust::get<vt_a_ix>(tpl_rw) -
+                thrust::get<vt_b_ix>(tpl_rw)
+              ) 
+            * pow(
+                sqrt(thrust::get<rw2_a_ix>(tpl_rw)) + 
+                sqrt(thrust::get<rw2_b_ix>(tpl_rw)),
+              real_t(2)) 
+            * real_t(10); // TODO: collection efficiency
+
+          // sanity check for random sampling validity
+          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
+
+          // comparing the upscaled probability with a random number and returning if unlucky
+          if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;
+
+          // performing the coalescence event if lucky
+          if (thrust::get<n_a_ix>(tpl_rw) != thrust::get<n_b_ix>(tpl_rw))
+          {
+            if (thrust::get<n_a_ix>(tpl_rw) > thrust::get<n_b_ix>(tpl_rw))
+              collide<tpl_rw_t, real_t,
+                  n_a_ix,   n_b_ix,
+                rw2_a_ix, rw2_b_ix,
+                rd3_a_ix, rd3_b_ix,
+                 vt_a_ix,  vt_b_ix
+              >(tpl_rw);
+            else
+              collide<tpl_rw_t, real_t,
+                  n_b_ix,   n_a_ix,
+                rw2_b_ix, rw2_a_ix,
+                rd3_b_ix, rd3_a_ix,
+                 vt_b_ix,  vt_a_ix
+              >(tpl_rw);
+          } 
+          else assert(false && "collisions of droplets with equal multiplicity not ready yet"); // TODO: eqs. 16-19 in Shima et al. 2009
+
+          return tpl_rw;
+        }
+      };
     };
 
     template <typename real_t, int device>
@@ -37,8 +164,13 @@ namespace libcloudphxx
         detail::scale_factor<real_t, n_t>()
       );
 
+      // references to tmp data
+      thrust_device::vector<real_t> 
+        &scl(tmp_device_real_cell); // scale factor for probablility
+      thrust_device::vector<thrust_size_t> 
+        &off(tmp_device_size_cell); // offset for getting index of particle within a cell
+
       // laying out scale factor onto ijk grid
-      thrust_device::vector<real_t> &scl(tmp_device_real_cell);
       thrust::fill(scl.begin(), scl.end(), real_t(0));
       thrust::copy(
         count_mom.begin(),                    // input - begin
@@ -49,8 +181,97 @@ namespace libcloudphxx
         )
       );  
 
+      // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
+      thrust::fill(off.begin(), off.end(), real_t(0));
+      thrust::copy(
+        count_num.begin(), 
+        count_num.begin() + count_n, 
+        thrust::make_permutation_iterator(    // output
+          off.begin(),                        // data
+          count_ijk.begin()                   // permutation
+        )
+      );
+      thrust::exclusive_scan( 
+        off.begin(), off.end(),
+        off.begin()
+      );
+
+      // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
+      rand_u01(n_part); // TODO: n_part/2 is enough but how to do it with the logic below???
+
       // colliding
-      
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_size_t;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_real_t;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<n_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_n_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple< 
+          typename thrust_device::vector<real_t>::iterator,  // u01
+          pi_real_t,                                         // scl
+          thrust::counting_iterator<thrust_size_t>,          // ix_a
+          thrust::counting_iterator<thrust_size_t>,          // ix_b
+          pi_size_t, pi_size_t                               // off_a & off_b
+        >
+      > zip_ro_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple< 
+          pi_n_t,    pi_n_t,    // n_a,   n_b
+          pi_real_t, pi_real_t, // rw2_a, rw2_b
+          pi_real_t, pi_real_t, // vt_a,  vt_b
+          pi_real_t, pi_real_t  // rd3_a, rd3_b 
+        >
+      > zip_rw_t;
+
+      zip_ro_t zip_ro_it(
+        thrust::make_tuple(
+          // u01
+          u01.begin(),
+          // scl
+          thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
+          // ix
+          zero,
+          zero+1,
+          // cid
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1
+        )
+      );
+
+      zip_rw_t zip_rw_it(
+        thrust::make_tuple(
+          // multiplicity
+          thrust::make_permutation_iterator(n.begin(),   sorted_id.begin()),  
+          thrust::make_permutation_iterator(n.begin(),   sorted_id.begin())+1,
+          // wet radius squared
+          thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()), 
+          thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin())+1,  
+          // terminal velocity
+          thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin()), 
+          thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
+          // dry radius cubed
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
+        )
+      );
+
+      thrust::transform(
+        zip_ro_it, zip_ro_it + n_part - 1,  // input - 1st arg
+        zip_rw_it,                          // input - 2nd arg
+        zip_rw_it,                          // output (in place)
+        detail::collider<real_t, n_t>(dt, opts.dx * opts.dy * opts.dz)
+      );
     }
   };  
 };

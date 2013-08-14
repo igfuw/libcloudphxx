@@ -47,13 +47,13 @@ namespace libcloudphxx
       thrust::transform_if(
         rw2.begin(), rw2.end(),                                 // input - 1st arg
 	zip_it_t(thrust::make_tuple(
-          thrust::make_permutation_iterator(T.begin(),    count_ijk.begin()),
-          thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin())
+          thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+          thrust::make_permutation_iterator(rhod.begin(), ijk.begin())
         )),                                                     // input - 2nd arg   
         vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
 	detail::common__vterm__vt<real_t>(),
-        _1 == real_t(invalid)
+        _1 == real_t(detail::invalid)
       );
     }
 
@@ -69,8 +69,8 @@ namespace libcloudphxx
       thrust::transform(
         rw2.begin(), rw2.end(),                                 // input - 1st arg
 	zip_it_t(thrust::make_tuple(
-          thrust::make_permutation_iterator(T.begin(),    count_ijk.begin()),
-          thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin())
+          thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+          thrust::make_permutation_iterator(rhod.begin(), ijk.begin())
         )),                                                     // input - 2nd arg
 	vt.begin(),                                             // output
 	detail::common__vterm__vt<real_t>()

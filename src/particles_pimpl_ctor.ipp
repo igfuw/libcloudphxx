@@ -13,6 +13,11 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    { 
+      enum { invalid = -1 };
+    };
+
     // pimpl stuff 
     template <typename real_t, int device>
     struct particles<real_t, device>::impl
@@ -48,7 +53,7 @@ namespace libcloudphxx
 
       // 2D Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
-        lft, rgt, abv, blw;
+        lft, rgt, abv, blw; // TODO: could be reused after advection!
 
       //
       thrust_device::vector<thrust_size_t> 
@@ -95,6 +100,8 @@ namespace libcloudphxx
         tmp_device_real_part,
         tmp_device_real_cell,
 	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+      thrust_device::vector<thrust_size_t>
+        tmp_device_size_cell;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -121,6 +128,7 @@ namespace libcloudphxx
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
+        tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
         {
@@ -162,7 +170,6 @@ namespace libcloudphxx
       void hskpng_ijk();
       void hskpng_Tpr();
 
-      enum { invalid = -1 };
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
 
