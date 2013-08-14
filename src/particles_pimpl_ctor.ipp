@@ -22,7 +22,8 @@ namespace libcloudphxx
     template <typename real_t, int device>
     struct particles<real_t, device>::impl
     { 
-      typedef unsigned long n_t; // thrust_size_t?
+      // CUDA does not support max(unsigned long, unsigned long) -> using unsigned long long
+      typedef unsigned long long n_t; // thrust_size_t?
  
       // member fields
       const opts_t<real_t> opts; // a copy
@@ -122,6 +123,12 @@ namespace libcloudphxx
         sorted(false), 
         u01(tmp_device_real_part)
       {
+std::cerr << " opts.adve = " << opts.adve << std::endl;
+std::cerr << " opts.sedi = " << opts.sedi << std::endl;
+std::cerr << " opts.cond = " << opts.cond << std::endl;
+std::cerr << " opts.coal = " << opts.coal << std::endl;
+std::cerr << " opts.chem = " << opts.chem << std::endl;
+std::cerr << " opts.rcyc = " << opts.rcyc << std::endl;
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
 

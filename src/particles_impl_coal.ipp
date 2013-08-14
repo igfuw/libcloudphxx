@@ -5,6 +5,10 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#if defined(__NVCC__)
+#  include <math_constants.h>
+#endif
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -29,6 +33,7 @@ namespace libcloudphxx
         int rd3_a, int rd3_b,
         int  vt_a, int  vt_b
       >
+      BOOST_GPU_ENABLED
       void collide(tup_t &tpl)
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
@@ -97,13 +102,18 @@ namespace libcloudphxx
           }
           
 #if !defined(__NVCC__)
-          using std::max;
           using std::abs;
           using std::pow;
+          using std::max;
 #endif
 
           // computing the probability of collision
-          real_t prob = dt / dv * pi<real_t>() 
+          real_t prob = dt / dv 
+#if !defined(__NVCC__)
+            * pi<real_t>() 
+#else
+            * CUDART_PI
+#endif
             * thrust::get<scl_ix>(tpl_ro)
             * max(
                 thrust::get<n_a_ix>(tpl_rw), 
@@ -143,7 +153,9 @@ namespace libcloudphxx
                  vt_b_ix,  vt_a_ix
               >(tpl_rw);
           } 
+#if !defined(__NVCC__)
           else assert(false && "collisions of droplets with equal multiplicity not ready yet"); // TODO: eqs. 16-19 in Shima et al. 2009
+#endif
 
           return tpl_rw;
         }

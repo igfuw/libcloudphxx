@@ -58,13 +58,11 @@ std::cerr << "\n\n STEP \n\n";
         pimpl->sedi();
 
         // recycling out-of-domain particles (due to precipitation)
-        if (pimpl->opts.rcyc) 
-          assert(false && "unimplemented"); // TODO
+        if (pimpl->opts.rcyc) assert(false && "unimplemented"), throw; // TODO
       }
 
       // chemistry
-      if (pimpl->opts.chem) 
-        assert(false && "unimplemented"); // TODO
+      if (pimpl->opts.chem) assert(false && "unimplemented"), throw; // TODO
 
       // coalescence (before condensationand siagnostics - one sort less)
       if (pimpl->opts.coal) 
