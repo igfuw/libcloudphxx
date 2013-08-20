@@ -654,7 +654,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = libcloudph++ \
+INPUT                  = include/libcloudph++ \
+                         src \
                          tests
 
 # This tag can be used to specify the character encoding of the source files
