@@ -9,6 +9,9 @@
 #include <libcloudph++/common/maxwell-mason.hpp>
 #include <libcloudph++/common/kappa_koehler.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
+#include <libcloudph++/common/transition_regime.hpp>
+#include <libcloudph++/common/ventil.hpp>
+#include <libcloudph++/common/mean_free_path.hpp>
 #include <libcloudph++/common/detail/bisect.hpp>
 
 namespace libcloudphxx
@@ -131,14 +134,30 @@ namespace libcloudphxx
           using namespace common::maxwell_mason;
           using namespace common::kappa_koehler;
           using namespace common::kelvin;
+          using common::moist_air::D_0;
+          using common::moist_air::K_0;
+          using common::transition_regime::beta;
+          using common::mean_free_path::lambda_D;
+          using common::mean_free_path::lambda_K;
 
 using std::sqrt;
 
 	  const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
 	  const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
 
+          // TODO: common::moist_air:: below should not be needed
+          const quantity<common::moist_air::diffusivity, real_t> 
+            D = D_0<real_t>() * beta(lambda_D(T) / rw); // TODO: ventilation
+          const quantity<common::moist_air::thermal_conductivity, real_t> 
+            K = K_0<real_t>() * beta(lambda_K(T, p) / rw); // TODO: ventilation
+
           return real_t(2) * rdrdt( 
-            rhod_rv, T, p, RH > RH_max ? RH_max : RH, 
+            D,
+            K,
+            rhod_rv, 
+            T, 
+            p, 
+            RH > RH_max ? RH_max : RH, 
             a_w(rw3, rd3, kpa),
             klvntrm(rw, T)
           );
@@ -283,7 +302,7 @@ using std::sqrt;
 	    zip_it_t,
 	    real_t
 	  >(
-            zip_it_t(thrust::make_tuple(  // args
+            zip_it_t(thrust::make_tuple(  // args (note: rhod_rv cannot be used here as already modified)
 	      drhod_rv.begin(), // 
 	      rhod.begin(),     // drhod_th = (drhod_rv / rhod) * d_rhodtheta_d_rv(T, rhod_th)
 	      T.begin(),        //

@@ -53,7 +53,7 @@ namespace libcloudphxx
       )
       {
 	return (1 - rv / rvs) 
-	  * (1.6 + 124.9 * pow(1e-3 * (rhod_rr * si::cubic_metres / si::kilograms), .2046)) // ventilation factor
+	  * (1.6 + 124.9 * pow(1e-3 * (rhod_rr * si::cubic_metres / si::kilograms), .2046)) // ventilation factor TODO- move to ventil.hpp
 	  * pow(1e-3 * (rhod_rr * si::cubic_metres / si::kilograms), .525) 
 	  / (5.4e2 + 2.55e5 * (1. / (p / si::pascals) / rvs)) 
 	  / si::seconds * si::kilograms / si::cubic_metres;

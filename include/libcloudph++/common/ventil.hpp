@@ -1,0 +1,51 @@
+#pragma once
+
+#include <libcloudph++/common/units.hpp>
+#include <libcloudph++/common/macros.hpp>
+
+namespace libcloudphxx
+{
+  namespace common
+  {
+    namespace ventil
+    {
+      // Reynolds number for a particles falling with terminal velocity
+      // see e.g. section 4 in Smolik et al 2001, Aerosol Sci.
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> Re(
+	const quantity<si::velocity, real_t> v_term,       // particle terminal velocity
+        const quantity<si::length, real_t> r_w,            // particle wet radius
+        const quantity<si::mass_density, real_t> rho,      // air density
+        const quantity<si::dynamic_viscosity, real_t>  eta // air viscosity 
+      )
+      {
+	return v_term * (2 * r_w) * rho / eta;
+      }
+
+      // Nusselt number
+      // see eq. 1 in Smolik et al 2001, Aerosol Sci.
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> Nu(
+        const quantity<si::dimensionless, real_t> Pr, // Prandtl number
+        const quantity<si::dimensionless, real_t> Re  // Reynolds number
+      ) 
+      {
+        return 1 + cbrt(1 + Re * Pr) * max(1, pow(Re, .077));
+      }
+
+      // Sherwood number
+      // see eq. 2 in Smolik et al 2001, Aerosol Sci.
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> Sh(
+        const quantity<si::dimensionless, real_t> Sc, // Schmidt number
+        const quantity<si::dimensionless, real_t> Re  // Reynolds number
+      ) 
+      {
+        return Nu(Sc, Re);
+      }
+    };
+  };
+};

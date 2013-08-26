@@ -31,13 +31,13 @@ namespace libcloudphxx
           // x_new = x_old + v(x_new) * dt = x_old + C(x_new) * dx
           //    
           //     C(x_new) = (1-w) * C_l + w * C_r 
-          //     w = x_new/dx - floor(x_old) 
+          //     w = x_new/dx - floor(x_old/dx) 
           //
           // x_new = x_old + C_l * dx + w * dx * (C_r - C_l)
-          //       = x_old + C_l * dx + x_new * (C_r - C_l) - floor(x_old) * (C_r - C_l)
+          //       = x_old + C_l * dx + x_new * (C_r - C_l) - dx * floor(x_old/dx) * (C_r - C_l)
           // 
-          // x_new * (1 - C_r + C_l) = x_old + C_l * dx - floor(x_old) * (C_r - C_l)
-          // x_new =  (x_old + C_l * dx - floor(x_old) * (C_r - C_l)) / (1 - C_r + C_l)
+          // x_new * (1 - C_r + C_l) = x_old + C_l * dx - dx * floor(x_old/dx) * (C_r - C_l)
+          // x_new =  (x_old + C_l * dx - dx * floor(x_old/dx) * (C_r - C_l)) / (1 - C_r + C_l)
 
           return (
             x + dx * (C_l - floor_x_over_dx * (C_r - C_l))

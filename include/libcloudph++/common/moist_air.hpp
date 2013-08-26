@@ -81,20 +81,20 @@ namespace libcloudphxx
       }
 
       //vapour diffusivity in air (see Properties of air, Tracy, Welch & Porter 1980)
+      libcloudphxx_const(diffusivity, D_0, 2.26e-5, si::square_metres / si::seconds) 
+
       template<typename real_t>
       BOOST_GPU_ENABLED
       quantity<diffusivity, real_t> D(
         const quantity<si::temperature, real_t> &T, 
         const quantity<si::pressure, real_t> &p
       ) { 
-        const quantity<diffusivity, real_t> 
-          D_0 = real_t(2.26e-5) * si::square_metres / si::seconds;
         const quantity<si::pressure, real_t> 
           p_0 = real_t(100000) * si::pascal;
         const quantity<si::temperature, real_t> 
           T_0 = real_t(273.15) * si::kelvin;
  
-        return D_0 * std::pow(T / T_0, real_t(1.81)) * (p_0 / p); 
+        return D_0<real_t> * std::pow(T / T_0, real_t(1.81)) * (p_0 / p); 
       }   
 
       // thermal conductivity of air
