@@ -9,7 +9,6 @@
 - sdm: coalescence Kernel choice: constant, Long, B\"ohm
 - accumulated rainfall plots (and output)
 - Kessler: ac_thres as option
-- sdm: MAC/HAC, vent_coef as options
 - cond/evap separation for other micro than blk_1m?
 - missing in SDM: n1==n2, STP, rcyc
 - STP in blk_2m

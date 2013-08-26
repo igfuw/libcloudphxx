@@ -86,7 +86,9 @@ namespace libcloudphxx
         tpl_rw_t operator()(const tpl_ro_t &tpl_ro, tpl_rw_t tpl_rw)
         {
           // sanity checks
+#if !defined(__NVCC__)
           assert(thrust::get<ix_a_ix>(tpl_ro) + 1 == thrust::get<ix_b_ix>(tpl_ro));
+#endif
  
           // checking if valid candidates for collision
           {
@@ -130,7 +132,7 @@ namespace libcloudphxx
             * real_t(1); // TODO: collection efficiency
 
           // sanity check for random sampling validity
-          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
+//          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
 
           // comparing the upscaled probability with a random number and returning if unlucky
           if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;

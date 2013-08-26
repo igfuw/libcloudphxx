@@ -32,8 +32,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> Re  // Reynolds number
       ) 
       {
-using std::max;
-using std::pow;
+#if !defined(__NVCC__)
+	using std::pow;
+	using std::max;
+#endif
 
         return real_t(1) + cbrt(real_t(1) + Re * Pr) * max(real_t(1), pow(Re, real_t(.077)));
       }
