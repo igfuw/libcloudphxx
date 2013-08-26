@@ -99,32 +99,38 @@ namespace libcloudphxx
       template <typename real_t>
       struct advance_rw2_minfun
       {
-        const quantity<si::area,          real_t> rw2_old;
-        const quantity<si::time,          real_t> dt;
-	const quantity<si::mass_density,  real_t> rhod_rv;
-	const quantity<si::temperature,   real_t> T;
-	const quantity<si::pressure,      real_t> p;
-	const quantity<si::dimensionless, real_t> RH;
-	const quantity<si::volume,        real_t> rd3;
-	const quantity<si::dimensionless, real_t> kpa;
-        const quantity<si::dimensionless, real_t> RH_max;
+        const quantity<si::area,              real_t> rw2_old;
+        const quantity<si::time,              real_t> dt;
+	const quantity<si::mass_density,      real_t> rhod;
+	const quantity<si::mass_density,      real_t> rhod_rv;
+	const quantity<si::temperature,       real_t> T;
+	const quantity<si::pressure,          real_t> p;
+	const quantity<si::dimensionless,     real_t> RH;
+	const quantity<si::dynamic_viscosity, real_t> eta;
+	const quantity<si::volume,            real_t> rd3;
+	const quantity<si::dimensionless,     real_t> kpa;
+	const quantity<si::velocity,          real_t> vt;
+        const quantity<si::dimensionless,     real_t> RH_max;
 
         // ctor
         BOOST_GPU_ENABLED
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl,
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
           rw2_old(rw2 * si::square_metres),
-          rhod_rv(thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
-          T(thrust::get<1>(tpl) * si::kelvins),
-          p(thrust::get<2>(tpl) * si::pascals),
-          RH(thrust::get<3>(tpl)),
-          rd3(thrust::get<4>(tpl) * si::cubic_metres),
-          kpa(thrust::get<5>(tpl)),
+          rhod(    thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
+          rhod_rv( thrust::get<1>(tpl) * si::kilograms / si::cubic_metres),
+          T(       thrust::get<2>(tpl) * si::kelvins),
+          p(       thrust::get<3>(tpl) * si::pascals),
+          RH(      thrust::get<4>(tpl)),
+          eta(     thrust::get<5>(tpl) * si::pascals * si::seconds),
+          rd3(     thrust::get<6>(tpl) * si::cubic_metres),
+          kpa(     thrust::get<7>(tpl)),
+          vt(      thrust::get<8>(tpl) * si::metres_per_second),
           RH_max(RH_max)
         {}
 
@@ -136,9 +142,12 @@ namespace libcloudphxx
           using namespace common::kelvin;
           using common::moist_air::D_0;
           using common::moist_air::K_0;
+          using common::moist_air::c_pd;
           using common::transition_regime::beta;
           using common::mean_free_path::lambda_D;
           using common::mean_free_path::lambda_K;
+          using common::ventil::Sh;
+          using common::ventil::Nu;
 
 using std::sqrt;
 
@@ -146,10 +155,17 @@ using std::sqrt;
 	  const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
 
           // TODO: common::moist_air:: below should not be needed
-          const quantity<common::moist_air::diffusivity, real_t> 
-            D = D_0<real_t>() * beta(lambda_D(T) / rw); // TODO: ventilation
-          const quantity<common::moist_air::thermal_conductivity, real_t> 
-            K = K_0<real_t>() * beta(lambda_K(T, p) / rw); // TODO: ventilation
+          // TODO: ventilation as option
+          const quantity<si::dimensionless, real_t>
+            Re = common::ventil::Re(vt, rw, rhod, eta), 
+            Sc = common::ventil::Sc(eta, rhod, D_0<real_t>()), // TODO? cache
+            Pr = common::ventil::Pr(eta, c_pd<real_t>(), K_0<real_t>()); // TODO? cache
+
+          const quantity<common::diffusivity, real_t> 
+            D = D_0<real_t>() * beta(lambda_D(T)    / rw) * (Sh(Sc, Re) / 2); // TODO: cache lambdas
+
+          const quantity<common::thermal_conductivity, real_t> 
+            K = K_0<real_t>() * beta(lambda_K(T, p) / rw) * (Nu(Pr, Re) / 2);
 
           return real_t(2) * rdrdt( 
             D,
@@ -184,7 +200,7 @@ using std::sqrt;
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
 	  using std::min;
@@ -242,12 +258,15 @@ using std::sqrt;
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
+	    thrust::make_permutation_iterator(rhod.begin(),    ijk.begin()),
 	    thrust::make_permutation_iterator(rhod_rv.begin(), ijk.begin()),
 	    thrust::make_permutation_iterator(T.begin(),       ijk.begin()),
 	    thrust::make_permutation_iterator(p.begin(),       ijk.begin()),
 	    thrust::make_permutation_iterator(RH.begin(),      ijk.begin()),
+	    thrust::make_permutation_iterator(eta.begin(),     ijk.begin()),
 	    rd3.begin(),
-	    kpa.begin()
+	    kpa.begin(),
+            vt.begin()
           )
         ), 
 	rw2.begin(),                    // output

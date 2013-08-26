@@ -20,7 +20,7 @@ namespace libcloudphxx
         const quantity<si::dynamic_viscosity, real_t>  eta // air viscosity 
       )
       {
-	return v_term * (2 * r_w) * rho / eta;
+	return v_term * (real_t(2) * r_w) * rho / eta;
       }
 
       // Nusselt number
@@ -32,7 +32,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> Re  // Reynolds number
       ) 
       {
-        return 1 + cbrt(1 + Re * Pr) * max(1, pow(Re, .077));
+using std::max;
+using std::pow;
+
+        return real_t(1) + cbrt(real_t(1) + Re * Pr) * max(real_t(1), pow(Re, real_t(.077)));
       }
 
       // Sherwood number
@@ -45,6 +48,30 @@ namespace libcloudphxx
       ) 
       {
         return Nu(Sc, Re);
+      }
+
+      // Schmidt number
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> Sc(
+        const quantity<si::dynamic_viscosity, real_t> &eta,
+        const quantity<si::mass_density, real_t> &rho,
+        const quantity<diffusivity, real_t> &D
+      )
+      {
+        return eta / rho / D;
+      }
+
+      // Prandtl number
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> Pr(
+        const quantity<si::dynamic_viscosity, real_t> &eta,
+        const quantity<energy_over_temperature_mass, real_t> &c_p,
+        const quantity<thermal_conductivity, real_t> &K
+      )
+      {
+        return c_p * eta / K;
       }
     };
   };

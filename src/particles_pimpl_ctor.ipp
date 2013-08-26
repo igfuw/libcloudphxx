@@ -81,7 +81,8 @@ namespace libcloudphxx
         T,  // temperature [K]
         p,  // pressure [Pa]
         r,  // water vapour mixing ratio [kg/kg]
-        RH; // relative humisity (p_v / p_vs)
+        RH, // relative humisity (p_v / p_vs)
+        eta;// dynamic viscosity 
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;

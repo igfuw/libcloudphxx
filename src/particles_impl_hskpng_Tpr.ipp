@@ -6,6 +6,7 @@
   */
 
 #include <libcloudph++/common/theta_dry.hpp>
+#include <libcloudph++/common/vterm.hpp> // TODO: should be viscosity!
 
 namespace libcloudphxx
 {
@@ -41,18 +42,29 @@ namespace libcloudphxx
       struct RH
       {   
         __device__ 
-       real_t operator()(const thrust::tuple<real_t, real_t> &tpl) 
-       {
-         const real_t rhod_rv = thrust::get<0>(tpl);
-         const real_t T = thrust::get<1>(tpl);
+        real_t operator()(const thrust::tuple<real_t, real_t> &tpl) 
+        {
+          const real_t rhod_rv = thrust::get<0>(tpl);
+          const real_t T = thrust::get<1>(tpl);
 
-         return 
-	   (rhod_rv * si::kilograms / si::cubic_metres)
-	   * common::moist_air::R_v<real_t>()
-	   * (T * si::kelvins)
-	   / common::const_cp::p_vs(T * si::kelvins);
-       }
+          return 
+	    (rhod_rv * si::kilograms / si::cubic_metres)
+	    * common::moist_air::R_v<real_t>()
+	    * (T * si::kelvins)
+	    / common::const_cp::p_vs(T * si::kelvins);
+        }
       }; 
+
+      
+      template <typename real_t>
+      struct common__vterm__visc // TODO: rename it! (vterm) visc_eta?
+      {
+        __device__
+        real_t operator()(const real_t &T)
+        {
+          return common::vterm::visc(T * si::kelvins) / si::pascals / si::seconds;
+        }
+      };
     };
 
     template <typename real_t, int device>
@@ -109,6 +121,15 @@ namespace libcloudphxx
 	  RH.begin(),                                                // output
 	  detail::RH<real_t>()
 	);
+      }
+ 
+      // dynamic viscosity
+      {
+        thrust::transform(
+          T.begin(), T.end(), // 1st arg
+          eta.begin(),        // output
+          detail::common__vterm__visc<real_t>()
+        );
       }
     }
   };  

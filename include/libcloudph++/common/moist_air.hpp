@@ -7,21 +7,21 @@ namespace libcloudphxx
 {
   namespace common
   {
+    typedef divide_typeof_helper<si::energy, si::temperature>::type energy_over_temperature;
+    typedef divide_typeof_helper<si::energy, si::mass>::type energy_over_mass;
+    typedef divide_typeof_helper<si::mass, si::amount>::type mass_over_amount;
+    typedef divide_typeof_helper<energy_over_temperature, si::amount>::type energy_over_temperature_amount;
+    typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
+
+    typedef multiply_typeof_helper<si::velocity, si::length>::type diffusivity;
+    typedef multiply_typeof_helper<si::time, si::area>::type time_area;
+    typedef divide_typeof_helper<si::mass, time_area>::type mass_flux;
+    typedef multiply_typeof_helper<energy_over_mass, mass_flux>::type energy_flux;
+    typedef divide_typeof_helper<si::temperature, si::length>::type temperature_gradient;
+    typedef divide_typeof_helper<energy_flux, temperature_gradient>::type thermal_conductivity;
+
     namespace moist_air
     {
-      typedef divide_typeof_helper<si::energy, si::temperature>::type energy_over_temperature;
-      typedef divide_typeof_helper<si::energy, si::mass>::type energy_over_mass;
-      typedef divide_typeof_helper<si::mass, si::amount>::type mass_over_amount;
-      typedef divide_typeof_helper<energy_over_temperature, si::amount>::type energy_over_temperature_amount;
-      typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
-
-      typedef multiply_typeof_helper<si::velocity, si::length>::type diffusivity;
-      typedef multiply_typeof_helper<si::time, si::area>::type time_area;
-      typedef divide_typeof_helper<si::mass, time_area>::type mass_flux;
-      typedef multiply_typeof_helper<energy_over_mass, mass_flux>::type energy_flux;
-      typedef divide_typeof_helper<si::temperature, si::length>::type temperature_gradient;
-      typedef divide_typeof_helper<energy_flux, temperature_gradient>::type thermal_conductivity;
-
       // specific heat capacities
       libcloudphxx_const(energy_over_temperature_mass, c_pd, 1005, si::joules / si::kilograms / si::kelvins) // dry air
       libcloudphxx_const(energy_over_temperature_mass, c_pv, 1850, si::joules / si::kilograms / si::kelvins) // water vapour

@@ -35,7 +35,7 @@ namespace libcloudphxx
 // TODO: vent? (as a coefficient?)
 // TODO: MAC
 
-      // initial dry spectra // TODO: simensionalise this function!
+      // initial dry spectra // TODO: dimensionalise this function!
       typedef boost::ptr_unordered_map<real_t, common::unary_function<real_t> > dry_distros_t;
 
       //

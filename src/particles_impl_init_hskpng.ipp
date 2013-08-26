@@ -19,11 +19,13 @@ namespace libcloudphxx
       ijk.resize(n_part);
 
       vt.resize(n_part);
+      thrust::fill(vt.begin(), vt.end(), 0); // so that it may be safely used in condensation before first update
 
       T.resize(n_cell);
       p.resize(n_cell);
       r.resize(n_cell); 
       RH.resize(n_cell); 
+      eta.resize(n_cell); 
 
       sorted_id.resize(n_part);
       sorted_ijk.resize(n_part);

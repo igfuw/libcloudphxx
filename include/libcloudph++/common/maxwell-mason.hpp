@@ -13,8 +13,8 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<divide_typeof_helper<si::area, si::time>::type, real_t> rdrdt(
-        const quantity<moist_air::diffusivity, real_t> D,          // D // TODO: moist_air:: seems illogical here...
-        const quantity<moist_air::thermal_conductivity, real_t> K, // K
+        const quantity<diffusivity, real_t> D,            // D 
+        const quantity<thermal_conductivity, real_t> K,   // K
 	const quantity<si::mass_density, real_t> rho_v,   // ambient water vapour density
 	const quantity<si::temperature, real_t> T,        // ambient temperature
 	const quantity<si::pressure, real_t> p,           // ambient pressure
