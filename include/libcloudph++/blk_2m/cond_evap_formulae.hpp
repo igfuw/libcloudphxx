@@ -50,7 +50,7 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
         return (r_v-r_vs(T,p)) / tau_relax(T, p, r, N) / (1 + drv_s_dT(T, p) * l_v(T) / c_p(r_v));
-      }                                                                     //TODO check ^ 
+      }                                                                     //TODO check ^ is it c_p or c_p(r)
 
     };
   };
