@@ -63,12 +63,12 @@ namespace libcloudphxx
       //timestep 
       quantity<si::time, real_t > dt = opt.dt * si::seconds;
 
-      //TODO -> did not occur so far? change eps to zero?
       // if something is too small e-179 it becomes negative
       // so instead of rhod_nl == 0 we have rhod_nl < eps
-      quantity<si::dimensionless, real_t>                                         eps_d = 0;
-      quantity<si::mass_density, real_t>                                          eps_r = 0 * si::kilograms / si::cubic_metres;
-      quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> eps_n = 0 / si::cubic_metres;
+      // also -1e-30 + 1e-30 is not equal to zero
+      quantity<si::dimensionless, real_t>                                         eps_d = 1e-20;
+      quantity<si::mass_density, real_t>                                          eps_r = 1e-20 * si::kilograms / si::cubic_metres;
+      quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> eps_n = 1e-20 / si::cubic_metres;
 
                       //TODO: 
                       //unfortunately can't zip through more than 10 arguments 
@@ -292,13 +292,7 @@ namespace libcloudphxx
                 {
                   drhod_nr += drhod_nr_tmp * si::cubic_metres * si::seconds;
                 }
-                else
-                {
-              //    drhod_nr = - rhod_nr / dt
-              //      * si::cubic_metres * si::seconds;
-//TODO test
-std::cerr<<"aqq"<<std::endl;
-                }
+               // else do nothing
               }
             }
           }
