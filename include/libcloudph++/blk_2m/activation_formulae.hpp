@@ -10,6 +10,7 @@
 #include <libcloudph++/common/moist_air.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
 #include <libcloudph++/common/const_cp.hpp>
+#include <libcloudph++/common/earth.hpp>
 
 namespace libcloudphxx
 {
@@ -17,6 +18,7 @@ namespace libcloudphxx
   {
     namespace formulae
     {
+      using common::earth::rho_stp;
 
       //beta parameter for defining solubility of dry aerosol (see Khvorostyanov and Curry 2006)
       //beta=0.5 means that soluble fraction is proportional to the volume of the ary aerosol
@@ -82,11 +84,11 @@ namespace libcloudphxx
         quantity<si::mass_density,  real_t> rhod_rv,
         quantity<si::length,        real_t> mean_rd,
         quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_tot,
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
         quantity<si::dimensionless, real_t> chem_b,
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return N_tot / real_t(2.) * erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b)); 
+        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b)); 
       }
 
       typedef divide_typeof_helper<one_over_volume, si::time>::type one_over_volume_time;
@@ -100,14 +102,14 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> rhod_nc,
         quantity<si::length,        real_t> mean_rd,
         quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_tot,
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
         const quantity<si::time, real_t> dt,
         quantity<si::dimensionless, real_t> chem_b,
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
         return std::max(
           real_t(0) / si::cubic_metres / si::seconds,
-          (N_c_p<real_t>(p, T, rhod, rhod_rv, mean_rd, sdev_rd, N_tot, chem_b) - rhod_nc) / dt
+          (N_c_p<real_t>(p, T, rhod, rhod_rv, mean_rd, sdev_rd, N_stp, chem_b) - rhod_nc) / dt
         );
       }
  
