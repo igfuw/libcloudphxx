@@ -83,6 +83,17 @@ namespace libcloudphxx
 
       // temporary space on the host 
       thrust::host_vector<real_t> tmp(n_part);
+      thrust::host_vector<thrust_size_t> tmp_ijk(n_part);
+      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
+
+      thrust::copy(
+	rhod.begin(), rhod.end(), // from
+	tmp_rhod.begin()          // to
+      );
+      thrust::copy(
+	ijk.begin(), ijk.end(), // from
+	tmp_ijk.begin()         // to
+      );
 
       while (true)
       {
@@ -109,6 +120,7 @@ namespace libcloudphxx
 
 	// device -> host (not needed for omp or cpp ... but happens just once)
 	thrust::copy(lnrd.begin(), lnrd.end(), tmp.begin()); 
+
 	// evaluating n_of_lnrd_stp
 	thrust::transform(
 	  tmp.begin(),
@@ -116,25 +128,23 @@ namespace libcloudphxx
 	  tmp.begin(),
 	  detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
 	);
-        // correcting STP -> actual conditions
+
+        // correcting STP -> actual ambient conditions
         {
-          thrust::host_vector<real_t> &rhod_host(tmp_host_real_cell);
-
-	  thrust::copy(
-	    rhod.begin(), rhod.end(), // from
-	    rhod_host.begin()         // to
-	  );
-
           using namespace thrust::placeholders;
           using common::earth::rho_stp;
 
 	  thrust::transform(
-            tmp.begin(), tmp.end(),  // input - 1st arg
-            rhod_host.begin(),       // input - 2nd arg
-            tmp.begin(),             // output
-            _1 * _2 / (rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+            tmp.begin(), tmp.end(),            // input - 1st arg
+            thrust::make_permutation_iterator( // input - 2nd arg
+              tmp_rhod.begin(), 
+              tmp_ijk.begin()
+            ),
+            tmp.begin(),                       // output
+            _1 * _2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
           ); 
         }
+
 	// host -> device (includes casting from real_t to uint!)
 	thrust::copy(tmp.begin(), tmp.end(), n.begin()); 
 
