@@ -16,6 +16,8 @@
 #include <thrust/sort.h>
 #include <thrust/extrema.h>
 
+#include <libcloudph++/common/earth.hpp>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -32,13 +34,33 @@ namespace libcloudphxx
 	  return exp(3*x); 
 	} 
       };
+
+      template <typename real_t>
+      struct eval_and_multiply
+      {   
+        const common::unary_function<real_t> &fun;
+        const real_t &mul;
+
+        // ctor
+        eval_and_multiply(
+          const common::unary_function<real_t> &fun, 
+          const real_t &mul
+        )
+          : fun(fun), mul(mul)
+        {}
+
+        real_t operator()(real_t x)  
+        {
+          return mul * fun(x); 
+        }
+      };  
     };
 
     // init
     template <typename real_t, int device>
     void particles<real_t, device>::impl::init_dry(
-      const common::unary_function<real_t> *n_of_lnrd, // TODO: kappa-spectrum map
-      const real_t kappa
+      const real_t kappa,
+      const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
     )
     {
       // memory allocation
@@ -78,7 +100,7 @@ namespace libcloudphxx
 	);
  
 	// filling n with multiplicities
-	// (performing it on a local copy as n_of_lnrd may lack __device__ qualifier)
+	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	real_t multiplier = log(rd_max / rd_min) 
           / opts.sd_conc_mean 
           * opts.dx 
@@ -87,13 +109,32 @@ namespace libcloudphxx
 
 	// device -> host (not needed for omp or cpp ... but happens just once)
 	thrust::copy(lnrd.begin(), lnrd.end(), tmp.begin()); 
-	// evaluating n_of_lnrd
+	// evaluating n_of_lnrd_stp
 	thrust::transform(
 	  tmp.begin(),
 	  tmp.end(),
 	  tmp.begin(),
-	  detail::eval_and_multiply<real_t>(*n_of_lnrd, multiplier)
+	  detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
 	);
+        // correcting STP -> actual conditions
+        {
+          thrust::host_vector<real_t> &rhod_host(tmp_host_real_cell);
+
+	  thrust::copy(
+	    rhod.begin(), rhod.end(), // from
+	    rhod_host.begin()         // to
+	  );
+
+          using namespace thrust::placeholders;
+          using common::earth::rho_stp;
+
+	  thrust::transform(
+            tmp.begin(), tmp.end(),  // input - 1st arg
+            rhod_host.begin(),       // input - 2nd arg
+            tmp.begin(),             // output
+            _1 * _2 / (rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+          ); 
+        }
 	// host -> device (includes casting from real_t to uint!)
 	thrust::copy(tmp.begin(), tmp.end(), n.begin()); 
 

@@ -164,7 +164,10 @@ std::cerr << " opts.rcyc = " << opts.rcyc << std::endl;
       // methods
       void sanity_checks();
 
-      void init_dry(const common::unary_function<real_t> *n_of_lnrd, const real_t kappa);
+      void init_dry(
+        const real_t kappa, // TODO: map
+        const common::unary_function<real_t> *n_of_lnrd
+      );
       void init_xyz();
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();

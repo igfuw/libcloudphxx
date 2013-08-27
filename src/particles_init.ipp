@@ -30,13 +30,6 @@ std::cerr << "\n\n INIT \n\n";
       if (pimpl->n_dims > 1) assert(!courant_x.is_null());
       if (pimpl->n_dims > 2) assert(!courant_y.is_null());
 
-      // initialising dry radii
-      assert(pimpl->opts.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      pimpl->init_dry(pimpl->opts.dry_distros.begin()->second, pimpl->opts.dry_distros.begin()->first); // TODO: document that n_of_lnrd is expected!
-
-      // initialising particle positions
-      pimpl->init_xyz();
-
       // initialising Eulerian-Lagrandian coupling
       pimpl->init_sync();
       pimpl->init_e2l(rhod_th, &pimpl->rhod_th);
@@ -54,10 +47,22 @@ std::cerr << "\n\n INIT \n\n";
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
-      // initialising wet radii
+      // initialising particle positions
+      pimpl->init_xyz();
+
+      // initialising housekeeping data (incl. ijk)
       pimpl->init_hskpng(); 
       pimpl->hskpng_Tpr(); 
       pimpl->hskpng_ijk(); 
+
+      // initialising dry radii (needs positions, ijk and rhod)
+      assert(pimpl->opts.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
+      pimpl->init_dry(
+        pimpl->opts.dry_distros.begin()->first,
+        pimpl->opts.dry_distros.begin()->second 
+      ); // TODO: document that n_of_lnrd_stp is expected!
+
+      // initialising wet radii
       pimpl->init_wet();
   
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
