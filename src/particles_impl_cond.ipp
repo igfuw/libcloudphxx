@@ -148,8 +148,7 @@ namespace libcloudphxx
           using common::mean_free_path::lambda_K;
           using common::ventil::Sh;
           using common::ventil::Nu;
-
-using std::sqrt;
+          using std::sqrt;
 
 	  const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
 	  const quantity<si::volume, real_t> rw3 = rw * rw * rw;;

@@ -26,17 +26,15 @@ namespace libcloudphxx
         real_t fmin, real_t fmax
       )
       {
+        assert(min < max); // assumes in order
+
         if (fmin == 0) return min;
         if (fmax == 0) return max;
 
-        // 
-
 #if !defined(__NVCC__)
-        assert(min < max); // assumes in order
-	assert(fmin * fmax < 0); // must have different signs
 	using std::abs;
 #endif
-        if (fmin * fmax >= 0) return (min + max) / 2; // checked in the assertion above
+        if (fmin * fmax >= 0) return (min + max) / 2; 
 
 	real_t mid; 
 	while (

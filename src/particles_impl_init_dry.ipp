@@ -123,9 +123,8 @@ namespace libcloudphxx
 
 	// evaluating n_of_lnrd_stp
 	thrust::transform(
-	  tmp.begin(),
-	  tmp.end(),
-	  tmp.begin(),
+	  tmp.begin(), tmp.end(), // input 
+	  tmp.begin(),            // output
 	  detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
 	);
 
