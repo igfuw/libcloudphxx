@@ -14,22 +14,24 @@ namespace libcloudphxx
 {
   namespace blk_1m
   {
-    template <typename real_t, class container_t>
+//<listing>
+    template <typename real_t, class cont_t>
     void forcings_elementwise(
       const opts_t<real_t> &opt,
-      container_t drhod_rc_cont, // TODO: dhould be dX_dt
-      container_t drhod_rr_cont,
-      const container_t rhod_cont,   
-      const container_t rhod_rc_cont,
-      const container_t rhod_rr_cont
+      cont_t &dot_rhod_rc_cont, 
+      cont_t &dot_rhod_rr_cont,
+      const cont_t &rhod_cont,   
+      const cont_t &rhod_rc_cont,
+      const cont_t &rhod_rr_cont
     )   
+//</listing>
     {
-      for (auto tup : zip(drhod_rc_cont, drhod_rr_cont, rhod_cont, rhod_rc_cont, rhod_rr_cont))
+      for (auto tup : zip(dot_rhod_rc_cont, dot_rhod_rr_cont, rhod_cont, rhod_rc_cont, rhod_rr_cont))
       {
         real_t
           tmp = 0,
-          &drhod_rc = boost::get<0>(tup),
-          &drhod_rr = boost::get<1>(tup);
+          &dot_rhod_rc = boost::get<0>(tup),
+          &dot_rhod_rr = boost::get<1>(tup);
         const real_t
           &rhod     = boost::get<2>(tup),
           &rhod_rc  = boost::get<3>(tup),
@@ -52,8 +54,8 @@ namespace libcloudphxx
 	  );
         }
 
-	drhod_rr += tmp;
-	drhod_rc -= tmp;
+	dot_rhod_rr += tmp;
+	dot_rhod_rc -= tmp;
       }
     }    
   }

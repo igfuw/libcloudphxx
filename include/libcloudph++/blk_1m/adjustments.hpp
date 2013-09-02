@@ -74,15 +74,17 @@ namespace libcloudphxx
       };
     }    
 
-    template <typename real_t, class container_t>
+//<listing>
+    template <typename real_t, class cont_t>
     void adjustments(
       const opts_t<real_t> &opt,
-      const container_t &rhod_cont,  // TODO: ref vs. value - should be the same in all functions!
-      container_t &rhod_th_cont, 
-      container_t &rhod_rv_cont,
-      container_t &rhod_rc_cont,
-      container_t &rhod_rr_cont
+      const cont_t &rhod_cont, 
+      cont_t &rhod_th_cont, 
+      cont_t &rhod_rv_cont,
+      cont_t &rhod_rc_cont,
+      cont_t &rhod_rr_cont
     )
+//</listing>
     {
       assert(opt.dt != 0);
 

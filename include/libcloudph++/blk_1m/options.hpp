@@ -10,10 +10,10 @@
 namespace libcloudphxx
 {
   namespace blk_1m
-  {
+  { 
+//<listing>
     template<typename real_t>
-    struct opts_t
-    {
+    struct opts_t {
       bool 
         cevp = true, 
         revp = true, 
@@ -22,5 +22,6 @@ namespace libcloudphxx
         sedi = true;
       real_t dt = 0;
     };
-  }
+//</listing>
+  } 
 };

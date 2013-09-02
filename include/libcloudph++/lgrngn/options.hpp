@@ -19,7 +19,11 @@ namespace libcloudphxx
   {
 
 // TODO: document that using unis here with fake_units in one compilation unit and boost.units in another could break the executable?
+// TODO: all processes true in constructor?
+// TODO: vent? (as a coefficient?)
+// TODO: MAC
 
+//<listing>
     template<typename real_t>
     struct opts_t
     {
@@ -31,12 +35,12 @@ namespace libcloudphxx
         chem,// = false,
         rcyc,// = false;
         coal;// = true, 
-// TODO: all true in constructor?
-// TODO: vent? (as a coefficient?)
-// TODO: MAC
 
       // initial dry spectra // TODO: dimensionalise this function!
-      typedef boost::ptr_unordered_map<real_t, common::unary_function<real_t> > dry_distros_t;
+      typedef boost::ptr_unordered_map<
+        real_t, 
+        common::unary_function<real_t> 
+      > dry_distros_t;
 
       //
       int nx, ny, nz; 
@@ -59,5 +63,6 @@ namespace libcloudphxx
         RH_max(0)
       { }
     };
+//</listing>
   }
 };
