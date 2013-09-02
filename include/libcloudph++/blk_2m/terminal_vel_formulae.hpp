@@ -55,10 +55,15 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &rhod_nr
       ) { 
-            return alpha_fall(rhod_rr, rhod_nr)             //.... mass of drop in grams
-                   * pow(rhod_rr/rhod_nr/si::kilograms * 1000, beta_fall(rhod_rr, rhod_nr)) 
-                                        //^^^^^^^^^^^^ to make it dimensionless       
-                   * real_t(1e-2) * si::metres/si::seconds; //velocity in metres/seconds
+        if (
+          rhod_rr == 0 * si::kilograms / si::cubic_metres || 
+          rhod_nr == 0 / si::cubic_metres
+        ) return 0 * si::metres_per_second;
+
+	return alpha_fall(rhod_rr, rhod_nr)             //.... mass of drop in grams
+	       * pow(rhod_rr/rhod_nr/si::kilograms * 1000, beta_fall(rhod_rr, rhod_nr)) 
+				    //^^^^^^^^^^^^ to make it dimensionless       
+	       * real_t(1e-2) * si::metres/si::seconds; //velocity in metres/seconds
       }
     };
   };

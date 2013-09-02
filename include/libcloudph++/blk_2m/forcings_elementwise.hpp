@@ -20,6 +20,7 @@ namespace libcloudphxx
 {
   namespace blk_2m
   {
+//<listing>
     template <typename real_t, class cont_t>
     void forcings_elementwise(
       const opts_t<real_t> &opt,
@@ -37,6 +38,7 @@ namespace libcloudphxx
       const cont_t &rhod_rr_cont,
       const cont_t &rhod_nr_cont
     )   
+//</listing>
     {  
       // sanity checks
       assert(opt.dt != 0);
