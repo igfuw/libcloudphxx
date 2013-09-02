@@ -58,5 +58,5 @@ namespace libcloudphxx
 	dot_rhod_rc -= tmp;
       }
     }    
-  }
+  };
 };

@@ -9,7 +9,7 @@
 
 namespace libcloudphxx
 {
-  namespace blk_1m
+  namespace blk_1m 
   { 
 //<listing>
     template<typename real_t>
@@ -23,5 +23,5 @@ namespace libcloudphxx
       real_t dt = 0;
     };
 //</listing>
-  } 
+  }; 
 };

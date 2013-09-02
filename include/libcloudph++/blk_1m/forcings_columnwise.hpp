@@ -82,5 +82,5 @@ namespace libcloudphxx
       // outflow from the domain
       return real_t(flux_out / (si::kilograms / si::cubic_metres / si::seconds));
     }    
-  }
+  };
 };

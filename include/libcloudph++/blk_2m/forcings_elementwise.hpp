@@ -314,5 +314,5 @@ namespace libcloudphxx
         }
       }
     }
-  }    
+  };    
 };
