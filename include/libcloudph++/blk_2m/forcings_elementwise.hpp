@@ -124,7 +124,9 @@ namespace libcloudphxx
           if (rhod_rc > eps_r && rhod_nc > eps_n)
           {                                              //  ^^   TODO is it possible?
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
-              cond_evap_rate<real_t>(T, p, r_drop(rhod_rc, rhod_nc), rhod_rv/rhod, rhod_nc) * rhod;
+              cond_evap_rate<real_t>(T, p, rhod_rv/rhod, tau_relax_c(T, p, r_drop_c(rhod_rc, rhod_nc), rhod_nc)) * rhod;
+
+            assert(r_drop_c(rhod_rc, rhod_nc) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
 
             if (rhod_rc + ((drhod_rc * si::kilograms / si::cubic_metres / si::seconds + tmp) * dt)  < 0 * si::kilograms / si::cubic_metres)             
             {   //so that we don't evaporate more cloud water than there is
@@ -138,7 +140,6 @@ namespace libcloudphxx
             drhod_th -= tmp  * d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod
                          / si::kilograms / si::kelvins * si::cubic_metres * si::seconds; 
           }
-
           assert(rhod_rc * si::cubic_metres / si::kilograms + drhod_rc * opt.dt >= 0 && "condensation/evaporation can't make rhod_rc < 0");
           assert(rhod_rv * si::cubic_metres / si::kilograms + drhod_rv * opt.dt >= 0 && "condensation/evaporation can't make rhod_rv < 0");
           assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + drhod_th * opt.dt >= 0 && "condensation/evaporation can't make rhod_th < 0");
@@ -164,7 +165,8 @@ namespace libcloudphxx
           if(opt.acnv)
           {                                  
            if(rhod_rc > eps_r && rhod_nc > eps_n)
-            {                     
+            {   
+                  
               quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = autoconv_rate(rhod, rhod_rc, rhod_nc);
 
               //so that autoconversion doesn't take more rhod_rc than there is
@@ -213,8 +215,9 @@ namespace libcloudphxx
             if (rhod_nc > eps_n && drhod_rr > eps_d)  
             {                           
               quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp =
-                collision_sink_rate(drhod_rr * si::kilograms / si::cubic_metres / si::seconds, r_drop(rhod_rc, rhod_nc));
+                collision_sink_rate(drhod_rr * si::kilograms / si::cubic_metres / si::seconds, r_drop_c(rhod_rc, rhod_nc));
 
+              assert(r_drop_c(rhod_rc, rhod_nc) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
               assert(tmp >= 0 / si::cubic_metres / si::seconds && "tmp");
  
               //so that collisions don't take more rhod_nc than there is
@@ -249,6 +252,7 @@ namespace libcloudphxx
         // evaporation of rain (see Morrison & Grabowski 2007)
         if(opt.cond)
         {
+//std::cerr << "before evap: rhod_rr = " << rhod_rr * si::cubic_metres / si::kilograms <<std::endl;
           if(rhod_rr > eps_r && rhod_nr > eps_n)
           { //cond/evap for rhod_rr
 
@@ -258,8 +262,10 @@ namespace libcloudphxx
             assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + drhod_th * opt.dt >= 0 && "before rain cond-evap");
 
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
-              cond_evap_rate<real_t>(T, p, r_drop(rhod_rr, rhod_nr), rhod_rv/rhod, rhod_nr) * rhod;
+              cond_evap_rate<real_t>(T, p, rhod_rv/rhod, tau_relax_r(T, rhod, rhod_rr, rhod_nr)) * rhod;
               //TODO ventilation coefficents (not so important in drizzle but very needed in rain)
+
+            assert(r_drop_r(rhod_rr, rhod_nr) >= 0 * si::metres  && "mean drop radius cannot be < 0");
 
             tmp=std::min(tmp , real_t(0) * si::kilograms / si::cubic_metres / si::seconds);
  
@@ -296,6 +302,10 @@ namespace libcloudphxx
               }
             }
           }
+
+//std::cerr << "after evap rhod_rr = " << rhod_rr << std::endl;
+//std::cerr << "drhod_rr * opt.dt = " << drhod_rr * opt.dt <<std::endl;
+//std::cerr << "rhod_rr + drhod_rr * opt.dt " << rhod_rr * si::cubic_metres / si::kilograms + drhod_rr * opt.dt << std::endl; 
 
           assert(rhod_rr * si::cubic_metres / si::kilograms + drhod_rr * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_rr < 0");
           assert(rhod_rv * si::cubic_metres / si::kilograms + drhod_rv * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_rv < 0");
