@@ -39,7 +39,7 @@ namespace libcloudphxx
       const real_t zero = 0;
       const real_t *rhod, *rhod_rr = &zero;
 
-      auto iter = zip(drhod_rr_cont, rhod_cont, rhod_rr_cont);
+      auto iter = zip(dot_rhod_rr_cont, rhod_cont, rhod_rr_cont);
       for (auto tup_ptr = iter.end(); tup_ptr != iter.begin();)
       {
         --tup_ptr;
