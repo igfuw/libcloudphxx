@@ -46,8 +46,10 @@ namespace libcloudphxx
       const real_t *rhod, *rhod_rr, *rhod_nr = &zero;
 
       auto iter = zip(rhod_cont, rhod_rr_cont, rhod_nr_cont, drhod_rr_cont, drhod_nr_cont);
-      for (auto tup_ptr = --iter.end(); tup_ptr != --iter.begin(); --tup_ptr)
+      for (auto tup_ptr = iter.end(); tup_ptr != iter.begin();)
       {
+        --tup_ptr;
+
         const real_t
           *rhod_below     = &boost::get<0>(*tup_ptr),
           *rhod_rr_below  = &boost::get<1>(*tup_ptr),
