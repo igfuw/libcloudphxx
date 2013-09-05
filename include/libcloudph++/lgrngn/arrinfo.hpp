@@ -7,12 +7,16 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // helper struct to ease passing n-dimensional arrays
+//<listing>
     template <typename real_t>
     struct arrinfo_t
     {
-      // member fields
+      // member fields:
       real_t * const dataZero;
       const ptrdiff_t *strides;
+
+      // methods...
+//</listing>
 
       // ctors
       arrinfo_t()

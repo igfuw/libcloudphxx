@@ -13,14 +13,14 @@ namespace libcloudphxx
   { 
 //<listing>
     template<typename real_t>
-    struct opts_t {
+    struct opts_t { // uses C++11
       bool 
         cevp = true, 
         revp = true, 
         conv = true, 
         clct = true, 
         sedi = true;
-      real_t dt = 0;
+      real_t dt = 0; // TODO: this zero looks bad...
     };
 //</listing>
   }; 

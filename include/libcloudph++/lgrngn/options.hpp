@@ -17,52 +17,42 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-
-// TODO: document that using unis here with fake_units in one compilation unit and boost.units in another could break the executable?
-// TODO: all processes true in constructor?
-// TODO: vent? (as a coefficient?)
-// TODO: MAC
-
 //<listing>
     template<typename real_t>
-    struct opts_t
+    struct opts_t // C++03 compliant
     {
-      // processes
-      bool 
-        adve,// = true, 
-        sedi,// = true, 
-        cond,// = true, 
-        chem,// = false,
-        rcyc,// = false;
-        coal;// = true, 
-
-      // initial dry spectra // TODO: dimensionalise this function!
+      // type definitions:
       typedef boost::ptr_unordered_map<
+        // kappa
         real_t, 
+        // n(ln(rd)) @ STP 
         common::unary_function<real_t> 
       > dry_distros_t;
 
-      //
-      int nx, ny, nz; 
-      real_t sd_conc_mean; 
-      real_t dx, dy, dz; 
-      dry_distros_t dry_distros;
+      // member fields:
+      bool 
+        adve, sedi, cond, coal; // processes
+      int 
+        nx, ny, nz,             // grid
+        sstp_cond, sstp_coal;   // substeps 
+      real_t 
+        dx, dy, dz, dt,         // steps
+        sd_conc_mean, // super-droplet conc.       
+        RH_max;       // condens. RH cutoff 
+      dry_distros_t 
+        dry_distros;  // initial dry aerosol 
 
-      real_t dt;
-      real_t RH_max;
-      int sstp_cond, sstp_coal;
-
-      // ctor
-      opts_t() : 
-        // meaningful default values:
-        nx(0), ny(0), nz(0), 
-        dx(1), dy(1), dz(1), 
-        sstp_cond(1), sstp_coal(1),
-        // invalid default values:
-        sd_conc_mean(0),
-        RH_max(0)
-      { }
-    };
+      // methods ...
 //</listing>
+      // constructor with default values
+      opts_t() : 
+        adve(1), sedi(1), cond(1), coal(1),
+        nx(0), ny(0), nz(0), 
+        sstp_cond(1), sstp_coal(1),
+        dx(1), dy(1), dz(1), 
+        sd_conc_mean(64),
+        RH_max(1.05) 
+      {}
+    };
   }
 };

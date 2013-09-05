@@ -103,7 +103,7 @@ namespace libcloudphxx
           if(rhod_rv/rhod > common::const_cp::r_vs<real_t>(T, p))
           {
             quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 
-              activation_rate<real_t>(p, T, rhod, rhod_rv, rhod_nc, opt.mean_rd, opt.sdev_rd, opt.N_stp, dt, opt.chem_b); 
+              activation_rate<real_t>(p, T, rhod, rhod_rv, rhod_nc, opt.mean_rd * si::metres, opt.sdev_rd, opt.N_stp / si::cubic_metres, dt, opt.chem_b); 
 
 	    dot_rhod_nc += tmp * si::cubic_metres * si::seconds;  
 

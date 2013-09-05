@@ -21,7 +21,6 @@ namespace libcloudphxx
     )
     {
       assert(!pimpl->should_now_run_async);
-std::cerr << "\n\n STEP SYNC \n\n";
 
       // syncing in Eulerian fields (if not null)
       pimpl->sync(rhod_th,   pimpl->rhod_th);
@@ -60,7 +59,6 @@ std::cerr << "\n\n STEP SYNC \n\n";
     void particles<real_t, device>::step_async()
     {
       assert(pimpl->should_now_run_async);
-std::cerr << "\n\n STEP ASYNC \n\n";
 
       // changing droplet positions
       if (pimpl->opts.adve) 
@@ -81,11 +79,11 @@ std::cerr << "\n\n STEP ASYNC \n\n";
         pimpl->sedi();
 
         // recycling out-of-domain particles (due to precipitation)
-        if (pimpl->opts.rcyc) assert(false && "unimplemented"), throw; // TODO
+        //if (pimpl->opts.rcyc) assert(false && "unimplemented"), throw; // TODO
       }
 
       // chemistry
-      if (pimpl->opts.chem) assert(false && "unimplemented"), throw; // TODO
+      //if (pimpl->opts.chem) assert(false && "unimplemented"), throw; // TODO
 
       // coalescence (before diagnostics -> one sort less)
       if (pimpl->opts.coal) 

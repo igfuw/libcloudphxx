@@ -11,15 +11,13 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // to make inclusion of Thrust not neccesarry
-    enum { cpp, omp, cuda }; 
+    // to make inclusion of Thrust not neccesarry here
+    enum { cpp, omp, cuda };  // TODO: backend_t?
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
-    struct particles_proto // TODO: rename to any?
+    struct particles_proto 
     {
-      // dataZero + strides
-
       // 3D version
       virtual void init(
         const arrinfo_t<real_t> rhod_th,
@@ -53,9 +51,6 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> rhod
       ) { this->init(rhod_th, rhod_th, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
-
-
-
 
       // 3D variable density version
       virtual void step_sync(
@@ -109,20 +104,14 @@ namespace libcloudphxx
     };  
 
     // prototype of what's implemented in the .tpp file
-    template <typename real_t, int thrust_device_system>
-    class particles : public particles_proto<real_t>
+//<listing>
+    template <typename real_t, int backend>
+    struct particles : particles_proto<real_t>
     {
-      typedef particles_proto<real_t> parent_t;
+      // constructor
+      particles(const opts_t<real_t> &);
 
-      // pimpl stuff
-      struct impl;
-      std::auto_ptr<impl> pimpl;
-  
-      // the public API
-      public:  
-      particles(const opts_t<real_t> &); // ctor
-
-      // init separated from the ctor as not all data might be available
+      // initialisation 
       void init(
         const arrinfo_t<real_t> rhod_th,
         const arrinfo_t<real_t> rhod_rv,
@@ -132,6 +121,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_z
       );
 
+      // time-stepping methods
       void step_sync(
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
@@ -140,22 +130,27 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> rhod 
       );
-
       void step_async();
 
+      // diagnostic methods
       void diag_sd_conc();
-      void diag_dry_rng(const real_t&, const real_t&);
-      void diag_wet_rng(const real_t&, const real_t&);
-      void diag_dry_mom(const int&);
-      void diag_wet_mom(const int&);
+      void diag_dry_rng(
+        const real_t &min, const real_t &max
+      );
+      void diag_wet_rng(
+        const real_t &min, const real_t &max
+      );
+      void diag_dry_mom(const int &num);
+      void diag_wet_mom(const int &num);
       real_t *outbuf();
-    };
 
-    // to be explicitely instantiated
-    template <typename real_t>
-    struct factory
-    {
-      static particles_proto<real_t> *make(const int backend, const opts_t<real_t> &);
+      // pimpl stuff ...
+//</listing>
+      struct impl;
+      std::auto_ptr<impl> pimpl;
+
+      // helper typedef
+      typedef particles_proto<real_t> parent_t;
     };
   };
 };

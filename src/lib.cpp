@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <libcloudph++/lgrngn/particles.hpp>
+#include <libcloudph++/lgrngn/factory.hpp>
 
 namespace libcloudphxx
 {

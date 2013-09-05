@@ -128,12 +128,6 @@ namespace libcloudphxx
         sorted(false), 
         u01(tmp_device_real_part)
       {
-std::cerr << " opts.adve = " << opts.adve << std::endl;
-std::cerr << " opts.sedi = " << opts.sedi << std::endl;
-std::cerr << " opts.cond = " << opts.cond << std::endl;
-std::cerr << " opts.coal = " << opts.coal << std::endl;
-std::cerr << " opts.chem = " << opts.chem << std::endl;
-std::cerr << " opts.rcyc = " << opts.rcyc << std::endl;
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
 

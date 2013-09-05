@@ -25,7 +25,7 @@ namespace libcloudphxx
       cont_t &dot_rhod_rr_cont,
       const cont_t &rhod_cont,   
       const cont_t &rhod_rr_cont,
-      const real_t &dz
+      const real_t &dz // TODO: move to opts
     )   
 //</listing>
     {

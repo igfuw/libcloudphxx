@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
 //<listing>
     template<typename real_t>
-    struct opts_t
+    struct opts_t // uses C++11
     {
       bool 
         acti = true, 
@@ -23,16 +23,14 @@ namespace libcloudphxx
         sedi = true;
       
       real_t 
-        dt = 0;
+        dt = 0; // TODO: this 0 looks bad...
 
-      //assumed aerosol size distribution (for activation)
-      quantity<si::length, real_t> mean_rd;
-      quantity<si::dimensionless, real_t> sdev_rd;
-      quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> N_stp;
-
-      //assumed aerosol chemical composition (also for activation)
-      quantity<si::dimensionless, real_t> chem_b;
-
+      // aerosol 
+      real_t
+        mean_rd, // [m]
+        sdev_rd, // [1]
+        N_stp,   // [m-3] @STP
+        chem_b;  // [1]
     };
 //</listing>
   }
