@@ -15,6 +15,7 @@ namespace libcloudphxx
     template<typename real_t>
     struct opts_t { // uses C++11
       bool 
+        cond = true, 
         cevp = true, 
         revp = true, 
         conv = true, 

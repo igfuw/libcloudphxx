@@ -31,9 +31,9 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_c
       ) {
         return A_auto<real_t>() * si::kilograms / si::cubic_metres / si::seconds
-               * pow(rhod_rc * si::cubic_metres / si::kilograms, 2.47) 
-               * pow(N_c * si::cubic_metres, -1.79) 
-               * pow(rhod * si::cubic_metres / si::kilograms, -1.47);
+               * std::pow(rhod_rc * si::cubic_metres / si::kilograms, real_t(2.47)) 
+               * std::pow(N_c * si::cubic_metres, real_t(-1.79))
+               * std::pow(rhod * si::cubic_metres / si::kilograms, real_t(-1.47));
       }
 
     };

@@ -68,9 +68,9 @@ namespace libcloudphxx
       // if something is too small e-179 it becomes negative
       // so instead of rhod_nl == 0 we have rhod_nl < eps
       // also -1e-30 + 1e-30 is not equal to zero
-      quantity<si::dimensionless, real_t>                                         eps_d = 1e-20;
-      quantity<si::mass_density, real_t>                                          eps_r = 1e-20 * si::kilograms / si::cubic_metres;
-      quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> eps_n = 1e-20 / si::cubic_metres;
+      quantity<si::dimensionless, real_t>                                         eps_d = real_t(1e-20);
+      quantity<si::mass_density, real_t>                                          eps_r = real_t(1e-20) * si::kilograms / si::cubic_metres;
+      quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> eps_n = real_t(1e-20) / si::cubic_metres;
 
                       //TODO: 
                       //unfortunately can't zip through more than 10 arguments 

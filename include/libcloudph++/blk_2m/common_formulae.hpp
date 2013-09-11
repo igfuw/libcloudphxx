@@ -22,8 +22,8 @@ namespace libcloudphxx
       quantity<si::dimensionless, real_t> eta(
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
-        return .0005714 * 1e-6 * N * si::cubic_metres + .2714;
-      }                 //^^^ convert N to 1/cm3
+        return real_t(.0005714 * 1e-6) * N * si::cubic_metres + real_t(.2714);
+      }                        //^^^ convert N to 1/cm3
 
       //assumed mass-diametrer relationship coefficients (below A2 and A3 in Morrison 2005)
       //(mass of droplet = volume * density of water)
@@ -38,7 +38,7 @@ namespace libcloudphxx
       quantity<si::dimensionless, real_t> miu_c(
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
-        return 1 / pow<2>(eta(N)) - 1;
+        return real_t(1) / pow<2>(eta(N)) - real_t(1);
       }
       //slope
       template<typename real_t>
@@ -47,7 +47,7 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rc
       ) {
         return pow(
-                   c_md<real_t>() * N * tgamma(miu_c(N) + d_md<real_t>() + 1) / (rhod_rc * tgamma(miu_c(N) + 1)) * si::cubic_metres, 
+                   c_md<real_t>() * N * std::tgamma(miu_c(N) + d_md<real_t>() + real_t(1)) / (rhod_rc * std::tgamma(miu_c(N) + real_t(1))) * si::cubic_metres, 
                    real_t(1) / d_md<real_t>()
                   ) / si::metres;
       }
@@ -57,7 +57,7 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rc
       ) {
-        return N * pow(lambda_c(N, rhod_rc) * si::metres, miu_c(N) + 1) / tgamma(miu_c(N) + 1) / si::metres;
+        return N * pow(lambda_c(N, rhod_rc) * si::metres, miu_c(N) + real_t(1)) / std::tgamma(miu_c(N) + real_t(1)) / si::metres;
       }
 
       //for rain drops Marshal-Palmer (exponential) size distribution is assumed
@@ -69,7 +69,7 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rr
       ) {
         return pow(
-                   c_md<real_t>() * N * tgamma(d_md<real_t>() +1) / rhod_rr * si::cubic_metres, 
+                   c_md<real_t>() * N * std::tgamma(d_md<real_t>() + real_t(1)) / rhod_rr * si::cubic_metres, 
                    real_t(1) / d_md<real_t>()
                   ) / si::metres;
       }
@@ -89,7 +89,7 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
         if (rhod_rc > 0 * si::kilograms / si::cubic_metres && N > 0 / si::cubic_metres) 
-          {return (miu_c(N) + 1) / lambda_c(N, rhod_rc) / real_t(2);}
+          {return (miu_c(N) + real_t(1)) / lambda_c(N, rhod_rc) / real_t(2);}
         else {return 0 * si::metres;}
       } 
 

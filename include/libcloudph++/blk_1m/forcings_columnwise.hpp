@@ -51,7 +51,7 @@ namespace libcloudphxx
         if (dot_rhod_rr != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
-	  flux_t flux_out = -.5 * ( // averaging + axis orientation
+	  flux_t flux_out = -real_t(.5) * ( // averaging + axis orientation
 	    formulae::v_term(
               *rhod_rr_below     * si::kilograms / si::cubic_metres, 
               *rhod_below        * si::kilograms / si::cubic_metres, 

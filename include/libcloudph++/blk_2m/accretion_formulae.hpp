@@ -28,8 +28,8 @@ namespace libcloudphxx
         quantity<si::mass_density, real_t> rhod_rr
       ) {
         return A_acc<real_t>() * si::kilograms / si::cubic_metres / si::seconds
-               * pow(rhod_rc * si::cubic_metres / si::kilograms * rhod_rr * si::cubic_metres / si::kilograms, 1.15) 
-               * pow(rhod * si::cubic_metres / si::kilograms, -1.3);
+               * std::pow(rhod_rc * si::cubic_metres / si::kilograms * rhod_rr * si::cubic_metres / si::kilograms, real_t(1.15)) 
+               * std::pow(rhod * si::cubic_metres / si::kilograms, real_t(-1.3));
       }
 
     };
