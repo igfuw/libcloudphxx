@@ -16,7 +16,7 @@ endif()
 
 # TODO: detecd CUDA arch (native functionality would be best?)
 if (CUDA_FOUND)
-  set(CUDA_NVCC_FLAGS "-arch=sm_20 -I${CMAKE_SOURCE_DIR}/include ${CUDA_NVCC_FLAGS}")
+  set(CUDA_NVCC_FLAGS "-gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -I${CMAKE_SOURCE_DIR}/include ${CUDA_NVCC_FLAGS}")
   if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG")
   endif()
