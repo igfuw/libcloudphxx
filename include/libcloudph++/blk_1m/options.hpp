@@ -20,7 +20,7 @@ namespace libcloudphxx
         conv = true, 
         clct = true, 
         sedi = true;
-      real_t dt = 0; // TODO: this zero looks bad...
+// TODO: autoconv threshold
     };
 //</listing>
   }; 

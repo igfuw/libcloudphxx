@@ -82,12 +82,11 @@ namespace libcloudphxx
       cont_t &rhod_th_cont, 
       cont_t &rhod_rv_cont,
       cont_t &rhod_rc_cont,
-      cont_t &rhod_rr_cont
+      cont_t &rhod_rr_cont,
+      const real_t &dt
     )
 //</listing>
     {
-      assert(opt.dt != 0);
-
       namespace odeint = boost::numeric::odeint;
 
       // odeint::euler< // TODO: opcja?
@@ -124,7 +123,7 @@ namespace libcloudphxx
 	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
 	if (F.rs > F.r && rhod_rr > 0 && opt.revp)
 	  drho_rr_max = 
-            (opt.dt * si::seconds) * formulae::evaporation_rate(F.r, F.rs, rhod_rr * si::kilograms / si::cubic_metres, F.p)
+            (dt * si::seconds) * formulae::evaporation_rate(F.r, F.rs, rhod_rr * si::kilograms / si::cubic_metres, F.p)
             / si::kilograms * si::cubic_metres; // to make it dimensionless
 	bool incloud;
 
