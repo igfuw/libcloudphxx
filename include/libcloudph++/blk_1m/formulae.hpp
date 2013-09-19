@@ -39,7 +39,7 @@ namespace libcloudphxx
 	const quantity<si::dimensionless, real_t> &rc,
 	const quantity<si::dimensionless, real_t> &rr
       ) {
-	return k_2<real_t>() * rc * pow(rr, .875);
+	return k_2<real_t>() * rc * std::pow(rr, real_t(.875));
       }
 
       // Kessler evaporation rate
@@ -52,10 +52,22 @@ namespace libcloudphxx
 	quantity<si::pressure, real_t> p
       )
       {
-	return (1 - rv / rvs) 
-	  * (1.6 + 124.9 * pow(1e-3 * (rhod_rr * si::cubic_metres / si::kilograms), .2046)) // ventilation factor TODO- move to ventil.hpp
-	  * pow(1e-3 * (rhod_rr * si::cubic_metres / si::kilograms), .525) 
-	  / (5.4e2 + 2.55e5 * (1. / (p / si::pascals) / rvs)) 
+	return 
+          (1 - rv / rvs) 
+	  * (
+            real_t(1.6) 
+            + real_t(124.9) * std::pow( 
+              real_t(1e-3) * rhod_rr * si::cubic_metres / si::kilograms,
+              real_t(.2046)
+            ) 
+          ) // ventilation factor TODO- move to ventil.hpp
+	  * std::pow(
+            real_t(1e-3) * rhod_rr * si::cubic_metres / si::kilograms, 
+            real_t(.525)
+          ) 
+	  / (real_t(5.4e2) 
+          + real_t(2.55e5) 
+          * (real_t(1) / (p / si::pascals) / rvs)) 
 	  / si::seconds * si::kilograms / si::cubic_metres;
       }
 
@@ -72,7 +84,14 @@ namespace libcloudphxx
 	const quantity<si::mass_density, real_t> &rho_d,
 	const quantity<si::mass_density, real_t> &rho_d0
       ) {
-	return vterm_A<real_t>() * real_t(pow(rho_r * vterm_B<real_t>(), .1346) * sqrt(rho_d0 / rho_d));
+	return 
+          vterm_A<real_t>() 
+          * real_t(std::pow(
+            (rho_r * vterm_B<real_t>()), 
+            real_t(.1346)
+          ) 
+          * sqrt(rho_d0 / rho_d)
+        );
       }
     };
   };

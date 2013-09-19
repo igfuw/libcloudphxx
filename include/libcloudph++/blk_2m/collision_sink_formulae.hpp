@@ -23,7 +23,7 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> drhod_rr,
         quantity<si::length, real_t> r
       ) {
-        return drhod_rr / (4/3 * pi<real_t>() * pow<3>(r) * common::moist_air::rho_w<real_t>());
+        return drhod_rr / (real_t(4./3.) * pi<real_t>() * (r*r*r) * common::moist_air::rho_w<real_t>());
       }
 
     };

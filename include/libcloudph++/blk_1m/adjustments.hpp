@@ -87,6 +87,8 @@ namespace libcloudphxx
     )
 //</listing>
     {
+      if (!opt.cond) return; // ignoring values of opt.cevp and opt.revp
+
       namespace odeint = boost::numeric::odeint;
 
       // odeint::euler< // TODO: opcja?

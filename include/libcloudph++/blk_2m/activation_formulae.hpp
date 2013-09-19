@@ -26,7 +26,7 @@ namespace libcloudphxx
 
       //in activation term all activated droples are assumed to have the radius of 1 um
       libcloudphxx_const_derived(si::mass, ccnmass, 
-        real_t(4./3 * pi<real_t>()) * pow<3>(1e-6 * si::metres) * common::moist_air::rho_w<real_t>());
+        real_t(4./3) * pi<real_t>() * std::pow(real_t(1e-6), real_t(3)) * si::cubic_metres * common::moist_air::rho_w<real_t>());
 
       //helper for activation formulae (see eq. 11 in Morrison and Grabowski 2007)
       template <typename real_t>
@@ -88,7 +88,7 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> chem_b,
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b)); 
+        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * std::erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b)); 
       }
 
       typedef divide_typeof_helper<one_over_volume, si::time>::type one_over_volume_time;

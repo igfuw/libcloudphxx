@@ -58,7 +58,7 @@ namespace libcloudphxx
         if (dot_rhod_rr != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
-          quantity<si::velocity, real_t> tmp_vel  = -.5 * ( // averaging + axis orientation
+          quantity<si::velocity, real_t> tmp_vel  = -real_t(.5) * ( // averaging + axis orientation
 	    formulae::v_term(
               *rhod_rr_below * si::kilograms / si::cubic_metres, 
               *rhod_nr_below / si::cubic_metres 

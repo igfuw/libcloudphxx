@@ -61,7 +61,7 @@ namespace libcloudphxx
         ) return 0 * si::metres_per_second;
 
 	return alpha_fall(rhod_rr, rhod_nr)             //.... mass of drop in grams
-	       * pow(rhod_rr/rhod_nr/si::kilograms * 1000, beta_fall(rhod_rr, rhod_nr)) 
+	       * std::pow(rhod_rr/rhod_nr/si::kilograms * 1000, beta_fall(rhod_rr, rhod_nr)) 
 				    //^^^^^^^^^^^^ to make it dimensionless       
 	       * real_t(1e-2) * si::metres/si::seconds; //velocity in metres/seconds
       }

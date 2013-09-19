@@ -21,7 +21,6 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_z  // might be NULL
     )
     {
-std::cerr << "\n\n INIT \n\n";
       // sanity checks
       assert(!rhod_th.is_null());
       assert(!rhod_rv.is_null());
