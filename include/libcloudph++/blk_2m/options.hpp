@@ -13,17 +13,15 @@ namespace libcloudphxx
   {
 //<listing>
     template<typename real_t>
-    struct opts_t // uses C++11
+    struct opts_t    // uses C++11
     {
       bool 
-        acti = true, 
-        cond = true, 
-        acnv = true, 
-        accr = true, 
-        sedi = true;
+        acti = true, // activation
+        cond = true, // condensation
+        acnv = true, // autoconversion
+        accr = true, // accretion
+        sedi = true; // sedimentation
       
-//      real_t dt = 0; // TODO: this 0 looks bad...
-
       // aerosol 
       real_t
         mean_rd, // [m]

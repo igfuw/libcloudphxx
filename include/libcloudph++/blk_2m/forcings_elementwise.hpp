@@ -62,9 +62,6 @@ namespace libcloudphxx
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
-      //timestep 
-      //quantity<si::time, real_t > dt = dt_ * si::seconds;
-
       // if something is too small e-179 it becomes negative
       // so instead of rhod_nl == 0 we have rhod_nl < eps
       // also -1e-30 + 1e-30 is not equal to zero
@@ -103,7 +100,7 @@ namespace libcloudphxx
           if(rhod_rv/rhod > common::const_cp::r_vs<real_t>(T, p))
           {
             quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 
-              activation_rate<real_t>(p, T, rhod, rhod_rv, rhod_nc, opt.mean_rd * si::metres, opt.sdev_rd, opt.N_stp / si::cubic_metres, dt, opt.chem_b); 
+              activation_rate<real_t>(p, T, rhod, rhod_rv, rhod_nc, opt.mean_rd * si::metres, opt.sdev_rd, opt.N_stp / si::cubic_metres, dt * si::seconds, opt.chem_b); 
 
 	    dot_rhod_nc += tmp * si::cubic_metres * si::seconds;  
 
@@ -130,10 +127,10 @@ namespace libcloudphxx
 
             assert(r_drop_c(rhod_rc, rhod_nc) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
 
-            if (rhod_rc + ((dot_rhod_rc * si::kilograms / si::cubic_metres / si::seconds + tmp) * dt)  < 0 * si::kilograms / si::cubic_metres)             
+            if (rhod_rc + ((dot_rhod_rc * si::kilograms / si::cubic_metres / si::seconds + tmp) * (dt * si::seconds))  < 0 * si::kilograms / si::cubic_metres)             
             {   //so that we don't evaporate more cloud water than there is
-              tmp      =- (rhod_rc + (dt * dot_rhod_rc * si::kilograms / si::cubic_metres / si::seconds)) / dt;  //evaporate all rhod_rc
-              dot_rhod_nc =- rhod_nc / dt * si::cubic_metres * si::seconds; //and all rhod_nc
+              tmp      =- (rhod_rc + (dt * dot_rhod_rc * si::kilograms / si::cubic_metres)) / (dt * si::seconds);  //evaporate all rhod_rc
+              dot_rhod_nc =- rhod_nc / dt * si::cubic_metres; //and all rhod_nc
             }
 
             dot_rhod_rc += tmp / si::kilograms * si::cubic_metres * si::seconds;
@@ -172,7 +169,7 @@ namespace libcloudphxx
               quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = autoconv_rate(rhod, rhod_rc, rhod_nc);
 
               //so that autoconversion doesn't take more rhod_rc than there is
-              tmp = std::min(tmp, (rhod_rc + dt * dot_rhod_rc * si::kilograms / si::cubic_metres / si::seconds) / dt);
+              tmp = std::min(tmp, (rhod_rc + dt * dot_rhod_rc * si::kilograms / si::cubic_metres) / (dt * si::seconds));
               assert(tmp * si::seconds * si::cubic_metres / si::kilograms >= 0 && "autoconv rate has to be >= 0");
 
               dot_rhod_rc -= tmp / si::kilograms * si::cubic_metres * si::seconds;
@@ -196,7 +193,7 @@ namespace libcloudphxx
               {                   
                 quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = accretion_rate(rhod, rhod_rc, rhod_rr);
                 //so that accretion doesn't take more rhod_rc than there is
-                tmp = std::min(tmp, (rhod_rc + dt * dot_rhod_rc * si::kilograms / si::cubic_metres / si::seconds) / dt);
+                tmp = std::min(tmp, (rhod_rc + dt * dot_rhod_rc * si::kilograms / si::cubic_metres) / (dt * si::seconds));
                 assert(tmp * si::seconds * si::cubic_metres / si::kilograms >= 0 && "accretion rate has to be >= 0");
           
                 dot_rhod_rr += tmp / si::kilograms * si::cubic_metres * si::seconds;
@@ -223,7 +220,7 @@ namespace libcloudphxx
               assert(tmp >= 0 / si::cubic_metres / si::seconds && "tmp");
  
               //so that collisions don't take more rhod_nc than there is
-              tmp = std::min(tmp, (rhod_nc + dt * dot_rhod_nc / si::cubic_metres / si::seconds) / dt);
+              tmp = std::min(tmp, (rhod_nc + dt * dot_rhod_nc / si::cubic_metres) / (dt * si::seconds));
  
               dot_rhod_nc -= tmp * si::cubic_metres * si::seconds;
             }
@@ -271,15 +268,15 @@ namespace libcloudphxx
 
             tmp=std::min(tmp , real_t(0) * si::kilograms / si::cubic_metres / si::seconds);
  
-            if(rhod_rr + (dot_rhod_rr * si::kilograms / si::cubic_metres / si::seconds + tmp) * dt < 0 * si::kilograms / si::cubic_metres) 
+            if(rhod_rr + (dot_rhod_rr * si::kilograms / si::cubic_metres / si::seconds + tmp) * (dt * si::seconds) < 0 * si::kilograms / si::cubic_metres) 
             //so that we don't evaporate more than we have
             {
-              tmp = - (rhod_rr + dt * dot_rhod_rr * si::kilograms / si::cubic_metres / si::seconds) / dt; //evaporate all rhod_rr
+              tmp = - (rhod_rr + dt * dot_rhod_rr * si::kilograms / si::cubic_metres) / (dt * si::seconds); //evaporate all rhod_rr
 
               dot_rhod_rv -= tmp / si::kilograms * si::cubic_metres * si::seconds;
               dot_rhod_rr += tmp / si::kilograms * si::cubic_metres * si::seconds;
 
-              dot_rhod_nr  = -rhod_nr / dt * si::cubic_metres * si::seconds; //and all rhod_nr
+              dot_rhod_nr  = -rhod_nr / dt * si::cubic_metres; //and all rhod_nr
        
               dot_rhod_th += -tmp  * d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod
                           / si::kilograms / si::kelvins * si::cubic_metres * si::seconds; 
@@ -296,7 +293,7 @@ namespace libcloudphxx
               {
                 quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> dot_rhod_nr_tmp = tmp * rhod_nr / rhod_rr;
 
-                if(rhod_nr + (dot_rhod_nr / si::cubic_metres / si::seconds + dot_rhod_nr_tmp) * dt > 0 / si::cubic_metres)
+                if(rhod_nr + (dot_rhod_nr / si::cubic_metres / si::seconds + dot_rhod_nr_tmp) * (dt * si::seconds) > 0 / si::cubic_metres)
                 {
                   dot_rhod_nr += dot_rhod_nr_tmp * si::cubic_metres * si::seconds;
                 }
