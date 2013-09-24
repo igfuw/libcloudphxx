@@ -22,8 +22,7 @@ namespace libcloudphxx
         accr = true, 
         sedi = true;
       
-      real_t 
-        dt = 0; // TODO: this 0 looks bad...
+//      real_t dt = 0; // TODO: this 0 looks bad...
 
       // aerosol 
       real_t

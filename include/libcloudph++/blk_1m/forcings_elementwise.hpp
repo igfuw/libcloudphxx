@@ -41,13 +41,13 @@ namespace libcloudphxx
         if (opt.conv)
         {
 	  tmp += rhod * ( 
-	    formulae::autoconversion_rate(rhod_rc / rhod * si::dimensionless()) 
+	    formulae::autoconversion_rate(rhod_rc / rhod * si::dimensionless(), opt.r_c0 * si::dimensionless()) 
 	    * si::seconds // to make it dimensionless
 	  );
         }
 
         // collection
-        if (opt.clct)
+        if (opt.accr)
         {
 	  tmp += rhod * (
 	    formulae::collection_rate(rhod_rc/rhod * si::dimensionless(), rhod_rr/rhod * si::dimensionless()) * si::seconds

@@ -36,12 +36,12 @@ namespace libcloudphxx
       const cont_t &rhod_rc_cont,
       const cont_t &rhod_nc_cont,
       const cont_t &rhod_rr_cont,
-      const cont_t &rhod_nr_cont
+      const cont_t &rhod_nr_cont,
+      const real_t &dt
     )   
 //</listing>
     {  
       // sanity checks
-      assert(opt.dt != 0);
       assert(min(rhod_rv_cont) > 0);
       assert(min(rhod_th_cont) > 0);
       assert(min(rhod_rc_cont) >= 0);
@@ -63,7 +63,7 @@ namespace libcloudphxx
       using namespace common::theta_dry;
 
       //timestep 
-      quantity<si::time, real_t > dt = opt.dt * si::seconds;
+      //quantity<si::time, real_t > dt = dt_ * si::seconds;
 
       // if something is too small e-179 it becomes negative
       // so instead of rhod_nl == 0 we have rhod_nl < eps
@@ -142,9 +142,9 @@ namespace libcloudphxx
             dot_rhod_th -= tmp  * d_rhodtheta_d_rv<real_t>(T, rhod_th) / rhod
                          / si::kilograms / si::kelvins * si::cubic_metres * si::seconds; 
           }
-          assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * opt.dt >= 0 && "condensation/evaporation can't make rhod_rc < 0");
-          assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * opt.dt >= 0 && "condensation/evaporation can't make rhod_rv < 0");
-          assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * opt.dt >= 0 && "condensation/evaporation can't make rhod_th < 0");
+          assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * dt >= 0 && "condensation/evaporation can't make rhod_rc < 0");
+          assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * dt >= 0 && "condensation/evaporation can't make rhod_rv < 0");
+          assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * dt >= 0 && "condensation/evaporation can't make rhod_th < 0");
         }
       }
 
@@ -161,7 +161,7 @@ namespace libcloudphxx
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t>  &rhod_nc = boost::get<6>(tup) / si::cubic_metres;
         const quantity<si::mass_density, real_t> &rhod_rr = boost::get<7>(tup) * si::kilograms / si::cubic_metres;
  
-        if (rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * opt.dt > 0)
+        if (rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * dt > 0)
         {
           //autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if(opt.acnv)
@@ -184,10 +184,10 @@ namespace libcloudphxx
                             * si::cubic_metres * si::seconds;
             }
 
-            assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * opt.dt >= 0 && "autoconversion can't make rhod_rc negative");
+            assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * dt >= 0 && "autoconversion can't make rhod_rc negative");
           }
 
-          if (rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * opt.dt > 0)
+          if (rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * dt > 0)
           {
             //accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
             if(opt.accr)
@@ -205,7 +205,7 @@ namespace libcloudphxx
                 //accretion does not change N for drizzle 
               }
 
-              assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * opt.dt >= 0 && "accretion can't make rhod_rc negative");
+              assert(rhod_rc * si::cubic_metres / si::kilograms + dot_rhod_rc * dt >= 0 && "accretion can't make rhod_rc negative");
             }
           }
 
@@ -228,7 +228,7 @@ namespace libcloudphxx
               dot_rhod_nc -= tmp * si::cubic_metres * si::seconds;
             }
           
-          assert(rhod_nc * si::cubic_metres + dot_rhod_nc * opt.dt >= 0 && "collisions can't make rhod_nc negative");
+          assert(rhod_nc * si::cubic_metres + dot_rhod_nc * dt >= 0 && "collisions can't make rhod_nc negative");
           } 
         }
       }
@@ -258,10 +258,10 @@ namespace libcloudphxx
           if(rhod_rr > eps_r && rhod_nr > eps_n)
           { //cond/evap for rhod_rr
 
-            assert(rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * opt.dt >= 0 && "before rain cond-evap");
-            assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * opt.dt >= 0 && "before rain cond-evap");
-            assert(rhod_nr * si::cubic_metres + dot_rhod_nr * opt.dt >= 0 && "before rain cond-evap");
-            assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * opt.dt >= 0 && "before rain cond-evap");
+            assert(rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * dt >= 0 && "before rain cond-evap");
+            assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * dt >= 0 && "before rain cond-evap");
+            assert(rhod_nr * si::cubic_metres + dot_rhod_nr * dt >= 0 && "before rain cond-evap");
+            assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * dt >= 0 && "before rain cond-evap");
 
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(T, p, rhod_rv/rhod, tau_relax_r(T, rhod, rhod_rr, rhod_nr)) * rhod;
@@ -306,13 +306,13 @@ namespace libcloudphxx
           }
 
 //std::cerr << "after evap rhod_rr = " << rhod_rr << std::endl;
-//std::cerr << "dot_rhod_rr * opt.dt = " << dot_rhod_rr * opt.dt <<std::endl;
-//std::cerr << "rhod_rr + dot_rhod_rr * opt.dt " << rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * opt.dt << std::endl; 
+//std::cerr << "dot_rhod_rr * dt = " << dot_rhod_rr * dt <<std::endl;
+//std::cerr << "rhod_rr + dot_rhod_rr * dt " << rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * dt << std::endl; 
 
-          assert(rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_rr < 0");
-          assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_rv < 0");
-          assert(rhod_nr * si::cubic_metres + dot_rhod_nr * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_nr < 0");
-          assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * opt.dt >= 0 && "rain condensation/evaporation can't make rhod_th < 0");
+          assert(rhod_rr * si::cubic_metres / si::kilograms + dot_rhod_rr * dt >= 0 && "rain condensation/evaporation can't make rhod_rr < 0");
+          assert(rhod_rv * si::cubic_metres / si::kilograms + dot_rhod_rv * dt >= 0 && "rain condensation/evaporation can't make rhod_rv < 0");
+          assert(rhod_nr * si::cubic_metres + dot_rhod_nr * dt >= 0 && "rain condensation/evaporation can't make rhod_nr < 0");
+          assert(rhod_th * si::cubic_metres / si::kilograms / si::kelvin + dot_rhod_th * dt >= 0 && "rain condensation/evaporation can't make rhod_th < 0");
         }
       }
     }
