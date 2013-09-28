@@ -101,10 +101,10 @@ namespace libcloudphxx
       typedef divide_typeof_helper<si::dimensionless, si::temperature>::type one_over_temperature;
       template<typename real_t> 
       quantity<one_over_temperature, real_t> drv_s_dT(
-        const quantity<si::temperature, real_t> T,
-        const quantity<si::pressure, real_t> p
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::dimensionless, real_t> &r_vs
       ) {
-        return l_v(T) * r_vs(T, p) / R_v<real_t>() / (T*T);
+        return l_v(T) * r_vs / R_v<real_t>() / (T*T);
       }
 
       //condensation/evaporation rate for cloud droplets
@@ -115,7 +115,8 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> r_v,
         const quantity<si::time, real_t> tau_relax
       ) {
-        return (r_v-r_vs(T,p)) / tau_relax / (1 + drv_s_dT(T, p) * l_v(T) / c_p(r_v));
+        const quantity<si::dimensionless, real_t> _r_vs = r_vs(T,p);
+        return (r_v - _r_vs) / tau_relax / (1 + drv_s_dT(T, _r_vs) * l_v(T) / c_p(r_v));
       }                                                                     //TODO check ^ is it c_p or c_p(r)
 
     };

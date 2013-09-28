@@ -48,7 +48,7 @@ namespace libcloudphxx
       opts_t() : 
         adve(1), sedi(1), cond(1), coal(1),
         nx(0), ny(0), nz(0), 
-        sstp_cond(1), sstp_coal(1),
+        sstp_cond(10), sstp_coal(10),
         dx(1), dy(1), dz(1), 
         sd_conc_mean(64),
         RH_max(1.05) 
