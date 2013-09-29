@@ -108,21 +108,24 @@ namespace libcloudphxx
 
           if(rho_v / rho_d > common::const_cp::r_vs<real_t>(T, p))
           {
-            quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 0;
+            quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_ccn = 0;
 
             // looping over lognormal modes
             for (const auto &mode : opts.dry_distro)
             { 
-              tmp += activation_rate<real_t>(
-                p, T, rho_d, rho_v, n_c, 
+              N_ccn += N_c_p<real_t>(
+                p, T, rho_d, rho_v, 
                 mode.mean_rd * si::metres, 
                 mode.sdev_rd, 
                 mode.N_stp / si::cubic_metres, 
-                dt * si::seconds, 
                 mode.chem_b, 
                 opts.RH_max
               ); 
             }
+
+            // 
+            quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 
+              activation_rate<real_t>(N_ccn, n_c, dt * si::seconds);
 
 	    dot_n_c += tmp * si::cubic_metres * si::seconds;  
             dot_rho_v -= tmp * ccnmass<real_t>() / si::kilograms * si::cubic_metres * si::seconds;

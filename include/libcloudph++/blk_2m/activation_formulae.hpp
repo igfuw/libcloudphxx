@@ -99,22 +99,13 @@ namespace libcloudphxx
       //activation formulae (see eq. 13 in Morrison and Grabowski 2007)
       template <typename real_t>
       quantity<one_over_volume_time, real_t> activation_rate(
-        quantity<si::pressure,      real_t> p,
-        quantity<si::temperature,   real_t> T,
-        quantity<si::mass_density,  real_t> rhod,
-        quantity<si::mass_density,  real_t> rhod_rv,
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_ccn,
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> rhod_nc,
-        quantity<si::length,        real_t> mean_rd,
-        quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
-        const quantity<si::time, real_t> dt,
-        quantity<si::dimensionless, real_t> chem_b,
-        quantity<si::dimensionless, real_t> RH_max,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+        const quantity<si::time, real_t> dt
       ) {
         return std::max(
           real_t(0) / si::cubic_metres / si::seconds,
-          (N_c_p<real_t>(p, T, rhod, rhod_rv, mean_rd, sdev_rd, N_stp, chem_b, RH_max) - rhod_nc) / dt
+          (N_ccn - rhod_nc) / dt
         );
       }
  
