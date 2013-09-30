@@ -51,7 +51,7 @@ namespace libcloudphxx
         sstp_cond(10), sstp_coal(10),
         dx(1), dy(1), dz(1), 
         sd_conc_mean(64),
-        RH_max(1.05) 
+        RH_max(1.02) 
       {}
     };
   }

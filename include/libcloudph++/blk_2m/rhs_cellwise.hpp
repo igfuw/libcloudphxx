@@ -50,9 +50,9 @@ namespace libcloudphxx
       assert(min(n_r_cont) >= 0);
 
       assert(min(dot_n_c_cont) == 0);
-      assert(min(dot_n_r_cont) == 0);
+      //assert(min(dot_n_r_cont) == 0);
       assert(min(dot_rho_c_cont) == 0);
-      assert(min(dot_rho_r_cont) == 0);
+      //assert(min(dot_rho_r_cont) == 0);
       assert(max(dot_n_c_cont) == 0);
       assert(max(dot_n_r_cont) == 0);
       assert(max(dot_rho_c_cont) == 0);
@@ -118,7 +118,7 @@ namespace libcloudphxx
                 mode.mean_rd * si::metres, 
                 mode.sdev_rd, 
                 mode.N_stp / si::cubic_metres, 
-                mode.chem_b, 
+                mode.chem_b,
                 opts.RH_max
               ); 
             }

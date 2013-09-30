@@ -73,7 +73,8 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
         return log(
-          s_0(T, mean_rd, chem_b) / std::min(real_t(s(p, T, rhod, rhod_rv)), real_t(RH_max - 1))
+          s_0(T, mean_rd, chem_b) / 
+          std::min(real_t(s(p, T, rhod, rhod_rv)), real_t(RH_max - 1))
         ) / sqrt(2) / log(sdev_rd_s(sdev_rd));
       }
 
