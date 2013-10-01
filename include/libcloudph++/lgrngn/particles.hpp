@@ -143,27 +143,27 @@ namespace libcloudphxx
     // prototype of what's implemented in the .tpp file
 //<listing>
     template <typename real_t, int backend>
-    struct particles_t : particles_proto_t<real_t>
+    struct particles_t: particles_proto_t<real_t>
     {
       // initialisation 
       void init(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y, 
-        const arrinfo_t<real_t> courant_z
+        const arrinfo_t<real_t> rho_e,
+        const arrinfo_t<real_t> rho_v,
+        const arrinfo_t<real_t> rho_d,
+        const arrinfo_t<real_t> courant_1,
+        const arrinfo_t<real_t> courant_2, 
+        const arrinfo_t<real_t> courant_3
       );
 
       // time-stepping methods
       void step_sync(
         const opts_t<real_t> &,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z,
-        const arrinfo_t<real_t> rhod 
+        arrinfo_t<real_t> rho_e,
+        arrinfo_t<real_t> rho_v,
+        const arrinfo_t<real_t> courant_1,
+        const arrinfo_t<real_t> courant_2,
+        const arrinfo_t<real_t> courant_3,
+        const arrinfo_t<real_t> rho_d 
       );
       void step_async(
         const opts_t<real_t> &
