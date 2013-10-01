@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // init_xyz
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
       // TODO: wouldn't it be simpler to call a helper method 3 times?

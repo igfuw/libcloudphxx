@@ -48,7 +48,7 @@ namespace libcloudphxx
       };
  
       template <typename real_t>
-      class u01<real_t, cuda>
+      class u01<real_t, CUDA>
       {
 #if defined(__NVCC__)
 	// CUDA parallel version using curand

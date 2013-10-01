@@ -57,7 +57,7 @@ namespace libcloudphxx
     };
 
     // init
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry(
       const real_t kappa,
       const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map

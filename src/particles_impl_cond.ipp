@@ -33,7 +33,7 @@ namespace libcloudphxx
       };  
     };
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond_dm3_helper() // TODO: move it into a common_count_mom?
     {   
       // TODO... or at least these typedefs!
@@ -232,7 +232,7 @@ namespace libcloudphxx
       };
     };
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond(
       const real_t &dt,
       const real_t &RH_max

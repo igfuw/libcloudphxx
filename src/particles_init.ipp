@@ -11,7 +11,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // init
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::init(
       const arrinfo_t<real_t> rhod_th,
       const arrinfo_t<real_t> rhod_rv,

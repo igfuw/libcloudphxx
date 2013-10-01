@@ -31,7 +31,7 @@ namespace libcloudphxx
       };
     }  
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_rng(
       const real_t &min, const real_t &max, 
       const thrust_device::vector<real_t> &radii
@@ -69,7 +69,7 @@ namespace libcloudphxx
       };
     };
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc(
       const thrust_device::vector<real_t> &radii,
       const real_t power

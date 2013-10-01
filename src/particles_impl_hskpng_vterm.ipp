@@ -34,7 +34,7 @@ namespace libcloudphxx
     };
 
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
     {   
       typedef thrust::permutation_iterator<
@@ -59,7 +59,7 @@ namespace libcloudphxx
       );
     }
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_all()
     {   
       typedef thrust::permutation_iterator<

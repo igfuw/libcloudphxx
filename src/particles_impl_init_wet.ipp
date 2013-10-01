@@ -39,7 +39,7 @@ namespace libcloudphxx
       }; 
     };
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_wet()
     {
       // memory allocation
