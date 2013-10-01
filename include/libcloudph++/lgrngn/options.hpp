@@ -17,41 +17,43 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    using common::unary_function;
 //<listing>
     template<typename real_t>
-    struct opts_t // C++03 compliant
+    struct opts_t 
     {
-      // type definitions:
+      // process toggling
+      bool adve, sedi, cond, coal; 
+
+      // initial dry sizes of aerosol
       typedef boost::ptr_unordered_map<
-        // kappa
-        real_t, 
-        // n(ln(rd)) @ STP 
-        common::unary_function<real_t> 
+        real_t,                // kappa
+        unary_function<real_t> // n(ln(rd)) @ STP 
       > dry_distros_t;
+      dry_distros_t dry_distros;
 
-      // member fields:
-      bool 
-        adve, sedi, cond, coal; // processes
-      int 
-        nx, ny, nz,             // grid
-        sstp_cond, sstp_coal;   // substeps 
+      // Eulerian component parameters
+      int nx, ny, nz;
+      real_t dx, dy, dz, dt;
+
+      // Lagrangian component parameters
       real_t 
-        dx, dy, dz, dt,         // steps
-        sd_conc_mean, // super-droplet conc.       
-        RH_max;       // condens. RH cutoff 
-      dry_distros_t 
-        dry_distros;  // initial dry aerosol 
+        sd_conc_mean, // super-droplets per cell
+        RH_max;       // RH limit for drop growth
+      int             // no. of substeps
+        sstp_cond,    //   for condensation
+        sstp_coal;    //   for coalescence
 
-      // methods ...
+      // ctor with defaults (C++03 compliant) ...
 //</listing>
       // constructor with default values
       opts_t() : 
-        adve(1), sedi(1), cond(1), coal(1),
-        nx(0), ny(0), nz(0), 
+        adve(1), sedi(1), cond(1), coal(1), // all on
+        nx(0), ny(0), nz(0), // parcel setup
+        dx(1), dy(1), dz(1), // parcel setup
         sstp_cond(10), sstp_coal(10),
-        dx(1), dy(1), dz(1), 
         sd_conc_mean(64),
-        RH_max(1.02) 
+        RH_max(44) // :) (anything greater than 1.1 would be enough
       {}
     };
   }

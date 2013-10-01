@@ -24,12 +24,12 @@ namespace libcloudphxx
         accr = true, // accretion
         sedi = true; // sedimentation
 
-      real_t RH_max; // RH limit in activation rate
+      real_t RH_max; // RH limit for activation
       
       // aerosol spectrum 
       struct lognormal_mode_t 
       { 
-	real_t
+        real_t
           mean_rd,   // [m]
           sdev_rd,   // [1]
           N_stp,     // [m-3] @STP
