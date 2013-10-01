@@ -4,7 +4,8 @@
 #include <memory>
 #include <map>
 
-#include "options.hpp"
+#include "opts.hpp"
+#include "opts_init.hpp"
 #include "arrinfo.hpp"
 
 namespace libcloudphxx
