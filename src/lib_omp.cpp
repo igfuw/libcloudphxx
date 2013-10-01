@@ -14,7 +14,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int backend>
-    void particles<real_t, backend>::impl::sanity_checks()
+    void particles_t<real_t, backend>::impl::sanity_checks()
     {   
       if (omp_get_max_threads() == 1) return;
       thrust::omp::vector<int> v(100);
@@ -25,7 +25,7 @@ namespace libcloudphxx
     }
 
     // instantiation 
-    template class particles<float, omp>;
-    template class particles<double, omp>;
+    template class particles_t<float, omp>;
+    template class particles_t<double, omp>;
   };
 };

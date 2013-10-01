@@ -69,9 +69,13 @@ namespace libcloudphxx
         quantity<si::length,        real_t> mean_rd,
         quantity<si::dimensionless, real_t> sdev_rd,
         quantity<si::dimensionless, real_t> chem_b,
+        quantity<si::dimensionless, real_t> RH_max,
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return log(s_0(T, mean_rd, chem_b) / s(p, T, rhod, rhod_rv)) / sqrt(2) / log(sdev_rd_s(sdev_rd));
+        return log(
+          s_0(T, mean_rd, chem_b) / 
+          std::min(real_t(s(p, T, rhod, rhod_rv)), real_t(RH_max - 1))
+        ) / sqrt(2) / log(sdev_rd_s(sdev_rd));
       }
 
       typedef divide_typeof_helper<si::dimensionless, si::volume>::type one_over_volume;
@@ -86,30 +90,23 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> sdev_rd,
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
         quantity<si::dimensionless, real_t> chem_b,
+        quantity<si::dimensionless, real_t> RH_max,
         quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * std::erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b)); 
+        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * std::erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b, RH_max)); 
       }
 
       typedef divide_typeof_helper<one_over_volume, si::time>::type one_over_volume_time;
       //activation formulae (see eq. 13 in Morrison and Grabowski 2007)
       template <typename real_t>
       quantity<one_over_volume_time, real_t> activation_rate(
-        quantity<si::pressure,      real_t> p,
-        quantity<si::temperature,   real_t> T,
-        quantity<si::mass_density,  real_t> rhod,
-        quantity<si::mass_density,  real_t> rhod_rv,
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_ccn,
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> rhod_nc,
-        quantity<si::length,        real_t> mean_rd,
-        quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
-        const quantity<si::time, real_t> dt,
-        quantity<si::dimensionless, real_t> chem_b,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+        const quantity<si::time, real_t> dt
       ) {
         return std::max(
           real_t(0) / si::cubic_metres / si::seconds,
-          (N_c_p<real_t>(p, T, rhod, rhod_rv, mean_rd, sdev_rd, N_stp, chem_b) - rhod_nc) / dt
+          (N_ccn - rhod_nc) / dt
         );
       }
  

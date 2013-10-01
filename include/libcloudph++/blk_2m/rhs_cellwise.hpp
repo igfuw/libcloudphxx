@@ -50,9 +50,9 @@ namespace libcloudphxx
       assert(min(n_r_cont) >= 0);
 
       assert(min(dot_n_c_cont) == 0);
-      assert(min(dot_n_r_cont) == 0);
+      //assert(min(dot_n_r_cont) == 0);
       assert(min(dot_rho_c_cont) == 0);
-      assert(min(dot_rho_r_cont) == 0);
+      //assert(min(dot_rho_r_cont) == 0);
       assert(max(dot_n_c_cont) == 0);
       assert(max(dot_n_r_cont) == 0);
       assert(max(dot_rho_c_cont) == 0);
@@ -101,18 +101,33 @@ namespace libcloudphxx
 
         // activation (see Morrison & Grabowski 2007)
         if(opts.acti)
-        { //TODO what if we have some oter source terms (that happen somewhere before here), like diffusion?
+        { //TODO what if we have some other source terms (that happen somewhere before here), like diffusion?
           assert(dot_rho_c == 0 && "activation is first");
           assert(dot_n_c == 0 && "activation is first");
           assert(dot_rho_e == 0 && "activation is first");
 
           if(rho_v / rho_d > common::const_cp::r_vs<real_t>(T, p))
           {
+            quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_ccn = 0;
+
+            // looping over lognormal modes
+            for (const auto &mode : opts.dry_distro)
+            { 
+              N_ccn += N_c_p<real_t>(
+                p, T, rho_d, rho_v, 
+                mode.mean_rd * si::metres, 
+                mode.sdev_rd, 
+                mode.N_stp / si::cubic_metres, 
+                mode.chem_b,
+                opts.RH_max
+              ); 
+            }
+
+            // 
             quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 
-              activation_rate<real_t>(p, T, rho_d, rho_v, n_c, opts.mean_rd * si::metres, opts.sdev_rd, opts.N_stp / si::cubic_metres, dt * si::seconds, opts.chem_b); 
+              activation_rate<real_t>(N_ccn, n_c, dt * si::seconds);
 
 	    dot_n_c += tmp * si::cubic_metres * si::seconds;  
-
             dot_rho_v -= tmp * ccnmass<real_t>() / si::kilograms * si::cubic_metres * si::seconds;
             dot_rho_c += tmp * ccnmass<real_t>() / si::kilograms * si::cubic_metres * si::seconds;
 
@@ -130,7 +145,7 @@ namespace libcloudphxx
         if(opts.cond)
         {                                       
           if (rho_c > eps_r && n_c > eps_n)
-          {                                              //  ^^   TODO is it possible?
+          {             //  ^^   TODO is it possible?
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(T, p, rho_v / rho_d, tau_relax_c(T, p, r_drop_c(rho_c, n_c), n_c)) * rho_d;
 
@@ -289,7 +304,6 @@ std::cerr<<"promien kropelek "<<r_drop_c(rho_c, n_c)<<std::endl;
 
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(T, p, rho_v / rho_d, tau_relax_r(T, rho_d, rho_r, n_r)) * rho_d;
-              //TODO ventilation coefficents (not so important in drizzle but very needed in rain)
 
             assert(r_drop_r(rho_r, n_r) >= 0 * si::metres  && "mean drop radius cannot be < 0");
 

@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::init_grid()
+    void particles_t<real_t, device>::impl::init_grid()
     {
       switch (n_dims)
       {
@@ -31,17 +31,17 @@ namespace libcloudphxx
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             rgt.begin(),         // output
-            _1 + opts.nx
+            _1 + opts_init.nx
 	  );
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             blw.begin(),         // output
-            _1 + (_1 / opts.nz)
+            _1 + (_1 / opts_init.nz)
 	  );
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             abv.begin(),         // output
-            _1 + (_1 / opts.nz) + 1
+            _1 + (_1 / opts_init.nz) + 1
 	  );
 	  break;
 	default: assert(false && "TODO");

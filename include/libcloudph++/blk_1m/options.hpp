@@ -13,16 +13,17 @@ namespace libcloudphxx
   { 
 //<listing>
     template<typename real_t>
-    struct opts_t {  // uses C++11
+    struct opts_t {
       bool 
-        cond = true, // condensation
-        cevp = true, // evaporation of cloud
-        revp = true, // evaporation of rain 
-        conv = true, // autoconversion
-        accr = true, // accretion
-        sedi = true; // sedimentation
+        cond = true,    // condensation
+        cevp = true,    // evaporation of cloud
+        revp = true,    // evaporation of rain 
+        conv = true,    // autoconversion
+        accr = true,    // accretion
+        sedi = true;    // sedimentation
       real_t 
-        r_c0 = 5e-4; // autoconv. threshold
+        r_c0 = 5e-4,    // autoconv. threshold
+        rho_eps = 2e-5; // absolute tolerance
     };
 //</listing>
   }; 

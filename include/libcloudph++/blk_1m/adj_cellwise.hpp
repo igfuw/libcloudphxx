@@ -119,9 +119,7 @@ namespace libcloudphxx
 	  rho_v  * si::kilograms / si::cubic_metres
 	);
 
-	real_t // TODO: quantity<si::mass_density
-	  rho_eps = .00002, // TODO: as an option? // TODO: is it OK that we use rho_eps and integrate over r_v?
-	  vapour_excess;
+	real_t vapour_excess;
 	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
 	if (F.rs > F.r && rho_r > 0 && opts.revp)
 	  drho_rr_max = 
@@ -130,13 +128,12 @@ namespace libcloudphxx
 	bool incloud;
 
 	// TODO: rethink and document rho_eps!!!
-        // TODO: rho_eps as parameter
 	while (
 	  // condensation of cloud water if supersaturated more than threshold
-	  (vapour_excess = rho_v - rho_d * F.rs) > rho_eps
+	  (vapour_excess = rho_v - rho_d * F.rs) > opts.rho_eps
 	  || 
           ( 
-            opts.cevp && vapour_excess < -rho_eps && ( // or if subsaturated and 
+            opts.cevp && vapour_excess < -opts.rho_eps && ( // or if subsaturated and 
 	      (incloud = (rho_c > 0)) // in cloud (then cloud evaporation first)
 	      ||                        // or 
               (opts.revp && rho_r > 0) // in rain shaft (rain evaporation out-of-cloud)
@@ -145,7 +142,7 @@ namespace libcloudphxx
 	)
 	{
           // initial guess for drho_v
-	  real_t drho_v = - copysign(.5 * rho_eps, vapour_excess); // TODO: .5 - arbitrary!!! 
+	  real_t drho_v = - copysign(.5 * opts.rho_eps, vapour_excess); // TODO: .5 - arbitrary!!! 
           // preventing negative mixing ratios if evaporating
 	  if (vapour_excess < 0) drho_v = 
             incloud ? std::min(rho_c, drho_v) // limiting by rho_c

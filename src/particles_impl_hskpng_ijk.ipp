@@ -29,7 +29,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_ijk()
+    void particles_t<real_t, device>::impl::hskpng_ijk()
     {   
       // helper functor
       struct {
@@ -46,9 +46,9 @@ namespace libcloudphxx
         }
       } helper;
       
-      if (opts.nx != 0) helper(x, i, opts.dx);
-      if (opts.ny != 0) helper(y, j, opts.dy);
-      if (opts.nz != 0) helper(z, k, opts.dz);
+      if (opts_init.nx != 0) helper(x, i, opts_init.dx);
+      if (opts_init.ny != 0) helper(y, j, opts_init.dy);
+      if (opts_init.nz != 0) helper(z, k, opts_init.dz);
 
       // raveling i, j & k into ijk
       switch (n_dims)
@@ -65,7 +65,7 @@ namespace libcloudphxx
             i.begin(), i.end(), // input - first arg
             k.begin(),          // input - second arg
             ijk.begin(),        // output
-            _1 * opts.nz + _2   // assuming z varies first (as in many other cases)
+            _1 * opts_init.nz + _2   // assuming z varies first (as in many other cases)
           );
           break;
         case 3:

@@ -27,6 +27,7 @@ namespace libcloudphxx
       cont_t &dot_n_r_cont,
       const cont_t &rho_r_cont,
       const cont_t &n_r_cont,
+      const real_t &dt,
       const real_t &dz
     )   
 //</listing>
@@ -69,12 +70,18 @@ namespace libcloudphxx
             )
 	  ); 
           
-          flux_rr flux_rr_out = tmp_vel * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
-          flux_nr flux_nr_out = tmp_vel * (*n_r / si::cubic_metres) / (dz * si::metres);
+          auto rflux_unit = si::kilograms / si::seconds / si::cubic_metres;
+          auto nflux_unit = si::hertz / si::cubic_metres;
 
-	  *dot_rho_r -= (flux_rr_in - flux_rr_out) * si::seconds * si::cubic_metres / si::kilograms;
+          flux_rr flux_rr_out = tmp_vel * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
+          flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), (*rho_r + dt * *dot_rho_r) / dt) * rflux_unit;
+
+          flux_nr flux_nr_out = tmp_vel * (*n_r / si::cubic_metres) / (dz * si::metres);
+          flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), (*n_r + dt * *dot_n_r) / dt) * nflux_unit;
+
+	  *dot_rho_r -= (flux_rr_in - flux_rr_out) / rflux_unit;
           flux_rr_in = flux_rr_out; // inflow = outflow from above
-	  *dot_n_r -= (flux_nr_in - flux_nr_out) * si::seconds * si::cubic_metres;
+	  *dot_n_r -= (flux_nr_in - flux_nr_out) / nflux_unit;
           flux_nr_in = flux_nr_out; // inflow = outflow from above
         }
 

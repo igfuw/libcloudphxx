@@ -9,13 +9,10 @@ namespace libcloudphxx
     // factory will be explicitely instantiated
 //<listing>
     template <typename real_t>
-    struct factory
-    {
-      static particles_proto<real_t> *make(
-        const int backend, 
-        const opts_t<real_t> &
-      );
-    };
+    particles_proto_t<real_t> *factory(
+      const int backend, 
+      const opts_init_t<real_t> &opts_init
+    );
 //</listing>
   };
 };

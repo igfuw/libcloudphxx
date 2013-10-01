@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::fill_outbuf()
+    void particles_t<real_t, device>::impl::fill_outbuf()
     {
       thrust::fill(tmp_host_real_cell.begin(), tmp_host_real_cell.end(), 0);
 

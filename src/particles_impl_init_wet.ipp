@@ -40,7 +40,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::init_wet()
+    void particles_t<real_t, device>::impl::init_wet()
     {
       // memory allocation
       rw2.resize(n_part);

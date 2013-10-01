@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::init_e2l(
+    void particles_t<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
       thrust_device::vector<real_t> * key,
       const int ext_x, const int ext_y, const int ext_z
@@ -32,8 +32,8 @@ namespace libcloudphxx
           // assumes z veries fastest
           assert(arr.strides[1] == 1);
 	  thrust::transform(zero, zero + l2e[key].size(), l2e[key].begin(), 
-	    arr.strides[0] * /* i = */ (_1 / (opts.nz+ext_z)) +
-	    arr.strides[1] * /* j = */ (_1 % (opts.nz+ext_z))  
+	    arr.strides[0] * /* i = */ (_1 / (opts_init.nz+ext_z)) +
+	    arr.strides[1] * /* j = */ (_1 % (opts_init.nz+ext_z))  
 	  );
 	  break;
         case 3:

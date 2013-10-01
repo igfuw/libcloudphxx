@@ -20,7 +20,7 @@ namespace libcloudphxx
 
     // pimpl stuff 
     template <typename real_t, int device>
-    struct particles<real_t, device>::impl
+    struct particles_t<real_t, device>::impl
     { 
       // CUDA does not support max(unsigned long, unsigned long) -> using unsigned long long
       typedef unsigned long long n_t; // thrust_size_t?
@@ -29,7 +29,7 @@ namespace libcloudphxx
       bool should_now_run_async;
 
       // member fields
-      const opts_t<real_t> opts; // a copy
+      const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
       const thrust_size_t n_part; 
@@ -118,12 +118,12 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_t<real_t> &opts) : 
+      impl(const opts_init_t<real_t> &opts_init) : 
         should_now_run_async(false),
-	opts(opts),
-	n_dims(opts.nx/m1(opts.nx) + opts.ny/m1(opts.ny) + opts.nz/m1(opts.nz)), // 0, 1, 2 or 3
-        n_cell(m1(opts.nx) * m1(opts.ny) * m1(opts.nz)),
-	n_part(opts.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
+	opts_init(opts_init),
+	n_dims(opts_init.nx/m1(opts_init.nx) + opts_init.ny/m1(opts_init.ny) + opts_init.nz/m1(opts_init.nz)), // 0, 1, 2 or 3
+        n_cell(m1(opts_init.nx) * m1(opts_init.ny) * m1(opts_init.nz)),
+	n_part(opts_init.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part)
@@ -144,7 +144,7 @@ namespace libcloudphxx
             case 0: 
               break;
             case 2:
-              n_grid = std::max((opts.nx+1)*opts.nz, opts.nx*(opts.nz+1));
+              n_grid = std::max((opts_init.nx+1)*opts_init.nz, opts_init.nx*(opts_init.nz+1));
               break;
             default: assert(false);
           }
@@ -204,7 +204,7 @@ namespace libcloudphxx
       void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt);
+      void cond(const real_t &dt, const real_t &RH_max);
 
       void coal(const real_t &dt);
 
@@ -213,15 +213,15 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, int device>
-    particles<real_t, device>::particles(const opts_t<real_t> &opts) :
-      pimpl(new impl(opts))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init) :
+      pimpl(new impl(opts_init))
     {
       pimpl->sanity_checks();
     }
 
     // outbuf
     template <typename real_t, int device>
-    real_t *particles<real_t, device>::outbuf() 
+    real_t *particles_t<real_t, device>::outbuf() 
     {
       pimpl->fill_outbuf();
       return &(*(pimpl->tmp_host_real_cell.begin()));

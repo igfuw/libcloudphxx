@@ -11,7 +11,8 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::step_sync(
+    void particles_t<real_t, device>::step_sync(
+      const opts_t<real_t> &opts,
       arrinfo_t<real_t> rhod_th,
       arrinfo_t<real_t> rhod_rv,
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
@@ -32,18 +33,18 @@ namespace libcloudphxx
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (pimpl->opts.adve || pimpl->opts.sedi)
+      if (opts.adve || opts.sedi)
         pimpl->hskpng_ijk();
 
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
       // condensation/evaporation 
-      if (pimpl->opts.cond) 
+      if (opts.cond) 
       {
-        for (int step = 0; step < pimpl->opts.sstp_cond; ++step) 
+        for (int step = 0; step < opts.sstp_cond; ++step) 
         {   
-          pimpl->cond(pimpl->opts.dt / pimpl->opts.sstp_cond); 
+          pimpl->cond(pimpl->opts_init.dt / opts.sstp_cond, opts.RH_max); 
           pimpl->hskpng_Tpr(); 
         } 
 
@@ -56,12 +57,13 @@ namespace libcloudphxx
     }
 
     template <typename real_t, int device>
-    void particles<real_t, device>::step_async()
-    {
+    void particles_t<real_t, device>::step_async(
+      const opts_t<real_t> &opts
+    ) {
       assert(pimpl->should_now_run_async);
 
       // changing droplet positions
-      if (pimpl->opts.adve) 
+      if (opts.adve) 
       {
         // advection 
         pimpl->adve(); 
@@ -70,31 +72,31 @@ namespace libcloudphxx
       }
 
       // updating terminal velocities
-      if (pimpl->opts.sedi || pimpl->opts.coal) 
+      if (opts.sedi || opts.coal) 
         pimpl->hskpng_vterm_all();
 
-      if (pimpl->opts.sedi) 
+      if (opts.sedi) 
       {
         // advection with terminal velocity
         pimpl->sedi();
 
         // recycling out-of-domain particles (due to precipitation)
-        //if (pimpl->opts.rcyc) assert(false && "unimplemented"), throw; // TODO
+        //if (opts.rcyc) assert(false && "unimplemented"), throw; // TODO
       }
 
       // chemistry
-      //if (pimpl->opts.chem) assert(false && "unimplemented"), throw; // TODO
+      //if (opts.chem) assert(false && "unimplemented"), throw; // TODO
 
       // coalescence (before diagnostics -> one sort less)
-      if (pimpl->opts.coal) 
+      if (opts.coal) 
       {
-        for (int step = 0; step < pimpl->opts.sstp_coal; ++step) 
+        for (int step = 0; step < opts.sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->opts.dt / pimpl->opts.sstp_coal);
+          pimpl->coal(pimpl->opts_init.dt / opts.sstp_coal);
 
           // update invalid vterm 
-          if (step + 1 != pimpl->opts.sstp_coal)
+          if (step + 1 != opts.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
       }

@@ -7,13 +7,15 @@
 
 #pragma once
 
+#include <vector>
+
 namespace libcloudphxx
 {
   namespace blk_2m
   {
 //<listing>
     template<typename real_t>
-    struct opts_t    // uses C++11
+    struct opts_t
     {
       bool 
         acti = true, // activation
@@ -21,13 +23,19 @@ namespace libcloudphxx
         acnv = true, // autoconversion
         accr = true, // accretion
         sedi = true; // sedimentation
+
+      real_t RH_max; // RH limit for activation
       
-      // aerosol 
-      real_t
-        mean_rd, // [m]
-        sdev_rd, // [1]
-        N_stp,   // [m-3] @STP
-        chem_b;  // [1]
+      // aerosol spectrum 
+      struct lognormal_mode_t 
+      { 
+        real_t
+          mean_rd,   // [m]
+          sdev_rd,   // [1]
+          N_stp,     // [m-3] @STP
+          chem_b;    // [1]
+      };
+      std::vector<lognormal_mode_t> dry_distro;
     };
 //</listing>
   }
