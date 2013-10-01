@@ -107,7 +107,7 @@ namespace libcloudphxx
         return l_v(T) * r_vs(T, p) / R_v<real_t>() / (T*T);
       }
 
-      //condensation/evaporation rate for cloud droplets
+      //condensation/evaporation rate
       template<typename real_t>
       quantity<si::frequency, real_t> cond_evap_rate(
         const quantity<si::temperature, real_t> T, 

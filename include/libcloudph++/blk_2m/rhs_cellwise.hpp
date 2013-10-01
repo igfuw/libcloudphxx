@@ -134,6 +134,8 @@ namespace libcloudphxx
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(T, p, rho_v / rho_d, tau_relax_c(T, p, r_drop_c(rho_c, n_c), n_c)) * rho_d;
 
+std::cerr<<"promien kropelek "<<r_drop_c(rho_c, n_c)<<std::endl;
+
             assert(r_drop_c(rho_c, n_c) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
 
             if (rho_c + ((dot_rho_c * si::kilograms / si::cubic_metres / si::seconds + tmp) * (dt * si::seconds))  < 0 * si::kilograms / si::cubic_metres)             
@@ -290,6 +292,9 @@ namespace libcloudphxx
               //TODO ventilation coefficents (not so important in drizzle but very needed in rain)
 
             assert(r_drop_r(rho_r, n_r) >= 0 * si::metres  && "mean drop radius cannot be < 0");
+
+std::cerr<<"promień kropel "<<r_drop_r(rho_r, n_r)<<std::endl;
+std::cerr<<"  "<<std::endl;
 
             tmp=std::min(tmp , real_t(0) * si::kilograms / si::cubic_metres / si::seconds);
  
