@@ -12,7 +12,7 @@ namespace libcloudphxx
   {
     // init
     template <typename real_t, int device>
-    void particles<real_t, device>::init(
+    void particles_t<real_t, device>::init(
       const arrinfo_t<real_t> rhod_th,
       const arrinfo_t<real_t> rhod_rv,
       const arrinfo_t<real_t> rhod,
@@ -55,10 +55,10 @@ namespace libcloudphxx
       pimpl->hskpng_ijk(); 
 
       // initialising dry radii (needs positions, ijk and rhod)
-      assert(pimpl->opts.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
+      assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
       pimpl->init_dry(
-        pimpl->opts.dry_distros.begin()->first,
-        pimpl->opts.dry_distros.begin()->second 
+        pimpl->opts_init.dry_distros.begin()->first,
+        pimpl->opts_init.dry_distros.begin()->second 
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // initialising wet radii

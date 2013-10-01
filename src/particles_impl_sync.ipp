@@ -13,7 +13,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::sync(
+    void particles_t<real_t, device>::impl::sync(
       const arrinfo_t<real_t> &from,
       thrust_device::vector<real_t> &to
     )
@@ -37,7 +37,7 @@ namespace libcloudphxx
     }   
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::sync(
+    void particles_t<real_t, device>::impl::sync(
       const thrust_device::vector<real_t> &from,
       arrinfo_t<real_t> &to
     )

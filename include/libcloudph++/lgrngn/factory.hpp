@@ -11,9 +11,9 @@ namespace libcloudphxx
     template <typename real_t>
     struct factory
     {
-      static particles_proto<real_t> *make(
+      static particles_proto_t<real_t> *make(
         const int backend, 
-        const opts_t<real_t> &
+        const opts_init_t<real_t> &
       );
     };
 //</listing>

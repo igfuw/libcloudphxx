@@ -61,7 +61,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::adve()
+    void particles_t<real_t, device>::impl::adve()
     {   
       switch (n_dims)
       {
@@ -90,20 +90,20 @@ namespace libcloudphxx
             thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt)), // input - begin
             thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
             x.begin(), // output
-            detail::adve_2d<real_t>(opts.dx)
+            detail::adve_2d<real_t>(opts_init.dx)
           );
           thrust::transform(
             thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv)), // input - begin
             thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
             z.begin(), // output
-            detail::adve_2d<real_t>(opts.dz)
+            detail::adve_2d<real_t>(opts_init.dz)
           );
 
           // hardcoded periodic boundary in x! (TODO - not here?)
           thrust::transform(
             x.begin(), x.end(),
             x.begin(),
-            detail::periodic<real_t>(opts.nx * opts.dx)
+            detail::periodic<real_t>(opts_init.nx * opts_init.dx)
           );
           break; 
         }

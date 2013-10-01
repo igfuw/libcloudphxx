@@ -34,7 +34,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::cond_dm3_helper() // TODO: move it into a common_count_mom?
+    void particles_t<real_t, device>::impl::cond_dm3_helper() // TODO: move it into a common_count_mom?
     {   
       // TODO... or at least these typedefs!
       typedef thrust::permutation_iterator<
@@ -233,8 +233,10 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::cond(const real_t &dt)
-    {   
+    void particles_t<real_t, device>::impl::cond(
+      const real_t &dt,
+      const real_t &RH_max
+    ) {   
       // prerequisite
       hskpng_sort(); 
 
@@ -269,7 +271,7 @@ namespace libcloudphxx
           )
         ), 
 	rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, opts.RH_max)
+        detail::advance_rw2<real_t>(dt, RH_max)
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)
@@ -289,7 +291,7 @@ namespace libcloudphxx
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
-          / (opts.dx * opts.dy * opts.dz)
+          / (opts_init.dx * opts_init.dy * opts_init.dz)
         ),
         drhod_rv.begin(),                        // output
         thrust::multiplies<real_t>()

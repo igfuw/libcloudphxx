@@ -16,7 +16,7 @@ namespace libcloudphxx
 
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
-    struct particles_proto 
+    struct particles_proto_t 
     {
       // 3D version
       virtual void init(
@@ -54,6 +54,7 @@ namespace libcloudphxx
 
       // 3D variable density version
       virtual void step_sync(
+        const opts_t<real_t> &,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
@@ -62,37 +63,72 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod
       ) { assert(false); }  
 
-      virtual void step_async() { assert(false); }  
+      virtual void step_async(
+        const opts_t<real_t> &
+      ) { assert(false); }  
 
       // 3D constant density version
       void step_sync(
+        const opts_t<real_t> &opts,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z
-      ) { this->step_sync(rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
+      ) { this->step_sync(opts, rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
 
       // 2D constant density version
       void step_sync(
+        const opts_t<real_t> &opts,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_z
-      ) { this->step_sync(rhod_th, rhod_rv, courant_x, arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+      ) { 
+        this->step_sync(
+          opts,
+          rhod_th, 
+          rhod_rv, 
+          courant_x, 
+          arrinfo_t<real_t>(), 
+          courant_z, 
+          arrinfo_t<real_t>()
+        ); 
+      }  
 
       // 1D constant density version
       void step_sync(
+        const opts_t<real_t> &opts,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_z
-      ) { this->step_sync(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z, arrinfo_t<real_t>()); }  
+      ) { 
+        this->step_sync(
+          opts,
+          rhod_th, 
+          rhod_rv, 
+          arrinfo_t<real_t>(),
+          arrinfo_t<real_t>(), 
+          courant_z, 
+          arrinfo_t<real_t>()); 
+      }  
 
       // 0D constant density version
       void step_sync(
+        const opts_t<real_t> &opts,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv
-      ) { this->step_sync(rhod_th, rhod_rv, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
+      ) { 
+        this->step_sync(
+          opts,
+          rhod_th, 
+          rhod_rv, 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>()
+        ); 
+      }  
 
       // method for accessing super-droplet statistics
       virtual void diag_sd_conc()                             { assert(false); }
@@ -106,11 +142,8 @@ namespace libcloudphxx
     // prototype of what's implemented in the .tpp file
 //<listing>
     template <typename real_t, int backend>
-    struct particles : particles_proto<real_t>
+    struct particles_t : particles_proto_t<real_t>
     {
-      // constructor
-      particles(const opts_t<real_t> &);
-
       // initialisation 
       void init(
         const arrinfo_t<real_t> rhod_th,
@@ -123,6 +156,7 @@ namespace libcloudphxx
 
       // time-stepping methods
       void step_sync(
+        const opts_t<real_t> &,
         arrinfo_t<real_t> rhod_th,
         arrinfo_t<real_t> rhod_rv,
         const arrinfo_t<real_t> courant_x,
@@ -130,7 +164,9 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> rhod 
       );
-      void step_async();
+      void step_async(
+        const opts_t<real_t> &
+      );
 
       // diagnostic methods
       void diag_sd_conc();
@@ -144,13 +180,16 @@ namespace libcloudphxx
       void diag_wet_mom(const int &num);
       real_t *outbuf();
 
-      // pimpl stuff ...
+      // ...
 //</listing>
       struct impl;
       std::auto_ptr<impl> pimpl;
 
+      // constructor
+      particles_t(const opts_init_t<real_t> &);
+
       // helper typedef
-      typedef particles_proto<real_t> parent_t;
+      typedef particles_proto_t<real_t> parent_t;
     };
   };
 };

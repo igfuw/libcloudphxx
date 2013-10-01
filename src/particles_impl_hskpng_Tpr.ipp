@@ -68,7 +68,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_Tpr()
+    void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
       using namespace thrust::placeholders;
 

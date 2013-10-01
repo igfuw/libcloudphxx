@@ -13,7 +13,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_count()
+    void particles_t<real_t, device>::impl::hskpng_count()
     {   
       hskpng_sort();
 

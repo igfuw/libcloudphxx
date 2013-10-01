@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::init_hskpng()
+    void particles_t<real_t, device>::impl::init_hskpng()
     {
       // memory allocation
       i.resize(n_part); // 

@@ -12,7 +12,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_sort_helper(bool shuffle)
+    void particles_t<real_t, device>::impl::hskpng_sort_helper(bool shuffle)
     {   
       // filling-in sorted_id with a sequence
       thrust::sequence(sorted_id.begin(), sorted_id.end());
@@ -55,14 +55,14 @@ namespace libcloudphxx
     }   
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_sort()
+    void particles_t<real_t, device>::impl::hskpng_sort()
     {   
       if (sorted) return; // e.g. after shuffling
       hskpng_sort_helper(false);
     }
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::hskpng_shuffle_and_sort()
+    void particles_t<real_t, device>::impl::hskpng_shuffle_and_sort()
     {   
       hskpng_sort_helper(true);
     }

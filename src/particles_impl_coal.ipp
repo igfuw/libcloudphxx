@@ -165,7 +165,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, int device>
-    void particles<real_t, device>::impl::coal(const real_t &dt)
+    void particles_t<real_t, device>::impl::coal(const real_t &dt)
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
@@ -284,7 +284,7 @@ namespace libcloudphxx
         zip_ro_it, zip_ro_it + n_part - 1,  // input - 1st arg
         zip_rw_it,                          // input - 2nd arg
         zip_rw_it,                          // output (in place)
-        detail::collider<real_t, n_t>(dt, opts.dx * opts.dy * opts.dz)
+        detail::collider<real_t, n_t>(dt, opts_init.dx * opts_init.dy * opts_init.dz)
       );
     }
   };  
