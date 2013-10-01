@@ -8,7 +8,6 @@ namespace libcloudphxx
   {
     // the reasons to have this factory are:
     // - to handle errors like CUDA version not present
-    // - to manage 0D/1D/2D/3D parameter defaults
     // - to shorten the code on the caller side
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, const opts_init_t<real_t> &opts_init)
