@@ -12,6 +12,8 @@
 #include "../common/unary_function.hpp"
 #include "../common/units.hpp"
 
+#include "kernel.hpp"
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -33,9 +35,11 @@ namespace libcloudphxx
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
-      // Lagrangian component parameters
-      real_t
-        sd_conc_mean; // super-droplets per cell
+      // mean no. of super-droplets per cell
+      real_t sd_conc_mean; 
+
+      // coalescence Kernel type
+      kernel_t kernel;
 
       // ctor with defaults (C++03 compliant) ...
 //</listing>

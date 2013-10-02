@@ -15,13 +15,13 @@ namespace libcloudphxx
 { 
   namespace lgrngn
   {
-    template <typename real_t, int backend>
+    template <typename real_t, backend_t backend>
     void particles_t<real_t, backend>::impl::sanity_checks()
     {   
     }  
 
     // instantiation 
-    template class particles_t<float, cuda>;
-    template class particles_t<double, cuda>; 
+    template class particles_t<float, CUDA>;
+    template class particles_t<double, CUDA>; 
   };
 };

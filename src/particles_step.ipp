@@ -10,7 +10,7 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::step_sync(
       const opts_t<real_t> &opts,
       arrinfo_t<real_t> rhod_th,
@@ -56,7 +56,7 @@ namespace libcloudphxx
       pimpl->should_now_run_async = true;
     }
 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {

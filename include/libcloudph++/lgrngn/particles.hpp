@@ -7,14 +7,12 @@
 #include "opts.hpp"
 #include "opts_init.hpp"
 #include "arrinfo.hpp"
+#include "backend.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // to make inclusion of Thrust not neccesarry here
-    enum { cpp, omp, cuda };  // TODO: backend_t?
-
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
     struct particles_proto_t 
@@ -142,7 +140,7 @@ namespace libcloudphxx
 
     // prototype of what's implemented in the .tpp file
 //<listing>
-    template <typename real_t, int backend>
+    template <typename real_t, backend_t backend>
     struct particles_t: particles_proto_t<real_t>
     {
       // initialisation 

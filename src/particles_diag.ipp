@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // records super-droplet concentration per grid cell
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
     {
       // common code with coalescence, hence separated into a method
@@ -27,24 +27,24 @@ namespace libcloudphxx
 //TODO: NDEBUG _called logic here?
 
     //
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max)
     {
       pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3);
     }
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2);
     }
 
     //
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_mom(const int &n)
     {
       pimpl->moms_calc(pimpl->rd3, n/3.);
     }
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mom(const int &n)
     {
       pimpl->moms_calc(pimpl->rw2, n/2.);

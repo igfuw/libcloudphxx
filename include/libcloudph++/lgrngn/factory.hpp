@@ -10,8 +10,8 @@ namespace libcloudphxx
 //<listing>
     template <typename real_t>
     particles_proto_t<real_t> *factory(
-      const int backend, 
-      const opts_init_t<real_t> &opts_init
+      const backend_t, 
+      const opts_init_t<real_t> &
     );
 //</listing>
   };

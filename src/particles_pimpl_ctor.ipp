@@ -19,7 +19,7 @@ namespace libcloudphxx
     };
 
     // pimpl stuff 
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     struct particles_t<real_t, device>::impl
     { 
       // CUDA does not support max(unsigned long, unsigned long) -> using unsigned long long
@@ -212,7 +212,7 @@ namespace libcloudphxx
     };
 
     // ctor
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init) :
       pimpl(new impl(opts_init))
     {
@@ -220,7 +220,7 @@ namespace libcloudphxx
     }
 
     // outbuf
-    template <typename real_t, int device>
+    template <typename real_t, backend_t device>
     real_t *particles_t<real_t, device>::outbuf() 
     {
       pimpl->fill_outbuf();
