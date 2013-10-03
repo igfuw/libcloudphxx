@@ -79,7 +79,7 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rr
       ) {
-        return N * lambda_c(N, rhod_rr);
+        return N * lambda_r(N, rhod_rr);
       }
       
       //cloud droplet radius based on rhod_rc, N (mean of gamma size distribution)
