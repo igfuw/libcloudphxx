@@ -21,7 +21,7 @@ namespace libcloudphxx
 
       libcloudphxx_const(si::dimensionless, A_auto, 7.42 * 1e13, 1)
 
-      //in activation term all activated droples are assumed to have the radius of 1 um
+      //in autoconversion term all drizzle drops are assumed to have the radius of 25 um
       libcloudphxx_const(si::length, drizzle_radius, 25 * 1e-6, si::metres);
 
       template<typename real_t>

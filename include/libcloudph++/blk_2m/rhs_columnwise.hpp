@@ -59,12 +59,23 @@ namespace libcloudphxx
         if (dot_rho_r != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
-          quantity<si::velocity, real_t> tmp_vel  = -real_t(.5) * ( // averaging + axis orientation
-	    formulae::v_term(
+          quantity<si::velocity, real_t> tmp_vel_m  = -real_t(.5) * ( // averaging + axis orientation
+	    formulae::v_term_m(
               *rho_r_below * si::kilograms / si::cubic_metres, 
               *n_r_below / si::cubic_metres 
             ) + 
-	    formulae::v_term(
+	    formulae::v_term_m(
+              *rho_r * si::kilograms / si::cubic_metres,
+              *n_r / si::cubic_metres
+            )
+	  ); 
+ 
+          quantity<si::velocity, real_t> tmp_vel_n  = -real_t(.5) * ( // averaging + axis orientation
+	    formulae::v_term_n(
+              *rho_r_below * si::kilograms / si::cubic_metres, 
+              *n_r_below / si::cubic_metres 
+            ) + 
+	    formulae::v_term_n(
               *rho_r * si::kilograms / si::cubic_metres,
               *n_r / si::cubic_metres
             )
@@ -73,10 +84,10 @@ namespace libcloudphxx
           auto rflux_unit = si::kilograms / si::seconds / si::cubic_metres;
           auto nflux_unit = si::hertz / si::cubic_metres;
 
-          flux_rr flux_rr_out = tmp_vel * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
+          flux_rr flux_rr_out = tmp_vel_m * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
           flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), (*rho_r + dt * *dot_rho_r) / dt) * rflux_unit;
 
-          flux_nr flux_nr_out = tmp_vel * (*n_r / si::cubic_metres) / (dz * si::metres);
+          flux_nr flux_nr_out = tmp_vel_n * (*n_r / si::cubic_metres) / (dz * si::metres);
           flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), (*n_r + dt * *dot_n_r) / dt) * nflux_unit;
 
 	  *dot_rho_r -= (flux_rr_in - flux_rr_out) / rflux_unit;
@@ -92,19 +103,23 @@ namespace libcloudphxx
       }
 
       // the bottom grid cell (with mid-cell vterm approximation)
-      quantity<si::velocity, real_t> tmp_vel = - formulae::v_term(
+      quantity<si::velocity, real_t> tmp_vel_m = - formulae::v_term_m(
+	*rho_r * si::kilograms / si::cubic_metres,
+	*n_r / si::cubic_metres
+      ); 
+      quantity<si::velocity, real_t> tmp_vel_n = - formulae::v_term_n(
 	*rho_r * si::kilograms / si::cubic_metres,
 	*n_r / si::cubic_metres
       ); 
 
       {
-        flux_nr flux_nr_out = tmp_vel * (*n_r / si::cubic_metres) / (dz * si::metres);
+        flux_nr flux_nr_out = tmp_vel_n * (*n_r / si::cubic_metres) / (dz * si::metres);
         *dot_n_r -= (flux_nr_in - flux_nr_out) * si::seconds * si::cubic_metres;
       }
 
       // outflow from the domain
       {
-        flux_rr flux_rr_out = tmp_vel * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
+        flux_rr flux_rr_out = tmp_vel_m * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
         *dot_rho_r -= (flux_rr_in - flux_rr_out) * si::seconds * si::cubic_metres / si::kilograms;
 
         return flux_rr_out / (si::kilograms / si::cubic_metres / si::seconds);
