@@ -103,7 +103,7 @@ namespace libcloudphxx
         if(opts.acti)
         { //TODO what if we have some other source terms (that happen somewhere before here), like diffusion?
           assert(dot_rho_c == 0 && "activation is first");
-          assert(dot_n_c == 0 && "activation is first");
+          assert(dot_n_c   == 0 && "activation is first");
           assert(dot_rho_e == 0 && "activation is first");
 
           if(rho_v / rho_d > common::const_cp::r_vs<real_t>(T, p))
@@ -123,11 +123,10 @@ namespace libcloudphxx
               ); 
             }
 
-            // 
             quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> tmp = 
               activation_rate<real_t>(N_ccn, n_c, dt * si::seconds);
 
-	    dot_n_c += tmp * si::cubic_metres * si::seconds;  
+	    dot_n_c   += tmp * si::cubic_metres * si::seconds;  
             dot_rho_v -= tmp * ccnmass<real_t>() / si::kilograms * si::cubic_metres * si::seconds;
             dot_rho_c += tmp * ccnmass<real_t>() / si::kilograms * si::cubic_metres * si::seconds;
 
@@ -136,14 +135,14 @@ namespace libcloudphxx
                          / si::kilograms / si::kelvins * si::cubic_metres * si::seconds; 
           }
 
-          assert(dot_n_c >= 0 && "activation can only increase cloud droplet concentration");
+          assert(dot_n_c   >= 0 && "activation can only increase cloud droplet concentration");
           assert(dot_rho_c >= 0 && "activation can only increase cloud water");
           assert(dot_rho_e >= 0 && "activation can only increase theta");
          }
 
         // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
         if(opts.cond)
-        {                                       
+        {                          
           if (rho_c > eps_r && n_c > eps_n)
           {             //  ^^   TODO is it possible?
             quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> tmp = 
@@ -154,7 +153,7 @@ namespace libcloudphxx
             if (rho_c + ((dot_rho_c * si::kilograms / si::cubic_metres / si::seconds + tmp) * (dt * si::seconds))  < 0 * si::kilograms / si::cubic_metres)             
             {   //so that we don't evaporate more cloud water than there is
               tmp      =- (rho_c + (dt * dot_rho_c * si::kilograms / si::cubic_metres)) / (dt * si::seconds);  //evaporate all rho_c
-              dot_n_c =- n_c / dt * si::cubic_metres; //and all rho_c
+              dot_n_c  =- n_c / dt * si::cubic_metres; //and all n_c
             }
 
             dot_rho_c += tmp / si::kilograms * si::cubic_metres * si::seconds;
@@ -163,6 +162,7 @@ namespace libcloudphxx
             dot_rho_e -= tmp  * d_rhodtheta_d_rv<real_t>(T, rho_e) / rho_d
                          / si::kilograms / si::kelvins * si::cubic_metres * si::seconds; 
           }
+
           assert(rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt >= 0 && "condensation/evaporation can't make rho_c < 0");
           assert(rho_v * si::cubic_metres / si::kilograms + dot_rho_v * dt >= 0 && "condensation/evaporation can't make rho_v < 0");
           assert(rho_e * si::cubic_metres / si::kilograms / si::kelvin + dot_rho_e * dt >= 0 && "condensation/evaporation can't make rho_e < 0");
@@ -190,8 +190,8 @@ namespace libcloudphxx
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t>  &n_c = boost::get<6>(tup) / si::cubic_metres;
         const quantity<si::mass_density, real_t> &rho_r = boost::get<7>(tup) * si::kilograms / si::cubic_metres;
  
-        if (rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt > 0)
-        {
+//        if (rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt > 0)
+//        {
           //autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if(opts.acnv)
           {                                  
@@ -216,8 +216,8 @@ namespace libcloudphxx
             assert(rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt >= 0 && "autoconversion can't make rho_c negative");
           }
 
-          if (rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt > 0)
-          {
+//          if (rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt > 0)
+//          {
             //accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
             if(opts.accr)
             {              
@@ -236,10 +236,10 @@ namespace libcloudphxx
 
               assert(rho_c * si::cubic_metres / si::kilograms + dot_rho_c * dt >= 0 && "accretion can't make rho_c negative");
             }
-          }
+//          }
 
-          //sink of cloud droplet concentration due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
-          //                                                                        (be careful cause "q" there actually means mixing ratio)
+          //sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
+          //                                                (be careful cause "q" there actually means mixing ratio, not water content)
           //has to be just after autoconv. and accretion so that dot_rho_r is a sum of only those two
           if(opts.acnv || opts.accr)
           {
@@ -259,7 +259,7 @@ namespace libcloudphxx
           
           assert(n_c * si::cubic_metres + dot_n_c * dt >= 0 && "collisions can't make n_c negative");
           } 
-        }
+//        }
       }
 
       for (auto tup : zip(
@@ -291,7 +291,8 @@ namespace libcloudphxx
         // evaporation of rain (see Morrison & Grabowski 2007)
         if(opts.cond)
         {
-//std::cerr << "before evap: rho_r = " << rho_r * si::cubic_metres / si::kilograms <<std::endl;
+
+//std::cerr<<"rho_r before "<< rho_r << std::endl;
           if(rho_r > eps_r && n_r > eps_n)
           { //cond/evap for rho_r
 
@@ -304,6 +305,8 @@ namespace libcloudphxx
               cond_evap_rate<real_t>(T, p, rho_v / rho_d, tau_relax_r(T, rho_d, rho_r, n_r)) * rho_d;
 
             assert(r_drop_r(rho_r, n_r) >= 0 * si::metres  && "mean drop radius cannot be < 0");
+
+//std::cerr<<"raindrop radius " << r_drop_r(rho_r, n_r)<<std::endl;
 
             tmp=std::min(tmp , real_t(0) * si::kilograms / si::cubic_metres / si::seconds);
  
@@ -340,11 +343,11 @@ namespace libcloudphxx
               }
             }
           }
-
-//std::cerr << "after evap rho_r = " << rho_r << std::endl;
-//std::cerr << "dot_rho_r * dt = " << dot_rho_r * dt <<std::endl;
-//std::cerr << "rho_r + dot_rho_r * dt " << rho_r * si::cubic_metres / si::kilograms + dot_rho_r * dt << std::endl; 
-
+/*
+std::cerr<<"rho_r "<< rho_r << std::endl;
+std::cerr<<"dot_rho_r "<< dot_rho_r << std::endl;
+std::cerr<<"dt "<< dt << std::endl;
+*/
           assert(rho_r * si::cubic_metres / si::kilograms + dot_rho_r * dt >= 0 && "rain condensation/evaporation can't make rho_r < 0");
           assert(rho_v * si::cubic_metres / si::kilograms + dot_rho_v * dt >= 0 && "rain condensation/evaporation can't make rho_v < 0");
           assert(n_r * si::cubic_metres + dot_n_r * dt >= 0 && "rain condensation/evaporation can't make n_r < 0");
