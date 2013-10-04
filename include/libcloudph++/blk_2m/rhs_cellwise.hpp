@@ -291,6 +291,8 @@ namespace libcloudphxx
         // evaporation of rain (see Morrison & Grabowski 2007)
         if(opts.cond)
         {
+
+//std::cerr<<"rho_r before "<< rho_r << std::endl;
           if(rho_r > eps_r && n_r > eps_n)
           { //cond/evap for rho_r
 
@@ -303,6 +305,8 @@ namespace libcloudphxx
               cond_evap_rate<real_t>(T, p, rho_v / rho_d, tau_relax_r(T, rho_d, rho_r, n_r)) * rho_d;
 
             assert(r_drop_r(rho_r, n_r) >= 0 * si::metres  && "mean drop radius cannot be < 0");
+
+//std::cerr<<"raindrop radius " << r_drop_r(rho_r, n_r)<<std::endl;
 
             tmp=std::min(tmp , real_t(0) * si::kilograms / si::cubic_metres / si::seconds);
  
@@ -339,6 +343,11 @@ namespace libcloudphxx
               }
             }
           }
+/*
+std::cerr<<"rho_r "<< rho_r << std::endl;
+std::cerr<<"dot_rho_r "<< dot_rho_r << std::endl;
+std::cerr<<"dt "<< dt << std::endl;
+*/
           assert(rho_r * si::cubic_metres / si::kilograms + dot_rho_r * dt >= 0 && "rain condensation/evaporation can't make rho_r < 0");
           assert(rho_v * si::cubic_metres / si::kilograms + dot_rho_v * dt >= 0 && "rain condensation/evaporation can't make rho_v < 0");
           assert(n_r * si::cubic_metres + dot_n_r * dt >= 0 && "rain condensation/evaporation can't make n_r < 0");

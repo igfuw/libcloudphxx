@@ -55,9 +55,11 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &rhod_nr
       ) {
-        return rhod / rho_stp<real_t>()                                   //to make it dimensionless         .... kilograms to grams
-               * alpha_fall(rhod_rr, rhod_nr) * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * 1000, beta_fall(rhod_rr, rhod_nr))
-               * std::pow(real_t(1e-6), d_md<real_t>() * beta_fall(rhod_rr, rhod_nr));
+        quantity<si::length, real_t> drop_r = r_drop_r(rhod_rr, rhod_nr);
+
+        return rhod / rho_stp<real_t>()                        //to make it dimensionless         .... kilograms to grams
+               * alpha_fall(drop_r) * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * 1000, beta_fall(drop_r))
+               * std::pow(real_t(1e-6), d_md<real_t>() * beta_fall(drop_r));
       }                         //^^^ metres to micro metres
 
       template<typename real_t>
@@ -65,7 +67,9 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &rhod_nr
       ) {
-        return d_md<real_t>() * beta_fall(rhod_rr, rhod_nr);
+        quantity<si::length, real_t> drop_r = r_drop_r(rhod_rr, rhod_nr);
+
+        return d_md<real_t>() * beta_fall(drop_r);
       }
 
       // relaxation time for condensation/evaporation term for rain drops

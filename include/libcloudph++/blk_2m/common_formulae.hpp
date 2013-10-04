@@ -38,7 +38,9 @@ namespace libcloudphxx
       quantity<si::dimensionless, real_t> miu_c(
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N
       ) {
-        return real_t(1) / pow<2>(eta(N)) - real_t(1);
+        auto tmp = real_t(1) / pow<2>(eta(N)) - real_t(1);
+        assert(finite(tmp) && "spectral index N is finite failed");
+        return tmp;
       }
       //slope
       template<typename real_t>
@@ -46,10 +48,12 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rc
       ) {
-        return pow(
+        auto tmp = pow(
                    c_md<real_t>() * N * std::tgamma(miu_c(N) + d_md<real_t>() + real_t(1)) / (rhod_rc * std::tgamma(miu_c(N) + real_t(1))) * si::cubic_metres, 
                    real_t(1) / d_md<real_t>()
                   ) / si::metres;
+        assert(finite(tmp * si::metres) && "slope lambda_c is finite failed");
+        return tmp;
       }
       //intercept  
       template<typename real_t>
@@ -57,7 +61,9 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rc
       ) {
-        return N * pow(lambda_c(N, rhod_rc) * si::metres, miu_c(N) + real_t(1)) / std::tgamma(miu_c(N) + real_t(1)) / si::metres;
+        auto tmp = N * pow(lambda_c(N, rhod_rc) * si::metres, miu_c(N) + real_t(1)) / std::tgamma(miu_c(N) + real_t(1)) / si::metres;
+        assert(finite(tmp * si::metres * si::cubic_metres) && "intercept N0_c is finite failed");
+        return tmp;
       }
 
       //for rain drops Marshal-Palmer (exponential) size distribution is assumed
@@ -68,10 +74,12 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rr
       ) {
-        return pow(
+        auto tmp = pow(
                    c_md<real_t>() * N * std::tgamma(d_md<real_t>() + real_t(1)) / rhod_rr * si::cubic_metres, 
                    real_t(1) / d_md<real_t>()
                   ) / si::metres;
+        assert(finite(tmp * si::metres) && "slope lambda_r is finite failed");
+        return tmp;
       }
       //intercept  
       template<typename real_t>
@@ -79,7 +87,9 @@ namespace libcloudphxx
          quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N,
          quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> rhod_rr
       ) {
-        return N * lambda_r(N, rhod_rr);
+        auto tmp =  N * lambda_r(N, rhod_rr);
+        assert(finite(tmp * si::metres * si::cubic_metres) && "intercept N0_r is finite failed");
+        return tmp;
       }
       
       //cloud droplet radius based on rhod_rc, N (mean of gamma size distribution)
