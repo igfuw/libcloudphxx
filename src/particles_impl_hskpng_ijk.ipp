@@ -65,7 +65,7 @@ namespace libcloudphxx
             i.begin(), i.end(), // input - first arg
             k.begin(),          // input - second arg
             ijk.begin(),        // output
-            _1 * opts_init.nz + _2   // assuming z varies first (as in many other cases)
+            _1 * opts_init.nz + _2   // assuming z varies first (as in many other cases) // TODO: document it (and ref parallelisation...)
           );
           break;
         case 3:

@@ -170,13 +170,13 @@ namespace libcloudphxx
       // diagnostic methods
       void diag_sd_conc();
       void diag_dry_rng(
-        const real_t &min, const real_t &max
+        const real_t &r_mi, const real_t &r_mx
       );
       void diag_wet_rng(
-        const real_t &min, const real_t &max
+        const real_t &r_mi, const real_t &r_mx
       );
-      void diag_dry_mom(const int &num);
-      void diag_wet_mom(const int &num);
+      void diag_dry_mom(const int &k);
+      void diag_wet_mom(const int &k);
       real_t *outbuf();
 
       // ...

@@ -216,7 +216,7 @@ namespace libcloudphxx
 
           // ''corrector'' step using implicit Euler scheme
           const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
-          const real_t tol_r2 = rd2 / 10; // TODO !!!
+          const real_t tol_r2 = rd2 / 10; // TODO !!! (think of a better value, document)
 
           const real_t mlt = 2; // results in explicit Euler scheme if root not found // TODO: investidate why not found...
           
