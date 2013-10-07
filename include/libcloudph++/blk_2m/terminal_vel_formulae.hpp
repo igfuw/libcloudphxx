@@ -8,6 +8,7 @@
 
 #pragma once
 #include <libcloudph++/common/moist_air.hpp>
+#include <libcloudph++/common/earth.hpp>
 #include <libcloudph++/blk_2m/common_formulae.hpp>
 
 namespace libcloudphxx
@@ -141,6 +142,7 @@ namespace libcloudphxx
 
       template <typename real_t>
       quantity<si::velocity, real_t> v_term_m(
+        const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::mass_density, real_t> &rhod_rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &rhod_nr
       ) { 
@@ -151,9 +153,11 @@ namespace libcloudphxx
         auto two_m = real_t(2);
 
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(rhod_nr, rhod_rr);
-                                     //to make it dimensionless         //mass of the drop in grams
-        return lbd * si::metres * c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000) * (
-                                                          //to make it dimensionless         //mass of the drop in grams
+                   //eq. A4 in Morrison 2005 
+        auto tmp = rho_stp<real_t>() / rhod * 
+                                           //to make it dimensionless         //mass of the drop in grams
+          lbd * si::metres * c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000) * (
+                                                               //to make it dimensionless         //mass of the drop in grams
           alpha_fall(d1<real_t>()/two_m) * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>()/two_m)) 
             * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
           +
@@ -165,10 +169,14 @@ namespace libcloudphxx
           +
           alpha_fall(two_m * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
         ) * real_t(1e-2) * si::metres/si::seconds;  //velocity in metres/seconds
+
+        assert(finite(tmp * si::seconds / si::metres) && "v_term_m terminal velocity is finite failed");
+        return tmp;
       }
 
       template <typename real_t>
       quantity<si::velocity, real_t> v_term_n(
+        const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::mass_density, real_t> &rhod_rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &rhod_nr
       ) { 
@@ -179,10 +187,10 @@ namespace libcloudphxx
         auto two_m = real_t(2);
 
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(rhod_nr, rhod_rr);
-        
-        return lbd * si::metres * ( 
-                                                     //to make it dimensionless         //mass of the drop in grams
-          alpha_fall(d1<real_t>()/two_m) * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>()/two_m)) 
+                   //eq A4 in Morrison 2005
+        auto tmp = rho_stp<real_t>()/ rhod * (
+                                                             //to make it dimensionless         //mass of the drop in grams
+         alpha_fall(d1<real_t>()/two_m) * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>()/two_m)) 
             * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
           +
           alpha_fall(d1<real_t>() + d2<real_t>()/two_m) * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>()/two_m)) 
@@ -193,8 +201,10 @@ namespace libcloudphxx
           +
           alpha_fall(two_m * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
         ) * real_t(1e-2) * si::metres/si::seconds;  //velocity in metres/seconds
-      }
 
+        assert(finite(tmp * si::seconds / si::metres) && "v_term_n terminal velocity is finite failed");
+        return tmp;
+      }
     };
   };
 };
