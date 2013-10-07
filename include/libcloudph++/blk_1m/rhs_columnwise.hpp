@@ -37,7 +37,9 @@ namespace libcloudphxx
       flux_t flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       real_t *dot_rho_r = NULL;
       const real_t zero = 0;
-      const real_t *rho_d, *rho_r = &zero;
+  
+      // this should give zero flux from above the domain top
+      const real_t *rho_d = &*(--(rho_d_cont.end())), *rho_r = &zero;
 
       auto iter = zip(dot_rho_r_cont, rho_d_cont, rho_r_cont);
       for (auto tup_ptr = iter.end(); tup_ptr != iter.begin();)
