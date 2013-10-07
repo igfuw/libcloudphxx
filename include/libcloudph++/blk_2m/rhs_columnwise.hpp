@@ -9,7 +9,6 @@
 #pragma once
 
 #include <algorithm>
-
 #include <libcloudph++/common/detail/zip.hpp>
 #include <libcloudph++/blk_2m/terminal_vel_formulae.hpp>  //TODO so far the same parametrisation as in blk_1m 
 
@@ -25,6 +24,7 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       cont_t &dot_rho_r_cont,
       cont_t &dot_n_r_cont,
+      const cont_t &rho_d_cont,
       const cont_t &rho_r_cont,
       const cont_t &n_r_cont,
       const real_t &dt,
@@ -41,30 +41,37 @@ namespace libcloudphxx
       flux_rr flux_rr_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       flux_nr flux_nr_in = 0 / si::cubic_metres / si::seconds;
 
-
       real_t *dot_rho_r = NULL;
       real_t *dot_n_r = NULL;
       const real_t zero = 0;
-      const real_t *rho_r, *n_r = &zero;
 
-      auto iter = zip(rho_r_cont, n_r_cont, dot_rho_r_cont, dot_n_r_cont);
+      // initial values that should give zero flux from above the domain top
+      const real_t 
+        *rho_r = &zero, 
+        *n_r = &zero, 
+        *rho_d = &*(--(rho_d_cont.end()));
+
+      auto iter = zip(rho_d_cont, rho_r_cont, n_r_cont, dot_rho_r_cont, dot_n_r_cont);
       for (auto tup_ptr = iter.end(); tup_ptr != iter.begin();)
       {
         --tup_ptr;
 
         const real_t
-          *rho_r_below  = &boost::get<0>(*tup_ptr),
-          *n_r_below  = &boost::get<1>(*tup_ptr);
+          *rho_d_below  = &boost::get<0>(*tup_ptr),
+          *rho_r_below  = &boost::get<1>(*tup_ptr),
+          *n_r_below    = &boost::get<2>(*tup_ptr);
 
         if (dot_rho_r != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
           quantity<si::velocity, real_t> tmp_vel_m  = -real_t(.5) * ( // averaging + axis orientation
 	    formulae::v_term_m(
+              *rho_d_below * si::kilograms / si::cubic_metres, 
               *rho_r_below * si::kilograms / si::cubic_metres, 
               *n_r_below / si::cubic_metres 
             ) + 
 	    formulae::v_term_m(
+              *rho_d * si::kilograms / si::cubic_metres,
               *rho_r * si::kilograms / si::cubic_metres,
               *n_r / si::cubic_metres
             )
@@ -72,10 +79,12 @@ namespace libcloudphxx
  
           quantity<si::velocity, real_t> tmp_vel_n  = -real_t(.5) * ( // averaging + axis orientation
 	    formulae::v_term_n(
+              *rho_d_below * si::kilograms / si::cubic_metres, 
               *rho_r_below * si::kilograms / si::cubic_metres, 
               *n_r_below / si::cubic_metres 
             ) + 
 	    formulae::v_term_n(
+              *rho_d * si::kilograms / si::cubic_metres,
               *rho_r * si::kilograms / si::cubic_metres,
               *n_r / si::cubic_metres
             )
@@ -96,18 +105,21 @@ namespace libcloudphxx
           flux_nr_in = flux_nr_out; // inflow = outflow from above
         }
 
-        dot_rho_r = &boost::get<2>(*tup_ptr);
-        dot_n_r = &boost::get<3>(*tup_ptr);
+        dot_rho_r = &boost::get<3>(*tup_ptr);
+        dot_n_r = &boost::get<4>(*tup_ptr);
+        rho_d = rho_d_below;
         rho_r = rho_r_below;
         n_r = n_r_below;
       }
 
       // the bottom grid cell (with mid-cell vterm approximation)
       quantity<si::velocity, real_t> tmp_vel_m = - formulae::v_term_m(
+        *rho_d * si::kilograms / si::cubic_metres, 
 	*rho_r * si::kilograms / si::cubic_metres,
 	*n_r / si::cubic_metres
       ); 
       quantity<si::velocity, real_t> tmp_vel_n = - formulae::v_term_n(
+	*rho_d * si::kilograms / si::cubic_metres,
 	*rho_r * si::kilograms / si::cubic_metres,
 	*n_r / si::cubic_metres
       ); 
