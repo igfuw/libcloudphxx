@@ -23,11 +23,11 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       inline quantity<si::temperature, real_t> T(
-        const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_th, // theta dry!!!
+        const quantity<si::temperature, real_t> &th, // theta dry!!!
         const quantity<si::mass_density, real_t> &rhod
       ) {
         return si::kelvins * pow(
-          rhod_th / rhod / si::kelvins
+          th / si::kelvins
           * pow(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins, R_d<real_t>() / c_pd<real_t>()), 
           c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
         );
@@ -56,11 +56,11 @@ namespace libcloudphxx
       // see eq. TODO
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> d_rhodtheta_d_rv(
+      quantity<si::temperature, real_t> d_th_d_rv(
 	const quantity<si::temperature, real_t> &T,
-	const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_th // theta dry!!!
+	const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
-	return - rhod_th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
+	return - th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
       }
     };
   };

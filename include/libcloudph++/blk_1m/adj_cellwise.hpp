@@ -28,18 +28,18 @@ namespace libcloudphxx
       {
 	private: 
          
-        quantity<si::mass_density, real_t> rho_d;
+        quantity<si::mass_density, real_t> rhod;
 	
         public: 
         
         void init(
-	  const quantity<si::mass_density, real_t> _rho_d,
-	  const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> rho_e,
-	  const quantity<si::mass_density, real_t> rho_v
+	  const quantity<si::mass_density, real_t> &_rhod,
+	  const quantity<si::temperature, real_t> &th,
+	  const quantity<si::dimensionless, real_t> &rv
 	)
 	{
-	  rho_d = _rho_d;
-	  update(rho_e, rho_v);
+	  rhod = _rhod;
+	  update(th, rv);
 	}
 
 	quantity<si::dimensionless, real_t> r, rs;
@@ -49,27 +49,27 @@ namespace libcloudphxx
 	private: 
 
         void update(
-	  const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> rho_e,
-	  const quantity<si::mass_density, real_t> rho_v
+	  const quantity<si::temperature, real_t> &th,
+	  const quantity<si::dimensionless, real_t> &rv
 	)
 	{
-	  r  = rho_v / rho_d;
-	  T  = common::theta_dry::T<real_t>(rho_e, rho_d);
-	  p  = common::theta_dry::p<real_t>(rho_d, r, T);
+          r  = rv;
+	  T  = common::theta_dry::T<real_t>(th, rhod);
+	  p  = common::theta_dry::p<real_t>(rhod, rv, T);
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
 	public: 
 
-	// F = d (rho_d * th) / d (rho_d * r) 
+	// F = d th / d rv 
         void operator()(
-	  const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> rho_e,
+	  const quantity<si::temperature, real_t> &th,
 	  quantity<si::temperature, real_t> &F,
-	  const quantity<si::mass_density, real_t> rho_v
+	  const quantity<si::dimensionless, real_t> &rv
 	)
 	{
-	  update(rho_e, rho_v);
-	  F = common::theta_dry::d_rhodtheta_d_rv<real_t>(T, rho_e) / rho_d; 
+	  update(th, rv);
+	  F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
 	}
       };
     }    
@@ -78,11 +78,11 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise(
       const opts_t<real_t> &opts,
-      const cont_t &rho_d_cont, 
-      cont_t &rho_e_cont, 
-      cont_t &rho_v_cont,
-      cont_t &rho_c_cont,
-      cont_t &rho_r_cont,
+      const cont_t &rhod_cont, 
+      cont_t &th_cont, 
+      cont_t &rv_cont,
+      cont_t &rc_cont,
+      cont_t &rr_cont,
       const real_t &dt
     )
 //</listing>
@@ -93,103 +93,111 @@ namespace libcloudphxx
 
       // odeint::euler< // TODO: opcja?
       odeint::runge_kutta4<
-	quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>, // state_type
-	real_t, // value_type
-	quantity<si::temperature, real_t>, // deriv_type
-	quantity<si::mass_density, real_t>, // time_type
+	quantity<si::temperature, real_t>,   // state_type
+	real_t,                              // value_type
+	quantity<si::temperature, real_t>,   // deriv_type
+	quantity<si::dimensionless, real_t>, // time_type
 	odeint::vector_space_algebra,
 	odeint::default_operations,
 	odeint::never_resizer
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
       typename detail::rhs<real_t> F;
 
-      for (auto tup : zip(rho_d_cont, rho_e_cont, rho_v_cont, rho_c_cont, rho_r_cont))
+      for (auto tup : zip(rhod_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
-          &rho_d = boost::get<0>(tup);
+          &rhod = boost::get<0>(tup);
         real_t 
-          &rho_e = boost::get<1>(tup), 
-          &rho_v = boost::get<2>(tup), 
-          &rho_c = boost::get<3>(tup), 
-          &rho_r = boost::get<4>(tup);
+          &th = boost::get<1>(tup), 
+          &rv = boost::get<2>(tup), 
+          &rc = boost::get<3>(tup), 
+          &rr = boost::get<4>(tup);
+
+	// double-checking....
+	assert(th >= 273.15);
+	assert(rc >= 0);
+	assert(rv >= 0);
+	assert(rr >= 0); 
 
 	F.init(
-	  rho_d  * si::kilograms / si::cubic_metres,
-	  rho_e  * si::kilograms / si::cubic_metres * si::kelvins,
-	  rho_v  * si::kilograms / si::cubic_metres
+	  rhod * si::kilograms / si::cubic_metres,
+	  th   * si::kelvins,
+	  rv   * si::dimensionless()
 	);
 
 	real_t vapour_excess;
-	real_t drho_rr_max = 0; // TODO: quantity<si::mass_density
-	if (F.rs > F.r && rho_r > 0 && opts.revp)
-	  drho_rr_max = 
-            (dt * si::seconds) * formulae::evaporation_rate(F.r, F.rs, rho_r * si::kilograms / si::cubic_metres, F.p)
-            / si::kilograms * si::cubic_metres; // to make it dimensionless
+	real_t drr_max = 0;
+	if (F.rs > F.r && rr > 0 && opts.revp) 
+        {
+          drr_max = (dt * si::seconds) * formulae::evaporation_rate(
+            F.r, F.rs, rr * si::dimensionless(), rhod * si::kilograms / si::cubic_metres, F.p
+	  );
+        }
 	bool incloud;
 
-	// TODO: rethink and document rho_eps!!!
+	// TODO: rethink and document r_eps!!!
 	while (
-	  // condensation of cloud water if supersaturated more than threshold
-	  (vapour_excess = rho_v - rho_d * F.rs) > opts.rho_eps
+	  // condensation of cloud water if supersaturated more than a threshold
+	  (vapour_excess = rv - F.rs) > opts.r_eps
 	  || 
           ( 
-            opts.cevp && vapour_excess < -opts.rho_eps && ( // or if subsaturated and 
-	      (incloud = (rho_c > 0)) // in cloud (then cloud evaporation first)
-	      ||                        // or 
-              (opts.revp && rho_r > 0) // in rain shaft (rain evaporation out-of-cloud)
+            opts.cevp && vapour_excess < -opts.r_eps && ( // or if subsaturated and 
+	      (incloud = (rc > 0))  // in cloud (then cloud evaporation first)
+	      ||                    // or 
+              (opts.revp && rr > 0 && drr_max > 0) // in rain shaft (rain evaporation out-of-cloud)
 	    )
           )
 	)
 	{
-          // initial guess for drho_v
-	  real_t drho_v = - copysign(.5 * opts.rho_eps, vapour_excess); // TODO: .5 - arbitrary!!! 
+          // an arbitrary initial guess for drv
+	  real_t drv = - copysign(.5 * opts.r_eps, vapour_excess); 
           // preventing negative mixing ratios if evaporating
-	  if (vapour_excess < 0) drho_v = 
-            incloud ? std::min(rho_c, drho_v) // limiting by rho_c
-	            : std::min(drho_rr_max, std::min(rho_r, drho_v)); // limiting by rho_r and drho_rr_max
-	  assert(drho_v != 0); // otherwise it should not pass the while condition!
+	  if (vapour_excess < 0) drv = 
+            incloud ? std::min(rc, drv) // limiting by rc
+	            : std::min(drr_max, std::min(rr, drv)); // limiting by rr and drr_max
+	  assert(drv != 0); // otherwise it should not pass the while condition!
 
 	  // theta is modified by do_step, and hence we cannot pass an expression and we need a temp. var.
-	  quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t>
-	    tmp = rho_e * si::kilograms / si::cubic_metres * si::kelvins;
+	  quantity<si::temperature, real_t> tmp = th * si::kelvins;
 
 	  // integrating the First Law for moist air
 	  S.do_step(
 	    boost::ref(F),
 	    tmp,
-	    rho_v * si::kilograms / si::cubic_metres,
-	    drho_v * si::kilograms / si::cubic_metres
+	    rv  * si::dimensionless(),
+	    drv * si::dimensionless()
 	  );
 
 	  // latent heat source/sink due to evaporation/condensation
-	  rho_e = tmp / (si::kilograms / si::cubic_metres * si::kelvins);
+	  th = tmp / si::kelvins;
 
-	  // updating rho_v
-	  rho_v += drho_v;
-	  assert(rho_v >= 0);
+	  // updating rv
+	  rv += drv;
+	  assert(rv >= 0);
 	  
 	  if (vapour_excess > 0 || incloud)
 	  {
             // condensation or evaporation of cloud water
-	    rho_c -= drho_v;
-	    assert(rho_c >= 0);
+	    rc -= drv;
+	    assert(rc >= 0);
 	  }
 	  else 
 	  {
             // evaporation of rain water
 	    assert(opts.revp); // should be guaranteed by the while() condition above
-	    rho_r -= drho_v;
-	    assert(rho_r >= 0);
-	    if ((drho_rr_max -= drho_v) == 0) break; // but not more than Kessler allows
+	    rr -= drv;
+	    assert(rr >= 0);
+	    if ((drr_max -= drv) == 0) break; // but not more than Kessler allows
 	  }
 	}
 
 	// hopefully true for RK4
-	assert(F.r == real_t(rho_v / rho_d));
-	// double-checking....
-	assert(rho_c >= 0);
-	assert(rho_v >= 0);
-	assert(rho_r >= 0);
+	assert(F.r == rv);
+	// triple-checking....
+	assert(th >= 273.15);
+	assert(rc >= 0);
+	assert(rv >= 0);
+	assert(rr >= 0);
       }
     }
   }

@@ -1,7 +1,8 @@
-0.09 (pre-submission, things that need to be explicitely mentioned in the text):
-- sdm: coalescence Kernel choice: constant, Long, B\"ohm
-
 0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
+- Thouron et al. supersaturation?
+- bitwise reproducibility...
+- sdm: coalescence Kernel choice: constant, Long, B\"ohm
+- unifikacja predkosci opadania lgrngn vs. blk_2m ?
 - SDM: n1==n2
 - rho_w do earth.hpp?
 - cleanup file extensions for lgrngn (.ipp, .tpp, ...)

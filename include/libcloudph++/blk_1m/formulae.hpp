@@ -44,24 +44,25 @@ namespace libcloudphxx
       // Kessler evaporation rate
       // eq. 5c in Grabowski & Smolarkiewicz 1996 (multiplied by rho!)
       template <typename real_t>
-      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> evaporation_rate( 
+      quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> evaporation_rate( 
 	quantity<si::dimensionless, real_t> rv,
 	quantity<si::dimensionless, real_t> rvs,
-	quantity<si::mass_density, real_t> rhod_rr,
+	quantity<si::dimensionless, real_t> rr,
+	quantity<si::mass_density, real_t> rhod,
 	quantity<si::pressure, real_t> p
       )
       {
 	return 
-          (1 - rv / rvs) 
+          (1 - rv / rvs) / rhod
 	  * (
             real_t(1.6) 
             + real_t(124.9) * std::pow( 
-              real_t(1e-3) * rhod_rr * si::cubic_metres / si::kilograms,
+              real_t(1e-3) * rhod * rr * si::cubic_metres / si::kilograms,
               real_t(.2046)
             ) 
           ) // ventilation factor TODO- move to ventil.hpp
 	  * std::pow(
-            real_t(1e-3) * rhod_rr * si::cubic_metres / si::kilograms, 
+            real_t(1e-3) * rhod * rr * si::cubic_metres / si::kilograms, 
             real_t(.525)
           ) 
 	  / (real_t(5.4e2) 
@@ -79,17 +80,17 @@ namespace libcloudphxx
 
       template <typename real_t>
       quantity<si::velocity, real_t> v_term(
-	const quantity<si::mass_density, real_t> &rho_r,
-	const quantity<si::mass_density, real_t> &rho_d,
-	const quantity<si::mass_density, real_t> &rho_d0
+	const quantity<si::dimensionless, real_t> &rr,
+	const quantity<si::mass_density, real_t> &rhod,
+	const quantity<si::mass_density, real_t> &rhod_0
       ) {
 	return 
           vterm_A<real_t>() 
           * real_t(std::pow(
-            (rho_r * vterm_B<real_t>()), 
+            (rhod * rr * vterm_B<real_t>()), 
             real_t(.1346)
           ) 
-          * sqrt(rho_d0 / rho_d)
+          * sqrt(rhod_0 / rhod)
         );
       }
     };
