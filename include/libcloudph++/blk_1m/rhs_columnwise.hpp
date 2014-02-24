@@ -29,12 +29,12 @@ namespace libcloudphxx
     )   
 //</listing>
     {
-      using flux_t = quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t>;
+      using flux_t = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
 
       if (!opts.sedi) return 0;
 
       // 
-      flux_t flux_in = 0 / si::seconds;
+      flux_t flux_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       real_t *dot_rr = NULL;
       const real_t zero = 0;
   
@@ -52,21 +52,21 @@ namespace libcloudphxx
 
         if (dot_rr != NULL) // i.e. all but first (top) grid cell
         {
-          // terminal velocities at grid-cell edge (to assure precip mass conservation)
+          // terminal momenta at grid-cell edge (to assure precip mass conservation)
 	  flux_t flux_out = -real_t(.5) * ( // averaging + axis orientation
-	    formulae::v_term(
+	    (*rhod_below * si::kilograms / si::cubic_metres) * formulae::v_term(
               *rr_below          * si::kilograms / si::kilograms, 
               *rhod_below        * si::kilograms / si::cubic_metres, 
               *rhod_cont.begin() * si::kilograms / si::cubic_metres
             ) + 
-	    formulae::v_term(
+	    (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term(
               *rr                * si::kilograms / si::kilograms,    
               *rhod              * si::kilograms / si::cubic_metres, 
               *rhod_cont.begin() * si::kilograms / si::cubic_metres
             )
 	  ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
 
-	  *dot_rr -= (flux_in - flux_out) * si::seconds;
+	  *dot_rr -= (flux_in - flux_out) * si::seconds * si::cubic_metres / si::kilograms;
           flux_in = flux_out; // inflow = outflow from above
         }
 
@@ -74,15 +74,17 @@ namespace libcloudphxx
         rhod   = rhod_below;
         rr     = rr_below;
       }
+
       // the bottom grid cell (with mid-cell vterm approximation)
-      flux_t flux_out = - formulae::v_term(
+      flux_t flux_out = - (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term(
 	*rr                * si::kilograms / si::kilograms,    
 	*rhod              * si::kilograms / si::cubic_metres, 
 	*rhod_cont.begin() * si::kilograms / si::cubic_metres
       ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
-      *dot_rr -= (flux_in - flux_out) * si::seconds;
+      *dot_rr -= (flux_in - flux_out) * si::seconds * si::cubic_metres / si::kilograms;
+
       // outflow from the domain
-      return real_t(flux_out / (si::kilograms / si::kilograms / si::seconds));
+      return real_t(flux_out / (si::kilograms / si::cubic_metres / si::seconds));
     }    
   };
 };
