@@ -13,38 +13,38 @@ namespace libcloudphxx
     // init
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::init(
-      const arrinfo_t<real_t> rhod_th,
-      const arrinfo_t<real_t> rhod_rv,
+      const arrinfo_t<real_t> th,
+      const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
-      const arrinfo_t<real_t> courant_x, // might be NULL
-      const arrinfo_t<real_t> courant_y, // might be NULL
-      const arrinfo_t<real_t> courant_z  // might be NULL
+      const arrinfo_t<real_t> rhod_courant_x, // might be NULL
+      const arrinfo_t<real_t> rhod_courant_y, // might be NULL
+      const arrinfo_t<real_t> rhod_courant_z  // might be NULL
     )
     {
       // sanity checks
-      assert(!rhod_th.is_null());
-      assert(!rhod_rv.is_null());
+      assert(!th.is_null());
+      assert(!rv.is_null());
       assert(!rhod.is_null());
-      if (pimpl->n_dims > 0) assert(!courant_z.is_null());
-      if (pimpl->n_dims > 1) assert(!courant_x.is_null());
-      if (pimpl->n_dims > 2) assert(!courant_y.is_null());
+      if (pimpl->n_dims > 0) assert(!rhod_courant_z.is_null());
+      if (pimpl->n_dims > 1) assert(!rhod_courant_x.is_null());
+      if (pimpl->n_dims > 2) assert(!rhod_courant_y.is_null());
 
       // initialising Eulerian-Lagrandian coupling
       pimpl->init_sync();
-      pimpl->init_e2l(rhod_th, &pimpl->rhod_th);
-      pimpl->init_e2l(rhod_rv, &pimpl->rhod_rv);
-      pimpl->init_e2l(rhod,    &pimpl->rhod);
-      if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-      if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0);
-      if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
+      pimpl->init_e2l(th,   &pimpl->th);
+      pimpl->init_e2l(rv,   &pimpl->rv);
+      pimpl->init_e2l(rhod, &pimpl->rhod);
+      if (!rhod_courant_x.is_null()) pimpl->init_e2l(rhod_courant_x, &pimpl->rhod_courant_x, 1, 0, 0);
+      if (!rhod_courant_y.is_null()) pimpl->init_e2l(rhod_courant_y, &pimpl->rhod_courant_y, 0, 1, 0);
+      if (!rhod_courant_z.is_null()) pimpl->init_e2l(rhod_courant_z, &pimpl->rhod_courant_z, 0, 0, 1);
 
       // feeding in Eulerian fields
-      pimpl->sync(rhod_th, pimpl->rhod_th);
-      pimpl->sync(rhod_rv, pimpl->rhod_rv);
-      pimpl->sync(rhod,    pimpl->rhod);
-      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
-      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
-      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
+      pimpl->sync(th,   pimpl->th);
+      pimpl->sync(rv,   pimpl->rv);
+      pimpl->sync(rhod, pimpl->rhod);
+      if (!rhod_courant_x.is_null()) pimpl->sync(rhod_courant_x, pimpl->rhod_courant_x);
+      if (!rhod_courant_y.is_null()) pimpl->sync(rhod_courant_y, pimpl->rhod_courant_y);
+      if (!rhod_courant_z.is_null()) pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
 
       // initialising particle positions
       pimpl->init_xyz();

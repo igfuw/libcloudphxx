@@ -106,6 +106,18 @@ namespace libcloudphxx
 
       count_n = n.first - count_ijk.begin();
       assert(count_n > 0 && count_n <= n_cell);
+
+      // dividing by rhod to get specific moments
+      // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
+      thrust::transform(
+        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+        thrust::make_permutation_iterator(                  // input - second arg
+	  count_ijk.begin(),
+          rhod.begin()
+        ),
+        count_mom.begin(),                                  // output (in place)
+        thrust::divides<real_t>()
+      );
     }
   };  
 };

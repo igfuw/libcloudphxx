@@ -74,25 +74,19 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct drhod_th
+      struct dth
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
         {
-          const quantity<divide_typeof_helper<si::mass_density, si::time >::type, real_t> 
-            drhod_rv = thrust::get<0>(tpl) * si::kilograms / si::cubic_metres / si::seconds;
-          const quantity<si::mass_density, real_t> 
-            rhod     = thrust::get<1>(tpl) * si::kilograms / si::cubic_metres;
+          const quantity<si::dimensionless, real_t> 
+            drv      = thrust::get<0>(tpl);
           const quantity<si::temperature, real_t> 
-            T        = thrust::get<2>(tpl) * si::kelvins;
-          const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> 
-            rhod_th  = thrust::get<3>(tpl) * si::kilograms / si::cubic_metres * si::kelvins;
+            T        = thrust::get<1>(tpl) * si::kelvins;
+          const quantity<si::temperature, real_t> 
+            th       = thrust::get<2>(tpl) * si::kelvins;
 
-          return 
-            drhod_rv 
-            / rhod 
-            * common::theta_dry::d_rhodtheta_d_rv(T, rhod_th) 
-            / si::kilograms * si::cubic_metres / si::kelvins * si::seconds;
+          return drv * common::theta_dry::d_th_d_rv(T, th) / si::kelvins;
         }
       };
 
@@ -102,7 +96,7 @@ namespace libcloudphxx
         const quantity<si::area,              real_t> rw2_old;
         const quantity<si::time,              real_t> dt;
 	const quantity<si::mass_density,      real_t> rhod;
-	const quantity<si::mass_density,      real_t> rhod_rv;
+	const quantity<si::dimensionless,     real_t> rv;
 	const quantity<si::temperature,       real_t> T;
 	const quantity<si::pressure,          real_t> p;
 	const quantity<si::dimensionless,     real_t> RH;
@@ -123,7 +117,7 @@ namespace libcloudphxx
           dt(dt * si::seconds), 
           rw2_old(rw2 * si::square_metres),
           rhod(    thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
-          rhod_rv( thrust::get<1>(tpl) * si::kilograms / si::cubic_metres),
+          rv(      thrust::get<1>(tpl)),
           T(       thrust::get<2>(tpl) * si::kelvins),
           p(       thrust::get<3>(tpl) * si::pascals),
           RH(      thrust::get<4>(tpl)),
@@ -169,7 +163,7 @@ namespace libcloudphxx
           return real_t(2) * rdrdt( 
             D,
             K,
-            rhod_rv, 
+            rhod * rv, 
             T, 
             p, 
             RH > RH_max ? RH_max : RH, 
@@ -241,16 +235,16 @@ namespace libcloudphxx
       hskpng_sort(); 
 
       //
-      thrust_device::vector<real_t> &drhod_rv(tmp_device_real_cell);
+      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
 
       // calculating the 3rd wet moment before condensation (still not divided by dv)
       cond_dm3_helper();
 
       // permute-copying the result to -dm_3
-      thrust::fill(drhod_rv.begin(), drhod_rv.end(), 0);
+      thrust::fill(drv.begin(), drv.end(), 0);
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,            // input - 1st arg
-        thrust::make_permutation_iterator(drhod_rv.begin(), count_ijk.begin()), // output
+        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::negate<real_t>()
       );
 
@@ -260,7 +254,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
 	    thrust::make_permutation_iterator(rhod.begin(),    ijk.begin()),
-	    thrust::make_permutation_iterator(rhod_rv.begin(), ijk.begin()),
+	    thrust::make_permutation_iterator(rv.begin(),      ijk.begin()),
 	    thrust::make_permutation_iterator(T.begin(),       ijk.begin()),
 	    thrust::make_permutation_iterator(p.begin(),       ijk.begin()),
 	    thrust::make_permutation_iterator(RH.begin(),      ijk.begin()),
@@ -279,58 +273,64 @@ namespace libcloudphxx
 
       // adding the third moment after condensation to dm_3
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,            // input - 1st arg
-        thrust::make_permutation_iterator(drhod_rv.begin(), count_ijk.begin()), // input - 2nd arg
-        thrust::make_permutation_iterator(drhod_rv.begin(), count_ijk.begin()), // output
+        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()
       );
 
       // multiplying dv*dm_3 by -rho_w*4/3*pi/dv
       thrust::transform(
-        drhod_rv.begin(), drhod_rv.end(),        // input - 1st arg
+        drv.begin(), drv.end(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
           / (opts_init.dx * opts_init.dy * opts_init.dz)
         ),
-        drhod_rv.begin(),                        // output
+        drv.begin(),                             // output
         thrust::multiplies<real_t>()
       );
 
-      // updating rhod_rv 
+      // dividing d(rhod_rv) by rhod
       thrust::transform(
-        rhod_rv.begin(), rhod_rv.end(),  // input - 1st arg
-        drhod_rv.begin(),                // input - 2nd arg
-        rhod_rv.begin(),                 // output
+        drv.begin(), drv.end(),  // input - 1st arg
+        rhod.begin(),            // input - 2nd arg
+        drv.begin(),             // output (in place)
+        thrust::divides<real_t>()
+      );
+
+      // updating rv 
+      thrust::transform(
+        rv.begin(), rv.end(),  // input - 1st arg
+        drv.begin(),           // input - 2nd arg
+        rv.begin(),            // output
         thrust::plus<real_t>() 
       );
-      assert(*thrust::min_element(rhod_rv.begin(), rhod_rv.end()) >= 0);
+      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
 
-      // updating rhod_th
+      // updating th
       {
         typedef thrust::zip_iterator<thrust::tuple<
-          typename thrust_device::vector<real_t>::iterator,
           typename thrust_device::vector<real_t>::iterator,
           typename thrust_device::vector<real_t>::iterator,
           typename thrust_device::vector<real_t>::iterator
         > > zip_it_t;
  
 	thrust::transform(
-	  rhod_th.begin(), rhod_th.end(),  // input - 1st arg
-	  thrust::transform_iterator<      // input - 2nd arg
-	    detail::drhod_th<real_t>,
+	  th.begin(), th.end(),          // input - 1st arg
+	  thrust::transform_iterator<    // input - 2nd arg
+	    detail::dth<real_t>,
 	    zip_it_t,
 	    real_t
 	  >(
-            zip_it_t(thrust::make_tuple(  // args (note: rhod_rv cannot be used here as already modified)
-	      drhod_rv.begin(), // 
-	      rhod.begin(),     // drhod_th = (drhod_rv / rhod) * d_rhodtheta_d_rv(T, rhod_th)
-	      T.begin(),        //
-	      rhod_th.begin()   //
+            zip_it_t(thrust::make_tuple(  // args (note: rv cannot be used here as already modified)
+	      drv.begin(),      // 
+	      T.begin(),        // dth = drv * d_th_d_rv(T, th)
+	      th.begin()        //
 	    )),
-	    detail::drhod_th<real_t>()     // func
+	    detail::dth<real_t>()     // func
 	  ),
-	  rhod_th.begin(),                 // output
+	  th.begin(),                 // output
 	  thrust::plus<real_t>()
 	);
       }

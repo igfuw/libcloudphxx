@@ -19,78 +19,92 @@ namespace libcloudphxx
     {
       // 3D version
       virtual void init(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod, 
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z
-      ) { assert(false); }  
+        const arrinfo_t<real_t> rhod_courant_x,
+        const arrinfo_t<real_t> rhod_courant_y,
+        const arrinfo_t<real_t> rhod_courant_z
+      ) { 
+        assert(false); 
+      }  
 
       // 2D version
       void init(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_z
-      ) { this->init(rhod_th, rhod_rv, rhod, courant_x, arrinfo_t<real_t>(), courant_z); }  
+        const arrinfo_t<real_t> rhod_courant_x,
+        const arrinfo_t<real_t> rhod_courant_z
+      ) { 
+        this->init(th, rv, rhod, rhod_courant_x, arrinfo_t<real_t>(), rhod_courant_z); 
+      }  
  
       // 1D version
       void init(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_z
-      ) { this->init(rhod_th, rhod_rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z); }  
+        const arrinfo_t<real_t> rhod_courant_z
+      ) { 
+        this->init(th, rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), rhod_courant_z); 
+      }  
 
       // 0D version
       void init(
-        const arrinfo_t<real_t> rhod_th,
-        const arrinfo_t<real_t> rhod_rv,
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod
-      ) { this->init(rhod_th, rhod_th, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); }  
+      ) { 
+        this->init(th, rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); 
+      }  
 
       // 3D variable density version
       virtual void step_sync(
         const opts_t<real_t> &,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod_courant_x,
+        const arrinfo_t<real_t> rhod_courant_y,
+        const arrinfo_t<real_t> rhod_courant_z,
         const arrinfo_t<real_t> rhod
-      ) { assert(false); }  
+      ) { 
+        assert(false); 
+      }  
 
       virtual void step_async(
         const opts_t<real_t> &
-      ) { assert(false); }  
+      ) { 
+        assert(false); 
+      }  
 
       // 3D constant density version
       void step_sync(
         const opts_t<real_t> &opts,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z
-      ) { this->step_sync(opts, rhod_th, rhod_rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); }  
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod_courant_x,
+        const arrinfo_t<real_t> rhod_courant_y,
+        const arrinfo_t<real_t> rhod_courant_z
+      ) { 
+        this->step_sync(opts, th, rv, rhod_courant_x, rhod_courant_y, rhod_courant_z, arrinfo_t<real_t>()); 
+      }  
 
       // 2D constant density version
       void step_sync(
         const opts_t<real_t> &opts,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_z
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod_courant_x,
+        const arrinfo_t<real_t> rhod_courant_z
       ) { 
         this->step_sync(
           opts,
-          rhod_th, 
-          rhod_rv, 
-          courant_x, 
+          th, 
+          rv, 
+          rhod_courant_x, 
           arrinfo_t<real_t>(), 
-          courant_z, 
+          rhod_courant_z, 
           arrinfo_t<real_t>()
         ); 
       }  
@@ -98,30 +112,30 @@ namespace libcloudphxx
       // 1D constant density version
       void step_sync(
         const opts_t<real_t> &opts,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv,
-        const arrinfo_t<real_t> courant_z
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod_courant_z
       ) { 
         this->step_sync(
           opts,
-          rhod_th, 
-          rhod_rv, 
+          th, 
+          rv, 
           arrinfo_t<real_t>(),
           arrinfo_t<real_t>(), 
-          courant_z, 
+          rhod_courant_z, 
           arrinfo_t<real_t>()); 
       }  
 
       // 0D constant density version
       void step_sync(
         const opts_t<real_t> &opts,
-        arrinfo_t<real_t> rhod_th,
-        arrinfo_t<real_t> rhod_rv
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv
       ) { 
         this->step_sync(
           opts,
-          rhod_th, 
-          rhod_rv, 
+          th, 
+          rv, 
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
@@ -145,23 +159,23 @@ namespace libcloudphxx
     {
       // initialisation 
       void init(
-        const arrinfo_t<real_t> rho_e,
-        const arrinfo_t<real_t> rho_v,
-        const arrinfo_t<real_t> rho_d,
-        const arrinfo_t<real_t> courant_1,
-        const arrinfo_t<real_t> courant_2, 
-        const arrinfo_t<real_t> courant_3
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> rhod_courant_1,
+        const arrinfo_t<real_t> rhod_courant_2, 
+        const arrinfo_t<real_t> rhod_courant_3
       );
 
       // time-stepping methods
       void step_sync(
         const opts_t<real_t> &,
-        arrinfo_t<real_t> rho_e,
-        arrinfo_t<real_t> rho_v,
-        const arrinfo_t<real_t> courant_1,
-        const arrinfo_t<real_t> courant_2,
-        const arrinfo_t<real_t> courant_3,
-        const arrinfo_t<real_t> rho_d 
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod_courant_1,
+        const arrinfo_t<real_t> rhod_courant_2,
+        const arrinfo_t<real_t> rhod_courant_3,
+        const arrinfo_t<real_t> rhod 
       );
       void step_async(
         const opts_t<real_t> &

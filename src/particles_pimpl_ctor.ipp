@@ -71,16 +71,15 @@ namespace libcloudphxx
       // Eulerian-Lagrangian interface vers
       thrust_device::vector<real_t> 
         rhod,    // dry air density
-        rhod_th, // energy volume density divided by c_p
-        rhod_rv, // water vapour density (=rhod * r_v)
-        courant_x, 
-        courant_y, 
-        courant_z;
+        th,      // potential temperature (dry)
+        rv,      // water vapour mixing ratio
+        rhod_courant_x, 
+        rhod_courant_y, 
+        rhod_courant_z;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        r,  // water vapour mixing ratio [kg/kg]
         RH, // relative humisity (p_v / p_vs)
         eta;// dynamic viscosity 
 

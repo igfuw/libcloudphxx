@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <exception>
 #include <libcloudph++/lgrngn/factory.hpp>
 
 namespace libcloudphxx
@@ -18,18 +18,18 @@ namespace libcloudphxx
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
 	  return new particles_t<real_t, CUDA>(opts_init);
 #else
-	  assert(false && "CUDA backend was not compiled"); throw; // TODO: convert into exception
+          throw std::runtime_error("CUDA backend was not compiled");
 #endif
 	case OpenMP:
 #if defined(_OPENMP)
 	  return new particles_t<real_t, OpenMP>(opts_init);
 #else
-	  assert(false && "OpenMP backend was not compiled"); throw; // TODO: convert into exception
+          throw std::runtime_error("OpenMP backend was not compiled"); 
 #endif
 	case serial:
 	  return new particles_t<real_t, serial>(opts_init);
 	default:
-	  assert(false && "unknown backend"); throw; // TODO: convert into exception
+          throw std::runtime_error("unknown backend"); 
       }
     }
 

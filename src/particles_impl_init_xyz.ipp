@@ -13,11 +13,10 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
-      // TODO: wouldn't it be simpler to call a helper method 3 times?
       thrust_device::vector<real_t> 
-                  *v[3] = {&x,      &y,      &z      };
-      const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz};
-      const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz};
+                  *v[3] = { &x,           &y,           &z           };
+      const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
+      const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
      
       for (int ix = 0; ix < 3; ++ix)
       {
@@ -28,9 +27,6 @@ namespace libcloudphxx
 
         // tossing random numbers [0,1] 
         rand_u01(n_part);
-
-// TODO: what about density? constant concentration in space with variable density leads to 
-//       variable concentration for t>0
 
 	// shifting from [0,1] to [0,nx*dx] 
         {

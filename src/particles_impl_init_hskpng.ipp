@@ -23,7 +23,6 @@ namespace libcloudphxx
 
       T.resize(n_cell);
       p.resize(n_cell);
-      r.resize(n_cell); 
       RH.resize(n_cell); 
       eta.resize(n_cell); 
 

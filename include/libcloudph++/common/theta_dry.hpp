@@ -43,15 +43,6 @@ namespace libcloudphxx
       ) {
         return rhod * T * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
       }
-      template <typename real_t>
-      BOOST_GPU_ENABLED
-      quantity<si::pressure, real_t> p( // TODO: use zip_iterator in sdm and get rid of it...
-        const quantity<multiply_typeof_helper<si::mass_density, si::temperature>::type, real_t> &rhod_T,
-	const quantity<si::dimensionless, real_t> &r
-      ) {
-        return rhod_T   * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
-      }
-
 
       // see eq. TODO
       template <typename real_t>
