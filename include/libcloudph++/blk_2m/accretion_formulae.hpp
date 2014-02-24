@@ -14,24 +14,16 @@ namespace libcloudphxx
   namespace blk_2m
   {
     namespace formulae
-    { //accretion rate
-      
-      //as in Khairoutdinov and Kogan 2000
-      //but taken from Wood 2005 (table 1) - (all hail to si units!)
-
-      libcloudphxx_const(si::dimensionless, A_acc, 67, 1)
-
+    { 
+      // accretion rate as in Khairoutdinov and Kogan 2000
+      // but taken from Wood 2005 (table 1) - (all hail to si units!)
       template<typename real_t>
-      quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> accretion_rate(
-        quantity<si::mass_density, real_t> rhod,
-        quantity<si::mass_density, real_t> rhod_rc,
-        quantity<si::mass_density, real_t> rhod_rr
+      inline quantity<si::frequency, real_t> accretion_rate(
+        const quantity<si::dimensionless, real_t> &rc,
+        const quantity<si::dimensionless, real_t> &rr
       ) {
-        return A_acc<real_t>() * si::kilograms / si::cubic_metres / si::seconds
-               * std::pow(rhod_rc * si::cubic_metres / si::kilograms * rhod_rr * si::cubic_metres / si::kilograms, real_t(1.15)) 
-               * std::pow(rhod * si::cubic_metres / si::kilograms, real_t(-1.3));
+        return real_t(67) / si::seconds * std::pow(rc * rr, real_t(1.15));
       }
-
     };
   };
 };

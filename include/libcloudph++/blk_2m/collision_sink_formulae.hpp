@@ -14,16 +14,16 @@ namespace libcloudphxx
   namespace blk_2m
   {
     namespace formulae
-    { //accretion rate
+    { // accretion rate
       
-      //as in Khairoutdinov and Kogan 2000
-      //(assumes that all the collected droplets have mean radius)
+      // as in Khairoutdinov and Kogan 2000
+      // (assumes that all the collected droplets have mean radius)
       template<typename real_t>
-      quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t> collision_sink_rate(
-        quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t> drhod_rr,
-        quantity<si::length, real_t> r
+      inline quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> collision_sink_rate(
+        const quantity<si::frequency, real_t> &drr,
+        const quantity<si::length, real_t> &r
       ) {
-        return drhod_rr / (real_t(4./3.) * pi<real_t>() * (r*r*r) * common::moist_air::rho_w<real_t>());
+        return drr / (real_t(4./3.) * pi<real_t>() * (r*r*r) * common::moist_air::rho_w<real_t>());
       }
 
     };

@@ -30,83 +30,78 @@ namespace libcloudphxx
 
       //helper for activation formulae (see eq. 11 in Morrison and Grabowski 2007)
       template <typename real_t>
-      quantity<si::dimensionless, real_t> s_0(
-        quantity<si::temperature,   real_t> T,
-        quantity<si::length,        real_t> mean_rd,
-        quantity<si::dimensionless, real_t> chem_b,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+      inline quantity<si::dimensionless, real_t> s_0(
+        const quantity<si::temperature,   real_t> &T,
+        const quantity<si::length,        real_t> &mean_rd,
+        const quantity<si::dimensionless, real_t> &chem_b,
+        const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
         return pow(mean_rd / si::metres, -(1+beta)) * sqrt(4 * pow(common::kelvin::A<real_t>(T) / si::metres, 3) / 27 / chem_b);
       }           // can't have pow<3/2>(si:: )
 
-      //helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
+      // helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
       template <typename real_t>
-      quantity<si::dimensionless, real_t> s(
-        quantity<si::pressure,     real_t> p,
-        quantity<si::temperature,  real_t> T, 
-        quantity<si::mass_density, real_t> rhod,
-        quantity<si::mass_density, real_t> rhod_rv
+      inline quantity<si::dimensionless,  real_t> s(
+        const quantity<si::pressure,      real_t> &p,
+        const quantity<si::temperature,   real_t> &T, 
+        const quantity<si::dimensionless, real_t> &rv
       ) {
-        return rhod_rv / rhod / common::const_cp::r_vs<real_t>(T, p) - real_t(1);
+        return rv / common::const_cp::r_vs<real_t>(T, p) - real_t(1);
       }
 
-      //helper for activation formulae (see eq. 12 in Morrison and Grabowski 2007)
+      // helper for activation formulae (see eq. 12 in Morrison and Grabowski 2007)
       template<typename real_t>
-      quantity<si::dimensionless, real_t> sdev_rd_s(
-        quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+      inline quantity<si::dimensionless, real_t> sdev_rd_s(
+        const quantity<si::dimensionless, real_t> &sdev_rd,
+        const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
         return pow(sdev_rd, 1+beta);
       }
 
       //helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
       template <typename real_t>
-      quantity<si::dimensionless, real_t> u(
-        quantity<si::pressure,      real_t> p,
-        quantity<si::temperature,   real_t> T,
-        quantity<si::mass_density,  real_t> rhod,
-        quantity<si::mass_density,  real_t> rhod_rv,
-        quantity<si::length,        real_t> mean_rd,
-        quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<si::dimensionless, real_t> chem_b,
-        quantity<si::dimensionless, real_t> RH_max,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+      inline quantity<si::dimensionless, real_t> u(
+        const quantity<si::pressure,      real_t> &p,
+        const quantity<si::temperature,   real_t> &T,
+        const quantity<si::dimensionless, real_t> &rv,
+        const quantity<si::length,        real_t> &mean_rd,
+        const quantity<si::dimensionless, real_t> &sdev_rd,
+        const quantity<si::dimensionless, real_t> &chem_b,
+        const quantity<si::dimensionless, real_t> &RH_max,
+        const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
         return log(
           s_0(T, mean_rd, chem_b) / 
-          std::min(real_t(s(p, T, rhod, rhod_rv)), real_t(RH_max - 1))
+          std::min(real_t(s(p, T, rv)), real_t(RH_max - 1))
         ) / sqrt(2) / log(sdev_rd_s(sdev_rd));
       }
 
-      typedef divide_typeof_helper<si::dimensionless, si::volume>::type one_over_volume;
-      //helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
+      // helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
       template <typename real_t>
-      quantity<one_over_volume, real_t> N_c_p(
-        quantity<si::pressure,      real_t> p,
-        quantity<si::temperature,   real_t> T,
-        quantity<si::mass_density,  real_t> rhod,
-        quantity<si::mass_density,  real_t> rhod_rv,
-        quantity<si::length,        real_t> mean_rd,
-        quantity<si::dimensionless, real_t> sdev_rd,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_stp,
-        quantity<si::dimensionless, real_t> chem_b,
-        quantity<si::dimensionless, real_t> RH_max,
-        quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
+      inline quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_c_p(
+        const quantity<si::pressure,      real_t> &p,
+        const quantity<si::temperature,   real_t> &T,
+        const quantity<si::dimensionless, real_t> &rv,
+        const quantity<si::length,        real_t> &mean_rd,
+        const quantity<si::dimensionless, real_t> &sdev_rd,
+        const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &N_stp,
+        const quantity<si::dimensionless, real_t> &chem_b,
+        const quantity<si::dimensionless, real_t> &RH_max,
+        const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return (N_stp / rho_stp<real_t>() * rhod) / real_t(2.) * std::erfc(u(p, T, rhod, rhod_rv, mean_rd, sdev_rd, chem_b, RH_max)); 
+        return (N_stp / rho_stp<real_t>()) / real_t(2.) * std::erfc(u(p, T, rv, mean_rd, sdev_rd, chem_b, RH_max)); 
       }
 
-      typedef divide_typeof_helper<one_over_volume, si::time>::type one_over_volume_time;
-      //activation formulae (see eq. 13 in Morrison and Grabowski 2007)
+      // activation formulae (see eq. 13 in Morrison and Grabowski 2007)
       template <typename real_t>
-      quantity<one_over_volume_time, real_t> activation_rate(
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_ccn,
-        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> rhod_nc,
-        const quantity<si::time, real_t> dt
+      inline quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> activation_rate(
+        const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &n_ccn,
+        const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nc,
+        const quantity<si::time, real_t> &dt
       ) {
         return std::max(
-          real_t(0) / si::cubic_metres / si::seconds,
-          (N_ccn - rhod_nc) / dt
+          real_t(0) / si::kilograms / si::seconds,
+          (n_ccn - nc) / dt
         );
       }
  

@@ -10,7 +10,7 @@
 
 #include <algorithm>
 #include <libcloudph++/common/detail/zip.hpp>
-#include <libcloudph++/blk_2m/terminal_vel_formulae.hpp>  //TODO so far the same parametrisation as in blk_1m 
+#include <libcloudph++/blk_2m/terminal_vel_formulae.hpp> 
 
 namespace libcloudphxx
 {
@@ -22,117 +22,118 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     real_t rhs_columnwise(
       const opts_t<real_t> &opts,
-      cont_t &dot_rho_r_cont,
-      cont_t &dot_n_r_cont,
-      const cont_t &rho_d_cont,
-      const cont_t &rho_r_cont,
-      const cont_t &n_r_cont,
+      cont_t &dot_rr_cont,
+      cont_t &dot_nr_cont,
+      const cont_t &rhod_cont,
+      const cont_t &rr_cont,
+      const cont_t &nr_cont,
       const real_t &dt,
       const real_t &dz
     )   
 //</listing>
     {
-      using flux_rr = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
-
       if (!opts.sedi) return 0;
 
+      using flux_rr = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
       using flux_nr = quantity<divide_typeof_helper<si::frequency, si::volume>::type, real_t>;
      
       flux_rr flux_rr_in = 0 * si::kilograms / si::cubic_metres / si::seconds;
       flux_nr flux_nr_in = 0 / si::cubic_metres / si::seconds;
 
-      real_t *dot_rho_r = NULL;
-      real_t *dot_n_r = NULL;
+      real_t *dot_rr = NULL;
+      real_t *dot_nr = NULL;
       const real_t zero = 0;
 
       // initial values that should give zero flux from above the domain top
       const real_t 
-        *rho_r = &zero, 
-        *n_r = &zero, 
-        *rho_d = &*(--(rho_d_cont.end()));
+        *rr = &zero, 
+        *nr = &zero, 
+        *rhod = &*(--(rhod_cont.end()));
 
-      auto iter = zip(rho_d_cont, rho_r_cont, n_r_cont, dot_rho_r_cont, dot_n_r_cont);
+      auto iter = zip(rhod_cont, rr_cont, nr_cont, dot_rr_cont, dot_nr_cont);
       for (auto tup_ptr = iter.end(); tup_ptr != iter.begin();)
       {
         --tup_ptr;
 
         const real_t
-          *rho_d_below  = &boost::get<0>(*tup_ptr),
-          *rho_r_below  = &boost::get<1>(*tup_ptr),
-          *n_r_below    = &boost::get<2>(*tup_ptr);
+          *rhod_below = &boost::get<0>(*tup_ptr),
+          *rr_below   = &boost::get<1>(*tup_ptr),
+          *nr_below   = &boost::get<2>(*tup_ptr);
 
-        if (dot_rho_r != NULL) // i.e. all but first (top) grid cell
+        if (dot_rr != NULL) // i.e. all but first (top) grid cell
         {
           // terminal velocities at grid-cell edge (to assure precip mass conservation)
-          quantity<si::velocity, real_t> tmp_vel_m  = -real_t(.5) * ( // averaging + axis orientation
-	    formulae::v_term_m(
-              *rho_d_below * si::kilograms / si::cubic_metres, 
-              *rho_r_below * si::kilograms / si::cubic_metres, 
-              *n_r_below / si::cubic_metres 
+          quantity<multiply_typeof_helper<si::velocity, si::mass_density>::type, real_t> tmp_mom_m  = -real_t(.5) * ( // averaging + axis orientation
+	    (*rhod_below * si::kilograms / si::cubic_metres) * formulae::v_term_m(
+              *rhod_below * si::kilograms / si::cubic_metres, 
+              *rr_below * si::kilograms / si::kilograms, 
+              *nr_below / si::kilograms 
             ) + 
-	    formulae::v_term_m(
-              *rho_d * si::kilograms / si::cubic_metres,
-              *rho_r * si::kilograms / si::cubic_metres,
-              *n_r / si::cubic_metres
+	    (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term_m(
+              *rhod * si::kilograms / si::cubic_metres,
+              *rr * si::kilograms / si::kilograms,
+              *nr / si::kilograms
             )
 	  ); 
  
-          quantity<si::velocity, real_t> tmp_vel_n  = -real_t(.5) * ( // averaging + axis orientation
-	    formulae::v_term_n(
-              *rho_d_below * si::kilograms / si::cubic_metres, 
-              *rho_r_below * si::kilograms / si::cubic_metres, 
-              *n_r_below / si::cubic_metres 
+          quantity<multiply_typeof_helper<si::velocity, si::mass_density>::type, real_t> tmp_mom_n  = -real_t(.5) * ( // averaging + axis orientation
+	    (*rhod_below * si::kilograms / si::cubic_metres) * formulae::v_term_n(
+              *rhod_below * si::kilograms / si::cubic_metres, 
+              *rr_below * si::kilograms / si::kilograms, 
+              *nr_below / si::kilograms
             ) + 
-	    formulae::v_term_n(
-              *rho_d * si::kilograms / si::cubic_metres,
-              *rho_r * si::kilograms / si::cubic_metres,
-              *n_r / si::cubic_metres
+	    (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term_n(
+              *rhod * si::kilograms / si::cubic_metres,
+              *rr * si::kilograms / si::kilograms,
+              *nr / si::kilograms
             )
 	  ); 
           
           auto rflux_unit = si::kilograms / si::seconds / si::cubic_metres;
           auto nflux_unit = si::hertz / si::cubic_metres;
 
-          flux_rr flux_rr_out = tmp_vel_m * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
-          flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), (*rho_r + dt * *dot_rho_r) / dt) * rflux_unit;
+          flux_rr flux_rr_out = tmp_mom_m * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
+          flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), (*rr + dt * *dot_rr) / dt) * rflux_unit;
 
-          flux_nr flux_nr_out = tmp_vel_n * (*n_r / si::cubic_metres) / (dz * si::metres);
-          flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), (*n_r + dt * *dot_n_r) / dt) * nflux_unit;
+          flux_nr flux_nr_out = tmp_mom_n * (*nr / si::kilograms) / (dz * si::metres);
+          flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), (*nr + dt * *dot_nr) / dt) * nflux_unit;
 
-	  *dot_rho_r -= (flux_rr_in - flux_rr_out) / rflux_unit;
+	  *dot_rr -= (flux_rr_in - flux_rr_out) / rflux_unit;
           flux_rr_in = flux_rr_out; // inflow = outflow from above
-	  *dot_n_r -= (flux_nr_in - flux_nr_out) / nflux_unit;
+	  *dot_nr -= (flux_nr_in - flux_nr_out) / nflux_unit;
           flux_nr_in = flux_nr_out; // inflow = outflow from above
         }
 
-        dot_rho_r = &boost::get<3>(*tup_ptr);
-        dot_n_r = &boost::get<4>(*tup_ptr);
-        rho_d = rho_d_below;
-        rho_r = rho_r_below;
-        n_r = n_r_below;
+        dot_rr = &boost::get<3>(*tup_ptr);
+        dot_nr = &boost::get<4>(*tup_ptr);
+        rhod = rhod_below;
+        rr = rr_below;
+        nr = nr_below;
       }
 
       // the bottom grid cell (with mid-cell vterm approximation)
-      quantity<si::velocity, real_t> tmp_vel_m = - formulae::v_term_m(
-        *rho_d * si::kilograms / si::cubic_metres, 
-	*rho_r * si::kilograms / si::cubic_metres,
-	*n_r / si::cubic_metres
-      ); 
-      quantity<si::velocity, real_t> tmp_vel_n = - formulae::v_term_n(
-	*rho_d * si::kilograms / si::cubic_metres,
-	*rho_r * si::kilograms / si::cubic_metres,
-	*n_r / si::cubic_metres
-      ); 
+      quantity<multiply_typeof_helper<si::velocity, si::mass_density>::type, real_t> 
+        tmp_mom_m = - (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term_m(
+	  *rhod * si::kilograms / si::cubic_metres, 
+	  *rr * si::kilograms / si::kilograms,
+	  *nr / si::kilograms
+	); 
+      quantity<multiply_typeof_helper<si::velocity, si::mass_density>::type, real_t> 
+	tmp_mom_n = - (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term_n(
+	  *rhod * si::kilograms / si::cubic_metres,
+	  *rr * si::kilograms / si::kilograms,
+	  *nr / si::kilograms
+	); 
 
       {
-        flux_nr flux_nr_out = tmp_vel_n * (*n_r / si::cubic_metres) / (dz * si::metres);
-        *dot_n_r -= (flux_nr_in - flux_nr_out) * si::seconds * si::cubic_metres;
+        flux_nr flux_nr_out = tmp_mom_n * (*nr / si::kilograms) / (dz * si::metres);
+        *dot_nr -= (flux_nr_in - flux_nr_out) * si::seconds * si::kilograms;
       }
 
       // outflow from the domain
       {
-        flux_rr flux_rr_out = tmp_vel_m * (*rho_r * si::kilograms / si::cubic_metres) / (dz * si::metres);
-        *dot_rho_r -= (flux_rr_in - flux_rr_out) * si::seconds * si::cubic_metres / si::kilograms;
+        flux_rr flux_rr_out = tmp_mom_m * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
+        *dot_rr -= (flux_rr_in - flux_rr_out) * si::seconds;
 
         return flux_rr_out / (si::kilograms / si::cubic_metres / si::seconds);
       }
