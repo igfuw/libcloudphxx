@@ -11,9 +11,12 @@ target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 
 # 
 find_package(PythonInterp)
-add_test(
-  NAME test
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
-  COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/test.py"
-)
+
+foreach(test api_blk_1m api_blk_2m api_lgrngn)
+  add_test(
+    NAME ${test}
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
+    COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/${test}.py"
+  )
+endforeach()
 #TODO: indicate that tests depend on the lib
