@@ -18,7 +18,7 @@
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_2m/rhs_columnwise.hpp>
 
-#include <libcloudph++/lgrngn/options.hpp>
+#include <libcloudph++/lgrngn/opts.hpp>
 
 namespace bp = boost::python;
 
