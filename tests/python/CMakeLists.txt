@@ -1,4 +1,5 @@
 add_library(cloudphxx SHARED lib.cpp)
+set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 
 # informing the Python bindings where to find Python
 find_package(PythonLibs)
