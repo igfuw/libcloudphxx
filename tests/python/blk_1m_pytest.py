@@ -49,12 +49,15 @@ def test_exeptions_wrongvalue(arg):
 
 #TODO: wypisac znane outputy
 @pytest.mark.parametrize("arg, expected", [
-    ({}, ),
+    ({"th":  arr_t([300.]), "rv" :  arr_t([0.]), "rc" :  arr_t([0.])},
+     {"rv" :  arr_t([0.]), "rc" :  arr_t([0.])}),
     ])
 #TODO zastanowic sie nad epsilonem
-def test_expected_output(arg, expected, epsilon = 0.05):
-    opts = opts_cr()
-    assert abs(adj_cellwise(opts, **arg) - expected) <= epsilon * abs(expected)
+def test_expected_output_evapcond(arg, expected, epsilon = 0.05):
+    opts = opts_cr(conv = False, accr = False )
+    adj_cellwise(opts, **arg)
+    for key, value in expected.items():
+        assert abs(eval(key) - value) <= epsilon * abs(value)
 
 
 
