@@ -10,15 +10,17 @@ from libcloudphxx import blk_1m
 
 #TODO: mysle, ze moznaby tu dodac params?
 # czy te cond, cevp to jakies atrybuty? nie mozna tego krocej zapisac?
-@pytest.fixture
-def opts_cr(request):
+# zrezygnowalam chwilowo z fixture
+
+def opts_cr(cond = True, cevp = True, revp = True, conv = True,
+            accr = True, sedi = False):
     opts = blk_1m.opts_t()
-    opts.cond = True
-    opts.cevp = True
-    opts.revp = True
-    opts.conv = True
-    opts.accr = True
-    opts.sedi = False
+    opts.cond = cond
+    opts.cevp = cevp
+    opts.revp = revp
+    opts.conv = conv
+    opts.accr = accr
+    opts.sedi = sedi
     return opts
 
 # typical values a example
@@ -40,16 +42,17 @@ def adj_cellwise(opts, rhod = rhod_0, th = th0,
     {'rc':arr_t([-1.e-5])}, pytest.mark.xfail({'rc':arr_t([0.01])}),
     {'rr':arr_t([-1.e-5])}, pytest.mark.xfail({'rr':arr_t([0.01])})
     ])
-def test_exeptions_wrongvalue(opts_cr, arg):
+def test_exeptions_wrongvalue(arg):
     opts = opts_cr()
     with pytest.raises(Exception):
         adj_cellwise(opts, **arg) 
 
+#TODO: wypisac znane outputy
 @pytest.mark.parametrize("arg, expected", [
     ({}, ),
     ])
 #TODO zastanowic sie nad epsilonem
-def test_expected_output(opts_cr, arg, expected, epsilon = 0.05):
+def test_expected_output(arg, expected, epsilon = 0.05):
     opts = opts_cr()
     assert abs(adj_cellwise(opts, **arg) - expected) <= epsilon * abs(expected)
 
