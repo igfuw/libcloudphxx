@@ -14,6 +14,7 @@
 
 // all libclouph++'s includes which potentially include <cassert> or <assert.h>
 // needed here as assert.h redefines assert() every time it is included
+// TODO: achieve the same behaviour by introducing <...blk_1m/includes.hpp>, etc
 #include <libcloudph++/blk_1m/formulae.hpp>
 #include <algorithm>
 #include <cmath>
@@ -25,7 +26,7 @@
 // turning asserts into exceptions
 #undef assert
 #define assert_str(s) #s
-#if __GNUC_PREREQ(2, 6)
+#if defined(__GNUC_PREREQ) && __GNUC_PREREQ(2,6)
 #  define assert_fun __PRETTY_FUNCTION__
 #else
 #  define assert_fun __func__
