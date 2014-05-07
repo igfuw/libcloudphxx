@@ -42,13 +42,14 @@ namespace libcloudphxx
 //</listing>
     {  
       // sanity checks
-      assert(min(rv_cont) > 0);
+      assert(min(rv_cont) >= 0);
       assert(min(th_cont) > 0);
       assert(min(rc_cont) >= 0);
       assert(min(rr_cont) >= 0);
       assert(min(nc_cont) >= 0);
       assert(min(nr_cont) >= 0);
 
+      // TODO: rewrite so thet's not needed
       assert(min(dot_nc_cont) == 0);
       //assert(min(dot_nr_cont) == 0);
       assert(min(dot_rc_cont) == 0);
@@ -62,7 +63,7 @@ namespace libcloudphxx
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
-      // if something is too small e-179 it becomes negative
+      // if something is too small e-179 it becomes negative # TODO WHY! - explain or fix
       // so instead of n_l == 0 we have n_l < eps
       // also -1e-30 + 1e-30 is not equal to zero
       quantity<si::dimensionless, real_t>                                       eps_d = real_t(1e-20);

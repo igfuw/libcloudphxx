@@ -114,7 +114,7 @@ namespace libcloudphxx
           &rr = boost::get<4>(tup);
 
 	// double-checking....
-	assert(th >= 273.15);
+	assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
 	assert(rr >= 0); 
@@ -150,7 +150,7 @@ namespace libcloudphxx
 	)
 	{
           // an arbitrary initial guess for drv
-	  real_t drv = - copysign(.5 * opts.r_eps, vapour_excess); 
+	  real_t drv = - copysign(std::min(.5 * opts.r_eps, .5 * vapour_excess), vapour_excess); 
           // preventing negative mixing ratios if evaporating
 	  if (vapour_excess < 0) drv = 
             incloud ? std::min(rc, drv) // limiting by rc
@@ -191,12 +191,10 @@ namespace libcloudphxx
 	  }
 	}
 
-std::cerr << "C++ th=" << th << std::endl;
-
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
-	assert(th >= 273.15);
+	assert(th >= 273.15); // that is theta, not T ! TODO
 	assert(rc >= 0);
 	assert(rv >= 0);
 	assert(rr >= 0);
