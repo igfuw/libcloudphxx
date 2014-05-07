@@ -114,7 +114,7 @@ namespace libcloudphxx
           &rr = boost::get<4>(tup);
 
 	// double-checking....
-	assert(th >= 273.15);
+	assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
 	assert(rr >= 0); 
