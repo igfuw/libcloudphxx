@@ -117,52 +117,51 @@ namespace blk_1m
 
 namespace blk_2m
 {
-/*
   void rhs_cellwise(
     const libcloudphxx::blk_2m::opts_t<real_t> &opts,
-    bp::object &dot_th,
-    bp::object &dot_rv,
-    bp::object &dot_rc,
-    bp::object &dot_nc,
-    bp::object &dot_rr,
-    bp::object &dot_nr,
-    bp::object &rhod,
-    bp::object &th,
-    bp::object &rv,
-    bp::object &rc,
-    bp::object &nc,
-    bp::object &rr,
-    bp::object &nr,
-    const real_t dt
+    bp::numeric::array &dot_th,
+    bp::numeric::array &dot_rv,
+    bp::numeric::array &dot_rc,
+    bp::numeric::array &dot_nc,
+    bp::numeric::array &dot_rr,
+    bp::numeric::array &dot_nr,
+    bp::numeric::array &rhod,
+    bp::numeric::array &th,
+    bp::numeric::array &rv,
+    bp::numeric::array &rc,
+    bp::numeric::array &nc,
+    bp::numeric::array &rr,
+    bp::numeric::array &nr,
+    const real_t &dt
   ) 
   {
-    iterable 
-      dot_th_c(dot_rc), 
-      dot_rv_c(dot_rc), 
-      dot_rc_c(dot_rc), 
-      dot_nc_c(dot_rc), 
-      dot_rr_c(dot_rc), 
-      dot_nr_c(dot_rr);
-// TODO: fails to compile (min() not declared for iterable)
+    arr_t
+      np2bz_dot_th(np2bz(dot_th)), 
+      np2bz_dot_rv(np2bz(dot_rv)), 
+      np2bz_dot_rc(np2bz(dot_rc)), 
+      np2bz_dot_nc(np2bz(dot_nc)), 
+      np2bz_dot_rr(np2bz(dot_rr)), 
+      np2bz_dot_nr(np2bz(dot_nr));
     libcloudphxx::blk_2m::rhs_cellwise(
       opts,
-      dot_th_c,
-      dot_rv_c,
-      dot_rc_c,
-      dot_nc_c,
-      dot_rr_c,
-      dot_nr_c,
-      iterable(rhod),
-      iterable(th),
-      iterable(rv),
-      iterable(rc),
-      iterable(nc),
-      iterable(rr),
-      iterable(nr),
+      np2bz_dot_th,
+      np2bz_dot_rv,
+      np2bz_dot_rc,
+      np2bz_dot_nc,
+      np2bz_dot_rr,
+      np2bz_dot_nr,
+      np2bz(rhod),
+      np2bz(th),
+      np2bz(rv),
+      np2bz(rc),
+      np2bz(nc),
+      np2bz(rr),
+      np2bz(nr),
       dt
     );
   } 
 
+/*
   void rhs_columnwise(
     const libcloudphxx::blk_2m::opts_t<real_t> &opts,
     bp::object &dot_rr,
@@ -222,7 +221,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("blk_2m") = nested_module;
     bp::scope parent = nested_module;
     bp::class_<libcloudphxx::blk_2m::opts_t<real_t>>("opts_t");
-//    bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
+    bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
 //    bp::def("rhs_columnwise", blk_2m::rhs_columnwise);
   } 
 
