@@ -20,11 +20,17 @@ rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
 rr   = arr_t([0.  ])
 dt   = 1
+dz   = 1
 
+th_old = th.copy()
 blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
-print "Python: th=", th
+assert th != th_old # some water should have evaporated
 
 dot_rc = arr_t([0.])
 dot_rr = arr_t([0.])
 blk_1m.rhs_cellwise(opts, dot_rc, dot_rr, rc, rr)
-print "Python dot_rc =", dot_rc
+assert dot_rc != 0 # some water should have coalesced
+
+dot_rr_old = dot_rr.copy()
+blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
+assert dot_rr == dot_rr_old # no rain water -> no precip

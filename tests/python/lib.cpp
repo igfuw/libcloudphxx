@@ -96,26 +96,23 @@ namespace blk_1m
     );
   } 
 
-/*
   void rhs_columnwise(
     const libcloudphxx::blk_1m::opts_t<real_t> &opts,
-    bp::object &dot_rr,
-    bp::object &rhod,
-    bp::object &rr,
+    bp::numeric::array &dot_rr,
+    bp::numeric::array &rhod,
+    bp::numeric::array &rr,
     const real_t &dz
   ) {
-    iterable 
-      dot_rr_c(dot_rr);
-// TODO: fails to compile (iterators)
-//    libcloudphxx::blk_1m::rhs_columnwise<real_t, iterable>(
-//      opts,
-//      dot_rr_c,
-//      iterable(rhod),
-//      iterable(rr),
-//      dz
-//    );
+    arr_t
+      np2bz_dot_rr(np2bz(dot_rr));
+    libcloudphxx::blk_1m::rhs_columnwise(
+      opts,
+      np2bz_dot_rr,
+      np2bz(rhod),
+      np2bz(rr),
+      dz
+    );
   } 
-*/
 };
 
 namespace blk_2m
@@ -215,7 +212,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::class_<libcloudphxx::blk_1m::opts_t<real_t>>("opts_t");
     bp::def("adj_cellwise", blk_1m::adj_cellwise);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise); 
-//    bp::def("rhs_columnwise", blk_1m::rhs_columnwise); 
+    bp::def("rhs_columnwise", blk_1m::rhs_columnwise); 
   }
 
   // blk_2m stuff
