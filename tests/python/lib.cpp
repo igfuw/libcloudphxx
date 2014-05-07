@@ -26,11 +26,12 @@
 // turning asserts into exceptions
 #undef assert
 #define assert_str(s) #s
-#if defined(__GNUC_PREREQ) && __GNUC_PREREQ(2,6)
-#  define assert_fun __PRETTY_FUNCTION__
-#else
+// TODO: for some reason it's not working everywhere 
+//#if defined(__GNUC_PREREQ) && __GNUC_PREREQ(2,6)
+//#  define assert_fun __PRETTY_FUNCTION__
+//#else
 #  define assert_fun __func__
-#endif
+//#endif
 #define assert(cond) { \
   if (!(cond)) throw std::runtime_error( \
     __FILE__ ":" + std::to_string(__LINE__) + ": " + assert_fun + ": " \
