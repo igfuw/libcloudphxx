@@ -1,13 +1,41 @@
+// author[s]: Sylwester Arabas, Dorota Jarecka
+// licensing: GPU GPL v3
+// copyright: University of Warsaw
+
+#include <boost/python.hpp> 
 // written following:
 // - http://www.boost.org/doc/libs/1_55_0/libs/python/doc/tutorial/doc/html/python/exposing.html
 // - http://isolation-nation.blogspot.com/2008/09/packages-in-python-extension-modules.html
-
-#include <boost/python.hpp> 
 
 #if defined(BZ_THREADSAFE)
 #  error please unset BZ_THREADSAFE
 #endif
 #include <blitz/array.h>
+
+// all libclouph++'s includes which potentially include <cassert> or <assert.h>
+// needed here as assert.h redefines assert() every time it is included
+#include <libcloudph++/blk_1m/formulae.hpp>
+#include <algorithm>
+#include <cmath>
+#include <boost/numeric/odeint.hpp>
+#include <boost/config.hpp>
+#include <boost/range.hpp>
+#include <boost/iterator/zip_iterator.hpp>
+
+// turning asserts into exceptions
+#undef assert
+#define assert_str(s) #s
+#if __GNUC_PREREQ(2, 6)
+#  define assert_fun __PRETTY_FUNCTION__
+#else
+#  define assert_fun __func__
+#endif
+#define assert(cond) { \
+  if (!(cond)) throw std::runtime_error( \
+    __FILE__ ":" + std::to_string(__LINE__) + ": " + assert_fun + ": " \
+    "Assertion `" assert_str(cond) "' failed." \
+  ); \
+}
 
 #include <libcloudph++/blk_1m/options.hpp>
 #include <libcloudph++/blk_1m/adj_cellwise.hpp>
