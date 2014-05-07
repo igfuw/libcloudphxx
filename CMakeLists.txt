@@ -15,5 +15,3 @@ enable_testing()
 add_subdirectory(tests)
 
 add_subdirectory(include) 
-
-#TODO: search for libmpdata++

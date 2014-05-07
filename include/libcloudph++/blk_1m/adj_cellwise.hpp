@@ -191,8 +191,6 @@ namespace libcloudphxx
 	  }
 	}
 
-std::cerr << "C++ th=" << th << std::endl;
-
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
