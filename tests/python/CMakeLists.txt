@@ -25,11 +25,11 @@ foreach(test api_blk_1m api_blk_2m api_lgrngn)
 endforeach()
 
 # pytest tests run with "python -m pytest"
-foreach(test pytest_hello)
+foreach(test pytest_hello blk_1m_pytest)
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
-    COMMAND ${PYTHON_EXECUTABLE} "-m" "pytest" "${CMAKE_SOURCE_DIR}/tests/python/${test}.py"
+    COMMAND ${PYTHON_EXECUTABLE} "-m" "pytest" "-s" "${CMAKE_SOURCE_DIR}/tests/python/${test}.py"
   )
 endforeach()
 
