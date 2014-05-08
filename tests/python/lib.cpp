@@ -55,7 +55,7 @@ namespace bp = boost::python;
 using real_t = double;
 using arr_t = blitz::Array<real_t, 1>;
 
-inline arr_t np2bz(bp::numeric::array &arg)
+inline arr_t np2bz(const bp::numeric::array &arg)
 {
   // assuring double precision
   if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
@@ -82,7 +82,7 @@ namespace blk_1m
 {
   void adj_cellwise(
     const libcloudphxx::blk_1m::opts_t<real_t>& opts,
-    bp::numeric::array &rhod,
+    const bp::numeric::array &rhod,
     bp::numeric::array &th,
     bp::numeric::array &rv,
     bp::numeric::array &rc,
@@ -110,8 +110,8 @@ namespace blk_1m
     const libcloudphxx::blk_1m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rc,
     bp::numeric::array &dot_rr,
-    bp::numeric::array &rc,
-    bp::numeric::array &rr
+    const bp::numeric::array &rc,
+    const bp::numeric::array &rr
   ) 
   {
     arr_t
@@ -129,8 +129,8 @@ namespace blk_1m
   void rhs_columnwise(
     const libcloudphxx::blk_1m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rr,
-    bp::numeric::array &rhod,
-    bp::numeric::array &rr,
+    const bp::numeric::array &rhod,
+    const bp::numeric::array &rr,
     const real_t &dz
   ) {
     arr_t
@@ -155,13 +155,13 @@ namespace blk_2m
     bp::numeric::array &dot_nc,
     bp::numeric::array &dot_rr,
     bp::numeric::array &dot_nr,
-    bp::numeric::array &rhod,
-    bp::numeric::array &th,
-    bp::numeric::array &rv,
-    bp::numeric::array &rc,
-    bp::numeric::array &nc,
-    bp::numeric::array &rr,
-    bp::numeric::array &nr,
+    const bp::numeric::array &rhod,
+    const bp::numeric::array &th,
+    const bp::numeric::array &rv,
+    const bp::numeric::array &rc,
+    const bp::numeric::array &nc,
+    const bp::numeric::array &rr,
+    const bp::numeric::array &nr,
     const real_t &dt
   ) 
   {
