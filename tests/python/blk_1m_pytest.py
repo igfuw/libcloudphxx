@@ -5,6 +5,7 @@ sys.path.append(".")
 import pytest
 import inspect
 import pdb
+import py.code
 
 from numpy import array as arr_t
 
@@ -37,9 +38,13 @@ dt_0   = 1
 def adj_cellwise(opts, rhod = rhod_0, th = th_0,
                  rv = rv_0, rc = rc_0, rr = rr_0, dt = dt_0):
     print "\n In adj_cellwise. Who is calling..?", inspect.stack()[1][3]
-    pdb.set_trace()
+    print "th, rv, rc initial ", th, rv, rc
+    print "th_0, rv_0, rc_0 initial", th_0, rv_0, rc_0
+    #pdb.set_trace()
     blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
-    pdb.set_trace()
+    print "th, rv, rc", th, rv, rc
+    print "th_0, rv_0, rc_0", th_0, rv_0, rc_0
+    #pdb.set_trace()
     return rv, rc
 
 #@pytest.mark.skipif
@@ -47,13 +52,17 @@ def adj_cellwise(opts, rhod = rhod_0, th = th_0,
     {'th':arr_t([-292])},    pytest.mark.xfail({'th':arr_t([500 ])}),
     {'rv':arr_t([-1.e-5])}, pytest.mark.xfail({'rv':arr_t([0.1 ])}),
     {'rc':arr_t([-1.e-5])}, pytest.mark.xfail({'rc':arr_t([0.01])}),
-    {'rr':arr_t([-1.e-5])}, pytest.mark.xfail({'rr':arr_t([0.01])})
+#    {'rr':arr_t([-1.e-5])}, pytest.mark.xfail({'rr':arr_t([0.01])})
     ])
 def test_exeptions_wrongvalue(arg):
     print "\n jestem w test_exeption", arg
     opts = opts_cr()
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError) as excinfo:
+        #assert isinstance(excinfo, py.code.ExceptionInfo)
+        #excinfo = py.code.ExceptionInfo
+        #print "ex", excinfo.typename
         adj_cellwise(opts, **arg) 
+    
 
 #TODO: wypisac znane outputy, moze tez theta?
 #@pytest.mark.skipif
@@ -76,9 +85,7 @@ def test_expected_output_evapcond(arg, expected, epsilon = 0.1):
     opts = opts_cr(conv = False, accr = False )
     rv, rc = adj_cellwise(opts, **arg)
     for key, value in expected.items():
-        import pdb
-        pdb.set_trace()
-
+        #pdb.set_trace()
         print "\n key, valuu, eval(key)", key, value, eval(key)
         assert abs(eval(key) - value) <= epsilon * abs(value)
 
