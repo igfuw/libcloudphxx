@@ -23,13 +23,20 @@ dt   = 1
 dz   = 1
 
 th_old = th.copy()
+rv_old = rv.copy()
+rc_old = rc.copy()
+rr_old = rr.copy()
 blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
 assert th != th_old # some water should have evaporated
+assert rv != rv_old
+assert rc != rc_old
+assert rr == rr_old
 
 dot_rc = arr_t([0.])
 dot_rr = arr_t([0.])
 blk_1m.rhs_cellwise(opts, dot_rc, dot_rr, rc, rr)
 assert dot_rc != 0 # some water should have coalesced
+assert dot_rr != 0
 
 dot_rr_old = dot_rr.copy()
 blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
