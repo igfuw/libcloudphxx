@@ -5,7 +5,6 @@ sys.path.append(".")
 import pytest
 import inspect
 import pdb
-import py.code
 
 from numpy import array as arr_t
 
@@ -35,8 +34,8 @@ rr_0   = arr_t([0.  ])
 dt_0   = 1
 
 #ta f-cja jest tylko po to, aby byly keword arg., konieczna?
-def adj_cellwise(opts, rhod = rhod_0, th = th_0,
-                 rv = rv_0, rc = rc_0, rr = rr_0, dt = dt_0):
+def adj_cellwise(opts, rhod = rhod_0.copy(), th = th_0.copy(),
+                 rv = rv_0.copy(), rc = rc_0.copy(), rr = rr_0.copy(), dt = dt_0):
     print "\n In adj_cellwise. Who is calling..?", inspect.stack()[1][3]
     print "th, rv, rc initial ", th, rv, rc
     print "th_0, rv_0, rc_0 initial", th_0, rv_0, rc_0
@@ -49,23 +48,23 @@ def adj_cellwise(opts, rhod = rhod_0, th = th_0,
 
 #@pytest.mark.skipif
 @pytest.mark.parametrize("arg", [
-    {'th':arr_t([-292])},    pytest.mark.xfail({'th':arr_t([500 ])}),
+    {'th':arr_t([255.])},    pytest.mark.xfail({'th':arr_t([500. ])}),
     {'rv':arr_t([-1.e-5])}, pytest.mark.xfail({'rv':arr_t([0.1 ])}),
     {'rc':arr_t([-1.e-5])}, pytest.mark.xfail({'rc':arr_t([0.01])}),
-#    {'rr':arr_t([-1.e-5])}, pytest.mark.xfail({'rr':arr_t([0.01])})
+    {'rr':arr_t([-1.e-5])}, pytest.mark.xfail({'rr':arr_t([0.01])})
     ])
 def test_exeptions_wrongvalue(arg):
     print "\n jestem w test_exeption", arg
     opts = opts_cr()
-    with pytest.raises(RuntimeError) as excinfo:
-        #assert isinstance(excinfo, py.code.ExceptionInfo)
-        #excinfo = py.code.ExceptionInfo
-        #print "ex", excinfo.typename
-        adj_cellwise(opts, **arg) 
+    with pytest.raises(Exception) as excinfo:
+#        pdb.set_trace()
+        adj_cellwise(opts, **arg)
+    #the line below can give you information about the exception 
+    #print "exception info:", excinfo.value
     
 
 #TODO: wypisac znane outputy, moze tez theta?
-#@pytest.mark.skipif
+@pytest.mark.skipif
 @pytest.mark.parametrize("arg, expected", [
 #ok        ({"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])},
 #ok         {"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])}), # no water
