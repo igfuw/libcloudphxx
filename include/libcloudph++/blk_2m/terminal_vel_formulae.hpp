@@ -160,19 +160,19 @@ namespace libcloudphxx
           * si::cubic_metres / si::kilograms // to make it dimensionless 
           * real_t(1000) // mass of the drop in grams
           * (
-	    alpha_fall(d1<real_t>() / 2) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / 2)) 
+	    alpha_fall(d1<real_t>() / real_t(2)) 
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2))) 
 	    * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
 	    +
-	    alpha_fall(d1<real_t>() + d2<real_t>() / 2) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / 2)) 
+	    alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2)) 
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2))) 
 	    * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
 	    +
-	    alpha_fall(d2<real_t>() + d3<real_t>() / 2) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / 2)) 
+	    alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2)) 
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2))) 
 	    * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
 	    +
-	    alpha_fall(2 * d3<real_t>()) 
+	    alpha_fall(real_t(2) * d3<real_t>()) 
             * (real_t(0) - int_4(lbd, d3<real_t>()))
 	  ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
@@ -194,19 +194,19 @@ namespace libcloudphxx
         // eq A4 in Morrison 2005
         auto tmp = rho_stp<real_t>() / rhod 
           * (
-	   alpha_fall(d1<real_t>() / 2) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>()/2)) 
+	   alpha_fall(d1<real_t>() / real_t(2)) 
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2))) 
            * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
 	   +
-           alpha_fall(d1<real_t>() + d2<real_t>()/2) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>()/2)) 
+           alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2)) 
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2))) 
            * (nint_2(lbd, d2<real_t>()) - nint_2(lbd, d1<real_t>()))
            +
-           alpha_fall(d2<real_t>() + d3<real_t>()/2) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>()/2)) 
+           alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2)) 
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2))) 
            * (nint_3(lbd, d3<real_t>()) - nint_3(lbd, d2<real_t>()))
            +
-           alpha_fall(2 * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
+           alpha_fall(real_t(2) * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
           ) 
           * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
