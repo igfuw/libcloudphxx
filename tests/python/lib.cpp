@@ -191,33 +191,30 @@ namespace blk_2m
     );
   } 
 
-/*
   void rhs_columnwise(
     const libcloudphxx::blk_2m::opts_t<real_t> &opts,
-    bp::object &dot_rr,
-    bp::object &dot_nr,
-    bp::object &rhod,
-    bp::object &rr,
-    bp::object &nr,
+    bp::numeric::array &dot_rr,
+    bp::numeric::array &dot_nr,
+    const bp::numeric::array &rhod,
+    const bp::numeric::array &rr,
+    const bp::numeric::array &nr,
     const real_t &dt,
     const real_t &dz
   ) {
-    iterable 
-      dot_rr_c(dot_rr), 
-      dot_nr_c(dot_nr);
-// TODO: fails to compile (iterators)
-//    libcloudphxx::blk_2m::rhs_columnwise<real_t, iterable>(
-//      opts,
-//      dot_rr_c,
-//      dot_nr_c,
-//      iterable(rhod),
-//      iterable(rr),
-//      iterable(nr),
-//      dt,
-//      dz
-//    );
+    arr_t
+      np2bz_dot_rr(np2bz(dot_rr)), 
+      np2bz_dot_nr(np2bz(dot_nr));
+    libcloudphxx::blk_2m::rhs_columnwise(
+      opts,
+      np2bz_dot_rr,
+      np2bz_dot_nr,
+      np2bz(rhod),
+      np2bz(rr),
+      np2bz(nr),
+      dt,
+      dz
+    );
   } 
-*/
 };
 
 namespace lgrngn
@@ -252,7 +249,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope parent = nested_module;
     bp::class_<libcloudphxx::blk_2m::opts_t<real_t>>("opts_t");
     bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
-//    bp::def("rhs_columnwise", blk_2m::rhs_columnwise);
+    bp::def("rhs_columnwise", blk_2m::rhs_columnwise);
   } 
 
   // lgrngn stuff
@@ -262,5 +259,6 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("lgrngn") = nested_module;
     bp::scope parent = nested_module;
     bp::class_<libcloudphxx::lgrngn::opts_t<real_t>>("opts_t");
+    // TODO...
   }
 }

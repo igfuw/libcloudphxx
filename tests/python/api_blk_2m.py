@@ -41,4 +41,9 @@ blk_2m.rhs_cellwise(
 assert th == th_old # th should be left untouched
 assert dot_th != 0 # but it's derivative should be non-zero
 
-#blk_2m.rhs_columnwise() TODO
+dz = 1
+dot_rr_old = dot_rr.copy()
+dot_nr_old = dot_nr.copy()
+blk_2m.rhs_columnwise(opts, dot_rr, dot_nr, rhod, rr, nr, dt, dz) 
+assert dot_rr == dot_rr_old and dot_nr == dot_nr_old # no rain water -> no precip
+
