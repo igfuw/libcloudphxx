@@ -31,6 +31,8 @@ namespace libcloudphxx
     {
       using flux_t = quantity<divide_typeof_helper<si::mass_density, si::time>::type, real_t>;
 
+      auto dot_rr_unit = si::hertz;
+
       if (!opts.sedi) return 0;
 
       // 
@@ -66,7 +68,7 @@ namespace libcloudphxx
             )
 	  ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
 
-	  *dot_rr -= (flux_in - flux_out) * si::seconds * si::cubic_metres / si::kilograms;
+	  *dot_rr -= (flux_in - flux_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
           flux_in = flux_out; // inflow = outflow from above
         }
 
@@ -81,7 +83,7 @@ namespace libcloudphxx
 	*rhod              * si::kilograms / si::cubic_metres, 
 	*rhod_cont.begin() * si::kilograms / si::cubic_metres
       ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
-      *dot_rr -= (flux_in - flux_out) * si::seconds * si::cubic_metres / si::kilograms;
+      *dot_rr -= (flux_in - flux_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
 
       // outflow from the domain
       return real_t(flux_out / (si::kilograms / si::cubic_metres / si::seconds));
