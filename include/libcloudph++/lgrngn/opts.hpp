@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../common/units.hpp"
+#include <libcloudph++/lgrngn/extincl.hpp>
 
 namespace libcloudphxx
 {

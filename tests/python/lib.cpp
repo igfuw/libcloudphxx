@@ -12,10 +12,11 @@
 #endif
 #include <blitz/array.h>
 
-// all libclouph++'s includes which potentially include <cassert> or <assert.h>
+// all libcloudph++'s includes which potentially include <cassert> or <assert.h>
 // needed here as assert.h redefines assert() every time it is included
 #include <libcloudph++/blk_1m/extincl.hpp>
 #include <libcloudph++/blk_2m/extincl.hpp>
+#include <libcloudph++/lgrngn/extincl.hpp>
 
 // turning asserts into exceptions
 #undef assert
@@ -42,7 +43,7 @@
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_2m/rhs_columnwise.hpp>
 
-#include <libcloudph++/lgrngn/opts.hpp>
+#include <libcloudph++/lgrngn/factory.hpp>
 
 namespace bp = boost::python;
 
@@ -213,6 +214,12 @@ namespace blk_2m
 
 namespace lgrngn
 {
+   libcloudphxx::lgrngn::particles_proto_t<real_t> *factory(
+    const libcloudphxx::lgrngn::backend_t &backend,
+    const libcloudphxx::lgrngn::opts_init_t<real_t> &opts_init
+  ) {
+    return libcloudphxx::lgrngn::factory(backend, opts_init);
+  }
 };
 
 BOOST_PYTHON_MODULE(libcloudphxx)
@@ -252,7 +259,18 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("lgrngn") = nested_module;
     bp::scope parent = nested_module;
+    // enums
+    bp::enum_<libcloudphxx::lgrngn::backend_t>("backend_t")
+      .value("serial", libcloudphxx::lgrngn::serial)
+      .value("OpenMP", libcloudphxx::lgrngn::OpenMP)
+      .value("CUDA", libcloudphxx::lgrngn::CUDA);
+    bp::enum_<libcloudphxx::lgrngn::kernel_t>("kernel_t") 
+      .value("geometric", libcloudphxx::lgrngn::geometric);
+    // classes
     bp::class_<libcloudphxx::lgrngn::opts_t<real_t>>("opts_t");
-    // TODO...
+    bp::class_<libcloudphxx::lgrngn::opts_init_t<real_t>>("opts_init_t");
+    bp::class_<libcloudphxx::lgrngn::particles_proto_t<real_t>>("particles_proto_t");
+    // functions
+    bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());
   }
 }

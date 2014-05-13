@@ -7,10 +7,7 @@
 
 #pragma once
 
-#include <boost/ptr_container/ptr_unordered_map.hpp>
-
-#include "../common/unary_function.hpp"
-#include "../common/units.hpp"
+#include <libcloudph++/lgrngn/extincl.hpp>
 
 #include "kernel.hpp"
 
