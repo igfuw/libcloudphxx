@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <libcloudph++/common/detail/zip.hpp>
-#include <libcloudph++/blk_2m/terminal_vel_formulae.hpp> 
+#include <libcloudph++/blk_2m/extincl.hpp> 
 
 namespace libcloudphxx
 {
@@ -96,10 +94,10 @@ namespace libcloudphxx
           auto nflux_unit = si::hertz / si::cubic_metres;
 
           flux_rr flux_rr_out = tmp_mom_m * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
-          flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), (*rr + dt * *dot_rr) / dt) * rflux_unit;
+          flux_rr_out = std::min(real_t(flux_rr_out / rflux_unit), *rhod * (*rr + dt * *dot_rr) / dt) * rflux_unit;
 
           flux_nr flux_nr_out = tmp_mom_n * (*nr / si::kilograms) / (dz * si::metres);
-          flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), (*nr + dt * *dot_nr) / dt) * nflux_unit;
+          flux_nr_out = std::min(real_t(flux_nr_out / nflux_unit), *rhod * (*nr + dt * *dot_nr) / dt) * nflux_unit;
 
 	  *dot_rr -= (flux_rr_in - flux_rr_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
           flux_rr_in = flux_rr_out; // inflow = outflow from above
@@ -128,15 +126,17 @@ namespace libcloudphxx
 	  *nr / si::kilograms
 	); 
 
+      // outflow from the domain
       {
         flux_nr flux_nr_out = tmp_mom_n * (*nr / si::kilograms) / (dz * si::metres);
         *dot_nr -= (flux_nr_in - flux_nr_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_nr_unit;
+// TODO: min() ???
       }
 
-      // outflow from the domain
       {
         flux_rr flux_rr_out = tmp_mom_m * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
         *dot_rr -= (flux_rr_in - flux_rr_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
+// TODO: min() ???
 
         return flux_rr_out / (si::kilograms / si::cubic_metres / si::seconds);
       }

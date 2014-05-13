@@ -14,14 +14,8 @@
 
 // all libclouph++'s includes which potentially include <cassert> or <assert.h>
 // needed here as assert.h redefines assert() every time it is included
-// TODO: achieve the same behaviour by introducing <...blk_1m/includes.hpp>, etc
-#include <libcloudph++/blk_1m/formulae.hpp>
-#include <algorithm>
-#include <cmath>
-#include <boost/numeric/odeint.hpp>
-#include <boost/config.hpp>
-#include <boost/range.hpp>
-#include <boost/iterator/zip_iterator.hpp>
+#include <libcloudph++/blk_1m/extincl.hpp>
+#include <libcloudph++/blk_2m/extincl.hpp>
 
 // turning asserts into exceptions
 #undef assert
