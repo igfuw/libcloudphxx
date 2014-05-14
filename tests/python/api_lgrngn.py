@@ -5,6 +5,13 @@ from libcloudphxx import lgrngn
 
 opts = lgrngn.opts_t()
 
-prtcls = lgrngn.factory(lgrngn.backend_t.serial, lgrngn.opts_init_t())
-#prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, lgrngn.opts_init_t())
-#prtcls = lgrngn.factory(lgrngn.backend_t.CUDA,   lgrngn.opts_init_t())
+opts_init = lgrngn.opts_init_t()
+
+backend = lgrngn.backend_t.serial
+#backend = lgrngn.backend_t.OpenMP
+#backend = lgrngn.backend_t.CUDA
+
+prtcls = lgrngn.factory(backend, opts_init)
+
+#prtcls.step_async(opts)
+#print prtcls.outbuf()

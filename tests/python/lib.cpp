@@ -220,6 +220,13 @@ namespace lgrngn
   ) {
     return libcloudphxx::lgrngn::factory(backend, opts_init);
   }
+
+  struct particles_proto_wrapper_t : 
+    libcloudphxx::lgrngn::particles_proto_t<real_t>, 
+    bp::wrapper<libcloudphxx::lgrngn::particles_proto_t<real_t>>
+  {
+    void step_async() { this->get_override("step_async")(); }
+  };
 };
 
 BOOST_PYTHON_MODULE(libcloudphxx)
@@ -269,7 +276,11 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     // classes
     bp::class_<libcloudphxx::lgrngn::opts_t<real_t>>("opts_t");
     bp::class_<libcloudphxx::lgrngn::opts_init_t<real_t>>("opts_init_t");
-    bp::class_<libcloudphxx::lgrngn::particles_proto_t<real_t>>("particles_proto_t");
+    bp::class_<lgrngn::particles_proto_wrapper_t, boost::noncopyable>("particles_proto_t")
+      .def(
+        "step_async",
+        &libcloudphxx::lgrngn::particles_proto_t<real_t>::step_async 
+      );
     // functions
     bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());
   }
