@@ -28,7 +28,8 @@ namespace libcloudphxx
         count_num.begin()                       // output - values
       );
       count_n = n.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
+      assert(count_n > 0);
+      assert(count_n <= n_cell);
     }   
 
   };  
