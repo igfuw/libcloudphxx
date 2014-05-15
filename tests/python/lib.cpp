@@ -221,12 +221,6 @@ namespace lgrngn
     return libcloudphxx::lgrngn::factory(backend, opts_init);
   }
 
-  struct particles_proto_wrapper_t : 
-    libcloudphxx::lgrngn::particles_proto_t<real_t>, 
-    bp::wrapper<libcloudphxx::lgrngn::particles_proto_t<real_t>>
-  {
-    void step_async() { this->get_override("step_async")(); }
-  };
 };
 
 BOOST_PYTHON_MODULE(libcloudphxx)
@@ -276,11 +270,17 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     // classes
     bp::class_<libcloudphxx::lgrngn::opts_t<real_t>>("opts_t");
     bp::class_<libcloudphxx::lgrngn::opts_init_t<real_t>>("opts_init_t");
-    bp::class_<lgrngn::particles_proto_wrapper_t, boost::noncopyable>("particles_proto_t")
-      .def(
-        "step_async",
-        &libcloudphxx::lgrngn::particles_proto_t<real_t>::step_async 
-      );
+    bp::class_<libcloudphxx::lgrngn::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
+      // TODO: init
+      // TODO: step_sync
+      .def("step_async", &libcloudphxx::lgrngn::particles_proto_t<real_t>::step_async)
+      .def("diag_sd_conc", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_sd_conc)
+      .def("diag_dry_rng", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_dry_rng)
+      .def("diag_wet_rng", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_wet_rng)
+      .def("diag_dry_mom", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_dry_mom)
+      .def("diag_wet_mom", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_wet_mom)
+      // TODO: outbuf
+    ;
     // functions
     bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());
   }
