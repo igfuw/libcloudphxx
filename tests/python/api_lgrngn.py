@@ -3,6 +3,7 @@ sys.path.append(".")
 
 from libcloudphxx import lgrngn
 
+# big TODO!
 def lognormal(x):
   return 0
 
@@ -31,9 +32,11 @@ opts.adve = True
 opts.sedi = True
 opts.cond = True
 opts.coal = True
+#opts.chem = True # TODO
 opts.RH_max = 44
 opts.sstp_cond = 1
 opts.sstp_coal = 1
+#opts.sstp_chem = 1 TODO
 
 #rhod = 
 #th = 
@@ -47,4 +50,5 @@ prtcls.diag_wet_rng(0.,1.)
 #prtcls.diag_dry_mom(1)
 #prtcls.diag_wet_mom(1)
 #prtcls.diag_sd_conc()
+#diag_chem(constituent)? TODO
 #print prtcls.outbuf()

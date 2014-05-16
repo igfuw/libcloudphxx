@@ -39,5 +39,6 @@ assert dot_rc != 0 # some water should have coalesced
 assert dot_rr != 0
 
 dot_rr_old = dot_rr.copy()
-blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
+flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
+#TODO assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip

@@ -46,6 +46,9 @@
 #include <libcloudph++/lgrngn/factory.hpp>
 
 namespace bp = boost::python;
+namespace b1m = libcloudphxx::blk_1m;
+namespace b2m = libcloudphxx::blk_2m;
+namespace lgr = libcloudphxx::lgrngn;
 
 using real_t = double;
 using arr_t = blitz::Array<real_t, 1>;
@@ -76,7 +79,7 @@ inline arr_t np2bz(const bp::numeric::array &arg)
 namespace blk_1m
 {
   void adj_cellwise(
-    const libcloudphxx::blk_1m::opts_t<real_t>& opts,
+    const b1m::opts_t<real_t>& opts,
     const bp::numeric::array &rhod,
     bp::numeric::array &th,
     bp::numeric::array &rv,
@@ -90,7 +93,7 @@ namespace blk_1m
       np2bz_rv(np2bz(rv)),
       np2bz_rc(np2bz(rc)), 
       np2bz_rr(np2bz(rr));
-    libcloudphxx::blk_1m::adj_cellwise(
+    b1m::adj_cellwise(
       opts, 
       np2bz(rhod), // since it is const, it may be a temporary object
       np2bz_th, 
@@ -102,7 +105,7 @@ namespace blk_1m
   }
 
   void rhs_cellwise(
-    const libcloudphxx::blk_1m::opts_t<real_t> &opts,
+    const b1m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rc,
     bp::numeric::array &dot_rr,
     const bp::numeric::array &rc,
@@ -112,7 +115,7 @@ namespace blk_1m
     arr_t
       np2bz_dot_rc(np2bz(dot_rc)), 
       np2bz_dot_rr(np2bz(dot_rr));
-    libcloudphxx::blk_1m::rhs_cellwise(
+    b1m::rhs_cellwise(
       opts,
       np2bz_dot_rc,
       np2bz_dot_rr,
@@ -122,7 +125,7 @@ namespace blk_1m
   } 
 
   void rhs_columnwise(
-    const libcloudphxx::blk_1m::opts_t<real_t> &opts,
+    const b1m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rr,
     const bp::numeric::array &rhod,
     const bp::numeric::array &rr,
@@ -130,7 +133,7 @@ namespace blk_1m
   ) {
     arr_t
       np2bz_dot_rr(np2bz(dot_rr));
-    libcloudphxx::blk_1m::rhs_columnwise(
+    b1m::rhs_columnwise(
       opts,
       np2bz_dot_rr,
       np2bz(rhod),
@@ -143,7 +146,7 @@ namespace blk_1m
 namespace blk_2m
 {
   void rhs_cellwise(
-    const libcloudphxx::blk_2m::opts_t<real_t> &opts,
+    const b2m::opts_t<real_t> &opts,
     bp::numeric::array &dot_th,
     bp::numeric::array &dot_rv,
     bp::numeric::array &dot_rc,
@@ -167,7 +170,7 @@ namespace blk_2m
       np2bz_dot_nc(np2bz(dot_nc)), 
       np2bz_dot_rr(np2bz(dot_rr)), 
       np2bz_dot_nr(np2bz(dot_nr));
-    libcloudphxx::blk_2m::rhs_cellwise(
+    b2m::rhs_cellwise(
       opts,
       np2bz_dot_th,
       np2bz_dot_rv,
@@ -187,7 +190,7 @@ namespace blk_2m
   } 
 
   void rhs_columnwise(
-    const libcloudphxx::blk_2m::opts_t<real_t> &opts,
+    const b2m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rr,
     bp::numeric::array &dot_nr,
     const bp::numeric::array &rhod,
@@ -199,7 +202,7 @@ namespace blk_2m
     arr_t
       np2bz_dot_rr(np2bz(dot_rr)), 
       np2bz_dot_nr(np2bz(dot_nr));
-    libcloudphxx::blk_2m::rhs_columnwise(
+    b2m::rhs_columnwise(
       opts,
       np2bz_dot_rr,
       np2bz_dot_nr,
@@ -214,11 +217,11 @@ namespace blk_2m
 
 namespace lgrngn
 {
-   libcloudphxx::lgrngn::particles_proto_t<real_t> *factory(
-    const libcloudphxx::lgrngn::backend_t &backend,
-    const libcloudphxx::lgrngn::opts_init_t<real_t> &opts_init
+   lgr::particles_proto_t<real_t> *factory(
+    const lgr::backend_t &backend,
+    const lgr::opts_init_t<real_t> &opts_init
   ) {
-    return libcloudphxx::lgrngn::factory(backend, opts_init);
+    return lgr::factory(backend, opts_init);
   }
 
 };
@@ -237,10 +240,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("blk_1m") = nested_module;
     bp::scope parent = nested_module;
-    bp::class_<libcloudphxx::blk_1m::opts_t<real_t>>("opts_t");
+    bp::class_<b1m::opts_t<real_t>>("opts_t");
     bp::def("adj_cellwise", blk_1m::adj_cellwise);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise); 
-    bp::def("rhs_columnwise", blk_1m::rhs_columnwise); 
+    bp::def("rhs_columnwise", blk_1m::rhs_columnwise); // TODO: handle the returned flux
   }
 
   // blk_2m stuff
@@ -249,9 +252,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("blk_2m") = nested_module;
     bp::scope parent = nested_module;
-    bp::class_<libcloudphxx::blk_2m::opts_t<real_t>>("opts_t");
+    bp::class_<b2m::opts_t<real_t>>("opts_t");
     bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
-    bp::def("rhs_columnwise", blk_2m::rhs_columnwise);
+    bp::def("rhs_columnwise", blk_2m::rhs_columnwise); // TODO: handle the returned flux
   } 
 
   // lgrngn stuff
@@ -261,25 +264,25 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("lgrngn") = nested_module;
     bp::scope parent = nested_module;
     // enums
-    bp::enum_<libcloudphxx::lgrngn::backend_t>("backend_t")
-      .value("serial", libcloudphxx::lgrngn::serial)
-      .value("OpenMP", libcloudphxx::lgrngn::OpenMP)
-      .value("CUDA", libcloudphxx::lgrngn::CUDA);
-    bp::enum_<libcloudphxx::lgrngn::kernel_t>("kernel_t") 
-      .value("geometric", libcloudphxx::lgrngn::geometric);
+    bp::enum_<lgr::backend_t>("backend_t")
+      .value("serial", lgr::serial)
+      .value("OpenMP", lgr::OpenMP)
+      .value("CUDA",   lgr::CUDA);
+    bp::enum_<lgr::kernel_t>("kernel_t") 
+      .value("geometric", lgr::geometric);
     // classes
-    bp::class_<libcloudphxx::lgrngn::opts_t<real_t>>("opts_t");
-    bp::class_<libcloudphxx::lgrngn::opts_init_t<real_t>>("opts_init_t");
-    bp::class_<libcloudphxx::lgrngn::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
-      // TODO: init
-      // TODO: step_sync
-      .def("step_async", &libcloudphxx::lgrngn::particles_proto_t<real_t>::step_async)
-      .def("diag_sd_conc", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_sd_conc)
-      .def("diag_dry_rng", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_dry_rng)
-      .def("diag_wet_rng", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_wet_rng)
-      .def("diag_dry_mom", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_dry_mom)
-      .def("diag_wet_mom", &libcloudphxx::lgrngn::particles_proto_t<real_t>::diag_wet_mom)
-      // TODO: outbuf
+    bp::class_<lgr::opts_t<real_t>>("opts_t");
+    bp::class_<lgr::opts_init_t<real_t>>("opts_init_t");
+    bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
+      //.def("init", &lgr::particles_proto_t<real_t>::init)
+      //.def("step_sync", &lgr::particles_proto_t<real_t>::step_sync)
+      .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
+      .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
+      .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
+      .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
+      .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
+      .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
+      //.def("outbuf",       &lgr::particles_proto_t<real_t>::outbuf, bp::return_value_policy<bp::reference_existing_object>())
     ;
     // functions
     bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());
