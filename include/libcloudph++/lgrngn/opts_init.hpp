@@ -43,7 +43,8 @@ namespace libcloudphxx
       opts_init_t() : 
         nx(0), ny(0), nz(0), // parcel setup
         dx(1), dy(1), dz(1), // parcel setup
-        sd_conc_mean(64)
+        sd_conc_mean(64), 
+        kernel(geometric)
       {}
     };
   }
