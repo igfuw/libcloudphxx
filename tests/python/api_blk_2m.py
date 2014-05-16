@@ -7,12 +7,13 @@ from libcloudphxx import blk_2m
 
 opts = blk_2m.opts_t()
 
-opts.acti = True
-opts.cond = True
-opts.acnv = True
-opts.accr = True
-opts.sedi = False
-
+print opts.acti 
+print opts.cond 
+print opts.acnv 
+print opts.accr
+print opts.sedi
+print opts.RH_max
+#TODO: lognormal modes
 
 rhod = arr_t([1.  ])
 th   = arr_t([300.])

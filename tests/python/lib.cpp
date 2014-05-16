@@ -6,6 +6,7 @@
 // written following:
 // - http://www.boost.org/doc/libs/1_55_0/libs/python/doc/tutorial/doc/html/python/exposing.html
 // - http://isolation-nation.blogspot.com/2008/09/packages-in-python-extension-modules.html
+#include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #if defined(BZ_THREADSAFE)
 #  error please unset BZ_THREADSAFE
@@ -16,7 +17,7 @@
 // needed here as assert.h redefines assert() every time it is included
 #include <libcloudph++/blk_1m/extincl.hpp>
 #include <libcloudph++/blk_2m/extincl.hpp>
-#include <libcloudph++/lgrngn/extincl.hpp>
+#include <libcloudph++/lgrngn/extincl.hpp> // TODO: still missing some includes as asserts give aborts :(
 
 // turning asserts into exceptions
 #undef assert
@@ -49,11 +50,13 @@ namespace bp = boost::python;
 namespace b1m = libcloudphxx::blk_1m;
 namespace b2m = libcloudphxx::blk_2m;
 namespace lgr = libcloudphxx::lgrngn;
+namespace cmn = libcloudphxx::common;
 
 using real_t = double;
 using arr_t = blitz::Array<real_t, 1>;
+using py_ptr_t = long; // TODO: acquire it using some decltype()
 
-inline arr_t np2bz(const bp::numeric::array &arg)
+inline void sanity_checks(const bp::numeric::array &arg)
 {
   // assuring double precision
   if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
@@ -62,17 +65,36 @@ inline arr_t np2bz(const bp::numeric::array &arg)
   // assuring contiguous layout
   if (!bp::extract<bool>(arg.attr("flags").attr("c_contiguous")))
     throw std::runtime_error("contiguous memory layout required");
+}
+
+inline arr_t np2bz(const bp::numeric::array &arg)
+{
+  sanity_checks(arg);
 
   // wrapping the data into a Blitz++ array to get STL-container-like functionality
   return arr_t(
     // pointer to the data
     reinterpret_cast<real_t*>(
-      (long)bp::extract<long>(arg.attr("ctypes").attr("data"))
+      (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data")) 
     ), 
     // length of the array (regardless of the original dimensionality, we do 1D)
     blitz::shape(bp::extract<long>(arg.attr("size"))), 
     // ensure Blitz++ does not try to free the memory when done
     blitz::neverDeleteData
+  );
+}
+
+const ptrdiff_t one = 1;
+
+inline lgr::arrinfo_t<real_t> np2ai(const bp::numeric::array &arg)
+{
+  sanity_checks(arg);
+  
+  return lgr::arrinfo_t<real_t>(
+    reinterpret_cast<real_t*>(
+      (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data"))
+    ),
+    &one // TODO
   );
 }
 
@@ -224,6 +246,82 @@ namespace lgrngn
     return lgr::factory(backend, opts_init);
   }
 
+  bp::object outbuf(lgr::particles_proto_t<real_t> *arg)
+  {
+    int len = 1; // TODO
+    return bp::object(bp::handle<>(PyBuffer_FromMemory(arg->outbuf(), len * sizeof(real_t))));
+  }
+
+  void init(
+    lgr::particles_proto_t<real_t> *arg,
+    const bp::numeric::array &th,
+    const bp::numeric::array &rv,
+    const bp::numeric::array &rhod
+  )
+  {
+    arg->init(
+      np2ai(th),
+      np2ai(rv),
+      np2ai(rhod)
+    );
+    // TODO: 1D, 2D and 3D versions
+  }
+
+  void step_sync(
+    lgr::particles_proto_t<real_t> *arg,
+    const lgr::opts_t<real_t> &opts,
+    const bp::numeric::array &th,
+    const bp::numeric::array &rv
+  )
+  {
+    lgr::arrinfo_t<real_t>
+      np2ai_th(np2ai(th)),
+      np2ai_rv(np2ai(rv));
+    arg->step_sync(
+      opts, 
+      np2ai_th,
+      np2ai_rv
+    );
+    // TODO: 1D, 2D and 3D versions
+  }
+
+  void set_dd(
+    lgr::opts_init_t<real_t> *arg,
+    const bp::dict &kappa_func
+  )
+  {
+    for (int i = 0; i < len(kappa_func.keys()); ++i)
+    {
+      struct pyunary : cmn::unary_function<real_t> 
+      {
+        bp::object fun;
+
+        pyunary(const bp::object &fun) : fun(fun) {}
+
+	real_t funval(const real_t x) const
+	{
+	  return bp::extract<real_t>(fun(x)); 
+	}
+	
+        pyunary *do_clone() const
+        { 
+          return new pyunary(*this); 
+        }
+      };
+
+      boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
+        bp::extract<real_t>(kappa_func.keys()[i]), 
+        pyunary(kappa_func.values()[i])
+      );
+    }
+  }
+
+  void get_dd(
+    lgr::opts_init_t<real_t> *arg
+  )
+  {
+    throw std::runtime_error("getter not implemented yet - TODO");
+  }
 };
 
 BOOST_PYTHON_MODULE(libcloudphxx)
@@ -240,7 +338,16 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("blk_1m") = nested_module;
     bp::scope parent = nested_module;
-    bp::class_<b1m::opts_t<real_t>>("opts_t");
+    bp::class_<b1m::opts_t<real_t>>("opts_t")
+      .def_readwrite("cond", &b1m::opts_t<real_t>::cond)
+      .def_readwrite("cevp", &b1m::opts_t<real_t>::cevp)
+      .def_readwrite("revp", &b1m::opts_t<real_t>::revp)
+      .def_readwrite("conv", &b1m::opts_t<real_t>::conv)
+      .def_readwrite("accr", &b1m::opts_t<real_t>::accr)
+      .def_readwrite("sedi", &b1m::opts_t<real_t>::sedi)
+      .def_readwrite("r_c0", &b1m::opts_t<real_t>::r_c0)
+      .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
+      ;
     bp::def("adj_cellwise", blk_1m::adj_cellwise);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise); 
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise); // TODO: handle the returned flux
@@ -252,7 +359,15 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("blk_2m") = nested_module;
     bp::scope parent = nested_module;
-    bp::class_<b2m::opts_t<real_t>>("opts_t");
+    bp::class_<b2m::opts_t<real_t>>("opts_t")
+      .def_readwrite("acti", &b2m::opts_t<real_t>::acti)
+      .def_readwrite("cond", &b2m::opts_t<real_t>::cond)
+      .def_readwrite("acnv", &b2m::opts_t<real_t>::acnv)
+      .def_readwrite("accr", &b2m::opts_t<real_t>::accr)
+      .def_readwrite("sedi", &b2m::opts_t<real_t>::sedi)
+      .def_readwrite("RH_max", &b2m::opts_t<real_t>::RH_max)
+      // TODO: dry_distro
+    ;
     bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
     bp::def("rhs_columnwise", blk_2m::rhs_columnwise); // TODO: handle the returned flux
   } 
@@ -271,18 +386,36 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
     // classes
-    bp::class_<lgr::opts_t<real_t>>("opts_t");
-    bp::class_<lgr::opts_init_t<real_t>>("opts_init_t");
+    bp::class_<lgr::opts_t<real_t>>("opts_t")
+      .def_readwrite("adve", &lgr::opts_t<real_t>::adve)
+      .def_readwrite("sedi", &lgr::opts_t<real_t>::sedi)
+      .def_readwrite("cond", &lgr::opts_t<real_t>::cond)
+      .def_readwrite("coal", &lgr::opts_t<real_t>::coal)
+      .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
+      .def_readwrite("sstp_cond", &lgr::opts_t<real_t>::sstp_cond)
+      .def_readwrite("sstp_coal", &lgr::opts_t<real_t>::sstp_coal)
+    ;
+    bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
+      .add_property("dry_distros", &lgrngn::get_dd, &lgrngn::set_dd)
+      .def_readwrite("nx", &lgr::opts_init_t<real_t>::nx)
+      .def_readwrite("ny", &lgr::opts_init_t<real_t>::ny)
+      .def_readwrite("nz", &lgr::opts_init_t<real_t>::nz)
+      .def_readwrite("dx", &lgr::opts_init_t<real_t>::dx)
+      .def_readwrite("dy", &lgr::opts_init_t<real_t>::dy)
+      .def_readwrite("dz", &lgr::opts_init_t<real_t>::dz)
+      .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
+      .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
+    ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
-      //.def("init", &lgr::particles_proto_t<real_t>::init)
-      //.def("step_sync", &lgr::particles_proto_t<real_t>::step_sync)
+      .def("init",         &lgrngn::init)
+      .def("step_sync",    &lgrngn::step_sync)
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
-      //.def("outbuf",       &lgr::particles_proto_t<real_t>::outbuf, bp::return_value_policy<bp::reference_existing_object>())
+      .def("outbuf",       &lgrngn::outbuf)
     ;
     // functions
     bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());

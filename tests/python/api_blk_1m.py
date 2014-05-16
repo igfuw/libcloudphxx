@@ -1,18 +1,19 @@
 import sys
 sys.path.append(".")
 
-from numpy import array as arr_t
+from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
 
 from libcloudphxx import blk_1m
 
 opts = blk_1m.opts_t()
-opts.cond = True
-opts.cevp = True
-opts.revp = True
-opts.conv = True
-opts.accr = True
-opts.sedi = False
-
+print opts.cond
+print opts.cevp
+print opts.revp 
+print opts.conv 
+print opts.accr 
+print opts.sedi 
+print opts.r_c0
+print opts.r_eps
 
 rhod = arr_t([1.  ])
 th   = arr_t([300.])
