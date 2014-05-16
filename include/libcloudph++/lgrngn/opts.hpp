@@ -18,18 +18,18 @@ namespace libcloudphxx
     struct opts_t 
     {
       // process toggling
-      bool adve, sedi, cond, coal; 
+      bool adve, sedi, cond, coal; // TODO: chem
 
       // RH limit for drop growth
       real_t RH_max;       
 
       // no. of substeps 
-      int sstp_cond, sstp_coal;    
+      int sstp_cond, sstp_coal; // TODO: chem
 
       // ctor with defaults (C++03 compliant) ...
 //</listing>
       opts_t() : 
-        adve(1), sedi(1), cond(1), coal(1), // all on
+        adve(1), sedi(1), cond(1), coal(1), // all on // TODO: chem
         sstp_cond(10), sstp_coal(10),
         RH_max(44) // :) (anything greater than 1.1 would be enough
       {}
