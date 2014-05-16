@@ -44,6 +44,7 @@ namespace libcloudphxx
             _1 + (_1 / opts_init.nz) + 1
 	  );
 	  break;
+        case 0: break;
 	default: assert(false && "TODO");
       }
     }
