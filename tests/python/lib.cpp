@@ -56,6 +56,7 @@ using real_t = double;
 using arr_t = blitz::Array<real_t, 1>;
 using py_ptr_t = long; // TODO: acquire it using some decltype()
 
+// TODO: it does not when swithing from "numpy.array" to "numpy.ndarray"!
 inline void sanity_checks(const bp::numeric::array &arg)
 {
   // assuring double precision
@@ -94,7 +95,7 @@ inline lgr::arrinfo_t<real_t> np2ai(const bp::numeric::array &arg)
     reinterpret_cast<real_t*>(
       (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data"))
     ),
-    &one // TODO
+    &one // TODO: parcel assumption hardcoded
   );
 }
 
@@ -235,6 +236,29 @@ namespace blk_2m
       dz
     );
   } 
+
+  void set_dd(
+    b2m::opts_t<real_t> *arg,
+    const bp::list &modes
+  )
+  {
+    for (int i = 0; i < len(modes); ++i)
+    {
+      arg->dry_distros.push_back({
+        .mean_rd = bp::extract<real_t>(modes[i]["mean_rd"]),
+        .sdev_rd = bp::extract<real_t>(modes[i]["sdev_rd"]),
+        .N_stp   = bp::extract<real_t>(modes[i]["N_stp"]),
+        .chem_b  = bp::extract<real_t>(modes[i]["chem_b"])
+      });
+    }
+  }
+
+  void get_dd(
+    b2m::opts_t<real_t> *arg
+  )
+  {
+    throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
+  }
 };
 
 namespace lgrngn
@@ -248,7 +272,7 @@ namespace lgrngn
 
   bp::object outbuf(lgr::particles_proto_t<real_t> *arg)
   {
-    int len = 1; // TODO
+    int len = 1; // TODO: parcel assumption hardcoded
     return bp::object(bp::handle<>(PyBuffer_FromMemory(arg->outbuf(), len * sizeof(real_t))));
   }
 
@@ -320,7 +344,7 @@ namespace lgrngn
     lgr::opts_init_t<real_t> *arg
   )
   {
-    throw std::runtime_error("getter not implemented yet - TODO");
+    throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
   }
 };
 
@@ -366,7 +390,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("accr", &b2m::opts_t<real_t>::accr)
       .def_readwrite("sedi", &b2m::opts_t<real_t>::sedi)
       .def_readwrite("RH_max", &b2m::opts_t<real_t>::RH_max)
-      // TODO: dry_distro
+      .add_property("dry_distros", &blk_2m::get_dd, &blk_2m::set_dd)
     ;
     bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
     bp::def("rhs_columnwise", blk_2m::rhs_columnwise); // TODO: handle the returned flux
