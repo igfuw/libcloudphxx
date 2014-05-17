@@ -147,7 +147,7 @@ namespace libcloudphxx
       virtual void diag_wet_rng(const real_t&, const real_t&) { assert(false); }
       virtual void diag_dry_mom(const int&)                   { assert(false); }
       virtual void diag_wet_mom(const int&)                   { assert(false); }
-      // TODO: virtual void diag_chem(const enum)
+      virtual void diag_chem(const enum chem_aq&)             { assert(false); }
       virtual real_t *outbuf()                                { assert(false); return NULL; }
     };  
 
@@ -195,7 +195,8 @@ namespace libcloudphxx
       // ...
 //</listing>
 
-// TODO: diag_chem
+      void diag_chem(const enum chem_aq&);
+
       struct impl;
       std::auto_ptr<impl> pimpl;
 

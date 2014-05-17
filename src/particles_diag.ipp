@@ -49,5 +49,13 @@ namespace libcloudphxx
     {
       pimpl->moms_calc(pimpl->rw2, n/2.);
     }
+
+    //
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_chem(const enum chem_aq &c)
+    {
+      // TODO
+      std::cerr << "@diag_chem()" << std::endl;
+    }
   };
 };

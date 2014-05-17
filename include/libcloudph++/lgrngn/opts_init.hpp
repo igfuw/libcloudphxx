@@ -10,6 +10,7 @@
 #include <libcloudph++/lgrngn/extincl.hpp>
 
 #include "kernel.hpp"
+#include "chem.hpp"
 
 namespace libcloudphxx
 {
@@ -37,6 +38,8 @@ namespace libcloudphxx
 
       // coalescence Kernel type
       kernel_t kernel;
+
+// TODO: chem
 
       // ctor with defaults (C++03 compliant) ...
 //</listing>

@@ -63,7 +63,10 @@ namespace libcloudphxx
 
       // initialising wet radii
       pimpl->init_wet();
-  
+ 
+      // initialising chem stuff
+      pimpl->init_chem();
+ 
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       pimpl->init_grid();
     }

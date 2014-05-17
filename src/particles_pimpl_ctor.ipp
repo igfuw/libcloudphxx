@@ -43,6 +43,7 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
+// TODO: chem constituents
       thrust_device::vector<n_t>
 	n;   // multiplicity
 
@@ -145,7 +146,7 @@ namespace libcloudphxx
             case 2:
               n_grid = std::max((opts_init.nx+1)*opts_init.nz, opts_init.nx*(opts_init.nz+1));
               break;
-            default: assert(false);
+            default: assert(false); // TODO: 1D and 3D cases
           }
           assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
@@ -167,6 +168,7 @@ namespace libcloudphxx
       void init_sync();
       void init_grid();
       void init_hskpng();
+      void init_chem();
 
       void fill_outbuf();
 
@@ -207,7 +209,8 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      // TODO: rcyc, chem
+      void chem(const real_t &dt);
+      // TODO: rcyc
     };
 
     // ctor

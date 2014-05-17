@@ -41,11 +41,11 @@ print "adve =", opts.adve
 print "sedi =", opts.sedi
 print "cond =", opts.cond
 print "coal =", opts.coal
-#print opts.chem # TODO
+print "chem =", opts.chem
 print "RH_max =", opts.RH_max
 print "sstp_cond =", opts.sstp_cond
 print "sstp_coal =", opts.sstp_coal
-#print opts.sstp_chem TODO
+print "sstp_chem =", opts.sstp_chem 
 
 rhod = arr_t([  1.])
 th   = arr_t([300.])
@@ -58,7 +58,7 @@ prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
-#prtcls.diag_chem(constituent)? TODO
+prtcls.diag_chem(lgrngn.chem_aq.OH)
 
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up

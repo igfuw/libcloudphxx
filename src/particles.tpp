@@ -27,6 +27,7 @@
 #include "particles_impl_init_grid.ipp"
 #include "particles_impl_init_sync.ipp"
 #include "particles_impl_init_hskpng.ipp"
+#include "particles_impl_init_chem.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
@@ -44,3 +45,4 @@
 #include "particles_impl_cond.ipp"
 #include "particles_impl_sedi.ipp"
 #include "particles_impl_coal.ipp"
+#include "particles_impl_chem.ipp"

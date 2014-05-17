@@ -411,15 +411,32 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
+    bp::enum_<lgr::chem_gas>("chem_gas")
+      .value("gSO2",  lgr::gSO2)
+      .value("gO3",   lgr::gO3)
+      .value("gH2O2", lgr::gH2O2);
+    bp::enum_<lgr::chem_aq>("chem_aq")
+      .value("H",    lgr::H)
+      .value("OH",   lgr::OH)
+      .value("SO2",  lgr::SO2)
+      .value("O3",   lgr::O3)
+      .value("H2O2", lgr::H2O2)
+      .value("HSO3", lgr::HSO3)
+      .value("SO3",  lgr::SO3)
+      .value("S_VI", lgr::S_VI)
+      .value("HSO4", lgr::HSO4)
+      .value("SO4",  lgr::SO4);
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)
       .def_readwrite("sedi", &lgr::opts_t<real_t>::sedi)
       .def_readwrite("cond", &lgr::opts_t<real_t>::cond)
       .def_readwrite("coal", &lgr::opts_t<real_t>::coal)
+      .def_readwrite("chem", &lgr::opts_t<real_t>::chem)
       .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
       .def_readwrite("sstp_cond", &lgr::opts_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_t<real_t>::sstp_coal)
+      .def_readwrite("sstp_chem", &lgr::opts_t<real_t>::sstp_chem)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd, &lgrngn::set_dd)
@@ -442,6 +459,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
+      .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
       .def("outbuf",       &lgrngn::outbuf)
     ;
     // functions
