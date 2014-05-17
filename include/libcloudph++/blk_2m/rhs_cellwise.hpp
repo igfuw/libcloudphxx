@@ -105,7 +105,7 @@ namespace libcloudphxx
           {
             // summing by looping over lognormal modes
             quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_ccn = 0;
-            for (const auto &mode : opts.dry_distro)
+            for (const auto &mode : opts.dry_distros)
             { 
               n_ccn += n_c_p<real_t>(
                 p, T, rv, 
