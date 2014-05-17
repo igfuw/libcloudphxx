@@ -1,3 +1,5 @@
+// Python binding for libcloudph++
+//
 // author[s]: Sylwester Arabas, Dorota Jarecka
 // licensing: GPU GPL v3
 // copyright: University of Warsaw
@@ -147,7 +149,7 @@ namespace blk_1m
     );
   } 
 
-  void rhs_columnwise(
+  real_t rhs_columnwise(
     const b1m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rr,
     const bp::numeric::array &rhod,
@@ -156,7 +158,7 @@ namespace blk_1m
   ) {
     arr_t
       np2bz_dot_rr(np2bz(dot_rr));
-    b1m::rhs_columnwise(
+    return b1m::rhs_columnwise(
       opts,
       np2bz_dot_rr,
       np2bz(rhod),
@@ -212,7 +214,7 @@ namespace blk_2m
     );
   } 
 
-  void rhs_columnwise(
+  real_t rhs_columnwise(
     const b2m::opts_t<real_t> &opts,
     bp::numeric::array &dot_rr,
     bp::numeric::array &dot_nr,
@@ -225,7 +227,7 @@ namespace blk_2m
     arr_t
       np2bz_dot_rr(np2bz(dot_rr)), 
       np2bz_dot_nr(np2bz(dot_nr));
-    b2m::rhs_columnwise(
+    return b2m::rhs_columnwise(
       opts,
       np2bz_dot_rr,
       np2bz_dot_nr,

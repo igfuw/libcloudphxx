@@ -6,14 +6,14 @@ from numpy import array as arr_t # ndarray dtype default to float64, while array
 from libcloudphxx import blk_1m
 
 opts = blk_1m.opts_t()
-print opts.cond
-print opts.cevp
-print opts.revp 
-print opts.conv 
-print opts.accr 
-print opts.sedi 
-print opts.r_c0
-print opts.r_eps
+print "cond =", opts.cond
+print "cevp =", opts.cevp
+print "revp =", opts.revp 
+print "conv =", opts.conv 
+print "accr =", opts.accr 
+print "sedi =", opts.sedi 
+print "r_c0 =", opts.r_c0
+print "r_eps =", opts.r_eps
 
 rhod = arr_t([1.  ])
 th   = arr_t([300.])
@@ -41,5 +41,5 @@ assert dot_rr != 0
 
 dot_rr_old = dot_rr.copy()
 flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
-#TODO assert flux == 0
+assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip
