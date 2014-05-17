@@ -176,6 +176,8 @@ namespace libcloudphxx
             * (real_t(0) - int_4(lbd, d3<real_t>()))
 	  ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
+//return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
+        assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
         assert(finite(tmp * si::seconds / si::metres) && "v_term_m terminal velocity is finite failed");
         return tmp;
       }
@@ -210,6 +212,8 @@ namespace libcloudphxx
           ) 
           * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
+//return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
+        assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
         assert(finite(tmp * si::seconds / si::metres) && "v_term_n terminal velocity is finite failed");
         return tmp;
       }
