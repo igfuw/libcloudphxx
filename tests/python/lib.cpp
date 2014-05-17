@@ -403,6 +403,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("dx", &lgr::opts_init_t<real_t>::dx)
       .def_readwrite("dy", &lgr::opts_init_t<real_t>::dy)
       .def_readwrite("dz", &lgr::opts_init_t<real_t>::dz)
+      .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
     ;
