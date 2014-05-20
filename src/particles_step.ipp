@@ -85,7 +85,11 @@ namespace libcloudphxx
       }
 
       // chemistry
-      //if (opts.chem) assert(false && "unimplemented"), throw; // TODO
+      if (opts.chem) 
+      {
+        for (int step = 0; step < opts.sstp_chem; ++step) 
+          pimpl->chem(pimpl->opts_init.dt / opts.sstp_chem);
+      }
 
       // coalescence (before diagnostics -> one sort less)
       if (opts.coal) 

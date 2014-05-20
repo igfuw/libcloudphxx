@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <libcloudph++/blk_1m/formulae.hpp>
+#include <libcloudph++/blk_1m/extincl.hpp>
 
 namespace libcloudphxx
 {
