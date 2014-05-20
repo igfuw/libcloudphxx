@@ -40,9 +40,8 @@ print "kernel =", opts_init.kernel
 assert opts_init.kernel == lgrngn.kernel_t.geometric
 print "sd_conc_mean =", opts_init.sd_conc_mean
 
-# intentionally overwritten - only serial is always available
-backend = lgrngn.backend_t.OpenMP
-backend = lgrngn.backend_t.CUDA
+print lgrngn.backend_t.OpenMP
+print lgrngn.backend_t.CUDA
 backend = lgrngn.backend_t.serial
 
 prtcls = lgrngn.factory(backend, opts_init)
