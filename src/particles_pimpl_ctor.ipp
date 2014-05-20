@@ -160,12 +160,11 @@ namespace libcloudphxx
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
+        if (n_dims != 0) 
         {
           int n_grid;
           switch (n_dims)
           {
-            case 0: 
-              break;
             case 2:
               n_grid = std::max((opts_init.nx+1)*opts_init.nz, opts_init.nx*(opts_init.nz+1));
               break;
