@@ -19,14 +19,14 @@ namespace libcloudphxx
       template <typename real_t>
       struct range_filter
       {
-        real_t min, max, scl;
+        real_t min, max;
 
-        range_filter(real_t min, real_t max, real_t scl) : min(min), max(max), scl(scl) {}
+        range_filter(real_t min, real_t max) : min(min), max(max) {}
 
         __device__
         real_t operator()(const real_t &y, const real_t &x)
         {
-          return x > min && x < max ? scl*y : 0; // TODO: >=?
+          return x > min && x < max ? y : 0; // TODO: >=?
         }
       };
     }  
@@ -39,14 +39,14 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      // transforming n -> n/dv if within range, else 0
-      thrust_device::vector<real_t> &n_over_dv_within_range(tmp_device_real_part);
+      // transforming n -> n if within range, else 0
+      thrust_device::vector<real_t> &n_within_range(tmp_device_real_part);
 
       thrust::transform(
-        n.begin(), n.end(),             // input - 1st arg
-	radii.begin(),                  // input - 2nd arg
-	n_over_dv_within_range.begin(), // output
-	detail::range_filter<real_t>(min, max, 1/(opts_init.dx * opts_init.dy * opts_init.dz)) 
+        n.begin(), n.end(),     // input - 1st arg
+	radii.begin(),          // input - 2nd arg
+	n_within_range.begin(), // output
+	detail::range_filter<real_t>(min, max) 
       );
     }
 
@@ -62,9 +62,9 @@ namespace libcloudphxx
         __device__
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl)
         {
-          const real_t n_over_dv = thrust::get<0>(tpl);
+          const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
-          return n_over_dv * pow(x, xp); // TODO: check if xp=0 is optimised
+          return n * pow(x, xp); // TODO: check if xp=0 is optimised
         }
       };
     };
@@ -76,7 +76,7 @@ namespace libcloudphxx
     )
     {
       // same as above
-      thrust_device::vector<real_t> &n_over_dv_within_range(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_within_range(tmp_device_real_part);
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,
@@ -93,8 +93,8 @@ namespace libcloudphxx
         // input - values
         thrust::make_transform_iterator(
 	  zip_it_t(thrust::make_tuple(
-            pi_t(n_over_dv_within_range.begin(), sorted_id.begin()),
-            pi_t(radii.begin(),                  sorted_id.begin())
+            pi_t(n_within_range.begin(), sorted_id.begin()),
+            pi_t(radii.begin(),          sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
@@ -106,6 +106,17 @@ namespace libcloudphxx
 
       count_n = n.first - count_ijk.begin();
       assert(count_n > 0 && count_n <= n_cell);
+
+      // dividing by dv
+      thrust::transform(
+        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+        thrust::make_permutation_iterator(                  // input - second arg
+	  count_ijk.begin(),
+          dv.begin()
+        ),
+        count_mom.begin(),                                  // output (in place)
+        thrust::divides<real_t>()
+      );
 
       // dividing by rhod to get specific moments
       // (for compatibility with blk_1m and blk_2m reporting mixing ratios)

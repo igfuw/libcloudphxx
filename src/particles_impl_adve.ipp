@@ -50,12 +50,12 @@ namespace libcloudphxx
       template <typename real_t>
       struct periodic
       { 
-        real_t nxdx;
-        periodic(real_t nxdx) : nxdx(nxdx) {}
+        real_t a, b;
+        periodic(real_t a, real_t b) : a(a), b(b) {}
         __device__
         real_t operator()(real_t x)
         {
-          return fmod(x + nxdx, nxdx); // this should call CUDA's fmod!
+          return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
         }
       };
     };
@@ -108,7 +108,7 @@ namespace libcloudphxx
           thrust::transform(
             x.begin(), x.end(),
             x.begin(),
-            detail::periodic<real_t>(opts_init.nx * opts_init.dx)
+            detail::periodic<real_t>(opts_init.x0, opts_init.x1)
           );
           break; 
         }

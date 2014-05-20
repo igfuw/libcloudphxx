@@ -18,12 +18,23 @@ def lognormal(lnr):
 opts_init = lgrngn.opts_init_t()
 kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
+
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
 print "nz =", opts_init.nz
+
 print "dx =", opts_init.dx
 print "dy =", opts_init.dy
 print "dz =", opts_init.dz
+
+print "x0 =", opts_init.x0
+print "y0 =", opts_init.y0
+print "z0 =", opts_init.z0
+
+print "x1 =", opts_init.x1
+print "y1 =", opts_init.y1
+print "z1 =", opts_init.z1
+
 print "dt =", opts_init.dt
 print "kernel =", opts_init.kernel 
 assert opts_init.kernel == lgrngn.kernel_t.geometric

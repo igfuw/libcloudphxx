@@ -33,6 +33,9 @@ namespace libcloudphxx
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
+      // Lagrangian domain extents
+      real_t x0, y0, z0, x1, y1, z1;
+
       // mean no. of super-droplets per cell
       real_t sd_conc_mean; 
 
@@ -44,8 +47,10 @@ namespace libcloudphxx
       // ctor with defaults (C++03 compliant) ...
 //</listing>
       opts_init_t() : 
-        nx(0), ny(0), nz(0), // parcel setup
-        dx(1), dy(1), dz(1), // parcel setup
+        nx(0), ny(0), nz(0), // parcel setup, 1m3
+        dx(1), dy(1), dz(1), // parcel setup, 1m3
+        x0(0), y0(0), z0(0), // parcel setup, 1m3
+        x1(1), y1(1), z1(1), // parcel setup, 1m3
         sd_conc_mean(64), 
         kernel(geometric),
         dt(1e-3)
