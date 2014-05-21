@@ -37,14 +37,20 @@ dt_0   = 1
 def adj_cellwise(opts, rhod = rhod_0.copy(), th = None,
                  rv = None, rc = None, rr = None, dt = dt_0):
 
-    th = th if th else th_0.copy()
-    rv = rv if rv else rv_0.copy()
-    rc = rc if rc else rc_0.copy()
-    rr = rr if rr else rr_0.copy()
+    print "\n na poczatku srawdzam, czy ma qv", rv
+    #pdb.set_trace()
+    th = th if th!=None else th_0.copy()
+    rv = rv if rv!=None else rv_0.copy()
+    rc = rc if rc!=None else rc_0.copy()
+    rr = rr if rr!=None else rr_0.copy()
+    print "\n In adj_cellwise. Who is calling..?", inspect.stack()[1][3]
+
+    print "\n in adj_cellwise przed", rv, rc
     blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
+    print "\n in adj_cellwise po", rv, rc
     return rv, rc
 
-#@pytest.mark.skipif
+@pytest.mark.skipif
 @pytest.mark.parametrize("arg", [
     {'th':arr_t([255.])},    pytest.mark.xfail({'th':arr_t([500. ])}),
     {'rv':arr_t([-1.e-5])}, pytest.mark.xfail({'rv':arr_t([0.1 ])}),
@@ -61,25 +67,27 @@ def test_exeptions_wrongvalue(arg):
     
 
 #TODO: wypisac znane outputy, moze tez theta?
-@pytest.mark.skipif
+#@pytest.mark.skipif
 @pytest.mark.parametrize("arg, expected", [
-#ok        ({"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])},
-#ok         {"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])}), # no water
-#ok        ({"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])},
-#ok         {"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])}), # no cl water and subsat.
+        ({"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])},
+         {"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])}), # no water
+        ({"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])},
+         {"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])}), # no cl water and subsat.
 #        ({"rv" :  arr_t([10.e-3]), "rc" :  arr_t([0.])},
 #         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([1.4e-3])}), # no cl water and supersat.
-#ok        ({"rv" :  arr_t([5.e-3]),  "rc" :  arr_t([1.e-3])},
-#ok         {"rv" :  arr_t([6.e-3]),  "rc" :  arr_t([0.])}), # subsat. leads to coplete evap.
-        ({"rv" :  arr_t([8.e-3]),  "rc" :  arr_t([1.e-3])},
-         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([0.4e-3])}), # subsat. leads to some evap.
-#        ({"rv" :  arr_t([9.e-3]),  "rc" :  arr_t([1.e-3])},
-#         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([1.4e-3])}), # supersat. leads to cond.
+        ({"rv" :  arr_t([5.e-3]),  "rc" :  arr_t([1.e-3])},
+         {"rv" :  arr_t([6.e-3]),  "rc" :  arr_t([0.])}), # subsat. leads to coplete evap.
+#        ({"rv" :  arr_t([8.e-3]),  "rc" :  arr_t([1.e-3])},
+#         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([0.4e-3])}), # subsat. leads to some evap.
+        ({"rv" :  arr_t([9.e-3]),  "rc" :  arr_t([1.e-3])},
+         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([1.4e-3])}), # supersat. leads to cond.
     ])
 #TODO zastanowic sie nad epsilonem
 def test_expected_output_evapcond(arg, expected, epsilon = 0.1):
     opts = opts_cr(conv = False, accr = False )
+    print "\n w test_expected value przed", arg
     rv, rc = adj_cellwise(opts, **arg)
+    #print "rv, rc po", rv, rc
     for key, value in expected.items():
         print "\n key, valuu, eval(key)", key, value, eval(key)
         assert abs(eval(key) - value) <= epsilon * abs(value)
