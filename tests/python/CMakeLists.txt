@@ -12,6 +12,9 @@ target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 find_package(Boost COMPONENTS python REQUIRED QUIET)
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 
+# ... where to find libclouph++
+target_link_libraries(cloudphxx cloudphxx_lgrngn)
+
 # 
 find_package(PythonInterp)
 

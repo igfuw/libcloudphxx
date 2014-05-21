@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <cstddef> // ptrdiff_t
+#include <libcloudph++/lgrngn/extincl.hpp>
 
 namespace libcloudphxx
 {

@@ -36,7 +36,7 @@ namespace libcloudphxx
           N_stp,     // [m-3] @STP
           chem_b;    // [1]
       };
-      std::vector<lognormal_mode_t> dry_distro;
+      std::vector<lognormal_mode_t> dry_distros;
     };
 //</listing>
   }

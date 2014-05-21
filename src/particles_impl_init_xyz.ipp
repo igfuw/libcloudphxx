@@ -16,7 +16,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
                   *v[3] = { &x,           &y,           &z           };
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
-      const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
+      const real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
+      const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
      
       for (int ix = 0; ix < 3; ++ix)
       {
@@ -28,14 +29,14 @@ namespace libcloudphxx
         // tossing random numbers [0,1] 
         rand_u01(n_part);
 
-	// shifting from [0,1] to [0,nx*dx] 
+	// shifting from [0,1] to [x0,x1] 
         {
           using namespace thrust::placeholders;
 	  thrust::transform(
 	    u01.begin(), 
 	    u01.end(), 
 	    v[ix]->begin(), 
-	    _1 * n[ix] * d[ix]
+	    a[ix] + _1 * (b[ix] - a[ix])
 	  );
         }
       }

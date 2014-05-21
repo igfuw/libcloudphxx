@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../common/units.hpp"
+#include <libcloudph++/lgrngn/extincl.hpp>
 
 namespace libcloudphxx
 {
@@ -18,19 +18,19 @@ namespace libcloudphxx
     struct opts_t 
     {
       // process toggling
-      bool adve, sedi, cond, coal; 
+      bool adve, sedi, cond, coal, chem;
 
       // RH limit for drop growth
       real_t RH_max;       
 
       // no. of substeps 
-      int sstp_cond, sstp_coal;    
+      int sstp_cond, sstp_coal, sstp_chem; 
 
       // ctor with defaults (C++03 compliant) ...
 //</listing>
       opts_t() : 
-        adve(1), sedi(1), cond(1), coal(1), // all on
-        sstp_cond(10), sstp_coal(10),
+        adve(true), sedi(true), cond(true), coal(true), chem(true), // all on 
+        sstp_cond(10), sstp_coal(10), sstp_chem(10),
         RH_max(44) // :) (anything greater than 1.1 would be enough
       {}
     };

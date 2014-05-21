@@ -43,14 +43,17 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
+// TODO: chem constituents
       thrust_device::vector<n_t>
 	n;   // multiplicity
 
-      // particle helper attributes (purely diagnostic)
-      thrust_device::vector<real_t>
-        vt;  // terminal velocity
+      // terminal velocity (per particle)
+      thrust_device::vector<real_t> vt; 
 
-      //
+      // grid-cell volumes (per grid cell)
+      thrust_device::vector<real_t> dv;
+
+      // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
@@ -59,7 +62,7 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
         lft, rgt, abv, blw; // TODO: could be reused after advection!
 
-      //
+      // moment-counting stuff
       thrust_device::vector<thrust_size_t> 
         count_ijk; // key-value pair for sorting particles by cell index
       thrust_device::vector<n_t>
@@ -120,13 +123,34 @@ namespace libcloudphxx
       impl(const opts_init_t<real_t> &opts_init) : 
         should_now_run_async(false),
 	opts_init(opts_init),
-	n_dims(opts_init.nx/m1(opts_init.nx) + opts_init.ny/m1(opts_init.ny) + opts_init.nz/m1(opts_init.nz)), // 0, 1, 2 or 3
-        n_cell(m1(opts_init.nx) * m1(opts_init.ny) * m1(opts_init.nz)),
-	n_part(opts_init.sd_conc_mean * n_cell), // TODO: what if multiple spectra/kappas
+	n_dims( // 0, 1, 2 or 3
+          opts_init.nx/m1(opts_init.nx) + 
+          opts_init.ny/m1(opts_init.ny) + 
+          opts_init.nz/m1(opts_init.nz)
+        ), 
+        n_cell(
+          m1(opts_init.nx) * 
+          m1(opts_init.ny) *
+          m1(opts_init.nz)
+        ),
+	n_part( // TODO: what if multiple spectra/kappas
+          opts_init.sd_conc_mean * 
+	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
+	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
+	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
+        ),
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part)
       {
+        // sanity checks
+        assert(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx); 
+        assert(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy); 
+        assert(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz); 
+        assert(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx);
+        assert(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy);
+        assert(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz);
+
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
 
@@ -136,16 +160,15 @@ namespace libcloudphxx
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
+        if (n_dims != 0) 
         {
           int n_grid;
           switch (n_dims)
           {
-            case 0: 
-              break;
             case 2:
               n_grid = std::max((opts_init.nx+1)*opts_init.nz, opts_init.nx*(opts_init.nz+1));
               break;
-            default: assert(false);
+            default: assert(false); // TODO: 1D and 3D cases
           }
           assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
@@ -167,6 +190,7 @@ namespace libcloudphxx
       void init_sync();
       void init_grid();
       void init_hskpng();
+      void init_chem();
 
       void fill_outbuf();
 
@@ -207,7 +231,8 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      // TODO: rcyc, chem
+      void chem(const real_t &dt);
+      // TODO: rcyc
     };
 
     // ctor

@@ -7,14 +7,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <libcloudph++/common/detail/zip.hpp>
-#include <libcloudph++/blk_2m/common_formulae.hpp>
-#include <libcloudph++/blk_2m/activation_formulae.hpp>
-#include <libcloudph++/blk_2m/cond_evap_formulae.hpp>
-#include <libcloudph++/blk_2m/autoconversion_formulae.hpp>
-#include <libcloudph++/blk_2m/accretion_formulae.hpp>
-#include <libcloudph++/blk_2m/collision_sink_formulae.hpp>
+#include <libcloudph++/blk_2m/extincl.hpp>
 
 namespace libcloudphxx
 {
@@ -112,7 +105,7 @@ namespace libcloudphxx
           {
             // summing by looping over lognormal modes
             quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_ccn = 0;
-            for (const auto &mode : opts.dry_distro)
+            for (const auto &mode : opts.dry_distros)
             { 
               n_ccn += n_c_p<real_t>(
                 p, T, rv, 

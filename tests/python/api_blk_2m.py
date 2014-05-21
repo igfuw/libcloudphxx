@@ -7,12 +7,17 @@ from libcloudphxx import blk_2m
 
 opts = blk_2m.opts_t()
 
-opts.acti = True
-opts.cond = True
-opts.acnv = True
-opts.accr = True
-opts.sedi = False
+print "acti =", opts.acti 
+print "cond =", opts.cond 
+print "acnv =", opts.acnv 
+print "accr =", opts.accr
+print "sedi =", opts.sedi
+print "RH_max =", opts.RH_max
 
+opts.dry_distros = [
+  {"mean_rd":.04e-6 / 2, "sdev_rd":1.4, "N_stp":60e6, "chem_b":.55},
+  {"mean_rd":.15e-6 / 2, "sdev_rd":1.6, "N_stp":40e6, "chem_b":.55}
+]
 
 rhod = arr_t([1.  ])
 th   = arr_t([300.])
@@ -41,4 +46,10 @@ blk_2m.rhs_cellwise(
 assert th == th_old # th should be left untouched
 assert dot_th != 0 # but it's derivative should be non-zero
 
-#blk_2m.rhs_columnwise() TODO
+dz = 1
+dot_rr_old = dot_rr.copy()
+dot_nr_old = dot_nr.copy()
+flux = blk_2m.rhs_columnwise(opts, dot_rr, dot_nr, rhod, rr, nr, dt, dz) 
+assert flux == 0
+assert dot_rr == dot_rr_old and dot_nr == dot_nr_old # no rain water -> no precip
+

@@ -279,17 +279,24 @@ namespace libcloudphxx
         thrust::plus<real_t>()
       );
 
-      // multiplying dv*dm_3 by -rho_w*4/3*pi/dv
+      // multiplying dv*dm_3 by -rho_w*4/3*pi
       thrust::transform(
         drv.begin(), drv.end(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
-          / (opts_init.dx * opts_init.dy * opts_init.dz)
         ),
         drv.begin(),                             // output
         thrust::multiplies<real_t>()
       );
+
+      // dividing by dv
+      thrust::transform(
+        drv.begin(), drv.end(),  // input - 1st arg
+        dv.begin(),              // input - 2nd arg
+        drv.begin(),             // output
+        thrust::divides<real_t>() 
+      ); 
 
       // dividing d(rhod_rv) by rhod
       thrust::transform(
