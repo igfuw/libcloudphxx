@@ -26,8 +26,8 @@ def opts_cr(cond = True, cevp = True, revp = True, conv = True,
     return opts
 
 # typical values a example
-rhod_0 = arr_t([1.1  ])
-th_0   = arr_t([291.8])
+rhod_0 = arr_t([1.107  ])
+th_0   = arr_t([291.802])
 rv_0   = arr_t([8.e-3])
 rc_0   = arr_t([5.e-4])
 rr_0   = arr_t([0.  ])
@@ -73,14 +73,14 @@ def test_exeptions_wrongvalue(arg):
          {"rv" :  arr_t([0.]),     "rc" :  arr_t([0.])}), # no water
         ({"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])},
          {"rv" :  arr_t([7.e-3]),  "rc" :  arr_t([0.])}), # no cl water and subsat.
-#        ({"rv" :  arr_t([10.e-3]), "rc" :  arr_t([0.])},
-#         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([1.4e-3])}), # no cl water and supersat.
+        ({"rv" :  arr_t([10.e-3]), "rc" :  arr_t([0.])},
+         {"rv" :  arr_t([9.42e-3]), "rc" :  arr_t([.58e-3])}), # no cl water and supersat.
         ({"rv" :  arr_t([5.e-3]),  "rc" :  arr_t([1.e-3])},
          {"rv" :  arr_t([6.e-3]),  "rc" :  arr_t([0.])}), # subsat. leads to coplete evap.
-#        ({"rv" :  arr_t([8.e-3]),  "rc" :  arr_t([1.e-3])},
-#         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([0.4e-3])}), # subsat. leads to some evap.
+        ({"rv" :  arr_t([8.e-3]),  "rc" :  arr_t([1.e-3])},
+         {"rv" :  arr_t([8.19e-3]), "rc" :  arr_t([0.81e-3])}), # subsat. leads to some evap.
         ({"rv" :  arr_t([9.e-3]),  "rc" :  arr_t([1.e-3])},
-         {"rv" :  arr_t([8.6e-3]), "rc" :  arr_t([1.4e-3])}), # supersat. leads to cond.
+         {"rv" :  arr_t([8.81e-3]), "rc" :  arr_t([1.19e-3])}), # supersat. leads to cond.
     ])
 #TODO zastanowic sie nad epsilonem
 def test_expected_output_evapcond(arg, expected, epsilon = 0.1):
