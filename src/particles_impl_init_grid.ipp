@@ -14,9 +14,20 @@ namespace libcloudphxx
       template <typename real_t>
       struct dv_eval
       {
-	const opts_init_t<real_t> &o;
+        // note: having a copy of opts_init here causes CUDA crashes (alignment problems?)
+        const int 
+          nx, ny, nz;
+	const real_t 
+          dx, dy, dz,
+          x0, y0, z0,
+          x1, y1, z1;
 
-        dv_eval(const opts_init_t<real_t> &o) : o(o) {}
+        dv_eval(const opts_init_t<real_t> &o) : 
+          nx(o.nx), ny(o.ny), nz(o.nz),
+          dx(o.dx), dy(o.dy), dz(o.dz),
+          x0(o.x0), y0(o.y0), z0(o.z0),
+          x1(o.x1), y1(o.y1), z1(o.z1) 
+        {}
 
         __device__
         real_t operator()(const int &ijk)
@@ -28,14 +39,14 @@ namespace libcloudphxx
 
           // ijk = (i*nj + j)*nk + k
           const int
-            i = (ijk / max(1,o.nz)) / max(1,o.ny),
-            j = (ijk / max(1,o.nz)) % max(1,o.ny),
-            k =  ijk % max(1,o.nz);
+            i = (ijk / max(1,nz)) / max(1,ny),
+            j = (ijk / max(1,nz)) % max(1,ny),
+            k =  ijk % max(1,nz);
              
           return 
-	    (min((i + 1) * o.dx, o.x1) - max(i * o.dx, o.x0)) *
-	    (min((j + 1) * o.dy, o.y1) - max(j * o.dy, o.y0)) *
-	    (min((k + 1) * o.dz, o.z1) - max(k * o.dz, o.z0));
+	    (min((i + 1) * dx, x1) - max(i * dx, x0)) *
+	    (min((j + 1) * dy, y1) - max(j * dy, y0)) *
+	    (min((k + 1) * dz, z1) - max(k * dz, z0));
         }
       };
     };
