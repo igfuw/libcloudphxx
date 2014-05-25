@@ -20,7 +20,7 @@ namespace libcloudphxx
         arg_t c;
         divide_by_constant_and_cast(arg_t c) : c(c) {}
 
-        __device__
+        BOOST_GPU_ENABLED
         ret_t operator()(arg_t x) 
         { 
           return ret_t(x/c); 

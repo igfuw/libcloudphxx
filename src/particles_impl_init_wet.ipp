@@ -21,7 +21,7 @@ namespace libcloudphxx
 
        rw2_eq(const real_t &RH_max) : RH_max(RH_max) {}
 
-       __device__ 
+       BOOST_GPU_ENABLED 
        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
        {
 #if !defined(__NVCC__)

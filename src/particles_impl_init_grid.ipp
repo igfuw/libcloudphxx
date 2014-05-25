@@ -29,7 +29,7 @@ namespace libcloudphxx
           x1(o.x1), y1(o.y1), z1(o.z1) 
         {}
 
-        __device__
+        BOOST_GPU_ENABLED
         real_t operator()(const int &ijk)
         {
 #if !defined(__NVCC__)

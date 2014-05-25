@@ -28,7 +28,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct exp3x
       { 
-	__device__ 
+	BOOST_GPU_ENABLED 
 	real_t operator()(real_t x) 
 	{ 
 	  return exp(3*x); 
