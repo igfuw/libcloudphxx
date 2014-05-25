@@ -350,6 +350,27 @@ namespace lgrngn
   }
 };
 
+namespace common
+{
+  template <typename real_t>
+  real_t th_dry2std(
+    const real_t &th_dry,
+    const real_t &r
+  )
+  {
+    return cmn::theta_dry::dry2std(th_dry * si::kelvins, r * si::dimensionless()) / si::kelvins;
+  }
+
+  template <typename real_t>
+  real_t th_std2dry(
+    const real_t &th_std,
+    const real_t &r
+  )
+  {
+    return cmn::theta_dry::std2dry(th_std * si::kelvins, r * si::dimensionless()) / si::kelvins;
+  }
+};
+
 
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
@@ -371,6 +392,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     // TODO: how to make the above constant?
+
+    bp::def("th_dry2std", &common::th_dry2std<real_t>);
+    bp::def("th_std2dry", &common::th_std2dry<real_t>);
   }
 
   // blk_1m stuff

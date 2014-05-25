@@ -19,7 +19,7 @@ target_link_libraries(cloudphxx cloudphxx_lgrngn)
 find_package(PythonInterp)
 
 #
-foreach(test api_blk_1m api_blk_2m api_lgrngn)
+foreach(test api_blk_1m api_blk_2m api_lgrngn api_common)
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
