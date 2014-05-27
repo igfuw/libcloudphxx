@@ -8,7 +8,8 @@ The kessler module can be found here: WRFV3/phys/module_mp_kessler.F
 Once you have module_mp_kessler.F, you have to change extension to "f90": 
 > mv  module_mp_kessler.F  module_mp_kessler.f90
 
-To make a share library - libkessler.so, the C wrapper - kessler_wrap.f90 has to be used (tested with gfortran 4.8.2):
+To make a share library - libkessler.so, the C wrapper - kessler_wrap.f90 has to be used (tested with gf
+ortran 4.8.2):
 > gfortran -c -fPIC module_mp_kessler.f90 -o module_mp_kessler.o
 > gfortran -shared -fPIC module_mp_kessler.o kessler_wrap.f90 -o libkessler.so
 
@@ -16,3 +17,9 @@ Now you can call python code - kessler_call.py, that calls python-kessler functi
 > python kessler_call.py
 
 The kessler_call.py is just a simple example of calling kessler for a one grid point.
+
+problems...
+* If can not find the libkessler.so try:
+LD_LIBRARY_PATH=.
+export LD_LIBRARY_PATH
+
