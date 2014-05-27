@@ -1,5 +1,6 @@
 import sys
 sys.path.append(".")
+sys.path.append("../../../tests/python/wrf_microphys/kessler/")
 #sys.path.append("/Users/dorota/Library/Enthought/Canopy_64bit/User/lib/python2.7/site-packages")
 #sys.path.append("/Users/dorota/libcloudphxx/build/tests/python")
 import pytest
@@ -8,34 +9,19 @@ import pdb
 
 from numpy import array as arr_t
 
-from libcloudphxx import blk_1m
-
-#TODO: mysle, ze moznaby tu dodac params?
-# czy te cond, cevp to jakies atrybuty? nie mozna tego krocej zapisac?
-# zrezygnowalam chwilowo z fixture
-
-def opts_cr(cond = True, cevp = True, revp = True, conv = True,
-            accr = True, sedi = False):
-    opts = blk_1m.opts_t()
-    opts.cond = cond
-    opts.cevp = cevp
-    opts.revp = revp
-    opts.conv = conv
-    opts.accr = accr
-    opts.sedi = sedi
-    return opts
+from libcloudphxx_blk_1m_pytest import adj_cellwise
+#from kessler_call import adj_cellwise
 
 # typical values a example
-rhod_0 = arr_t([1.107  ])
-th_0   = arr_t([291.802])
+press_0 = arr_t([900.e2  ])
+th_0   = arr_t([291.8])
 rv_0   = arr_t([8.e-3])
 rc_0   = arr_t([5.e-4])
 rr_0   = arr_t([0.  ])
 dt_0   = 1
 
-#ta f-cja jest tylko po to, aby byly keword arg., konieczna?
-def adj_cellwise(opts, rhod = rhod_0.copy(), th = None,
-                 rv = None, rc = None, rr = None, dt = dt_0):
+def condensation(press = None, th = None,
+                 rv = None, rc = None, rr = None, dt=dt_0):
 
     print "\n na poczatku srawdzam, czy ma qv", rv
     #pdb.set_trace()
@@ -43,14 +29,13 @@ def adj_cellwise(opts, rhod = rhod_0.copy(), th = None,
     rv = rv if rv!=None else rv_0.copy()
     rc = rc if rc!=None else rc_0.copy()
     rr = rr if rr!=None else rr_0.copy()
-    print "\n In adj_cellwise. Who is calling..?", inspect.stack()[1][3]
-
-    #print "\n in adj_cellwise przed", rv, rc
-    blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
-    #print "\n in adj_cellwise po", rv, rc
+    press = press if press!=None else press_0.copy()
+    print "\n In condensation. Who is calling..?", inspect.stack()[1][3]
+    rv, rc = adj_cellwise(press, th, rv, rc, rr, dt)
     return rv, rc
 
-@pytest.mark.skipif
+
+#@pytest.mark.skipif
 @pytest.mark.parametrize("arg", [
     {'th':arr_t([255.])},    pytest.mark.xfail({'th':arr_t([500. ])}),
     {'rv':arr_t([-1.e-5])}, pytest.mark.xfail({'rv':arr_t([0.1 ])}),
@@ -59,9 +44,8 @@ def adj_cellwise(opts, rhod = rhod_0.copy(), th = None,
     ])
 def test_exeptions_wrongvalue(arg):
     print "\n jestem w test_exeption", arg
-    opts = opts_cr()
     with pytest.raises(Exception) as excinfo:
-        adj_cellwise(opts, **arg)
+        condensation(**arg)
     #the line below can give you information about the exception 
     #print "exception info:", excinfo.value
     
@@ -84,9 +68,8 @@ def test_exeptions_wrongvalue(arg):
     ])
 #TODO zastanowic sie nad epsilonem
 def test_expected_output_evapcond(arg, expected, epsilon = 0.13):
-    opts = opts_cr(conv = False, accr = False )
     print "\n w test_expected value przed", arg
-    rv, rc = adj_cellwise(opts, **arg)
+    rv, rc = condensation(**arg)
     #print "rv, rc po", rv, rc
     for key, value in expected.items():
         print "\n key, valuu, eval(key)", key, value, eval(key)
