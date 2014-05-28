@@ -10,7 +10,8 @@ import pdb
 from numpy import array as arr_t
 
 from libcloudphxx_blk_1m_pytest import adj_cellwise
-#from kessler_call import adj_cellwise
+#uncomment if you want wrf kessler; should be run from different directory TODO!
+#from wrf_blk_1m_pytest import adj_cellwise
 
 # typical values a example
 press_0 = arr_t([900.e2  ])
@@ -35,7 +36,7 @@ def condensation(press = None, th = None,
     return rv, rc
 
 
-#@pytest.mark.skipif
+@pytest.mark.skipif
 @pytest.mark.parametrize("arg", [
     {'th':arr_t([255.])},    pytest.mark.xfail({'th':arr_t([500. ])}),
     {'rv':arr_t([-1.e-5])}, pytest.mark.xfail({'rv':arr_t([0.1 ])}),

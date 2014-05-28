@@ -9,7 +9,7 @@ def kessler(nx, ny, nz, dt_in,
             t_np, qv_np, qc_np, qr_np, rho_np, pii_np, dz8w_np, z_np,
             rainnc_np, rainncv_np):
 
-    ffi.cdef("void c_kessler(float t[], float qv[], float qc[], float qr[], float rho[], float pii[], float dt_in, float z[], float xlv, float cp, float EP2, float SVP1, float SVP2, float SVP3, float SVPT0, float rhowater, float dz8w[], float RAINNC[], float RAINNCV[], int ids, int ide, int jds, int jde, int kds, int kde, int ims, int ime, int jms, int jme, int kms, int kme, int its, int ite, int jts, int jte, int kts, int kt);")
+    ffi.cdef("void c_kessler(float t[], float qv[], float qc[], float qr[], float rho[], float pii[], float dt_in, float z[], float xlv, float cp, float EP2, float SVP1, float SVP2, float SVP3, float SVPT0, float rhowater, float dz8w[], float RAINNC[], float RAINNCV[], int ids, int ide, int jds, int jde, int kds, int kde, int ims, int ime, int jms, int jme, int kms, int kme, int its, int ite, int jts, int jte, int kts, int kt);", override=True)
 
     lib = ffi.dlopen('libkessler.so')
 
@@ -41,3 +41,4 @@ def kessler(nx, ny, nz, dt_in,
                   ,ims,ime, jms,jme, kms,kme                 
                   ,its,ite, jts,jte, kts,kte                 
                   )
+    print "After ckessler in cff", qv
