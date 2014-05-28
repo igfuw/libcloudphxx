@@ -17,7 +17,8 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__theta_dry__T 
       {
-        __device__ real_t operator()(const real_t &th, const real_t &rhod)
+       BOOST_GPU_ENABLED 
+       real_t operator()(const real_t &th, const real_t &rhod)
        {   
          return common::theta_dry::T<real_t>(
            th   * si::kelvins,
@@ -29,7 +30,8 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__theta_dry__p 
       {
-        __device__ real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)
+       BOOST_GPU_ENABLED
+       real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)
        {   
          const real_t rhod = thrust::get<0>(tpl);
          const real_t rv = thrust::get<1>(tpl);
@@ -46,7 +48,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct RH
       {   
-        __device__ 
+        BOOST_GPU_ENABLED 
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
         {
           const real_t rhod = thrust::get<0>(tpl);
@@ -65,7 +67,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__visc // TODO: rename it! (vterm) visc_eta?
       {
-        __device__
+        BOOST_GPU_ENABLED
         real_t operator()(const real_t &T)
         {
           return common::vterm::visc(T * si::kelvins) / si::pascals / si::seconds;

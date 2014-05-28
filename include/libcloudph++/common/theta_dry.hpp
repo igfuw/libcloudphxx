@@ -53,6 +53,36 @@ namespace libcloudphxx
       ) {
 	return - th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
       }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> std2dry(
+        const quantity<si::temperature, real_t> &th_std,
+        const quantity<si::dimensionless, real_t> &r
+      ) {
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
+        return th_std * pow(
+          1 + r * R_v<real_t>() / R_d<real_t>(), 
+          R_d<real_t>() / c_pd<real_t>()
+        );
+      }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> dry2std(
+        const quantity<si::temperature, real_t> &th_dry,
+        const quantity<si::dimensionless, real_t> &r
+      ) {
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
+        return th_dry / pow(
+          1 + r * R_v<real_t>() / R_d<real_t>(), 
+          R_d<real_t>() / c_pd<real_t>()
+        );
+      }
     };
   };
 };

@@ -18,7 +18,7 @@ namespace libcloudphxx
 
         adve_2d(const real_t dx) : dx(dx) {} 
 
-        __device__
+        BOOST_GPU_ENABLED
         real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t, const real_t> tpl)
         {
           real_t x = thrust::get<0>(tpl);
@@ -51,8 +51,10 @@ namespace libcloudphxx
       struct periodic
       { 
         real_t a, b;
+
         periodic(real_t a, real_t b) : a(a), b(b) {}
-        __device__
+
+        BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
           return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!

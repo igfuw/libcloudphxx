@@ -23,7 +23,7 @@ namespace libcloudphxx
 
         range_filter(real_t min, real_t max) : min(min), max(max) {}
 
-        __device__
+        BOOST_GPU_ENABLED
         real_t operator()(const real_t &y, const real_t &x)
         {
           return x > min && x < max ? y : 0; // TODO: >=?
@@ -59,7 +59,7 @@ namespace libcloudphxx
 
         moment_counter(real_t xp) : xp(xp) {}
 
-        __device__
+        BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl)
         {
           const real_t n = thrust::get<0>(tpl);

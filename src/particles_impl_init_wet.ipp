@@ -21,7 +21,7 @@ namespace libcloudphxx
 
        rw2_eq(const real_t &RH_max) : RH_max(RH_max) {}
 
-       __device__ 
+       BOOST_GPU_ENABLED 
        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
        {
 #if !defined(__NVCC__)
@@ -32,7 +32,7 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> kpa = thrust::get<1>(tpl); 
          const quantity<si::dimensionless, real_t> RH  = min(thrust::get<2>(tpl), RH_max);
          const quantity<si::temperature,   real_t> T   = thrust::get<3>(tpl) * si::kelvins;
-         return pow(common::kappa_koehler::rw3_eq( // TODO: include kelvin effect!
+         return pow(common::kappa_koehler::rw3_eq( 
            rd3, kpa, RH, T 
          ) / si::cubic_metres, real_t(2./3));
        }
