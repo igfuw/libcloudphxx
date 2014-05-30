@@ -13,6 +13,7 @@ namespace libcloudphxx
 { 
   namespace lgrngn
   {
+    // checking if the above workaround actually did the job
     template <typename real_t, backend_t backend>
     void particles_t<real_t, backend>::impl::sanity_checks()
     {   
@@ -21,7 +22,8 @@ namespace libcloudphxx
       struct { int operator()(int) { return omp_get_thread_num(); } } thread_id;
       thrust::transform(v.begin(), v.end(), v.begin(), thread_id);
       auto minmax = thrust::minmax_element(v.begin(), v.end());
-      assert(*minmax.first != *minmax.second);
+      if (*minmax.first == *minmax.second)
+        throw std::runtime_error("OpenMP seems not to work properly!");
     }
 
     // instantiation 
