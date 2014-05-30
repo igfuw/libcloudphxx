@@ -59,8 +59,8 @@ namespace libcloudphxx
       // if something is too small e-179 it becomes negative # TODO WHY! - explain or fix
       // so instead of n_l == 0 we have n_l < eps
       // also -1e-30 + 1e-30 is not equal to zero
-      quantity<si::dimensionless, real_t>                                       eps_d = real_t(1e-20);
-      quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> eps_n = real_t(1e-20) / si::kilograms;
+      const quantity<si::dimensionless, real_t>                                       eps_d = real_t(0);
+      const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> eps_n = real_t(0) / si::kilograms;
 
       //TODO: 
       //unfortunately can't zip through more than 10 arguments 
