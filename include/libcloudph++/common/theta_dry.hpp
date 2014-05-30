@@ -3,8 +3,8 @@
 #include <libcloudph++/common/const_cp.hpp>
 #include <libcloudph++/common/theta_std.hpp>
 
-// theta dry: \theta = (p_1000 / p_dry)^{R_d / c_{pd}}
-// theta std: \theta = (p_1000 / p)^{R_d / c_{pd}}
+// theta dry: \theta = T * (p_1000 / p_dry)^{R_d / c_{pd}}
+// theta std: \theta = T * (p_1000 / p    )^{R_d / c_{pd}}
 
 namespace libcloudphxx
 {
@@ -19,7 +19,6 @@ namespace libcloudphxx
       using moist_air::p_v;
       using theta_std::p_1000;
 
-      // TODO: eq. no
       template <typename real_t>
       BOOST_GPU_ENABLED
       inline quantity<si::temperature, real_t> T(
@@ -33,7 +32,6 @@ namespace libcloudphxx
         );
       }
 
-      // TODO: eq. 
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p(
@@ -41,10 +39,11 @@ namespace libcloudphxx
 	const quantity<si::dimensionless, real_t> &r,
 	const quantity<si::temperature, real_t> &T
       ) {
-        return rhod * T * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
+        return rhod         * (R_d<real_t>() + r * R_v<real_t>()) * T;
+        //     ^^^^           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   
+        //     rho/(1+r)      R(r)*(1+r)
       }
 
-      // see eq. TODO
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> d_th_d_rv(
