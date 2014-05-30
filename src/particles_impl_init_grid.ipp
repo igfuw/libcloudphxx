@@ -37,11 +37,11 @@ namespace libcloudphxx
           using std::max;
 #endif
 
-          // ijk = (i*nj + j)*nk + k
           const int
             i = (ijk / max(1,nz)) / max(1,ny),
             j = (ijk / max(1,nz)) % max(1,ny),
             k =  ijk % max(1,nz);
+          assert(ijk == (i*max(1,ny) + j)*max(1,nz) + k);
              
           return 
 	    (min((i + 1) * dx, x1) - max(i * dx, x0)) *

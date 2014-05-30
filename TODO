@@ -8,6 +8,7 @@
 - cleanup file extensions for lgrngn (.ipp, .tpp, ...)
 - czy thrust::get(tuple) nie moga zwracac referencji? (o ile nie ma jednostek to by sie przydalo
 - tolerances for bisect in kappa and max-mason (+something better than bisect?)
+- do CUDA asserts go away with NDEBUG?
 
 0.2: (near future enhancements, things important for the initial stages of the HARMONIA project)
 - cond/evap separation for other micro than blk_1m?
