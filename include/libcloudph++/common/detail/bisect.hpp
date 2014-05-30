@@ -1,5 +1,5 @@
 #pragma once
-// adapten from Boost's bisection
+// adapted from Boost's bisection
 
 #include <boost/config.hpp>
 
@@ -34,6 +34,7 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
 	using std::abs;
 #endif
+        // if bisection is ill-posed, return mid of the range
         if (fmin * fmax >= 0) return (min + max) / 2; 
 
 	real_t mid; 
