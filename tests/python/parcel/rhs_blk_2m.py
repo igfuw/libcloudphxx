@@ -7,6 +7,13 @@ class rhs_blk_2m:
   def __init__(self, dt):
     self.dt = dt
     self.opts = blk_2m.opts_t()
+
+# TODO!
+#    self.opts.dry_distros = [ 
+#      {"mean_rd":.04e-6 / 2, "sdev_rd":1.4, "N_stp":60e6, "chem_b":.55},
+#      {"mean_rd":.15e-6 / 2, "sdev_rd":1.6, "N_stp":40e6, "chem_b":.55}
+#    ]
+
     self.rc = arr_t([0.])
     self.nc = arr_t([0.])
     self.rr = arr_t([0.])

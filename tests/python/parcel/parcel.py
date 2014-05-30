@@ -18,7 +18,6 @@ def parcel(p_d, th_d, r_v, w, dt, nt, rhs):
   # Euler-like integration
   for _ in range(nt):
     # first, adjusting thr pressure using hydrostatic law
-    print rhod(p_d, th_d)
     p_d += dt * (-g * rhod(p_d, th_d) * w)
     # computing rhs for th and rv
     dot_th = arr_t([0.])
