@@ -111,8 +111,8 @@ namespace libcloudphxx
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
         thrust::make_permutation_iterator(                  // input - second arg
-	  count_ijk.begin(),
-          dv.begin()
+          dv.begin(),
+	  count_ijk.begin()
         ),
         count_mom.begin(),                                  // output (in place)
         thrust::divides<real_t>()
@@ -123,8 +123,8 @@ namespace libcloudphxx
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
         thrust::make_permutation_iterator(                  // input - second arg
-	  count_ijk.begin(),
-          rhod.begin()
+          rhod.begin(),
+	  count_ijk.begin()
         ),
         count_mom.begin(),                                  // output (in place)
         thrust::divides<real_t>()

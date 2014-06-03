@@ -65,7 +65,7 @@ namespace libcloudphxx
       pimpl->init_wet();
  
       // initialising chem stuff
-      pimpl->init_chem();
+      pimpl->init_chem(); // TODO: only if chem enabled?
  
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       pimpl->init_grid();
