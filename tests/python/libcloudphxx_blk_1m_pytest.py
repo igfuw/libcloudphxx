@@ -3,7 +3,7 @@ sys.path.append(".")
 
 from numpy import array as arr_t
 from constants_pytest import Rd, Rv, cp, p0
-from libcloudphxx import blk_1m
+from libcloudphxx import blk_1m, common
 
 def opts_cr(cond = True, cevp = True, revp = True, conv = True,
             accr = True, sedi = False):
@@ -32,3 +32,5 @@ def adj_cellwise(press, T, rv, rc, rr, dt):
     th_d = pottemp_dry(rv, press, T)
     blk_1m.adj_cellwise(opts, rho_d, th_d, rv, rc, rr, dt)
     return rv, rc
+
+print common.p_vs(283.15)

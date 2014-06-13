@@ -350,6 +350,25 @@ namespace lgrngn
   }
 };
 
+namespace common
+{
+
+  template <typename real_t>
+  real_t p_vs(const real_t &T)
+  {
+    return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
+  }
+
+  template <typename real_t>
+  real_t T(const real_t &th, const real_t &rhod)
+  {
+    return cmn::theta_dry::T(th * si::kelvins, rhod) / si::kelvins;
+  }
+
+
+};
+
+
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   bp::numeric::array::set_module_and_type("numpy", "ndarray");
@@ -357,6 +376,23 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   // specify that this module is actually a package
   bp::object package = bp::scope();
   package.attr("__path__") = "libcloudphxx";
+
+  // common stuff
+  {
+    std::string nested_name = bp::extract<std::string>(bp::scope().attr("__name__") + ".common");
+    bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
+    bp::scope().attr("common") = nested_module;
+    bp::scope parent = nested_module;
+
+    bp::scope().attr("R_d") = (real_t) (cmn::moist_air::R_d<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
+    bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
+    // TODO: how to make the above constant?
+
+    bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("T", &common::T<real_t>);
+  }
 
   // blk_1m stuff
   {
