@@ -41,7 +41,7 @@ namespace libcloudphxx
 	const quantity<si::dimensionless, real_t> &r,
 	const quantity<si::temperature, real_t> &T
       ) {
-        return rhod * T * (1+r) * (R_d<real_t>() + r * R_v<real_t>());
+        return rhod * T * (R_d<real_t>() + r * R_v<real_t>());
       }
 
       // see eq. TODO
