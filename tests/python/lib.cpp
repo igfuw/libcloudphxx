@@ -352,7 +352,6 @@ namespace lgrngn
 
 namespace common
 {
-<<<<<<< HEAD
   template <typename real_t>
   real_t th_dry2std(
     const real_t &th_dry,
@@ -388,9 +387,6 @@ namespace common
   {
     return cmn::theta_dry::p(rhod  * si::kilograms / si::cubic_metres, r * si::kilograms / si::kilograms, T * si::kelvins) / si::pascals;
   }
-
-
->>>>>>> 48c1c9eb22ffc8229f0d4429bfdb19f1c5e28f0c
 };
 
 
@@ -476,10 +472,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
+/*
     bp::enum_<lgr::chem_gas>("chem_gas")
       .value("gSO2",  lgr::gSO2)
       .value("gO3",   lgr::gO3)
       .value("gH2O2", lgr::gH2O2);
+*/
     bp::enum_<lgr::chem_aq>("chem_aq")
       .value("H",    lgr::H)
       .value("OH",   lgr::OH)
