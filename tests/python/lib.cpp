@@ -369,6 +369,12 @@ namespace common
   {
     return cmn::theta_dry::std2dry(th_std * si::kelvins, r * si::dimensionless()) / si::kelvins;
   }
+
+  template <typename real_t>
+  real_t p_vs(const real_t &T)
+  {
+    return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
+  }
 };
 
 
@@ -395,6 +401,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
+    bp::def("p_vs", &common::p_vs<real_t>);
   }
 
   // blk_1m stuff
