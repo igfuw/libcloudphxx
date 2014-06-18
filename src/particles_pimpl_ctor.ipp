@@ -43,7 +43,11 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
-// TODO: chem constituents
+
+      // chem constituents
+      std::vector<thrust_device::vector<real_t> >
+        che; // indexed with enum chem_aq
+
       thrust_device::vector<n_t>
 	n;   // multiplicity
 
