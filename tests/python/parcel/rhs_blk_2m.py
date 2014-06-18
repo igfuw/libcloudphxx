@@ -4,6 +4,9 @@ from numpy import array as arr_t
 
 class rhs_blk_2m:
 
+  def init(self, th_d, r_v, rhod):
+    pass
+
   def __init__(self, dt):
     self.dt = dt
     self.opts = blk_2m.opts_t()

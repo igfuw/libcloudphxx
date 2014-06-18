@@ -369,6 +369,14 @@ namespace common
   {
     return cmn::theta_dry::std2dry(th_std * si::kelvins, r * si::dimensionless()) / si::kelvins;
   }
+
+  template <typename real_t>
+  real_t p_vs(
+    const real_t &T
+  )
+  {
+    return cmn::const_cp::p_vs(T * si::kelvins) / si::pascal;
+  }
 };
 
 
@@ -391,10 +399,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
+    bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
+    bp::def("p_vs", &common::p_vs<real_t>);
   }
 
   // blk_1m stuff
