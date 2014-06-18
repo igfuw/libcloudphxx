@@ -28,7 +28,7 @@ foreach(test api_blk_1m api_blk_2m api_lgrngn api_common)
 endforeach()
 
 # pytest tests run with "python -m pytest"
-foreach(test pytest_hello blk_1m_pytest)
+foreach(test pytest_hello)
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
