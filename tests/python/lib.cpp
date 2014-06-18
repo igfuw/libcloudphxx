@@ -375,6 +375,18 @@ namespace common
   {
     return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
   }
+
+  template <typename real_t>
+  real_t T(const real_t &th, const real_t &rhod)
+  {
+    return cmn::theta_dry::T(th * si::kelvins, rhod  * si::kilograms / si::cubic_metres) / si::kelvins;
+  }
+
+  template <typename real_t>
+  real_t p(const real_t &rhod, const real_t &r, const real_t &T)
+  {
+    return cmn::theta_dry::p(rhod  * si::kilograms / si::cubic_metres, r * si::kilograms / si::kilograms, T * si::kelvins) / si::pascals;
+  }
 };
 
 
@@ -403,6 +415,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("T", &common::T<real_t>);
+    bp::def("p", &common::p<real_t>);
   }
 
   // blk_1m stuff
@@ -458,10 +472,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
+/*
     bp::enum_<lgr::chem_gas>("chem_gas")
       .value("gSO2",  lgr::gSO2)
       .value("gO3",   lgr::gO3)
       .value("gH2O2", lgr::gH2O2);
+*/
     bp::enum_<lgr::chem_aq>("chem_aq")
       .value("H",    lgr::H)
       .value("OH",   lgr::OH)

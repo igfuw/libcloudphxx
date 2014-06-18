@@ -18,9 +18,19 @@ namespace libcloudphxx
     void particles_t<real_t, backend>::impl::sanity_checks()
     {   
       if (omp_get_max_threads() == 1) return;
+
       thrust::omp::vector<int> v(100);
-      struct { int operator()(int) { return omp_get_thread_num(); } } thread_id;
+
+      struct 
+      { 
+        int operator()(int) const
+        { 
+          return omp_get_thread_num(); 
+        } 
+      } thread_id;
+
       thrust::transform(v.begin(), v.end(), v.begin(), thread_id);
+
       auto minmax = thrust::minmax_element(v.begin(), v.end());
       if (*minmax.first == *minmax.second)
         throw std::runtime_error("OpenMP seems not to work properly!");
