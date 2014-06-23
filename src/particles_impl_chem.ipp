@@ -12,8 +12,12 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem(const real_t &dt)
     {   
-      // TODO
 std::cerr << "@particles_t::impl::chem()" << std::endl;
+      // equilibrium stuff
+      
+
+      // non-equilibrium stuff
+      // TODO
     }
   };  
 };
