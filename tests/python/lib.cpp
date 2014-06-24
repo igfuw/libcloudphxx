@@ -348,6 +348,25 @@ namespace lgrngn
   {
     throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
   }
+
+  void set_cg(
+    lgr::opts_t<real_t> *arg,
+    const bp::dict &vec
+  )
+  {
+    for (int i = 0; i < len(vec.keys()); ++i)
+      arg->chem_gas.at(i) = bp::extract<real_t>(vec[i]);
+  }
+
+  bp::dict get_cg(
+    lgr::opts_t<real_t> *arg
+  )
+  {
+    bp::dict tmp;
+    for (int i = 0; i < arg->chem_gas.size(); ++i)
+      tmp[i] = arg->chem_gas.at(i);
+    return tmp;
+  }
 };
 
 namespace common
@@ -472,12 +491,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
-/*
+
     bp::enum_<lgr::chem_gas>("chem_gas")
       .value("gSO2",  lgr::gSO2)
       .value("gO3",   lgr::gO3)
       .value("gH2O2", lgr::gH2O2);
-*/
+
     bp::enum_<lgr::chem_aq>("chem_aq")
       .value("H",    lgr::H)
       .value("OH",   lgr::OH)
@@ -500,6 +519,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sstp_cond", &lgr::opts_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_t<real_t>::sstp_chem)
+      .add_property("chem_gas", &lgrngn::get_cg, &lgrngn::set_cg)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd, &lgrngn::set_dd)
@@ -518,6 +538,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
+      .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .def("init",         &lgrngn::init)

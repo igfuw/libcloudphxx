@@ -34,6 +34,7 @@ def lognormal(lnr):
     -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
   ) / log(stdev) / sqrt(2*pi);
 kappa = .61 #TODO - check 
+# rho = 1.8 # TODO
 
 # running all three
 for rhs in [rhs_blk_2m(dt), rhs_lgrngn(dt, sd_conc, {kappa:lognormal})]:
