@@ -4,7 +4,7 @@ set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to 
 #TODO: search for NumPy, Blitz, pytest
 
 # informing the Python bindings where to find Python
-find_package(PythonLibs)
+find_package(PythonLibs REQUIRED)
 target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
@@ -15,11 +15,15 @@ target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 # ... where to find libclouph++
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-# 
-find_package(PythonInterp)
+# looking for the Python interpretter
+find_package(PythonInterp REQUIRED)
+if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
+  message( FATAL_ERROR "Version mismatch between python interpreter and libraries")
+endif()
 
-#
+# non-pytest tests
 foreach(test api_blk_1m api_blk_2m api_lgrngn api_common)
+  #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
@@ -29,6 +33,7 @@ endforeach()
 
 # pytest tests run with "python -m pytest"
 foreach(test pytest_hello)
+  #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/tests/python" 
@@ -36,4 +41,25 @@ foreach(test pytest_hello)
   )
 endforeach()
 
-#TODO: indicate that tests depend on the lib
+# installation (see http://www.cmake.org/pipermail/cmake/2013-March/054138.html)
+execute_process (
+   COMMAND ${PYTHON_EXECUTABLE} -c
+   	"import site, sys; sys.stdout.write(site.PREFIXES[-1])"
+   OUTPUT_VARIABLE PYTHON_PREFIX
+)
+file ( TO_CMAKE_PATH "${PYTHON_PREFIX}" PYTHON_PREFIX )
+execute_process (
+   COMMAND ${PYTHON_EXECUTABLE} -c
+   	"import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
+   OUTPUT_VARIABLE PYTHON_SITE_DIR
+)
+file ( TO_CMAKE_PATH "${PYTHON_SITE_DIR}" PYTHON_SITE_DIR )
+string ( REGEX REPLACE "^${PYTHON_PREFIX}/" ""
+   PYTHON_SITE_DIR "${PYTHON_SITE_DIR}"
+)
+
+install ( TARGETS cloudphxx
+   LIBRARY
+     DESTINATION ${PYTHON_SITE_DIR}
+     COMPONENT library
+)
