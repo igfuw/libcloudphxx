@@ -18,7 +18,11 @@ target_link_libraries(cloudphxx cloudphxx_lgrngn)
 # looking for the Python interpretter
 find_package(PythonInterp REQUIRED)
 if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
-  message( FATAL_ERROR "Version mismatch between python interpreter and libraries")
+  message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
+  message(STATUS "PYTHON_VERSION: " ${PYTHON_VERSION_STRING})
+  message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
+  message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
+  message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
 endif()
 
 # non-pytest tests
