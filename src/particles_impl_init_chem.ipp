@@ -34,7 +34,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_chem()
     {
-std::cerr << "@init_chem()" << std::endl;
       // TODO: don't do it if not using chem...
 
       che.resize(chem_aq_n);
