@@ -72,7 +72,10 @@ class rhs_lgrngn:
     self.out_snd.write(u"\t%g" % (r_v))
 
     self.prtcls.diag_wet_rng(0,1) # 0 ... 1 m
-    self.prtcls.diag_chem(lgrngn.chem_aq.S_VI)
+    self.prtcls.diag_chem(lgrngn.chem_species_t.S_VI)
     self.out_snd.write(u"\t%g" % (frombuffer(self.prtcls.outbuf())))
+   
+    self.prtcls.diag_chem(lgrngn.chem_species_t.SO2)
+    print frombuffer(self.prtcls.outbuf())
 
     self.out_snd.write(u"\n")

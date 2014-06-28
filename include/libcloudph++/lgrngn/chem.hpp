@@ -4,14 +4,11 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-// TODO: suffix with _t?
-    enum chem_gas {
-      gSO2, gO3, gH2O2,
-      chem_gas_n=gH2O2+1
-    };
-    enum chem_aq 
+    enum chem_species_t
     {
-      H, OH, SO2, O3, H2O2, HSO3, SO3, S_VI, HSO4, SO4, 
+      SO2, H2O2, O3, // both gas and aqueous (must be first as gas species vectors use only these!)
+      H, OH, HSO3, SO3, S_VI, HSO4, SO4, // only aqueous
+      chem_gas_n=O3+1,
       chem_aq_n=SO4+1
     };
   };

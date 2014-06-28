@@ -46,7 +46,7 @@ namespace libcloudphxx
 
       // chem constituents
       std::vector<thrust_device::vector<real_t> >
-        che; // indexed with enum chem_aq
+        che; // indexed with enum chem_species_t
 
       thrust_device::vector<n_t>
 	n;   // multiplicity
@@ -235,7 +235,7 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt);
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
       // TODO: rcyc
     };
 

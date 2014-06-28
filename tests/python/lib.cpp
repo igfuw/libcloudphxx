@@ -492,12 +492,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric);
 
-    bp::enum_<lgr::chem_gas>("chem_gas")
-      .value("gSO2",  lgr::gSO2)
-      .value("gO3",   lgr::gO3)
-      .value("gH2O2", lgr::gH2O2);
-
-    bp::enum_<lgr::chem_aq>("chem_aq")
+    bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
       .value("OH",   lgr::OH)
       .value("SO2",  lgr::SO2)
