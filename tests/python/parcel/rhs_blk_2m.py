@@ -4,7 +4,10 @@ from numpy import array as arr_t
 
 class rhs_blk_2m:
 
-  def init(self, th_d, r_v, rhod):
+  def init(self, rhod, th_d, r_v):
+    pass
+
+  def diag(self, rhod, th_d, r_v, t):
     pass
 
   def __init__(self, dt):
@@ -22,7 +25,7 @@ class rhs_blk_2m:
     self.rr = arr_t([0.])
     self.nr = arr_t([0.])
 
-  def __call__(self, rhod, th, rv, dot_th, dot_rv):
+  def step(self, rhod, th_d, r_v, dot_th, dot_rv):
     dot_rc = arr_t([0.])
     dot_nc = arr_t([0.])
     dot_rr = arr_t([0.])
@@ -30,7 +33,7 @@ class rhs_blk_2m:
     blk_2m.rhs_cellwise(self.opts, 
       dot_th, dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
       rhod,
-      th, rv, 
+      th_d, r_v, 
       self.rc, self.nc, self.rr, self.nr,
       self.dt
     );

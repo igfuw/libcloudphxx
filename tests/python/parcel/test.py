@@ -25,7 +25,7 @@ nt   = 10
 # TODO: spectrum
 
 # lgrngn-specific parameters
-sd_conc = 64
+sd_conc = 1024
 def lognormal(lnr):
   mean_r = .08e-6 / 2
   stdev = 2
@@ -37,6 +37,10 @@ kappa = .61 #TODO - check
 # rho = 1.8 # TODO
 
 # running all three
-for rhs in [rhs_blk_2m(dt), rhs_lgrngn(dt, sd_conc, {kappa:lognormal})]:
+for rhs in [
+  rhs_blk_2m(dt), 
+  rhs_lgrngn(dt, sd_conc, {kappa:lognormal})
+]:
   parcel(p_d, th_d, r_v, w, dt, nt, rhs)
   print p_d, arr_t([th_dry2std(th_d[0], r_v[0])]), r_v
+
