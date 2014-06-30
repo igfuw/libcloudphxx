@@ -5,6 +5,8 @@ from libcloudphxx.common import th_std2dry, th_dry2std
 from libcloudphxx.common import p_vs
 from libcloudphxx.common import eps, p_1000, R_d, c_pd
 
+from libcloudphxx.lgrngn import chem_species_t
+
 from numpy import array as arr_t
 from math import exp, log, sqrt, pi
 
@@ -25,7 +27,7 @@ nt   = 10
 # TODO: spectrum
 
 # lgrngn-specific parameters
-sd_conc = 1024
+sd_conc = 44
 def lognormal(lnr):
   mean_r = .08e-6 / 2
   stdev = 2
@@ -36,10 +38,16 @@ def lognormal(lnr):
 kappa = .61 #TODO - check 
 # rho = 1.8 # TODO
 
+chem_gas = {
+  chem_species_t.SO2  : 200e-12,
+  chem_species_t.O3   : 50e-9,
+  chem_species_t.H2O2 : 500e-12
+}
+
 # running all three
 for rhs in [
   rhs_blk_2m(dt), 
-  rhs_lgrngn(dt, sd_conc, {kappa:lognormal})
+  rhs_lgrngn(dt, sd_conc, {kappa:lognormal}, chem_gas)
 ]:
   parcel(p_d, th_d, r_v, w, dt, nt, rhs)
   print p_d, arr_t([th_dry2std(th_d[0], r_v[0])]), r_v

@@ -44,7 +44,7 @@ namespace libcloudphxx
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
 
-      // chem constituents
+      // chem constituents // TODO: consider hchanging the unit to AMU or alike (very small numbers!)
       std::vector<thrust_device::vector<real_t> >
         che; // indexed with enum chem_species_t
 

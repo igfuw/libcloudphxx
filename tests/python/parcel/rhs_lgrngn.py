@@ -6,7 +6,7 @@ from os import mkdir
 class rhs_lgrngn:
 
   # ctor
-  def __init__(self, dt, sd_conc, dry_distros):
+  def __init__(self, dt, sd_conc, dry_distros, chem_gas):
     opts_init = lgrngn.opts_init_t()
     opts_init.sd_conc_mean = sd_conc
     opts_init.dry_distros = dry_distros
@@ -14,6 +14,7 @@ class rhs_lgrngn:
     backend = lgrngn.backend_t.serial
     self.prtcls = lgrngn.factory(backend, opts_init)
     self.opts = lgrngn.opts_t()
+    self.opts.chem_gas = chem_gas
 
     # TODO: what's below should not be here...
     # TODO: outfreq

@@ -26,6 +26,8 @@
    using libcloudphxx::common::detail::fake_units::quantity;
    using libcloudphxx::common::detail::fake_units::divide_typeof_helper;
    using libcloudphxx::common::detail::fake_units::multiply_typeof_helper;
+   using libcloudphxx::common::detail::fake_units::power_typeof_helper;
+   using libcloudphxx::common::detail::fake_units::static_rational;
 #endif
 
 // not here?

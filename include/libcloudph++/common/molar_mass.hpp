@@ -16,6 +16,9 @@ namespace libcloudphxx
       libcloudphxx_const(mass_over_amount, M_SO2,  64*1e-3, si::kilograms / si::moles)
       libcloudphxx_const(mass_over_amount, M_H2O2, 34*1e-3, si::kilograms / si::moles)
       libcloudphxx_const(mass_over_amount, M_O3,   48*1e-3, si::kilograms / si::moles)
+      libcloudphxx_const(mass_over_amount, M_H2SO4,98*1e-3, si::kilograms / si::moles) 
+      libcloudphxx_const(mass_over_amount, M_HSO4, 97*1e-3, si::kilograms / si::moles)
+      libcloudphxx_const(mass_over_amount, M_SO4,  96*1e-3, si::kilograms / si::moles)
     };
   };
 };

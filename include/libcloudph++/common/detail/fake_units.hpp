@@ -136,6 +136,12 @@ namespace libcloudphxx
 
         template <typename, typename>    
         struct multiply_typeof_helper { typedef detail::qntt_t type; };
+
+        template <typename, typename>
+        struct power_typeof_helper { typedef detail::qntt_t type; };
+
+        template <int>
+        struct static_rational {};
       };
     };
   };

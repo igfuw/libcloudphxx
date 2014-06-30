@@ -63,9 +63,9 @@ th   = arr_t([300.])
 rv   = arr_t([  0.01])
 
 opts.chem_gas = {
-  lgrngn.chem_gas.gSO2 : 10,
-  lgrngn.chem_gas.gO3 : 20,
-  lgrngn.chem_gas.gH2O2 : 20
+  lgrngn.chem_species_t.SO2  : 44,
+  lgrngn.chem_species_t.O3   : 44,
+  lgrngn.chem_species_t.H2O2 : 44
 }
 
 print "chem_gas SO2 = ", opts.chem_gas[lgrngn.chem_gas.gSO2]
