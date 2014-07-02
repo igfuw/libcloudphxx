@@ -37,7 +37,7 @@ namespace libcloudphxx
 
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 
-        adve(true), sedi(true), cond(true), coal(true), chem(true), // all on 
+        adve(true), sedi(true), cond(true), coal(true), chem(false), 
         sstp_cond(10), sstp_coal(10), sstp_chem(10),
         RH_max(44), // :) (anything greater than 1.1 would be enough
         chem_gas(chem_gas_n)

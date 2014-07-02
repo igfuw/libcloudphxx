@@ -96,7 +96,7 @@ namespace libcloudphxx
             * (V * V) 
             / (m_H * m_H)
             +
-            // H20*SO2 to HSO3 dissociation
+            // H2O*SO2 to HSO3 dissociation
             K_SO2<real_t>() / M_SO2<real_t>() * m_SO2 * M_H<real_t>() * V / m_H
             +
             // dissociation of pure water 
@@ -118,25 +118,87 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct chem_curie
+      struct chem_curie_pH
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
         {
-          const quantity<si::mass, real_t>
-            m_H    = thrust::get<0>(tpl) * si::kilograms,
-            m_SO2  = thrust::get<1>(tpl) * si::kilograms,
-            m_S_VI = thrust::get<2>(tpl) * si::kilograms; 
-          const quantity<si::volume, real_t> 
-            V      = thrust::get<3>(tpl) * si::cubic_metres;
+          using namespace common::molar_mass;
 
-	  real_t tol = 44; // TODO!
-          return common::detail::bisect(
+          const quantity<si::mass, real_t>
+            m_SO2  = thrust::get<0>(tpl) * si::kilograms,
+            m_S_VI = thrust::get<1>(tpl) * si::kilograms; 
+          const quantity<si::volume, real_t> 
+            V      = thrust::get<2>(tpl) * si::cubic_metres;
+
+	  real_t tol = 1e-44; // TODO!
+          real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H = common::detail::bisect(
 	    detail::chem_minfun<real_t>(m_SO2, m_S_VI, V),
-	    real_t(22), // min -> TODO! (pure water)
-	    real_t(44), // max -> TODO
+            m_H_pure, // min -> (pure water)
+	    real_t(1e-10), // max -> TODO
 	    tol
 	  ); 
+          //std::cerr << "  " << m_H_pure << " ... " << m_H << std::endl;
+          // TODO: asserts for K = f(m_H, m_...)
+          return m_H;
+        }
+      };
+ 
+      template <typename real_t, int plnk>
+      struct chem_curie_diag
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl) const
+        {
+          const quantity<si::volume, real_t> 
+            V      = thrust::get<0>(tpl) * si::cubic_metres;
+          const quantity<si::mass, real_t>
+            m_H    = thrust::get<1>(tpl) * si::kilograms,
+            m_SO2  = thrust::get<2>(tpl) * si::kilograms,
+            m_HSO3 = thrust::get<3>(tpl) * si::kilograms,
+            m_S_VI = thrust::get<4>(tpl) * si::kilograms;
+
+          switch (plnk)
+          {
+	    using namespace common::dissoc;     // K-prefixed
+	    using namespace common::molar_mass; // M-prefixed
+
+            case OH:
+              return (
+                M_H<real_t>() * M_OH<real_t>() 
+                * K_H2O<real_t>() // note: dissociation constant for pure water is actually k*[H2O] (Seinfeld and Pandis p 345)
+                * V * V / m_H
+              ) / si::kilograms; 
+            case HSO3:
+              return (
+                V / m_H * m_SO2
+                * M_HSO3<real_t>() * K_SO2<real_t>() * M_H<real_t>() / M_SO2<real_t>()
+              ) / si::kilograms;
+            case SO3:
+              return (
+                V
+                * M_SO3<real_t>()
+                * K_HSO3<real_t>() 
+                * m_HSO3 / m_H
+                * M_H<real_t>() / M_HSO3<real_t>()
+              ) / si::kilograms;
+            case HSO4:
+              return (
+                M_HSO4<real_t>() / M_H<real_t>() / M_H2SO4<real_t>()
+                * m_H
+                * m_S_VI
+                / V 
+                / ( m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+              ) / si::kilograms;
+            case SO4:
+              return (
+                M_SO4<real_t>() / M_H2SO4<real_t>()
+                * K_HSO4<real_t>() 
+                * m_S_VI
+                / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+              ) / si::kilograms;
+          }
         }
       };
     };
@@ -147,6 +209,9 @@ namespace libcloudphxx
       const std::vector<real_t> &chem_gas
     )
     {   
+      using namespace common::henry;      // H-prefixed
+      using namespace common::molar_mass; // M-prefixed
+
 std::cerr << "@particles_t::impl::chem()" << std::endl;
       // 0/4: calculating drop volumes
       thrust_device::vector<real_t> &V(tmp_device_real_part);
@@ -159,8 +224,6 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
       // 1/4: equilibrium stuff: gas absortption
       // TODO: open/close system logic
       // TODO: K=K(T)
-      using namespace common::henry;
-      using namespace common::molar_mass;
       assert(SO2 == 0 && H2O2 == 1 && O3 == 2);
       static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
 	H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>()
@@ -174,31 +237,52 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 	  V.begin(), V.end(),                                        // input - 1st arg
 	  thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
 	  che[i].begin(),                                            // output
-	  detail::chem_absfun<real_t>(H_[i], M_[i], chem_gas[i])       // op
+	  detail::chem_absfun<real_t>(H_[i], M_[i], chem_gas[i])     // op
 	);
       }
 
       // 2/4: equilibrium stuff: dissociation
+      // H+ 
       {
         typedef thrust::zip_iterator<
           thrust::tuple<
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator
+            typename thrust_device::vector<real_t>::iterator, // SO2
+            typename thrust_device::vector<real_t>::iterator, // S_VI
+            typename thrust_device::vector<real_t>::iterator  // V
           >
         > zip_it_t;
 
 	thrust::transform(
-	  zip_it_t(thrust::make_tuple(che[H].begin(), che[SO2].begin(), che[S_VI].begin(), V.begin())),  // input - begin
-	  zip_it_t(thrust::make_tuple(che[H].end(),   che[SO2].end(),   che[S_VI].end(),   V.end())  ),  // input - end
-	  che[H].begin(),                 // output
-	  detail::chem_curie<real_t>()    // op
+	  zip_it_t(thrust::make_tuple(che[SO2].begin(), che[S_VI].begin(), V.begin())),  // input - begin
+	  zip_it_t(thrust::make_tuple(che[SO2].end(),   che[S_VI].end(),   V.end())  ),  // input - end
+	  che[H].begin(),                                                                // output
+	  detail::chem_curie_pH<real_t>()                                                // op
 	);
+      }
+      {
+        typedef thrust::zip_iterator<
+          thrust::tuple<
+            typename thrust_device::vector<real_t>::iterator, // V
+            typename thrust_device::vector<real_t>::iterator, // H 
+            typename thrust_device::vector<real_t>::iterator, // SO2
+            typename thrust_device::vector<real_t>::iterator, // HSO3
+            typename thrust_device::vector<real_t>::iterator  // S_VI
+          >
+        > zip_it_t;
+
+        zip_it_t 
+          arg_begin(thrust::make_tuple(V.begin(), che[H].begin(), che[SO2].begin(), che[HSO3].begin(), che[S_VI].begin())),
+          arg_end(  thrust::make_tuple(V.end(),   che[H].end(),   che[SO2].end(),   che[HSO3].end(),   che[S_VI].end()  ));
+        
+        thrust::transform(arg_begin, arg_end, che[OH  ].begin(), detail::chem_curie_diag<real_t, OH  >());
+        thrust::transform(arg_begin, arg_end, che[HSO3].begin(), detail::chem_curie_diag<real_t, HSO3>()); // note: has to be computed before SO3
+        thrust::transform(arg_begin, arg_end, che[SO3 ].begin(), detail::chem_curie_diag<real_t, SO3 >());
+        thrust::transform(arg_begin, arg_end, che[HSO4].begin(), detail::chem_curie_diag<real_t, HSO4>());
+        thrust::transform(arg_begin, arg_end, che[SO4 ].begin(), detail::chem_curie_diag<real_t, SO4 >());
       }
 
       // 3/4: non-equilibrium stuff
-      // TODO
+      
 
 
       // 4/4: recomputing dry radii
