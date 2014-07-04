@@ -118,7 +118,7 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct chem_curie_pH
+      struct chem_curie_pH // TODO: does it have to be a struct/functor - perhaps ordinary function would suffice?
       {
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
@@ -146,7 +146,7 @@ namespace libcloudphxx
       };
  
       template <typename real_t, int plnk>
-      struct chem_curie_diag
+      struct chem_curie_diag // TODO: does it have to be a struct/functor - perhaps ordinary function would suffice?
       {
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl) const
@@ -198,9 +198,23 @@ namespace libcloudphxx
                 * m_S_VI
                 / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
               ) / si::kilograms;
+            default:
+              assert(false);
           }
         }
       };
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      void chem_rhs(
+        const thrust_device::vector<real_t> &psi, 
+        thrust_device::vector<real_t> &dot_psi,
+        const real_t &dt_
+      )
+      {
+        const quantity<si::time, real_t> dt = dt_;
+        
+      }
     };
 
     template <typename real_t, backend_t device>
@@ -236,7 +250,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 	thrust::transform(
 	  V.begin(), V.end(),                                        // input - 1st arg
 	  thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
-	  che[i].begin(),                                            // output
+	  chem_bgn[i],                                               // output
 	  detail::chem_absfun<real_t>(H_[i], M_[i], chem_gas[i])     // op
 	);
       }
@@ -253,10 +267,10 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         > zip_it_t;
 
 	thrust::transform(
-	  zip_it_t(thrust::make_tuple(che[SO2].begin(), che[S_VI].begin(), V.begin())),  // input - begin
-	  zip_it_t(thrust::make_tuple(che[SO2].end(),   che[S_VI].end(),   V.end())  ),  // input - end
-	  che[H].begin(),                                                                // output
-	  detail::chem_curie_pH<real_t>()                                                // op
+	  zip_it_t(thrust::make_tuple(chem_bgn[SO2], chem_bgn[S_VI], V.begin())),  // input - begin
+	  zip_it_t(thrust::make_tuple(chem_end[SO2], chem_end[S_VI], V.end())  ),  // input - end
+	  chem_bgn[H],                                                             // output
+	  detail::chem_curie_pH<real_t>()                                          // op
 	);
       }
       {
@@ -271,18 +285,27 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         > zip_it_t;
 
         zip_it_t 
-          arg_begin(thrust::make_tuple(V.begin(), che[H].begin(), che[SO2].begin(), che[HSO3].begin(), che[S_VI].begin())),
-          arg_end(  thrust::make_tuple(V.end(),   che[H].end(),   che[SO2].end(),   che[HSO3].end(),   che[S_VI].end()  ));
+          arg_begin(thrust::make_tuple(V.begin(), chem_bgn[H], chem_bgn[SO2], chem_bgn[HSO3], chem_bgn[S_VI])),
+          arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[HSO3], chem_end[S_VI]));
         
-        thrust::transform(arg_begin, arg_end, che[OH  ].begin(), detail::chem_curie_diag<real_t, OH  >());
-        thrust::transform(arg_begin, arg_end, che[HSO3].begin(), detail::chem_curie_diag<real_t, HSO3>()); // note: has to be computed before SO3
-        thrust::transform(arg_begin, arg_end, che[SO3 ].begin(), detail::chem_curie_diag<real_t, SO3 >());
-        thrust::transform(arg_begin, arg_end, che[HSO4].begin(), detail::chem_curie_diag<real_t, HSO4>());
-        thrust::transform(arg_begin, arg_end, che[SO4 ].begin(), detail::chem_curie_diag<real_t, SO4 >());
+        thrust::transform(arg_begin, arg_end, chem_bgn[OH  ], detail::chem_curie_diag<real_t, OH  >());
+        thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_curie_diag<real_t, HSO3>()); // note: has to be computed before SO3
+        thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_curie_diag<real_t, SO3 >());
+        thrust::transform(arg_begin, arg_end, chem_bgn[HSO4], detail::chem_curie_diag<real_t, HSO4>());
+        thrust::transform(arg_begin, arg_end, chem_bgn[SO4 ], detail::chem_curie_diag<real_t, SO4 >());
       }
 
       // 3/4: non-equilibrium stuff
-      
+      {
+/*
+        chem_stepper.do_step(
+          detail::chem_rhs<real_t>, 
+          chem_state, 
+          0,
+          dt
+        );
+*/
+      }
 
 
       // 4/4: recomputing dry radii
@@ -290,7 +313,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         using namespace thrust::placeholders;
         // TODO: using namespace for S_VI
         thrust::transform(
-          che[S_VI].begin(), che[S_VI].end(),                      // input
+          chem_bgn[S_VI], chem_end[S_VI],                          // input
           rd3.begin(),                                             // output
           (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * _1  // op
         );

@@ -36,12 +36,22 @@ namespace libcloudphxx
     {
       // TODO: don't do it if not using chem...
 
-      che.resize(chem_aq_n);
+      // memory allocation
+      chem_bgn.resize(chem_aq_n);
+      chem_end.resize(chem_aq_n);
+      chem_state.resize(chem_aq_n * n_part);
+//      chem_stepper.adjust_size(chem_state);
+      
+      // helper iterators
       for (int i = 0; i < chem_aq_n; ++i)
       {
-        // memory allocation
-        che[i].resize(n_part);
+        chem_bgn[i] = chem_state.begin() + i * n_part;
+        chem_end[i] = chem_state.end()   + i * n_part;
+      }
 
+      // initial values
+      for (int i = 0; i < chem_aq_n; ++i)
+      {
         switch (i)
         {
           case OH:
@@ -57,7 +67,7 @@ namespace libcloudphxx
               }
 	      thrust::transform(
 		rw2.begin(), rw2.end(),               // input
-		che[i].begin(),                       // output
+		chem_bgn[i],                          // output
 		detail::chem_init_water<real_t>(7, M) // op
 	      );
             }
@@ -68,18 +78,14 @@ namespace libcloudphxx
               using namespace thrust::placeholders;
 	      thrust::transform(
 		rd3.begin(), rd3.end(),                                 // input
-		che[i].begin(),                                         // output
+		chem_bgn[i],                                            // output
 		(real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * _1 // op
 	      );
             }
             break;
           default: 
             // ... TODO: epsilon?
-            thrust::fill(
-              che[i].begin(), 
-              che[i].end(),
-              0
-            );
+            thrust::fill(chem_bgn[i], chem_end[i], 0);
         }
       }
     }

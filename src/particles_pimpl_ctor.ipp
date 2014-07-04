@@ -7,6 +7,9 @@
   */
 
 #include <thrust/host_vector.h>
+#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
+#include <boost/numeric/odeint/stepper/euler.hpp>
 #include <map>
 
 namespace libcloudphxx
@@ -43,10 +46,6 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
-
-      // chem constituents // TODO: consider hchanging the unit to AMU or alike (very small numbers!)
-      std::vector<thrust_device::vector<real_t> >
-        che; // indexed with enum chem_species_t
 
       thrust_device::vector<n_t>
 	n;   // multiplicity
@@ -93,13 +92,36 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
-
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
       std::map<
         const thrust_device::vector<real_t>*, 
         thrust::host_vector<thrust_size_t> 
       > l2e; 
+
+      // chem stuff
+      // TODO: consider changing the unit to AMU or alike (very small numbers!)
+      std::vector<typename thrust_device::vector<real_t>::iterator >
+        chem_bgn, chem_end; // indexed with enum chem_species_t
+      thrust_device::vector<real_t> chem_state;
+      /* TODO:
+        On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
+        > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
+        > ... I think, the best steppers for stiff systems and thrust are the
+        > runge_kutta_fehlberg78 or the bulirsch_stoer with a very high order. But
+        > should benchmark both steppers and choose the faster one.
+      */
+/*
+      boost::numeric::odeint::euler<
+        thrust_device::vector<real_t>, // state_type
+        real_t,                        // value_type
+        thrust_device::vector<real_t>, // deriv_type
+        real_t,                        // time_type
+        boost::numeric::odeint::thrust_algebra,
+        boost::numeric::odeint::thrust_operations,
+        boost::numeric::odeint::never_resizer
+      > chem_stepper;
+*/
 
       // temporary data
       thrust::host_vector<real_t>
@@ -211,10 +233,10 @@ namespace libcloudphxx
 
       void moms_rng(
         const real_t &min, const real_t &max, 
-        const thrust_device::vector<real_t> &radii
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const thrust_device::vector<real_t> &radii,
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
 

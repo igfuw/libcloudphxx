@@ -34,7 +34,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_rng(
       const real_t &min, const real_t &max, 
-      const thrust_device::vector<real_t> &radii
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn
     )
     {
       hskpng_sort(); 
@@ -44,7 +44,7 @@ namespace libcloudphxx
 
       thrust::transform(
         n.begin(), n.end(),     // input - 1st arg
-	radii.begin(),          // input - 2nd arg
+	vec_bgn,                // input - 2nd arg
 	n_within_range.begin(), // output
 	detail::range_filter<real_t>(min, max) 
       );
@@ -71,7 +71,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc(
-      const thrust_device::vector<real_t> &radii,
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const real_t power
     )
     {
@@ -94,7 +94,7 @@ namespace libcloudphxx
         thrust::make_transform_iterator(
 	  zip_it_t(thrust::make_tuple(
             pi_t(n_within_range.begin(), sorted_id.begin()),
-            pi_t(radii.begin(),          sorted_id.begin())
+            pi_t(vec_bgn,                sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
