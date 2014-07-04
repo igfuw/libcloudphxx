@@ -103,7 +103,7 @@ namespace libcloudphxx
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
       std::vector<typename thrust_device::vector<real_t>::iterator >
         chem_bgn, chem_end; // indexed with enum chem_species_t
-      thrust_device::vector<real_t> chem_state;
+      thrust_device::vector<real_t> chem_noneq, chem_equil;
       /* TODO:
         On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
         > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
@@ -111,7 +111,6 @@ namespace libcloudphxx
         > runge_kutta_fehlberg78 or the bulirsch_stoer with a very high order. But
         > should benchmark both steppers and choose the faster one.
       */
-/*
       boost::numeric::odeint::euler<
         thrust_device::vector<real_t>, // state_type
         real_t,                        // value_type
@@ -121,7 +120,6 @@ namespace libcloudphxx
         boost::numeric::odeint::thrust_operations,
         boost::numeric::odeint::never_resizer
       > chem_stepper;
-*/
 
       // temporary data
       thrust::host_vector<real_t>

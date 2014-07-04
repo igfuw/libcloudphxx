@@ -205,16 +205,123 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      BOOST_GPU_ENABLED
-      void chem_rhs(
-        const thrust_device::vector<real_t> &psi, 
-        thrust_device::vector<real_t> &dot_psi,
-        const real_t &dt_
-      )
+      struct chem_rhs_helper
       {
-        const quantity<si::time, real_t> dt = dt_;
+        const int plnk;
         
-      }
+        // ctor
+        chem_rhs_helper(const int &plnk) : 
+          plnk(plnk)
+        {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(
+          const real_t &V_, 
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+        ) const
+        {
+          const quantity<si::mass, real_t>
+            m_SO2  = thrust::get<SO2 >(tpl) * si::kilograms,
+            m_H2O2 = thrust::get<H2O2>(tpl) * si::kilograms,
+            m_O3   = thrust::get<O3  >(tpl) * si::kilograms,
+            m_HSO3 = thrust::get<HSO3>(tpl) * si::kilograms,
+            m_S_VI = thrust::get<S_VI>(tpl) * si::kilograms,
+            m_SO3  = thrust::get<SO3 >(tpl) * si::kilograms,
+            m_H    = thrust::get<H   >(tpl) * si::kilograms;
+          const quantity<si::volume, real_t> V = V_ * si::cubic_metres; 
+
+          switch (plnk)
+          {
+            case S_VI:
+              return 0; //() / si::kilograms * si::seconds;
+            case H2O2:
+              return 0; //() / si::kilograms * si::seconds;
+            case O3:
+              return 0; //() / si::kilograms * si::seconds;
+            case SO2:
+              return 0; //() / si::kilograms * si::seconds;
+            case HSO3:
+              return 0; //() / si::kilograms * si::seconds;
+            case SO3:
+              return 0; //() / si::kilograms * si::seconds;
+            default:
+              assert(false);
+          }
+        }
+      };
+
+      template <typename real_t>
+      struct chem_rhs
+      {
+        const thrust_device::vector<real_t> &V, &chem_equil;
+        const int n_part;
+
+        // ctor
+        chem_rhs(
+          const thrust_device::vector<real_t> &V,
+          const thrust_device::vector<real_t> &chem_equil
+        ) :
+          V(V), chem_equil(chem_equil), n_part(V.size())
+        {}
+
+        BOOST_GPU_ENABLED
+        void operator()(
+          const thrust_device::vector<real_t> &psi, 
+          thrust_device::vector<real_t> &dot_psi,
+          const real_t dt_
+        )
+        {
+          const quantity<si::time, real_t> dt = dt_ * si::seconds;
+        
+          typedef thrust::zip_iterator<
+            thrust::tuple<
+              typename thrust_device::vector<real_t>::iterator, // SO2
+              typename thrust_device::vector<real_t>::iterator, // H2O2
+              typename thrust_device::vector<real_t>::iterator, // O3
+              typename thrust_device::vector<real_t>::iterator, // HSO3
+              typename thrust_device::vector<real_t>::iterator, // S_VI
+              typename thrust_device::vector<real_t>::iterator, // SO3
+              typename thrust_device::vector<real_t>::iterator  // H
+            >
+          > zip_it_t;
+
+          for (int plnk = 0; plnk < chem_aq_n; ++plnk)
+          {
+            switch (plnk)
+            {
+              case S_VI: 
+              case H2O2:
+              case O3:
+              case SO2:
+              case HSO3:
+              case SO3:
+/*
+                thrust::transform(
+                  // input - 1st arg
+                  V.begin(), V.end(),                
+                  // input - 2nd arg
+	          zip_it_t(thrust::make_tuple(
+                    psi.begin() + 0 * n_part, 
+                    psi.begin() + 1 * n_part, 
+                    psi.begin() + 2 * n_part,
+                    psi.begin() + 3 * n_part,
+                    psi.begin() + 4 * n_part, 
+                    psi.begin() + 5 * n_part, 
+                    chem_equil.begin() + (0+0) * n_part // H - hardcoded! has to comply wiith enum definition :(
+                  )), 
+                  // output
+                  dot_psi.begin() + plnk * n_part, 
+                  // op
+                  chem_rhs_helper<real_t>(plnk)
+                );
+*/
+                break;
+              default: 
+                assert(false);
+            }
+          }
+        }
+      };
     };
 
     template <typename real_t, backend_t device>
@@ -297,14 +404,12 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 
       // 3/4: non-equilibrium stuff
       {
-/*
         chem_stepper.do_step(
-          detail::chem_rhs<real_t>, 
-          chem_state, 
-          0,
+          detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
+          chem_noneq, 
+          real_t(0),
           dt
         );
-*/
       }
 
 

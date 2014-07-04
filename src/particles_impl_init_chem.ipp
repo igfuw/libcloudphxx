@@ -39,14 +39,20 @@ namespace libcloudphxx
       // memory allocation
       chem_bgn.resize(chem_aq_n);
       chem_end.resize(chem_aq_n);
-      chem_state.resize(chem_aq_n * n_part);
-//      chem_stepper.adjust_size(chem_state);
+      chem_noneq.resize(chem_rhs_n * n_part);
+      chem_equil.resize((chem_aq_n - chem_rhs_n) * n_part);
+      chem_stepper.adjust_size(chem_noneq);
       
       // helper iterators
       for (int i = 0; i < chem_aq_n; ++i)
       {
-        chem_bgn[i] = chem_state.begin() + i * n_part;
-        chem_end[i] = chem_state.end()   + i * n_part;
+        thrust_device::vector<real_t> &vec(
+          i < chem_rhs_n
+            ? chem_noneq
+            : chem_equil
+        );
+        chem_bgn[i] = vec.begin() + i * n_part;
+        chem_end[i] = vec.end()   + i * n_part;
       }
 
       // initial values
