@@ -44,7 +44,7 @@ namespace libcloudphxx
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
 
-      using namespace thrust::placeholders;
+      namespace arg = thrust::placeholders;
 
       thrust::transform_if(
         rw2.begin(), rw2.end(),                                 // input - 1st arg
@@ -56,7 +56,7 @@ namespace libcloudphxx
         vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
 	detail::common__vterm__vt<real_t>(),
-        _1 == real_t(detail::invalid)
+        arg::_1 == real_t(detail::invalid)
       );
     }
 

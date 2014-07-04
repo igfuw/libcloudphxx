@@ -310,12 +310,12 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 
       // 4/4: recomputing dry radii
       {
-        using namespace thrust::placeholders;
+        namespace arg = thrust::placeholders;
         // TODO: using namespace for S_VI
         thrust::transform(
-          chem_bgn[S_VI], chem_end[S_VI],                          // input
-          rd3.begin(),                                             // output
-          (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * _1  // op
+          chem_bgn[S_VI], chem_end[S_VI],                               // input
+          rd3.begin(),                                                  // output
+          (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * arg::_1  // op
         );
       };
     }

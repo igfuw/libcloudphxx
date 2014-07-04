@@ -1,4 +1,5 @@
 0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
+- what with the invalid flag??? should chemistry/etc be done only on valid droplets???
 - Thouron et al. supersaturation?
 - bitwise reproducibility...
 - sdm: coalescence Kernel choice: constant, Long, B\"ohm

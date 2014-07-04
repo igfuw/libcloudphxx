@@ -75,11 +75,11 @@ namespace libcloudphxx
           case S_VI:
             // implied by the lognormal distro
             {
-              using namespace thrust::placeholders;
+              namespace arg = thrust::placeholders;
 	      thrust::transform(
-		rd3.begin(), rd3.end(),                                 // input
-		chem_bgn[i],                                            // output
-		(real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * _1 // op
+		rd3.begin(), rd3.end(),                                      // input
+		chem_bgn[i],                                                 // output
+		(real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * arg::_1 // op
 	      );
             }
             break;

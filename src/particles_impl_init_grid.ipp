@@ -54,7 +54,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_grid()
     {
-      using namespace thrust::placeholders;
+      namespace arg = thrust::placeholders;
 
       // filling in sample volume data
       dv.resize(n_cell);
@@ -78,22 +78,22 @@ namespace libcloudphxx
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             lft.begin(),         // output
-            _1
+            arg::_1
 	  );
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             rgt.begin(),         // output
-            _1 + opts_init.nx
+            arg::_1 + opts_init.nx
 	  );
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             blw.begin(),         // output
-            _1 + (_1 / opts_init.nz)
+            arg::_1 + (arg::_1 / opts_init.nz)
 	  );
 	  thrust::transform(
             zero, zero + n_cell, // input - 1st arg
             abv.begin(),         // output
-            _1 + (_1 / opts_init.nz) + 1
+            arg::_1 + (arg::_1 / opts_init.nz) + 1
 	  );
 
 	  break;
