@@ -2,6 +2,7 @@
 
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp> 
+#include <libcloudph++/common/molar_mass.hpp> 
 
 namespace libcloudphxx
 {
@@ -9,7 +10,6 @@ namespace libcloudphxx
   {
     typedef divide_typeof_helper<si::energy, si::temperature>::type energy_over_temperature;
     typedef divide_typeof_helper<si::energy, si::mass>::type energy_over_mass;
-    typedef divide_typeof_helper<si::mass, si::amount>::type mass_over_amount;
     typedef divide_typeof_helper<energy_over_temperature, si::amount>::type energy_over_temperature_amount;
     typedef divide_typeof_helper<energy_over_temperature, si::mass>::type energy_over_temperature_mass;
 
@@ -29,7 +29,7 @@ namespace libcloudphxx
 
       // molar masses
       libcloudphxx_const(mass_over_amount, M_d, 0.02896, si::kilograms / si::moles) // dry air
-      libcloudphxx_const(mass_over_amount, M_v, 0.01802, si::kilograms / si::moles) // water vapour
+      libcloudphxx_const_derived(mass_over_amount, M_v, molar_mass::M_H<real_t>() + molar_mass::M_OH<real_t>()) // water vapour
       libcloudphxx_const_derived(si::dimensionless, eps, M_v<real_t>() / M_d<real_t>()) // aka epsilon
 
       // universal gas constant (i.e. the Boltzmann times the Avogadro constants)

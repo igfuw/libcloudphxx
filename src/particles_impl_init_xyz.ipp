@@ -31,12 +31,12 @@ namespace libcloudphxx
 
 	// shifting from [0,1] to [x0,x1] 
         {
-          using namespace thrust::placeholders;
+          namespace arg = thrust::placeholders;
 	  thrust::transform(
 	    u01.begin(), 
 	    u01.end(), 
 	    v[ix]->begin(), 
-	    a[ix] + _1 * (b[ix] - a[ix])
+	    a[ix] + arg::_1 * (b[ix] - a[ix])
 	  );
         }
       }

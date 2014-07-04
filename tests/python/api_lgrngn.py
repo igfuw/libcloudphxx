@@ -39,6 +39,7 @@ print "dt =", opts_init.dt
 print "kernel =", opts_init.kernel 
 assert opts_init.kernel == lgrngn.kernel_t.geometric
 print "sd_conc_mean =", opts_init.sd_conc_mean
+print "chem_rho =", opts_init.chem_rho
 
 print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
@@ -60,6 +61,15 @@ print "sstp_chem =", opts.sstp_chem
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
+
+opts.chem_gas = {
+  lgrngn.chem_species_t.SO2  : 44,
+  lgrngn.chem_species_t.O3   : 44,
+  lgrngn.chem_species_t.H2O2 : 44
+}
+
+print "chem_gas SO2 = ", opts.chem_gas[lgrngn.chem_gas.gSO2]
+print "chem_gas SO2 = ", opts.chem_gas
 
 prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv)

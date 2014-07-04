@@ -5,6 +5,8 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <libcloudph++/common/molar_mass.hpp>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -12,15 +14,15 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct chem_init
+      struct chem_init_water // water
       {
-        real_t mltpl;
+        const real_t mltpl;
 
         // ctor
-        chem_init(const real_t &rho)
-          : mltpl(real_t(4./3) * pi<real_t>() * rho)
+        chem_init_water(const real_t &pH, const quantity<common::mass_over_amount, real_t> &M) : 
+          mltpl(pow(10,-pH) * real_t(4./3) * (M / si::kilograms * si::moles) * pi<real_t>())
         {}
-
+ 
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)
         {
@@ -32,22 +34,65 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_chem()
     {
-std::cerr << "@init_chem()" << std::endl;
       // TODO: don't do it if not using chem...
 
-      for (int i = chem_aq_begin; i < chem_aq_end; ++i)
+      // memory allocation
+      chem_bgn.resize(chem_aq_n);
+      chem_end.resize(chem_aq_n);
+      chem_noneq.resize(chem_rhs_n * n_part);
+      chem_equil.resize((chem_aq_n - chem_rhs_n) * n_part);
+      chem_stepper.adjust_size(chem_noneq);
+      
+      // helper iterators
+      for (int i = 0; i < chem_aq_n; ++i)
       {
-        // memory allocation
-        che[i].resize(n_part);
+        thrust_device::vector<real_t> &vec(
+          i < chem_rhs_n
+            ? chem_noneq
+            : chem_equil
+        );
+        chem_bgn[i] = vec.begin() + i * n_part;
+        chem_end[i] = vec.end()   + i * n_part;
+      }
 
-std::vector<real_t> che_init(chem_aq_end+1);
-
-	// initialising values 
-	thrust::transform(
-	  rw2.begin(), rw2.end(),        // input
-	  che[i].begin(),                // output
-	  detail::chem_init<real_t>(che_init[i]) // op
-	);
+      // initial values
+      for (int i = 0; i < chem_aq_n; ++i)
+      {
+        switch (i)
+        {
+          case OH:
+          case H:
+            // pH = 7 
+            {
+              quantity<common::mass_over_amount, real_t> M;
+              switch (i)
+              {
+                case OH: M = common::molar_mass::M_OH<real_t>(); break;
+                case  H: M = common::molar_mass::M_H<real_t>(); break;
+                default: assert(false);
+              }
+	      thrust::transform(
+		rw2.begin(), rw2.end(),               // input
+		chem_bgn[i],                          // output
+		detail::chem_init_water<real_t>(7, M) // op
+	      );
+            }
+            break;
+          case S_VI:
+            // implied by the lognormal distro
+            {
+              namespace arg = thrust::placeholders;
+	      thrust::transform(
+		rd3.begin(), rd3.end(),                                      // input
+		chem_bgn[i],                                                 // output
+		(real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * arg::_1 // op
+	      );
+            }
+            break;
+          default: 
+            // ... TODO: epsilon?
+            thrust::fill(chem_bgn[i], chem_end[i], 0);
+        }
       }
     }
   };

@@ -78,8 +78,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
-      using namespace thrust::placeholders;
-
       // T  = common::theta_dry::T<real_t>(th, rhod);
       thrust::transform(
         th.begin(), th.end(),      // input - first arg

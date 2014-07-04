@@ -88,7 +88,7 @@ namespace libcloudphxx
       if (opts.chem) 
       {
         for (int step = 0; step < opts.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / opts.sstp_chem);
+          pimpl->chem(pimpl->opts_init.dt / opts.sstp_chem, opts.chem_gas);
       }
 
       // coalescence (before diagnostics -> one sort less)

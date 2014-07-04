@@ -12,13 +12,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sedi()
     {   
-      using namespace thrust::placeholders;
+      namespace arg = thrust::placeholders;
  
       thrust::transform(
-        z.begin(), z.end(), // input - 1st arg
-        vt.begin(),         // input - 2nd arg
-        z.begin(),          // output
-        _1 - opts_init.dt * _2   // Euler scheme (assuming vt positive!)
+        z.begin(), z.end(),                // input - 1st arg
+        vt.begin(),                        // input - 2nd arg
+        z.begin(),                         // output
+        arg::_1 - opts_init.dt * arg::_2   // Euler scheme (assuming vt positive!)
       );
     }
   };  

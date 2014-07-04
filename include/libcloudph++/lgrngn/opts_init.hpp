@@ -8,9 +8,8 @@
 #pragma once
 
 #include <libcloudph++/lgrngn/extincl.hpp>
-
-#include "kernel.hpp"
-#include "chem.hpp"
+#include <libcloudph++/lgrngn/kernel.hpp>
+#include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
 {
@@ -41,11 +40,11 @@ namespace libcloudphxx
 
       // coalescence Kernel type
       kernel_t kernel;
-
-// TODO: chem
+//</listing>
+      // chem
+      real_t chem_rho;
 
       // ctor with defaults (C++03 compliant) ...
-//</listing>
       opts_init_t() : 
         nx(0), ny(0), nz(0), // parcel setup, 1m3
         dx(1), dy(1), dz(1), // parcel setup, 1m3
@@ -53,7 +52,8 @@ namespace libcloudphxx
         x1(1), y1(1), z1(1), // parcel setup, 1m3
         sd_conc_mean(64), 
         kernel(geometric),
-        dt(1e-3)
+        dt(1e-3),
+        chem_rho(1.8e3) // dry particle density
       {}
     };
   }
