@@ -233,17 +233,17 @@ namespace libcloudphxx
           switch (plnk)
           {
             case S_VI:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             case H2O2:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             case O3:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             case SO2:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             case HSO3:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             case SO3:
-              return 0; //() / si::kilograms * si::seconds;
+              return 0; //(TODO) / si::kilograms * si::seconds;
             default:
               assert(false);
           }
@@ -275,13 +275,13 @@ namespace libcloudphxx
         
           typedef thrust::zip_iterator<
             thrust::tuple<
-              typename thrust_device::vector<real_t>::iterator, // SO2
-              typename thrust_device::vector<real_t>::iterator, // H2O2
-              typename thrust_device::vector<real_t>::iterator, // O3
-              typename thrust_device::vector<real_t>::iterator, // HSO3
-              typename thrust_device::vector<real_t>::iterator, // S_VI
-              typename thrust_device::vector<real_t>::iterator, // SO3
-              typename thrust_device::vector<real_t>::iterator  // H
+              typename thrust_device::vector<real_t>::const_iterator, // SO2
+              typename thrust_device::vector<real_t>::const_iterator, // H2O2
+              typename thrust_device::vector<real_t>::const_iterator, // O3
+              typename thrust_device::vector<real_t>::const_iterator, // HSO3
+              typename thrust_device::vector<real_t>::const_iterator, // S_VI
+              typename thrust_device::vector<real_t>::const_iterator, // SO3
+              typename thrust_device::vector<real_t>::const_iterator  // H
             >
           > zip_it_t;
 
@@ -295,7 +295,6 @@ namespace libcloudphxx
               case SO2:
               case HSO3:
               case SO3:
-/*
                 thrust::transform(
                   // input - 1st arg
                   V.begin(), V.end(),                
@@ -314,7 +313,6 @@ namespace libcloudphxx
                   // op
                   chem_rhs_helper<real_t>(plnk)
                 );
-*/
                 break;
               default: 
                 assert(false);
