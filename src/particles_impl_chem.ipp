@@ -9,6 +9,7 @@
 #include <libcloudph++/common/molar_mass.hpp>
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
+#include <libcloudph++/common/react.hpp>
 
 namespace libcloudphxx
 {
@@ -230,6 +231,12 @@ namespace libcloudphxx
             m_H    = thrust::get<H   >(tpl) * si::kilograms;
           const quantity<si::volume, real_t> V = V_ * si::cubic_metres; 
 
+          using namespace common::molar_mass;
+          using namespace common::react;
+
+          // helpers
+          quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> O3_SO3 = m_O3 / V * m_SO3 / M_SO3<real_t>() * R_S_O3_k2<real_t>();
+
           switch (plnk)
           {
             case S_VI:
@@ -243,13 +250,16 @@ namespace libcloudphxx
             case HSO3:
               return 0; //(TODO) / si::kilograms * si::seconds;
             case SO3:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return (
+                - M_SO3<real_t>() / M_O3<real_t>() * O3_SO3
+              ) / si::kilograms * si::seconds;
             default:
               assert(false);
           }
         }
       };
 
+      // functor called by odeint
       template <typename real_t>
       struct chem_rhs
       {
@@ -268,24 +278,24 @@ namespace libcloudphxx
         void operator()(
           const thrust_device::vector<real_t> &psi, 
           thrust_device::vector<real_t> &dot_psi,
-          const real_t dt_
+          const real_t /* t */
         )
         {
-          const quantity<si::time, real_t> dt = dt_ * si::seconds;
-        
           typedef thrust::zip_iterator<
             thrust::tuple<
+              // those in psi...
               typename thrust_device::vector<real_t>::const_iterator, // SO2
               typename thrust_device::vector<real_t>::const_iterator, // H2O2
               typename thrust_device::vector<real_t>::const_iterator, // O3
               typename thrust_device::vector<real_t>::const_iterator, // HSO3
               typename thrust_device::vector<real_t>::const_iterator, // S_VI
               typename thrust_device::vector<real_t>::const_iterator, // SO3
+              // ... but not only!
               typename thrust_device::vector<real_t>::const_iterator  // H
             >
           > zip_it_t;
 
-          for (int plnk = 0; plnk < chem_aq_n; ++plnk)
+          for (int plnk = 0; plnk < chem_rhs_n; ++plnk)
           {
             switch (plnk)
             {
@@ -306,7 +316,7 @@ namespace libcloudphxx
                     psi.begin() + 3 * n_part,
                     psi.begin() + 4 * n_part, 
                     psi.begin() + 5 * n_part, 
-                    chem_equil.begin() + (0+0) * n_part // H - hardcoded! has to comply wiith enum definition :(
+                    chem_equil.begin() + 0 * n_part // H - hardcoded! has to comply wiith enum definition :(
                   )), 
                   // output
                   dot_psi.begin() + plnk * n_part, 
