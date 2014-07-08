@@ -60,15 +60,17 @@ namespace libcloudphxx
 
 	u01()
 	{
-	  int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
-          _unused(status);
+          {
+	    int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
+	    assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
+	    _unused(status);
+          }
+          {
+	    int status = curandSetPseudoRandomGeneratorSeed(gen, 44);
+	    assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
+            _unused(status);
+	  }
         }
-        {
-	  int status = curandSetPseudoRandomGeneratorSeed(gen, 44);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
-          _unused(status);
-	}
 
 	~u01()
 	{
