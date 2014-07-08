@@ -2,7 +2,7 @@
 
 // to workaround nvcc unused vars warning
 // http://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
-#define _unused(x) ((void)x)
+#define _unused(x) do { (void)sizeof(x); } while(0)
 
 namespace libcloudphxx
 {
