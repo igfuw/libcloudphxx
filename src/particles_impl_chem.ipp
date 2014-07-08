@@ -211,6 +211,7 @@ namespace libcloudphxx
         const int plnk;
         
         // ctor
+        BOOST_GPU_ENABLED
         chem_rhs_helper(const int &plnk) : 
           plnk(plnk)
         {}
@@ -234,21 +235,48 @@ namespace libcloudphxx
           using namespace common::molar_mass;
           using namespace common::react;
 
-          // helpers
-          quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> O3_SO3 = m_O3 / V * m_SO3 / M_SO3<real_t>() * R_S_O3_k2<real_t>();
+          // TODO: optimise - do not repeat or at least do note calculate it when not needed
+          // helpers for O3 reactions
+          quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> 
+            O3_SO2  = m_O3 / V * m_SO2  / M_SO2<real_t>()  * R_S_O3_k0<real_t>(),
+            O3_HSO3 = m_O3 / V * m_HSO3 / M_HSO3<real_t>() * R_S_O3_k1<real_t>(),
+            O3_SO3  = m_O3 / V * m_SO3  / M_SO3<real_t>()  * R_S_O3_k2<real_t>();
+
+
+	  // helper for H2O2 reactions
+	  quantity<divide_typeof_helper<si::amount, si::time>::type, real_t> 
+            H2O2_HSO3 = R_S_H2O2_k<real_t>() / (V*V) 
+	      * m_H2O2 / M_H2O2<real_t>()
+	      * m_H    / M_H<real_t>()
+	      * m_HSO3 / M_HSO3<real_t>()
+	      / (real_t(1) + R_S_H2O2_K<real_t>() * m_H / M_H<real_t>() / V);
 
           switch (plnk)
           {
             case S_VI:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return (
+                M_H2SO4<real_t>() / M_O3<real_t>() * (O3_SO2 + O3_HSO3 + O3_SO3)
+                +
+                M_H2SO4<real_t>() * H2O2_HSO3
+              ) / si::kilograms * si::seconds;
             case H2O2:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return -(
+                M_H2O2<real_t>() * H2O2_HSO3
+              ) / si::kilograms * si::seconds;
             case O3:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return -(
+                O3_SO2 + O3_HSO3 + O3_SO3
+              ) / si::kilograms * si::seconds;
             case SO2:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return -(
+                M_SO2<real_t>() / M_O3<real_t>() * O3_SO2
+              ) / si::kilograms * si::seconds;
             case HSO3:
-              return 0; //(TODO) / si::kilograms * si::seconds;
+              return -(
+		M_HSO3<real_t>() / M_O3<real_t>() * O3_HSO3
+		+
+		M_HSO3<real_t>() * H2O2_HSO3
+              ) / si::kilograms * si::seconds;
             case SO3:
               return (
                 - M_SO3<real_t>() / M_O3<real_t>() * O3_SO3
