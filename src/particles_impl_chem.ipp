@@ -211,7 +211,6 @@ namespace libcloudphxx
         const int plnk;
         
         // ctor
-        BOOST_GPU_ENABLED
         chem_rhs_helper(const int &plnk) : 
           plnk(plnk)
         {}
@@ -302,7 +301,6 @@ namespace libcloudphxx
           V(V), chem_equil(chem_equil), n_part(V.size())
         {}
 
-        BOOST_GPU_ENABLED
         void operator()(
           const thrust_device::vector<real_t> &psi, 
           thrust_device::vector<real_t> &dot_psi,

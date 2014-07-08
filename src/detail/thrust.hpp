@@ -1,5 +1,9 @@
 #pragma once
 
+// to workaround nvcc unused vars warning
+// http://stackoverflow.com/questions/777261/avoiding-unused-variables-warnings-when-using-assert-in-a-release-build
+#define _unused(x) ((void)x)
+
 namespace libcloudphxx
 {
   namespace lgrngn
