@@ -201,6 +201,7 @@ namespace libcloudphxx
               ) / si::kilograms;
             default:
               assert(false);
+              return 0;
           }
         }
       };
@@ -282,6 +283,7 @@ namespace libcloudphxx
               ) / si::kilograms * si::seconds;
             default:
               assert(false);
+              return 0;
           }
         }
       };
