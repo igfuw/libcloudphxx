@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -Wfatal-errors -I${CMAKE_SOURCE_DIR}/include ${C
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -march=native")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 endif()
 
 # note: commenting out the line below is a quick way of switching off CUDA

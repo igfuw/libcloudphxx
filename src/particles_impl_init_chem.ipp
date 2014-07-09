@@ -51,8 +51,12 @@ namespace libcloudphxx
             ? chem_noneq
             : chem_equil
         );
-        chem_bgn[i] = vec.begin() + i * n_part;
-        chem_end[i] = vec.end()   + i * n_part;
+        const int off = 
+          i < chem_rhs_n
+            ? 0
+            : chem_rhs_n;
+        chem_bgn[i] = vec.begin() + (i   - off) * n_part;
+        chem_end[i] = vec.begin() + (i+1 - off) * n_part;
       }
 
       // initial values
