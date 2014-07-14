@@ -75,6 +75,7 @@ namespace libcloudphxx
         const opts_t<real_t> &
       ) { 
         assert(false); 
+        return 0;
       }  
 
       // 3D constant density version
