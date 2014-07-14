@@ -53,7 +53,11 @@ namespace libcloudphxx
       sorted = false;
       thrust::sequence(sorted_id.begin(), sorted_id.end()); 
       {
+#if defined(__NVCC__) 
+        assert(sizeof(thrust_size_t) == sizeof(n_t));
+#else
         static_assert(sizeof(thrust_size_t) == sizeof(n_t), "");
+#endif
 	thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
 	thrust::copy(n.begin(), n.end(), tmp.begin());
 
