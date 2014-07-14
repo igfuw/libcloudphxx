@@ -21,7 +21,7 @@ r_v  = eps * p_v / p_d
 th_d = T * pow(p_1000 / p_d[0], R_d / c_pd) 
 w    = 0.5
 dt   = .1
-nt   = 10
+nt   = int(600 / w / dt) # 600 metres
 
 # blk_2m-specific parameter
 # TODO: spectrum

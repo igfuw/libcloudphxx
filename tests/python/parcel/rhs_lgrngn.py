@@ -30,7 +30,7 @@ class rhs_lgrngn:
     except OSError:
       pass
     self.out_snd = open(self.outdir + "/sounding.txt", mode='w')
-    self.out_snd.write(u"#rhod [kg/m3]\tth_d [K] (theta dry!)\tr_v [kg/kg] (mixing ratio)\tS_VI [kg/kg]\n")
+    self.out_snd.write(u"#rhod [kg/m3]\tth_d [K] (theta dry!)\tr_v [kg/kg] (mixing ratio)\tM0 [TODO]\tM1 [TODO]\tM2 [TODO]\tM3 [TODO]\tS_VI [kg/kg]\n")
     self.out_dry = open(self.outdir + "/spec_dry.txt", mode='w')
     self.out_dry.write(u"#r_d [m] (left bin edge)\tn [kg-3] (per mass of dry air)\n")
     self.out_wet = open(self.outdir + "/spec_wet.txt", mode='w')
@@ -72,11 +72,15 @@ class rhs_lgrngn:
     self.out_snd.write(u"\t%g" % (th_d))
     self.out_snd.write(u"\t%g" % (r_v))
 
+    ## cloud water
+    self.prtcls.diag_wet_rng(1e-6, 25e-6) # 0 ... 1 m
+    for k in range(0,4):
+      self.prtcls.diag_wet_mom(k)
+      self.out_snd.write(u"\t%g" % (frombuffer(self.prtcls.outbuf())))
+
+    ## chem stuff
     self.prtcls.diag_wet_rng(0,1) # 0 ... 1 m
     self.prtcls.diag_chem(lgrngn.chem_species_t.S_VI)
     self.out_snd.write(u"\t%g" % (frombuffer(self.prtcls.outbuf())))
    
-    self.prtcls.diag_chem(lgrngn.chem_species_t.SO2)
-    print frombuffer(self.prtcls.outbuf())
-
     self.out_snd.write(u"\n")
