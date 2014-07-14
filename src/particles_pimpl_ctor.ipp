@@ -39,6 +39,8 @@ namespace libcloudphxx
       detail::u01<real_t, device> rng;
 
       // particle attributes
+      thrust_device::vector<n_t>
+	n;   // multiplicity
       thrust_device::vector<real_t> 
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
@@ -46,9 +48,6 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
-
-      thrust_device::vector<n_t>
-	n;   // multiplicity
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -256,7 +255,8 @@ namespace libcloudphxx
       void coal(const real_t &dt);
 
       void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
-      // TODO: rcyc
+      void rcyc();
+      real_t bcnd(); // returns accumulated rainfall
     };
 
     // ctor

@@ -46,3 +46,5 @@
 #include "particles_impl_sedi.ipp"
 #include "particles_impl_coal.ipp"
 #include "particles_impl_chem.ipp"
+#include "particles_impl_rcyc.ipp"
+#include "particles_impl_bcnd.ipp"

@@ -73,7 +73,7 @@ print "chem_gas SO2 = ", opts.chem_gas
 
 prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv)
-prtcls.step_async(opts)
+rain = prtcls.step_async(opts)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)

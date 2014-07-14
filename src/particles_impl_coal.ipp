@@ -54,7 +54,7 @@ namespace libcloudphxx
 	// invalidating vt
 	thrust::get<vt_b>(tpl) = detail::invalid;
 
-	// TODO: kappa
+	// TODO: kappa, chemistry
       }
 
       template <typename real_t, typename n_t>
@@ -141,7 +141,8 @@ namespace libcloudphxx
           // performing the coalescence event if lucky
           if (thrust::get<n_a_ix>(tpl_rw) != thrust::get<n_b_ix>(tpl_rw))
           {
-            if (thrust::get<n_a_ix>(tpl_rw) > thrust::get<n_b_ix>(tpl_rw))
+            // note: >= causes equal-multiplicity collisions to result in flagging for recycling
+            if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
               collide<tpl_rw_t, real_t,
                   n_a_ix,   n_b_ix,
                 rw2_a_ix, rw2_b_ix,
@@ -156,9 +157,6 @@ namespace libcloudphxx
                  vt_b_ix,  vt_a_ix
               >(tpl_rw);
           } 
-#if !defined(__NVCC__)
-          else assert(false && "collisions of droplets with equal multiplicity not ready yet"); // TODO: eqs. 16-19 in Shima et al. 2009
-#endif
 
           return tpl_rw;
         }

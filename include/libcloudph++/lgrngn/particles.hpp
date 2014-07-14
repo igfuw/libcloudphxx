@@ -70,7 +70,8 @@ namespace libcloudphxx
         assert(false); 
       }  
 
-      virtual void step_async(
+      // returns accumulated rainfall
+      virtual real_t step_async(
         const opts_t<real_t> &
       ) { 
         assert(false); 
@@ -176,7 +177,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod_courant_3,
         const arrinfo_t<real_t> rhod 
       );
-      void step_async(
+      real_t step_async(
         const opts_t<real_t> &
       );
 

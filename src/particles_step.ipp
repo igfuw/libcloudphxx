@@ -31,10 +31,17 @@ namespace libcloudphxx
       pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
+      // recycling out-of-domain/invalidated particles 
+      // (doing it here and not in async reduces the need for a second sort before diagnostics,
+      // but also unneccesarily halds dyncore execution for a bit longer)
+      pimpl->rcyc(); 
+
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
       if (opts.adve || opts.sedi)
+      {
         pimpl->hskpng_ijk();
+      }
 
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
@@ -57,19 +64,19 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::step_async(
+    real_t particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {
       assert(pimpl->should_now_run_async);
 
-      // changing droplet positions
-      if (opts.adve) 
-      {
-        // advection 
-        pimpl->adve(); 
-        // boundary condition
-        ; // TODO temporarily included in advection
-      }
+      // accumulated rainfall to be returned
+      real_t ret;
+
+      // advection 
+      if (opts.adve) pimpl->adve(); 
+
+      // boundary condition
+      ret = pimpl->bcnd();
 
       // updating terminal velocities
       if (opts.sedi || opts.coal) 
@@ -79,9 +86,6 @@ namespace libcloudphxx
       {
         // advection with terminal velocity
         pimpl->sedi();
-
-        // recycling out-of-domain particles (due to precipitation)
-        //if (opts.rcyc) assert(false && "unimplemented"), throw; // TODO
       }
 
       // chemistry
@@ -106,6 +110,8 @@ namespace libcloudphxx
       }
 
       pimpl->should_now_run_async = false;
+
+      return ret;
     }
   };
 };
