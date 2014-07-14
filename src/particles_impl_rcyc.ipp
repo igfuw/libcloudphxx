@@ -38,8 +38,8 @@ namespace libcloudphxx
       // count the numer of paticles to recycle
       thrust_size_t n_flagged;
       {
-        using namespace thrust::placeholders;
-        n_flagged = thrust::count_if(n.begin(), n.end(), _1 == 0);
+	namespace arg = thrust::placeholders;
+        n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
       }
       assert(n_flagged > n_part / 2);
 
@@ -80,7 +80,7 @@ namespace libcloudphxx
         detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
 
       {
-	using namespace thrust::placeholders;
+        namespace arg = thrust::placeholders;
 
         // increasing multiplicities of recycled particles
 	thrust::transform(
@@ -90,7 +90,7 @@ namespace libcloudphxx
 	  // output
           thrust::make_permutation_iterator(n.begin(), sorted_id.begin()),
           // op
-          _1 - (_1 / 2)
+          arg::_1 - (arg::_1 / 2)
 	);
 
 	// reducing multiplicites of splitted particles
@@ -101,7 +101,7 @@ namespace libcloudphxx
           // output
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())),
           // op
-          _1 / 2
+          arg::_1 / 2
 	);
       };
     }
