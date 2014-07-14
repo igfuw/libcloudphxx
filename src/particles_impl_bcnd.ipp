@@ -58,12 +58,12 @@ namespace libcloudphxx
           // hardcoded "open" boudary at the top of the domain 
           // (just for numerical-error-sourced out-of-domain particles)
           {
-            using namespace thrust::placeholders;
+            namespace arg = thrust::placeholders;
 	    thrust::transform_if(
 	      z.begin(), z.end(),          // input - arg
 	      n.begin(),                   // output
               detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
-	      _1 >= opts_init.z1           // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
 	    );
           }
 
@@ -72,12 +72,12 @@ namespace libcloudphxx
           // TODO! (using tranform_reduce?)
           //// second: zero-out multiplicities so they will be recycled
           {
-            using namespace thrust::placeholders;
+            namespace arg = thrust::placeholders;
 	    thrust::transform_if(   
 	      z.begin(), z.end(),          // input 
 	      n.begin(),                   // output
 	      detail::flag<n_t, real_t>(), // operation (zero-out)
-	      _1 < opts_init.z0            // condition
+	      arg::_1 < opts_init.z0       // condition
 	    );
           }
           break; 
