@@ -34,6 +34,7 @@ namespace libcloudphxx
       pimpl->init_e2l(th,   &pimpl->th);
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
+
       if (!rhod_courant_x.is_null()) pimpl->init_e2l(rhod_courant_x, &pimpl->rhod_courant_x, 1, 0, 0);
       if (!rhod_courant_y.is_null()) pimpl->init_e2l(rhod_courant_y, &pimpl->rhod_courant_y, 0, 1, 0);
       if (!rhod_courant_z.is_null()) pimpl->init_e2l(rhod_courant_z, &pimpl->rhod_courant_z, 0, 0, 1);

@@ -76,6 +76,7 @@ namespace libcloudphxx
       detail::copy_prop<real_t>(rw2.begin(), sorted_id, n_flagged);
       detail::copy_prop<real_t>(kpa.begin(), sorted_id, n_flagged);
 
+      // TODO: only if chem enabled
       for (int i = 0; i < chem_aq_n; ++i)
         detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
 

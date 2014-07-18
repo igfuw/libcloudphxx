@@ -54,7 +54,7 @@ namespace libcloudphxx
 	// invalidating vt
 	thrust::get<vt_b>(tpl) = detail::invalid;
 
-	// TODO: kappa, chemistry
+	// TODO: kappa, chemistry (only if enabled)
       }
 
       template <typename real_t, typename n_t>
