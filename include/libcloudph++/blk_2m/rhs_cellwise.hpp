@@ -56,13 +56,6 @@ namespace libcloudphxx
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
-      // if something is too small e-179 it becomes negative # TODO WHY! - explain or fix
-      // so instead of n_l == 0 we have n_l < eps
-      // also -1e-30 + 1e-30 is not equal to zero
-      const quantity<si::dimensionless, real_t>                                       eps_d = real_t(0);
-      const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> eps_n = real_t(0) / si::kilograms;
-
-      //TODO: 
       //unfortunately can't zip through more than 10 arguments 
       //so instead one loop over all forcings, there will be a few 
       for (auto tup : zip(
@@ -136,8 +129,8 @@ namespace libcloudphxx
         // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
         if (opts.cond)
         {                          
-          if (rc > eps_d && nc > eps_n)
-          {          //  ^^   TODO is it possible?
+          if (rc > 0 && nc * si::kilograms > 0)
+          {      //  ^^   TODO is it possible?
             quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(T, p, rv, tau_relax_c(T, p, r_drop_c(rc, nc, rhod), rhod * nc));
 
@@ -183,12 +176,10 @@ namespace libcloudphxx
                                                     &nc = boost::get<6>(tup) / si::kilograms;
         const quantity<si::dimensionless, real_t>   &rr = boost::get<7>(tup) * si::dimensionless();
  
-//        if (rc + dot_rc * dt > 0)
-//        {
           // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.acnv)
           {                                  
-           if (rc > eps_d && nc > eps_n)
+           if (rc > 0 && nc*si::kilograms > 0)
             {   
               quantity<si::frequency, real_t> tmp = autoconv_rate(rc, rhod * nc);
 
@@ -208,12 +199,10 @@ namespace libcloudphxx
             assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
           }
 
-//          if (rc + dot_rc * dt > 0)
-//          {
             // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
             if (opts.accr)
             {              
-              if (rc > eps_d && nc > eps_n && rr > eps_d)  
+              if (rc > 0 && nc * si::kilograms > 0 && rr > 0)  
               {                   
                 quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
                 // so that accretion doesn't take more rc than there is
@@ -228,14 +217,13 @@ namespace libcloudphxx
 
               assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
             }
-//          }
 
           // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
           //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
           // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
           if (opts.acnv || opts.accr)
           {
-            if (nc > eps_n && dot_rr > eps_d)  
+            if (nc*si::kilograms > 0 && dot_rr > 0)  
             {                           
               quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
                 collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
@@ -251,7 +239,6 @@ namespace libcloudphxx
           
           assert(nc * si::kilograms + dot_nc * dt >= 0 && "collisions can't make n_c negative");
           } 
-//        }
       }
 
       for (auto tup : zip(
@@ -284,7 +271,7 @@ namespace libcloudphxx
         // evaporation of rain (see Morrison & Grabowski 2007)
         if (opts.cond)
         {
-          if (rr > eps_d && nr > eps_n)
+          if (rr > 0 && nr * si::kilograms > 0)
           { // cond/evap for rr
             assert(rr + dot_rr * dt >= 0 && "before rain cond-evap");
             assert(rv + dot_rv * dt >= 0 && "before rain cond-evap");
