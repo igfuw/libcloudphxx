@@ -124,7 +124,7 @@ namespace libcloudphxx
           assert(dot_nc >= 0 && "activation can only increase cloud droplet concentration");
           assert(dot_rc >= 0 && "activation can only increase cloud water");
           assert(dot_th >= 0 && "activation can only increase theta");
-         }
+        }
 
         // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
         if (opts.cond)
@@ -176,69 +176,69 @@ namespace libcloudphxx
                                                     &nc = boost::get<6>(tup) / si::kilograms;
         const quantity<si::dimensionless, real_t>   &rr = boost::get<7>(tup) * si::dimensionless();
  
-          // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
-          if (opts.acnv)
-          {                                  
-           if (rc > 0 && nc*si::kilograms > 0)
-            {   
-              quantity<si::frequency, real_t> tmp = autoconv_rate(rc, rhod * nc);
+        // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
+        if (opts.acnv)
+        {                                  
+          if (rc > 0 && nc*si::kilograms > 0)
+          {   
+            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, rhod * nc);
 
-              // so that autoconversion doesn't take more rc than there is
-              tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-              assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
+            // so that autoconversion doesn't take more rc than there is
+            tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
+            assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
-              dot_rc -= tmp * si::seconds;
-              dot_rr += tmp * si::seconds;
+            dot_rc -= tmp * si::seconds;
+            dot_rr += tmp * si::seconds;
 
-              // sink of N for cloud droplets is combined with the sink due to accretion
-              // source of N for drizzle assumes that all the drops have the same radius
-              dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
-                * si::kilograms * si::seconds; // to make it dimensionless
-            }
-
-            assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
+            // sink of N for cloud droplets is combined with the sink due to accretion
+            // source of N for drizzle assumes that all the drops have the same radius
+            dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
+              * si::kilograms * si::seconds; // to make it dimensionless
           }
 
-            // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
-            if (opts.accr)
-            {              
-              if (rc > 0 && nc * si::kilograms > 0 && rr > 0)  
-              {                   
-                quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
-                // so that accretion doesn't take more rc than there is
-                tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-                assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
+          assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
+        }
+
+        // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
+        if (opts.accr)
+        {              
+          if (rc > 0 && nc * si::kilograms > 0 && rr > 0)  
+          {                   
+            quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
+            // so that accretion doesn't take more rc than there is
+            tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
+            assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
           
-                dot_rr += tmp * si::seconds;
-                dot_rc -= tmp * si::seconds;
-                // the sink of N for cloud droplets is combined with sink due to autoconversion
-                // accretion does not change N for drizzle 
-              }
+            dot_rr += tmp * si::seconds;
+            dot_rc -= tmp * si::seconds;
+            // the sink of N for cloud droplets is combined with sink due to autoconversion
+            // accretion does not change N for drizzle 
+          }
 
-              assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
-            }
+          assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
+        }
 
-          // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
-          //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
-          // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
-          if (opts.acnv || opts.accr)
-          {
-            if (nc*si::kilograms > 0 && dot_rr > 0)  
-            {                           
-              quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
-                collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
+        // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
+        //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
+        // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
+        if (opts.acnv || opts.accr)
+        {
+          if (nc*si::kilograms > 0 && dot_rr > 0)  
+          {                           
+            quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
+              collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
 
-              assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
-              assert(tmp >= 0 / si::kilograms / si::seconds && "tmp");
+            assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
+            assert(tmp >= 0 / si::kilograms / si::seconds && "tmp");
  
-              // so that collisions don't take more n_c than there is
-              tmp = std::min(tmp, (nc + dt * dot_nc / si::kilograms) / (dt * si::seconds));
+            // so that collisions don't take more n_c than there is
+            tmp = std::min(tmp, (nc + dt * dot_nc / si::kilograms) / (dt * si::seconds));
  
-              dot_nc -= tmp * si::kilograms * si::seconds;
-            }
+            dot_nc -= tmp * si::kilograms * si::seconds;
+          }
           
           assert(nc * si::kilograms + dot_nc * dt >= 0 && "collisions can't make n_c negative");
-          } 
+        } 
       }
 
       for (auto tup : zip(
