@@ -124,7 +124,7 @@ namespace libcloudphxx
             dot_rv -= tmp * ccnmass<real_t>() * si::seconds;
             dot_rc += tmp * ccnmass<real_t>() * si::seconds;
 
-            //TODO maybe some common part for all the forcings (for example dot_rho_e)?
+            //TODO maybe some common part for all the forcings (for example dot_th)?
             dot_th -= tmp * ccnmass<real_t>() * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
           }
 
@@ -155,9 +155,9 @@ namespace libcloudphxx
             dot_th -= tmp  * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
           }
 
-          assert(rc + dot_rc * dt >= 0 && "condensation/evaporation can't make rho_c < 0");
-          assert(rv + dot_rv * dt >= 0 && "condensation/evaporation can't make rho_v < 0");
-          assert(th / si::kelvin + dot_th * dt >= 0 && "condensation/evaporation can't make rho_e < 0");
+          assert(rc + dot_rc * dt >= 0 && "condensation/evaporation can't make rc < 0");
+          assert(rv + dot_rv * dt >= 0 && "condensation/evaporation can't make rv < 0");
+          assert(th / si::kelvin + dot_th * dt >= 0 && "condensation/evaporation can't make th < 0");
         }
       }
 
@@ -205,7 +205,7 @@ namespace libcloudphxx
                 * si::kilograms * si::seconds; // to make it dimensionless
             }
 
-            assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rho_c negative");
+            assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
           }
 
 //          if (rc + dot_rc * dt > 0)
@@ -216,7 +216,7 @@ namespace libcloudphxx
               if (rc > eps_d && nc > eps_n && rr > eps_d)  
               {                   
                 quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
-                // so that accretion doesn't take more rho_c than there is
+                // so that accretion doesn't take more rc than there is
                 tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
                 assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
           
@@ -226,13 +226,13 @@ namespace libcloudphxx
                 // accretion does not change N for drizzle 
               }
 
-              assert(rc + dot_rc * dt >= 0 && "accretion can't make rho_c negative");
+              assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
             }
 //          }
 
           // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
           //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
-          // has to be just after autoconv. and accretion so that dot_rho_r is a sum of only those two
+          // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
           if (opts.acnv || opts.accr)
           {
             if (nc > eps_n && dot_rr > eps_d)  
@@ -299,7 +299,7 @@ namespace libcloudphxx
             tmp = std::min(tmp, real_t(0) / si::seconds);
             if (rr + (dot_rr / si::seconds + tmp) * (dt * si::seconds) < 0) // so that we don't evaporate more than we have
             {
-              tmp = - (rr + dt * dot_rr) / (dt * si::seconds); // evaporate all rho_r
+              tmp = - (rr + dt * dot_rr) / (dt * si::seconds); // evaporate all rr
 
               dot_rv -= tmp * si::seconds;
               dot_rr += tmp * si::seconds;
@@ -329,10 +329,10 @@ namespace libcloudphxx
             }
           }
 
-          assert(rr + dot_rr * dt >= 0 && "rain condensation/evaporation can't make rho_r < 0");
-          assert(rv + dot_rv * dt >= 0 && "rain condensation/evaporation can't make rho_v < 0");
+          assert(rr + dot_rr * dt >= 0 && "rain condensation/evaporation can't make rr < 0");
+          assert(rv + dot_rv * dt >= 0 && "rain condensation/evaporation can't make rv < 0");
           assert(nr * si::kilograms + dot_nr * dt >= 0 && "rain condensation/evaporation can't make n_r < 0");
-          assert(th / si::kelvin + dot_th * dt >= 0 && "rain condensation/evaporation can't make rho_e < 0");
+          assert(th / si::kelvin + dot_th * dt >= 0 && "rain condensation/evaporation can't make re < 0");
         }
       }
     }
