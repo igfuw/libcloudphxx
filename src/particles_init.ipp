@@ -50,6 +50,9 @@ namespace libcloudphxx
       // initialising particle positions
       pimpl->init_xyz();
 
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      pimpl->init_grid();
+
       // initialising housekeeping data (incl. ijk)
       pimpl->init_hskpng(); 
       pimpl->hskpng_Tpr(); 
@@ -67,9 +70,6 @@ namespace libcloudphxx
  
       // initialising chem stuff
       pimpl->init_chem(); // TODO: only if chem enabled?
- 
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      pimpl->init_grid();
     }
   };
 };

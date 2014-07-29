@@ -59,11 +59,15 @@ namespace libcloudphxx
       // filling in sample volume data
       dv.resize(n_cell);
 
-      thrust::transform(
-	zero, zero + n_cell, // input - 1st arg
-	dv.begin(),          // output  
-	detail::dv_eval<real_t>(opts_init)
-      );
+      // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
+      if (n_dims > 0)
+      {
+	thrust::transform(
+	  zero, zero + n_cell, // input - 1st arg
+	  dv.begin(),          // output  
+	  detail::dv_eval<real_t>(opts_init)
+	);
+      }
 
       switch (n_dims)
       {

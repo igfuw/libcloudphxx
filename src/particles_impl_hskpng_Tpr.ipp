@@ -120,6 +120,17 @@ namespace libcloudphxx
           detail::common__vterm__visc<real_t>()
         );
       }
+
+      // adjusting dv if using a parcel set-up (1kg of dry air)
+      if (n_dims == 0)
+      {
+        namespace arg = thrust::placeholders;
+        thrust::transform(
+          rhod.begin(), rhod.end(), // input
+          dv.begin(),               // output
+          real_t(1) / arg::_1
+        );
+      }
     }
   };  
 };
