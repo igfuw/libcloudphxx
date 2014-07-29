@@ -167,12 +167,21 @@ namespace libcloudphxx
         u01(tmp_device_real_part)
       {
         // sanity checks
-        assert(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx); 
-        assert(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy); 
-        assert(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz); 
-        assert(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx);
-        assert(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy);
-        assert(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz);
+        if (n_dims > 0)
+        {
+	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+            throw std::runtime_error("TODO");
+	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
+            throw std::runtime_error("TODO");
+	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
+            throw std::runtime_error("TODO");
+        }
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
