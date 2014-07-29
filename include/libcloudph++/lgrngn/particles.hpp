@@ -109,28 +109,12 @@ namespace libcloudphxx
         ); 
       }  
 
-      // 1D constant density version
+      // 0D version
       void step_sync(
         const opts_t<real_t> &opts,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod_courant_z
-      ) { 
-        this->step_sync(
-          opts,
-          th, 
-          rv, 
-          arrinfo_t<real_t>(),
-          arrinfo_t<real_t>(), 
-          rhod_courant_z, 
-          arrinfo_t<real_t>()); 
-      }  
-
-      // 0D constant density version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv
+        const arrinfo_t<real_t> rhod
       ) { 
         this->step_sync(
           opts,
@@ -139,7 +123,7 @@ namespace libcloudphxx
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>()
+          rhod
         ); 
       }  
 

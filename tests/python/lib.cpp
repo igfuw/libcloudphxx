@@ -297,7 +297,8 @@ namespace lgrngn
     lgr::particles_proto_t<real_t> *arg,
     const lgr::opts_t<real_t> &opts,
     const bp::numeric::array &th,
-    const bp::numeric::array &rv
+    const bp::numeric::array &rv,
+    const bp::numeric::array &rhod
   )
   {
     lgr::arrinfo_t<real_t>
@@ -306,7 +307,8 @@ namespace lgrngn
     arg->step_sync(
       opts, 
       np2ai_th,
-      np2ai_rv
+      np2ai_rv,
+      np2ai(rhod)
     );
     // TODO: 1D, 2D and 3D versions
   }
