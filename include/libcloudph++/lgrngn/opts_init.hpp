@@ -46,10 +46,10 @@ namespace libcloudphxx
 
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
-        nx(0), ny(0), nz(0), // the zeros indicate a parcel set-up with 1kg of dry air
-        dx(0), dy(0), dz(0), // 
-        x0(0), y0(0), z0(0), // 
-        x1(0), y1(0), z1(0), // 
+        nx(0), ny(0), nz(0), // the defaults are OK for a parcel set-up 
+        dx(1), dy(1), dz(1), // (but are only used to compute n_part -
+        x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
+        x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
         sd_conc_mean(64), 
         kernel(geometric),
         dt(1e-3),
