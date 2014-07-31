@@ -90,6 +90,24 @@ namespace libcloudphxx
         this->step_sync(opts, th, rv, rhod_courant_x, rhod_courant_y, rhod_courant_z, arrinfo_t<real_t>()); 
       }  
 
+      // kinematic version
+      void step_sync(
+        const opts_t<real_t> &opts,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv
+      ) { 
+        this->step_sync(
+          opts,
+          th, 
+          rv, 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>()
+        ); 
+      }  
+
+
       // 2D constant density version
       void step_sync(
         const opts_t<real_t> &opts,
