@@ -309,6 +309,7 @@ namespace libcloudphxx
           const real_t /* t */
         )
         {
+          assert(dot_psi.size() == psi.size());
           typedef thrust::zip_iterator<
             thrust::tuple<
               // those in psi...
