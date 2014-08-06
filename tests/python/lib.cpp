@@ -275,7 +275,7 @@ namespace lgrngn
   bp::object outbuf(lgr::particles_proto_t<real_t> *arg)
   {
     int len = 1; // TODO: parcel assumption hardcoded
-    return bp::object(bp::handle<>(PyBuffer_FromMemory(arg->outbuf(), len * sizeof(real_t))));
+    return bp::object(bp::handle<>(PyBuffer_FromMemory(arg->outbuf(), len * sizeof(real_t)))); // TODO: this assumes Python 2 -> make it compatible with P3 or require P2 in CMake
   }
 
   void init(
