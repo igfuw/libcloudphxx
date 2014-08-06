@@ -1,16 +1,41 @@
 add_library(cloudphxx SHARED lib.cpp)
 set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 
-#TODO: search for NumPy, Blitz, pytest
+#TODO: search pytest?
 
 # informing the Python bindings where to find Python
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs)
+if (NOT PYTHON_LIBRARIES)
+  message(FATAL_ERROR "
+    Python libraries not found. 
+    Please install them (e.g. sudo apt-get install python-dev).
+  ")
+endif()
 target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-find_package(Boost COMPONENTS python REQUIRED QUIET)
+find_package(Boost COMPONENTS python QUIET)
+if (NOT Boost_FOUND)
+  message(FATAL_ERROR "
+    Boost.Python not found. 
+    Please install it (e.g. sudo apt-get install libboost-python-dev).
+  ")
+endif()
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+
+# requireing Blitz++
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("
+    #include <blitz/array.h>
+    int main() {}
+  " BLITZ_FOUND)
+if (NOT BLITZ_FOUND)
+  message(FATAL_ERROR "
+    Blitz++ library not found. 
+    Please install it (e.g. sudo apt-get install libblitz0-dev).
+  ")
+endif()
 
 # ... where to find libclouph++
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
@@ -23,6 +48,15 @@ if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
   message(STATUS "PYTHON_LIBRARIES: " ${PYTHON_LIBRARIES})
   message(STATUS "PYTHONLIBS_VERSION: " ${PYTHONLIBS_VERSION_STRING})
   message(FATAL_ERROR "Version mismatch between python interpreter and libraries")
+endif()
+
+# requireing NumPy
+execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy" ERROR_QUIET RESULT_VARIABLE NUMPY_FOUND)
+if (NUMPY_FOUND GREATER 0)
+  message(FATAL_ERROR "
+    NumPy not found. 
+    Please install it (e.g. sudo apt-get install python-numpy).
+  ")
 endif()
 
 # non-pytest tests
