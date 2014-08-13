@@ -42,7 +42,8 @@ namespace libcloudphxx
       chem_noneq.resize(chem_rhs_n * n_part);
       chem_equil.resize((chem_aq_n - chem_rhs_n) * n_part);
       chem_stepper.adjust_size(chem_noneq);
-      
+      chem_pH.resize(n_part);     
+ 
       // helper iterators
       for (int i = 0; i < chem_aq_n; ++i)
       {
@@ -64,6 +65,12 @@ namespace libcloudphxx
       {
         switch (i)
         {
+          case pH:
+            {
+              //pH = 7 TODO merge with what happens below
+              thrust::fill(chem_bgn[i], chem_end[i], 7);
+            }
+            break;
           case OH:
           case H:
             // pH = 7 
