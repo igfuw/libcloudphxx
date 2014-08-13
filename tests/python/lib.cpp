@@ -504,7 +504,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("SO3",  lgr::SO3)
       .value("S_VI", lgr::S_VI)
       .value("HSO4", lgr::HSO4)
-      .value("SO4",  lgr::SO4);
+      .value("SO4",  lgr::SO4)
+      .value("pH",   lgr::pH);
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)

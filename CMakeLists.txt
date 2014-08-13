@@ -32,7 +32,7 @@ if (NOT THRUST_FOUND)
 endif()
 
 # note: commenting out the line below is a quick way of switching off CUDA
-find_package(CUDA QUIET)
+# find_package(CUDA QUIET)
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
 # TODO: propagate optimisation flags to nvcc

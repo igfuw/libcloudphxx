@@ -120,18 +120,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_pHfun
       {
-	const quantity<si::mass, real_t> &m_H;
-	const quantity<si::volume, real_t> &V;
         
-        // ctor
-        BOOST_GPU_ENABLED
-        chem_pHfun(
-	  const quantity<si::mass, real_t> &m_H,
-	  const quantity<si::volume, real_t> &V
-        ) :
-          m_H(m_H), V(V)
-        {}
-
         BOOST_GPU_ENABLED
         real_t operator()( const thrust::tuple<real_t, real_t> &tpl)const
         {
@@ -140,12 +129,12 @@ namespace libcloudphxx
           const quantity<si::mass, real_t>
             m_H  = thrust::get<0>(tpl) * si::kilograms;
           const quantity<si::volume, real_t> 
-            V      = thrust::get<1>(tpl) * si::cubic_metres;
+            V    = thrust::get<1>(tpl) * si::cubic_metres;
 
 #if !defined(__NVCC__)
 	  using std::log10;
 #endif
- 
+
           return (  -log10( 
           //mass to moles               m3 to litres    to get H+ concentration
             real_t(1) / M_H<real_t>() * real_t(1e-3) *  m_H / V
@@ -467,7 +456,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 	  zip_it_t(thrust::make_tuple(chem_bgn[H], V.begin())),  // input - begin
 	  zip_it_t(thrust::make_tuple(chem_end[H], V.end())  ),  // input - end
 	  chem_bgn[pH],                                          // output
-	  detail::chem_pHfun< real_t>()                          // op
+	  detail::chem_pHfun<real_t>()                          // op
 	);
       }
       {
