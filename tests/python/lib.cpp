@@ -427,7 +427,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope parent = nested_module;
 
     bp::scope().attr("R_d") = (real_t) (cmn::moist_air::R_d<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("R_v") = (real_t) (cmn::moist_air::R_v<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("c_pv") = (real_t) (cmn::moist_air::c_pv<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
