@@ -12,7 +12,7 @@ before_install:
 install:
     - if [[ $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
     - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
-    - sudo apt-get install --no-install-recommends nvidia-profiler nvidia-cuda-dev
+    - sudo apt-get install --no-install-recommends -t trusty nvidia-profiler nvidia-cuda-dev
     - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev nvidia-cuda-toolkit
 
 script:
