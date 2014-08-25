@@ -37,8 +37,7 @@ script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release ../
-    - make
-    - sudo make install
+    - sudo cmake -P cmake_install.cmake
 
     ## icicle (no tests - just testing if any changes in libmpdata's API did not break icicle)
     - cd ../..
