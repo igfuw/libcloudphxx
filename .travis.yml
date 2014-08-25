@@ -12,6 +12,7 @@ before_install:
 install:
     - if [[ $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
     - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
+    - sudo apt-get install --no-install-recommends nvidia-profiler nvidia-cuda-dev
     - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev nvidia-cuda-toolkit
 
 script:
@@ -19,6 +20,9 @@ script:
     - mkdir build 
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
+    - VERBOSE=1 make 
+    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - VERBOSE=1 make 
     - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
@@ -30,7 +34,7 @@ script:
     - sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ../
+    - cmake -DCMAKE_BUILD_TYPE=Release ../
     - make
     - sudo make install
 
@@ -41,5 +45,5 @@ script:
     - cd icicle
     - mkdir build 
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
+    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - make
