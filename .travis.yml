@@ -12,8 +12,8 @@ before_install:
 install:
     - if [[ $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
     - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
-      #- sudo apt-get install --no-install-recommends -t trusty libcuda1 nvidia-profiler nvidia-cuda-dev
-    - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev nvidia-cuda-toolkit
+    - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev 
+    - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
 
 script:
     # libcloudph++ 
@@ -32,6 +32,8 @@ script:
     - sudo apt-get install --no-install-recommends libhdf5-7 
     - sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev
     - sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev
+    - git clone --depth=1 git://github.com/igfuw/libmpdata.git
+    - cd libmpdata
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release ../
