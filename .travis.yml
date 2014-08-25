@@ -32,8 +32,8 @@ script:
     - sudo apt-get install --no-install-recommends libhdf5-7 
     - sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev
     - sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev
-    - git clone --depth=1 git://github.com/igfuw/libmpdata.git
-    - cd libmpdata
+    - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+    - cd libmpdataxx
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release ../
