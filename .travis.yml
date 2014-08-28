@@ -1,0 +1,50 @@
+language: cpp
+os: 
+    - linux
+compiler:
+    - gcc
+    - clang
+
+before_install:
+    - sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"
+    - sudo apt-get update
+
+install:
+    - if [[ $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
+    - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
+    - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev 
+    - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
+
+script:
+    # libcloudph++ 
+    - mkdir build 
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
+    - VERBOSE=1 make 
+    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
+    - VERBOSE=1 make 
+    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - sudo make install
+
+    # libmpdata (needed by icicle, skipping tests)
+    - cd ../..
+    - sudo apt-get install --no-install-recommends libhdf5-7 
+    - sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev
+    - sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev
+    - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+    - cd libmpdataxx
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release ../
+    - sudo cmake -P cmake_install.cmake
+
+    ## icicle (no tests - just testing if any changes in libmpdata's API did not break icicle)
+    - cd ../..
+    - sudo apt-get install --no-install-recommends -t trusty -y libboost-program-options-dev
+    - git clone --depth=1 git://github.com/igfuw/icicle.git
+    - cd icicle
+    - mkdir build 
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
+    - make
