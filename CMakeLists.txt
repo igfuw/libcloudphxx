@@ -4,7 +4,7 @@ if (NOT CMAKE_CXX_COMPILER)
   message(FATAL_ERROR "
     No C++ compiler found. 
     Please install one (e.g. sudo apt-get install g++).
-    If needed, point CMake to it (e.g. cmake -DCMAKE_CXX_COMPILER=/usr/lib/gcc-snapshot/bin/g++).
+    If needed, please point CMake to it (e.g. cmake -DCMAKE_CXX_COMPILER=/usr/lib/gcc-snapshot/bin/g++).
   ")
 endif()
 
