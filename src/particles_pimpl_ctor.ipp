@@ -7,6 +7,12 @@
   */
 
 #include <thrust/host_vector.h>
+
+#include <boost/numeric/odeint.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+
 #include <map>
 
 namespace libcloudphxx
@@ -36,6 +42,8 @@ namespace libcloudphxx
       detail::u01<real_t, device> rng;
 
       // particle attributes
+      thrust_device::vector<n_t>
+	n;   // multiplicity
       thrust_device::vector<real_t> 
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
@@ -43,13 +51,6 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 1D, 2D and 3D)
-
-      // chem constituents
-      std::vector<thrust_device::vector<real_t> >
-        che; // indexed with enum chem_aq
-
-      thrust_device::vector<n_t>
-	n;   // multiplicity
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -93,13 +94,34 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
-
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
       std::map<
         const thrust_device::vector<real_t>*, 
         thrust::host_vector<thrust_size_t> 
       > l2e; 
+
+      // chem stuff
+      // TODO: consider changing the unit to AMU or alike (very small numbers!)
+      std::vector<typename thrust_device::vector<real_t>::iterator >
+        chem_bgn, chem_end; // indexed with enum chem_species_t
+      thrust_device::vector<real_t> chem_noneq, chem_equil;
+      /* TODO:
+        On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
+        > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
+        > ... I think, the best steppers for stiff systems and thrust are the
+        > runge_kutta_fehlberg78 or the bulirsch_stoer with a very high order. But
+        > should benchmark both steppers and choose the faster one.
+      */
+      boost::numeric::odeint::euler<
+        thrust_device::vector<real_t>, // state_type
+        real_t,                        // value_type
+        thrust_device::vector<real_t>, // deriv_type
+        real_t,                        // time_type
+        boost::numeric::odeint::thrust_algebra,
+        boost::numeric::odeint::thrust_operations,
+        boost::numeric::odeint::never_resizer
+      > chem_stepper;
 
       // temporary data
       thrust::host_vector<real_t>
@@ -148,12 +170,21 @@ namespace libcloudphxx
         u01(tmp_device_real_part)
       {
         // sanity checks
-        assert(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx); 
-        assert(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy); 
-        assert(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz); 
-        assert(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx);
-        assert(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy);
-        assert(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz);
+        if (n_dims > 0)
+        {
+	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
+            throw std::runtime_error("TODO"); 
+	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+            throw std::runtime_error("TODO");
+	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
+            throw std::runtime_error("TODO");
+	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
+            throw std::runtime_error("TODO");
+        }
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -211,10 +242,10 @@ namespace libcloudphxx
 
       void moms_rng(
         const real_t &min, const real_t &max, 
-        const thrust_device::vector<real_t> &radii
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const thrust_device::vector<real_t> &radii,
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
 
@@ -235,8 +266,9 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt);
-      // TODO: rcyc
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
+      void rcyc();
+      real_t bcnd(); // returns accumulated rainfall
     };
 
     // ctor

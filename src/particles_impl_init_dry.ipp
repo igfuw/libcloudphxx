@@ -97,7 +97,7 @@ namespace libcloudphxx
 
       while (true)
       {
-        using namespace thrust::placeholders;
+        namespace arg = thrust::placeholders;
 
 	// rd3 temporarily means logarithm of radius!
 	thrust_device::vector<real_t> &lnrd(rd3);
@@ -107,7 +107,7 @@ namespace libcloudphxx
 	  u01.begin(), 
 	  u01.end(), 
 	  lnrd.begin(), 
-	  log(rd_min) + _1 * (log(rd_max) - log(rd_min)) 
+	  log(rd_min) + arg::_1 * (log(rd_max) - log(rd_min)) 
 	);
  
 	// filling n with multiplicities
@@ -130,7 +130,7 @@ namespace libcloudphxx
 
         // correcting STP -> actual ambient conditions
         {
-          using namespace thrust::placeholders;
+          namespace arg = thrust::placeholders;
           using common::earth::rho_stp;
 
 	  thrust::transform(
@@ -140,7 +140,7 @@ namespace libcloudphxx
               tmp_ijk.begin()
             ),
             tmp.begin(),                       // output
-            _1 * _2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+            arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
           ); 
         }
 
@@ -149,14 +149,14 @@ namespace libcloudphxx
 
 	// chosing an optimal rd_min/rd_max range for a given pdf and grid
 	thrust_size_t ix;
-	ix = thrust::find_if(n.begin(), n.end(), _1 != 0) - n.begin();
+	ix = thrust::find_if(n.begin(), n.end(), arg::_1 != 0) - n.begin();
 	if (rd_min == rd_min_init) 
 	{
 	  assert(ix != n_part); // zeros everywhere
 	  assert(ix != 0); // rd_min was not small enough for pdf(rd_min) to be zero
 	  rd_min = exp(lnrd[ix - 1]); // adjusting the range
 	}
-	ix = n.rend() - thrust::find_if(n.rbegin(), n.rend(), _1 != 0);
+	ix = n.rend() - thrust::find_if(n.rbegin(), n.rend(), arg::_1 != 0);
 	if (rd_max == rd_max_init) 
 	{
 	  assert(ix != n_part); // rd_max was not big enough for pdf(rd_max) to be zero

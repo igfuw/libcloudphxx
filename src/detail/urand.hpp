@@ -60,17 +60,23 @@ namespace libcloudphxx
 
 	u01()
 	{
-	  int status;
-	  status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
-	  status = curandSetPseudoRandomGeneratorSeed(gen, 44);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
-	}
+          {
+	    int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
+	    assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
+	    _unused(status);
+          }
+          {
+	    int status = curandSetPseudoRandomGeneratorSeed(gen, 44);
+	    assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
+            _unused(status);
+	  }
+        }
 
 	~u01()
 	{
 	  int status = curandDestroyGenerator(gen); 
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandDestroyGenerator failed"*/);
+          _unused(status);
 	}
 
 	void generate_n(
@@ -80,6 +86,7 @@ namespace libcloudphxx
 	{
 	  int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+          _unused(status);
 	}
 
 	void generate_n(
@@ -89,6 +96,7 @@ namespace libcloudphxx
 	{
 	  int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+          _unused(status);
 	}
 #endif
       };

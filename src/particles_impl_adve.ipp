@@ -46,20 +46,6 @@ namespace libcloudphxx
           );
         }
       };
-
-      template <typename real_t>
-      struct periodic
-      { 
-        real_t a, b;
-
-        periodic(real_t a, real_t b) : a(a), b(b) {}
-
-        BOOST_GPU_ENABLED
-        real_t operator()(real_t x)
-        {
-          return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
-        }
-      };
     };
 
     template <typename real_t, backend_t device>
@@ -104,13 +90,6 @@ namespace libcloudphxx
             thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part, rhod_ijk+n_part)), // input - end
             z.begin(), // output
             detail::adve_2d<real_t>(opts_init.dz)
-          );
-
-          // hardcoded periodic boundary in x! (TODO - not here?)
-          thrust::transform(
-            x.begin(), x.end(),
-            x.begin(),
-            detail::periodic<real_t>(opts_init.x0, opts_init.x1)
           );
           break; 
         }

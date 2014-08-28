@@ -1,9 +1,12 @@
 0.1 (pre-submission / during reviews, should-be-easy enhancements or code cleanups before first release):
+- an assert/run-time error when no spectra in blk_2m / lgrngn
+- how to make Python assert->exception translation work in src?
+- C++11 constructs in lgrngn after with new CUDA!
+- what with the invalid flag??? should chemistry/etc be done only on valid droplets???
 - Thouron et al. supersaturation?
-- bitwise reproducibility...
+- bitwise reproducibility - double check + mention in the paper
 - sdm: coalescence Kernel choice: constant, Long, B\"ohm
 - unifikacja predkosci opadania lgrngn vs. blk_2m ?
-- SDM: n1==n2
 - rho_w do earth.hpp?
 - cleanup file extensions for lgrngn (.ipp, .tpp, ...)
 - czy thrust::get(tuple) nie moga zwracac referencji? (o ile nie ma jednostek to by sie przydalo
@@ -13,14 +16,11 @@
 0.2: (near future enhancements, things important for the initial stages of the HARMONIA project)
 - cond/evap separation for other micro than blk_1m?
 - think of some sexy animation showing some aerosol-indirect-effect-related stuff
-- rcyc
 - accumulated rainfall plots (and output)
-- 0-d parcel/box framework (could make the drops model obsolete in a longer run!)
 - adaptive timestep for coal
 - adaptive timestep for cond
 - auto cond_dt choice for blk_2m?
 - make the upstream logic in blk_1m in blk_2m common!
-- super-droplet initialisation: uniform in volume -> uniform in mass of air
 - initialisation with multiple dry pdfs (with multiple kappas)
 - sat. vap. pressure approximation as a template class for thermodynamics-related classes (e.g. Flatau's polynomial approximations vs. const-cp analytical formulas) 
 - non-kappa Koehler curves?
@@ -43,9 +43,3 @@
   - Seifert & Beheng 2001: "A double-moment parameterization for simulating autoconversion, accretion and selfcollection"
   - TAU Cloud Microphysical Code: Method of Moments (http://www.esrl.noaa.gov/csd/staff/graham.feingold/code/)
   - Tao et al. 2003 - 1-moment bulk micro
-
-
-
-0.4: (far future, not relevant to HARMONIA)
-
-

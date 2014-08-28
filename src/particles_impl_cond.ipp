@@ -218,6 +218,9 @@ namespace libcloudphxx
             a = max(rd2, rw2_old + min(real_t(0), mlt * drw2)),
             b =          rw2_old + max(real_t(0), mlt * drw2);
  
+          // numerics (drw2 != 0 but a==b)
+          if (a == b) return rw2_old;
+
           if (drw2 > 0) 
             return common::detail::bisect(f, a, b, tol_r2, drw2); // for implicit Euler its equal to min_fun(x_old) 
           else

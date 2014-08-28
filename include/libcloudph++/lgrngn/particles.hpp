@@ -70,10 +70,12 @@ namespace libcloudphxx
         assert(false); 
       }  
 
-      virtual void step_async(
+      // returns accumulated rainfall
+      virtual real_t step_async(
         const opts_t<real_t> &
       ) { 
         assert(false); 
+        return 0;
       }  
 
       // 3D constant density version
@@ -87,6 +89,24 @@ namespace libcloudphxx
       ) { 
         this->step_sync(opts, th, rv, rhod_courant_x, rhod_courant_y, rhod_courant_z, arrinfo_t<real_t>()); 
       }  
+
+      // kinematic version
+      void step_sync(
+        const opts_t<real_t> &opts,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv
+      ) { 
+        this->step_sync(
+          opts,
+          th, 
+          rv, 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>(), 
+          arrinfo_t<real_t>()
+        ); 
+      }  
+
 
       // 2D constant density version
       void step_sync(
@@ -107,28 +127,12 @@ namespace libcloudphxx
         ); 
       }  
 
-      // 1D constant density version
+      // 0D version
       void step_sync(
         const opts_t<real_t> &opts,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod_courant_z
-      ) { 
-        this->step_sync(
-          opts,
-          th, 
-          rv, 
-          arrinfo_t<real_t>(),
-          arrinfo_t<real_t>(), 
-          rhod_courant_z, 
-          arrinfo_t<real_t>()); 
-      }  
-
-      // 0D constant density version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv
+        const arrinfo_t<real_t> rhod
       ) { 
         this->step_sync(
           opts,
@@ -137,7 +141,7 @@ namespace libcloudphxx
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
           arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>()
+          rhod
         ); 
       }  
 
@@ -147,7 +151,7 @@ namespace libcloudphxx
       virtual void diag_wet_rng(const real_t&, const real_t&) { assert(false); }
       virtual void diag_dry_mom(const int&)                   { assert(false); }
       virtual void diag_wet_mom(const int&)                   { assert(false); }
-      virtual void diag_chem(const enum chem_aq&)             { assert(false); }
+      virtual void diag_chem(const enum chem_species_t&)      { assert(false); }
       virtual real_t *outbuf()                                { assert(false); return NULL; }
     };  
 
@@ -176,7 +180,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> rhod_courant_3,
         const arrinfo_t<real_t> rhod 
       );
-      void step_async(
+      real_t step_async(
         const opts_t<real_t> &
       );
 
@@ -195,7 +199,7 @@ namespace libcloudphxx
       // ...
 //</listing>
 
-      void diag_chem(const enum chem_aq&);
+      void diag_chem(const enum chem_species_t&);
 
       struct impl;
       std::auto_ptr<impl> pimpl;

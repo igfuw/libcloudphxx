@@ -20,7 +20,7 @@ namespace libcloudphxx
       l2e[key].resize(key->size());
       switch (n_dims)
       {
-	using namespace thrust::placeholders;
+	namespace arg = thrust::placeholders;
 	case 0:  
 	  l2e[key][0] = 0;  
 	  break;
@@ -31,9 +31,14 @@ namespace libcloudphxx
 	case 2:
           // assumes z veries fastest
           assert(arr.strides[1] == 1);
-	  thrust::transform(zero, zero + l2e[key].size(), l2e[key].begin(), 
-	    arr.strides[0] * /* i = */ (_1 / (opts_init.nz+ext_z)) +
-	    arr.strides[1] * /* j = */ (_1 % (opts_init.nz+ext_z))  
+	  thrust::transform(
+            // input
+            zero, zero + l2e[key].size(), 
+            // output
+            l2e[key].begin(), 
+            // op
+	    arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
+	    arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))  
 	  );
 	  break;
         case 3:

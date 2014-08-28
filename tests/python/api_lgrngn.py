@@ -39,6 +39,7 @@ print "dt =", opts_init.dt
 print "kernel =", opts_init.kernel 
 assert opts_init.kernel == lgrngn.kernel_t.geometric
 print "sd_conc_mean =", opts_init.sd_conc_mean
+print "chem_rho =", opts_init.chem_rho
 
 print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
@@ -61,14 +62,23 @@ rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
 
+opts.chem_gas = {
+  lgrngn.chem_species_t.SO2  : 44,
+  lgrngn.chem_species_t.O3   : 44,
+  lgrngn.chem_species_t.H2O2 : 44
+}
+
+print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
+print "chem_gas = ", opts.chem_gas
+
 prtcls.init(th, rv, rhod)
-prtcls.step_sync(opts, th, rv)
-prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod)
+rain = prtcls.step_async(opts)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
-prtcls.diag_chem(lgrngn.chem_aq.OH)
+prtcls.diag_chem(lgrngn.chem_species_t.OH)
 
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
