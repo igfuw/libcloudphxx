@@ -184,11 +184,9 @@ namespace libcloudphxx
           if (rc > 0 && nc*si::kilograms > 0)
           {   
             quantity<si::frequency, real_t> tmp = autoconv_rate(rc, rhod * nc);
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "ACNV: tmp = " << tmp << std::endl;
 
             // so that autoconversion doesn't take more rc than there is
             tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "ACNV: tmp' = " << tmp << std::endl;
             assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
             dot_rc -= tmp * si::seconds;
@@ -198,10 +196,6 @@ if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "ACNV: tmp' 
             // source of N for drizzle assumes that all the drops have the same radius
             dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
               * si::kilograms * si::seconds; // to make it dimensionless
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) 
-  std::cerr << "dot_rc = " << dot_rc << std::endl
-	    << "dot_rr = " << dot_rr << std::endl
-	    << "dot_nr = " << dot_nr << std::endl;
           }
 
           assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
@@ -214,18 +208,13 @@ if (rhod / si::kilograms * si::cubic_metres > 1.11494)
           {                   
             quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
             // so that accretion doesn't take more rc than there is
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "ACCR: tmp = " << tmp << std::endl;
             tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "ACCR: tmp' = " << tmp << std::endl;
             assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
           
             dot_rr += tmp * si::seconds;
             dot_rc -= tmp * si::seconds;
             // the sink of N for cloud droplets is combined with sink due to autoconversion
             // accretion does not change N for drizzle 
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) 
-  std::cerr << "dot_rc = " << dot_rc << std::endl
-	    << "dot_rr = " << dot_rr << std::endl;
           }
 
           assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
@@ -240,21 +229,14 @@ if (rhod / si::kilograms * si::cubic_metres > 1.11494)
           {                           
             quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
               collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "FINL: tmp = " << tmp << std::endl;
 
             assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
             assert(tmp >= 0 / si::kilograms / si::seconds && "tmp");
  
             // so that collisions don't take more n_c than there is
             tmp = std::min(tmp, (nc + dt * dot_nc / si::kilograms) / (dt * si::seconds));
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) std::cerr << "FINL: tmp' = " << tmp << std::endl;
  
             dot_nc -= tmp * si::kilograms * si::seconds;
-if (rhod / si::kilograms * si::cubic_metres > 1.11494) 
-{
-  std::cerr << "dot_nc = " << dot_nc << std::endl;
-  throw std::runtime_error("AQQ");
-}
           }
           
           assert(nc * si::kilograms + dot_nc * dt >= 0 && "collisions can't make n_c negative");
