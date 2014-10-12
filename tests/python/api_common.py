@@ -1,7 +1,10 @@
 import sys
 sys.path.append("../../bindings/python/")
 
+#<listing-1>
 from libcloudphxx import common
+assert common.p_vs(273.16) == 611.73
+#</listing-1>
 
 print "R_d =", common.R_d
 print "c_pd =", common.c_pd
@@ -13,5 +16,3 @@ rv = .01
 
 print common.th_dry2std(th, rv)	
 assert common.th_std2dry(common.th_dry2std(th, rv), rv) == th
-
-assert common.p_vs(273.16) == 611.73
