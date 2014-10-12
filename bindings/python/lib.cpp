@@ -3,30 +3,12 @@
 // author[s]: Sylwester Arabas, Dorota Jarecka
 // licensing: GPU GPL v3
 // copyright: University of Warsaw
-
-#include <boost/python.hpp> 
-// written following:
+//
+// written with a lot of help from:
 // - http://www.boost.org/doc/libs/1_55_0/libs/python/doc/tutorial/doc/html/python/exposing.html
 // - http://isolation-nation.blogspot.com/2008/09/packages-in-python-extension-modules.html
-#include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
-#if defined(BZ_THREADSAFE)
-#  error please unset BZ_THREADSAFE
-#endif
-#include <blitz/array.h>
-
-#include <libcloudph++/lgrngn/factory.hpp>
-
-namespace bp = boost::python;
-
-using real_t = double;
-using arr_t = blitz::Array<real_t, 1>;
-using py_ptr_t = long; // TODO: acquire it using some decltype()
-
-namespace lgr = libcloudphxx::lgrngn;
-
-#include "util.hpp" // TODO: it uses the above definitions
-
+#include "util.hpp"
 #include "blk_1m.hpp"
 #include "blk_2m.hpp"
 #include "lgrngn.hpp"
@@ -34,6 +16,12 @@ namespace lgr = libcloudphxx::lgrngn;
 
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
+  namespace bp = boost::python;
+  using namespace libcloudphxx::python;
+
+  using real_t = double;
+  using arr_t = blitz::Array<real_t, 1>;
+
   bp::numeric::array::set_module_and_type("numpy", "ndarray");
 
   // specify that this module is actually a package
@@ -79,9 +67,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("r_c0", &b1m::opts_t<real_t>::r_c0)
       .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
       ;
-    bp::def("adj_cellwise", blk_1m::adj_cellwise);
-    bp::def("rhs_cellwise", blk_1m::rhs_cellwise); 
-    bp::def("rhs_columnwise", blk_1m::rhs_columnwise); // TODO: handle the returned flux
+    bp::def("adj_cellwise", blk_1m::adj_cellwise<arr_t>);
+    bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>); 
+    bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   }
 
   // blk_2m stuff
@@ -97,10 +85,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("accr", &b2m::opts_t<real_t>::accr)
       .def_readwrite("sedi", &b2m::opts_t<real_t>::sedi)
       .def_readwrite("RH_max", &b2m::opts_t<real_t>::RH_max)
-      .add_property("dry_distros", &blk_2m::get_dd, &blk_2m::set_dd)
+      .add_property("dry_distros", &blk_2m::get_dd<real_t>, &blk_2m::set_dd<real_t>)
     ;
-    bp::def("rhs_cellwise", blk_2m::rhs_cellwise);
-    bp::def("rhs_columnwise", blk_2m::rhs_columnwise); // TODO: handle the returned flux
+    bp::def("rhs_cellwise", blk_2m::rhs_cellwise<arr_t>);
+    bp::def("rhs_columnwise", blk_2m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   } 
 
   // lgrngn stuff
@@ -139,10 +127,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sstp_cond", &lgr::opts_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_t<real_t>::sstp_chem)
-      .add_property("chem_gas", &lgrngn::get_cg, &lgrngn::set_cg)
+      .add_property("chem_gas", &lgrngn::get_cg<real_t>, &lgrngn::set_cg<real_t>)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
-      .add_property("dry_distros", &lgrngn::get_dd, &lgrngn::set_dd)
+      .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
       .def_readwrite("nx", &lgr::opts_init_t<real_t>::nx)
       .def_readwrite("ny", &lgr::opts_init_t<real_t>::ny)
       .def_readwrite("nz", &lgr::opts_init_t<real_t>::nz)
@@ -161,8 +149,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
-      .def("init",         &lgrngn::init)
-      .def("step_sync",    &lgrngn::step_sync)
+      .def("init",         &lgrngn::init<real_t>)
+      .def("step_sync",    &lgrngn::step_sync<real_t>)
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
@@ -170,9 +158,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
-      .def("outbuf",       &lgrngn::outbuf)
+      .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
     // functions
-    bp::def("factory", lgrngn::factory, bp::return_value_policy<bp::manage_new_object>());
+    bp::def("factory", lgrngn::factory<real_t>, bp::return_value_policy<bp::manage_new_object>());
   }
 }

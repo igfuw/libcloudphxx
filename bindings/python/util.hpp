@@ -13,44 +13,57 @@
 
 #include <boost/python.hpp>
 
-inline void sanity_checks(const bp::numeric::array &arg)
+#include <libcloudph++/lgrngn/arrinfo.hpp>
+
+namespace libcloudphxx
 {
-  // assuring double precision
-  if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
-    throw std::runtime_error("dtype=float64 required for all passed arrays");
+  namespace python
+  {
+    namespace bp = boost::python;
+    using py_ptr_t = long; // TODO: acquire it using some decltype()
 
-  // assuring contiguous layout
-  if (!bp::extract<bool>(arg.attr("flags").attr("c_contiguous")))
-    throw std::runtime_error("contiguous memory layout required");
-}
+    inline void sanity_checks(const bp::numeric::array &arg)
+    {
+      // assuring double precision
+      if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
+	throw std::runtime_error("dtype=float64 required for all passed arrays");
 
-inline arr_t np2bz(const bp::numeric::array &arg)
-{
-  sanity_checks(arg);
+      // assuring contiguous layout
+      if (!bp::extract<bool>(arg.attr("flags").attr("c_contiguous")))
+	throw std::runtime_error("contiguous memory layout required");
+    }
 
-  // wrapping the data into a Blitz++ array to get STL-container-like functionality
-  return arr_t(
-    // pointer to the data
-    reinterpret_cast<real_t*>(
-      (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data")) 
-    ), 
-    // length of the array (regardless of the original dimensionality, we do 1D)
-    blitz::shape(bp::extract<long>(arg.attr("size"))), 
-    // ensure Blitz++ does not try to free the memory when done
-    blitz::neverDeleteData
-  );
-}
+    template <class arr_t>
+    inline arr_t np2bz(const bp::numeric::array &arg)
+    {
+      sanity_checks(arg);
 
-inline lgr::arrinfo_t<real_t> np2ai(const bp::numeric::array &arg)
-{
-  sanity_checks(arg);
+      // wrapping the data into a Blitz++ array to get STL-container-like functionality
+      return arr_t(
+	// pointer to the data
+	reinterpret_cast<typename arr_t::T_numtype*>(
+	  (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data")) 
+	), 
+	// length of the array (regardless of the original dimensionality, we do 1D)
+	blitz::shape(bp::extract<long>(arg.attr("size"))), 
+	// ensure Blitz++ does not try to free the memory when done
+	blitz::neverDeleteData
+      );
+    }
 
-  const ptrdiff_t one = 1;
-  
-  return lgr::arrinfo_t<real_t>(
-    reinterpret_cast<real_t*>(
-      (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data"))
-    ),
-    &one // TODO: parcel assumption hardcoded
-  );
-}
+    template <class real_t>
+    inline lgrngn::arrinfo_t<real_t> np2ai(const bp::numeric::array &arg)
+    {
+      sanity_checks(arg);
+
+      const ptrdiff_t one = 1;
+      
+      return lgrngn::arrinfo_t<real_t>(
+	reinterpret_cast<real_t*>(
+	  (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data"))
+	),
+	&one // TODO: parcel assumption hardcoded
+      );
+    }
+  };
+};
