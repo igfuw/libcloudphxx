@@ -4,7 +4,7 @@ sys.path.append("../../bindings/python/")
 #<listing-1>
 from libcloudphxx import common
 print "common.p_vs(273.16)=", common.p_vs(273.16)
-assert common.p_vs(273.16) == 611.73
+assert abs(common.p_vs(273.16) - 611.73) < .001
 #</listing-1>
 
 print "R_d =", common.R_d
