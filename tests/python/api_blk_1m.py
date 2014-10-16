@@ -1,5 +1,5 @@
 import sys
-sys.path.append(".")
+sys.path.append("../../bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
 

@@ -9,6 +9,8 @@
 
 #include <libcloudph++/blk_2m/extincl.hpp>
 
+#include <libcloudph++/common/theta_dry.hpp>
+
 namespace libcloudphxx
 {
   namespace blk_2m

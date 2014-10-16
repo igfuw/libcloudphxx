@@ -25,11 +25,14 @@ namespace libcloudphxx
       // saturation vapour pressure for water assuming constant c_p_v and c_p_w
       // with constants taken at triple point
       // (solution to the Clausius-Clapeyron equation assuming rho_vapour << rho_liquid)
+//<listing-1>
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p_vs(
-	const quantity<si::temperature, real_t> &T
-      ) {
+        const quantity<si::temperature, real_t> &T
+      ) 
+//</listing-1>
+      {
 	return p_tri<real_t>() * exp(
 	  (l_tri<real_t>() + (c_pw<real_t>() - c_pv<real_t>()) * T_tri<real_t>()) / R_v<real_t>() * (real_t(1) / T_tri<real_t>() - real_t(1) / T)
 	  - (c_pw<real_t>() - c_pv<real_t>()) / R_v<real_t>() * std::log(T / T_tri<real_t>())
