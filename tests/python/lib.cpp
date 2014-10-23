@@ -426,15 +426,19 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("common") = nested_module;
     bp::scope parent = nested_module;
 
-    bp::scope().attr("R_d") = (real_t) (cmn::moist_air::R_d<real_t>() / si::joules * si::kilograms * si::kelvins);
-    bp::scope().attr("R_v") = (real_t) (cmn::moist_air::R_v<real_t>() / si::joules * si::kilograms * si::kelvins);
-    bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
-    bp::scope().attr("c_pv") = (real_t) (cmn::moist_air::c_pv<real_t>() / si::joules * si::kilograms * si::kelvins);
-    bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
+    bp::scope().attr("kaBoNA") = (real_t) (cmn::moist_air::kaBoNA<real_t>() / si::joules * si::mole * si::kelvins);
+    bp::scope().attr("R_d")    = (real_t) (cmn::moist_air::R_d<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("R_v")    = (real_t) (cmn::moist_air::R_v<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("c_pd")   = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("c_pv")   = (real_t) (cmn::moist_air::c_pv<real_t>() / si::joules * si::kilograms * si::kelvins);
+    bp::scope().attr("g")      = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
-    bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
+    bp::scope().attr("eps")    = (real_t) (cmn::moist_air::eps<real_t>());
+    bp::scope().attr("M_SO2")  = (real_t) (cmn::molar_mass::M_SO2<real_t>() * si::mole / si::kilograms);
+    bp::scope().attr("M_O3")   = (real_t) (cmn::molar_mass::M_O3<real_t>() * si::mole / si::kilograms);
+    bp::scope().attr("M_H2O2") = (real_t) (cmn::molar_mass::M_H2O2<real_t>() * si::mole / si::kilograms);
     // TODO: how to make the above constant?
-
+  
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);

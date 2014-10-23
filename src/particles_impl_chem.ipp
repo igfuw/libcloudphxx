@@ -134,16 +134,13 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
 	  using std::log10;
 #endif
-
-          return (  -log10( 
-          //mass to moles               m3 to litres    to get H+ concentration
-            real_t(1) / M_H<real_t>() * real_t(1e-3) *  m_H / V
-            * si::cubic_metres / si::moles
+          return (real_t(-1) * log10( 
+              //mass to moles       m3 to litres
+              m_H / M_H<real_t>() / real_t(1e3) / V * si::cubic_metres / si::moles
             )
           );
 	}
       };
-
 
       template <typename real_t>
       struct chem_curie_pH // TODO: does it have to be a struct/functor - perhaps ordinary function would suffice?
@@ -397,7 +394,7 @@ namespace libcloudphxx
       using namespace common::henry;      // H-prefixed
       using namespace common::molar_mass; // M-prefixed
 
-std::cerr << "@particles_t::impl::chem()" << std::endl;
+//std::cerr << "@particles_t::impl::chem()" << std::endl;
       // 0/4: calculating drop volumes
       thrust_device::vector<real_t> &V(tmp_device_real_part);
       thrust::transform(
@@ -451,11 +448,11 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
             typename thrust_device::vector<real_t>::iterator  // V
           >
         > zip_it_t;
-
+//std::cerr<<"aqq"<<std::endl;
 	thrust::transform(
 	  zip_it_t(thrust::make_tuple(chem_bgn[H], V.begin())),  // input - begin
 	  zip_it_t(thrust::make_tuple(chem_end[H], V.end())  ),  // input - end
-	  chem_bgn[pH],                                          // output
+	  chem_pH.begin(),                                          // output
 	  detail::chem_pHfun<real_t>()                          // op
 	);
       }

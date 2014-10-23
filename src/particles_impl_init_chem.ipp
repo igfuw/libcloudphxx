@@ -37,8 +37,8 @@ namespace libcloudphxx
       // TODO: don't do it if not using chem...
 
       // memory allocation
-      chem_bgn.resize(chem_aq_n);
-      chem_end.resize(chem_aq_n);
+      chem_bgn.resize(chem_aq_n + 1); // +1 for pH
+      chem_end.resize(chem_aq_n + 1); // +1 for pH
       chem_noneq.resize(chem_rhs_n * n_part);
       chem_equil.resize((chem_aq_n - chem_rhs_n) * n_part);
       chem_stepper.adjust_size(chem_noneq);
@@ -59,9 +59,11 @@ namespace libcloudphxx
         chem_bgn[i] = vec.begin() + (i   - off) * n_part;
         chem_end[i] = vec.begin() + (i+1 - off) * n_part;
       }
+      chem_bgn[pH] = chem_pH.begin();
+      chem_end[pH] = chem_pH.end();
 
       // initial values
-      for (int i = 0; i < chem_aq_n; ++i)
+      for (int i = 0; i < chem_aq_n + 1; ++i) // +1 for pH
       {
         switch (i)
         {
