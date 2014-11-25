@@ -45,8 +45,6 @@ print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
 backend = lgrngn.backend_t.serial
 
-prtcls = lgrngn.factory(backend, opts_init)
-
 opts = lgrngn.opts_t()
 print "adve =", opts.adve
 print "sedi =", opts.sedi
@@ -58,10 +56,6 @@ print "sstp_cond =", opts.sstp_cond
 print "sstp_coal =", opts.sstp_coal
 print "sstp_chem =", opts.sstp_chem 
 
-rhod = arr_t([  1.])
-th   = arr_t([300.])
-rv   = arr_t([  0.01])
-
 opts.chem_gas = {
   lgrngn.chem_species_t.SO2  : 44,
   lgrngn.chem_species_t.O3   : 44,
@@ -71,6 +65,12 @@ opts.chem_gas = {
 print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
+# 0D (parcel)
+rhod = arr_t([  1.])
+th   = arr_t([300.])
+rv   = arr_t([  0.01])
+
+prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv, rhod)
 rain = prtcls.step_async(opts)
@@ -79,6 +79,42 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_chem(lgrngn.chem_species_t.OH)
-
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
+
+# 1D
+rhod = arr_t([  1.,   1.,   1.])
+th   = arr_t([300., 300., 300.])
+rv   = arr_t([   .01,  .01,  .01])
+
+opts_init.nz = 3 
+opts_init.dz = 10
+opts_init.z1 = opts_init.nz * opts_init.dz
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.sd_conc_mean
+
+# 2D
+rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
+th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
+rv   = arr_t([[   .01,   .01],[    .01,    .01]])
+
+opts_init.nz = 2
+opts_init.nx = 2
+opts_init.dz = 10
+opts_init.dx = 10
+opts_init.z1 = opts_init.nz * opts_init.dz
+opts_init.x1 = opts_init.nx * opts_init.dx
+
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc_mean
+
+# 3D
+# TODO...

@@ -276,6 +276,7 @@ namespace libcloudphxx
     particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init) :
       pimpl(new impl(opts_init))
     {
+      this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }
 
