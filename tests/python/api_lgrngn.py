@@ -90,12 +90,13 @@ rv   = arr_t([   .01,  .01,  .01])
 opts_init.nz = 3 
 opts_init.dz = 10
 opts_init.z1 = opts_init.nz * opts_init.dz
-prtcls = lgrngn.factory(backend, opts_init)
-prtcls.init(th, rv, rhod)
-prtcls.diag_sd_conc()
-assert len(frombuffer(prtcls.outbuf())) == opts_init.nz
-assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.sd_conc_mean
+# TODO... still not implemented in the library itself!
+#prtcls = lgrngn.factory(backend, opts_init)
+#prtcls.init(th, rv, rhod)
+#prtcls.diag_sd_conc()
+#assert len(frombuffer(prtcls.outbuf())) == opts_init.nz
+#assert (frombuffer(prtcls.outbuf()) > 0).all()
+#assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.sd_conc_mean
 
 # 2D
 rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
