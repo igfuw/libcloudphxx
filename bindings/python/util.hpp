@@ -139,7 +139,7 @@ namespace libcloudphxx
 	reinterpret_cast<real_t*>(
 	  (py_ptr_t)bp::extract<py_ptr_t>(arg.attr("ctypes").attr("data"))
 	),
-	&strides[0]
+	strides
       );
     }
   };
