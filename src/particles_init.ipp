@@ -25,9 +25,6 @@ namespace libcloudphxx
       assert(!th.is_null());
       assert(!rv.is_null());
       assert(!rhod.is_null());
-      if (pimpl->n_dims > 0) assert(!rhod_courant_z.is_null());
-      if (pimpl->n_dims > 1) assert(!rhod_courant_x.is_null());
-      if (pimpl->n_dims > 2) assert(!rhod_courant_y.is_null());
 
       // initialising Eulerian-Lagrandian coupling
       pimpl->init_sync();
