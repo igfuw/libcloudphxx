@@ -28,10 +28,27 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      bp::object outbuf(lgr::particles_proto_t<real_t> *arg)
-      {
-	int len = 1; // TODO: parcel assumption hardcoded
-	return bp::object(bp::handle<>(PyBuffer_FromMemory(arg->outbuf(), len * sizeof(real_t)))); // TODO: this assumes Python 2 -> make it compatible with P3 or require P2 in CMake
+      bp::object outbuf(
+        lgr::particles_proto_t<real_t> *arg
+      ) {
+	return bp::object(bp::handle<>(PyBuffer_FromMemory(
+          arg->outbuf(), 
+          sizeof(real_t)
+          * std::max(1, arg->opts_init->nx) 
+          * std::max(1, arg->opts_init->ny) 
+          * std::max(1, arg->opts_init->nz) 
+        ))); // TODO: this assumes Python 2 -> make it compatible with P3 or require P2 in CMake
+      }
+
+      template <typename real_t>
+      const std::array<int, 3> sz(
+        const lgr::particles_proto_t<real_t> &arg
+      ) {
+        return std::array<int, 3>({
+          arg.opts_init->nx,
+          arg.opts_init->ny,
+          arg.opts_init->nz
+        });
       }
 
       template <typename real_t>
@@ -40,14 +57,14 @@ namespace libcloudphxx
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
 	const bp::numeric::array &rhod
+        // TODO: courant fields
       )
       {
 	arg->init(
-	  np2ai<real_t>(th),
-	  np2ai<real_t>(rv),
-	  np2ai<real_t>(rhod)
+	  np2ai<real_t>(th,   sz(*arg)),
+	  np2ai<real_t>(rv,   sz(*arg)),
+	  np2ai<real_t>(rhod, sz(*arg))
 	);
-	// TODO: 1D, 2D and 3D versions
       }
 
       template <typename real_t>
@@ -57,18 +74,18 @@ namespace libcloudphxx
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
 	const bp::numeric::array &rhod
+        // TODO: courant fields
       )
       {
 	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th)),
-	  np2ai_rv(np2ai<real_t>(rv));
+	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
+	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
 	arg->step_sync(
 	  opts, 
 	  np2ai_th,
 	  np2ai_rv,
-	  np2ai<real_t>(rhod)
+	  np2ai<real_t>(rhod, sz(*arg))
 	);
-	// TODO: 1D, 2D and 3D versions
       }
 
       template <typename real_t>

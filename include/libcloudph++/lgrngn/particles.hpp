@@ -153,6 +153,10 @@ namespace libcloudphxx
       virtual void diag_wet_mom(const int&)                   { assert(false); }
       virtual void diag_chem(const enum chem_species_t&)      { assert(false); }
       virtual real_t *outbuf()                                { assert(false); return NULL; }
+
+      // storing a pointer to opts_init (e.g. for interrogatin about
+      // dimensions in Python bindings)
+      const opts_init_t<real_t> *opts_init;
     };  
 
     // prototype of what's implemented in the .tpp file
