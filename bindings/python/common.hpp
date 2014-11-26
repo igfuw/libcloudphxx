@@ -7,6 +7,7 @@
 #include "error.hpp"
 
 #include <libcloudph++/common/theta_dry.hpp>
+#include <libcloudph++/common/kappa_koehler.hpp>
 
 namespace libcloudphxx
 {
@@ -50,6 +51,16 @@ namespace libcloudphxx
       real_t p(const real_t &rhod, const real_t &r, const real_t &T)
       {
 	return cmn::theta_dry::p(rhod  * si::kilograms / si::cubic_metres, r * si::kilograms / si::kilograms, T * si::kelvins) / si::pascals;
+      }
+
+      template <typename real_t>
+      real_t rw3_cr(const real_t &rd3, const real_t &kappa, const real_t &T)
+      {
+        return cmn::kappa_koehler::rw3_cr(
+          rd3 * si::cubic_metres,
+          kappa * si::dimensionless(),
+          T * si::kelvins
+        ) / si::cubic_metres;
       }
     };
   };
