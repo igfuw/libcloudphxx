@@ -74,9 +74,12 @@ namespace libcloudphxx
           BOOST_GPU_ENABLED
 	  real_t operator()(real_t rw3) const
 	  {
+#if !defined(__NVCC__)
+	    using std::pow;
+#endif
 	    return this->RH
 	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
-	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
+	      * kelvin::klvntrm(pow(rw3, real_t(1./3)) * si::metres, this->T); 
 	  }
 	};  
 
@@ -99,10 +102,13 @@ namespace libcloudphxx
           BOOST_GPU_ENABLED
           real_t operator()(real_t rw3) const
           {
+#if !defined(__NVCC__)
+	    using std::pow;
+#endif
             return (kelvin::A(T) 
               * (rd3 - rw3 * si::cubic_metres) 
               * ((kappa - 1) * rd3 + rw3 * si::cubic_metres) 
-              + 3 * kappa * rd3 * std::pow(rw3, real_t(4./3)) * pow<4>(si::metres)
+              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * pow<4>(si::metres)
             ) / pow<7>(si::metres);
           }
         };
