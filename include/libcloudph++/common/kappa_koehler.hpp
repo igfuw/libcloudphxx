@@ -108,8 +108,8 @@ namespace libcloudphxx
             return (kelvin::A(T) 
               * (rd3 - rw3 * si::cubic_metres) 
               * ((kappa - 1) * rd3 + rw3 * si::cubic_metres) 
-              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * pow<4>(si::metres)
-            ) / pow<7>(si::metres);
+              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * si::cubic_metres * si::metres
+            ) / (si::cubic_metres * si::cubic_metres * si::metres);
           }
         };
       };
