@@ -13,10 +13,10 @@ namespace libcloudphxx
 //#if !defined(NDEBUG) // TODO (CMake defaults)
     namespace debug
     {
-      template <typename real_t>
-      void print(const thrust_device::vector<real_t> &v)
+      template <typename vec_t>
+      void print(const vec_t &v)
       {
-	thrust::copy(v.begin(), v.end(), std::ostream_iterator<real_t>(std::cerr, "\t"));
+	thrust::copy(v.begin(), v.end(), std::ostream_iterator<typename vec_t::value_type>(std::cerr, "\t"));
 	std::cerr << std::endl;
       }
     };
