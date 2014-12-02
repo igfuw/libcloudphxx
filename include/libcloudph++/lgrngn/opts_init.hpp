@@ -44,6 +44,9 @@ namespace libcloudphxx
       // chem
       real_t chem_rho;
 
+      // RH threshold for calculating equilibrium condition at t=0
+      real_t RH_max;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0), // the defaults are OK for a parcel set-up 
@@ -53,6 +56,7 @@ namespace libcloudphxx
         sd_conc_mean(64), 
         kernel(geometric),
         dt(1e-3),
+        RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(1.8e3) // dry particle density
       {}
     };

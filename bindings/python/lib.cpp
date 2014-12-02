@@ -147,6 +147,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
+      .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .def("init",         &lgrngn::init<real_t>)
