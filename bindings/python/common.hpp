@@ -62,6 +62,16 @@ namespace libcloudphxx
           T * si::kelvins
         ) / si::cubic_metres;
       }
+
+      template <typename real_t>
+      real_t S_cr(const real_t &rd3, const real_t &kappa, const real_t &T)
+      {
+        return cmn::kappa_koehler::S_cr(
+          rd3 * si::cubic_metres,
+          kappa * si::dimensionless(),
+          T * si::kelvins
+        );
+      }
     };
   };
 };

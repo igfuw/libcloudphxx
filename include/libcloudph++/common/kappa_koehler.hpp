@@ -158,6 +158,22 @@ namespace libcloudphxx
           real_t(real_t(.1) * rd3 / si::cubic_metres) // tolerance
 	) * si::cubic_metres;
       }
+
+      // critical supersaturation, i.e. S(r_cr)
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> S_cr(
+        quantity<si::volume, real_t> rd3,
+        quantity<si::dimensionless, real_t> kappa,
+        quantity<si::temperature, real_t> T
+      )
+      {
+        quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
+        return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
+          pow(rw3 / si::cubic_metres, real_t(1./3)) * si::metres, 
+          T
+        );
+      }
     };
   };
 };
