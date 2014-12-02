@@ -31,8 +31,8 @@ namespace libcloudphxx
       // CUDA does not support max(unsigned long, unsigned long) -> using unsigned long long
       typedef unsigned long long n_t; // thrust_size_t?
  
-      // sync/async flag
-      bool should_now_run_async;
+      // order of operation flags
+      bool should_now_run_async, selected_before_counting;
 
       // member fields
       const opts_init_t<real_t> opts_init; // a copy
@@ -148,6 +148,7 @@ namespace libcloudphxx
       // ctor 
       impl(const opts_init_t<real_t> &opts_init) : 
         should_now_run_async(false),
+        selected_before_counting(false),
 	opts_init(opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
@@ -240,6 +241,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
 
+      void moms_all();
       void moms_rng(
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn

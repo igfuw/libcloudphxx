@@ -26,10 +26,25 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &y, const real_t &x)
         {
-          return x > min && x < max ? y : 0; // TODO: >=?
+          return x >= min && x < max ? y : 0; 
         }
       };
     }  
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::moms_all()
+    {
+      hskpng_sort(); 
+
+      thrust_device::vector<real_t> &n_within_range(tmp_device_real_part);
+
+      thrust::copy(
+        n.begin(), n.end(),
+        n_within_range.begin()
+      );
+
+      selected_before_counting = true;
+    }
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_rng(
@@ -48,6 +63,8 @@ namespace libcloudphxx
 	n_within_range.begin(), // output
 	detail::range_filter<real_t>(min, max) 
       );
+
+      selected_before_counting = true;
     }
 
     namespace detail
@@ -75,6 +92,8 @@ namespace libcloudphxx
       const real_t power
     )
     {
+      assert(selected_before_counting);
+
       // same as above
       thrust_device::vector<real_t> &n_within_range(tmp_device_real_part);
 
