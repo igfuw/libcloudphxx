@@ -59,49 +59,94 @@ namespace libcloudphxx
       // filling in sample volume data
       dv.resize(n_cell);
 
-      // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
       if (n_dims > 0)
       {
+        // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
 	thrust::transform(
 	  zero, zero + n_cell, // input - 1st arg
 	  dv.begin(),          // output  
 	  detail::dv_eval<real_t>(opts_init)
 	);
+
+	// memory allocation
+	abv.resize(n_cell);
+	blw.resize(n_cell);
       }
 
+      if (n_dims > 1)
+      {
+	// memory allocation
+	lft.resize(n_cell);
+	rgt.resize(n_cell);
+      }
+      
+      if (n_dims > 2)
+      {
+        // memory allocation
+        fre.resize(n_cell);
+        hnd.resize(n_cell);
+      }
+
+      // filling in neighbour info data
       switch (n_dims)
       {
+        case 0: break;
 	case 2:
-          // memory allocation
-          lft.resize(n_cell);
-          rgt.resize(n_cell);
-          abv.resize(n_cell);
-          blw.resize(n_cell);
-
-          // filling in neighbour info data
 	  thrust::transform(
-            zero, zero + n_cell, // input - 1st arg
-            lft.begin(),         // output
+            zero, zero + n_cell,    // input - 1st arg
+            lft.begin(),            // output
             arg::_1
 	  );
 	  thrust::transform(
-            zero, zero + n_cell, // input - 1st arg
-            rgt.begin(),         // output
-            arg::_1 + opts_init.nx
+            lft.begin(), lft.end(), // input - 1st arg
+            rgt.begin(),            // output
+            arg::_1 + opts_init.nz
 	  );
 	  thrust::transform(
-            zero, zero + n_cell, // input - 1st arg
-            blw.begin(),         // output
+            zero, zero + n_cell,    // input - 1st arg
+            blw.begin(),            // output
             arg::_1 + (arg::_1 / opts_init.nz)
 	  );
 	  thrust::transform(
-            zero, zero + n_cell, // input - 1st arg
-            abv.begin(),         // output
-            arg::_1 + (arg::_1 / opts_init.nz) + 1
+            blw.begin(), blw.end(), // input - 1st arg
+            abv.begin(),            // output
+            arg::_1 + 1
 	  );
-
 	  break;
-        case 0: break;
+        case 3:
+	  thrust::transform(
+            zero, zero + n_cell,    // input - 1st arg
+            lft.begin(),            // output
+            arg::_1 
+	  );
+	  thrust::transform(
+            lft.begin(), lft.end(), // input - 1st arg
+            rgt.begin(),            // output
+            arg::_1 + opts_init.nz * opts_init.ny
+	  );
+	  thrust::transform(
+            zero, zero + n_cell,    // input - 1st arg
+            blw.begin(),            // output
+            arg::_1 
+            + opts_init.ny * (arg::_1 / (opts_init.nz * opts_init.ny)) 
+            + (arg::_1 - (arg::_1 / (opts_init.nz * opts_init.ny)) * (opts_init.nz * opts_init.ny)) / opts_init.nz
+	  );
+	  thrust::transform(
+            blw.begin(), blw.end(), // input - 1st arg
+            abv.begin(),            // output
+            arg::_1 + 1
+	  );
+          thrust::transform(
+            zero, zero + n_cell,    // input - 1st arg
+            fre.begin(),            // output
+            arg::_1 + (arg::_1 / (opts_init.nz * opts_init.ny)) * opts_init.nz
+          );
+          thrust::transform(
+            fre.begin(), fre.end(), // input - 1st arg
+            hnd.begin(),            // output
+            arg::_1 + opts_init.nz
+          );
+          break;
 	default: assert(false && "TODO");
       }
     }
