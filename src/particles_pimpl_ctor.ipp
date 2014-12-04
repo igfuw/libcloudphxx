@@ -63,9 +63,9 @@ namespace libcloudphxx
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
 
-      // 2D Arakawa-C grid helper vars
+      // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
-        lft, rgt, abv, blw; // TODO: could be reused after advection!
+        lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
       // moment-counting stuff
       thrust_device::vector<thrust_size_t> 
@@ -201,10 +201,20 @@ namespace libcloudphxx
           int n_grid;
           switch (n_dims)
           {
-            case 2:
-              n_grid = std::max((opts_init.nx+1)*opts_init.nz, opts_init.nx*(opts_init.nz+1));
+            case 3:
+              n_grid = std::max(std::max(
+                (opts_init.nx+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                (opts_init.nx+0) * (opts_init.ny+1) * (opts_init.nz+0)),
+                (opts_init.nx+0) * (opts_init.ny+0) * (opts_init.nz+1)
+              );
               break;
-            default: assert(false); // TODO: 1D and 3D cases
+            case 2:
+              n_grid = std::max(
+                (opts_init.nx+1) * (opts_init.nz+0), 
+                (opts_init.nx+0) * (opts_init.nz+1)
+              );
+              break;
+            default: assert(false); // TODO: 1D case
           }
           assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
