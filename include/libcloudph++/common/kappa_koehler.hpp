@@ -34,7 +34,8 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> RH
       )   
       {   
-        assert(RH < 1); // no equilibrium over RH=100%
+        assert(RH > .1); // kappa-koehler assumes well dissolved matter
+        assert(RH < 1.); // no equilibrium over RH=100%
 	return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
       }   
 
@@ -153,8 +154,8 @@ namespace libcloudphxx
       {   
         return common::detail::bisect(
 	  detail::rw3_cr_minfun<real_t>(rd3, kappa, T), // the above-defined functor
-	  real_t(1e1 * (rd3 / si::cubic_metres)), // min
-	  real_t(1e4 * (rd3 / si::cubic_metres)), // max
+	  real_t(1e0 * (rd3 / si::cubic_metres)), // min
+	  real_t(1e8 * (rd3 / si::cubic_metres)), // max
           real_t(real_t(.1) * rd3 / si::cubic_metres) // tolerance
 	) * si::cubic_metres;
       }
