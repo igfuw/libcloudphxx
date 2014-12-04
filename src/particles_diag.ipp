@@ -102,7 +102,10 @@ namespace libcloudphxx
         pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
-          thrust::make_permutation_iterator(pimpl->T.begin(),    pimpl->ijk.begin())
+          thrust::make_permutation_iterator(
+            pimpl->T.begin(),
+            pimpl->ijk.begin()
+          )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output
         op                                    // op
