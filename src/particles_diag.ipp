@@ -5,6 +5,8 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <libcloudph++/common/kappa_koehler.hpp> // TODO: not here...
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -43,6 +45,71 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
+    }
+
+    // selects particles with RH >= Sc   (Sc - critical supersaturation)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_RH_ge_Sc()
+    {
+      // intentionally using the same tmp vector as inside moms_cmp below
+      thrust_device::vector<real_t> &Sc(pimpl->tmp_device_real_part);
+
+      // computing Sc for each particle
+// TODO!
+
+      // selecting those with RH >= Sc
+/*
+      pimpl->moms_cmp(
+	thrust::make_permutation_iterator(
+          pimpl->RH.begin(),    
+          pimpl->ijk.begin()
+        ), 
+        Sc
+      );
+*/
+    }
+
+    // selects particles with rw >= rc   (rc - critical radius)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_rw_ge_rc()
+    {
+      // intentionally using the same tmp vector as inside moms_cmp below
+      thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
+
+      struct
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3, const thrust::tuple<real_t, real_t> &tpl)
+        {
+          const real_t 
+            &kpa = thrust::get<0>(tpl),
+            &T   = thrust::get<1>(tpl);
+
+          return pow(
+            common::kappa_koehler::rw3_cr(
+              rd3 * si::cubic_metres, 
+              kpa * si::dimensionless(), 
+              T   * si::kelvins
+            ) / si::cubic_metres
+            , 
+            2./3
+          ); 
+        }
+      } op;
+
+      // computing rc2 for each particle
+      thrust::transform(
+        pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
+        thrust::make_zip_iterator(make_tuple(
+          pimpl->kpa.begin(), 
+          thrust::make_permutation_iterator(pimpl->T.begin(),    pimpl->ijk.begin())
+        )),                                   // input - 2nd arg 
+        rc2.begin(),                          // output
+        op                                    // op
+      );
+
+      // selecting those with rw2 >= rc2
+      pimpl->moms_cmp(pimpl->rw2.begin(), rc2.begin());
     }
 
     // computes n-th moment of the dry spectrum for the selected particles

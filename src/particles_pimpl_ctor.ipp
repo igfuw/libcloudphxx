@@ -242,6 +242,11 @@ namespace libcloudphxx
       void hskpng_vterm_invalid();
 
       void moms_all();
+   
+      void moms_cmp(
+        const typename thrust_device::vector<real_t>::iterator &vec1_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec2_bgn
+      );
       void moms_rng(
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
