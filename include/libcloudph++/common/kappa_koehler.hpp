@@ -34,7 +34,8 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> RH
       )   
       {   
-        assert(RH < 1); // no equilibrium over RH=100%
+        assert(RH > .1); // kappa-koehler assumes well dissolved matter
+        assert(RH < 1.); // no equilibrium over RH=100%
 	return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
       }   
 
@@ -50,10 +51,10 @@ namespace libcloudphxx
 	return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
       }
 
-
+      // functor to be passed to the minimisation functions used below
       namespace detail
       {
-	// local functor to be passed to the minimisation func
+        // equilibrium radius
         template <typename real_t>
 	struct rw3_eq_minfun 
 	{   
@@ -74,11 +75,44 @@ namespace libcloudphxx
           BOOST_GPU_ENABLED
 	  real_t operator()(real_t rw3) const
 	  {
+#if !defined(__NVCC__)
+	    using std::pow;
+#endif
 	    return this->RH
 	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
-	      * kelvin::klvntrm(std::pow(rw3, real_t(1./3)) * si::metres, this->T); 
+	      * kelvin::klvntrm(pow(rw3, real_t(1./3)) * si::metres, this->T); 
 	  }
 	};  
+
+        // critical radius
+        template <typename real_t>
+        struct rw3_cr_minfun
+        {
+	  const quantity<si::volume, real_t> rd3;
+	  const quantity<si::dimensionless, real_t> kappa;
+	  const quantity<si::temperature, real_t> T;
+
+          // ctor
+          BOOST_GPU_ENABLED
+          rw3_cr_minfun(
+	    const quantity<si::volume, real_t> &rd3,
+	    const quantity<si::dimensionless, real_t> &kappa,
+	    const quantity<si::temperature, real_t> &T
+          ) : rd3(rd3), kappa(kappa), T(T) {}
+
+          BOOST_GPU_ENABLED
+          real_t operator()(real_t rw3) const
+          {
+#if !defined(__NVCC__)
+	    using std::pow;
+#endif
+            return (kelvin::A(T) 
+              * (rd3 - rw3 * si::cubic_metres) 
+              * ((kappa - 1) * rd3 + rw3 * si::cubic_metres) 
+              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * si::cubic_metres * si::metres
+            ) / (si::cubic_metres * si::cubic_metres * si::metres);
+          }
+        };
       };
 
 
@@ -102,7 +136,27 @@ namespace libcloudphxx
 	  detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
-          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolarance (~r3) TODO!!!!  
+          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolarance
+	) * si::cubic_metres;
+      }
+
+      // critical radius, i.e. radius for which the Koehler curve reaches maximum
+      // formula obtained by analytically derivating the kappa-Koehler curve:
+      // enter "derivative of (x^3-r^3)/(x^3-r^3*(1-k))*exp(A/x)" at wolframalpha.com 
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::volume, real_t> rw3_cr(
+	quantity<si::volume, real_t> rd3, 
+	quantity<si::dimensionless, real_t> kappa,
+	quantity<si::temperature, real_t> T
+        // TODO: tolerance with a reasonable default value?
+      )   
+      {   
+        return common::detail::bisect(
+	  detail::rw3_cr_minfun<real_t>(rd3, kappa, T), // the above-defined functor
+	  real_t(1e0 * (rd3 / si::cubic_metres)), // min
+	  real_t(1e8 * (rd3 / si::cubic_metres)), // max
+          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolerance
 	) * si::cubic_metres;
       }
     };

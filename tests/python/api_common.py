@@ -17,3 +17,6 @@ rv = .01
 
 print common.th_dry2std(th, rv)	
 assert common.th_std2dry(common.th_dry2std(th, rv), rv) == th
+
+rd3 = (.2e-6)**3
+assert common.rw3_cr(rd3, .5, 300) > rd3
