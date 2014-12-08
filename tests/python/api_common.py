@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../../bindings/python/")
+sys.path.insert(0, "../../bindings/python/")
 
 #<listing-1>
 from libcloudphxx import common
