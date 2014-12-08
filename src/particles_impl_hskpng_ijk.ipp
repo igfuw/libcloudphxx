@@ -65,11 +65,24 @@ namespace libcloudphxx
             i.begin(), i.end(), // input - first arg
             k.begin(),          // input - second arg
             ijk.begin(),        // output
-            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first (as in many other cases) // TODO: document it (and ref parallelisation...)
+            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
           );
           break;
         case 3:
-          assert(false); // TODO!
+          namespace arg = thrust::placeholders;
+          thrust::transform(
+            i.begin(), i.end(), // input - first arg
+            j.begin(),          // input - second arg
+            ijk.begin(),        // output
+            arg::_1 * (opts_init.nz * opts_init.ny) + 
+            arg::_2 * opts_init.nz
+          );
+          thrust::transform(
+            ijk.begin(), ijk.end(),
+            k.begin(),
+            ijk.begin(), // in-place!
+            arg::_1 + arg::_2
+          );
           break;
         default:
           assert(false);
