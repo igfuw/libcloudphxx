@@ -79,13 +79,6 @@ namespace libcloudphxx
           switch (bp::len(arg.attr("shape")))
           {
             case 3: // 3D array in Python
-	      if (
-                bp::extract<int>(arg.attr("shape")[0]) != sz[0] 
-                || 
-                bp::extract<int>(arg.attr("shape")[1]) != sz[1]
-                ||
-                bp::extract<int>(arg.attr("shape")[2]) != sz[2]
-              ) throw std::runtime_error("incompatible array size: expecting nx*ny*nz-element array");
               break; 
             case 1: // 1D array in Python
               strides[2] = strides[0];
@@ -99,11 +92,6 @@ namespace libcloudphxx
           switch (bp::len(arg.attr("shape"))) // array dimensionality in Python
           {
             case 2: // 2D array in Python
-	      if (
-                bp::extract<int>(arg.attr("shape")[0]) != sz[0]
-                || 
-                bp::extract<int>(arg.attr("shape")[1]) != sz[2]
-              ) throw std::runtime_error("incompatible array size: expecting nx*nz-element array");
               break;
             case 1: // 1D array in Python
               strides[1] = strides[0];
