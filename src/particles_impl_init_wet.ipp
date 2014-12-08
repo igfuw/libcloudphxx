@@ -73,7 +73,7 @@ namespace libcloudphxx
 	  thrust::transform(
 	    zip_it, zip_it + n_part, // input
 	    rw2.begin(), // output
-            detail::rw2_eq<real_t>(.95) // value seggested in Lebo and Seinfeld 2011 (TODO: not here!)
+            detail::rw2_eq<real_t>(opts_init.RH_max) 
 	  );
         }
       }
