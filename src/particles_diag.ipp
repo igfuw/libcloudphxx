@@ -81,15 +81,14 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rd3, const thrust::tuple<real_t, real_t> &tpl)
         {
-          const real_t 
-            &kpa = thrust::get<0>(tpl),
-            &T   = thrust::get<1>(tpl);
+          const quantity<si::dimensionless, real_t> kpa = thrust::get<0>(tpl);
+          const quantity<si::temperature, real_t> T = thrust::get<1>(tpl) * si::kelvins;
 
           return pow(
             common::kappa_koehler::rw3_cr(
               rd3 * si::cubic_metres, 
-              kpa * si::dimensionless(), 
-              T   * si::kelvins
+              kpa,
+              T
             ) / si::cubic_metres
             , 
             2./3
