@@ -84,6 +84,9 @@ namespace libcloudphxx
           const quantity<si::dimensionless, real_t> kpa = thrust::get<0>(tpl);
           const quantity<si::temperature, real_t> T = thrust::get<1>(tpl) * si::kelvins;
 
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
           return pow(
             common::kappa_koehler::rw3_cr(
               rd3 * si::cubic_metres, 
@@ -91,7 +94,7 @@ namespace libcloudphxx
               T
             ) / si::cubic_metres
             , 
-            2./3
+            real_t(2./3)
           ); 
         }
       } op;
