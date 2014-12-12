@@ -11,6 +11,33 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail 
+    {
+      template <typename real_t>
+      struct rw3_cr
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3, const thrust::tuple<real_t, real_t> &tpl)
+        {
+          const quantity<si::dimensionless, real_t> kpa = thrust::get<0>(tpl);
+          const quantity<si::temperature, real_t> T = thrust::get<1>(tpl) * si::kelvins;
+
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
+          return pow(
+            common::kappa_koehler::rw3_cr(
+              rd3 * si::cubic_metres, 
+              kpa,
+              T
+            ) / si::cubic_metres
+            , 
+            real_t(2./3)
+          ); 
+        }
+      };
+    };
+
     // records super-droplet concentration per grid cell
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
@@ -76,29 +103,6 @@ namespace libcloudphxx
       // intentionally using the same tmp vector as inside moms_cmp below
       thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
 
-      struct
-      {
-        BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rd3, const thrust::tuple<real_t, real_t> &tpl)
-        {
-          const quantity<si::dimensionless, real_t> kpa = thrust::get<0>(tpl);
-          const quantity<si::temperature, real_t> T = thrust::get<1>(tpl) * si::kelvins;
-
-#if !defined(__NVCC__)
-          using std::pow;
-#endif
-          return pow(
-            common::kappa_koehler::rw3_cr(
-              rd3 * si::cubic_metres, 
-              kpa,
-              T
-            ) / si::cubic_metres
-            , 
-            real_t(2./3)
-          ); 
-        }
-      } op;
-
       // computing rc2 for each particle
       thrust::transform(
         pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
@@ -110,7 +114,7 @@ namespace libcloudphxx
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output
-        op                                    // op
+        detail::rw3_cr<real_t>()              // op
       );
 
       // selecting those with rw2 >= rc2
