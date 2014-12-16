@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../../bindings/python/")
+sys.path.insert(0, "../../bindings/python/")
 
 from numpy import array as arr_t
 

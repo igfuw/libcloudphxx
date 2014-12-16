@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../../bindings/python/")
+sys.path.insert(0, "../../bindings/python/")
 
 #<listing-1>
 from libcloudphxx import common
@@ -11,6 +11,8 @@ print "R_d =", common.R_d
 print "c_pd =", common.c_pd
 print "g =", common.g
 print "p_1000 =", common.p_1000
+print "eps =", common.eps
+print "rho_w =", common.rho_w
 
 th = 300
 rv = .01

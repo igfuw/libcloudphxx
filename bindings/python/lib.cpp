@@ -42,6 +42,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
+    bp::scope().attr("rho_w") = (real_t) (cmn::moist_air::rho_w<real_t>() * si::cubic_metres / si::kilograms);
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
