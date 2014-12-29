@@ -28,12 +28,15 @@ namespace libcloudphxx
       libcloudphxx_const(energy_over_temperature_mass, c_pw, 4218, si::joules / si::kilograms / si::kelvins) // liquid water
 
       // molar masses
-      libcloudphxx_const(mass_over_amount, M_d, 0.02896, si::kilograms / si::moles) // dry air
+      libcloudphxx_const(mass_over_amount, M_d, 0.02897, si::kilograms / si::moles) // dry air (Curry & Webster / Seinfeld & Pandis)
       libcloudphxx_const_derived(mass_over_amount, M_v, molar_mass::M_H<real_t>() + molar_mass::M_OH<real_t>()) // water vapour
       libcloudphxx_const_derived(si::dimensionless, eps, M_v<real_t>() / M_d<real_t>()) // aka epsilon
 
       // universal gas constant (i.e. the Boltzmann times the Avogadro constants)
-      libcloudphxx_const(energy_over_temperature_amount, kaBoNA, 8.314472, si::joules / si::kelvin / si::mole)
+      // source: http://physics.nist.gov/cgi-bin/cuu/Value?r
+      //         http://glossary.ametsoc.org/wiki/Gas_constant
+      //         Mohr, P. J., B. N. Taylor, and D. B. Newell, 2012: CODATA recommended values of the fundamental physical constants: 2010. J. Phys. Chem. Ref. Data, 41, 043109, doi:10.1063/1.4724320. 
+      libcloudphxx_const(energy_over_temperature_amount, kaBoNA, 8.3144621, si::joules / si::kelvin / si::mole)
 
       // gas constants
       libcloudphxx_const_derived(energy_over_temperature_mass, R_d, kaBoNA<real_t>() / M_d<real_t>()) // dry air
