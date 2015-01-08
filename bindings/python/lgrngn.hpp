@@ -89,14 +89,14 @@ namespace libcloudphxx
 
       // TODO: 1D & 3D kinematic versions
 
+      // kinematic variant
       template <typename real_t>
-      void step_sync(
+      void step_sync_4arg(
 	lgr::particles_proto_t<real_t> *arg,
 	const lgr::opts_t<real_t> &opts,
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
 	const bp::numeric::array &rhod
-        // TODO: courant fields
       )
       {
 	lgr::arrinfo_t<real_t>
@@ -109,6 +109,35 @@ namespace libcloudphxx
 	  np2ai<real_t>(rhod, sz(*arg))
 	);
       }
+
+      // 3D dynamic variant
+      template <typename real_t>
+      void step_sync_7arg(
+	lgr::particles_proto_t<real_t> *arg,
+	const lgr::opts_t<real_t> &opts,
+	const bp::numeric::array &th,
+	const bp::numeric::array &rv,
+	const bp::numeric::array &rhod_courant_x,
+	const bp::numeric::array &rhod_courant_y,
+	const bp::numeric::array &rhod_courant_z,
+	const bp::numeric::array &rhod
+      )
+      {
+	lgr::arrinfo_t<real_t>
+	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
+	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
+	arg->step_sync(
+	  opts, 
+	  np2ai_th,
+	  np2ai_rv,
+	  np2ai<real_t>(rhod_courant_x, sz(*arg)),
+	  np2ai<real_t>(rhod_courant_y, sz(*arg)),
+	  np2ai<real_t>(rhod_courant_z, sz(*arg)),
+	  np2ai<real_t>(rhod,           sz(*arg))
+	);
+      }
+
+      // TODO: 2D dynamic variant
 
       template <typename real_t>
       void set_dd(
