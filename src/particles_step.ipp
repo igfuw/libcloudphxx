@@ -31,6 +31,28 @@ namespace libcloudphxx
       pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
+std::cerr << th.is_null() << " " << rv.is_null() << " " << rhod_courant_x.is_null() << " " << rhod_courant_y.is_null() << " " << rhod_courant_z.is_null() << " " << rhod.is_null() << std::endl;
+
+{
+  auto mm = thrust::minmax_element(pimpl->th.begin(), pimpl->th.end());
+  std::cerr << "th:" << *mm.first << " " << *mm.second << std::endl;
+}
+{
+  auto mm = thrust::minmax_element(pimpl->rv.begin(), pimpl->rv.end());
+  std::cerr << "rv:" << *mm.first << " " << *mm.second << std::endl;
+}
+{
+  auto mm = thrust::minmax_element(pimpl->rhod_courant_x.begin(), pimpl->rhod_courant_x.end());
+  std::cerr << "Cx:" << *mm.first << " " << *mm.second << std::endl;
+}
+{
+  auto mm = thrust::minmax_element(pimpl->rhod_courant_y.begin(), pimpl->rhod_courant_y.end());
+  std::cerr << "Cy:" << *mm.first << " " << *mm.second << std::endl;
+}
+{
+  auto mm = thrust::minmax_element(pimpl->rhod_courant_z.begin(), pimpl->rhod_courant_z.end());
+  std::cerr << "Cz:" << *mm.first << " " << *mm.second << std::endl;
+}
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
       // but also unneccesarily holds dyncore execution for a bit longer)

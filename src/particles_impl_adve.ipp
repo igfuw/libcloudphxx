@@ -39,6 +39,7 @@ namespace libcloudphxx
           // x_new * (1 - C_r + C_l) = x_old + C_l * dx - dx * floor(x_old/dx) * (C_r - C_l)
           // x_new =  (x_old + C_l * dx - dx * floor(x_old/dx) * (C_r - C_l)) / (1 - C_r + C_l)
 
+//std::cerr << "C_l = " << C_l << " C_r=" << C_r << " x=" << x << std::endl;
           return (
             x + dx * (C_l - floor_x_over_dx * (C_r - C_l))
           ) / (
