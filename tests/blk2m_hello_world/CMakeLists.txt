@@ -1,0 +1,2 @@
+add_executable(blk2m_hello_world blk2m_hello_world.cpp)
+add_test(blk2m_hello_world blk2m_hello_world)
