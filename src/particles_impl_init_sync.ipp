@@ -16,6 +16,7 @@ namespace libcloudphxx
       rhod.resize(n_cell);
       th.resize(n_cell);
       rv.resize(n_cell);
+      if (opts_init.sstp_cond > 1) rv_sstp_tmp.resize(n_cell);
 
       // memory allocation for vector fields (Arakawa-C grid)
       switch (n_dims)
