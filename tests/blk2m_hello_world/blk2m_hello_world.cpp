@@ -17,8 +17,8 @@ const int
   nz = 4;
 const real_t dt = 1, dz = 10;
 
-// MicroHH-style (reastrict + ijk Fortran index order)
-using ptr_t = std::unique_ptr<real_t restrict>;
+// MicroHH-style (restrict + ijk Fortran index order)
+using ptr_t = std::unique_ptr<real_t>; // not using restrict as Blitz++ anyhow assumes it
 
 blitz::Array<real_t, n_dims> bz(const ptr_t &ptr)
 {
