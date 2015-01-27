@@ -147,6 +147,9 @@ namespace libcloudphxx
 
       // method for accessing super-droplet statistics
       virtual void diag_sd_conc()                             { assert(false); }
+      virtual void diag_all()                                 { assert(false); }
+      virtual void diag_rw_ge_rc()                            { assert(false); }
+      virtual void diag_RH_ge_Sc()                            { assert(false); }
       virtual void diag_dry_rng(const real_t&, const real_t&) { assert(false); }
       virtual void diag_wet_rng(const real_t&, const real_t&) { assert(false); }
       virtual void diag_dry_mom(const int&)                   { assert(false); }
@@ -204,6 +207,9 @@ namespace libcloudphxx
 //</listing>
 
       void diag_chem(const enum chem_species_t&);
+      void diag_rw_ge_rc();
+      void diag_RH_ge_Sc();
+      void diag_all();
 
       struct impl;
       std::auto_ptr<impl> pimpl;

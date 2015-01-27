@@ -61,6 +61,7 @@ namespace libcloudphxx
       }
 
       pimpl->should_now_run_async = true;
+      pimpl->selected_before_counting = false;
     }
 
     template <typename real_t, backend_t device>
@@ -110,6 +111,7 @@ namespace libcloudphxx
       }
 
       pimpl->should_now_run_async = false;
+      pimpl->selected_before_counting = false;
 
       return ret;
     }
