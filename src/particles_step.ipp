@@ -43,49 +43,14 @@ namespace libcloudphxx
         pimpl->hskpng_ijk(); // TODO: but rcyc() above could also have changed ijk!
       }
 
-      //
-      if (pimpl->opts_init.sstp_cond > 1)
-      {
-        {
-          namespace arg = thrust::placeholders;
-          // rv_sstp_tmp = drv_adv
-	  thrust::transform(
-	    pimpl->rv.begin(), pimpl->rv.end(), // 1st arg: rv_new
-	    pimpl->rv_sstp_tmp.begin(),         // 2nd arg: rv_old
-	    pimpl->rv_sstp_tmp.begin(),         // output (in-place)
-	    arg::_1 - arg::_2                   // op: drv_adv = (rv_new - rv_old)
-	  );
-          // rv -= (sstp - 1) * drv_adv / sstp
-          thrust::transform(
-            pimpl->rv.begin(), pimpl->rv.end(), // 1st arg
-            pimpl->rv_sstp_tmp.begin(),         // 2nd arg
-            pimpl->rv.begin(),                  // output (in-place)
-            arg::_1 - (pimpl->opts_init.sstp_cond - 1) * arg::_2 / pimpl->opts_init.sstp_cond // op: rv = rv - (sstp - 1) * drv_adv / sstp
-          );
-        }
-      }
-
-      // updating Tpr look-up table (includes RH update)
-      pimpl->hskpng_Tpr(); 
-
       // condensation/evaporation 
       if (opts.cond) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
         {   
-          if (step > 0)
-          {
-            // rv += drv_adv / sstp
-            namespace arg = thrust::placeholders;
-            thrust::transform(
-              pimpl->rv.begin(), pimpl->rv.end(), // 1st arg
-              pimpl->rv_sstp_tmp.begin(),         // 2nd arg
-              pimpl->rv.begin(),                  // output (in-place)
-              arg::_1 + arg::_2 / pimpl->opts_init.sstp_cond // op: rv = rv + drv_adv / sstp
-            );
-          }
-          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+          pimpl->sstp_step(step);
           pimpl->hskpng_Tpr(); 
+          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
 
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
@@ -102,9 +67,14 @@ namespace libcloudphxx
     ) {
       assert(pimpl->should_now_run_async);
 
-      // saving rv to be used as rv_old
-      if (pimpl->opts_init.sstp_cond > 1) 
-        thrust::copy(pimpl->rv.begin(), pimpl->rv.end(), pimpl->rv_sstp_tmp.begin());
+      if (opts.cond) 
+      { 
+        // updating Tpr look-up table (includes RH update)
+        pimpl->hskpng_Tpr(); 
+
+        // saving rv to be used as rv_old
+        pimpl->sstp_save();
+      }
 
       // advection 
       if (opts.adve) pimpl->adve(); 

@@ -81,7 +81,9 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        rv_sstp_tmp, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_th, // ditto for theta_d
+        sstp_tmp_rh, // ditto for rho
         rhod_courant_x, 
         rhod_courant_y, 
         rhod_courant_z;
@@ -237,6 +239,7 @@ namespace libcloudphxx
       void init_grid();
       void init_hskpng();
       void init_chem();
+      void init_sstp();
 
       void fill_outbuf();
 
@@ -280,6 +283,9 @@ namespace libcloudphxx
       void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
       void rcyc();
       real_t bcnd(); // returns accumulated rainfall
+
+      void sstp_step(const int &step);
+      void sstp_save();
     };
 
     // ctor

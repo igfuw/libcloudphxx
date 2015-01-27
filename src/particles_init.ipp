@@ -68,11 +68,7 @@ namespace libcloudphxx
       // initialising chem stuff
       pimpl->init_chem(); // TODO: only if chem enabled?
 
-      // prereq. for condensation substepping logic
-      thrust::copy(
-        pimpl->rv.begin(), pimpl->rv.end(), // from
-        pimpl->rv_sstp_tmp.begin()          // to
-      );
+      pimpl->init_sstp();
     }
   };
 };
