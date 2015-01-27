@@ -44,8 +44,6 @@ namespace libcloudphxx
       switch (n_dims)
       {
         case 3:
-          assert(false && "TODO");
-          break; 
         case 2:
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
@@ -54,6 +52,16 @@ namespace libcloudphxx
             x.begin(),
             detail::periodic<real_t>(opts_init.x0, opts_init.x1)
           );
+
+          // hardcoded periodic boundary in y! (TODO - as an option)
+          if (n_dims == 3)
+          {
+	    thrust::transform(
+	      y.begin(), y.end(),
+	      y.begin(),
+	      detail::periodic<real_t>(opts_init.y0, opts_init.y1)
+	    );
+          }
 
           // hardcoded "open" boudary at the top of the domain 
           // (just for numerical-error-sourced out-of-domain particles)
