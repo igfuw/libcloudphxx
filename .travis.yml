@@ -51,3 +51,12 @@ script:
     - if [[ $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - make
+
+    ## drops.py (it is written in Python so no compilation, just unit tests)
+    - cd ../..
+    - git clone --depth=1 git://github.com/igfuw/drops.py.git
+    - cd drops.py
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make test
