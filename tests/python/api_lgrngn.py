@@ -79,6 +79,7 @@ prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
+prtcls.diag_all()
 prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
@@ -112,6 +113,7 @@ opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
 
 prtcls = lgrngn.factory(backend, opts_init)
+assert opts_init.nx == prtcls.opts_init.nx
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
