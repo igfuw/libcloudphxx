@@ -53,6 +53,8 @@ namespace libcloudphxx
       const bool &var_rho // if rho varied and need to be updated
     )
     {   
+      if (opts_init.sstp_cond == 1) return;
+
       namespace arg = thrust::placeholders;
 
       const int n = 3;
