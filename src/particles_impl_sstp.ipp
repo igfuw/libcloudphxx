@@ -15,7 +15,6 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::sstp_save()
     {
       if (opts_init.sstp_cond == 1) return;
-std::cerr << "SAVE" << std::endl;
 
       const int n = 3;
       thrust_device::vector<real_t>
@@ -34,13 +33,12 @@ std::cerr << "SAVE" << std::endl;
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_sstp()
     {   
-std::cerr << "INIT" << std::endl;
       if (opts_init.sstp_cond == 1) return;
 
       // memory allocation 
       const int n = 3;
       thrust_device::vector<real_t>
-        *v[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
+        *v[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh }; // TODO: rhod not always needed!
 
       for (int ix = 0; ix < n; ++ix)
 	v[ix]->resize(n_cell);
@@ -51,10 +49,10 @@ std::cerr << "INIT" << std::endl;
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_step(
-      const int &step
+      const int &step,
+      const bool &var_rho // if rho varied and need to be updated
     )
     {   
-std::cerr << "STEP" << std::endl;
       namespace arg = thrust::placeholders;
 
       const int n = 3;
@@ -62,7 +60,7 @@ std::cerr << "STEP" << std::endl;
         *scl[n] = { &rv,          &th,          &rhod        },
         *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
 
-      for (int ix = 0; ix < n; ++ix)
+      for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
       {
         const int sstp = opts_init.sstp_cond;
 	if (step == 0)

@@ -284,7 +284,7 @@ namespace libcloudphxx
       void rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
-      void sstp_step(const int &step);
+      void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
     };
 
