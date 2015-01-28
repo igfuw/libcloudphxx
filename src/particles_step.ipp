@@ -51,19 +51,17 @@ namespace libcloudphxx
         pimpl->hskpng_ijk(); // TODO: but rcyc() above could also have changed ijk!
       }
 
-      // updating Tpr look-up table (includes RH update)
-      pimpl->hskpng_Tpr(); 
-
       // condensation/evaporation 
       if (opts.cond) 
       {
-        for (int step = 0; step < opts.sstp_cond; ++step) 
+        for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
         {   
-          pimpl->cond(pimpl->opts_init.dt / opts.sstp_cond, opts.RH_max); 
+          pimpl->sstp_step(step, !rhod.is_null());
           pimpl->hskpng_Tpr(); 
+          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
 
-        // syncing out 
+        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
@@ -78,14 +76,20 @@ namespace libcloudphxx
     ) {
       assert(pimpl->should_now_run_async);
 
-      // accumulated rainfall to be returned
-      real_t ret;
+      if (opts.cond) 
+      { 
+        // updating Tpr look-up table (includes RH update)
+        pimpl->hskpng_Tpr(); 
+
+        // saving rv to be used as rv_old
+        pimpl->sstp_save();
+      }
 
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition
-      ret = pimpl->bcnd();
+      // boundary condition + accumulated rainfall to be returned
+      real_t ret = pimpl->bcnd();
 
       // updating terminal velocities
       if (opts.sedi || opts.coal) 
@@ -100,20 +104,20 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem) 
       {
-        for (int step = 0; step < opts.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / opts.sstp_chem, opts.chem_gas);
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
+          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
       }
 
       // coalescence (before diagnostics -> one sort less)
       if (opts.coal) 
       {
-        for (int step = 0; step < opts.sstp_coal; ++step) 
+        for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->opts_init.dt / opts.sstp_coal);
+          pimpl->coal(pimpl->opts_init.dt / pimpl->opts_init.sstp_coal);
 
           // update invalid vterm 
-          if (step + 1 != opts.sstp_coal)
+          if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
       }
