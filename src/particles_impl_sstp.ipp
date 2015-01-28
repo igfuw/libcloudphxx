@@ -64,7 +64,7 @@ namespace libcloudphxx
         const int sstp = opts_init.sstp_cond;
 	if (step == 0)
 	{
-	  // sstp_tmp_scl = dscl_adv
+	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
 	  thrust::transform(
 	    scl[ix]->begin(), scl[ix]->end(),     // 1st arg: rv_new
 	    tmp[ix]->begin(),                     // 2nd arg: rv_old
