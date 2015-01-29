@@ -3,7 +3,7 @@ sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer
+from numpy import array as arr_t, frombuffer, repeat, zeros, float64
 
 from math import exp, log, sqrt, pi
 
@@ -112,11 +112,51 @@ opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
 
 prtcls = lgrngn.factory(backend, opts_init)
-prtcls.init(th, rv, rhod)
+prtcls.init(th, rv, rhod) #TODO: test passing rhoCx, rhoCy, rhoCz here 
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
 assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc_mean
 
+# 3arg variant (const rho)
+prtcls.step_sync(opts, th, rv) #TODO: this should fail as no Courants were passed in init!
+rain = prtcls.step_async(opts)
+
+# 4arg variant (var rho - the one used in 0D)
+prtcls.step_sync(opts, th, rv, rhod) #TODO: this should fail as no Courants were passed in init!
+rain = prtcls.step_async(opts)
+
+#TODO: test profile vs. 2D array
+
 # 3D
-# TODO...
+rhod = arr_t([rhod, rhod])
+th   = arr_t([th,   th  ])
+rv   = arr_t([rv,   rv  ])
+
+opts_init.ny = 2
+opts_init.dy = 10
+opts_init.y1 = opts_init.ny * opts_init.dy
+
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod) #TODO: test passing rhoCx, rhoCy, rhoCz here
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc_mean
+
+# 3 arg variant
+prtcls.step_sync(opts, th, rv) #TODO: should fail with no Courant in init
+rain = prtcls.step_async(opts)
+
+# 4 arg variant
+prtcls.step_sync(opts, th, rv, rhod) #TODO: should fail with no Courants in init
+rain = prtcls.step_async(opts)
+
+# 6 arg variant
+rhoCx = zeros((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
+rhoCy = zeros((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
+rhoCz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
+prtcls.step_sync(opts, th, rv, rhoCx, rhoCy, rhoCz)
+rain = prtcls.step_async(opts)
+
+#TODO: test profile vs. 3D array
