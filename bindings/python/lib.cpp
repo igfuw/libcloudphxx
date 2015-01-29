@@ -8,6 +8,8 @@
 // - http://www.boost.org/doc/libs/1_55_0/libs/python/doc/tutorial/doc/html/python/exposing.html
 // - http://isolation-nation.blogspot.com/2008/09/packages-in-python-extension-modules.html
 
+#include <libcloudph++/git_revision.h>
+
 #include "util.hpp"
 #include "blk_1m.hpp"
 #include "blk_2m.hpp"
@@ -27,6 +29,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   // specify that this module is actually a package
   bp::object package = bp::scope();
   package.attr("__path__") = "libcloudphxx";
+
+  // exposing git revision id
+  package.attr("git_revision") = GIT_REVISION;
 
   // common stuff
   {
