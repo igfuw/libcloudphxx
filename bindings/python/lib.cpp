@@ -153,6 +153,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
+      .add_property("opts_init", &lgrngn::get_oi<real_t>)
       .def("init",         &lgrngn::init_3arg<real_t>)
       .def("init",         &lgrngn::init_5arg<real_t>)
       .def("step_sync",    &lgrngn::step_sync_3arg<real_t>)

@@ -155,6 +155,14 @@ namespace libcloudphxx
       // TODO: 2D dynamic variant
 
       template <typename real_t>
+      const lgr::opts_init_t<real_t> get_oi(
+        lgr::particles_proto_t<real_t> *arg
+      )
+      {
+        return *arg->opts_init;
+      }
+
+      template <typename real_t>
       void set_dd(
 	lgr::opts_init_t<real_t> *arg,
 	const bp::dict &kappa_func
