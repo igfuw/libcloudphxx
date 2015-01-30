@@ -67,6 +67,8 @@ namespace libcloudphxx
  
       // initialising chem stuff
       pimpl->init_chem(); // TODO: only if chem enabled?
+
+      pimpl->init_sstp();
     }
   };
 };

@@ -81,6 +81,9 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_th, // ditto for theta_d
+        sstp_tmp_rh, // ditto for rho
         rhod_courant_x, 
         rhod_courant_y, 
         rhod_courant_z;
@@ -174,17 +177,17 @@ namespace libcloudphxx
         if (n_dims > 0)
         {
 	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("TODO"); 
+            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
 	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("TODO"); 
+            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("TODO"); 
+            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
 	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("TODO");
+            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("TODO");
+            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
 	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("TODO");
+            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
         }
 
         // note: there could be less tmp data spaces if _cell vectors
@@ -237,6 +240,7 @@ namespace libcloudphxx
       void init_grid();
       void init_hskpng();
       void init_chem();
+      void init_sstp();
 
       void fill_outbuf();
 
@@ -286,6 +290,9 @@ namespace libcloudphxx
       void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
       void rcyc();
       real_t bcnd(); // returns accumulated rainfall
+
+      void sstp_step(const int &step, const bool &var_rho);
+      void sstp_save();
     };
 
     // ctor
