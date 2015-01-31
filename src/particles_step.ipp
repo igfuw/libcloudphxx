@@ -78,12 +78,12 @@ namespace libcloudphxx
 
       if (opts.cond) 
       { 
-        // updating Tpr look-up table (includes RH update)
-        pimpl->hskpng_Tpr(); 
-
         // saving rv to be used as rv_old
         pimpl->sstp_save();
       }
+
+      // updating Tpr look-up table (includes RH update)
+      pimpl->hskpng_Tpr(); 
 
       // advection 
       if (opts.adve) pimpl->adve(); 

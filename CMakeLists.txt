@@ -46,6 +46,12 @@ if (CUDA_FOUND)
   add_definitions(-DCUDA_FOUND)
 endif()
 
+# generate a header file with git revision id
+add_custom_target(git_revision.h
+ git log -1 "--format=format:#define GIT_REVISION \"%H\"%n" HEAD > include/libcloudph++/git_revision.h
+ WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} VERBATIM
+)
+
 add_subdirectory(src) 
 
 enable_testing()

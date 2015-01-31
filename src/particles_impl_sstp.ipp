@@ -36,12 +36,9 @@ namespace libcloudphxx
       if (opts_init.sstp_cond == 1) return;
 
       // memory allocation 
-      const int n = 3;
-      thrust_device::vector<real_t>
-        *v[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh }; // TODO: rhod not always needed!
-
-      for (int ix = 0; ix < n; ++ix)
-	v[ix]->resize(n_cell);
+      sstp_tmp_rv.resize(n_cell);
+      sstp_tmp_th.resize(n_cell);
+      sstp_tmp_rh.resize(n_cell);
 
       // initialise _old values
       sstp_save();
@@ -67,7 +64,7 @@ namespace libcloudphxx
         const int sstp = opts_init.sstp_cond;
 	if (step == 0)
 	{
-	  // sstp_tmp_scl = dscl_adv
+	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
 	  thrust::transform(
 	    scl[ix]->begin(), scl[ix]->end(),     // 1st arg: rv_new
 	    tmp[ix]->begin(),                     // 2nd arg: rv_old
