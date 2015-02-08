@@ -1,25 +1,42 @@
 language: cpp
 os: 
-    - linux
+#    - linux
+    - osx
 compiler:
     - gcc
     - clang
+matrix:
+    exclude:
+        - os: osx
+          compiler: gcc
+
+osx_image: xcode611
 
 before_install:
-    - sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"
-    - sudo apt-get update
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
-    - if [[ $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
-    - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
-    - sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev python-pytest
-    - if [[ $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev python-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo brew tap homebrew/science; fi
+    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo brew tap homebrew/python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install -U pytest; fi
+    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
+    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget -O /usr/local/include/gnuplot-iostream.h http://gitorious.org/gnuplot-iostream/gnuplot-iostream/raw/gnuplot-iostream.h; fi
+     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
+     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+
 
 script:
     # libcloudph++ 
     - mkdir build 
     - cd build
-    - if [[ $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
     - VERBOSE=1 make 
     - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
@@ -30,24 +47,24 @@ script:
 
     # libmpdata (needed by icicle, skipping tests)
     - cd ../..
-    - sudo apt-get install --no-install-recommends libhdf5-7 
-    - sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev
-    - sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends libhdf5-7; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev; fi
     - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
     - cd libmpdataxx
     - mkdir build
     - cd build
-    - if [[ $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../
     - sudo cmake -P cmake_install.cmake
 
-    ## icicle (no tests - just testing if any changes in libmpdata's API did not break icicle)
+    ## icicle (no tests - just checking if any changes in libmpdata's API did not break compilation of icicle)
     - cd ../..
-    - sudo apt-get install --no-install-recommends -t trusty -y libboost-program-options-dev
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-program-options-dev; fi
     - git clone --depth=1 git://github.com/igfuw/icicle.git
     - cd icicle
     - mkdir build 
     - cd build
-    - if [[ $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - make
