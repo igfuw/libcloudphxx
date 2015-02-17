@@ -54,7 +54,6 @@ namespace libcloudphxx
       switch (n_dims)
       {
         case 0: 
-          ijk[0] = 0;
           break;
         case 1:
           thrust::copy(k.begin(), k.end(), ijk.begin());
