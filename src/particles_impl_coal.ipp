@@ -139,24 +139,21 @@ namespace libcloudphxx
           if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;
 
           // performing the coalescence event if lucky
-          if (thrust::get<n_a_ix>(tpl_rw) != thrust::get<n_b_ix>(tpl_rw))
-          {
             // note: >= causes equal-multiplicity collisions to result in flagging for recycling
-            if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
-              collide<tpl_rw_t, real_t,
-                  n_a_ix,   n_b_ix,
-                rw2_a_ix, rw2_b_ix,
-                rd3_a_ix, rd3_b_ix,
-                 vt_a_ix,  vt_b_ix
-              >(tpl_rw);
-            else
-              collide<tpl_rw_t, real_t,
-                  n_b_ix,   n_a_ix,
-                rw2_b_ix, rw2_a_ix,
-                rd3_b_ix, rd3_a_ix,
-                 vt_b_ix,  vt_a_ix
-              >(tpl_rw);
-          } 
+          if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
+            collide<tpl_rw_t, real_t,
+                n_a_ix,   n_b_ix,
+              rw2_a_ix, rw2_b_ix,
+              rd3_a_ix, rd3_b_ix,
+               vt_a_ix,  vt_b_ix
+            >(tpl_rw);
+          else
+            collide<tpl_rw_t, real_t,
+                n_b_ix,   n_a_ix,
+              rw2_b_ix, rw2_a_ix,
+              rd3_b_ix, rd3_a_ix,
+               vt_b_ix,  vt_a_ix
+            >(tpl_rw);
 
           return tpl_rw;
         }
