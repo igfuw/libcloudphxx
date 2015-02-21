@@ -69,6 +69,8 @@ script:
     - make
 
     ## drops.py (it is written in Python so no compilation, just unit tests)
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install python-h5py in sid; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
     - cd ../..
     - git clone --depth=1 git://github.com/igfuw/drops.py.git
     - cd drops.py
