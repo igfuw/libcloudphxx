@@ -75,4 +75,4 @@ script:
     - mkdir build
     - cd build
     - cmake ..
-    - make test
+    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
