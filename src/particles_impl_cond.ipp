@@ -310,6 +310,7 @@ namespace libcloudphxx
       );
 
       // updating rv 
+      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
       thrust::transform(
         rv.begin(), rv.end(),  // input - 1st arg
         drv.begin(),           // input - 2nd arg
