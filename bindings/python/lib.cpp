@@ -111,7 +111,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("OpenMP", lgr::OpenMP)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
-      .value("geometric", lgr::geometric);
+      .value("geometric", lgr::geometric)
+      .value("golovin", lgr::golovin);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)

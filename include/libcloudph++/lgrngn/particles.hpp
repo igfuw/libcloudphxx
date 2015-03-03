@@ -6,6 +6,7 @@
 #include "opts_init.hpp"
 #include "arrinfo.hpp"
 #include "backend.hpp"
+#include "kernel.hpp"
 
 namespace libcloudphxx
 {

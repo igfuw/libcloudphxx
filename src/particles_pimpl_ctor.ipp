@@ -41,6 +41,9 @@ namespace libcloudphxx
       const thrust_size_t n_part; 
       detail::u01<real_t, device> rng;
 
+      //collision kernel 
+      kernel_impl_t<real_t,n_t> kernel_impl;
+
       // particle attributes
       thrust_device::vector<n_t>
 	n;   // multiplicity
@@ -171,7 +174,8 @@ namespace libcloudphxx
         ),
         zero(0), 
         sorted(false), 
-        u01(tmp_device_real_part)
+        u01(tmp_device_real_part),
+        kernel_impl(kernel_factory<real_t,n_t>(opts_init))
       {
         // sanity checks
         if (n_dims > 0)
@@ -192,7 +196,6 @@ namespace libcloudphxx
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
-
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);

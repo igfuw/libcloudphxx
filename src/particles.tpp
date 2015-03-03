@@ -12,6 +12,9 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
+#include "tpl_rw_t_wrapper.hpp"
+#include "kernel_definitions.ipp"
+#include "kernel_impl.ipp"
 
 // public API
 #include "particles_pimpl_ctor.ipp"
