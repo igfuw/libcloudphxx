@@ -3,7 +3,7 @@ sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer
+from numpy import array as arr_t, frombuffer, ones
 
 from math import exp, log, sqrt, pi
 
@@ -67,9 +67,11 @@ print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
 # 0D (parcel)
-rhod = arr_t([  1.])
-th   = arr_t([300.])
-rv   = arr_t([  0.01])
+rhod = ones((1,)) * 1. #arr_t([  1.])
+th   = ones((1,)) * 300. # arr_t([300.])
+rv   = ones((1,)) * .01 # arr_t([  0.01])
+
+print rhod.dtype, arr_t([  1.])
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
