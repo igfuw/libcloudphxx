@@ -71,8 +71,6 @@ rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
 
-print rhod.dtype, arr_t([  1.])
-
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv, rhod)
