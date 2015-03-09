@@ -1,8 +1,9 @@
+import sys 
+sys.path.insert(0, "../../bindings/python/")
+
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
 import numpy as np 
-
-backend = lgrngn.backend_t.CUDA
 
 opts_init = lgrngn.opts_init_t()
 
@@ -20,7 +21,10 @@ kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
 opts_init.sd_conc_mean = 50.
 
-prtcls = lgrngn.factory(backend, opts_init)
+try:
+  prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
+except:
+  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
 rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
