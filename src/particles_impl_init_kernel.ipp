@@ -7,20 +7,19 @@ namespace libcloudphxx
     {
       switch(opts_init.kernel)
       {
-        case(geometric):
-          k_geometric.resize(1);
-          p_kernel = thrust::constant_iterator<kernel_base<real_t, n_t> *> ( (&(k_geometric[0])).get() );
-          break;
 
         case(golovin):
           k_golovin.resize(1);
           p_kernel = thrust::constant_iterator<kernel_base<real_t, n_t> *> ( (&(k_golovin[0])).get() );
           break;
 
-        default:
+        case(geometric):
           k_geometric.resize(1);
           p_kernel = thrust::constant_iterator<kernel_base<real_t, n_t> *> ( (&(k_geometric[0])).get() );
           break;
+          
+        default:
+          throw std::runtime_error("please supply a type of collision kernel to use");
       }
     }
   }
