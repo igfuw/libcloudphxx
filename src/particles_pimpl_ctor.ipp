@@ -51,14 +51,14 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-        n;   // multiplicity
+       n;   // multiplicity
       thrust_device::vector<real_t> 
-        rd3, // dry radii cubed
-        rw2, // wet radius square
-        kpa, // kappa
-        x,   // x spatial coordinate (for 2D and 3D)
-        y,   // y spatial coordinate (for 3D)
-        z;   // z spatial coordinate (for 1D, 2D and 3D)
+       rd3, // dry radii cubed
+       rw2, // wet radius square
+       kpa, // kappa
+       x,   // x spatial coordinate (for 2D and 3D)
+       y,   // y spatial coordinate (for 3D)
+       z;   // z spatial coordinate (for 1D, 2D and 3D)
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -173,9 +173,9 @@ namespace libcloudphxx
         ),
         n_part( // TODO: what if multiple spectra/kappas
           opts_init.sd_conc_mean * 
-          ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
-          ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
-          ((opts_init.z1 - opts_init.z0) / opts_init.dz)
+           ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
+           ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
+           ((opts_init.z1 - opts_init.z0) / opts_init.dz)
         ),
         zero(0), 
         sorted(false), 
