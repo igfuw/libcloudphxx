@@ -10,8 +10,8 @@
 
 #include <libcloudph++/lgrngn/particles.hpp>
 
-#include "detail/urand.hpp"
 #include "detail/thrust.hpp"
+#include "detail/urand.hpp"
 
 // public API
 #include "particles_pimpl_ctor.ipp"

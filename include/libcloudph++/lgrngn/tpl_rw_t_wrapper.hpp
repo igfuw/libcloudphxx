@@ -12,7 +12,7 @@ namespace libcloudphxx
       struct tpl_rw_t_wrap
       {
         typedef thrust::tuple<
-             n_t,           n_t,           // n   (multiplicity)
+             n_t,           n_t,        // n   (multiplicity)
           real_t,        real_t,        // rw2 (wet radius squared)
           real_t,        real_t,        // vt  (terminal velocity)
           real_t,        real_t         // rd3 (dry radius cubed)

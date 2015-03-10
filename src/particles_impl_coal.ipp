@@ -64,7 +64,7 @@ namespace libcloudphxx
           thrust_size_t, thrust_size_t, // ix
           thrust_size_t, thrust_size_t, // off (index within cell)
           real_t,                       // dv
-          kernel_base<real_t, n_t> *
+          kernel_base<real_t, n_t> *    // pointer to collision kernel
         > tpl_ro_t;
         enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix, dv_ix, p_kernel };
 
@@ -206,12 +206,12 @@ namespace libcloudphxx
 
       typedef thrust::zip_iterator<
         thrust::tuple< 
-          typename thrust_device::vector<real_t>::iterator,  // u01
-          pi_real_t,                                         // scl
-          thrust::counting_iterator<thrust_size_t>,          // ix_a
-          thrust::counting_iterator<thrust_size_t>,          // ix_b
-          pi_size_t, pi_size_t,                              // off_a & off_b
-          pi_real_t,                                         // dv
+          typename thrust_device::vector<real_t>::iterator,        // u01
+          pi_real_t,                                               // scl
+          thrust::counting_iterator<thrust_size_t>,                // ix_a
+          thrust::counting_iterator<thrust_size_t>,                // ix_b
+          pi_size_t, pi_size_t,                                    // off_a & off_b
+          pi_real_t,                                               // dv
           thrust::constant_iterator<kernel_base<real_t, n_t> *>    // pointer to collision kernel
         >
       > zip_ro_t;

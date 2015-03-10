@@ -44,7 +44,7 @@ namespace libcloudphxx
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
-      
+
       // chem
       int sstp_chem;
       real_t chem_rho;
