@@ -13,6 +13,8 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 
+#include "particles_impl_kernel.ipp"
+
 // public API
 #include "particles_pimpl_ctor.ipp"
 #include "particles_init.ipp"
@@ -50,3 +52,4 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+
