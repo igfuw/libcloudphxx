@@ -50,15 +50,15 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget -O /usr/local/include/gnuplot-iostream.h http://gitorious.org/gnuplot-iostream/gnuplot-iostream/raw/gnuplot-iostream.h; fi
     - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
-    - cd libmpdataxx
+    - cd libmpdataxx/libmpdata++
     - mkdir build
     - cd build
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - cmake -DCMAKE_BUILD_TYPE=Release ../
-    - sudo cmake -P cmake_install.cmake
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
+    - cmake ..
+    - sudo make install
+    - cd ../../..
 
     ## icicle (no tests - just checking if any changes in libmpdata's API did not break compilation of icicle)
-    - cd ../..
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-program-options-dev; fi
     - git clone --depth=1 git://github.com/igfuw/icicle.git
     - cd icicle

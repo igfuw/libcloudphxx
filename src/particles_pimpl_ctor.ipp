@@ -206,7 +206,6 @@ namespace libcloudphxx
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
-        if (n_dims != 0) 
         {
           int n_grid;
           switch (n_dims)
@@ -224,9 +223,12 @@ namespace libcloudphxx
                 (opts_init.nx+0) * (opts_init.nz+1)
               );
               break;
+            case 0:
+              n_grid = 1;
+              break;
             default: assert(false); // TODO: 1D case
           }
-          assert(n_grid > n_cell);
+          if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
         tmp_host_size_cell.resize(n_cell);
