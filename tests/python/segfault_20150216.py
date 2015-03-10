@@ -22,7 +22,7 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.sd_conc_mean = 50.
 
 try:
-  prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
+  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init) # the segfault actually was detected on CUDA, but we don't have yet a mechanism do detect if CUDA hardware is present (e.g. on Travis)
 except:
   prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
