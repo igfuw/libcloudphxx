@@ -69,6 +69,9 @@ namespace libcloudphxx
       pimpl->init_chem(); // TODO: only if chem enabled?
 
       pimpl->init_sstp();
+
+      //initialising collision kernel
+      pimpl->init_kernel();
     }
   };
 };

@@ -10,11 +10,8 @@
 
 #include <libcloudph++/lgrngn/particles.hpp>
 
-#include "detail/thrust.hpp"
 #include "detail/urand.hpp"
-#include "tpl_rw_t_wrapper.hpp"
-#include "kernel_definitions.ipp"
-#include "kernel_impl.ipp"
+#include "detail/thrust.hpp"
 
 // public API
 #include "particles_pimpl_ctor.ipp"
@@ -31,6 +28,7 @@
 #include "particles_impl_init_sync.ipp"
 #include "particles_impl_init_hskpng.ipp"
 #include "particles_impl_init_chem.ipp"
+#include "particles_impl_init_kernel.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"

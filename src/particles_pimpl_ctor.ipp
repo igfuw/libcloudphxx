@@ -7,6 +7,7 @@
   */
 
 #include <thrust/host_vector.h>
+#include <thrust/iterator/constant_iterator.h>
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
@@ -14,6 +15,9 @@
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
 #include <map>
+
+//temp
+#include <thrust/device_malloc.h>
 
 namespace libcloudphxx
 {
@@ -41,19 +45,23 @@ namespace libcloudphxx
       const thrust_size_t n_part; 
       detail::u01<real_t, device> rng;
 
-      //collision kernel 
-      kernel_impl_t<real_t,n_t> kernel_impl;
-
+      //pointer to collision kernel
+      thrust::constant_iterator<kernel_base<real_t, n_t> *> p_kernel;
+  
+      //containters for all kernel types
+      thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
+      thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+ 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+      	n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+      	rd3, // dry radii cubed 
+      	rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 1D, 2D and 3D)
+      	x,   // x spatial coordinate (for 2D and 3D)
+       	y,   // y spatial coordinate (for 3D)
+      	z;   // z spatial coordinate (for 1D, 2D and 3D)
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -138,7 +146,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_cell,
-	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+      	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<thrust_size_t>
         tmp_device_size_cell;
 
@@ -155,8 +163,8 @@ namespace libcloudphxx
       impl(const opts_init_t<real_t> &opts_init) : 
         should_now_run_async(false),
         selected_before_counting(false),
-	opts_init(opts_init),
-	n_dims( // 0, 1, 2 or 3
+      	opts_init(opts_init),
+       	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
           opts_init.nz/m1(opts_init.nz)
@@ -166,68 +174,69 @@ namespace libcloudphxx
           m1(opts_init.ny) *
           m1(opts_init.nz)
         ),
-	n_part( // TODO: what if multiple spectra/kappas
+      	n_part( // TODO: what if multiple spectra/kappas
           opts_init.sd_conc_mean * 
-	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
-	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
-	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
+      	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
+      	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
+      	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
         ),
         zero(0), 
         sorted(false), 
-        u01(tmp_device_real_part),
-        kernel_impl(kernel_factory<real_t,n_t>(opts_init))
-      {
-        // sanity checks
-        if (n_dims > 0)
-        {
-	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
-	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
-	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
-	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
-        }
+        u01(tmp_device_real_part)
 
-        // note: there could be less tmp data spaces if _cell vectors
-        //       would point to _part vector data... but using.end() would not possible
-        // initialising device temporary arrays
-	tmp_device_real_part.resize(n_part);
-        tmp_device_real_cell.resize(n_cell);
-        tmp_device_size_cell.resize(n_cell);
-
-        // initialising host temporary arrays
-        if (n_dims != 0) 
         {
-          int n_grid;
-          switch (n_dims)
+          // sanity checks
+          if (n_dims > 0)
           {
-            case 3:
-              n_grid = std::max(std::max(
-                (opts_init.nx+1) * (opts_init.ny+0) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.ny+1) * (opts_init.nz+0)),
-                (opts_init.nx+0) * (opts_init.ny+0) * (opts_init.nz+1)
-              );
-              break;
-            case 2:
-              n_grid = std::max(
-                (opts_init.nx+1) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.nz+1)
-              );
-              break;
-            default: assert(false); // TODO: 1D case
+    	    if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
+              throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
+	    if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
+              throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
+	    if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
+              throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
+	    if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+              throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+	    if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
+              throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
+	    if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
+              throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
           }
-          assert(n_grid > n_cell);
-	  tmp_host_real_grid.resize(n_grid);
+
+
+          // note: there could be less tmp data spaces if _cell vectors
+          //       would point to _part vector data... but using.end() would not possible
+          // initialising device temporary arrays
+          tmp_device_real_part.resize(n_part);
+          tmp_device_real_cell.resize(n_cell);
+          tmp_device_size_cell.resize(n_cell);
+
+          // initialising host temporary arrays
+          if (n_dims != 0) 
+          {
+            int n_grid;
+            switch (n_dims)
+            {
+              case 3:
+                n_grid = std::max(std::max(
+                  (opts_init.nx+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                  (opts_init.nx+0) * (opts_init.ny+1) * (opts_init.nz+0)),
+                  (opts_init.nx+0) * (opts_init.ny+0) * (opts_init.nz+1)
+                );
+                break;
+              case 2:
+                n_grid = std::max(
+                  (opts_init.nx+1) * (opts_init.nz+0), 
+                  (opts_init.nx+0) * (opts_init.nz+1)
+                );
+                break;
+              default: assert(false); // TODO: 1D case
+            }
+            assert(n_grid > n_cell);
+	    tmp_host_real_grid.resize(n_grid);
+          }
+          tmp_host_size_cell.resize(n_cell);
+          tmp_host_real_cell.resize(n_cell);
         }
-        tmp_host_size_cell.resize(n_cell);
-        tmp_host_real_cell.resize(n_cell);
-      }
 
       // methods
       void sanity_checks();
@@ -244,6 +253,7 @@ namespace libcloudphxx
       void init_hskpng();
       void init_chem();
       void init_sstp();
+      void init_kernel();
 
       void fill_outbuf();
 
@@ -269,7 +279,7 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
 

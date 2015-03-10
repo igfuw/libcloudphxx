@@ -1,4 +1,5 @@
 #pragma once
+#include <thrust/tuple.h>
 
 namespace libcloudphxx
 {

@@ -63,9 +63,10 @@ namespace libcloudphxx
           real_t,                       // scaling factor
           thrust_size_t, thrust_size_t, // ix
           thrust_size_t, thrust_size_t, // off (index within cell)
-          real_t                        // dv
+          real_t,                       // dv
+          kernel_base<real_t, n_t> *
         > tpl_ro_t;
-        enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix, dv_ix };
+        enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix, dv_ix, p_kernel };
 
         // read-write parameters = return type
         typedef thrust::tuple<
@@ -78,10 +79,8 @@ namespace libcloudphxx
 
         const real_t dt;
 
-        //collision kernel
-        const kernel_impl_t<real_t,n_t> &kernel_impl;
         //ctor
-        collider(const real_t &dt, const kernel_impl_t<real_t,n_t> &_kernel_impl) : dt(dt), kernel_impl(_kernel_impl) {}
+        collider(const real_t &dt) : dt(dt) {}
 
         BOOST_GPU_ENABLED
         tpl_rw_t operator()(const tpl_ro_t &tpl_ro, tpl_rw_t tpl_rw)
@@ -110,7 +109,7 @@ namespace libcloudphxx
           // computing the probability of collision
           real_t prob = dt / thrust::get<dv_ix>(tpl_ro)
             * thrust::get<scl_ix>(tpl_ro)
-            * kernel_impl(tpl_wrap);
+            * (thrust::get<p_kernel>(tpl_ro))->calc(tpl_wrap);
   
           // sanity check for random sampling validity
 //          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
@@ -212,7 +211,8 @@ namespace libcloudphxx
           thrust::counting_iterator<thrust_size_t>,          // ix_a
           thrust::counting_iterator<thrust_size_t>,          // ix_b
           pi_size_t, pi_size_t,                              // off_a & off_b
-          pi_real_t                                          // dv
+          pi_real_t,                                         // dv
+          thrust::constant_iterator<kernel_base<real_t, n_t> *>    // pointer to collision kernel
         >
       > zip_ro_t;
 
@@ -238,7 +238,8 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
           thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
           // dv
-          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin()),
+          p_kernel
         )
       );
 
@@ -263,7 +264,7 @@ namespace libcloudphxx
         zip_ro_it, zip_ro_it + n_part - 1,  // input - 1st arg
         zip_rw_it,                          // input - 2nd arg
         zip_rw_it,                          // output (in place)
-        detail::collider<real_t, n_t>(dt,kernel_impl)
+        detail::collider<real_t, n_t>(dt)
       );
     }
   };  
