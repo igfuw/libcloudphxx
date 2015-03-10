@@ -43,7 +43,7 @@ namespace libcloudphxx
       detail::u01<real_t, device> rng;
 
       //pointer to collision kernel
-      thrust::constant_iterator<kernel_base<real_t, n_t> *> p_kernel;
+      kernel_base<real_t, n_t> *p_kernel;
 
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
