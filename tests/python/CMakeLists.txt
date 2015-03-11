@@ -23,7 +23,7 @@ if (NUMPY_FOUND GREATER 0)
 endif()
 
 # non-pytest tests
-foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 test_col_kernels)
+foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 test_col_kernels coalescence_golovin)
   #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}
