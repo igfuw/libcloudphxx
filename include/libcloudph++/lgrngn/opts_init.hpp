@@ -59,7 +59,6 @@ namespace libcloudphxx
         x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
         x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
         sd_conc_mean(64),                                          // TODO: why 64
-        kernel(geometric),
         dt(1e-3),                                                  // TODO: why 1e-3
         sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: why 10
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
