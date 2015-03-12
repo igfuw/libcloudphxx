@@ -20,7 +20,7 @@ before_install:
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo apt-get install --no-install-recommends clang; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends g++  ; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy libthrust-dev python-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
