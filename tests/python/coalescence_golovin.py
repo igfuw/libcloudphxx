@@ -25,7 +25,7 @@ def RMSD(a1, a2):
   return np.sqrt(tot/nonempty)
 
 #initial conditions, ca. 1g / m^3
-r_zero = 30.531e-6
+r_zero = 3.0531e-6                      # can't be greater due to rd_max_init = 1e-5
 n_zero = pow(2,23)
 v_zero = spherevol(r_zero)
 
@@ -59,7 +59,7 @@ rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
 
-kappa = 0.0
+kappa = 50. #unrealistic, but we want initial wet radii of the order of 30 um so that coalescence takes place 
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
@@ -81,7 +81,7 @@ opts.cond = False
 opts.coal = True
 opts.chem = False
 
-bins = pow(10, -5 + np.arange(100)/50.)
+bins = pow(10, -6 + np.arange(150)/50.)
 
 #get mass density "histogram" from simulation
 def diag(arg):
@@ -116,10 +116,14 @@ init_number_of_particles = partno()
 #simulation loop
 for t in range(int((simulation_time)/opts_init.dt)):
   prtcls.step_async(opts)
+
+r_zero_wet = r_zero * (2.69/2.73) * 10 # value of r_zero for initial wet radii distribution corresponding to kappa = 50
+v_zero_wet = spherevol(r_zero_wet)
+
     
 diag(results)
-calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero)
+calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero_wet)
 rmsd = RMSD(results,golovin_results)
 
-if(rmsd > 2.5e-8):
+if(rmsd > 1.2e-8):
   raise Exception("Simulation result does not agree with analytic prediction")
