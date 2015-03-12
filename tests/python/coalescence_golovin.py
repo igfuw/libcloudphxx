@@ -115,6 +115,7 @@ init_number_of_particles = partno()
 
 #simulation loop
 for t in range(int((simulation_time)/opts_init.dt)):
+  prtcls.step_sync(opts, th, rv, rhod)
   prtcls.step_async(opts)
 
 r_zero_wet = r_zero * (2.69/2.73) * 10 # value of r_zero for initial wet radii distribution corresponding to kappa = 50
