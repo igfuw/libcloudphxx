@@ -42,12 +42,15 @@ namespace libcloudphxx
       const thrust_size_t n_part; 
       detail::u01<real_t, device> rng;
 
-      //pointer to collision kernel
+      // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
-
+ 
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+
+      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
+      thrust_device::vector<real_t> kernel_parameters;
 
       // particle attributes
       thrust_device::vector<n_t>

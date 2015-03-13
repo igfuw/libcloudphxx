@@ -8,12 +8,19 @@ namespace libcloudphxx
       switch(opts_init.kernel)
       {
         case(golovin):
-          k_golovin.resize(1);
+          // init kernel parameters vector, TODO: parameters sanity check
+          kernel_parameters.resize(1, 2000.); //TODO: zamiast 1500 dac 4/3 * b podane w opts_init
+
+          // init kernel
+          k_golovin.resize(1, kernel_golovin<real_t, n_t> (kernel_parameters.data()));
           p_kernel = (&(k_golovin[0])).get();
           break;
 
         case(geometric):
-          k_geometric.resize(1);
+          // init kernel parameters vector, TODO: parameters sanity check
+
+          // init kernel
+          k_geometric.resize(1, kernel_geometric<real_t, n_t> (kernel_parameters.data()));
           p_kernel = (&(k_geometric[0])).get();
           break;
           
