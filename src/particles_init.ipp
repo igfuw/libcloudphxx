@@ -16,9 +16,9 @@ namespace libcloudphxx
       const arrinfo_t<real_t> th,
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
-      const arrinfo_t<real_t> rhod_courant_x, // might be NULL
-      const arrinfo_t<real_t> rhod_courant_y, // might be NULL
-      const arrinfo_t<real_t> rhod_courant_z  // might be NULL
+      const arrinfo_t<real_t> courant_x, // might be NULL
+      const arrinfo_t<real_t> courant_y, // might be NULL
+      const arrinfo_t<real_t> courant_z  // might be NULL
     )
     {
       // sanity checks
@@ -32,17 +32,17 @@ namespace libcloudphxx
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
 
-      if (!rhod_courant_x.is_null()) pimpl->init_e2l(rhod_courant_x, &pimpl->rhod_courant_x, 1, 0, 0);
-      if (!rhod_courant_y.is_null()) pimpl->init_e2l(rhod_courant_y, &pimpl->rhod_courant_y, 0, 1, 0);
-      if (!rhod_courant_z.is_null()) pimpl->init_e2l(rhod_courant_z, &pimpl->rhod_courant_z, 0, 0, 1);
+      if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+      if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0);
+      if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
 
       // feeding in Eulerian fields
       pimpl->sync(th,   pimpl->th);
       pimpl->sync(rv,   pimpl->rv);
       pimpl->sync(rhod, pimpl->rhod);
-      if (!rhod_courant_x.is_null()) pimpl->sync(rhod_courant_x, pimpl->rhod_courant_x);
-      if (!rhod_courant_y.is_null()) pimpl->sync(rhod_courant_y, pimpl->rhod_courant_y);
-      if (!rhod_courant_z.is_null()) pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
+      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
+      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
+      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
       // initialising particle positions
       pimpl->init_xyz();
