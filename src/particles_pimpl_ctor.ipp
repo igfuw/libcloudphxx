@@ -92,9 +92,9 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta_d
         sstp_tmp_rh, // ditto for rho
-        rhod_courant_x, 
-        rhod_courant_y, 
-        rhod_courant_z;
+        courant_x, 
+        courant_y, 
+        courant_z;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]

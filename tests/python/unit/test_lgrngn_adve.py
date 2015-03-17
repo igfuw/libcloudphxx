@@ -59,12 +59,12 @@ Rv   = 0.01 * np.ones((Opts_init.nx, Opts_init.nz))
 
 
 
-def advection_1step(Cx, Cz, backend=Backend, opts_init=Opts_init, opts=Opts, 
+def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=Opts, 
                     rhod=Rhod, th=Th, rv=Rv):
   prtcls = lgrngn.factory(backend, opts_init)
-  rhod_Cx = Cx * np.ones((opts_init.nx + 1, opts_init.nz))
-  rhod_Cz = Cz * np.ones((opts_init.nx, opts_init.nz + 1))
-  prtcls.init(th, rv, rhod, rhod_Cx, rhod_Cz)
+  Cx = Cx_arg * np.ones((opts_init.nx + 1, opts_init.nz))
+  Cz = Cz_arg * np.ones((opts_init.nx, opts_init.nz + 1))
+  prtcls.init(th, rv, rhod, Cx, Cz)
 
   prtcls.step_sync(opts, th, rv, rhod)
 

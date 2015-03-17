@@ -74,16 +74,16 @@ namespace libcloudphxx
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
 	const bp::numeric::array &rhod,
-        const bp::numeric::array &rhod_Cx,
-        const bp::numeric::array &rhod_Cz
+        const bp::numeric::array &Cx,
+        const bp::numeric::array &Cz
       )
       {
 	arg->init(
 	  np2ai<real_t>(th,      sz(*arg)),
 	  np2ai<real_t>(rv,      sz(*arg)),
 	  np2ai<real_t>(rhod,    sz(*arg)),
-          np2ai<real_t>(rhod_Cx, sz(*arg)),
-          np2ai<real_t>(rhod_Cz, sz(*arg))
+          np2ai<real_t>(Cx,      sz(*arg)),
+          np2ai<real_t>(Cz,      sz(*arg))
 	);
       }
 
