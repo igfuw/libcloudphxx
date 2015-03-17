@@ -44,6 +44,9 @@ namespace libcloudphxx
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
+ 
+      // coalescence kernel parameters
+      thrust::host_vector<real_t> kernel_parameters;
 
       // chem
       int sstp_chem;
