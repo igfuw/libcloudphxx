@@ -45,7 +45,8 @@ namespace libcloudphxx
 #else
         CUDART_PI
 #endif
-        * kernel_base<real_t, n_t>::k_params[0] // = 4/3 * parameter from user input
+        * 4. / 3.
+        * kernel_base<real_t, n_t>::k_params[0]
         * max(
             thrust::get<n_a_ix>(tpl_wrap()),
             thrust::get<n_b_ix>(tpl_wrap())

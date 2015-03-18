@@ -52,6 +52,9 @@ namespace libcloudphxx
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
 
+      //number of parameters defined by user in opts_init
+      const n_t n_kernel_params;
+
       // particle attributes
       thrust_device::vector<n_t>
 	n;   // multiplicity
@@ -182,7 +185,8 @@ namespace libcloudphxx
         ),
         zero(0), 
         sorted(false), 
-        u01(tmp_device_real_part)
+        u01(tmp_device_real_part),
+        n_kernel_params(opts_init.kernel_parameters.size())
       {
         // sanity checks
         if (n_dims > 0)
