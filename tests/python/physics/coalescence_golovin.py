@@ -72,10 +72,10 @@ opts_init.sd_conc_mean = pow(2,14)
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.kernel_parameters = np.array([b]);
 
-try:
-  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-except:
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+#try:
+#  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+#except:
+prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
 prtcls.init(th, rv, rhod)
 
