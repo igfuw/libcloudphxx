@@ -13,6 +13,12 @@ namespace libcloudphxx
     template <typename real_t, typename n_t>
     struct kernel_base
     {
+      // pointer to kernel parameters device vector
+      thrust_device::pointer<real_t> k_params;
+   
+      //ctor
+      kernel_base(thrust_device::pointer<real_t> k_params) : k_params(k_params) {}
+
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &) const {return 0;}
     };
@@ -21,6 +27,9 @@ namespace libcloudphxx
     template <typename real_t, typename n_t>
     struct kernel_golovin : kernel_base<real_t, n_t>
     {
+      //ctor
+      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params) {}
+
       BOOST_GPU_ENABLED
       real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
       {
@@ -36,7 +45,8 @@ namespace libcloudphxx
 #else
         CUDART_PI
 #endif
-        * real_t(2000.) //= 4/3 * (b=1500) to compare with Shima 2009, TODO: accept parameter from opts_init
+        * 4. / 3.
+        * kernel_base<real_t, n_t>::k_params[0]
         * max(
             thrust::get<n_a_ix>(tpl_wrap()),
             thrust::get<n_b_ix>(tpl_wrap())
@@ -53,6 +63,9 @@ namespace libcloudphxx
     template <typename real_t, typename n_t>
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
+      //ctor
+      kernel_geometric(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params) {}
+
       BOOST_GPU_ENABLED
       real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
       {

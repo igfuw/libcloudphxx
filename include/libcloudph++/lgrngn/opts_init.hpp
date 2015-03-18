@@ -44,6 +44,9 @@ namespace libcloudphxx
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
+ 
+      // coalescence kernel parameters
+      std::vector<real_t> kernel_parameters;
 
       // chem
       int sstp_chem;
@@ -63,8 +66,7 @@ namespace libcloudphxx
         sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: why 10
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(1.8e3) // dry particle density
-      {
-      }
+      {}
     };
   }
 };
