@@ -18,6 +18,7 @@ def lognormal(lnr):
 opts_init = lgrngn.opts_init_t()
 kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
+opts_init.kernel = lgrngn.kernel_t.geometric
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
@@ -41,7 +42,6 @@ print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
 print "kernel =", opts_init.kernel 
-assert opts_init.kernel == lgrngn.kernel_t.geometric
 print "sd_conc_mean =", opts_init.sd_conc_mean
 print "chem_rho =", opts_init.chem_rho
 
