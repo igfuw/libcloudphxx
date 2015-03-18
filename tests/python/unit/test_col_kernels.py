@@ -28,6 +28,9 @@ opts_init.sd_conc_mean = 50.
 
 for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.golovin]:
   opts_init.kernel = kernel
+  opts_init.kernel_parameters = np.array([]);
+  if(kernel == lgrngn.kernel_t.golovin):
+    opts_init.kernel_parameters = np.array([1.]);
 
   try:
     prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
