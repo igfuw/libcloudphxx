@@ -32,10 +32,10 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.golovin]:
   if(kernel == lgrngn.kernel_t.golovin):
     opts_init.kernel_parameters = np.array([1.]);
 
-#  try:
-#    prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-#  except:
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  try:
+    prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+  except:
+    prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
   prtcls.init(th, rv, rhod)
 
