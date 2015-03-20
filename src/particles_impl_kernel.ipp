@@ -15,9 +15,16 @@ namespace libcloudphxx
     {
       // pointer to kernel parameters device vector
       thrust_device::pointer<real_t> k_params;
+
+      // number of user-defined parameters
+      n_t n_user_params; 
+
+      // largest radius for which efficiency is defined, 0 - n/a
+      real_t r_max;
    
       //ctor
-      kernel_base(thrust_device::pointer<real_t> k_params) : k_params(k_params) {}
+      kernel_base(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
+        k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &) const {return 0;}
@@ -28,10 +35,10 @@ namespace libcloudphxx
     struct kernel_golovin : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params) {}
+      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
 
       BOOST_GPU_ENABLED
-      real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
@@ -64,10 +71,11 @@ namespace libcloudphxx
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_geometric(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params) {}
+      kernel_geometric(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
+        kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
 
       BOOST_GPU_ENABLED
-      real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
@@ -94,6 +102,32 @@ namespace libcloudphxx
             sqrt(thrust::get<rw2_b_ix>(tpl_wrap())),
             real_t(2)
           );
+        return res;
+      }
+    };
+
+    //Hall kernel with Davis and Jones (no van der Waals) efficiencies for small molecules (like Shima et al. 2009)
+    template <typename real_t, typename n_t>
+    struct kernel_hall_davis_no_waals : kernel_geometric<real_t, n_t>
+    {
+//      thrust_device::vector<real_t> debug_tmp_vec;
+      //ctor
+      kernel_hall_davis_no_waals(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
+      BOOST_GPU_ENABLED
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      {
+        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
+        n_t iv = detail::kernel_vector_index<n_t> 
+        (
+          detail::kernel_index<real_t, n_t>( sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6, kernel_base<real_t, n_t>::r_max), //*1e6, because efficiencies are defined for micrometers
+          detail::kernel_index<real_t, n_t>( sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6, kernel_base<real_t, n_t>::r_max)
+        );
+        real_t res = kernel_base<real_t, n_t>::k_params[iv];
+        res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         return res;
       }
     };

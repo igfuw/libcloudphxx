@@ -112,7 +112,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric)
-      .value("golovin", lgr::golovin);
+      .value("golovin", lgr::golovin)
+      .value("hall_davis_no_waals", lgr::hall_davis_no_waals);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
