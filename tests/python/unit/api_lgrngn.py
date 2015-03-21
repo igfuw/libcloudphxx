@@ -18,6 +18,7 @@ def lognormal(lnr):
 opts_init = lgrngn.opts_init_t()
 kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
+opts_init.kernel = lgrngn.kernel_t.geometric
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
@@ -36,8 +37,11 @@ print "y1 =", opts_init.y1
 print "z1 =", opts_init.z1
 
 print "dt =", opts_init.dt
+print "sstp_cond =", opts_init.sstp_cond
+print "sstp_coal =", opts_init.sstp_coal
+print "sstp_chem =", opts_init.sstp_chem 
+
 print "kernel =", opts_init.kernel 
-assert opts_init.kernel == lgrngn.kernel_t.geometric
 print "sd_conc_mean =", opts_init.sd_conc_mean
 print "chem_rho =", opts_init.chem_rho
 
@@ -52,9 +56,6 @@ print "cond =", opts.cond
 print "coal =", opts.coal
 print "chem =", opts.chem
 print "RH_max =", opts.RH_max
-print "sstp_cond =", opts.sstp_cond
-print "sstp_coal =", opts.sstp_coal
-print "sstp_chem =", opts.sstp_chem 
 
 opts.chem_gas = {
   lgrngn.chem_species_t.SO2  : 44,
@@ -112,6 +113,7 @@ opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
 
 prtcls = lgrngn.factory(backend, opts_init)
+assert opts_init.nx == prtcls.opts_init.nx
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx

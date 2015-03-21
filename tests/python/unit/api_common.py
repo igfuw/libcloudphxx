@@ -2,7 +2,10 @@ import sys
 sys.path.insert(0, "../../bindings/python/")
 
 #<listing-1>
-from libcloudphxx import common
+from libcloudphxx import common, git_revision
+
+print git_revision
+
 print "common.p_vs(273.16)=", common.p_vs(273.16)
 assert abs(common.p_vs(273.16) - 611.73) < .001
 #</listing-1>

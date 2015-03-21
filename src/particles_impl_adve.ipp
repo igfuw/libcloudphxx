@@ -12,19 +12,19 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct adve_2d
+      struct adve_helper
       {
         const real_t dx;
 
-        adve_2d(const real_t dx) : dx(dx) {} 
+        adve_helper(const real_t dx) : dx(dx) {} 
 
         BOOST_GPU_ENABLED
-        real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t, const real_t> tpl)
+        real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
         {
           real_t x = thrust::get<0>(tpl);
           const thrust_size_t floor_x_over_dx = thrust::get<1>(tpl);
-          real_t C_l = thrust::get<2>(tpl) / thrust::get<4>(tpl);
-          real_t C_r = thrust::get<3>(tpl) / thrust::get<4>(tpl);
+          real_t C_l = thrust::get<2>(tpl);
+          real_t C_r = thrust::get<3>(tpl);
 
           // integrating using backward Euler scheme + interpolation/extrapolation
           // 
@@ -54,8 +54,6 @@ namespace libcloudphxx
       switch (n_dims)
       {
         case 3:
-          assert(false && "TODO");
-          break; 
         case 2:
         {
           // advection
@@ -68,29 +66,43 @@ namespace libcloudphxx
             pi_size_size
           > pi_real_size;
 
-          const pi_real_size
-            C_lft(rhod_courant_x.begin(), pi_size_size(lft.begin(), ijk.begin())),
-            C_rgt(rhod_courant_x.begin(), pi_size_size(rgt.begin(), ijk.begin())),
-            C_abv(rhod_courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
-            C_blw(rhod_courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
+          {
+            const pi_real_size
+              C_lft(courant_x.begin(), pi_size_size(lft.begin(), ijk.begin())),
+              C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), ijk.begin()));
+            thrust::transform(
+              thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
+              thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
+              x.begin(), // output
+              detail::adve_helper<real_t>(opts_init.dx)
+            );
+          }
 
-          const thrust::permutation_iterator<
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<thrust_size_t>::iterator
-          > rhod_ijk(rhod.begin(), ijk.begin());
+          if (n_dims == 3)
+          {
+            const pi_real_size
+              C_fre(courant_x.begin(), pi_size_size(fre.begin(), ijk.begin())),
+              C_hnd(courant_x.begin(), pi_size_size(hnd.begin(), ijk.begin()));
+            thrust::transform(
+              thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
+              thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
+              y.begin(), // output
+              detail::adve_helper<real_t>(opts_init.dy)
+            );
+          }
 
-          thrust::transform(
-            thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       , rhod_ijk       )), // input - begin
-            thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part, rhod_ijk+n_part)), // input - end
-            x.begin(), // output
-            detail::adve_2d<real_t>(opts_init.dx)
-          );
-          thrust::transform(
-            thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       , rhod_ijk       )), // input - begin
-            thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part, rhod_ijk+n_part)), // input - end
-            z.begin(), // output
-            detail::adve_2d<real_t>(opts_init.dz)
-          );
+          {
+            const pi_real_size
+              C_abv(courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
+              C_blw(courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
+            thrust::transform(
+              thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       )), // input - begin
+              thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
+              z.begin(), // output
+              detail::adve_helper<real_t>(opts_init.dz)
+            );
+          }
+
           break; 
         }
         case 1:
