@@ -31,10 +31,11 @@ namespace libcloudphxx
           }
 
           // init kernel
-          k_geometric.resize(1, kernel_geometric<real_t, n_t> (kernel_parameters.data()));
+          k_geometric.resize(1, kernel_geometric<real_t, n_t> ());
           p_kernel = (&(k_geometric[0])).get();
           break;
           
+        //Hall kernel with Davis and Jones (no van der Waals) efficiencies for small molecules (like Shima et al. 2009)
         case(hall_davis_no_waals):
           if(n_user_params != 0)
           {
@@ -53,8 +54,8 @@ namespace libcloudphxx
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
           // init kernel
-          k_hall_davis_no_waals.resize(1, kernel_hall_davis_no_waals<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>()));
-          p_kernel = (&(k_hall_davis_no_waals[0])).get();
+          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>()));
+          p_kernel = (&(k_geometric_with_efficiencies[0])).get();
           break;
 
         default:

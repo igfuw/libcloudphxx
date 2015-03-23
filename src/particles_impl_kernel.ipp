@@ -30,6 +30,7 @@ namespace libcloudphxx
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &) const {return 0;}
     };
 
+
     //Golovin kernel
     template <typename real_t, typename n_t>
     struct kernel_golovin : kernel_base<real_t, n_t>
@@ -66,13 +67,18 @@ namespace libcloudphxx
       }
     };
 
+
     //geometric kernel
     template <typename real_t, typename n_t>
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_geometric(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
+      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
         kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
+
+      //bilinear interpolation of efficiencies, required by dervied classes
+      BOOST_GPU_ENABLED
+      real_t bilinear_interpolation(const real_t &, const real_t &) const;
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
@@ -106,13 +112,13 @@ namespace libcloudphxx
       }
     };
 
-    //Hall kernel with Davis and Jones (no van der Waals) efficiencies for small molecules (like Shima et al. 2009)
+
     template <typename real_t, typename n_t>
-    struct kernel_hall_davis_no_waals : kernel_geometric<real_t, n_t>
+    struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>
     {
-//      thrust_device::vector<real_t> debug_tmp_vec;
       //ctor
-      kernel_hall_davis_no_waals(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
+      kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
+
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
       {
@@ -121,16 +127,16 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
         using std::sqrt;
 #endif
-        n_t iv = detail::kernel_vector_index<n_t> 
-        (
-          detail::kernel_index<real_t, n_t>( sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6, kernel_base<real_t, n_t>::r_max), //*1e6, because efficiencies are defined for micrometers
-          detail::kernel_index<real_t, n_t>( sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6, kernel_base<real_t, n_t>::r_max)
-        );
-        real_t res = kernel_base<real_t, n_t>::k_params[iv];
+        real_t res = kernel_geometric<real_t, n_t>::bilinear_interpolation(
+                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
+                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
+
         res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         return res;
       }
     };
   };
 };
+
+
                             

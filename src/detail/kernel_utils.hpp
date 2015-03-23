@@ -9,16 +9,12 @@ namespace libcloudphxx
       //return index corresponding to given radius, only works for files supplied by Jon
       template<class real_t, class n_t>
       BOOST_GPU_ENABLED
-      n_t kernel_index(const real_t &R, const real_t &R_max = 1e10)
+      n_t kernel_index(const real_t &R)
       {
-        n_t ret;
-#if !defined(__NVCC__)
-        R <=100. ? ret = round(R) : ret = 100 + round((R-100.)/10.);
-#else
-        R <=100. ? ret = roundf(R) : ret = 100 + roundf((R-100.)/10.);
-#endif
-        if (R>R_max) ret = kernel_index<real_t, n_t> (R_max, R_max);
-        return ret;
+        if( R<= 100.)
+          return R;
+        else
+          return (100 + (R-100.) / 10.);
       }
 
       //return index of kernel_params corresponding to two given indices from Jon's files

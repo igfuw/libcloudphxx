@@ -48,7 +48,7 @@ namespace libcloudphxx
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
-      thrust_device::vector<kernel_hall_davis_no_waals<real_t, n_t> > k_hall_davis_no_waals;
+      thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
