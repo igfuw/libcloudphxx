@@ -32,6 +32,9 @@ namespace libcloudphxx
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
+      // no. of substeps 
+      int sstp_cond, sstp_coal; 
+
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
@@ -41,7 +44,12 @@ namespace libcloudphxx
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
+ 
+      // coalescence kernel parameters
+      std::vector<real_t> kernel_parameters;
+
       // chem
+      int sstp_chem;
       real_t chem_rho;
 
       // RH threshold for calculating equilibrium condition at t=0
@@ -53,9 +61,9 @@ namespace libcloudphxx
         dx(1), dy(1), dz(1), // (but are only used to compute n_part -
         x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
         x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
-        sd_conc_mean(64), 
-        kernel(geometric),
-        dt(1e-3),
+        sd_conc_mean(64),                                          // TODO: why 64
+        dt(1e-3),                                                  // TODO: why 1e-3
+        sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: why 10
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(1.8e3) // dry particle density
       {}

@@ -5,7 +5,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
 //<listing>
-    enum kernel_t { geometric }; 
+    enum kernel_t { geometric, golovin }; 
 //</listing>
   };
 };

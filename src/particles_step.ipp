@@ -15,28 +15,28 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       arrinfo_t<real_t> th,
       arrinfo_t<real_t> rv,
-      const arrinfo_t<real_t> rhod_courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const arrinfo_t<real_t> rhod_courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const arrinfo_t<real_t> rhod_courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
     )
     {
       assert(!pimpl->should_now_run_async);
 
-      if (pimpl->l2e[&pimpl->rhod_courant_x].size() == 0) // TODO: y, z,...
+      if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
         // TODO: copy-pasted from init
-	if (!rhod_courant_x.is_null()) pimpl->init_e2l(rhod_courant_x, &pimpl->rhod_courant_x, 1, 0, 0); 
-	if (!rhod_courant_y.is_null()) pimpl->init_e2l(rhod_courant_y, &pimpl->rhod_courant_y, 0, 1, 0); 
-	if (!rhod_courant_z.is_null()) pimpl->init_e2l(rhod_courant_z, &pimpl->rhod_courant_z, 0, 0, 1);
+	if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0); 
+	if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0); 
+	if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
       }
 
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
-      pimpl->sync(rhod_courant_x, pimpl->rhod_courant_x);
-      pimpl->sync(rhod_courant_y, pimpl->rhod_courant_y);
-      pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
+      pimpl->sync(courant_x,      pimpl->courant_x);
+      pimpl->sync(courant_y,      pimpl->courant_y);
+      pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
       // recycling out-of-domain/invalidated particles 
@@ -51,19 +51,17 @@ namespace libcloudphxx
         pimpl->hskpng_ijk(); // TODO: but rcyc() above could also have changed ijk!
       }
 
-      // updating Tpr look-up table (includes RH update)
-      pimpl->hskpng_Tpr(); 
-
       // condensation/evaporation 
       if (opts.cond) 
       {
-        for (int step = 0; step < opts.sstp_cond; ++step) 
+        for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
         {   
-          pimpl->cond(pimpl->opts_init.dt / opts.sstp_cond, opts.RH_max); 
+          pimpl->sstp_step(step, !rhod.is_null());
           pimpl->hskpng_Tpr(); 
+          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
 
-        // syncing out 
+        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
@@ -78,14 +76,20 @@ namespace libcloudphxx
     ) {
       assert(pimpl->should_now_run_async);
 
-      // accumulated rainfall to be returned
-      real_t ret;
+      if (opts.cond) 
+      { 
+        // saving rv to be used as rv_old
+        pimpl->sstp_save();
+      }
+
+      // updating Tpr look-up table (includes RH update)
+      pimpl->hskpng_Tpr(); 
 
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition
-      ret = pimpl->bcnd();
+      // boundary condition + accumulated rainfall to be returned
+      real_t ret = pimpl->bcnd();
 
       // updating terminal velocities
       if (opts.sedi || opts.coal) 
@@ -100,20 +104,20 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem) 
       {
-        for (int step = 0; step < opts.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / opts.sstp_chem, opts.chem_gas);
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
+          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
       }
 
       // coalescence (before diagnostics -> one sort less)
       if (opts.coal) 
       {
-        for (int step = 0; step < opts.sstp_coal; ++step) 
+        for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->opts_init.dt / opts.sstp_coal);
+          pimpl->coal(pimpl->opts_init.dt / pimpl->opts_init.sstp_coal);
 
           // update invalid vterm 
-          if (step + 1 != opts.sstp_coal)
+          if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
       }
