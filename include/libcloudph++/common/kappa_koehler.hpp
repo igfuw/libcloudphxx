@@ -169,6 +169,9 @@ namespace libcloudphxx
         quantity<si::temperature, real_t> T
       )
       {
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
         quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
         return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
           pow(rw3 / si::cubic_metres, real_t(1./3)) * si::metres, 
