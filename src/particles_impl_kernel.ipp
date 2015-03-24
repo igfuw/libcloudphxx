@@ -78,7 +78,7 @@ namespace libcloudphxx
 
       //bilinear interpolation of efficiencies, required by dervied classes
       BOOST_GPU_ENABLED
-      real_t bilinear_interpolation(const real_t &, const real_t &) const;
+      real_t bilinear_interpolation(real_t, real_t) const;
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const

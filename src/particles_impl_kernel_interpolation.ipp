@@ -6,14 +6,19 @@ namespace libcloudphxx
   {
     template <typename real_t, typename n_t>
     BOOST_GPU_ENABLED
-    real_t kernel_geometric<real_t, n_t>::bilinear_interpolation(const real_t &r1, const real_t &r2) const
+    real_t kernel_geometric<real_t, n_t>::bilinear_interpolation(real_t r1, real_t r2) const
     {
       n_t dx, dy, // distance between efficiencies in the matrix
           x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
 
+      if(r1 >= kernel_base<real_t, n_t>::r_max) 
+        r1 = kernel_base<real_t, n_t>::r_max - 1e-6; //TODO : improve this
+      if(r2 >= kernel_base<real_t, n_t>::r_max) 
+        r2 = kernel_base<real_t, n_t>::r_max - 1e-6; //TODO : improve this
+
       if(r1 >= 100.)
       {
-        x[0] = int(r1/10.) * 10;
+        x[0] = int(r1/10.) * 10; //TODO : what if r1 exactly equal to for example 120.?
         dx = 10;
       }
       else
