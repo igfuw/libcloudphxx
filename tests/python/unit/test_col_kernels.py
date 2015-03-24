@@ -26,7 +26,7 @@ opts_init.dry_distros = {kappa:lognormal}
 
 opts_init.sd_conc_mean = 50.
 
-for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin]:
+for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin]:
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([]);
   if(kernel == lgrngn.kernel_t.golovin):

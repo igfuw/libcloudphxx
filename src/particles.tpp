@@ -15,6 +15,7 @@
 #include "detail/kernel_utils.hpp"
 
 //kernel definitions
+#include "detail/kernel_definitions/hall_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
 
 #include "particles_impl_kernel.ipp"
