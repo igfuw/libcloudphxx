@@ -35,10 +35,10 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
     - VERBOSE=1 make 
-    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - VERBOSE=1 make 
-    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
 
     # libmpdata (needed by icicle, skipping tests)

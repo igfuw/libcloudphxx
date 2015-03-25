@@ -288,6 +288,11 @@ namespace libcloudphxx
         const real_t power
       );
 
+      void mass_dens_estim(
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const real_t, const real_t, const real_t
+      );
+
       void sync(
         const arrinfo_t<real_t> &, // from 
         thrust_device::vector<real_t> & // to

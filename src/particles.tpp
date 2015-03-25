@@ -44,6 +44,7 @@
 #include "particles_impl_hskpng_count.ipp"
 
 #include "particles_impl_moms.ipp"
+#include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
 
