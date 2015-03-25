@@ -135,6 +135,13 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
 
+    // computes mass density function for wet radii using estimator from Shima et al. (2009)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
+    {
+      pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
+    }
+
     // computes mean chemical properties for the selected particles
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_chem(const enum chem_species_t &c)
