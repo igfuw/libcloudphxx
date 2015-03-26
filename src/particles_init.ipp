@@ -66,7 +66,7 @@ namespace libcloudphxx
       pimpl->init_wet();
 
       // initialising chem stuff
-      if(pimpl->opts_init.chem_switch == true) pimpl->init_chem();
+      if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
       pimpl->init_sstp();
 
