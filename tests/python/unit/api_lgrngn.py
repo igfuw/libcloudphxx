@@ -36,6 +36,7 @@ print "x1 =", opts_init.x1
 print "y1 =", opts_init.y1
 print "z1 =", opts_init.z1
 
+print "chem_switch = ", opts_init.chem_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
@@ -62,7 +63,6 @@ opts.chem_gas = {
   lgrngn.chem_species_t.O3   : 44,
   lgrngn.chem_species_t.H2O2 : 44
 }
-
 print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
@@ -80,7 +80,7 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_all()
-prtcls.diag_chem(lgrngn.chem_species_t.OH)
+#prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
 
