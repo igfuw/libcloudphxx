@@ -18,7 +18,7 @@ namespace libcloudphxx
 
       if(r1 >= 100.)
       {
-        x[0] = int(r1/10.) * 10; //TODO : what if r1 exactly equal to for example 120.?
+        x[0] = int(r1/10.) * 10; //TODO : what if r1 exactly equal to, for example, 120.?
         dx = 10;
       }
       else
@@ -42,6 +42,7 @@ namespace libcloudphxx
 
       n_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
+      //kernel_index does the same type casting as just done above?
       iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[0]), detail::kernel_index<real_t, n_t>(x[2]));
       iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[1]), detail::kernel_index<real_t, n_t>(x[2]));
       iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[0]), detail::kernel_index<real_t, n_t>(x[3]));

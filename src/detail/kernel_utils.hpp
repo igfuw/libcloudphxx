@@ -22,10 +22,10 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       n_t kernel_vector_index(const n_t &i, const n_t &j, const n_t &n_user_params = 0)
       {
-        if(i >= j)
-          return 0.5 * (i-1) * i + j + n_user_params;
+        if(i>=j)
+          return 0.5*i*(i+1) + j + n_user_params;
         else
-          return 0.5 * (j-1) * j + i + n_user_params;
+          return 0.5*j*(j+1) + i + n_user_params;
       }
     }
   }

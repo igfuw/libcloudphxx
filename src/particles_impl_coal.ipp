@@ -35,7 +35,6 @@ namespace libcloudphxx
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
 	thrust::get<n_a>(tpl) -= thrust::get<n_b>(tpl);
-
 	// wet radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rw2_b>(tpl) = pow(
 	  pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
@@ -113,6 +112,7 @@ namespace libcloudphxx
   
           // sanity check for random sampling validity
 //          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
+          if(prob > 1) printf("prob > 1 !!!\n");
 
           // comparing the upscaled probability with a random number and returning if unlucky
           if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;
