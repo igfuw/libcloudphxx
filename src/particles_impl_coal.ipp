@@ -24,20 +24,21 @@ namespace libcloudphxx
       };
 
       // assumes _a have higher multiplicities
-      template <typename tup_t, typename real_t,
+      template <typename tup_t, typename real_t, typename n_t,
         int   n_a, int   n_b,
         int rw2_a, int rw2_b,
         int rd3_a, int rd3_b,
         int  vt_a, int  vt_b
       >
       BOOST_GPU_ENABLED
-      void collide(tup_t &tpl)
+      void collide(tup_t &tpl, n_t col_no)
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
-	thrust::get<n_a>(tpl) -= thrust::get<n_b>(tpl);
+	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+
 	// wet radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rw2_b>(tpl) = pow(
-	  pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
+	  col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
 	  pow(thrust::get<rw2_b>(tpl), real_t(3./2))
 	  ,
 	  real_t(2./3)
@@ -45,7 +46,7 @@ namespace libcloudphxx
 
 	// dry radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rd3_b>(tpl) 
-	  = thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+	  = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
 
 	// invalidating vt
 	thrust::get<vt_b>(tpl) = detail::invalid;
@@ -112,29 +113,38 @@ namespace libcloudphxx
   
           // sanity check for random sampling validity
 //          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
-          if(prob > 1) printf("prob > 1 !!!\n");
+          n_t col_no = n_t(prob); //number of collisions between the pair; rint?
 
           // comparing the upscaled probability with a random number and returning if unlucky
-          if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;
+          if (thrust::get<u01_ix>(tpl_ro) < prob - col_no) ++col_no;
+          if(col_no == 0) return tpl_rw;
 
+#if !defined(__NVCC__)
+          using std::min;
+#endif
           // performing the coalescence event if lucky
           // note: >= causes equal-multiplicity collisions to result in flagging for recycling
           if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
-            collide<tpl_rw_t, real_t,
+          {
+            col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
+            collide<tpl_rw_t, real_t, n_t,
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
               rd3_a_ix, rd3_b_ix,
                vt_a_ix,  vt_b_ix
-            >(tpl_rw);
+            >(tpl_rw, col_no);
+          }
           else
-            collide<tpl_rw_t, real_t,
+          {
+            col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
+            collide<tpl_rw_t, real_t, n_t,
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,
               rd3_b_ix, rd3_a_ix,
                vt_b_ix,  vt_a_ix
-            >(tpl_rw);
-
-          return tpl_rw;
+            >(tpl_rw, col_no);
+          }
+          return tpl_rw;          
         }
       };
     };
