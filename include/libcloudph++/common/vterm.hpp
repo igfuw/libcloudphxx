@@ -63,6 +63,37 @@ namespace libcloudphxx
 
 	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second  ;
       }
+
+      // terminal fall velocity according to Beard (1976)
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::velocity, real_t> vt_beard( 
+	quantity<si::length, real_t> r, //radius
+	quantity<si::temperature, real_t> T, //temperature
+	quantity<si::pressure, real_t> p, //pressure
+	quantity<si::mass_density, real_t> rhoa, //density of air
+	quantity<si::mass_density, real_t> rhow, //density of water
+        quantity<si::dynamic_viscosity, real_t> eta
+      ) 
+      {
+        if(r <= quantity<si::length, real_t>(9.5e-6 * si::meter)) //TODO: < 0.5um
+        {
+          using earth::p_stp;
+          using earth::g;
+          quantity<si::length, real_t> l = 6.62e-8 * si::meter * (eta / 1.818e-5 / si::pascal / si::seconds) * (p_stp<real_t>() / p) * sqrt(T / 293.15 / si::kelvin);
+          quantity<si::dimensionless, real_t> C_ac = 1. + 1.255 * l / r;
+          return ( (rhow<real_t>()-rhoa<real_t>()) * g<real_t>() / ( 18. * eta) * C_ac * r);
+        } 
+        else if(r <= quantity<si::length, real_t>(5.035e-4 * si::meter))
+        {
+          const real_t b[7] = { -0.318657e1, 0.992696, -0.153193e-2, -0.987059e-3, -0.578878e-3, 0.855176e-4,-0.327815e-5};
+
+        }
+          const real_t cdata c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
+      &         0.238449e-2/
+         
+      }
+    
     };
   };
 };
