@@ -3,6 +3,7 @@
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp>
 #include <libcloudph++/common/earth.hpp>
+#include <libcloudph++/common/const_cp.hpp>
 
 // TODO: rename all such files to paper labels?
 
@@ -19,9 +20,12 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       quantity<si::dynamic_viscosity, real_t> visc(
 	quantity<si::temperature, real_t> T
-      ) {   
+      ) 
+      {  
+        using const_cp::T_tri;
+ 
 	return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
-	  * real_t(pow(T/si::kelvins/273, real_t(3./2))) * si::kilograms / si::metres / si::seconds; // TODO: 273 ...
+	  * real_t(pow(T/T_tri<real_t>(), real_t(3./2))) * si::kilograms / si::metres / si::seconds;
       }
 
       // terminal fall velocity of spherical droplets 
