@@ -49,6 +49,7 @@ namespace libcloudphxx
       std::vector<real_t> kernel_parameters;
 
       // chem
+      bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
       int sstp_chem;
       real_t chem_rho;
 
@@ -63,9 +64,10 @@ namespace libcloudphxx
         x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
         sd_conc_mean(64),                                          // TODO: why 64
         dt(1e-3),                                                  // TODO: why 1e-3
-        sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: why 10
+        sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: change to 0 and check if it was set by the user (not default)
+        chem_switch(false),  // chemical reactions turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
-        chem_rho(1.8e3) // dry particle density
+        chem_rho(0) // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
       {}
     };
   }
