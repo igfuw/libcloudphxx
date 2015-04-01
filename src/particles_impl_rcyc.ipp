@@ -42,6 +42,7 @@ namespace libcloudphxx
         n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
       }
       assert(n_flagged <= n_part / 2);
+//      printf("no to be recycled: %d\n",n_flagged);
 
       if (n_flagged == 0) return;
 

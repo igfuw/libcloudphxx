@@ -12,29 +12,29 @@ namespace libcloudphxx
           x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
 
       if(r1 >= kernel_base<real_t, n_t>::r_max) 
-        r1 = kernel_base<real_t, n_t>::r_max - 1e-6; //TODO : improve this
+        r1 = kernel_base<real_t, n_t>::r_max - 1e-6;
       if(r2 >= kernel_base<real_t, n_t>::r_max) 
-        r2 = kernel_base<real_t, n_t>::r_max - 1e-6; //TODO : improve this
+        r2 = kernel_base<real_t, n_t>::r_max - 1e-6; 
 
       if(r1 >= 100.)
       {
-        x[0] = int(r1/10.) * 10; //TODO : what if r1 exactly equal to, for example, 120.?
+        x[0] = floor(r1/10.) * 10;
         dx = 10;
       }
       else
       {
-        x[0] = int(r1);
+        x[0] = floor(r1);
         dx = 1;
       }
 
       if(r2 >= 100.)
       {
-        x[2] = int(r2/10.) * 10;
+        x[2] = floor(r2/10.) * 10;
         dy = 10;
       }
       else
       {
-        x[2] = int(r2);
+        x[2] = floor(r2);
         dy = 1;
       }
       x[1] = x[0] + dx;
@@ -42,11 +42,20 @@ namespace libcloudphxx
 
       n_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
-      //kernel_index does the same type casting as just done above?
-      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[0]), detail::kernel_index<real_t, n_t>(x[2]));
-      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[1]), detail::kernel_index<real_t, n_t>(x[2]));
-      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[0]), detail::kernel_index<real_t, n_t>(x[3]));
-      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<real_t, n_t>(x[1]), detail::kernel_index<real_t, n_t>(x[3]));
+      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]));
+      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]));
+      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]));
+      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]));
+
+      // do not interpolate if one of probabilities == 0, since there are some large differences (i.e. 0 | 0.97 | 0.98 | 0.99 | 1.) 
+      for(int i = 0; i < 4;++i)
+        if(kernel_base<real_t, n_t>::k_params[iv[i]]==0)
+          return kernel_base<real_t, n_t>::k_params[
+                   detail::kernel_vector_index<n_t>(
+                     detail::kernel_index_round<real_t, n_t>(r1),
+                     detail::kernel_index_round<real_t, n_t>(r2)
+                   )
+                 ];
 
       real_t w[4];   //  weighting factors
       w[0] = r1 - x[0];

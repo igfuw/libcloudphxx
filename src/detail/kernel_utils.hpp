@@ -7,14 +7,24 @@ namespace libcloudphxx
     namespace detail
     {   
       //return index corresponding to given radius, only works for files supplied by Jon
-      template<class real_t, class n_t>
+      template<class n_t>
       BOOST_GPU_ENABLED
-      n_t kernel_index(const real_t &R)
+      n_t kernel_index(const n_t &R)
       {
         if( R<= 100.)
           return R;
         else
-          return (100 + (R-100.) / 10.);
+          return 100 + (R-100.) / 10.;
+      }
+
+      template<class real_t, class n_t>
+      BOOST_GPU_ENABLED
+      n_t kernel_index_round(const real_t &R)
+      {
+        if( R<= 100.)
+          return round(R);
+        else
+          return 100 + round((R-100.) / 10.);
       }
 
       //return index of kernel_params corresponding to two given indices from Jon's files
