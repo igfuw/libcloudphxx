@@ -64,11 +64,9 @@ namespace libcloudphxx
 
       // initialising wet radii
       pimpl->init_wet();
-//      debug::print(pimpl->n);
-//      debug::print(pimpl->rd3);
- 
+
       // initialising chem stuff
-      pimpl->init_chem(); // TODO: only if chem enabled?
+      if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
       pimpl->init_sstp();
 

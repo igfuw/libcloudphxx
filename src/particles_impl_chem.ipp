@@ -370,6 +370,8 @@ namespace libcloudphxx
       using namespace common::henry;      // H-prefixed
       using namespace common::molar_mass; // M-prefixed
 
+      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+
 std::cerr << "@particles_t::impl::chem()" << std::endl;
       // 0/4: calculating drop volumes
       thrust_device::vector<real_t> &V(tmp_device_real_part);

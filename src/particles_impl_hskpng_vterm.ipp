@@ -19,17 +19,25 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
        ) {   
 #if !defined(__NVCC__)
          using std::sqrt;
 #endif
+         return common::vterm::vt_beard(
+           sqrt(rw2)           * si::metres, // TODO: consider caching rw?
+           thrust::get<0>(tpl) * si::kelvins,
+           thrust::get<1>(tpl) * si::pascals,
+           thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+           thrust::get<3>(tpl) * si::pascals * si::seconds
+         ) / si::metres_per_second;
+/*
          return common::vterm::vt(
            sqrt(rw2)           * si::metres, // TODO: consider caching rw?
            thrust::get<0>(tpl) * si::kelvins,
-           thrust::get<1>(tpl) * si::kilograms / si::cubic_metres,
-           thrust::get<2>(tpl) * si::pascals * si::seconds
-         ) / si::metres_per_second;
+           thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+           thrust::get<3>(tpl) * si::pascals * si::seconds
+         ) / si::metres_per_second;*/
        }   
       }; 
     };
@@ -42,7 +50,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
 
       namespace arg = thrust::placeholders;
 
@@ -50,6 +58,7 @@ namespace libcloudphxx
         rw2.begin(), rw2.end(),                                 // input - 1st arg
 	zip_it_t(thrust::make_tuple(
           thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+          thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
           thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg   
@@ -67,12 +76,13 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
 
       thrust::transform(
         rw2.begin(), rw2.end(),                                 // input - 1st arg
 	zip_it_t(thrust::make_tuple(
           thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+          thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
           thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg
