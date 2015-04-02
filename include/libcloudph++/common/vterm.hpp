@@ -4,6 +4,7 @@
 #include <libcloudph++/common/macros.hpp>
 #include <libcloudph++/common/earth.hpp>
 #include <libcloudph++/common/const_cp.hpp>
+#include <libcloudph++/common/kelvin_term.hpp>
 
 // TODO: rename all such files to paper labels?
 
@@ -72,28 +73,51 @@ namespace libcloudphxx
 	quantity<si::temperature, real_t> T, //temperature
 	quantity<si::pressure, real_t> p, //pressure
 	quantity<si::mass_density, real_t> rhoa, //density of air
-	quantity<si::mass_density, real_t> rhow, //density of water
         quantity<si::dynamic_viscosity, real_t> eta
       ) 
       {
-        if(r <= quantity<si::length, real_t>(9.5e-6 * si::meter)) //TODO: < 0.5um
+        using earth::p_stp;
+        using earth::g;
+        using moist_air::rho_w;
+#if !defined(__NVCC__)
+ //       using std::pow;
+//        using std::sqrt;
+#endif
+
+        if(r <= quantity<si::length, real_t>(real_t(9.5e-6) * si::meters)) //TODO: < 0.5um
         {
-          using earth::p_stp;
-          using earth::g;
-          quantity<si::length, real_t> l = 6.62e-8 * si::meter * (eta / 1.818e-5 / si::pascal / si::seconds) * (p_stp<real_t>() / p) * sqrt(T / 293.15 / si::kelvin);
-          quantity<si::dimensionless, real_t> C_ac = 1. + 1.255 * l / r;
-          return ( (rhow<real_t>()-rhoa<real_t>()) * g<real_t>() / ( 18. * eta) * C_ac * r);
+          quantity<si::dimensionless> T_sc = T / real_t(293.15) / si::kelvins;
+          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
+          quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
+          return ( (rho_w<real_t>()-rhoa) * g<real_t>() / ( real_t(4.5) * eta) * C_ac * r *r);
         } 
-        else if(r <= quantity<si::length, real_t>(5.035e-4 * si::meter))
+
+        else if(r <= quantity<si::length, real_t>(real_t(5.035e-4) * si::meters))
         {
           const real_t b[7] = { -0.318657e1, 0.992696, -0.153193e-2, -0.987059e-3, -0.578878e-3, 0.855176e-4,-0.327815e-5};
-
+          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
+          quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
+          quantity<si::dimensionless, real_t> log_N_Da = log( real_t(32./3.) * r * r * r * rhoa * (rho_w<real_t>() - rhoa) * g<real_t>() / eta / eta );
+          quantity<si::dimensionless, real_t> Y = 0.;
+          for(int i=0; i<7; ++i)
+            Y = Y + b[i] * pow(log_N_Da, real_t(i));
+          quantity<si::dimensionless, real_t> N_Re = C_ac * exp(Y);
+          return (eta * N_Re / rhoa / real_t(2.) / r);
         }
-          const real_t cdata c /-0.500015e1,0.523778e1,-0.204914e1,0.475294,-0.542819e-1,
-      &         0.238449e-2/
-         
-      }
-    
+        else //TODO: > 7mm
+        {
+          using kelvin::sg_surf; 
+          const real_t b[6] = { -0.500015e1, 0.523778e1, -0.204914e1, 0.475294, -0.542819e-1, 0.238449e-2};
+          quantity<si::dimensionless, real_t> Bo = real_t(16./3.) * r * r * (rho_w<real_t>() - rhoa) * g<real_t>() / sg_surf<real_t>(T);
+          quantity<si::dimensionless, real_t> N_p = sg_surf<real_t>(T) * sg_surf<real_t>(T) * sg_surf<real_t>(T)  * rhoa * rhoa / eta / eta / eta / eta / g<real_t>() / (rho_w<real_t>() - rhoa);
+          quantity<si::dimensionless, real_t> X = log (Bo * pow(N_p, real_t(1./6.)));
+          quantity<si::dimensionless, real_t> Y = 0.;
+          for(int i=0; i<6; ++i)
+            Y = Y + b[i] * pow(X, real_t(i));
+          quantity<si::dimensionless, real_t> N_Re = pow(N_p, real_t(1./6.)) * exp(Y);
+          return (eta * N_Re / rhoa / real_t(2.) / r);
+        }         
+      }    
     };
   };
 };
