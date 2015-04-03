@@ -16,31 +16,43 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__vt
       {
+        vt_t vt_eq; //type of terminal velocity formula to use 
+
+        //ctor
+        common__vterm__vt(const vt_t &vt_eq): vt_eq(vt_eq) {}
+
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
           const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
-       ) {   
+        ) {   
 #if !defined(__NVCC__)
          using std::sqrt;
 #endif
-         return common::vterm::vt_beard(
-           sqrt(rw2)           * si::metres, // TODO: consider caching rw?
-           thrust::get<0>(tpl) * si::kelvins,
-           thrust::get<1>(tpl) * si::pascals,
-           thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
-           thrust::get<3>(tpl) * si::pascals * si::seconds
-         ) / si::metres_per_second;
-/*
-         return common::vterm::vt(
-           sqrt(rw2)           * si::metres, // TODO: consider caching rw?
-           thrust::get<0>(tpl) * si::kelvins,
-           thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
-           thrust::get<3>(tpl) * si::pascals * si::seconds
-         ) / si::metres_per_second;*/
+         switch(vt_eq)
+         {
+           case(beard):
+             return common::vterm::vt_beard(
+               sqrt(rw2)           * si::metres, // TODO: consider caching rw?
+               thrust::get<0>(tpl) * si::kelvins,
+               thrust::get<1>(tpl) * si::pascals,
+               thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+               thrust::get<3>(tpl) * si::pascals * si::seconds
+             ) / si::metres_per_second;
+
+           case(khvorostyanov_spherical):
+             return common::vterm::vt_khvorostyanov_spherical(
+               sqrt(rw2)           * si::metres, // TODO: consider caching rw?
+               thrust::get<0>(tpl) * si::kelvins,
+               thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+               thrust::get<3>(tpl) * si::pascals * si::seconds
+             ) / si::metres_per_second;
+           default:
+             return 0.; //default vt_eq is set to beard in opts_init ctor
+         }
        }   
-      }; 
-    };
+     }; 
+   };
 
 
     template <typename real_t, backend_t device>
@@ -64,7 +76,7 @@ namespace libcloudphxx
         )),                                                     // input - 2nd arg   
         vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
-	detail::common__vterm__vt<real_t>(),
+	detail::common__vterm__vt<real_t>(opts_init.vt_eq),
         arg::_1 == real_t(detail::invalid)
       );
     }
@@ -87,7 +99,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg
 	vt.begin(),                                             // output
-	detail::common__vterm__vt<real_t>()
+	detail::common__vterm__vt<real_t>(opts_init.vt_eq)
       );
     }
   };  

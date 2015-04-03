@@ -34,7 +34,7 @@ namespace libcloudphxx
       // for derivation see @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::velocity, real_t> vt( 
+      quantity<si::velocity, real_t> vt_khvorostyanov_spherical( 
 	quantity<si::length, real_t> r, //radius
 	quantity<si::temperature, real_t> T, //temperature
 	quantity<si::mass_density, real_t> rhoa, //density of air
@@ -65,7 +65,7 @@ namespace libcloudphxx
 	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second  ;
       }
 
-      // terminal fall velocity according to Beard (1976)
+      // terminal fall velocity according to Beard (1976), Table 1
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_beard( 
@@ -79,14 +79,9 @@ namespace libcloudphxx
         using earth::p_stp;
         using earth::g;
         using moist_air::rho_w;
-#if !defined(__NVCC__)
- //       using std::pow;
-//        using std::sqrt;
-#endif
 
         if(r <= quantity<si::length, real_t>(real_t(9.5e-6) * si::meters)) //TODO: < 0.5um
         {
-          quantity<si::dimensionless> T_sc = T / real_t(293.15) / si::kelvins;
           quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
           quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
           return ( (rho_w<real_t>()-rhoa) * g<real_t>() / ( real_t(4.5) * eta) * C_ac * r *r);
