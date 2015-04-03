@@ -76,7 +76,7 @@ namespace libcloudphxx
         )),                                                     // input - 2nd arg   
         vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
-	detail::common__vterm__vt<real_t>(opts_init.vt_eq),
+	detail::common__vterm__vt<real_t>(opts_init.terminal_velocity),
         arg::_1 == real_t(detail::invalid)
       );
     }
@@ -99,7 +99,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg
 	vt.begin(),                                             // output
-	detail::common__vterm__vt<real_t>(opts_init.vt_eq)
+	detail::common__vterm__vt<real_t>(opts_init.terminal_velocity)
       );
     }
   };  

@@ -28,8 +28,6 @@ namespace libcloudphxx
         return real_t(0.07275) * (real_t(1.) - real_t(0.002) * (T / si::kelvins - real_t(291.))) * si::newtons / si::metres;
       }
 
-      libcloudphxx_const(force_over_length, sg_surf, 0.072, si::newton/si::metres)
-
       // Kelvin curvature parameter (see eq. 7 in Kvorostyanov and Curry 2006)
       template <typename real_t>
       BOOST_GPU_ENABLED

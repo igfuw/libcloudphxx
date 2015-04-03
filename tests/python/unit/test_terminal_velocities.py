@@ -29,7 +29,7 @@ opts_init.sd_conc_mean = 50.
 opts_init.kernel = lgrngn.kernel_t.geometric
 
 for vt_eq in [lgrngn.vt_t.beard, lgrngn.vt_t.khvorostyanov_spherical]:
-  opts_init.vt_eq = vt_eq
+  opts_init.terminal_veolcity = vt_eq
 
   try:
     prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
