@@ -127,22 +127,10 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
         using std::sqrt;
 #endif
-/*
+
         real_t res = kernel_geometric<real_t, n_t>::bilinear_interpolation(
                        sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
                        sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
-*/
-        real_t r1,r2;
-        r1 = sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6;
-        r2 = sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6;
-        if(r1 >= kernel_base<real_t, n_t>::r_max) 
-          r1 = kernel_base<real_t, n_t>::r_max - 1e-7; //TODO : improve this
-        if(r2 >= kernel_base<real_t, n_t>::r_max) 
-          r2 = kernel_base<real_t, n_t>::r_max - 1e-7; //TODO : improve this
-        n_t i1 = detail::kernel_index_round<real_t, n_t>(r1);
-        n_t i2 = detail::kernel_index_round<real_t, n_t>(r2);
-        n_t iv = detail::kernel_vector_index<n_t>(i1, i2);
-        real_t res = kernel_base<real_t, n_t>::k_params[iv]; 
 
         res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         return res;
