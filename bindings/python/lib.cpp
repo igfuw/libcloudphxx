@@ -115,6 +115,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("golovin", lgr::golovin)
       .value("hall", lgr::hall)
       .value("hall_davis_no_waals", lgr::hall_davis_no_waals);
+    bp::enum_<lgr::vt_t>("vt_t") 
+      .value("beard", lgr::beard)
+      .value("khvorostyanov_spherical", lgr::khvorostyanov_spherical);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
@@ -157,6 +160,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
+      .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
