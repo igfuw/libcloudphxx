@@ -48,7 +48,7 @@ namespace libcloudphxx
                thrust::get<3>(tpl) * si::pascals * si::seconds
              ) / si::metres_per_second;
            default:
-             return 0.; //default vt_eq is set to beard in opts_init ctor
+             return 0.; //sanity checks done in pimpl constructor
          }
        }   
      }; 

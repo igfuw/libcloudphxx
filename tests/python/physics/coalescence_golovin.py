@@ -2,8 +2,6 @@
 
 import sys 
 sys.path.insert(0, "../../bindings/python/")
-sys.path.insert(0,'/home/pracownicy/pdziekan/praca/code/libcloudphxx/build/bindings/python/')
-
 
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
@@ -70,6 +68,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 opts_init.sd_conc_mean = pow(2,14)
 
 opts_init.kernel = lgrngn.kernel_t.golovin
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.kernel_parameters = np.array([b]);
 
 try:

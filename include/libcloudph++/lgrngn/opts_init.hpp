@@ -72,7 +72,7 @@ namespace libcloudphxx
         chem_switch(false),  // chemical reactions turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
-        terminal_velocity(beard) // Beard by default
+        terminal_velocity(undefined)
       {}
     };
   }

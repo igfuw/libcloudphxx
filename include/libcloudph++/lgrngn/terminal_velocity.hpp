@@ -5,7 +5,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
 //<listing>
-    enum vt_t { beard, khvorostyanov_spherical }; 
+    enum vt_t { undefined, beard, khvorostyanov_spherical }; 
 //</listing>
   };
 };
