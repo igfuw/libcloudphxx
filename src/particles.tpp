@@ -13,6 +13,7 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 #include "detail/kernel_utils.hpp"
+#include "detail/opts_init_sanity_checks.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"

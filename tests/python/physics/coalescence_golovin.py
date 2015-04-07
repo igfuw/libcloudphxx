@@ -68,6 +68,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 opts_init.sd_conc_mean = pow(2,14)
 
 opts_init.kernel = lgrngn.kernel_t.golovin
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.kernel_parameters = np.array([b]);
 
 try:

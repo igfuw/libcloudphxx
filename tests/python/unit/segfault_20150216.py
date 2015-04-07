@@ -7,6 +7,7 @@ import numpy as np
 
 opts_init = lgrngn.opts_init_t()
 opts_init.kernel = lgrngn.kernel_t.geometric
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 
 opts_init.dt = 1
 

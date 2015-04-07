@@ -84,7 +84,7 @@ namespace libcloudphxx
           break;
 
         default:
-          throw std::runtime_error("please supply a type of collision kernel to use");
+          throw std::runtime_error("please supply a type of collision kernel to use"); //TODO: move to pimpl ctor sanity checks?
       }
     }
   }
