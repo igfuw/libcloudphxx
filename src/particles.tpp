@@ -13,6 +13,8 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 
+#include "particles_impl_kernel.ipp"
+
 // public API
 #include "particles_pimpl_ctor.ipp"
 #include "particles_init.ipp"
@@ -28,6 +30,7 @@
 #include "particles_impl_init_sync.ipp"
 #include "particles_impl_init_hskpng.ipp"
 #include "particles_impl_init_chem.ipp"
+#include "particles_impl_init_kernel.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
@@ -49,3 +52,4 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+

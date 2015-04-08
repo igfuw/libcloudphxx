@@ -7,6 +7,7 @@
   */
 
 #include <thrust/host_vector.h>
+#include <thrust/iterator/constant_iterator.h>
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
@@ -40,6 +41,19 @@ namespace libcloudphxx
       const int n_cell; 
       const thrust_size_t n_part; 
       detail::u01<real_t, device> rng;
+
+      // pointer to collision kernel
+      kernel_base<real_t, n_t> *p_kernel;
+ 
+      //containters for all kernel types
+      thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
+      thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+
+      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
+      thrust_device::vector<real_t> kernel_parameters;
+
+      //number of parameters defined by user in opts_init
+      const n_t n_kernel_params;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -171,7 +185,8 @@ namespace libcloudphxx
         ),
         zero(0), 
         sorted(false), 
-        u01(tmp_device_real_part)
+        u01(tmp_device_real_part),
+        n_kernel_params(opts_init.kernel_parameters.size())
       {
         // sanity checks
         if (n_dims > 0)
@@ -192,7 +207,6 @@ namespace libcloudphxx
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
-
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
@@ -243,6 +257,7 @@ namespace libcloudphxx
       void init_hskpng();
       void init_chem();
       void init_sstp();
+      void init_kernel();
 
       void fill_outbuf();
 

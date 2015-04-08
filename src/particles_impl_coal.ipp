@@ -5,9 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#if defined(__NVCC__)
-#  include <math_constants.h>
-#endif
 
 namespace libcloudphxx
 {
@@ -66,7 +63,7 @@ namespace libcloudphxx
           real_t,                       // scaling factor
           thrust_size_t, thrust_size_t, // ix
           thrust_size_t, thrust_size_t, // off (index within cell)
-          real_t                        // dv
+          real_t                       // dv
         > tpl_ro_t;
         enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix, dv_ix };
 
@@ -80,8 +77,10 @@ namespace libcloudphxx
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 
         const real_t dt;
-       
-        collider(const real_t &dt) : dt(dt) {}
+        const kernel_base<real_t, n_t> *p_kernel;
+
+        //ctor
+        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel) : dt(dt), p_kernel(p_kernel) {}
 
         BOOST_GPU_ENABLED
         tpl_rw_t operator()(const tpl_ro_t &tpl_ro, tpl_rw_t tpl_rw)
@@ -103,35 +102,15 @@ namespace libcloudphxx
             // only droplets within the same cell
             if (cix_a != cix_b - 1) return tpl_rw;
           }
-          
-#if !defined(__NVCC__)
-          using std::abs;
-          using std::pow;
-          using std::max;
-#endif
+
+          //wrap the tpl_rw tuple to pass it to kernel
+          tpl_rw_t_wrap<real_t,n_t> tpl_wrap(tpl_rw);
 
           // computing the probability of collision
           real_t prob = dt / thrust::get<dv_ix>(tpl_ro)
-#if !defined(__NVCC__)
-            * pi<real_t>() 
-#else
-            * CUDART_PI
-#endif
             * thrust::get<scl_ix>(tpl_ro)
-            * max(
-                thrust::get<n_a_ix>(tpl_rw), 
-                thrust::get<n_b_ix>(tpl_rw)
-              ) 
-            * abs(
-                thrust::get<vt_a_ix>(tpl_rw) -
-                thrust::get<vt_b_ix>(tpl_rw)
-              ) 
-            * pow(
-                sqrt(thrust::get<rw2_a_ix>(tpl_rw)) + 
-                sqrt(thrust::get<rw2_b_ix>(tpl_rw)),
-              real_t(2)) 
-            * real_t(1); // TODO: collection efficiency
-
+            * p_kernel->calc(tpl_wrap);
+  
           // sanity check for random sampling validity
 //          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
 
@@ -227,12 +206,12 @@ namespace libcloudphxx
 
       typedef thrust::zip_iterator<
         thrust::tuple< 
-          typename thrust_device::vector<real_t>::iterator,  // u01
-          pi_real_t,                                         // scl
-          thrust::counting_iterator<thrust_size_t>,          // ix_a
-          thrust::counting_iterator<thrust_size_t>,          // ix_b
-          pi_size_t, pi_size_t,                              // off_a & off_b
-          pi_real_t                                          // dv
+          typename thrust_device::vector<real_t>::iterator,        // u01
+          pi_real_t,                                               // scl
+          thrust::counting_iterator<thrust_size_t>,                // ix_a
+          thrust::counting_iterator<thrust_size_t>,                // ix_b
+          pi_size_t, pi_size_t,                                    // off_a & off_b
+          pi_real_t                                                // dv
         >
       > zip_ro_t;
 
@@ -283,7 +262,7 @@ namespace libcloudphxx
         zip_ro_it, zip_ro_it + n_part - 1,  // input - 1st arg
         zip_rw_it,                          // input - 2nd arg
         zip_rw_it,                          // output (in place)
-        detail::collider<real_t, n_t>(dt)
+        detail::collider<real_t, n_t>(dt, p_kernel)
       );
     }
   };  
