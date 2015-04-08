@@ -32,8 +32,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::rcyc(
-    )
+    void particles_t<real_t, device>::impl::rcyc()
     {   
       // count the numer of paticles to recycle
       thrust_size_t n_flagged;
@@ -76,9 +75,11 @@ namespace libcloudphxx
       detail::copy_prop<real_t>(rw2.begin(), sorted_id, n_flagged);
       detail::copy_prop<real_t>(kpa.begin(), sorted_id, n_flagged);
 
-      // TODO: only if chem enabled
-      for (int i = 0; i < chem_aq_n; ++i)
-        detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
+      // ... chemical properties only if chem enabled
+      if (opts_init.chem_switch){
+        for (int i = 0; i < chem_aq_n; ++i)
+          detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
+      }
 
       {
         namespace arg = thrust::placeholders;
