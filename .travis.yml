@@ -35,10 +35,10 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
     - VERBOSE=1 make 
-    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - VERBOSE=1 make 
-    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - sudo make install
 
     # libmpdata (needed by icicle, skipping tests)
@@ -48,7 +48,9 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev gnuplot-nox libhdf5-serial-dev cmake libgnuplot-iostream-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget -O /usr/local/include/gnuplot-iostream.h http://gitorious.org/gnuplot-iostream/gnuplot-iostream/raw/gnuplot-iostream.h; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
+
     - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
     - cd libmpdataxx/libmpdata++
     - mkdir build
