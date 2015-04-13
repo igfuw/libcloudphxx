@@ -20,6 +20,8 @@ kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard
+opts_init.dt = 1
+opts_init.sd_conc_mean = 64
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
