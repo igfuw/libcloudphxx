@@ -31,7 +31,7 @@ namespace libcloudphxx
         int  vt_a, int  vt_b
       >
       BOOST_GPU_ENABLED
-      void collide(tup_t &tpl, n_t col_no)
+      void collide(tup_t &tpl, const n_t &col_no)
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
 	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
