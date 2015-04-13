@@ -16,10 +16,10 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__vt
       {
-        vt_t vt_eq; //type of terminal velocity formula to use 
+        vt_t::vt_t vt_eq; //type of terminal velocity formula to use 
 
         //ctor
-        common__vterm__vt(const vt_t &vt_eq): vt_eq(vt_eq) {}
+        common__vterm__vt(const vt_t::vt_t &vt_eq): vt_eq(vt_eq) {}
 
         BOOST_GPU_ENABLED 
         real_t operator()(
@@ -31,7 +31,7 @@ namespace libcloudphxx
 #endif
          switch(vt_eq)
          {
-           case(beard):
+           case(vt_t::beard):
              return common::vterm::vt_beard(
                sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                thrust::get<0>(tpl) * si::kelvins,
@@ -40,7 +40,7 @@ namespace libcloudphxx
                thrust::get<3>(tpl) * si::pascals * si::seconds
              ) / si::metres_per_second;
 
-           case(khvorostyanov_spherical):
+           case(vt_t::khvorostyanov_spherical):
              return common::vterm::vt_khvorostyanov_spherical(
                sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                thrust::get<0>(tpl) * si::kelvins,

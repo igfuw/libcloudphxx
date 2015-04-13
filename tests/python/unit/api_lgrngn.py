@@ -40,6 +40,8 @@ print "y1 =", opts_init.y1
 print "z1 =", opts_init.z1
 
 print "chem_switch = ", opts_init.chem_switch
+print "coal_switch = ", opts_init.coal_switch
+print "sedi_switch = ", opts_init.sedi_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal

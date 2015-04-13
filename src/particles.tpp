@@ -12,7 +12,6 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
-#include "detail/opts_init_sanity_checks.hpp"
 
 #include "particles_impl_kernel.ipp"
 
