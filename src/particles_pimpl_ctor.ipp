@@ -205,6 +205,9 @@ namespace libcloudphxx
             throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
         }
 
+        if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
+        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
