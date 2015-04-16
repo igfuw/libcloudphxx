@@ -1,7 +1,7 @@
 #TODO: search scipy?
 
 # non-pytest tests
-foreach(test coalescence_golovin)
+foreach(test coalescence_golovin coalescence_hall_davis_no_waals)
   #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}

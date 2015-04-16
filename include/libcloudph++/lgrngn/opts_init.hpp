@@ -9,6 +9,7 @@
 
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
+#include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -43,6 +44,9 @@ namespace libcloudphxx
 
       // coalescence Kernel type
       kernel_t kernel;
+
+      // terminal velocity formula
+      vt_t terminal_velocity;
 //</listing>
  
       // coalescence kernel parameters
@@ -67,7 +71,8 @@ namespace libcloudphxx
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
-        chem_rho(0) // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
+        chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
+        terminal_velocity(undefined)
       {}
     };
   }

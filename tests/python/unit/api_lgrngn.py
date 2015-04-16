@@ -21,6 +21,7 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.dt = 1
 opts_init.sd_conc_mean = 64
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
@@ -45,6 +46,7 @@ print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
 print "kernel =", opts_init.kernel 
+print "terminal_velocity =", opts_init.terminal_velocity
 print "sd_conc_mean =", opts_init.sd_conc_mean
 print "chem_rho =", opts_init.chem_rho
 

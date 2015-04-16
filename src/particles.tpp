@@ -12,6 +12,12 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
+#include "detail/kernel_utils.hpp"
+#include "detail/opts_init_sanity_checks.hpp"
+
+//kernel definitions
+#include "detail/kernel_definitions/hall_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
 
 #include "particles_impl_kernel.ipp"
 
@@ -39,6 +45,7 @@
 #include "particles_impl_hskpng_count.ipp"
 
 #include "particles_impl_moms.ipp"
+#include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
 
@@ -52,4 +59,5 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+#include "particles_impl_kernel_interpolation.ipp"
 

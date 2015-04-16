@@ -31,6 +31,9 @@ namespace libcloudphxx
 	BOOST_GPU_ENABLED 
 	real_t operator()(real_t x) 
 	{ 
+#if !defined(__NVCC__)
+          using std::exp;
+#endif
 	  return exp(3*x); 
 	} 
       };
@@ -101,6 +104,11 @@ namespace libcloudphxx
 
 	// rd3 temporarily means logarithm of radius!
 	thrust_device::vector<real_t> &lnrd(rd3);
+
+#if !defined(__NVCC__)
+        using std::log;
+        using std::exp;
+#endif
 
 	// shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
 	thrust::transform(

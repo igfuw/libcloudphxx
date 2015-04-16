@@ -112,7 +112,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
       .value("geometric", lgr::geometric)
-      .value("golovin", lgr::golovin);
+      .value("golovin", lgr::golovin)
+      .value("hall", lgr::hall)
+      .value("hall_davis_no_waals", lgr::hall_davis_no_waals);
+    bp::enum_<lgr::vt_t>("vt_t") 
+      .value("beard", lgr::beard)
+      .value("khvorostyanov_spherical", lgr::khvorostyanov_spherical);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
@@ -155,6 +160,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
+      .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
@@ -173,6 +179,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
+      .def("diag_wet_mass_dens", &lgr::particles_proto_t<real_t>::diag_wet_mass_dens)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
