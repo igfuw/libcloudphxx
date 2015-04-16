@@ -5,9 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#if defined(__NVCC__)
-#  include <math_constants.h>
-#endif
 
 namespace libcloudphxx
 {
@@ -27,21 +24,22 @@ namespace libcloudphxx
       };
 
       // assumes _a have higher multiplicities
-      template <typename tup_t, typename real_t,
+      template <typename real_t, typename n_t,
         int   n_a, int   n_b,
         int rw2_a, int rw2_b,
         int rd3_a, int rd3_b,
-        int  vt_a, int  vt_b
+        int  vt_a, int  vt_b,
+        typename tup_t
       >
       BOOST_GPU_ENABLED
-      void collide(tup_t &tpl)
+      void collide(tup_t tpl, const n_t &col_no)
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
-	thrust::get<n_a>(tpl) -= thrust::get<n_b>(tpl);
+	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
 
 	// wet radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rw2_b>(tpl) = pow(
-	  pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
+	  col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
 	  pow(thrust::get<rw2_b>(tpl), real_t(3./2))
 	  ,
 	  real_t(2./3)
@@ -49,15 +47,15 @@ namespace libcloudphxx
 
 	// dry radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rd3_b>(tpl) 
-	  = thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+	  = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
 
 	// invalidating vt
 	thrust::get<vt_b>(tpl) = detail::invalid;
 
 	// TODO: kappa, chemistry (only if enabled)
       }
-
       template <typename real_t, typename n_t>
+
       struct collider
       {
         // read-only parameters
@@ -66,7 +64,7 @@ namespace libcloudphxx
           real_t,                       // scaling factor
           thrust_size_t, thrust_size_t, // ix
           thrust_size_t, thrust_size_t, // off (index within cell)
-          real_t                        // dv
+          real_t                       // dv
         > tpl_ro_t;
         enum { u01_ix, scl_ix, ix_a_ix, ix_b_ix, off_a_ix, off_b_ix, dv_ix };
 
@@ -80,12 +78,17 @@ namespace libcloudphxx
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 
         const real_t dt;
-       
-        collider(const real_t &dt) : dt(dt) {}
+        const kernel_base<real_t, n_t> *p_kernel;
 
+        //ctor
+        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel) : dt(dt), p_kernel(p_kernel) {}
+
+        template <class tup_ro_rw_t>
         BOOST_GPU_ENABLED
-        tpl_rw_t operator()(const tpl_ro_t &tpl_ro, tpl_rw_t tpl_rw)
+        void operator()(tup_ro_rw_t tpl_ro_rw)
         {
+          const tpl_ro_t tpl_ro = thrust::get<0>(tpl_ro_rw);
+          const tpl_rw_t tpl_rw = thrust::get<1>(tpl_ro_rw);
           // sanity checks
 #if !defined(__NVCC__)
           assert(thrust::get<ix_a_ix>(tpl_ro) + 1 == thrust::get<ix_b_ix>(tpl_ro));
@@ -96,66 +99,55 @@ namespace libcloudphxx
             const thrust_size_t &cix_a = thrust::get<ix_a_ix>(tpl_ro) - thrust::get<off_a_ix>(tpl_ro);
 
             // only every second droplet within a cell
-            if (cix_a % 2 != 0) return tpl_rw;
+            if (cix_a % 2 != 0) return;
 
             const thrust_size_t &cix_b = thrust::get<ix_b_ix>(tpl_ro) - thrust::get<off_b_ix>(tpl_ro);
 
             // only droplets within the same cell
-            if (cix_a != cix_b - 1) return tpl_rw;
+            if (cix_a != cix_b - 1) return;
           }
-          
-#if !defined(__NVCC__)
-          using std::abs;
-          using std::pow;
-          using std::max;
-#endif
+
+          //wrap the tpl_rw tuple to pass it to kernel
+          tpl_rw_t_wrap<real_t,n_t> tpl_wrap(tpl_rw);
 
           // computing the probability of collision
           real_t prob = dt / thrust::get<dv_ix>(tpl_ro)
-#if !defined(__NVCC__)
-            * pi<real_t>() 
-#else
-            * CUDART_PI
-#endif
             * thrust::get<scl_ix>(tpl_ro)
-            * max(
-                thrust::get<n_a_ix>(tpl_rw), 
-                thrust::get<n_b_ix>(tpl_rw)
-              ) 
-            * abs(
-                thrust::get<vt_a_ix>(tpl_rw) -
-                thrust::get<vt_b_ix>(tpl_rw)
-              ) 
-            * pow(
-                sqrt(thrust::get<rw2_a_ix>(tpl_rw)) + 
-                sqrt(thrust::get<rw2_b_ix>(tpl_rw)),
-              real_t(2)) 
-            * real_t(1); // TODO: collection efficiency
-
+            * p_kernel->calc(tpl_wrap);
+  
           // sanity check for random sampling validity
-//          assert(prob < 1); // TODO: there is a workaround proposed in Shima et al. 2009
+          n_t col_no = n_t(prob); //number of collisions between the pair; rint?
 
           // comparing the upscaled probability with a random number and returning if unlucky
-          if (prob < thrust::get<u01_ix>(tpl_ro)) return tpl_rw;
+          if (thrust::get<u01_ix>(tpl_ro) < prob - col_no) ++col_no;
+          if(col_no == 0) return;
 
+#if !defined(__NVCC__)
+          using std::min;
+#endif
           // performing the coalescence event if lucky
           // note: >= causes equal-multiplicity collisions to result in flagging for recycling
           if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
-            collide<tpl_rw_t, real_t,
+          {
+            col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
+            collide<real_t, n_t,
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
               rd3_a_ix, rd3_b_ix,
                vt_a_ix,  vt_b_ix
-            >(tpl_rw);
+            >(thrust::get<1>(tpl_ro_rw), col_no);
+//              collide<real_t, n_t, n_a_ix, n_b_ix>(thrust::get<1>(tpl_ro_rw));
+          }
           else
-            collide<tpl_rw_t, real_t,
+          {
+            col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
+            collide<real_t, n_t,
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,
               rd3_b_ix, rd3_a_ix,
                vt_b_ix,  vt_a_ix
-            >(tpl_rw);
-
-          return tpl_rw;
+            >(thrust::get<1>(tpl_ro_rw), col_no);
+          }
         }
       };
     };
@@ -227,12 +219,12 @@ namespace libcloudphxx
 
       typedef thrust::zip_iterator<
         thrust::tuple< 
-          typename thrust_device::vector<real_t>::iterator,  // u01
-          pi_real_t,                                         // scl
-          thrust::counting_iterator<thrust_size_t>,          // ix_a
-          thrust::counting_iterator<thrust_size_t>,          // ix_b
-          pi_size_t, pi_size_t,                              // off_a & off_b
-          pi_real_t                                          // dv
+          typename thrust_device::vector<real_t>::iterator,        // u01
+          pi_real_t,                                               // scl
+          thrust::counting_iterator<thrust_size_t>,                // ix_a
+          thrust::counting_iterator<thrust_size_t>,                // ix_b
+          pi_size_t, pi_size_t,                                    // off_a & off_b
+          pi_real_t                                                // dv
         >
       > zip_ro_t;
 
@@ -279,11 +271,10 @@ namespace libcloudphxx
         )
       );
 
-      thrust::transform(
-        zip_ro_it, zip_ro_it + n_part - 1,  // input - 1st arg
-        zip_rw_it,                          // input - 2nd arg
-        zip_rw_it,                          // output (in place)
-        detail::collider<real_t, n_t>(dt)
+      thrust::for_each(
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)),
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)) + n_part - 1,
+        detail::collider<real_t, n_t>(dt, p_kernel)
       );
     }
   };  

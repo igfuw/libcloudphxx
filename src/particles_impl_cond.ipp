@@ -295,17 +295,19 @@ namespace libcloudphxx
 
       // dividing by dv
       thrust::transform(
-        drv.begin(), drv.end(),  // input - 1st arg
-        dv.begin(),              // input - 2nd arg
-        drv.begin(),             // output
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()),
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()) + count_n,  // input - 1st arg
+        thrust::make_permutation_iterator(dv.begin(),  count_ijk.begin()),            // input - 2nd arg
+        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()),            // output
         thrust::divides<real_t>() 
       ); 
 
       // dividing d(rhod_rv) by rhod
       thrust::transform(
-        drv.begin(), drv.end(),  // input - 1st arg
-        rhod.begin(),            // input - 2nd arg
-        drv.begin(),             // output (in place)
+        thrust::make_permutation_iterator(drv.begin(),  count_ijk.begin()), 
+        thrust::make_permutation_iterator(drv.begin(),  count_ijk.begin()) + count_n, // input - 1st arg
+        thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()),           // input - 2nd arg
+        thrust::make_permutation_iterator(drv.begin(),  count_ijk.begin()),           // output (in place)
         thrust::divides<real_t>()
       );
 

@@ -44,7 +44,12 @@ namespace libcloudphxx
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
+ 
+      // coalescence kernel parameters
+      std::vector<real_t> kernel_parameters;
+
       // chem
+      bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
       int sstp_chem;
       real_t chem_rho;
 
@@ -57,12 +62,12 @@ namespace libcloudphxx
         dx(1), dy(1), dz(1), // (but are only used to compute n_part -
         x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
         x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
-        sd_conc_mean(64),                                          // TODO: why 64
-        kernel(geometric),
-        dt(1e-3),                                                  // TODO: why 1e-3
-        sstp_cond(10), sstp_coal(10), sstp_chem(10),               // TODO: why 10
+        sd_conc_mean(0), 
+        dt(0),   
+        sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        chem_switch(false),  // chemical reactions turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
-        chem_rho(1.8e3) // dry particle density
+        chem_rho(0) // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
       {}
     };
   }

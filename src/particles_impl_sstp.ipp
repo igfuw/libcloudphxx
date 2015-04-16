@@ -20,7 +20,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         *fr[n] = { &rv,          &th,          &rhod        },
         *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
-      for (int ix = 0; ix < n; ++ix)
+      for (int ix = 0; ix < n; ++ix) // TODO: var_rho
       {
         thrust::copy(
           fr[ix]->begin(),
@@ -61,7 +61,7 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
       {
-        const int sstp = opts_init.sstp_cond;
+        const real_t sstp = opts_init.sstp_cond;
 	if (step == 0)
 	{
 	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)

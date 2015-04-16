@@ -111,7 +111,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("OpenMP", lgr::OpenMP)
       .value("CUDA",   lgr::CUDA);
     bp::enum_<lgr::kernel_t>("kernel_t") 
-      .value("geometric", lgr::geometric);
+      .value("geometric", lgr::geometric)
+      .value("golovin", lgr::golovin);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
@@ -149,6 +150,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("z0", &lgr::opts_init_t<real_t>::z0)
       .def_readwrite("z1", &lgr::opts_init_t<real_t>::z1)
       .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
+      .def_readwrite("chem_switch", &lgr::opts_init_t<real_t>::chem_switch)
       .def_readwrite("sstp_cond", &lgr::opts_init_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
@@ -156,6 +158,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sd_conc_mean", &lgr::opts_init_t<real_t>::sd_conc_mean)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
+      .add_property("kernel_parameters", &lgrngn::get_kp<real_t>, &lgrngn::set_kp<real_t>)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)

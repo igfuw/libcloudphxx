@@ -34,7 +34,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_chem()
     {
-      // TODO: don't do it if not using chem...
+      // don't do it if not using chem...
+      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
 
       // memory allocation
       chem_bgn.resize(chem_aq_n);

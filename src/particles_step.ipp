@@ -15,28 +15,28 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       arrinfo_t<real_t> th,
       arrinfo_t<real_t> rv,
-      const arrinfo_t<real_t> rhod_courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const arrinfo_t<real_t> rhod_courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const arrinfo_t<real_t> rhod_courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
     )
     {
       assert(!pimpl->should_now_run_async);
 
-      if (pimpl->l2e[&pimpl->rhod_courant_x].size() == 0) // TODO: y, z,...
+      if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
         // TODO: copy-pasted from init
-	if (!rhod_courant_x.is_null()) pimpl->init_e2l(rhod_courant_x, &pimpl->rhod_courant_x, 1, 0, 0); 
-	if (!rhod_courant_y.is_null()) pimpl->init_e2l(rhod_courant_y, &pimpl->rhod_courant_y, 0, 1, 0); 
-	if (!rhod_courant_z.is_null()) pimpl->init_e2l(rhod_courant_z, &pimpl->rhod_courant_z, 0, 0, 1);
+	if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0); 
+	if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0); 
+	if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
       }
 
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
-      pimpl->sync(rhod_courant_x, pimpl->rhod_courant_x);
-      pimpl->sync(rhod_courant_y, pimpl->rhod_courant_y);
-      pimpl->sync(rhod_courant_z, pimpl->rhod_courant_z);
+      pimpl->sync(courant_x,      pimpl->courant_x);
+      pimpl->sync(courant_y,      pimpl->courant_y);
+      pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
       // recycling out-of-domain/invalidated particles 
@@ -104,6 +104,8 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem) 
       {
+        if (pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
+
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
           pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
       }
