@@ -52,7 +52,6 @@ endif()
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
 
-#set(TMP "-DBOOST_NOINLINE=__attribute__\ \(\(noinline\)\)'") # TODO! (to build in Debug mode)
 if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
@@ -61,7 +60,7 @@ if (CUDA_FOUND)
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=\"-Ofast -march=native -DNDEBUG\"")
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
   endif()
 
   add_definitions(-DCUDA_FOUND)
