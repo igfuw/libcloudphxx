@@ -16,7 +16,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__vt
       {
-        const vt_t::vt_t &vt_eq; //type of terminal velocity formula to use 
+        vt_t::vt_t vt_eq; //type of terminal velocity formula to use 
 
         //ctor
         common__vterm__vt(const vt_t::vt_t &vt_eq): vt_eq(vt_eq) {}
