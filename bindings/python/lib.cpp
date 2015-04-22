@@ -110,14 +110,14 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("serial", lgr::serial)
       .value("OpenMP", lgr::OpenMP)
       .value("CUDA",   lgr::CUDA);
-    bp::enum_<lgr::kernel_t>("kernel_t") 
-      .value("geometric", lgr::geometric)
-      .value("golovin", lgr::golovin)
-      .value("hall", lgr::hall)
-      .value("hall_davis_no_waals", lgr::hall_davis_no_waals);
-    bp::enum_<lgr::vt_t>("vt_t") 
-      .value("beard", lgr::beard)
-      .value("khvorostyanov_spherical", lgr::khvorostyanov_spherical);
+    bp::enum_<lgr::kernel_t::kernel_t>("kernel_t") 
+      .value("geometric", lgr::kernel_t::geometric)
+      .value("golovin", lgr::kernel_t::golovin)
+      .value("hall", lgr::kernel_t::hall)
+      .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals);
+    bp::enum_<lgr::vt_t::vt_t>("vt_t") 
+      .value("beard", lgr::vt_t::beard)
+      .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
@@ -156,6 +156,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("z1", &lgr::opts_init_t<real_t>::z1)
       .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
       .def_readwrite("chem_switch", &lgr::opts_init_t<real_t>::chem_switch)
+      .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
+      .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)
       .def_readwrite("sstp_cond", &lgr::opts_init_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
