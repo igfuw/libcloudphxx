@@ -115,7 +115,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("golovin", lgr::kernel_t::golovin)
       .value("hall", lgr::kernel_t::hall)
       .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals)
-      .value("hall_pinsky_stratocumulus", lgr::kernel_t::hall_pinsky_stratocumulus);
+      .value("hall_pinsky_stratocumulus", lgr::kernel_t::hall_pinsky_stratocumulus)
+      .value("hall_pinsky_cumulonimbus", lgr::kernel_t::hall_pinsky_cumulonimbus);
     bp::enum_<lgr::vt_t::vt_t>("vt_t") 
       .value("beard", lgr::vt_t::beard)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical);
