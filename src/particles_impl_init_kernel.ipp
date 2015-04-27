@@ -50,9 +50,6 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
@@ -74,9 +71,6 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
@@ -97,9 +91,6 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
@@ -119,9 +110,6 @@ namespace libcloudphxx
          
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
-
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
 
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
