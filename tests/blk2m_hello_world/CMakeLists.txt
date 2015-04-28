@@ -1,0 +1,3 @@
+add_executable(blk2m_hello_world blk2m_hello_world.cpp)
+target_link_libraries(blk2m_hello_world blitz)
+add_test(blk2m_hello_world blk2m_hello_world)
