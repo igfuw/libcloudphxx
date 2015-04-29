@@ -28,4 +28,4 @@ assert common.rw3_cr(rd3, .5, 300) > rd3
 assert common.S_cr(rd3, .5, 300) > 1
 
 # just testing if pressure at 200m is lower than at 100m
-assert p_hydro(100, 300, .01, 0, 100000) > p_hydro(200, 300, .01, 0, 100000)
+assert common.p_hydro(100, 300, .01, 0, 100000) > common.p_hydro(200, 300, .01, 0, 100000)
