@@ -211,7 +211,6 @@ namespace libcloudphxx
       rand_u01(n_part/2); // TODO: n_part/2 is enough but how to do it with the logic below???
 
       // colliding
-/*
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
@@ -287,70 +286,10 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
         )
       );
-*/
+
       thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(
-          thrust::make_zip_iterator(thrust::make_tuple(
-            // u01
-            thrust::make_permutation_iterator(u01.begin(), thrust::make_transform_iterator(thrust::make_counting_iterator(0), dividebytwo())),
-            // scl
-            thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
-            // ix
-            zero,
-            zero+1,
-            // cid
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
-            // dv
-            thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
-          )),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            // multiplicity
-            thrust::make_permutation_iterator(n.begin(),   sorted_id.begin()),  
-            thrust::make_permutation_iterator(n.begin(),   sorted_id.begin())+1,
-            // wet radius squared
-            thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()), 
-            thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin())+1,  
-            // terminal velocity
-            thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin()), 
-            thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
-            // dry radius cubed
-            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
-            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
-          ))
-//zip_ro_it, zip_rw_it
-        )),
-        thrust::make_zip_iterator(thrust::make_tuple(
-          thrust::make_zip_iterator(thrust::make_tuple(
-            // u01
-            thrust::make_permutation_iterator(u01.begin(), thrust::make_transform_iterator(thrust::make_counting_iterator(0), dividebytwo())),
-            // scl
-            thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
-            // ix
-            zero,
-            zero+1,
-            // cid
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
-            // dv
-            thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
-          )),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            // multiplicity
-            thrust::make_permutation_iterator(n.begin(),   sorted_id.begin()),  
-            thrust::make_permutation_iterator(n.begin(),   sorted_id.begin())+1,
-            // wet radius squared
-            thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()), 
-            thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin())+1,  
-            // terminal velocity
-            thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin()), 
-            thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
-            // dry radius cubed
-            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
-            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
-          ))
-//zip_ro_it, zip_rw_it
-        )) + n_part - 1,
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)),
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel)
       );
     }
