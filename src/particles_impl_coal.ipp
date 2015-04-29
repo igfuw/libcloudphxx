@@ -152,15 +152,6 @@ namespace libcloudphxx
       };
     };
 
-  struct dividebytwo : public thrust::unary_function<int, int>
-  {
-    __host__ __device__
-    int operator()(int x) const
-    {
-      return x/2;
-    }
-  };
-
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::coal(const real_t &dt)
     {   
@@ -208,7 +199,7 @@ namespace libcloudphxx
       );
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      rand_u01(n_part/2); // TODO: n_part/2 is enough but how to do it with the logic below???
+      rand_u01(n_part); // TODO: n_part/2 is enough but how to do it with the logic below???
 
       // colliding
 /*
@@ -227,16 +218,9 @@ namespace libcloudphxx
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
 
-
       typedef thrust::zip_iterator<
         thrust::tuple< 
-          thrust::permutation_iterator<
-            typename thrust_device::vector<real_t>::iterator,
-            thrust::transform_iterator<
-              dividebytwo,
-              thrust::counting_iterator<int>
-            >
-          >,                                                       // u01
+          typename thrust_device::vector<real_t>::iterator,        // u01
           pi_real_t,                                               // scl
           thrust::counting_iterator<thrust_size_t>,                // ix_a
           thrust::counting_iterator<thrust_size_t>,                // ix_b
@@ -257,7 +241,7 @@ namespace libcloudphxx
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
           // u01
-          thrust::make_permutation_iterator(u01.begin(), thrust::make_transform_iterator(thrust::make_counting_iterator(0), dividebytwo())),
+          u01.begin(),
           // scl
           thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
           // ix
