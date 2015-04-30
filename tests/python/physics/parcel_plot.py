@@ -6,6 +6,7 @@ import pdb
 f_out = netcdf.netcdf_file("test.nc", "r")
 z = f_out.variables["z"][:]
 RH = f_out.variables["RH"][:]
+print type(f_out.bins)
 print "RH_max", f_out.RH_max, RH.max()
 
 RH_max_l = [f_out.RH_max] * z.shape[0]

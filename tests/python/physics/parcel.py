@@ -38,20 +38,37 @@ def stats(state, info):
   state["RH"] = state["p"] * state["r_v"] / (state["r_v"] + common.eps) / common.p_vs(state["T"][0])
   info["RH_max"] = max(info["RH_max"], state["RH"])
 
-def output_init(outfile, state):
-  f = netcdf.netcdf_file(outfile, 'w')
-  f.createDimension('t', None)
-  
-  units = {"z" : "m", "t" : "s", "r_v" : "kg/kg", "th_d" : "K", "rhod" : "kg/m3", "p" : "Pa", "T" : "K", "RH" : "1"}
+def histo(bins, micro, opts):
+  r_min = 0
+  i = 0
+  for r_max in opts["radii"]:
+    micro.diag_wet_rng(r_min, r_max)
+    micro.diag_wet_mom(0) # #/kg dry air
+    bins["conc"][i] = np.frombuffer(micro.outbuf())
+    r_min = r_max
+    i += 1
 
-  for var in state:
-    f.createVariable(var, 'd', ('t',))
-    f.variables[var].unit = units[var]
+def output_init(opts):
+  # file & dimensions
+  f = netcdf.netcdf_file(opts["outfile"], 'w')
+  f.createDimension('t', None)
+  f.createDimension('radii', opts["radii"].shape[0]) #TODO: r_d, cloud only; #TODO: r_w vs. r_v - might be misleading
+  
+  units = {"z" : "m", "t" : "s", "r_v" : "kg/kg", "th_d" : "K", "rhod" : "kg/m3", "p" : "Pa", "T" : "K", "RH" : "1", "conc" : "(kg of dry air)^-1"}
+
+  for name, unit in units.iteritems():
+    if name == "conc":
+      dims = ('t','radii')
+    else:
+      dims = ('t',)
+
+    f.createVariable(name, 'd', dims)
+    f.variables[name].unit = unit
+
   return f
 
 def output_save(f, state):
   rec = f.variables['t'].shape[0]
-  f.variables['t'][rec] = state["t"]
   for var, val in state.iteritems():
     f.variables[var][rec] = val
 
@@ -59,8 +76,9 @@ def save_attrs(f, dictnr):
   for var, val in dictnr.iteritems():
     setattr(f, var, val)
 
-def parcel(dt=.1, z_max=2000, w=1, T_0=300, p_0=101300, r_0=.022, outfile="test.nc", outfreq=100, sd_conc_mean=64, kappa=.5,
-  mean_r = .04e-6 / 2, stdev  = 1.4, n_tot  = 60e6
+def parcel(dt=.1, z_max=200, w=1, T_0=300, p_0=101300, r_0=.022, outfile="test.nc", outfreq=100, sd_conc_mean=64, kappa=.5,
+  mean_r = .04e-6 / 2, stdev  = 1.4, n_tot  = 60e6, 
+  radii = 1e-6 * pow(10, -3 + np.arange(26) * .2)
 ):
   # packing function arguments into "opts" dictionary
   args, _, _, _ = inspect.getargvalues(inspect.currentframe())
@@ -76,10 +94,11 @@ def parcel(dt=.1, z_max=2000, w=1, T_0=300, p_0=101300, r_0=.022, outfile="test.
     "T" : None, "RH" : None
   }
   info = { "RH_max" : 0 }
-  with output_init(outfile, state) as f:
+  bins = { "conc" : np.empty((radii.shape[0],)) }
+  with output_init(opts) as f:
     # t=0 : init & save
-    stats(state, info)
     micro = micro_init(opts, state)
+    stats(state, info)
     output_save(f, state)
 
     # timestepping
@@ -96,12 +115,16 @@ def parcel(dt=.1, z_max=2000, w=1, T_0=300, p_0=101300, r_0=.022, outfile="test.
       # microphysics
       micro_step(micro, state, info)
       stats(state, info)
+      histo(bins, micro, opts)
 
       # TODO: only if user wants to stop @ RH_max
       #if (state["RH"] < info["RH_max"]): break
 
       # output
-      if (it % outfreq == 0): output_save(f, state)
+      if (it % outfreq == 0): 
+        output_save(f, state)
+        output_save(f, bins)
+        #output_save(f, chem)
 
     save_attrs(f, info)
     save_attrs(f, opts)
