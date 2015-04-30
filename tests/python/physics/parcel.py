@@ -1,12 +1,35 @@
 import sys 
 sys.path.insert(0, "../../../build/bindings/python/")
 
-from libcloudphxx import common
+from libcloudphxx import common, lgrngn
 from scipy.io import netcdf
+import inspect, numpy as np
+import pdb
 
-def micro(state):
-  state["th_d"] += 0
-  state["r_v"] += 0
+def micro_init(opts, state):
+
+  # using nested function to get access to opts
+  def lognormal(lnr):
+    from math import exp, log, sqrt, pi
+    return opts["n_tot"] * exp(
+      -(lnr - log(opts["mean_r"]))**2 / 2 / log(opts["stdev"])**2
+    ) / log(opts["stdev"]) / sqrt(2*pi);
+
+  # lagrangian scheme options
+  opts_init = lgrngn.opts_init_t()  
+  for opt in ["dt", "sd_conc_mean"]:  
+    setattr(opts_init, opt, opts[opt])
+  opts_init.dry_distros = {opts["kappa"]:lognormal}
+  opts_init.kernel = lgrngn.kernel_t.geometric #TODO: will not be needed soon (libcloud PR #89)
+
+  # initialitation
+  micro = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  micro.init(state["th_d"], state["r_v"], state["rhod"])
+  return micro
+
+def micro_step(micro, state):
+  opts = lgrngn.opts_t()
+  micro.step_sync(opts, state["th_d"], state["r_v"], state["rhod"]) 
 
 def save_init(outfile, state):
   f = netcdf.netcdf_file(outfile, 'w')
@@ -30,16 +53,23 @@ def save_attrs(f, dictnr):
   for var, val in dictnr.iteritems():
     setattr(f, var, val)
 
-def parcel(dt=.1, z_max=100, w=1, T_0=300, p_0=101300, r_0=.1, outfile="test.nc", outfreq=100):
+def parcel(dt=.1, z_max=100, w=1, T_0=300, p_0=101300, r_0=.05, outfile="test.nc", outfreq=100, sd_conc_mean=64, kappa=.5,
+  mean_r = .04e-6 / 2, stdev  = 1.4, n_tot  = 60e6
+):
+  # packing function arguments into "opts" dictionary
+  args, _, _, _ = inspect.getargvalues(inspect.currentframe())
+  opts = dict(zip(args, [locals()[k] for k in args]))
+
   th_0 = T_0 * (common.p_1000 / p_0)**(common.R_d / common.c_pd)
   nt = int(z_max / (w * dt))
   state = {
     "t" : 0, "z" : 0,
-    "r_v" : r_0, "p" : p_0,
-    "th_d" : common.th_std2dry(th_0, r_0), 
-    "rhod" : common.rhod(p_0, th_0, r_0)
+    "r_v" : np.array([r_0]), "p" : p_0,
+    "th_d" : np.array([common.th_std2dry(th_0, r_0)]), 
+    "rhod" : np.array([common.rhod(p_0, th_0, r_0)])
   }
   with save_init(outfile, state) as f:
+    micro = micro_init(opts, state)
     for it in range(1,nt+1):
       # diagnostics
       # the reasons to use analytic solution:
@@ -48,10 +78,10 @@ def parcel(dt=.1, z_max=100, w=1, T_0=300, p_0=101300, r_0=.1, outfile="test.nc"
       state["z"] += w * dt
       state["t"] = it * dt
       state["p"] = common.p_hydro(state["z"], th_0, r_0, 0, p_0)
-      state["rhod"] = common.rhod(state["p"], th_0, r_0)
+      state["rhod"][0] = common.rhod(state["p"], th_0, r_0)
 
       # microphysics
-      micro(state)
+      micro_step(micro, state)
 
       # output
       if (it % outfreq == 0): save_record(f, state)
@@ -59,8 +89,6 @@ def parcel(dt=.1, z_max=100, w=1, T_0=300, p_0=101300, r_0=.1, outfile="test.nc"
       # stats
 
     #save_stats(f, )
-    import inspect
-    args, _, _, _ = inspect.getargvalues(inspect.currentframe())
-    save_attrs(f, dict(zip(args, [locals()[k] for k in args])))
+    save_attrs(f, opts)
 
 parcel()
