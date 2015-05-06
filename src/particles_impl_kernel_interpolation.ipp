@@ -47,6 +47,17 @@ namespace libcloudphxx
       iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
       iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
 
+      // do not interpolate if one of probabilities == 0, since there are some large differences (i.e. 0 | 0.97 | 0.98 | 0.99 | 1.) 
+      for(int i = 0; i < 4;++i)
+        if(kernel_base<real_t, n_t>::k_params[iv[i]]==0)
+          return kernel_base<real_t, n_t>::k_params[
+                   detail::kernel_vector_index<n_t>(
+                     detail::kernel_index_round<real_t, n_t>(r1),
+                     detail::kernel_index_round<real_t, n_t>(r2), 
+                     kernel_base<real_t, n_t>::n_user_params
+                   )
+                 ];
+
       real_t w[4];   //  weighting factors
       w[0] = r1 - x[0];
       w[1] = x[1] - r1;
