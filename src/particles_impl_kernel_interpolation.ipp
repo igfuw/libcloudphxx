@@ -6,7 +6,7 @@ namespace libcloudphxx
   {
     template <typename real_t, typename n_t>
     BOOST_GPU_ENABLED
-    real_t kernel_geometric<real_t, n_t>::bilinear_interpolation(real_t r1, real_t r2) const
+    real_t kernel_geometric<real_t, n_t>::interpolated_efficiency(real_t r1, real_t r2) const
     {
       n_t dx, dy, // distance between efficiencies in the matrix
           x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
@@ -42,10 +42,10 @@ namespace libcloudphxx
 
       n_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
-      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]));
-      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]));
-      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]));
-      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]));
+      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
+      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
+      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
+      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
 
       // do not interpolate if one of probabilities == 0, since there are some large differences (i.e. 0 | 0.97 | 0.98 | 0.99 | 1.) 
       for(int i = 0; i < 4;++i)
@@ -53,7 +53,8 @@ namespace libcloudphxx
           return kernel_base<real_t, n_t>::k_params[
                    detail::kernel_vector_index<n_t>(
                      detail::kernel_index_round<real_t, n_t>(r1),
-                     detail::kernel_index_round<real_t, n_t>(r2)
+                     detail::kernel_index_round<real_t, n_t>(r2), 
+                     kernel_base<real_t, n_t>::n_user_params
                    )
                  ];
 

@@ -76,9 +76,9 @@ namespace libcloudphxx
       kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
         kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
 
-      //bilinear interpolation of efficiencies, required by dervied classes
+      //bilinear interpolation of collision efficiencies, required by dervied classes
       BOOST_GPU_ENABLED
-      real_t bilinear_interpolation(real_t, real_t) const;
+      real_t interpolated_efficiency(real_t, real_t) const;
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
@@ -128,7 +128,36 @@ namespace libcloudphxx
         using std::sqrt;
 #endif
 
-        real_t res = kernel_geometric<real_t, n_t>::bilinear_interpolation(
+        real_t res = kernel_geometric<real_t, n_t>::interpolated_efficiency(
+                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
+                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
+
+        res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
+        return res;
+      }
+    };
+
+    // turbulent kernel from the 2015 JAS Onishi paper
+    // two user params: turbulence dissipataion rate
+    // and Taylor microscale Reynolds number
+    // TODO: get these values from the flow characteristic
+    //       cf. Benmoshe et al, JGR 2012
+    template <typename real_t, typename n_t>
+    struct kernel_onishi : kernel_geometric<real_t, n_t>
+    {
+      //ctor
+      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
+
+      BOOST_GPU_ENABLED
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      {
+        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
+
+        real_t res = kernel_geometric<real_t, n_t>::interpolated_efficiency(
                        sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
                        sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
 
