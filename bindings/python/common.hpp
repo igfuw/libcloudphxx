@@ -7,7 +7,9 @@
 #include "error.hpp"
 
 #include <libcloudph++/common/theta_dry.hpp>
+#include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/kappa_koehler.hpp>
+#include <libcloudph++/common/hydrostatic.hpp>
 
 namespace libcloudphxx
 {
@@ -71,6 +73,38 @@ namespace libcloudphxx
           kappa * si::dimensionless(),
           T * si::kelvins
         );
+      }
+
+      template <typename real_t>
+      real_t p_hydro(
+        const real_t &z,
+        const real_t &th_0,
+        const real_t &r_0,
+        const real_t &z_0,
+        const real_t &p_0
+      )
+      {
+        return cmn::hydrostatic::p(
+          z * si::metres, 
+          th_0 * si::kelvins, 
+          r_0 * si::dimensionless(), 
+          z_0 * si::metres, 
+          p_0 * si::pascals
+        ) / si::pascals;
+      }
+
+      template <typename real_t>
+      real_t rhod(
+        const real_t &p,
+        const real_t &th_std,
+        const real_t &r_v
+      )
+      {
+        return cmn::theta_std::rhod(
+          p * si::pascals,
+          th_std * si::kelvins,
+          r_v * si::dimensionless()
+        ) / si::kilograms * si::cubic_metres;
       }
     };
   };
