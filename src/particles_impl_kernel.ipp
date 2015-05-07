@@ -129,8 +129,8 @@ namespace libcloudphxx
 #endif
 
         real_t res = kernel_geometric<real_t, n_t>::interpolated_efficiency(
-                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
-                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
+                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap())),
+                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap())));
 
         res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         return res;
