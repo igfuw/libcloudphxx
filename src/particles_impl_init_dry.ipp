@@ -78,7 +78,7 @@ namespace libcloudphxx
       thrust::sort(u01.begin(), u01.end());
 
       // values to start the search 
-      const real_t rd_min_init = 1e-10, rd_max_init = 1e-5;
+      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
       real_t rd_min = rd_min_init, rd_max = rd_max_init;
 
       // temporary space on the host 
@@ -95,7 +95,9 @@ namespace libcloudphxx
 	tmp_ijk.begin()         // to
       );
 
-      while (true)
+      bool found_optimal_range = 0;
+
+      while (!found_optimal_range)
       {
         namespace arg = thrust::placeholders;
 
@@ -147,36 +149,53 @@ namespace libcloudphxx
 	// host -> device (includes casting from real_t to uint!)
 	thrust::copy(tmp.begin(), tmp.end(), n.begin()); 
 
+        found_optimal_range = 1;
+
 	// chosing an optimal rd_min/rd_max range for a given pdf and grid
 	thrust_size_t ix;
 	ix = thrust::find_if(n.begin(), n.end(), arg::_1 != 0) - n.begin();
 	if (rd_min == rd_min_init) 
 	{
-	  assert(ix != n_part); // zeros everywhere
-	  assert(ix != 0); // rd_min was not small enough for pdf(rd_min) to be zero
-	  rd_min = exp(lnrd[ix - 1]); // adjusting the range
+          if(ix == n_part)
+            std::runtime_error("Initial dry radii distribution outside of the range [1e-11, 1e-3] meters\n");
+          if(ix == 0)
+            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-11 meters\n");
+	  rd_min = exp(lnrd[ix-1]); // adjusting the range
 	}
+        else if (ix>0)
+        {
+	  rd_min = exp(lnrd[ix+1]); // adjusting the range
+          found_optimal_range = 0;
+        }
+
 	ix = n.rend() - thrust::find_if(n.rbegin(), n.rend(), arg::_1 != 0);
 	if (rd_max == rd_max_init) 
 	{
-	  assert(ix != n_part); // rd_max was not big enough for pdf(rd_max) to be zero
-	  rd_max = exp(lnrd[ix + 1]); // adjusting the range
-	  continue;
+          if(ix == n_part)
+            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-3 meters\n");
+	  rd_max = exp(lnrd[ix+1]); // adjusting the range
+          found_optimal_range = 0;
 	}
+        else if (ix < n_part)
+        {
+	  rd_max = exp(lnrd[ix-1]); // adjusting the range
+          found_optimal_range = 0;
+        }
 
-	// detecting possible overflows of n type
-	ix = thrust::max_element(n.begin(), n.end()) - n.begin();
-	assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+        if(found_optimal_range)
+        {
+          // detecting possible overflows of n type
+          ix = thrust::max_element(n.begin(), n.end()) - n.begin();
+          assert(n[ix] < (typename impl::n_t)(-1) / 10000);
 
-	// converting rd back from logarithms to rd3
-	thrust::transform(
-	  lnrd.begin(),
-	  lnrd.end(),
-	  rd3.begin(),
-	  detail::exp3x<real_t>()
-	);
-
-	break;
+          // converting rd back from logarithms to rd3
+          thrust::transform(
+            lnrd.begin(),
+            lnrd.end(),
+            rd3.begin(),
+            detail::exp3x<real_t>()
+          );
+        }
       }
     }
   };
