@@ -9,6 +9,7 @@
 #if defined(BZ_THREADSAFE)
 #  error please unset BZ_THREADSAFE
 #endif
+#include <blitz/tv2fastiter.h> // otherwise Clang fails in debug mode
 #include <blitz/array.h>
 
 #include <boost/python.hpp>

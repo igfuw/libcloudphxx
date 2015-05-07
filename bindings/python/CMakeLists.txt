@@ -34,6 +34,8 @@ if (NOT BLITZ_FOUND)
     Blitz++ library not found. 
     Please install it (e.g. sudo apt-get install libblitz0-dev).
   ")
+else()
+  target_link_libraries(cloudphxx blitz)
 endif()
 
 # ... where to find libclouph++
