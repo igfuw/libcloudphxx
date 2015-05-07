@@ -1,6 +1,7 @@
 #include <memory>
 #include <set>
 
+#include <blitz/tv2fastiter.h> // otherwise Clang fails in debug mode 
 #include <blitz/array.h>
 
 #include <libcloudph++/blk_2m/options.hpp>
