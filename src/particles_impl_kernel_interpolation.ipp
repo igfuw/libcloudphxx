@@ -42,7 +42,7 @@ namespace libcloudphxx
       x[1] = x[0] + dx;
       x[3] = x[2] + dy;
 
-      n_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
+      thrust_size_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
       iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
       iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
