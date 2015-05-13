@@ -128,25 +128,25 @@ namespace libcloudphxx
         using std::sqrt;
 #endif
 
-        real_t res = kernel_geometric<real_t, n_t>::interpolated_efficiency(
-                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap())),
-                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap())));
-
-        res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
-        return res;
+        return  kernel_geometric<real_t, n_t>::interpolated_efficiency(
+                  sqrt( thrust::get<rw2_a_ix>(tpl_wrap())),
+                  sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))
+                ) * kernel_geometric<real_t, n_t>::calc(tpl_wrap);
       }
     };
 
     // turbulent kernel from the 2015 JAS Onishi paper
-    // two user params: turbulence dissipataion rate
-    // and Taylor microscale Reynolds number
-    // TODO: get these values from the flow characteristic
+    // two user params defined at initialization: 
+    // turbulence dissipataion rate and Taylor microscale Reynolds number
+    // TODO: get these values from flow characteristic (simulation-time)
     //       cf. Benmoshe et al, JGR 2012
     template <typename real_t, typename n_t>
     struct kernel_onishi : kernel_geometric<real_t, n_t>
     {
+      detail::wang_collision_enhancement_t wang_collision_enhancement;
+
       //ctor
-      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
+      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max), wang_collision_enhancement() {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
@@ -156,12 +156,17 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
         using std::sqrt;
 #endif
+        real_t rwa = sqrt( thrust::get<rw2_a_ix>(tpl_wrap()));
+        real_t rwb = sqrt( thrust::get<rw2_b_ix>(tpl_wrap()));
 
-        real_t res = kernel_geometric<real_t, n_t>::interpolated_efficiency(
-                       sqrt( thrust::get<rw2_a_ix>(tpl_wrap()))* 1e6,
-                       sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))* 1e6 );//*1e6, because efficiencies are defined for micrometers
+        real_t res = 
+          kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *  // stagnant air collision efficiency
+          wang_collision_enhancement(rwa, rwb, k_params[0]) *                 // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
+          sqrt(
+            pow(kernel_geometric<real_t, n_t>::calc(tpl_wrap),2) +            // geometric kernel 
+            pow(detail::kernel_onishi_nograv(rwa, rwb, k_params[1], k_params[0], eta... ),2)
+          );
 
-        res *= kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         return res;
       }
     };
