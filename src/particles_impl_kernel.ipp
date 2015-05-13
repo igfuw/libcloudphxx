@@ -1,4 +1,4 @@
-#include "tpl_rw_t_wrapper.hpp"
+#include "tpl_calc_wrapper.hpp"
 
 #if defined(__NVCC__)
 #  include <math_constants.h>
@@ -8,7 +8,7 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    using detail::tpl_rw_t_wrap;
+    using detail::tpl_calc_wrap;
 
     template <typename real_t, typename n_t>
     struct kernel_base
@@ -27,7 +27,7 @@ namespace libcloudphxx
         k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
 
       BOOST_GPU_ENABLED
-      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &) const {return 0;}
+      virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &) const {return 0;}
     };
 
 
@@ -39,7 +39,7 @@ namespace libcloudphxx
       kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
 
       BOOST_GPU_ENABLED
-      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
@@ -56,12 +56,12 @@ namespace libcloudphxx
         * 4. / 3.
         * kernel_base<real_t, n_t>::k_params[0]
         * max(
-            thrust::get<n_a_ix>(tpl_wrap()),
-            thrust::get<n_b_ix>(tpl_wrap())
+            thrust::get<n_a_ix>(tpl_wrap.get_rw()),
+            thrust::get<n_b_ix>(tpl_wrap.get_rw())
           )
         * (
-            pow(thrust::get<rw2_a_ix>(tpl_wrap()),real_t(3./2.)) +
-            pow(thrust::get<rw2_b_ix>(tpl_wrap()),real_t(3./2.))
+            pow(thrust::get<rw2_a_ix>(tpl_wrap.get_rw()),real_t(3./2.)) +
+            pow(thrust::get<rw2_b_ix>(tpl_wrap.get_rw()),real_t(3./2.))
           );
         return res;
       }
@@ -81,7 +81,7 @@ namespace libcloudphxx
       real_t interpolated_efficiency(real_t, real_t) const;
 
       BOOST_GPU_ENABLED
-      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
@@ -96,16 +96,16 @@ namespace libcloudphxx
         CUDART_PI
 #endif
         * max(
-            thrust::get<n_a_ix>(tpl_wrap()),
-            thrust::get<n_b_ix>(tpl_wrap())
+            thrust::get<n_a_ix>(tpl_wrap.get_rw()),
+            thrust::get<n_b_ix>(tpl_wrap.get_rw())
           )
         * abs(
-            thrust::get<vt_a_ix>(tpl_wrap()) -
-            thrust::get<vt_b_ix>(tpl_wrap())
+            thrust::get<vt_a_ix>(tpl_wrap.get_rw()) -
+            thrust::get<vt_b_ix>(tpl_wrap.get_rw())
           )
-        * (thrust::get<rw2_a_ix>(tpl_wrap()) +
-           thrust::get<rw2_b_ix>(tpl_wrap()) +
-           2.*sqrt(thrust::get<rw2_a_ix>(tpl_wrap())*thrust::get<rw2_b_ix>(tpl_wrap()))
+        * (thrust::get<rw2_a_ix>(tpl_wrap.get_rw()) +
+           thrust::get<rw2_b_ix>(tpl_wrap.get_rw()) +
+           2.*sqrt(thrust::get<rw2_a_ix>(tpl_wrap.get_rw())*thrust::get<rw2_b_ix>(tpl_wrap.get_rw()))
           );
     //    return res;
       }
@@ -119,7 +119,7 @@ namespace libcloudphxx
       kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
 
       BOOST_GPU_ENABLED
-      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 
@@ -128,8 +128,8 @@ namespace libcloudphxx
 #endif
 
         return  kernel_geometric<real_t, n_t>::interpolated_efficiency(
-                  sqrt( thrust::get<rw2_a_ix>(tpl_wrap())),
-                  sqrt( thrust::get<rw2_b_ix>(tpl_wrap()))
+                  sqrt( thrust::get<rw2_a_ix>(tpl_wrap.get_rw())),
+                  sqrt( thrust::get<rw2_b_ix>(tpl_wrap.get_rw()))
                 ) * kernel_geometric<real_t, n_t>::calc(tpl_wrap);
       }
     };
@@ -137,9 +137,9 @@ namespace libcloudphxx
     // turbulent kernel from the 2015 JAS Onishi paper
     // two user params defined at initialization: 
     // turbulence dissipataion rate and Taylor microscale Reynolds number
-    // TODO: get these values from flow characteristic (simulation-time)
+    // TODO: get these values from flow characteristic (simulation-time during hskpng)
     //       cf. Benmoshe et al, JGR 2012
-    template <typename real_t, typename n_t>
+/*    template <typename real_t, typename n_t>
     struct kernel_onishi : kernel_geometric<real_t, n_t>
     {
       detail::wang_collision_enhancement_t wang_collision_enhancement;
@@ -148,7 +148,7 @@ namespace libcloudphxx
       kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max), wang_collision_enhancement() {}
 
       BOOST_GPU_ENABLED
-      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 
@@ -168,7 +168,7 @@ namespace libcloudphxx
 
         return res;
       }
-    };
+    };*/
   };
 };
 
