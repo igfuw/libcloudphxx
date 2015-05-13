@@ -89,7 +89,7 @@ namespace libcloudphxx
         using std::pow;
         using std::max;
 #endif
-        real_t res =
+        return 
 #if !defined(__NVCC__)
         pi<real_t>()
 #else
@@ -103,12 +103,11 @@ namespace libcloudphxx
             thrust::get<vt_a_ix>(tpl_wrap()) -
             thrust::get<vt_b_ix>(tpl_wrap())
           )
-        * pow(
-            sqrt(thrust::get<rw2_a_ix>(tpl_wrap())) +
-            sqrt(thrust::get<rw2_b_ix>(tpl_wrap())),
-            real_t(2)
+        * (thrust::get<rw2_a_ix>(tpl_wrap()) +
+           thrust::get<rw2_b_ix>(tpl_wrap()) +
+           2.*sqrt(thrust::get<rw2_a_ix>(tpl_wrap())*thrust::get<rw2_b_ix>(tpl_wrap()))
           );
-        return res;
+    //    return res;
       }
     };
 

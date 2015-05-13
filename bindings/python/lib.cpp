@@ -57,6 +57,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("p", &common::p<real_t>);
     bp::def("rw3_cr", &common::rw3_cr<real_t>);
     bp::def("S_cr", &common::S_cr<real_t>);
+    bp::def("p_hydro", &common::p_hydro<real_t>);
+    bp::def("rhod", &common::rhod<real_t>);
   }
 
   // blk_1m stuff
@@ -170,7 +172,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
       .def("init",         &lgrngn::init_3arg<real_t>)
       .def("init",         &lgrngn::init_5arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync<real_t>)
+      .def("step_sync",    &lgrngn::step_sync_3arg<real_t>)
+      .def("step_sync",    &lgrngn::step_sync_4arg<real_t>)
+      .def("step_sync",    &lgrngn::step_sync_6arg<real_t>)
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)
