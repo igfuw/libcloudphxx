@@ -146,7 +146,7 @@ namespace libcloudphxx
       detail::wang_collision_enhancement_t<real_t> wang_collision_enhancement;
 
       //ctor
-      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max), wang_collision_enhancement() {}
+      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max,thrust_device::pointer<real_t> R0,thrust_device::pointer<real_t> rat,thrust_device::pointer<real_t> eta_e) : kernel_geometric<real_t, n_t>(k_params, 2, r_max), wang_collision_enhancement(R0, rat, eta_e) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const

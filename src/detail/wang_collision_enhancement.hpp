@@ -11,27 +11,27 @@ namespace libcloudphxx
       template<class real_t>
       struct wang_collision_enhancement_t
       {
-        static const real_t aR0[7];            // collector radius
+/*        static const real_t aR0[7];            // collector radius
         static const real_t arat[11];          // ratio of radii
         static const real_t aeta_e[11][2][7];  // [rat][eps][R0]
 
         //TODO: is it really more efficient to store it in device memory?
         thrust_device::vector<real_t> vR0;
         thrust_device::vector<real_t> vrat;
-        thrust_device::vector<real_t> veta_e;
+        thrust_device::vector<real_t> veta_e;*/
 
         thrust_device::pointer<real_t> R0;
         thrust_device::pointer<real_t> rat;
         thrust_device::pointer<real_t> eta_e;
 
         // ctor
-        wang_collision_enhancement_t(): 
-        vR0(aR0, aR0 + sizeof(aR0) / sizeof(aR0[0])), 
+        wang_collision_enhancement_t(thrust_device::pointer<real_t> R0,thrust_device::pointer<real_t> rat,thrust_device::pointer<real_t> eta_e): 
+/*        vR0(aR0, aR0 + sizeof(aR0) / sizeof(aR0[0])), 
         vrat(arat, arat + sizeof(arat) / sizeof(arat[0])), 
-        veta_e(&aeta_e[0][0][0], &aeta_e[0][0][0] + sizeof(aeta_e) / sizeof(aeta_e[0][0][0])),
-        R0(vR0.data()),
-        rat(vrat.data()),
-        eta_e(veta_e.data())
+        veta_e(&aeta_e[0][0][0], &aeta_e[0][0][0] + sizeof(aeta_e) / sizeof(aeta_e[0][0][0])),*/
+        R0(R0),
+        rat(rat),
+        eta_e(eta_e)
         {}
 
         BOOST_GPU_ENABLED
@@ -83,7 +83,7 @@ namespace libcloudphxx
       };
 
      //definitions of member arrays
-     template<class real_t>
+/*     template<class real_t>
      const real_t wang_collision_enhancement_t<real_t>::aR0[7] = {10e-6, 20e-6, 30e-6, 40e-6, 50e-6, 60e-6, 100e-6};
      template<class real_t>
      const real_t wang_collision_enhancement_t<real_t>::arat[11] = {0., .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.};
@@ -112,7 +112,7 @@ namespace libcloudphxx
        {3.788,3.788,1.501,1.311,1.120,1.120,1.0},},
        {{20.3, 20.3, 14.6, 8.61, 2.60, 2.60, 1.0},
        {36.52,36.52,19.16,22.80,26.0, 26.0, 1.0}}
-     };
+     };*/
     };
   };
 };

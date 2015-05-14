@@ -102,7 +102,7 @@ namespace libcloudphxx
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
           // init kernel
-          k_onishi.resize(1, kernel_onishi<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>()));
+          k_onishi.resize(1, kernel_onishi<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>(), vR0.data(), vrat.data(), veta_e.data()));
           p_kernel = (&(k_onishi[0])).get();
           break;
 
