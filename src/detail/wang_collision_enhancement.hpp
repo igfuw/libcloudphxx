@@ -15,23 +15,30 @@ namespace libcloudphxx
         static const real_t arat[11];          // ratio of radii
         static const real_t aeta_e[11][2][7];  // [rat][eps][R0]
 
-        //TODO: is there any advantage of storing it in device memory?
-        thrust_device::vector<real_t> R0;
-        thrust_device::vector<real_t> rat;
-        thrust_device::vector<real_t> eta_e;
+        //TODO: is it really more efficient to store it in device memory?
+        thrust_device::vector<real_t> vR0;
+        thrust_device::vector<real_t> vrat;
+        thrust_device::vector<real_t> veta_e;
+
+        thrust_device::pointer<real_t> R0;
+        thrust_device::pointer<real_t> rat;
+        thrust_device::pointer<real_t> eta_e;
 
         // ctor
         wang_collision_enhancement_t(): 
-        R0(aR0, aR0 + sizeof(aR0) / sizeof(aR0[0])), 
-        rat(arat, arat + sizeof(arat) / sizeof(arat[0])), 
-        eta_e(aeta_e, aeta_e + sizeof(aeta_e) / sizeof(aeta_e[0]))
+        vR0(aR0, aR0 + sizeof(aR0) / sizeof(aR0[0])), 
+        vrat(arat, arat + sizeof(arat) / sizeof(arat[0])), 
+        veta_e(&aeta_e[0][0][0], &aeta_e[0][0][0] + sizeof(aeta_e) / sizeof(aeta_e[0][0][0])),
+        R0(vR0.data()),
+        rat(vrat.data()),
+        eta_e(veta_e.data())
         {}
 
         BOOST_GPU_ENABLED
-        int eta_e_index(const int &n_rat, const int &n_eps, const int &n_R0)  {return (7 * (2 * n_rat +  n_eps) + n_R0);}
+        int eta_e_index(const int &n_rat, const int &n_eps, const int &n_R0) const  {return (7 * (2 * n_rat +  n_eps) + n_R0);}
 
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &r1, const real_t &r2, const real_t &eps) // radii in meters, dissipation rate in m^2/s^3
+        real_t operator()(const real_t &r1, const real_t &r2, const real_t &eps) const // radii in meters, dissipation rate in m^2/s^3
         {
           // find respective array positions
           real_t r, R;
@@ -49,7 +56,7 @@ namespace libcloudphxx
           for(n_rat = 1; n_rat < 11; ++n_rat)
             if(rat[n_rat] > ratio) break;
   
-          if(n_R0 == 0) return eta_e[n_rat][n_eps][n_R0]; // do not interpolate if both are smaller than 10um
+          if(n_R0 == 0) return eta_e[eta_e_index(n_rat, n_eps, n_R0)]; // do not interpolate if both are smaller than 10um
   
           // two-dimensional linear interpolation
           // note: we interpolate in (radius, ratio) space, not in (radius, radius)...
@@ -66,10 +73,10 @@ namespace libcloudphxx
   
           return
           (   
-            eta_e[eta_e_index(n_rat, n_eps, n_R0)-1][n_eps][n_R0-1] * w[1] * w[3] +
-            eta_e[eta_e_index(n_rat, n_eps, n_R0)-1][n_eps][n_R0]   * w[0] * w[3] +
-            eta_e[eta_e_index(n_rat, n_eps, n_R0)][n_eps][n_R0-1]   * w[1] * w[2] +
-            eta_e[eta_e_index(n_rat, n_eps, n_R0)][n_eps][n_R0]     * w[0] * w[2]
+            eta_e[eta_e_index(n_rat-1, n_eps, n_R0-1)] * w[1] * w[3] +
+            eta_e[eta_e_index(n_rat-1, n_eps, n_R0)]   * w[0] * w[3] +
+            eta_e[eta_e_index(n_rat, n_eps, n_R0-1)]   * w[1] * w[2] +
+            eta_e[eta_e_index(n_rat, n_eps, n_R0)]     * w[0] * w[2]
           ) / (R0[n_R0] - R0[n_R0-1])
             / (rat[n_rat]-rat[n_rat-1]); 
         }

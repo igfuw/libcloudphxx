@@ -1,4 +1,5 @@
 #include "tpl_calc_wrapper.hpp"
+#include <libcloudph++/common/moist_air.hpp>
 
 #if defined(__NVCC__)
 #  include <math_constants.h>
@@ -139,10 +140,10 @@ namespace libcloudphxx
     // turbulence dissipataion rate and Taylor microscale Reynolds number
     // TODO: get these values from flow characteristic (simulation-time during hskpng)
     //       cf. Benmoshe et al, JGR 2012
-/*    template <typename real_t, typename n_t>
+    template <typename real_t, typename n_t>
     struct kernel_onishi : kernel_geometric<real_t, n_t>
     {
-      detail::wang_collision_enhancement_t wang_collision_enhancement;
+      detail::wang_collision_enhancement_t<real_t> wang_collision_enhancement;
 
       //ctor
       kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max), wang_collision_enhancement() {}
@@ -151,24 +152,31 @@ namespace libcloudphxx
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+        enum { rhod_ix, eta_ix };
 
 #if !defined(__NVCC__)
         using std::sqrt;
 #endif
-        real_t rwa = sqrt( thrust::get<rw2_a_ix>(tpl_wrap()));
-        real_t rwb = sqrt( thrust::get<rw2_b_ix>(tpl_wrap()));
+        real_t rwa = sqrt( thrust::get<rw2_a_ix>(tpl_wrap.get_rw()));
+        real_t rwb = sqrt( thrust::get<rw2_b_ix>(tpl_wrap.get_rw()));
+        real_t onishi_nograv = detail::kernel_onishi_nograv<real_t>           // value of the turbulent onishi kernel that neglects gravitational settling
+        (
+          rwa, rwb, kernel_base<real_t, n_t>::k_params[1], kernel_base<real_t, n_t>::k_params[0],                              // k_params[0] - epsilon, k_params[1] - Re_lambda
+          thrust::get<eta_ix>(tpl_wrap.get_ro_calc()) / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()),                          // kinetic viscosity, check: divide by density of dry air? 
+          common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()) // ratio of water to air density
+        );
 
         real_t res = 
-          kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *  // stagnant air collision efficiency
-          wang_collision_enhancement(rwa, rwb, k_params[0]) *                 // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
+          kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *             // stagnant air collision efficiency
+          wang_collision_enhancement(rwa, rwb, kernel_base<real_t, n_t>::k_params[0]) *  // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
           sqrt(
-            pow(kernel_geometric<real_t, n_t>::calc(tpl_wrap),2) +            // geometric kernel 
-            pow(detail::kernel_onishi_nograv(rwa, rwb, k_params[1], k_params[0], eta... ),2)
+            pow(kernel_geometric<real_t, n_t>::calc(tpl_wrap),2) +                       // geometric kernel 
+            pow(onishi_nograv,2)
           );
 
         return res;
       }
-    };*/
+    };
   };
 };
 

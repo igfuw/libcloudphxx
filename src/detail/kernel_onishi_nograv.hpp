@@ -29,12 +29,18 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       real_t kernel_onishi_nograv(const real_t &r1, const real_t &r2, const real_t &Re_l, const real_t &eps, const real_t &dnu, const real_t &ratio_den)
       {
+#if !defined(__NVCC__)
+        using std::max;
+        using std::pow;
+#endif
+
         real_t PI = 
 #if !defined(__NVCC__)
         pi<real_t>();
 #else
         CUDART_PI;
 #endif
+
         real_t urms;
         real_t leta;
         real_t Wr, WrA2,WrS2;
@@ -52,7 +58,7 @@ namespace libcloudphxx
         CR    = r1+r2;               //collision radius [m];
         taup1 = ratio_den * pow(2.*r1,2) /18. /dnu; //particle relaxation time [s];
         taup2 = ratio_den * pow(2.*r2,2) /18. /dnu;
-        leta  = pow(dnu*dnu*dnu/eps,0.25);  //Kolmogorov scale [m];
+        leta  = pow(dnu*dnu*dnu/eps,real_t(0.25));  //Kolmogorov scale [m];
         tauk  = leta*leta/dnu;         //Kolmogorov time  [s];
         Te    = Re_l*tauk/sqrt(15.);
   
@@ -88,13 +94,13 @@ namespace libcloudphxx
   //      alpha = (5.0/6.0 * log10(Re_l) - log10(Cdash)) &;
   //          / log10(2.0)                           //;
         alpha = log10(0.26*sqrt(Re_l))/log10(2.0); //2014;
-        alpha = max(alpha, 1.e-20);
+        alpha = max(alpha, real_t(1.e-20));
   
-        CA = 0.06*pow(Re_l,0.30); //2014;
+        CA = 0.06*pow(Re_l, real_t(0.30)); //2014;
         CB = 0.4;
   
-        StA = pow(A2/A1 * Re_l,0.25);
-        StB = pow(A2/A3,2./3.) * pow(Re_l,1./3.);
+        StA = pow(A2/A1 * Re_l, real_t(0.25));
+        StB = pow(A2/A3, real_t(2./3.)) * pow(Re_l, real_t(1./3.));
   
         St1 = taup1/ tauk; //Stokes number;
         St2 = taup2/ tauk;
@@ -128,8 +134,8 @@ namespace libcloudphxx
         za2 = 0.5 * (1. - tanh((log10(St2) - log10(StA)) / CA) );
         zb2 = 0.5 * (1. + tanh((log10(St2) - log10(StB)) / CB) );
   
-        gR1 = y11*pow(za1,alpha) + y21*pow(1.-za1,alpha) + y31*zb1 + 1.;
-        gR2 = y12*pow(za2,alpha) + y22*pow(1.-za2,alpha) + y32*zb2 + 1.;
+        gR1 = y11*pow(za1,alpha) + y21*pow(real_t(1.)-za1,alpha) + y31*zb1 + 1.;
+        gR2 = y12*pow(za2,alpha) + y22*pow(real_t(1.)-za2,alpha) + y32*zb2 + 1.;
   
   //g12=f(g11,g22) in Zhou et al. (2001)JFM      ;
         xai = max(taup2/taup1,taup1/taup2);     //xai:alpha;
