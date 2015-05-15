@@ -87,7 +87,7 @@ namespace libcloudphxx
         case(onishi_hall_davis_no_waals):
           if(n_user_params != 2)
           {
-            throw std::runtime_error("Please supply two kernel parameters: rate of diffusion epsilon and Taylo microscale Reynolds number.");
+            throw std::runtime_error("Please supply two kernel parameters: rate of diffusion epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
@@ -102,7 +102,7 @@ namespace libcloudphxx
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
           // init kernel
-          k_onishi.resize(1, kernel_onishi<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>(), vR0.data(), vrat.data(), veta_e.data()));
+          k_onishi.resize(1, kernel_onishi<real_t, n_t> (kernel_parameters.data(), detail::hall_davis_no_waals_r_max<real_t>()));
           p_kernel = (&(k_onishi[0])).get();
           break;
 
