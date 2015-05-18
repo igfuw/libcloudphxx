@@ -25,7 +25,7 @@ def RMSD(a1, a2):
   return np.sqrt(tot/nonempty)
 
 #initial conditions, ca. 1g / m^3
-r_zero = 3.0531e-6                      # can't be greater due to rd_max_init = 1e-5
+r_zero = 30.084e-6
 n_zero = pow(2,23)
 v_zero = spherevol(r_zero)
 
@@ -61,7 +61,7 @@ rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
 
-kappa = 50. #unrealistic, but we want initial wet radii of the order of 30 um so that coalescence takes place 
+kappa = 0
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
@@ -120,13 +120,9 @@ init_number_of_particles = partno()
 for t in range(int((simulation_time)/opts_init.dt)):
   prtcls.step_sync(opts, th, rv, rhod)
   prtcls.step_async(opts)
-
-r_zero_wet = r_zero * (2.69/2.73) * 10 # value of r_zero for initial wet radii distribution corresponding to kappa = 50
-v_zero_wet = spherevol(r_zero_wet)
-
     
 diag(results)
-calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero_wet,b)
+calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero,b)
 rmsd = RMSD(results,golovin_results)
 
 if(rmsd > 1.2e-8):
