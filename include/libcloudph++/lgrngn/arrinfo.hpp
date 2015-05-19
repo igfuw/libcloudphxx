@@ -12,11 +12,11 @@ namespace libcloudphxx
     struct arrinfo_t
     {
       // member fields:
+      const std::vector<ptrdiff_t> strvec; // see alt. ctor below
       real_t * const dataZero;
       const ptrdiff_t *strides;
 
 //</listing>
-      const std::vector<ptrdiff_t> strvec; // see alt. ctor below
 
       // ctors
       arrinfo_t()
