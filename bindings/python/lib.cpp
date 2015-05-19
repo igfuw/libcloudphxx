@@ -117,6 +117,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("golovin", lgr::golovin)
       .value("hall", lgr::hall)
       .value("hall_davis_no_waals", lgr::hall_davis_no_waals)
+      .value("hall_pinsky_1000mb_grav", lgr::hall_davis_no_waals)
       .value("onishi_hall_davis_no_waals", lgr::onishi_hall_davis_no_waals);
     bp::enum_<lgr::vt_t>("vt_t") 
       .value("beard", lgr::beard)
