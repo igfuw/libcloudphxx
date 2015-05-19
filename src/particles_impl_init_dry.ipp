@@ -77,9 +77,6 @@ namespace libcloudphxx
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
 
-      // sorting them (does not harm and makes rd_min/rd_max search simpler)
-      thrust::sort(u01.begin(), u01.end());
-
       // values to start the search 
       const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
       real_t rd_min = rd_min_init, rd_max = rd_max_init;
@@ -113,13 +110,15 @@ namespace libcloudphxx
 #endif
 
 	// shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
+        // each radius randomized only on a small subrange to make the distributions more uniform
+        // lnrd is sorted
 	thrust::transform(
-	  u01.begin(), 
-	  u01.end(), 
+	  u01.begin(), u01.end(), 
+          thrust::make_counting_iterator(real_t(0)),
 	  lnrd.begin(), 
-	  log(rd_min) + arg::_1 * (log(rd_max) - log(rd_min)) 
+	  log(rd_min) + (arg::_2 + arg::_1) * (log(rd_max) - log(rd_min))  / real_t(n_part)
 	);
- 
+
 	// filling n with multiplicities
 	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	real_t multiplier = log(rd_max / rd_min) 
