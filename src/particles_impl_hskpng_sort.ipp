@@ -28,11 +28,11 @@ namespace libcloudphxx
       else
       {
         // generating a random sorting key
-        rand_u01(n_part);
+        rand_un(n_part);
 
         // sorting the sequence with the random key
         thrust::sort_by_key(
-          u01.begin(), u01.end(),
+          un.begin(), un.end(),
           sorted_id.begin()
         );
 

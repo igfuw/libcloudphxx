@@ -40,7 +40,7 @@ namespace libcloudphxx
       const int n_dims;
       const int n_cell; 
       const thrust_size_t n_part; 
-      detail::u01<real_t, device> rng;
+      detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -151,7 +151,10 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_cell,
-	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+      thrust_device::vector<unsigned int>
+        tmp_device_n_part,
+        &un; // uniform natural random numbers between 0 and max value of unsigned int
       thrust_device::vector<thrust_size_t>
         tmp_device_size_cell;
 
@@ -160,6 +163,9 @@ namespace libcloudphxx
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
+
+      // fills un[0:n] with random numbers
+      void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
       // compile-time min(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
@@ -188,7 +194,9 @@ namespace libcloudphxx
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(opts_init.kernel_parameters.size())
+        n_user_params(opts_init.kernel_parameters.size()),
+        un(tmp_device_n_part),
+        rng(opts_init.rng_seed)
       {
         // sanity checks
         if (n_dims > 0)
@@ -216,6 +224,7 @@ namespace libcloudphxx
 	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
+	tmp_device_n_part.resize(n_part);
 
         // initialising host temporary arrays
         {

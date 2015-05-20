@@ -22,6 +22,7 @@ opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.dt = 1
 opts_init.sd_conc_mean = 64
 opts_init.terminal_velocity = lgrngn.vt_t.beard
+opts_init.rng_seed = 396
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny

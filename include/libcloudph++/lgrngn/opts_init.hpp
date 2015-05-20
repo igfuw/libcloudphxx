@@ -60,6 +60,9 @@ namespace libcloudphxx
       // RH threshold for calculating equilibrium condition at t=0
       real_t RH_max;
 
+      // rng seed
+      int rng_seed;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0), // the defaults are OK for a parcel set-up 
@@ -72,7 +75,8 @@ namespace libcloudphxx
         chem_switch(false),  // chemical reactions turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
-        terminal_velocity(undefined)
+        terminal_velocity(undefined),
+        rng_seed(44)
       {}
     };
   }
