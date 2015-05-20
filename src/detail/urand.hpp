@@ -45,7 +45,7 @@ namespace libcloudphxx
 	public:
 
         // ctor
-        rng() : engine(44), dist_u01(0,1), dist_un(0, std::numeric_limits<unsigned int>::max()) {}
+        rng(int seed) : engine(seed), dist_u01(0,1), dist_un(0, std::numeric_limits<unsigned int>::max()) {}
 
 	void generate_n(
 	  thrust_device::vector<real_t> &u01, 
@@ -76,7 +76,7 @@ namespace libcloudphxx
 	
 	public:
 
-	rng()
+	rng(int seed)
 	{
           {
 	    int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
@@ -84,7 +84,7 @@ namespace libcloudphxx
 	    _unused(status);
           }
           {
-	    int status = curandSetPseudoRandomGeneratorSeed(gen, 44);
+	    int status = curandSetPseudoRandomGeneratorSeed(gen, seed);
 	    assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
             _unused(status);
 	  }

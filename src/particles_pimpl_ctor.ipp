@@ -193,7 +193,8 @@ namespace libcloudphxx
         sorted(false), 
         u01(tmp_device_real_part),
         un(tmp_device_n_part),
-        n_kernel_params(opts_init.kernel_parameters.size())
+        n_kernel_params(opts_init.kernel_parameters.size()),
+        rng(opts_init.rng_seed)
       {
         // sanity checks
         if (n_dims > 0)
