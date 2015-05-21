@@ -138,7 +138,8 @@ namespace libcloudphxx
           // note: >= causes equal-multiplicity collisions to result in flagging for recycling
           if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
           {
-            col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
+            if(thrust::get<n_b_ix>(tpl_rw) > 0) 
+              col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
             collide<real_t, n_t,
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
@@ -149,7 +150,8 @@ namespace libcloudphxx
           }
           else
           {
-            col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
+            if(thrust::get<n_a_ix>(tpl_rw) > 0) 
+              col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
             collide<real_t, n_t,
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,

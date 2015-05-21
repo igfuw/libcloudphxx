@@ -39,8 +39,8 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
+      thrust_size_t n_part; 
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
