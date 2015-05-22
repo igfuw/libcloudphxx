@@ -122,7 +122,7 @@ namespace libcloudphxx
 	// filling n with multiplicities
 	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	real_t multiplier = log(rd_max / rd_min) 
-          / opts_init.sd_conc_mean 
+          / opts_init.sd_conc_mean
           * opts_init.dx 
           * opts_init.dy 
           * opts_init.dz;
@@ -151,11 +151,13 @@ namespace libcloudphxx
             tmp.begin(),                       // output
             arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
           ); 
+
+  	  // host -> device (includes casting from real_t to uint! and rounding)
+  	  thrust::copy(
+            thrust::make_transform_iterator(tmp.begin(), arg::_1 + real_t(0.5)),
+            thrust::make_transform_iterator(tmp.end(), arg::_1 + real_t(0.5)),
+            n.begin()); 
         }
-
-	// host -> device (includes casting from real_t to uint!)
-	thrust::copy(tmp.begin(), tmp.end(), n.begin()); 
-
         found_optimal_range = 1;
 
 	// chosing an optimal rd_min/rd_max range for a given pdf and grid
@@ -171,7 +173,7 @@ namespace libcloudphxx
 	}
         else if (ix>0)
         {
-	  rd_min = exp(lnrd[ix+1]); // adjusting the range
+	  rd_min = exp(lnrd[ix]); // adjusting the range
           found_optimal_range = 0;
         }
 
@@ -185,7 +187,7 @@ namespace libcloudphxx
 	}
         else if (ix < n_part)
         {
-	  rd_max = exp(lnrd[ix-1]); // adjusting the range
+	  rd_max = exp(lnrd[ix]); // adjusting the range
           found_optimal_range = 0;
         }
 
