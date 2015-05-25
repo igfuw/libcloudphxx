@@ -16,6 +16,8 @@
 #include <thrust/sort.h>
 #include <thrust/extrema.h>
 
+#include <boost/math/tools/minima.hpp>
+
 #include <libcloudph++/common/earth.hpp>
 
 namespace libcloudphxx
@@ -36,24 +38,54 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct eval_and_multiply
+      struct eval_and_oper
       {   
         const common::unary_function<real_t> &fun;
         const real_t &mul;
+        const bool operation; // 0 - multiply, 1 - add
 
         // ctor
-        eval_and_multiply(
+        eval_and_oper(
           const common::unary_function<real_t> &fun, 
-          const real_t &mul
+          const real_t &mul,
+          bool operation = 0
         )
-          : fun(fun), mul(mul)
+          : fun(fun), mul(mul), operation(operation)
         {}
 
         real_t operator()(real_t x)  
         {
-          return mul * fun(x); 
+          if(operation == 0)
+            return mul * fun(x);
+          else
+            return mul + fun(x);
         }
-      };  
+      }; 
+
+      // calculate numerical integral with the trapezoidal rule
+      template<typename real_t, typename n_t>
+      real_t integrate(const common::unary_function<real_t> &fun, const real_t &min, const real_t &max, n_t n)
+      {
+        const real_t delta = (max - min) / real_t(n-1);
+        real_t integral = (fun(min) + fun(max)) / 2.;
+
+        for(int i=1; i<n-1; ++i)
+          integral += fun(min + i * delta); 
+
+        return integral * delta;
+      }
+ 
+      struct root_search_precision      
+      {
+        template <typename real_t>
+        bool operator()(real_t a,real_t b) // a and b are ln(radius)
+        {
+          if(b-a < 1e-6)
+            return 1;
+          else
+            return 0;
+        }
+      };
     };
 
     // init
@@ -63,6 +95,44 @@ namespace libcloudphxx
       const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
     )
     {
+      // values to start the search 
+      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
+      real_t rd_min = rd_min_init, rd_max = rd_max_init;
+
+      { //tylko dla const_n
+        boost::uintmax_t max_iter = 1e6; // max number of iterations when searching for maxima/roots
+  
+        // analysing initial distribution
+        // has to have only single maximum, no local minima
+        std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), function value at maximum]
+        init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
+    
+        printf("max pos = %.6e\n", exp(init_distr_max.first));
+        printf("max val = %.6e\n", init_distr_max.second);
+        real_t init_dist_bound_value = -init_distr_max.second / 1e6; // value of the distribution at which we bound it
+        printf("bound value = %.6e\n", init_dist_bound_value);
+  
+        std::pair<real_t, real_t> init_distr_bound;
+        init_distr_bound = boost::math::tools::toms748_solve(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), real_t(log(rd_min_init)), init_distr_max.first, detail::root_search_precision(), max_iter);
+        rd_min = (init_distr_bound.first + init_distr_bound.second) / 2.; // in ln(radius)
+  
+        init_distr_bound = boost::math::tools::toms748_solve(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), init_distr_max.first, real_t(log(rd_max_init)), detail::root_search_precision(), max_iter);
+        rd_max = (init_distr_bound.first + init_distr_bound.second) / 2.; // in ln(radius)
+  //      max_pos = exp(max_pos);
+        printf("left boundary = %.6e\n", exp(rd_min));
+        printf("right boundary = %.6e\n", exp(rd_max));
+  
+        const real_t integral = detail::integrate(*n_of_lnrd_stp, rd_min, rd_max, 1e5);
+        printf("integral = %.6e\n", integral);
+
+        n_part = round(integral 
+          / opts_init.const_multiplicity
+          * opts_init.dx 
+          * opts_init.dy 
+          * opts_init.dz);
+        // policzyc cdf, potem samplowac na jego podstawie
+      }
+
       // memory allocation
       rd3.resize(n_part);
       n.resize(n_part);
@@ -73,10 +143,6 @@ namespace libcloudphxx
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
-
-      // values to start the search 
-      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
-      real_t rd_min = rd_min_init, rd_max = rd_max_init;
 
       // temporary space on the host 
       thrust::host_vector<real_t> tmp(n_part);
@@ -126,7 +192,7 @@ namespace libcloudphxx
 	thrust::transform(
 	  tmp.begin(), tmp.end(), // input 
 	  tmp.begin(),            // output
-	  detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
+	  detail::eval_and_oper<real_t>(*n_of_lnrd_stp, multiplier)
 	);
 
         // correcting STP -> actual ambient conditions
