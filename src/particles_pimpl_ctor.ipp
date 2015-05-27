@@ -39,7 +39,7 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
+      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -214,7 +214,8 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.sd_conc_mean * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc_mean or opts_init.sd_const_multi, not both");
+        if (opts_init.sd_conc_mean == 0 && opts_init.sd_const_multi == 0) throw std::runtime_error("please specify opts_init.sd_conc_mean or opts_init.sd_const_multi");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -258,6 +259,10 @@ namespace libcloudphxx
       void sanity_checks();
 
       void init_dry(
+        const real_t kappa, // TODO: map
+        const common::unary_function<real_t> *n_of_lnrd
+      );
+      void init_dry_const_multi(
         const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd
       );

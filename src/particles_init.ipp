@@ -44,6 +44,18 @@ namespace libcloudphxx
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
+      pimpl->init_hskpng(); 
+
+      // initialising dry radii (needs rhod) with constant multiplicity method (DSMC-like)
+      if(pimpl->opts_init.sd_const_multi > 0)
+      {
+        assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
+        pimpl->init_dry_const_multi(
+          pimpl->opts_init.dry_distros.begin()->first,
+          pimpl->opts_init.dry_distros.begin()->second 
+        ); // TODO: document that n_of_lnrd_stp is expected!
+      }
+
       // initialising particle positions
       pimpl->init_xyz();
 
@@ -51,16 +63,18 @@ namespace libcloudphxx
       pimpl->init_grid();
 
       // initialising housekeeping data (incl. ijk)
-      pimpl->init_hskpng(); 
       pimpl->hskpng_Tpr(); 
       pimpl->hskpng_ijk(); 
 
       // initialising dry radii (needs positions, ijk and rhod)
-      assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      pimpl->init_dry(
-        pimpl->opts_init.dry_distros.begin()->first,
-        pimpl->opts_init.dry_distros.begin()->second 
-      ); // TODO: document that n_of_lnrd_stp is expected!
+      if(pimpl->opts_init.sd_conc_mean > 0)
+      {
+        assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
+        pimpl->init_dry(
+          pimpl->opts_init.dry_distros.begin()->first,
+          pimpl->opts_init.dry_distros.begin()->second 
+        ); // TODO: document that n_of_lnrd_stp is expected!
+      }
 
       // initialising wet radii
       pimpl->init_wet();

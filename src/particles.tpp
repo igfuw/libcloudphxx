@@ -12,6 +12,7 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
+#include "detail/eval_and_oper.hpp"
 
 #include "particles_impl_kernel.ipp"
 
@@ -23,6 +24,7 @@
 
 // details
 #include "particles_impl_init_dry.ipp"
+#include "particles_impl_init_dry_const_multi.ipp"
 #include "particles_impl_init_wet.ipp"
 #include "particles_impl_init_xyz.ipp"
 #include "particles_impl_init_e2l.ipp"

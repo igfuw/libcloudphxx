@@ -41,6 +41,9 @@ namespace libcloudphxx
       // mean no. of super-droplets per cell
       real_t sd_conc_mean; 
 
+      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
+      int sd_const_multi;
+
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
@@ -66,6 +69,7 @@ namespace libcloudphxx
         x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
         x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
         sd_conc_mean(0), 
+        sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
