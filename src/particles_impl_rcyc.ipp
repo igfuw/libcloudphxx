@@ -97,8 +97,9 @@ namespace libcloudphxx
 	  sorted_id.begin()
 	);
        
-        //see if there are any SDs to split, if not - remove SDs with n=0
-        if(tmp.back()==1)
+        // see if there are any SDs to split, if not - remove SDs with n=0
+        // same if const multiplicity option is used TODO: in that case sorting above is not necessary
+        if(tmp.back()==1 || opts_init.sd_const_multi > 0)
         {
           typedef thrust::detail::normal_iterator<thrust_device::pointer<real_t> > it_real_t;
           typedef thrust::detail::normal_iterator<thrust_device::pointer<n_t> > it_n_t;
