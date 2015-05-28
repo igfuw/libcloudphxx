@@ -218,7 +218,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(
