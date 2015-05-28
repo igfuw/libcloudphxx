@@ -44,6 +44,7 @@ namespace libcloudphxx
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
+      // initialising housekeeping data
       pimpl->init_hskpng(); 
 
       // initialising dry radii (needs rhod) with constant multiplicity method (DSMC-like)
@@ -62,7 +63,7 @@ namespace libcloudphxx
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       pimpl->init_grid();
 
-      // initialising housekeeping data (incl. ijk)
+      // initialising additional housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 
       pimpl->hskpng_ijk(); 
 
