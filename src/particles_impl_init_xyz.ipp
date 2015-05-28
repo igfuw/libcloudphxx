@@ -23,6 +23,9 @@ namespace libcloudphxx
       const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
+
+      if(opts_init.sd_conc_mean > 0)
+        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc_mean); // if using const_multi, count_num is already filled
  
       thrust::sequence(sorted_ijk.begin(), sorted_ijk.end()); // temporarily use sorted_ijk
       // get sorted_ijk = {0, 1,..., n_cell, 0, 1, ..., n_cell, ...}
