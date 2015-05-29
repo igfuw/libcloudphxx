@@ -10,6 +10,23 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      struct arbitrary_sequence //fill container with n 0s, m 1s, l 2s, etc...
+      {
+        thrust_device::pointer<thrust_size_t> res;
+        arbitrary_sequence(thrust_device::pointer<thrust_size_t> res): res(res) {}
+      
+        template<typename Tuple>
+        BOOST_GPU_ENABLED
+        void operator()(Tuple tup)
+        {
+          for(int i=0; i<thrust::get<0>(tup); ++i)
+            *(res+i+thrust::get<1>(tup)) = thrust::get<2>(tup);
+        }
+      };
+
+    };
     // init_xyz, to get uniform distribution in each cell
     // first n_cell SDs are distributed one per each cell,
     // then same with second n_cell particles, etc.
@@ -26,23 +43,23 @@ namespace libcloudphxx
 
       if(opts_init.sd_conc_mean > 0)
         thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc_mean); // if using const_multi, count_num is already filled
- 
-      thrust::sequence(sorted_ijk.begin(), sorted_ijk.end()); // temporarily use sorted_ijk
-      // get sorted_ijk = {0, 1,..., n_cell, 0, 1, ..., n_cell, ...}
-      thrust::transform(sorted_ijk.begin(), sorted_ijk.end(), thrust::make_constant_iterator<thrust_size_t>(n_cell), sorted_ijk.begin(), thrust::modulus<thrust_size_t>());
 
-      // get random keys
-      rand_u01(n_part);
-      {
-        namespace arg = thrust::placeholders;
-        // increment random keys by 1 after each n_cell keys
-        thrust::transform(u01.begin(), u01.end(), thrust::make_counting_iterator(0), u01.begin(), arg::_1 + arg::_2 / n_cell);
-      }
+      thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
+      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
 
-      // obtain a sequence of n_part/n_cell random permutations of the range [0, .., n_cell-1]
-      thrust::sort_by_key(u01.begin(), u01.end(), sorted_ijk.begin());
-     
+      // fill sorted ijk with cell number of each SD
+      thrust::for_each(
+        thrust::make_zip_iterator(thrust::make_tuple(
+          count_num.begin(), ptr.begin(), thrust::make_counting_iterator(0)
+        )), 
+        thrust::make_zip_iterator(thrust::make_tuple(
+          count_num.end(), ptr.end(), thrust::make_counting_iterator(n_cell)
+        )), 
+        detail::arbitrary_sequence(&(sorted_ijk[0]))
+      );
+
       // get i, j, k from sorted_ijk 
+      // TODO: check if it is done the same way as syncing with rhod!!
       // i, j, k will be temporarily used
       switch(n_dims)
       {
