@@ -34,7 +34,7 @@ opts_init.rng_seed = int(time.time())
 
 th   = 300 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
-rhod   = 1. * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
+rhod   = 1. * np.mgrid[1:1+opts_init.nx, 1:1+opts_init.ny, 1:1+opts_init.nz][0] # different densities, hence different water content
 
 kappa = 1e-6
 
@@ -50,7 +50,7 @@ except:
 prtcls.init(th, rv, rhod)
 
 prtcls.diag_all()
-prtcls.diag_wet_mom(3)
+prtcls.diag_wet_mom(3) # gives specific moment (divided by rhod)
 mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
 
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
