@@ -23,10 +23,14 @@ namespace libcloudphxx
 
         case(geometric):
           // init kernel parameters vector
-          if(n_kernel_params != 0)
+          if(n_kernel_params > 1)
           {
-            throw std::runtime_error("Geometric kernel doesn't accept parameters.");
+            throw std::runtime_error("Geometric kernel accepts up to one parameter.");
           }
+          kernel_parameters.resize(1);
+          if(n_kernel_params == 1)
+            thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
+          else kernel_parameters[0] = 1.; //default multiplier = 1
 
           // init kernel
           k_geometric.resize(1, kernel_geometric<real_t, n_t> (kernel_parameters.data()));
