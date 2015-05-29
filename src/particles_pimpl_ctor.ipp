@@ -184,7 +184,7 @@ namespace libcloudphxx
           m1(opts_init.nz)
         ),
 	n_part( // TODO: what if multiple spectra/kappas
-          opts_init.sd_conc_mean * 
+          opts_init.sd_conc * 
 	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
 	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
 	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
@@ -214,7 +214,7 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible

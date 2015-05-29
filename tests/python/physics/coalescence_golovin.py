@@ -65,7 +65,7 @@ kappa = 50. #unrealistic, but we want initial wet radii of the order of 30 um so
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
-opts_init.sd_conc_mean = pow(2,14)
+opts_init.sd_conc = pow(2,14)
 
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.kernel_parameters = np.array([b]);

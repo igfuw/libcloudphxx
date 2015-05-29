@@ -40,7 +40,7 @@ kappa = 1e-6
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
-opts_init.sd_conc_mean = 64
+opts_init.sd_conc = 64
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)

@@ -151,7 +151,7 @@ namespace libcloudphxx
 	// filling n with multiplicities
 	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	real_t multiplier = log(rd_max / rd_min) 
-          / opts_init.sd_conc_mean
+          / real_t(opts_init.sd_conc)
           * opts_init.dx 
           * opts_init.dy 
           * opts_init.dz;
