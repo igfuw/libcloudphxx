@@ -184,7 +184,7 @@ namespace libcloudphxx
           m1(opts_init.nz)
         ),
 	n_part( // TODO: what if multiple spectra/kappas
-          opts_init.sd_conc_mean * 
+          opts_init.sd_conc * 
 	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
 	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
 	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
@@ -214,8 +214,8 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc_mean or opts_init.sd_const_multi, not both");
-        if (opts_init.sd_conc_mean == 0 && opts_init.sd_const_multi == 0) throw std::runtime_error("please specify opts_init.sd_conc_mean or opts_init.sd_const_multi");
+        if (opts_init.sd_conc * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc or opts_init.sd_const_multi, not both");
+        if (opts_init.sd_conc == 0 && opts_init.sd_const_multi == 0) throw std::runtime_error("please specify opts_init.sd_conc or opts_init.sd_const_multi");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -228,7 +228,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(

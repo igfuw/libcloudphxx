@@ -68,7 +68,7 @@ namespace libcloudphxx
       pimpl->hskpng_ijk(); 
 
       // initialising dry radii (needs positions, ijk and rhod)
-      if(pimpl->opts_init.sd_conc_mean > 0)
+      if(pimpl->opts_init.sd_conc > 0)
       {
         assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
         pimpl->init_dry(

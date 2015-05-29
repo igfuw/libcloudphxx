@@ -116,45 +116,19 @@ namespace libcloudphxx
           }
           else if(n_dims == 2)
           {
-            if(opts_init.nx == 0)
-              thrust::remove_if(
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(y.begin(), z.begin(), j.begin(), k.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(y.begin(), z.begin(), j.begin(), k.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
-            else if(opts_init.ny == 0)
-              thrust::remove_if(
-       	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), z.begin(), i.begin(), k.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), z.begin(), i.begin(), k.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
-            else
-              thrust::remove_if(
-       	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), y.begin(), i.begin(), j.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), y.begin(), i.begin(), j.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
+            thrust::remove_if(
+       	      thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), z.begin(), i.begin(), k.begin())))),
+  	      thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), z.begin(), i.begin(), k.begin())))) + n_part,
+              detail::n_eq_zero()
+            );
           }
           else if(n_dims == 1)
           {
-            if(opts_init.nx>0)
-              thrust::remove_if(
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), i.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(x.begin(), i.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
-            else if(opts_init.ny>0)
-              thrust::remove_if(
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(y.begin(), j.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(y.begin(), j.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
-            else
-              thrust::remove_if(
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(z.begin(), k.begin())))),
-  	        thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(z.begin(), k.begin())))) + n_part,
-                detail::n_eq_zero()
-              );
+            thrust::remove_if(
+              thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(z.begin(), k.begin())))),
+              thrust::make_zip_iterator(thrust::make_tuple(thrust::make_zip_iterator(tup_params), thrust::make_zip_iterator(thrust::make_tuple(z.begin(), k.begin())))) + n_part,
+              detail::n_eq_zero()
+            );
           }
           else if(n_dims == 0)
             thrust::remove_if(
