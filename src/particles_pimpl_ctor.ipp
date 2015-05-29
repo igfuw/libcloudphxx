@@ -39,7 +39,7 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
+      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -184,7 +184,7 @@ namespace libcloudphxx
           m1(opts_init.nz)
         ),
 	n_part( // TODO: what if multiple spectra/kappas
-          opts_init.sd_conc_mean * 
+          opts_init.sd_conc * 
 	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
 	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
 	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
@@ -214,7 +214,7 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -227,7 +227,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(

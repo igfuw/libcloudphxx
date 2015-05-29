@@ -30,7 +30,7 @@ Opts_init.dx = 1
 Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
-Opts_init.sd_conc_mean = 50. / (Opts_init.nx * Opts_init.nz)
+Opts_init.sd_conc = 50 / (Opts_init.nx * Opts_init.nz)
 
 Backend = lgrngn.backend_t.serial
 

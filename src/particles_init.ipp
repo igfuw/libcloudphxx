@@ -44,14 +44,16 @@ namespace libcloudphxx
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
+      // initialising housekeeping data
+      pimpl->init_hskpng(); 
+
       // initialising particle positions
       pimpl->init_xyz();
 
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       pimpl->init_grid();
 
-      // initialising housekeeping data (incl. ijk)
-      pimpl->init_hskpng(); 
+      // initialising more housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 
       pimpl->hskpng_ijk(); 
 

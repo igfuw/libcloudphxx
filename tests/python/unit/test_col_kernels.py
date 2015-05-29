@@ -24,7 +24,7 @@ kappa = .61
 
 opts_init.dry_distros = {kappa:lognormal}
 
-opts_init.sd_conc_mean = 50.
+opts_init.sd_conc = 50
 
 for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.golovin]:
   opts_init.kernel = kernel
