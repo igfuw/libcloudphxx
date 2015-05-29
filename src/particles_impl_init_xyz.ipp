@@ -44,8 +44,12 @@ namespace libcloudphxx
       if(opts_init.sd_conc > 0)
         thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc); // if using const_multi, count_num is already filled
 
+debug::print(count_num);
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
+debug::print(ptr);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
+debug::print(count_num);
+debug::print(ptr);
 
       // fill sorted ijk with cell number of each SD
       thrust::for_each(
@@ -57,6 +61,7 @@ namespace libcloudphxx
         )), 
         detail::arbitrary_sequence(&(sorted_ijk[0]))
       );
+debug::print(sorted_ijk);
 
       // get i, j, k from sorted_ijk 
       // TODO: check if it is done the same way as syncing with rhod!!

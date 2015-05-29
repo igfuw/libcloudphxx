@@ -10,7 +10,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_hskpng()
+    void particles_t<real_t, device>::impl::init_hskpng_npart()
     {
       // memory allocation
       if (opts_init.nx != 0) i.resize(n_part); //
@@ -22,18 +22,8 @@ namespace libcloudphxx
       vt.resize(n_part);
       thrust::fill(vt.begin(), vt.end(), 0); // so that it may be safely used in condensation before first update
 
-      T.resize(n_cell);
-      p.resize(n_cell);
-      RH.resize(n_cell); 
-      eta.resize(n_cell); 
-
       sorted_id.resize(n_part);
       sorted_ijk.resize(n_part);
-
-      count_ijk.resize(n_cell);
-      count_num.resize(n_cell);
-      count_mom.resize(n_cell);
-      count_n = 0;
     }
   };
 };

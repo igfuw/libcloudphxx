@@ -130,7 +130,7 @@ namespace libcloudphxx
       // calculate cumulative distribution function
       thrust::host_vector<real_t> cdf;
       detail::calc_CDF(*n_of_lnrd_stp, rd_min, rd_max, precision, cdf);
-      debug::print(cdf);
+//      debug::print(cdf);
 
       // number of SDs per cell under STP conditions
       real_t multiplier = round(integral 
@@ -138,12 +138,13 @@ namespace libcloudphxx
         * opts_init.dx 
         * opts_init.dy 
         * opts_init.dz);
+printf("multiplier %f\n", float(multiplier));
 
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
       // initialize number of SDs in cells taking into account differences in rhod (round to int)
       thrust::transform(rhod.begin(), rhod.end(), count_num.begin(),
-        multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres + 0.5)
+        (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)+0.5)
       ); 
       debug::print(count_num);
 
@@ -163,7 +164,7 @@ namespace libcloudphxx
  
       // filling multiplicities
       thrust::fill(n.begin(), n.end(), opts_init.sd_const_multi);
-      debug::print(n);
+//      debug::print(n);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
@@ -174,7 +175,7 @@ namespace libcloudphxx
       // sample ln(rd) from the distribution with the inverse transform sampling method
       thrust::upper_bound(cdf.begin(), cdf.end(), u01.begin(), u01.end(), lnrd.begin());
       thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision); //precision ??
-      debug::print(lnrd);
+//      debug::print(lnrd);
 
       // converting rd back from logarithms to rd3
       thrust::transform(
@@ -183,7 +184,7 @@ namespace libcloudphxx
         rd3.begin(),
         detail::exp3x<real_t>()
       );
-      debug::print(rd3);
+//      debug::print(rd3);
     }
   };
 };

@@ -271,7 +271,8 @@ namespace libcloudphxx
       void init_wet();
       void init_sync();
       void init_grid();
-      void init_hskpng();
+      void init_hskpng_npart();
+      void init_hskpng_ncell();
       void init_chem();
       void init_sstp();
       void init_kernel();
