@@ -53,9 +53,9 @@ environment. Nevertheless, in principle you can skip to step four
 and install the library right away.
   
 2. To perform unit and some other quick tests, please try:
-  $ cd tests
+  $ cd build/tests
   $ make test
-  $ cd ..
+  $ cd ../..
 
 These tests should complete in a few minutes.
 
