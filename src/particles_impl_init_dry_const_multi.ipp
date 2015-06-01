@@ -54,7 +54,6 @@ namespace libcloudphxx
           thrust::make_transform_iterator(thrust::make_counting_iterator(0), min + bin_size * arg::_1),
           thrust::make_transform_iterator(thrust::make_counting_iterator(n), min + bin_size * arg::_1),
           vec.begin(), eval_and_oper<real_t>(fun, 1));
-//        debug::print(vec);
 
         // calculate CDF
         thrust::inclusive_scan(vec.begin(), vec.end(), vec.begin());
@@ -98,10 +97,7 @@ namespace libcloudphxx
       std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
       init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
   
-      printf("max pos = %.6e\n", exp(init_distr_max.first));
-      printf("max val = %.6e\n", init_distr_max.second);
       real_t init_dist_bound_value = -init_distr_max.second / 1e6; // value of the distribution at which we bound it
-      printf("bound value = %.6e\n", init_dist_bound_value);
 
       std::pair<real_t, real_t> init_distr_bound; // bounds between which distribution's root is
       init_distr_bound = 
@@ -120,17 +116,11 @@ namespace libcloudphxx
         );
       rd_max = (init_distr_bound.first + init_distr_bound.second) / 2.; // in ln(radius)
 
-//      max_pos = exp(max_pos);
-      printf("left boundary = %.6e\n", exp(rd_min));
-      printf("right boundary = %.6e\n", exp(rd_max));
-
       const real_t integral = detail::integrate(*n_of_lnrd_stp, rd_min, rd_max, precision);
-      printf("integral = %.6e\n", integral);
 
       // calculate cumulative distribution function
       thrust::host_vector<real_t> cdf;
       detail::calc_CDF(*n_of_lnrd_stp, rd_min, rd_max, precision, cdf);
-//      debug::print(cdf);
 
       // number of SDs per cell under STP conditions
       real_t multiplier = round(integral 
@@ -138,7 +128,6 @@ namespace libcloudphxx
         * opts_init.dx 
         * opts_init.dy 
         * opts_init.dz);
-printf("multiplier %f\n", float(multiplier));
 
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
@@ -146,11 +135,8 @@ printf("multiplier %f\n", float(multiplier));
       thrust::transform(rhod.begin(), rhod.end(), count_num.begin(),
         (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)+0.5)
       ); 
-      debug::print(count_num);
 
       n_part = thrust::reduce(count_num.begin(), count_num.end());
-      printf("n_part %d\n", int(n_part));
-
 
       // memory allocation
       rd3.resize(n_part);
@@ -164,7 +150,6 @@ printf("multiplier %f\n", float(multiplier));
  
       // filling multiplicities
       thrust::fill(n.begin(), n.end(), opts_init.sd_const_multi);
-//      debug::print(n);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
@@ -175,7 +160,6 @@ printf("multiplier %f\n", float(multiplier));
       // sample ln(rd) from the distribution with the inverse transform sampling method
       thrust::upper_bound(cdf.begin(), cdf.end(), u01.begin(), u01.end(), lnrd.begin());
       thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision); //precision ??
-//      debug::print(lnrd);
 
       // converting rd back from logarithms to rd3
       thrust::transform(
@@ -184,7 +168,6 @@ printf("multiplier %f\n", float(multiplier));
         rd3.begin(),
         detail::exp3x<real_t>()
       );
-//      debug::print(rd3);
     }
   };
 };
