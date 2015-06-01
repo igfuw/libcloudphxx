@@ -90,19 +90,19 @@ namespace libcloudphxx
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
             j.begin(),        // output
-            arg::_1 / (opts_init.nz * opts_init.nx)   // assuming z and x vary first
+            (arg::_1 / opts_init.nz) % opts_init.ny   // assuming z varies first
           );
           // x
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
             i.begin(),        // output
-            arg::_1 % (opts_init.nz * opts_init.nx) / (opts_init.nz)   // assuming z varies first
+            arg::_1 / (opts_init.nz * opts_init.ny)  // assuming z and y vary first
           );
           // z
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
             k.begin(),        // output
-            arg::_1 % (opts_init.nz * opts_init.nx) % (opts_init.nz)   // assuming z varies first
+            arg::_1 % (opts_init.nz)   // assuming z varies first
           );
           break;
         default:
