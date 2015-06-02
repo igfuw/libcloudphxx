@@ -9,6 +9,7 @@
 
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
+#include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -42,14 +43,20 @@ namespace libcloudphxx
       real_t sd_conc_mean; 
 
       // coalescence Kernel type
-      kernel_t kernel;
+      kernel_t::kernel_t kernel;
+
+      // terminal velocity formula
+      vt_t::vt_t terminal_velocity;
 //</listing>
  
       // coalescence kernel parameters
       std::vector<real_t> kernel_parameters;
 
       // chem
-      bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+      bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+           coal_switch,  // if false no coalescence throughout the whole simulation
+           sedi_switch;  // if false no sedimentation throughout the whole simulation
+
       int sstp_chem;
       real_t chem_rho;
 
@@ -69,9 +76,13 @@ namespace libcloudphxx
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
+        sedi_switch(true),  // sedimentation turned on by default
+        coal_switch(true),  // coalescence turned on by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
-        rng_seed(44)
+        rng_seed(44),
+        terminal_velocity(vt_t::undefined),
+        kernel(kernel_t::undefined)
       {}
     };
   }

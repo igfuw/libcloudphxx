@@ -71,7 +71,7 @@ namespace libcloudphxx
       pimpl->init_sstp();
 
       //initialising collision kernel
-      pimpl->init_kernel();
+      if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
     }
   };
 };
