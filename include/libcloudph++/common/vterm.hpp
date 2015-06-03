@@ -34,11 +34,12 @@ namespace libcloudphxx
       // for derivation see @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::velocity, real_t> vt_khvorostyanov_spherical( 
+      quantity<si::velocity, real_t> vt_khvorostyanov( 
 	quantity<si::length, real_t> r, //radius
 	quantity<si::temperature, real_t> T, //temperature
 	quantity<si::mass_density, real_t> rhoa, //density of air
-        quantity<si::dynamic_viscosity, real_t> eta
+        quantity<si::dynamic_viscosity, real_t> eta,
+        bool spherical // flag if we include nonsphericity (0) or not (1)
       ) {
         using moist_air::rho_w;
         using earth::g;
@@ -56,13 +57,41 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> a = real_t(9.06 * 9.06 / 4)
 	  * pow(sqrt(real_t(1)+real_t(.0902)*sqrt(X))-real_t(1), 2) / pow(X,b) ;
 
-	/// eq 3.1 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
-	quantity<si::dimensionless, real_t> Av = a
-	  * pow(eta / rhoa * real_t(1e4) * si::seconds / si::square_metres, real_t(1)-real_t(2)*b)
-	  * pow(real_t(4./3) * rho_w<real_t>() / rhoa * g<real_t>() *real_t(1e2)* si::seconds * si::seconds / si::metres, b) ;
-	quantity<si::dimensionless, real_t> Bv = real_t(3)*b - real_t(1) ;
+        quantity<si::dimensionless, real_t> Av;
+        quantity<si::dimensionless, real_t> Bv;
 
-	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second  ;
+        if(spherical)
+        {
+  	  /// eq 3.1 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
+	  Av = a
+	    * pow(eta / rhoa * real_t(1e4) * si::seconds / si::square_metres, real_t(1)-real_t(2)*b)
+	    * pow(real_t(4./3) * rho_w<real_t>() / rhoa * g<real_t>() *real_t(1e2)* si::seconds * si::seconds / si::metres, b) ;
+        }
+        else
+        // nonspherical
+        {
+          // aspect ratio eq. 3.4
+          quantity<si::length, real_t> lambda_half = real_t(2.35e-3) * si::metres;
+          quantity<si::dimensionless, real_t> ksi = exp(-r / lambda_half) 
+            + (real_t(1) - exp(-r / lambda_half)) / (real_t(1) + r / lambda_half);
+
+          // parameters from table 1
+          quantity<si::mass_density, real_t> alfa = 
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            / real_t(6) * rho_w<real_t>() * ksi;    
+
+          // eqs. 2.24, 2.25
+          Av = a 
+	    * pow(eta / rhoa * real_t(1e4) * si::seconds / si::square_metres, real_t(1)-real_t(2)*b)
+            * pow(real_t(2.546479) * alfa / rhoa * g<real_t>()  * real_t(1e2) * si::seconds * si::seconds / si::metres  , b);
+        }
+	Bv = real_t(3)*b - real_t(1) ;
+
+	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second;
       }
 
       // terminal fall velocity according to Beard (1976), Table 1

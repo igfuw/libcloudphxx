@@ -117,7 +117,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("golovin", lgr::kernel_t::golovin);
     bp::enum_<lgr::vt_t::vt_t>("vt_t") 
       .value("beard", lgr::vt_t::beard)
-      .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical);
+      .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
+      .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)

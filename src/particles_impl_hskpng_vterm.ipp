@@ -41,11 +41,21 @@ namespace libcloudphxx
              ) / si::metres_per_second;
 
            case(vt_t::khvorostyanov_spherical):
-             return common::vterm::vt_khvorostyanov_spherical(
+             return common::vterm::vt_khvorostyanov(
                sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                thrust::get<0>(tpl) * si::kelvins,
                thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
-               thrust::get<3>(tpl) * si::pascals * si::seconds
+               thrust::get<3>(tpl) * si::pascals * si::seconds,
+               true
+             ) / si::metres_per_second;
+
+           case(vt_t::khvorostyanov_nonspherical):
+             return common::vterm::vt_khvorostyanov(
+               sqrt(rw2)           * si::metres, // TODO: consider caching rw?
+               thrust::get<0>(tpl) * si::kelvins,
+               thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+               thrust::get<3>(tpl) * si::pascals * si::seconds,
+               false
              ) / si::metres_per_second;
            default:
              return 0.; //sanity checks done in pimpl constructor
