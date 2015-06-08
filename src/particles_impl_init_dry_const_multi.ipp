@@ -61,21 +61,6 @@ namespace libcloudphxx
         // normalize CDF     
         thrust::transform(vec.begin(), vec.end(), vec.begin(), arg::_1 / vec.back());
       }
- 
-      template <typename real_t>
-      struct root_search_precision      
-      {
-        real_t precision;
-        root_search_precision(const real_t & prec): precision(prec) {}
-
-        bool operator()(real_t a,real_t b) // a and b are ln(radius)
-        {
-          if(b-a < precision)
-            return 1;
-          else
-            return 0;
-        }
-      };
     };
 
     // init
@@ -97,29 +82,27 @@ namespace libcloudphxx
       std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
       init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
   
-      real_t init_dist_bound_value = -init_distr_max.second / 1e6; // value of the distribution at which we bound it
+      real_t init_dist_bound_value = -init_distr_max.second / 1e6; // value of the distribution at which we bind it
 
-      std::pair<real_t, real_t> init_distr_bound; // bounds between which distribution's root is
-      init_distr_bound = 
-        boost::math::tools::toms748_solve(
+      rd_min = 
+        common::detail::bisect<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>(
           detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), 
           real_t(log(rd_min_init)), init_distr_max.first, 
-          detail::root_search_precision<real_t>(precision), max_iter
+          precision
         );
-      rd_min = (init_distr_bound.first + init_distr_bound.second) / 2.; // in ln(radius)
 
-      init_distr_bound = 
-        boost::math::tools::toms748_solve(
+      rd_max = 
+        common::detail::bisect<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>(
           detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), 
           init_distr_max.first, real_t(log(rd_max_init)),
-          detail::root_search_precision<real_t>(precision), max_iter
+          precision
         );
-      rd_max = (init_distr_bound.first + init_distr_bound.second) / 2.; // in ln(radius)
 
       const real_t integral = detail::integrate(*n_of_lnrd_stp, rd_min, rd_max, precision);
 
       // calculate cumulative distribution function
-      thrust::host_vector<real_t> cdf;
+      //thrust::host_vector<real_t> cdf;
+      thrust_device::vector<real_t> cdf;
       detail::calc_CDF(*n_of_lnrd_stp, rd_min, rd_max, precision, cdf);
 
       // number of SDs per cell under STP conditions
@@ -156,7 +139,7 @@ namespace libcloudphxx
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
-
+      
       // sample ln(rd) from the distribution with the inverse transform sampling method
       thrust::upper_bound(cdf.begin(), cdf.end(), u01.begin(), u01.end(), lnrd.begin());
       thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision); //precision ??

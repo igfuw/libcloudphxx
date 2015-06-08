@@ -23,7 +23,8 @@ namespace libcloudphxx
           : fun(fun), mul(mul), operation(operation)
         {}
 
-        real_t operator()(real_t x)  
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x) const
         {
           if(operation == 0)
             return mul * fun(x);
