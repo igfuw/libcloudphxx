@@ -2,6 +2,7 @@
 
 import sys 
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0,'/home/pracownicy/pdziekan/praca/code/libcloudphxx/build/bindings/python/')
 
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
@@ -127,5 +128,5 @@ rmsd = RMSD(results,golovin_results)
 
 print 'RMSD = ' + str(rmsd);
 
-if(rmsd > 5.7e-6):
+if(rmsd > 1e-5):
   raise Exception("Simulation result does not agree with analytic prediction")

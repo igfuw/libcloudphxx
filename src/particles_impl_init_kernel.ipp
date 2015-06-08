@@ -25,16 +25,27 @@ namespace libcloudphxx
           break;
 
         case(geometric):
-          if(n_user_params != 0)
+          // init kernel parameters vector
+          if(n_user_params > 1)
           {
-            throw std::runtime_error("Geometric kernel doesn't accept parameters.");
+            throw std::runtime_error("Geometric kernel accepts up to one parameter.");
           }
+          else if(n_user_params == 1)
+          {
+            kernel_parameters.resize(1);
+            thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
 
-          // init kernel
-          k_geometric.resize(1, kernel_geometric<real_t, n_t> ());
-          p_kernel = (&(k_geometric[0])).get();
+            // init kernel
+            k_geometric_with_multiplier.resize(1, kernel_geometric_with_multiplier<real_t, n_t> (kernel_parameters.data()));
+            p_kernel = (&(k_geometric_with_multiplier[0])).get();
+          }
+          else //without multiplier
+          {
+            // init kernel
+            k_geometric.resize(1, kernel_geometric<real_t, n_t> ());
+            p_kernel = (&(k_geometric[0])).get();
+          }
           break;
-        
   
         //Hall kernel
         case(hall):

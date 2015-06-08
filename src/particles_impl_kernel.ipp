@@ -112,6 +112,19 @@ namespace libcloudphxx
       }
     };
 
+    //geometric kernel with a multiplier
+    template <typename real_t, typename n_t>
+    struct kernel_geometric_with_multiplier : kernel_geometric<real_t, n_t>
+    {
+      //ctor
+      kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
+
+      BOOST_GPU_ENABLED
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      {
+        return kernel_geometric<real_t, n_t>::calc(tpl_wrap) * kernel_base<real_t, n_t>::k_params[0];
+      }
+    };
 
     template <typename real_t, typename n_t>
     struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>
