@@ -60,7 +60,7 @@ if (CUDA_FOUND)
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=\"-Ofast -march=native -DNDEBUG\"")
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
   endif()
 
   add_definitions(-DCUDA_FOUND)
