@@ -60,18 +60,14 @@ namespace libcloudphxx
       // initialising housekeeping data of the size of number of parts (could have been changed by init_dry_const_multi)
       pimpl->init_hskpng_npart(); 
 
-printf("xyz\n");
       // initialising particle positions
       pimpl->init_xyz();
 
-printf("grid\n");
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       pimpl->init_grid();
 
-printf("Tpr\n");
       // initialising additional housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 
-printf("ijk\n");
       pimpl->hskpng_ijk(); 
 
       // initialising dry radii (needs positions, ijk and rhod)
@@ -84,7 +80,6 @@ printf("ijk\n");
         ); // TODO: document that n_of_lnrd_stp is expected!
       }
 
-printf("wet\n");
       // initialising wet radii
       pimpl->init_wet();
 
