@@ -113,7 +113,10 @@ namespace libcloudphxx
 	  typedef detail::qntt_t velocity;
 	  typedef detail::qntt_t volume;
 
+// if needed since this file is included in cpp test fake_units
+#if defined(__NVCC__)
           __device__
+#endif
 	  static const detail::unit_t 
 	    cubic_metre, cubic_metres, cubic_meter, cubic_meters,
 	    joule, joules,
