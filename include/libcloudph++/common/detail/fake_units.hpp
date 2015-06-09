@@ -56,7 +56,9 @@ namespace libcloudphxx
 	{
 	  struct qntt_t {};
      
-	  struct unit_t {};
+	  struct unit_t {
+            unit_t() {}
+          };
 
           // real_t vs. unit
 	  template <typename real_t>
