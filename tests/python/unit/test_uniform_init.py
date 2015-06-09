@@ -56,4 +56,23 @@ mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
  water_content = np.frombuffer(prtcls.outbuf())[i]
  if(abs(water_content - mean_water_content)/water_content > 0.1):
-   raise Exception("Not uniform initialization: relative difference between water content in one of the cells and mean value greater than 10%.")
+   raise Exception("Not uniform initialization for sd_conc case: relative difference between water content in one of the cells and mean value greater than 10%.")
+
+opts_init.sd_conc = 0
+opts_init.sd_const_multi = 100000
+
+try:
+  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+except:
+  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_all()
+prtcls.diag_wet_mom(3) # gives specific moment (divided by rhod)
+mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
+
+for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
+ water_content = np.frombuffer(prtcls.outbuf())[i]
+ if(abs(water_content - mean_water_content)/water_content > 0.1):
+   raise Exception("Not uniform initialization for const_multi case: relative difference between water content in one of the cells and mean value greater than 10%.")
