@@ -101,8 +101,8 @@ namespace libcloudphxx
       const real_t integral = detail::integrate(*n_of_lnrd_stp, rd_min, rd_max, precision);
 
       // calculate cumulative distribution function
-      //thrust::host_vector<real_t> cdf;
-      thrust_device::vector<real_t> cdf;
+      thrust::host_vector<real_t> cdf;
+
       detail::calc_CDF(*n_of_lnrd_stp, rd_min, rd_max, precision, cdf);
 
       // number of SDs per cell under STP conditions
@@ -139,10 +139,15 @@ namespace libcloudphxx
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
+
+      thrust::host_vector<real_t> host_u01(n_part); 
+      thrust::copy(u01.begin(), u01.end(), host_u01.begin());
+      thrust::host_vector<real_t> host_lnrd(n_part); 
       
       // sample ln(rd) from the distribution with the inverse transform sampling method
-      thrust::upper_bound(cdf.begin(), cdf.end(), u01.begin(), u01.end(), lnrd.begin());
-      thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision); //precision ??
+      thrust::upper_bound(cdf.begin(), cdf.end(), host_u01.begin(), host_u01.end(), host_lnrd.begin());
+      thrust::copy(host_lnrd.begin(), host_lnrd.end(), lnrd.begin());
+      thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision);
 
       // converting rd back from logarithms to rd3
       thrust::transform(
