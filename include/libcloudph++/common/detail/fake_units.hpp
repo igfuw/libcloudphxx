@@ -56,10 +56,7 @@ namespace libcloudphxx
 	{
 	  struct qntt_t {};
      
-	  struct unit_t 
-	  {
-	    unit_t() {}
-	  };
+	  struct unit_t {};
 
           // real_t vs. unit
 	  template <typename real_t>
@@ -116,6 +113,7 @@ namespace libcloudphxx
 	  typedef detail::qntt_t velocity;
 	  typedef detail::qntt_t volume;
 
+          __device__
 	  static const detail::unit_t 
 	    cubic_metre, cubic_metres, cubic_meter, cubic_meters,
 	    joule, joules,
