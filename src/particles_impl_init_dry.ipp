@@ -104,12 +104,6 @@ namespace libcloudphxx
             thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
             thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
           )) + n_part,
-/*          thrust::make_zip_iterator(thrust::make_tuple(
-            u01.end(), 
-            thrust::make_permutation_iterator(count_num.end(), sorted_ijk.end()),     
-            thrust::make_counting_iterator(n_part),                                   
-            thrust::make_permutation_iterator(ptr.end(), sorted_ijk.end())            
-          )),*/
 	  lnrd.begin(), 
           calc_lnrd<real_t>(log(rd_min), log(rd_max))
 	);
