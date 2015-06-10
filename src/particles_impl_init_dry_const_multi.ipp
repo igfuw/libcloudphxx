@@ -82,7 +82,7 @@ namespace libcloudphxx
       std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
       init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
   
-      real_t init_dist_bound_value = -init_distr_max.second / 1e6; // value of the distribution at which we bind it
+      real_t init_dist_bound_value = -init_distr_max.second / 1e4; // value of the distribution at which we bind it
 
       rd_min = 
         common::detail::bisect<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>(
