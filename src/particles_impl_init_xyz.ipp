@@ -25,11 +25,10 @@ namespace libcloudphxx
             *(res+i+thrust::get<1>(tup)) = thrust::get<2>(tup);
         }
       };
-
     };
-    // init_xyz, to get uniform distribution in each cell
-    // first n_cell SDs are distributed one per each cell,
-    // then same with second n_cell particles, etc.
+
+    // Init SD positions. Particles are considered to be sorted by cell number, in order
+    // to obtain uniform initial distribution in each cell (see particles_impl_init_dry)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
@@ -41,8 +40,7 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      if(opts_init.sd_conc > 0)
-        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc); // if using const_multi, count_num is already filled
+      thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
@@ -59,7 +57,6 @@ namespace libcloudphxx
       );
 
       // get i, j, k from sorted_ijk 
-      // TODO: check if it is done the same way as syncing with rhod!!
       // i, j, k will be temporarily used
       switch(n_dims)
       {
