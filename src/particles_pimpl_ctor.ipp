@@ -39,7 +39,7 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
+      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -227,7 +227,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(
