@@ -104,7 +104,7 @@ def calc_golovin(res,t,n0,v0,b):
   for i in range(res.size) :
     vol = spherevol((bins[i]+bins[i+1])/2.)
     res[i] = golovin(vol,t,n0,v0,b)
-    res[i] *= vol * vol * 3000.  #turn it into mass density function
+    res[i] *= vol * vol * 3000.  #mass density function = 3 * dens_water * volume^2 * number_density_function(volume)
 
 results = np.zeros(bins.size-1)
 golovin_results = np.zeros(bins.size-1)
