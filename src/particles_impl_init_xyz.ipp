@@ -40,7 +40,8 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
+      if(opts_init.sd_conc > 0)
+        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);   // if using const_multi, count_num is already filled
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
