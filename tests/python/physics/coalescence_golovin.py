@@ -1,4 +1,4 @@
-#roughly test coalescence algorithm by comparing mass density distribution with analytic prediction of Golovin
+#roughly test coalescence algorithm by comparing mass density function with analytic prediction of Golovin
 
 import sys 
 sys.path.insert(0, "../../bindings/python/")
@@ -86,17 +86,12 @@ opts.chem = False
 
 bins = pow(10, -6 + np.arange(150)/50.)
 
-#get mass density "histogram" from simulation
+#get mass density function
 def diag(arg):
-  totalvolume = 0
-  totalnumber = 0
   for i in range(arg.size) :
-    prtcls.diag_wet_rng(bins[i], bins[i+1])
-    prtcls.diag_wet_mom(0)
-    arg[i]  = np.frombuffer(prtcls.outbuf())[0]
-    arg[i] /= (bins[i+1]-bins[i])                        # to turn it into number density in radii
-    arg[i] /= 4 * pi *pow((bins[i]+bins[i+1])/2., 2)     # turn into number density in volume
-    arg[i] *= pow( spherevol((bins[i]+bins[i+1])/2.), 2) # to get mass density  
+    prtcls.diag_all()
+    prtcls.diag_wet_mass_dens( (bins[i] + bins[i+1])/2. ,0.62 ) #sigma0 = 0.62 like in Shima (2009)
+    arg[i]= np.frombuffer(prtcls.outbuf()).mean()
 
 #get total numer of particles
 def partno():
@@ -104,12 +99,12 @@ def partno():
   prtcls.diag_wet_mom(0)
   return np.frombuffer(prtcls.outbuf())[0]
 
-#get Golovin mass density (except some scaling factor) in bins
+#get Golovin mass density prediction
 def calc_golovin(res,t,n0,v0,b):
   for i in range(res.size) :
     vol = spherevol((bins[i]+bins[i+1])/2.)
     res[i] = golovin(vol,t,n0,v0,b)
-    res[i] *= vol * vol  #turn it into mass density function
+    res[i] *= vol * vol * 3000.  #turn it into mass density function
 
 results = np.zeros(bins.size-1)
 golovin_results = np.zeros(bins.size-1)
@@ -125,5 +120,7 @@ diag(results)
 calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero,b)
 rmsd = RMSD(results,golovin_results)
 
-if(rmsd > 1.2e-8):
+print 'RMSD = ' + str(rmsd);
+
+if(rmsd > 5.7e-6):
   raise Exception("Simulation result does not agree with analytic prediction")
