@@ -122,8 +122,8 @@ namespace libcloudphxx
         thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
 
 	// shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
-        // each radius randomized only on a small subrange to make the distributions more uniform
-        // subranges are specific for each cell
+        // each log(radius) randomized only on a small subrange to make the distributions more uniform
+        // particles are sorted by cell number (see particles_impl_init_xyz), uniform distribution in each cell
         // lnrd is not sorted
 	thrust::transform(
           thrust::make_zip_iterator(thrust::make_tuple(
@@ -138,12 +138,6 @@ namespace libcloudphxx
             thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
             thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
           )) + n_part,
-/*          thrust::make_zip_iterator(thrust::make_tuple(
-            u01.end(), 
-            thrust::make_permutation_iterator(count_num.end(), sorted_ijk.end()),     
-            thrust::make_counting_iterator(n_part),                                   
-            thrust::make_permutation_iterator(ptr.end(), sorted_ijk.end())            
-          )),*/
 	  lnrd.begin(), 
           calc_lnrd<real_t>(log(rd_min), log(rd_max))
 	);
