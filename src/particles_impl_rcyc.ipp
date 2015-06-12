@@ -30,7 +30,10 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(prop_bgn, sorted_id.begin())
 	);
       }
- 
+
+// Below functors and functions are needed for removing of SDs with n=0,
+// which is disabled for now.
+/* 
       struct n_eq_zero
       {
         template <typename Tuple>
@@ -61,11 +64,17 @@ namespace libcloudphxx
 //          vec->shrink_to_fit(); // should be used to free memory, but crashes with sorted_id...
         }
       }
+*/
     };
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::rcyc()
     {   
+      if(opts_init.sd_const_multi > 0) // TODO: remove particles
+      {
+        return;
+      }
+
       // count the numer of paticles to recycle
       thrust_size_t n_flagged;
       {
@@ -97,10 +106,12 @@ namespace libcloudphxx
 	  sorted_id.begin()
 	);
        
-        // see if there are any SDs to split, if not - remove SDs with n=0
-        // same if const multiplicity option is used TODO: in that case sorting above is not necessary
-        if(tmp.back()==1 || opts_init.sd_const_multi > 0)
+        //see if there are any SDs to split, if not - do nothing, TODO: remove SDs with n=0
+        if(tmp.back()==1)
         {
+// Removal of SDs is disabled for now, since it caused water content not to be conserved. TODO: fix this
+// Note: removal of SDs may be necessary when implementing MPI
+/*
           typedef thrust::detail::normal_iterator<thrust_device::pointer<real_t> > it_real_t;
           typedef thrust::detail::normal_iterator<thrust_device::pointer<n_t> > it_n_t;
           typedef thrust::detail::normal_iterator<thrust_device::pointer<thrust_size_t> > it_thrust_size_t;
@@ -151,7 +162,7 @@ namespace libcloudphxx
               detail::resize_and_free(vec[i],n_part);
           }
           detail::resize_and_free(&n,n_part);
-
+*/
           return;
         }
       }
