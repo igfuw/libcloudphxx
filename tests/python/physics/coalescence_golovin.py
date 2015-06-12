@@ -122,5 +122,5 @@ rmsd = RMSD(results,golovin_results)
 
 print 'RMSD = ' + str(rmsd);
 
-if(rmsd > 5.7e-6):
+if(rmsd > 1.71e-5):
   raise Exception("Simulation result does not agree with analytic prediction")
