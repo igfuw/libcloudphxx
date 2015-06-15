@@ -37,6 +37,7 @@
 #include "particles_impl_hskpng_vterm.ipp"
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
+#include "particles_impl_hskpng_remove.ipp"
 
 #include "particles_impl_moms.ipp"
 #include "particles_impl_mass_dens.ipp"

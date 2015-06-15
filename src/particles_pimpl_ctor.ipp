@@ -283,6 +283,7 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_remove_n0();
 
       void moms_all();
    
