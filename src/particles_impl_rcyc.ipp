@@ -33,7 +33,7 @@ namespace libcloudphxx
 
 // Below functors and functions are needed for removing of SDs with n=0,
 // which is disabled for now.
-/* 
+ 
       struct n_eq_zero
       {
         template <typename Tuple>
@@ -61,10 +61,10 @@ namespace libcloudphxx
         if(vec->size() > n) // to deal with unallocated vectors, e. g. in 1-D case
         {
           vec->resize(n);
-//          vec->shrink_to_fit(); // should be used to free memory, but crashes with sorted_id...
+          vec->shrink_to_fit(); // should be used to free memory, but crashes with sorted_id...
         }
       }
-*/
+
     };
 
     template <typename real_t, backend_t device>
@@ -106,7 +106,7 @@ namespace libcloudphxx
         {
 // Removal of SDs is disabled for now, since it caused water content not to be conserved. TODO: fix this
 // Note: removal of SDs may be necessary when implementing MPI
-/*
+
           typedef thrust::detail::normal_iterator<thrust_device::pointer<real_t> > it_real_t;
           typedef thrust::detail::normal_iterator<thrust_device::pointer<n_t> > it_n_t;
           typedef thrust::detail::normal_iterator<thrust_device::pointer<thrust_size_t> > it_thrust_size_t;
@@ -147,8 +147,8 @@ namespace libcloudphxx
  
           // resize vectors and free memory
           {
-            thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &x, &y, &z, &vt, &tmp_device_real_part};
-            for(int i=0; i<8; ++i)
+            thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &x, &y, &z, &vt, &tmp_device_real_part, &u01};
+            for(int i=0; i<9; ++i)
               detail::resize_and_free(vec[i],n_part);
           }
           {
@@ -157,8 +157,9 @@ namespace libcloudphxx
               detail::resize_and_free(vec[i],n_part);
           }
           detail::resize_and_free(&n,n_part);
+          detail::resize_and_free(&un,n_part);
           return n_flagged;
-*/
+
           return 0;
         }
       }
