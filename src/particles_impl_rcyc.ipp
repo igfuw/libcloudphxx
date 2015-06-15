@@ -68,7 +68,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::rcyc()
+    thrust_size_t particles_t<real_t, device>::impl::rcyc()
     {   
       // count the numer of paticles to recycle
       thrust_size_t n_flagged;
@@ -78,7 +78,7 @@ namespace libcloudphxx
       }
       assert(n_flagged <= n_part / 2);
 
-      if (n_flagged == 0) return;
+      if (n_flagged == 0) return 0;
 
       // sort according to multiplicity 
       // -> on one end: those flagged for recycling 
@@ -157,8 +157,9 @@ namespace libcloudphxx
               detail::resize_and_free(vec[i],n_part);
           }
           detail::resize_and_free(&n,n_part);
+          return n_flagged;
 */
-          return;
+          return 0;
         }
       }
 
@@ -202,6 +203,7 @@ namespace libcloudphxx
           arg::_1 / 2
 	);
       };
+    return n_flagged;
     }
   };  
 };
