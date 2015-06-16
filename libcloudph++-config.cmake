@@ -13,7 +13,7 @@ endif()
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
-set(libcloudphxx_LIBRARIES "")
+set(libcloudphxx_LIBRARIES "cloudphxx_lgrngn")
 set(libcloudphxx_CXX_FLAGS_DEBUG "")
 set(libcloudphxx_CXX_FLAGS_RELEASE "")
 
