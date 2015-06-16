@@ -45,6 +45,9 @@ namespace libcloudphxx
  
       tup_params_t tup_params = thrust::make_tuple(n.begin(), rw2.begin(), rd3.begin(), kpa.begin(), vt.begin(), ijk.begin());
 
+      if(opts_init.chem_switch)
+        throw std::runtime_error("SDs were to be removed, but it is not yet compatible with chemistry");
+
       if(n_dims == 3)
       {
         typedef thrust::zip_iterator<
