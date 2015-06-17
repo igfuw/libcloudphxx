@@ -152,12 +152,16 @@ namespace libcloudphxx
       {
         thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &x, &y, &z, &vt, &tmp_device_real_part, &u01};
         for(int i=0; i<9; ++i)
+        {
           vec[i]->erase(vec[i]->begin() + n_part, vec[i]->end());
+        }
       }
       {
         thrust_device::vector<thrust_size_t> *vec[] = {&i, &j, &k, &ijk, &sorted_id, &sorted_ijk};
         for(int i=0; i<6; ++i)
+        {
           vec[i]->erase(vec[i]->begin() + n_part, vec[i]->end());
+        }
       }
       n.erase(n.begin() + n_part, n.end());
       un.erase(un.begin() + n_part, un.end());
