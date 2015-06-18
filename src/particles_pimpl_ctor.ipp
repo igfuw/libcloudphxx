@@ -111,6 +111,9 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
+      // true if coalescence timestep has to be reduced, accesible from both device and host code
+      bool *increase_sstp_coal;
+
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
       std::map<
@@ -224,6 +227,15 @@ namespace libcloudphxx
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 	tmp_device_n_part.resize(n_part);
+
+
+        // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
+#if defined(__NVCC__)
+        cudaMallocHost(&increase_sstp_coal, sizeof(bool));
+#else
+        increase_sstp_coal = new bool();
+#endif
+        *increase_sstp_coal = false;
 
         // initialising host temporary arrays
         {
