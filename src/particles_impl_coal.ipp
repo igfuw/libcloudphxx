@@ -120,7 +120,7 @@ namespace libcloudphxx
           // sanity check for random sampling validity
           n_t col_no = n_t(prob); //number of collisions between the pair; rint?
 
-          if(sd_const_multi > 0 && col_no >= sd_const_multi) //TODO: do sth similar for sd_conc_mean version?
+          if(sd_const_multi > 0 && col_no >= 1) //TODO: do sth similar for sd_conc_mean version?
           {
             *increase_sstp_coal = true;
           }
