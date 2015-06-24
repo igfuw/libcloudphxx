@@ -69,8 +69,7 @@ namespace libcloudphxx
       // parcel setup
       else
         thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
-debug::print(dv);
-debug::print(count_num);
+
       n_part = thrust::reduce(count_num.begin(), count_num.end());
       init_hskpng_npart();
 
@@ -147,8 +146,6 @@ debug::print(count_num);
         // tossing random numbers [0,1] 
         rand_u01(n_part);
 
-//std::cout << "przed pozycjami" << std::endl;
-printf("pdzed\n");
 	// shifting from [0,1] to random position within respective cell 
         {
           namespace arg = thrust::placeholders;
@@ -160,12 +157,7 @@ printf("pdzed\n");
             detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
 	  );
         }
-printf("po\n");
-//std::cout << "po pozycjami" << std::endl;
       }
-debug::print(x);
-debug::print(y);
-debug::print(z);
     }
   };
 };
