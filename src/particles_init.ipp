@@ -47,11 +47,12 @@ namespace libcloudphxx
       // initialising housekeeping data
       pimpl->init_hskpng(); 
 
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      // done before init_xyz, cause it uses dv initialized here
+      pimpl->init_grid();
+
       // initialising particle positions
       pimpl->init_xyz();
-
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      pimpl->init_grid();
 
       // initialising more housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 

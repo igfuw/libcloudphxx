@@ -40,7 +40,18 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
+      if(n_dims > 0)
+      {
+        namespace arg = thrust::placeholders;
+        // some cells may be used only partially in thr super-droplet method
+        // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
+        // Eulerian domain (0, nx*dx, etc...)
+        // sd_conc defines number of SDs per Eulerian cell
+        thrust::transform(dv.begin(), dv.end(), count_num.begin(), opts_init.sd_conc * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) ); 
+      }
+      // parcel setup
+      else
+        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
