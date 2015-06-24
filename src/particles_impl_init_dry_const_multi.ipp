@@ -114,9 +114,10 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
-      // initialize number of SDs in cells taking into account differences in rhod (round to int)
-      thrust::transform(rhod.begin(), rhod.end(), count_num.begin(),
-        (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)+0.5)
+      // initialize number of SDs in cells taking into account differences in rhod
+      // and that not all Eulerian cells are fully covered by Lagrangian domain (round to int)
+      thrust::transform(rhod.begin(), rhod.end(), dv.begin(), count_num.begin(),
+        (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2 / (opts_init.dx * opts_init.dy * opts_init.dz) + real_t(0.5))
       ); 
 
       n_part = thrust::reduce(count_num.begin(), count_num.end());

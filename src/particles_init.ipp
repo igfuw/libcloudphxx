@@ -47,6 +47,10 @@ namespace libcloudphxx
       // initialising housekeeping data of the size of number of cells
       pimpl->init_hskpng_ncell(); 
 
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      // and cell volumes
+      pimpl->init_grid();
+
       // initialising dry radii (needs rhod) with constant multiplicity method (DSMC-like), done before initialization of positions
       if(pimpl->opts_init.sd_const_multi > 0)
       {
@@ -59,10 +63,6 @@ namespace libcloudphxx
 
       // initialising housekeeping data of the size of number of parts (could have been changed by init_dry_const_multi)
 //      pimpl->init_hskpng_npart(); 
-
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      // done before init_xyz, cause it uses dv initialized here
-      pimpl->init_grid();
 
       // initialising particle positions
       pimpl->init_xyz();
