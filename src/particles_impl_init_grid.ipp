@@ -44,9 +44,11 @@ namespace libcloudphxx
           assert(ijk == (i*max(1,ny) + j)*max(1,nz) + k);
              
           return 
-	    (min((i + 1) * dx, x1) - max(i * dx, x0)) *
-	    (min((j + 1) * dy, y1) - max(j * dy, y0)) *
-	    (min((k + 1) * dz, z1) - max(k * dz, z0));
+            max(real_t(0),
+	      (min((i + 1) * dx, x1) - max(i * dx, x0)) *
+	      (min((j + 1) * dy, y1) - max(j * dy, y0)) *
+	      (min((k + 1) * dz, z1) - max(k * dz, z0))
+            );
         }
       };
     };

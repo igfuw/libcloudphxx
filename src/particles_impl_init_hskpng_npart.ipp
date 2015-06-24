@@ -24,6 +24,9 @@ namespace libcloudphxx
 
       sorted_id.resize(n_part);
       sorted_ijk.resize(n_part);
+      
+      tmp_device_real_part.resize(n_part);
+      tmp_device_n_part.resize(n_part);
     }
   };
 };

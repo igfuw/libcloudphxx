@@ -25,6 +25,22 @@ namespace libcloudphxx
             *(res+i+thrust::get<1>(tup)) = thrust::get<2>(tup);
         }
       };
+      
+      template<typename real_t>
+      struct pos_lgrngn_domain
+      // get a random position within ii-th cell taking into account Lagrangian domain
+      {
+        real_t p0, // lower bound of the Lagrangian domain
+               p1, // upper bound of the Lagrangian domain
+               dp; // cell size of the Eulerian grid
+
+        pos_lgrngn_domain(real_t p0, real_t p1, real_t dp): p0(p0), p1(p1), dp(dp) {}
+
+        real_t operator()(real_t u01, thrust_size_t ii) // random number [0,1), cell index in respective dimension
+        {
+          return u01 * std::min(p1, (ii+1) * dp) + (1. - u01) * std::max(p0, ii * dp); 
+        }
+      };
     };
 
     // Init SD positions. Particles are considered to be sorted by cell number, in order
@@ -36,12 +52,29 @@ namespace libcloudphxx
                   *v[3] = { &x,           &y,           &z           };
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
       const real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
+      const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
       const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      if(opts_init.sd_conc > 0)
-        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);   // if using const_multi, count_num is already filled
+      if(opts_init.sd_conc > 0)// if using const_multi, count_num is already filled
+      {
+        if(n_dims > 0)
+        {
+          namespace arg = thrust::placeholders;
+          // some cells may be used only partially in thr super-droplet method
+          // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
+          // Eulerian domain (0, nx*dx, etc...)
+          // sd_conc defines number of SDs per Eulerian cell
+          thrust::transform(dv.begin(), dv.end(), count_num.begin(), real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz)); 
+        }
+        // parcel setup
+        else
+          thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
+  
+        n_part = thrust::reduce(count_num.begin(), count_num.end());
+      }
+      init_hskpng_npart();
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
@@ -124,7 +157,7 @@ namespace libcloudphxx
 	    u01.end(),
             ii[ix]->begin(), 
 	    v[ix]->begin(), 
-	    a[ix] + (arg::_1 + arg::_2) *d[ix]
+            detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
 	  );
         }
       }

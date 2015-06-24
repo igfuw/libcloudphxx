@@ -34,7 +34,7 @@ opts_init.rng_seed = int(time.time())
 
 th   = 300 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
-rhod   = 1. * np.mgrid[1:1+opts_init.nx, 1:1+opts_init.ny, 1:1+opts_init.nz][0] # different densities, hence different water content
+rhod = 1. * np.ones((opts_init.nx, opts_init.ny, opts_init.nz)) + .1 * np.mgrid[1:1+opts_init.nx, 1:1+opts_init.ny, 1:1+opts_init.nz][1] # different densities, hence different water content
 
 kappa = 1e-6
 

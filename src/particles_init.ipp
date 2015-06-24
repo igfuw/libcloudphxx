@@ -58,13 +58,14 @@ namespace libcloudphxx
       }
 
       // initialising housekeeping data of the size of number of parts (could have been changed by init_dry_const_multi)
-      pimpl->init_hskpng_npart(); 
+//      pimpl->init_hskpng_npart(); 
+
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      // done before init_xyz, cause it uses dv initialized here
+      pimpl->init_grid();
 
       // initialising particle positions
       pimpl->init_xyz();
-
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      pimpl->init_grid();
 
       // initialising additional housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 
