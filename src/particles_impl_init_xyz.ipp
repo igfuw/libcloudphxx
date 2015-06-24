@@ -66,7 +66,7 @@ namespace libcloudphxx
           // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
           // Eulerian domain (0, nx*dx, etc...)
           // sd_conc defines number of SDs per Eulerian cell
-          thrust::transform(dv.begin(), dv.end(), count_num.begin(), real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz)); 
+          thrust::transform(dv.begin(), dv.end(), count_num.begin(), (real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz)+real_t(0.5))); 
         }
         // parcel setup
         else
