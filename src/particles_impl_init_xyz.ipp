@@ -64,11 +64,15 @@ namespace libcloudphxx
         // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
         // Eulerian domain (0, nx*dx, etc...)
         // sd_conc defines number of SDs per Eulerian cell
-        thrust::transform(dv.begin(), dv.end(), count_num.begin(), opts_init.sd_conc * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) ); 
+        thrust::transform(dv.begin(), dv.end(), count_num.begin(), real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz)); 
       }
       // parcel setup
       else
         thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
+debug::print(dv);
+debug::print(count_num);
+      n_part = thrust::reduce(count_num.begin(), count_num.end());
+      init_hskpng_npart();
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
@@ -143,6 +147,8 @@ namespace libcloudphxx
         // tossing random numbers [0,1] 
         rand_u01(n_part);
 
+//std::cout << "przed pozycjami" << std::endl;
+printf("pdzed\n");
 	// shifting from [0,1] to random position within respective cell 
         {
           namespace arg = thrust::placeholders;
@@ -154,7 +160,12 @@ namespace libcloudphxx
             detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
 	  );
         }
+printf("po\n");
+//std::cout << "po pozycjami" << std::endl;
       }
+debug::print(x);
+debug::print(y);
+debug::print(z);
     }
   };
 };

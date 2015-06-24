@@ -44,8 +44,8 @@ namespace libcloudphxx
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
-      // initialising housekeeping data
-      pimpl->init_hskpng(); 
+      // initialising housekeeping data of the size ncell
+      pimpl->init_hskpng_ncell(); 
 
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       // done before init_xyz, cause it uses dv initialized here
@@ -67,6 +67,8 @@ namespace libcloudphxx
 
       // initialising wet radii
       pimpl->init_wet();
+      debug::print(pimpl->n);
+
 
       // initialising chem stuff
       if(pimpl->opts_init.chem_switch) pimpl->init_chem();
