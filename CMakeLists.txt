@@ -81,3 +81,10 @@ add_subdirectory(tests)
 
 add_subdirectory(include) 
 add_subdirectory(bindings) 
+
+install(
+  FILES
+    libcloudph++-config.cmake
+  DESTINATION
+    share/libcloudph++
+)

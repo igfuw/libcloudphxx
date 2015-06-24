@@ -276,6 +276,7 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_remove_n0();
 
       void moms_all();
    
@@ -315,7 +316,7 @@ namespace libcloudphxx
       void coal(const real_t &dt);
 
       void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
-      void rcyc();
+      thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
       void sstp_step(const int &step, const bool &var_rho);
