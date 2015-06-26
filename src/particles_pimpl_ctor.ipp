@@ -39,7 +39,7 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
+      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -227,7 +227,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(
@@ -283,6 +283,7 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_remove_n0();
 
       void moms_all();
    
@@ -297,6 +298,11 @@ namespace libcloudphxx
       void moms_calc(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
+      );
+
+      void mass_dens_estim(
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const real_t, const real_t, const real_t
       );
 
       void sync(
@@ -317,7 +323,7 @@ namespace libcloudphxx
       void coal(const real_t &dt);
 
       void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
-      void rcyc();
+      thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
       void sstp_step(const int &step, const bool &var_rho);
