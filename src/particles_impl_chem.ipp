@@ -443,17 +443,12 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 
       // 3/4: non-equilibrium stuff
       {
-//std::cout << "bifor";
-//debug::print(chem_noneq[S_VI]);
-
         chem_stepper.do_step(
           detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
           chem_noneq, 
           real_t(0),
           dt
         );
-//std::cout << "after";
-//debug::print(rd3);
       }
 
 
@@ -461,17 +456,11 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
       {
         namespace arg = thrust::placeholders;
         // TODO: using namespace for S_VI
-        assert(std::isfinite(*thrust::min_element(chem_bgn[S_VI], chem_end[S_VI])));
-std::cout << "bifor";
-debug::print(rd3);
         thrust::transform(
           chem_bgn[S_VI], chem_end[S_VI],                               // input
           rd3.begin(),                                                  // output
           (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * arg::_1  // op
         );
-std::cout << "after";
-debug::print(rd3);
-        assert(std::isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
       };
     }
   };  
