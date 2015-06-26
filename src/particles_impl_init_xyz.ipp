@@ -39,7 +39,12 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t u01, thrust_size_t ii) // random number [0,1), cell index in respective dimension
         {
-          return u01 * thrust::minimum(p1, (ii+1) * dp) + (1. - u01) * thrust::maximum(p0, ii * dp); 
+#if !defined(__NVCC__)
+          using std::min;
+          using std::max;
+#endif
+        	
+          return u01 * min(p1, (ii+1) * dp) + (1. - u01) * max(p0, ii * dp); 
         }
       };
     };
