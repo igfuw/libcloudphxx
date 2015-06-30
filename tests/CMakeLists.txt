@@ -9,5 +9,6 @@ add_subdirectory(zip)
 add_subdirectory(python)
 add_subdirectory(common)
 add_subdirectory(blk2m_hello_world)
+add_subdirectory(toms748)
 
 # TODO: target_compile_options() // added to CMake on Jun 3rd 2013
