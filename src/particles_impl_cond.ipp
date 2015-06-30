@@ -236,12 +236,11 @@ namespace libcloudphxx
 
           // otherwise implicit Euler
           uintmax_t maxiter = 20;
-	  std::pair<real_t, real_t> rng = common::detail::toms748_solve(
+	  return common::detail::toms748_solve(
             f, a, b, fa, fb,
             common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2),
             maxiter
           ); 
-          return (rng.first + rng.second) / 2;
         }
       };
     };

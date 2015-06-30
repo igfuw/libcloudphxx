@@ -104,7 +104,7 @@ namespace toms748_detail
      //
      // Non-zero fc, update the interval:
      //
-     if(copysign(1, fa * fc) < 0)
+     if(copysign(T(1), fa * fc) < 0)
      {
         d = b;
         fd = fb;
@@ -191,7 +191,7 @@ namespace toms748_detail
      // Determine the starting point of the Newton steps:
      //
      T c;
-     if(copysign(1, A * fa) > 0)
+     if(copysign(T(1), A * fa) > 0)
      {
         c = a;
      }
@@ -286,7 +286,7 @@ class eps_tolerance
 
 template <class F, class T, class Tol>
 BOOST_GPU_ENABLED
-std::pair<T, T> toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol tol, uintmax_t &max_iter)
+T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol tol, uintmax_t &max_iter)
 {
    uintmax_t count = max_iter;
    T a, b, fa, fb, c, u, fu, a0, b0, d, fd, e, fe;
@@ -307,10 +307,10 @@ std::pair<T, T> toms748_solve(F f, const T& ax, const T& bx, const T& fax, const
          b = a;
       else if(fb == 0)
          a = b;
-      return std::make_pair(a, b);
+      return (a + b)/2;
    }
 
-   assert(copysign(1, fa * fb) < 0);
+   assert(copysign(T(1), fa * fb) < 0);
 
    // dummy value for fd, e and fe:
    fe = e = fd = 1e5F;
@@ -436,15 +436,15 @@ std::pair<T, T> toms748_solve(F f, const T& ax, const T& bx, const T& fax, const
    {
       a = b;
    }
-   return std::make_pair(a, b);
+   return (a + b)/2;
 }
 
 template <class F, class T, class Tol>
 BOOST_GPU_ENABLED
-inline std::pair<T, T> toms748_solve(F f, const T& ax, const T& bx, Tol tol, uintmax_t &max_iter)
+inline T toms748_solve(F f, const T& ax, const T& bx, Tol tol, uintmax_t &max_iter)
 {
    max_iter -= 2;
-   std::pair<T, T> r = toms748_solve(f, ax, bx, f(ax), f(bx), tol, max_iter);
+   T r = toms748_solve(f, ax, bx, f(ax), f(bx), tol, max_iter);
    max_iter += 2;
    return r;
 }
