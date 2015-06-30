@@ -11,7 +11,6 @@
 
 #include <cfloat>
 #include <cassert>
-#include <cstdint>
 
 namespace libcloudphxx {
 namespace common {
