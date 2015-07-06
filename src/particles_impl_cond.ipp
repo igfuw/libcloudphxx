@@ -235,12 +235,7 @@ namespace libcloudphxx
 	  if (fa * fb > 0) return rw2_old + drw2;
 
           // otherwise implicit Euler
-          uintmax_t maxiter = 20;
-	  return common::detail::toms748_solve(
-            f, a, b, fa, fb,
-            common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2),
-            maxiter
-          ); 
+	  return common::detail::toms748_solve(f, a, b, fa, fb); 
         }
       };
     };

@@ -127,18 +127,14 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> kappa,
 	quantity<si::dimensionless, real_t> RH,
 	quantity<si::temperature, real_t> T
-        // TODO: tolerance with a reasonable default value?
       )   
       {   
         assert(RH < 1); // no equilibrium over RH=100%
 
-        uintmax_t iters = 20;
         return common::detail::toms748_solve(
 	  detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
-	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
-          common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
-          iters
+	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres) // max
 	) * si::cubic_metres;
       }
 
@@ -153,13 +149,10 @@ namespace libcloudphxx
 	quantity<si::temperature, real_t> T
       )   
       {   
-        uintmax_t iters = 20;
         return common::detail::toms748_solve(
 	  detail::rw3_cr_minfun<real_t>(rd3, kappa, T), // the above-defined functor
 	  real_t(1e0 * (rd3 / si::cubic_metres)), // min
-	  real_t(1e8 * (rd3 / si::cubic_metres)), // max
-          common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
-          iters
+	  real_t(1e8 * (rd3 / si::cubic_metres))  // max
 	) * si::cubic_metres;
       }
 

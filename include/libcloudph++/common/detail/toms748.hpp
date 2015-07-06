@@ -449,6 +449,27 @@ inline T toms748_solve(F f, const T& ax, const T& bx, Tol tol, uintmax_t &max_it
    return r;
 }
 
+// versions with hopefully-sensible deafult tolerance and number of iterations
+
+template <class F, class T>
+BOOST_GPU_ENABLED
+T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx)
+{
+  uintmax_t max_iter = 20;
+  return toms748_solve(f, ax, bx, fax, fbx, 
+    common::detail::eps_tolerance<T>(sizeof(T) * 8 / 2),
+    max_iter
+  );
+  assert(max_iter != 0);
+}
+
+template <class F, class T>
+BOOST_GPU_ENABLED
+T toms748_solve(F f, const T& ax, const T& bx)
+{
+  return toms748_solve(f, ax, bx, f(ax), f(bx));
+}
+
 } // namespace detail
 } // namespace common
 } // namespace libcloudphxx

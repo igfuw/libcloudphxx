@@ -133,13 +133,10 @@ namespace libcloudphxx
             V      = thrust::get<2>(tpl) * si::cubic_metres;
 
           real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          uintmax_t iters = 20;
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(m_SO2, m_S_VI, V),
             m_H_pure, // min -> (pure water)
-	    real_t(1e-10), // max -> TODO
-            common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
-            iters
+	    real_t(1e-10) // max -> TODO
 	  ); 
           //std::cerr << "  " << m_H_pure << " ... " << m_H << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
