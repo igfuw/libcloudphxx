@@ -3,7 +3,7 @@
 #include <libcloudph++/common/units.hpp>
 #include <libcloudph++/common/macros.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
-#include <libcloudph++/common/detail/bisect.hpp>
+#include <libcloudph++/common/detail/toms748.hpp>
 
 namespace libcloudphxx
 {
@@ -132,11 +132,13 @@ namespace libcloudphxx
       {   
         assert(RH < 1); // no equilibrium over RH=100%
 
-        return common::detail::bisect(
+        uintmax_t iters = 20;
+        return common::detail::toms748_solve(
 	  detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
 	  real_t(rd3 / si::cubic_metres), // min
 	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres), // max
-          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolarance
+          common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
+          iters
 	) * si::cubic_metres;
       }
 
@@ -149,14 +151,15 @@ namespace libcloudphxx
 	quantity<si::volume, real_t> rd3, 
 	quantity<si::dimensionless, real_t> kappa,
 	quantity<si::temperature, real_t> T
-        // TODO: tolerance with a reasonable default value?
       )   
       {   
-        return common::detail::bisect(
+        uintmax_t iters = 20;
+        return common::detail::toms748_solve(
 	  detail::rw3_cr_minfun<real_t>(rd3, kappa, T), // the above-defined functor
 	  real_t(1e0 * (rd3 / si::cubic_metres)), // min
 	  real_t(1e8 * (rd3 / si::cubic_metres)), // max
-          real_t(real_t(.1) * rd3 / si::cubic_metres) // tolerance
+          common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
+          iters
 	) * si::cubic_metres;
       }
 
