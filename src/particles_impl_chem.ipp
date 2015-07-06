@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <libcloudph++/common/detail/bisect.hpp>
+#include <libcloudph++/common/detail/toms748.hpp>
 #include <libcloudph++/common/molar_mass.hpp>
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
@@ -132,13 +132,14 @@ namespace libcloudphxx
           const quantity<si::volume, real_t> 
             V      = thrust::get<2>(tpl) * si::cubic_metres;
 
-	  real_t tol = 1e-44; // TODO!
           real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H = common::detail::bisect(
+          uintmax_t iters = 20;
+          real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(m_SO2, m_S_VI, V),
             m_H_pure, // min -> (pure water)
 	    real_t(1e-10), // max -> TODO
-	    tol
+            common::detail::eps_tolerance<real_t>(sizeof(real_t) * 8 / 2), // tolarance
+            iters
 	  ); 
           //std::cerr << "  " << m_H_pure << " ... " << m_H << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
