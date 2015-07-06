@@ -381,76 +381,81 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         detail::chem_volfun<real_t>()   // op
       );
 
-      // 1/4: equilibrium stuff: gas absortption
-      // TODO: open/close system logic
-      // TODO: K=K(T)
-      assert(SO2 == 0 && H2O2 == 1 && O3 == 2);
-      static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
-	H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>()
-      };
-      static const quantity<common::mass_over_amount, real_t> M_[chem_gas_n] = {
-	M_SO2<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
-      };
-      for (int i = 0; i < chem_gas_n; ++i)
-      {
-	thrust::transform(
-	  V.begin(), V.end(),                                        // input - 1st arg
-	  thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
-	  chem_bgn[i],                                               // output
-	  detail::chem_absfun<real_t>(H_[i], M_[i], chem_gas[i])     // op
-	);
+      if (opts_init.chem_dsl == true){  //TODO move to a separate function and then move the logic to opts particle_step 
+        // 1/4: equilibrium stuff: gas absortption
+        // TODO: open/close system logic
+        // TODO: K=K(T)
+        assert(SO2 == 0 && H2O2 == 1 && O3 == 2);
+        static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
+	  H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>()
+        };
+        static const quantity<common::mass_over_amount, real_t> M_[chem_gas_n] = {
+          M_SO2<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
+        };
+        for (int i = 0; i < chem_gas_n; ++i)
+        {
+	  thrust::transform(
+	    V.begin(), V.end(),                                        // input - 1st arg
+	    thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
+	    chem_bgn[i],                                               // output
+	    detail::chem_absfun<real_t>(H_[i], M_[i], chem_gas[i])     // op
+	  );
+        }
       }
 
-      // 2/4: equilibrium stuff: dissociation
-      // H+ 
-      {
-        typedef thrust::zip_iterator<
-          thrust::tuple<
-            typename thrust_device::vector<real_t>::iterator, // SO2
-            typename thrust_device::vector<real_t>::iterator, // S_VI
-            typename thrust_device::vector<real_t>::iterator  // V
-          >
-        > zip_it_t;
+      if (opts_init.chem_dsc == true){
+        // 2/4: equilibrium stuff: dissociation
+        // H+ 
+        {
+          typedef thrust::zip_iterator<
+            thrust::tuple<
+              typename thrust_device::vector<real_t>::iterator, // SO2
+              typename thrust_device::vector<real_t>::iterator, // S_VI
+              typename thrust_device::vector<real_t>::iterator  // V
+            >
+          > zip_it_t;
 
-	thrust::transform(
-	  zip_it_t(thrust::make_tuple(chem_bgn[SO2], chem_bgn[S_VI], V.begin())),  // input - begin
-	  zip_it_t(thrust::make_tuple(chem_end[SO2], chem_end[S_VI], V.end())  ),  // input - end
-	  chem_bgn[H],                                                             // output
-	  detail::chem_curie_pH<real_t>()                                          // op
-	);
-      }
-      {
-        typedef thrust::zip_iterator<
-          thrust::tuple<
-            typename thrust_device::vector<real_t>::iterator, // V
-            typename thrust_device::vector<real_t>::iterator, // H 
-            typename thrust_device::vector<real_t>::iterator, // SO2
-            typename thrust_device::vector<real_t>::iterator, // HSO3
-            typename thrust_device::vector<real_t>::iterator  // S_VI
-          >
-        > zip_it_t;
+          thrust::transform(
+	    zip_it_t(thrust::make_tuple(chem_bgn[SO2], chem_bgn[S_VI], V.begin())),  // input - begin
+	    zip_it_t(thrust::make_tuple(chem_end[SO2], chem_end[S_VI], V.end())  ),  // input - end
+	    chem_bgn[H],                                                             // output
+	    detail::chem_curie_pH<real_t>()                                          // op
+	  );
+        }
+        {
+          typedef thrust::zip_iterator<
+            thrust::tuple<
+              typename thrust_device::vector<real_t>::iterator, // V
+              typename thrust_device::vector<real_t>::iterator, // H 
+              typename thrust_device::vector<real_t>::iterator, // SO2
+              typename thrust_device::vector<real_t>::iterator, // HSO3
+              typename thrust_device::vector<real_t>::iterator  // S_VI
+            >
+          > zip_it_t;
 
-        zip_it_t 
-          arg_begin(thrust::make_tuple(V.begin(), chem_bgn[H], chem_bgn[SO2], chem_bgn[HSO3], chem_bgn[S_VI])),
-          arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[HSO3], chem_end[S_VI]));
+          zip_it_t 
+            arg_begin(thrust::make_tuple(V.begin(), chem_bgn[H], chem_bgn[SO2], chem_bgn[HSO3], chem_bgn[S_VI])),
+            arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[HSO3], chem_end[S_VI]));
         
-        thrust::transform(arg_begin, arg_end, chem_bgn[OH  ], detail::chem_curie_diag<real_t, OH  >());
-        thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_curie_diag<real_t, HSO3>()); // note: has to be computed before SO3
-        thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_curie_diag<real_t, SO3 >());
-        thrust::transform(arg_begin, arg_end, chem_bgn[HSO4], detail::chem_curie_diag<real_t, HSO4>());
-        thrust::transform(arg_begin, arg_end, chem_bgn[SO4 ], detail::chem_curie_diag<real_t, SO4 >());
+          thrust::transform(arg_begin, arg_end, chem_bgn[OH  ], detail::chem_curie_diag<real_t, OH  >());
+          thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_curie_diag<real_t, HSO3>()); // note: has to be computed before SO3
+          thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_curie_diag<real_t, SO3 >());
+          thrust::transform(arg_begin, arg_end, chem_bgn[HSO4], detail::chem_curie_diag<real_t, HSO4>());
+          thrust::transform(arg_begin, arg_end, chem_bgn[SO4 ], detail::chem_curie_diag<real_t, SO4 >());
+        }
       }
 
-      // 3/4: non-equilibrium stuff
-      {
-        chem_stepper.do_step(
-          detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
-          chem_noneq, 
-          real_t(0),
-          dt
-        );
+      if (opts_init.chem_rct == true){
+        // 3/4: non-equilibrium stuff
+        {
+          chem_stepper.do_step(
+            detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
+            chem_noneq, 
+            real_t(0),
+            dt
+          );
+        }
       }
-
 
       // 4/4: recomputing dry radii
       {
