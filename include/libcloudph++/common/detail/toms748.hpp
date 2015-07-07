@@ -457,7 +457,7 @@ T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx)
 {
   uintmax_t max_iter = 20;
   T root = toms748_solve(f, ax, bx, fax, fbx, 
-    common::detail::eps_tolerance<T>(sizeof(T) * 8 / 2),
+    common::detail::eps_tolerance<T>(sizeof(T) * 8 / 8),
     max_iter
   );
   assert(max_iter != 0);
