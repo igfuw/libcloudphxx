@@ -50,7 +50,6 @@ namespace libcloudphxx
 
       // chem
       bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
-      bool chem_dsl, chem_dsc, chem_rct; //TODO move to opts!
       int sstp_chem;
       real_t chem_rho;
 
@@ -70,7 +69,6 @@ namespace libcloudphxx
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
-        chem_dsl(false), chem_dsc(false), chem_rct(false), //move to opts
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44)

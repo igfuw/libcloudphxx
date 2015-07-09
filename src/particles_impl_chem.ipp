@@ -364,7 +364,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem(
       const real_t &dt,
-      const std::vector<real_t> &chem_gas
+      const std::vector<real_t> &chem_gas,
+      const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct
     )
     {   
       using namespace common::henry;      // H-prefixed
@@ -372,7 +373,6 @@ namespace libcloudphxx
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-std::cerr << "@particles_t::impl::chem()" << std::endl;
       // 0/4: calculating drop volumes
       thrust_device::vector<real_t> &V(tmp_device_real_part);
       thrust::transform(
@@ -381,7 +381,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         detail::chem_volfun<real_t>()   // op
       );
 
-      if (opts_init.chem_dsl == true){  //TODO move to a separate function and then move the logic to opts particle_step 
+      if (chem_dsl == true){  //TODO move to a separate function and then move the logic to opts particle_step 
         // 1/4: equilibrium stuff: gas absortption
         // TODO: open/close system logic
         // TODO: K=K(T)
@@ -403,7 +403,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         }
       }
 
-      if (opts_init.chem_dsc == true){
+      if (chem_dsc == true){  //TODO move to a separate function and then move the logic to opts particle_step 
         // 2/4: equilibrium stuff: dissociation
         // H+ 
         {
@@ -445,7 +445,7 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
         }
       }
 
-      if (opts_init.chem_rct == true){
+      if (chem_rct == true){  //TODO move to a separate function and then move the logic to opts particle_step 
         // 3/4: non-equilibrium stuff
         {
           chem_stepper.do_step(
@@ -459,6 +459,9 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
 
       // 4/4: recomputing dry radii
       {
+        std::cerr<<"rd3 before = " <<  debug::print(rd3) << std::endl;
+        std::cerr<<"chem S_VI  = " << debug::print(chem_bgn[S_VI], chem_end[S_VI]) << std::endl;
+
         namespace arg = thrust::placeholders;
         // TODO: using namespace for S_VI
         thrust::transform(
@@ -466,6 +469,9 @@ std::cerr << "@particles_t::impl::chem()" << std::endl;
           rd3.begin(),                                                  // output
           (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * arg::_1  // op
         );
+
+        std::cerr<<"rd3 after = " <<  debug::print(rd3) << std::endl;
+        std::cerr<<"chem S_VI  = " << debug::print(chem_bgn[S_VI], chem_end[S_VI]) << std::endl;
       };
     }
   };  

@@ -107,7 +107,9 @@ namespace libcloudphxx
         if (pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
 
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
+          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas, 
+                      opts.chem_dsl, opts.chem_dsc, opts.chem_rct
+                     );
       }
 
       // coalescence (before diagnostics -> one sort less)
