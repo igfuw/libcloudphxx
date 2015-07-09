@@ -116,9 +116,10 @@ namespace libcloudphxx
 	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	real_t multiplier = log(rd_max / rd_min) 
           / opts_init.sd_conc_mean 
-          * opts_init.dx 
-          * opts_init.dy 
-          * opts_init.dz;
+          * (n_dims == 0
+            ? dv[0]
+            : (opts_init.dx * opts_init.dy * opts_init.dz)
+          );
 
 	// device -> host (not needed for omp or cpp ... but happens just once)
 	thrust::copy(lnrd.begin(), lnrd.end(), tmp.begin()); 
