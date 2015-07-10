@@ -138,7 +138,7 @@ namespace libcloudphxx
             m_H_pure, // min -> (pure water)
 	    real_t(1e-10) // max -> TODO
 	  ); 
-          //std::cerr << "  " << m_H_pure << " ... " << m_H << std::endl;
+          //std::cerr << "  " << m_H_pure << " ... " << m_H << " ... " << "TODO" << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }
@@ -457,9 +457,6 @@ namespace libcloudphxx
 
       // 4/4: recomputing dry radii
       {
-        std::cerr<<"rd3 before = " <<  debug::print(rd3) << std::endl;
-        std::cerr<<"chem S_VI  = " << debug::print(chem_bgn[S_VI], chem_end[S_VI]) << std::endl;
-
         namespace arg = thrust::placeholders;
         // TODO: using namespace for S_VI
         thrust::transform(
@@ -468,8 +465,8 @@ namespace libcloudphxx
           (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * arg::_1  // op
         );
 
-        std::cerr<<"rd3 after = " <<  debug::print(rd3) << std::endl;
-        std::cerr<<"chem S_VI  = " << debug::print(chem_bgn[S_VI], chem_end[S_VI]) << std::endl;
+        //debug::print(rd3)
+        //debug::print(chem_bgn[S_VI], chem_end[S_VI])
       };
     }
   };  
