@@ -79,6 +79,35 @@ namespace libcloudphxx
       const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
     )
     {
+      // probing the spectrum to find rd_min-rd_max range
+      // values to start the search 
+      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
+      real_t rd_min = rd_min_init, rd_max = rd_max_init;
+
+      bool found_optimal_range = false;
+      real_t multiplier;
+      while (!found_optimal_range)
+      {
+	multiplier = log(rd_max / rd_min) 
+	  / opts_init.sd_conc
+	  * (n_dims == 0
+	    ? dv[0]
+	    : (opts_init.dx * opts_init.dy * opts_init.dz)
+	  );
+        impl::n_t 
+          n_min = (*n_of_lnrd_stp)(log(rd_min)) * multiplier, 
+          n_max = (*n_of_lnrd_stp)(log(rd_max)) * multiplier;
+
+        if (rd_min == rd_min_init && n_min != 0) 
+          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_min_init");
+        if (rd_max == rd_max_init && n_max != 0) 
+          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_max_init");
+        
+        if      (n_min == 0) rd_min *= 1.1;
+        else if (n_max == 0) rd_max /= 1.1;
+        else found_optimal_range = true;
+      }
+
       // memory allocation
       rd3.resize(n_part);
       n.resize(n_part);
@@ -90,13 +119,8 @@ namespace libcloudphxx
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
 
-      // values to start the search 
-      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
-      real_t rd_min = rd_min_init, rd_max = rd_max_init;
-
       // temporary space on the host 
       thrust::host_vector<real_t> tmp_real(n_part);
-      thrust::host_vector<n_t> tmp_n(n_part);
       thrust::host_vector<thrust_size_t> tmp_ijk(n_part);
       thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
 
@@ -109,133 +133,79 @@ namespace libcloudphxx
 	tmp_ijk.begin()         // to
       );
 
-      bool found_optimal_range = 0;
+      // rd3 temporarily means logarithm of radius!
+      thrust_device::vector<real_t> &lnrd(rd3);
+      
+      thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
+      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
+      
+      // shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
+      // each log(radius) randomized only on a small subrange to make the distributions more uniform
+      // particles are sorted by cell number (see particles_impl_init_xyz), uniform distribution in each cell
+      // lnrd is not sorted
+      thrust::transform(
+        thrust::make_zip_iterator(thrust::make_tuple(
+          u01.begin(),                                                              // random number
+          thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin()), // number of SDs in the cell
+          thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
+          thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple(
+          u01.begin(),                                                              // random number
+          thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin()), // number of SDs in the cell
+          thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
+          thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
+        )) + n_part,
+        lnrd.begin(), 
+        calc_lnrd<real_t>(log(rd_min), log(rd_max))
+      );
+      
+      // filling n with multiplicities
+      // (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
+      // device -> host (not needed for omp or cpp ... but happens just once)
+      thrust::copy(lnrd.begin(), lnrd.end(), tmp_real.begin()); 
+      
+      // evaluating n_of_lnrd_stp
+      thrust::transform(
+        tmp_real.begin(), tmp_real.end(), // input 
+        tmp_real.begin(),                 // output
+        detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
+      );
 
-      while (!found_optimal_range)
+      // correcting STP -> actual ambient conditions
       {
         namespace arg = thrust::placeholders;
+        using common::earth::rho_stp;
 
-	// rd3 temporarily means logarithm of radius!
-	thrust_device::vector<real_t> &lnrd(rd3);
+        thrust::transform(
+          tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+          thrust::make_permutation_iterator( // input - 2nd arg
+            tmp_rhod.begin(), 
+            tmp_ijk.begin()
+          ),
+          tmp_real.begin(),                       // output
+          arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+        ); 
 
-        thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
-        thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
-
-	// shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
-        // each log(radius) randomized only on a small subrange to make the distributions more uniform
-        // particles are sorted by cell number (see particles_impl_init_xyz), uniform distribution in each cell
-        // lnrd is not sorted
-	thrust::transform(
-          thrust::make_zip_iterator(thrust::make_tuple(
-            u01.begin(),                                                              // random number
-            thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin()), // number of SDs in the cell
-            thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
-            thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
-          )),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            u01.begin(),                                                              // random number
-            thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin()), // number of SDs in the cell
-            thrust::make_counting_iterator(0),                                        // sequence to iterate over distribution
-            thrust::make_permutation_iterator(ptr.begin(), sorted_ijk.begin())        // number of SDs in cells up to this one
-          )) + n_part,
-	  lnrd.begin(), 
-          calc_lnrd<real_t>(log(rd_min), log(rd_max))
-	);
-
-	// filling n with multiplicities
-	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
-	real_t multiplier = log(rd_max / rd_min) 
-          / real_t(opts_init.sd_conc)
-          * opts_init.dx 
-          * opts_init.dy 
-          * opts_init.dz;
-
-	// device -> host (not needed for omp or cpp ... but happens just once)
-	thrust::copy(lnrd.begin(), lnrd.end(), tmp_real.begin()); 
-
-	// evaluating n_of_lnrd_stp
-	thrust::transform(
-	  tmp_real.begin(), tmp_real.end(), // input 
-	  tmp_real.begin(),            // output
-	  detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
-	);
-
-        // correcting STP -> actual ambient conditions
-        {
-          namespace arg = thrust::placeholders;
-          using common::earth::rho_stp;
-
-	  thrust::transform(
-            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
-            thrust::make_permutation_iterator( // input - 2nd arg
-              tmp_rhod.begin(), 
-              tmp_ijk.begin()
-            ),
-            tmp_real.begin(),                       // output
-            arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
-          ); 
-
-  	  // host -> host (includes casting from real_t to uint! and rounding)
-  	  thrust::copy(
-            thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
-            thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
-            tmp_n.begin()); 
-
-          // host->device
-          thrust::copy(tmp_n.begin(), tmp_n.end(), n.begin());
-        }
-        found_optimal_range = 1;
-
-	// chosing an optimal rd_min/rd_max range for a given pdf and grid
-        // doing it on temp copies of n and lnrd sorted by lnrd
-	thrust::copy(lnrd.begin(), lnrd.end(), tmp_real.begin()); 
-        thrust::sort_by_key(tmp_real.begin(), tmp_real.end(), tmp_n.begin());
-
-	thrust_size_t ix;
-	ix = thrust::find_if(tmp_n.begin(), tmp_n.end(), arg::_1 != 0) - tmp_n.begin();
-	if (rd_min == rd_min_init) 
-	{
-          if(ix == n_part)
-            std::runtime_error("Initial dry radii distribution outside of the range [1e-11, 1e-3] meters\n");
-          if(ix == 0)
-            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-11 meters\n");
-	  rd_min = exp(tmp_real[ix-1]); // adjusting the range
-	}
-        else if (ix>0)
-        {
-	  rd_min = exp(tmp_real[ix]); // adjusting the range
-          found_optimal_range = 0;
-        }
-
-	ix = tmp_n.rend() - thrust::find_if(tmp_n.rbegin(), tmp_n.rend(), arg::_1 != 0);
-	if (rd_max == rd_max_init) 
-	{
-          if(ix == n_part)
-            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-3 meters\n");
-	  rd_max = exp(tmp_real[ix+1]); // adjusting the range
-          found_optimal_range = 0;
-	}
-        else if (ix < n_part)
-        {
-	  rd_max = exp(tmp_real[ix]); // adjusting the range
-          found_optimal_range = 0;
-        }
-
-        if(found_optimal_range)
-        {
-          // detecting possible overflows of n type
-          ix = thrust::max_element(tmp_n.begin(), tmp_n.end()) - tmp_n.begin();
-          assert(n[ix] < (typename impl::n_t)(-1) / 10000);
-
-          // converting rd back from logarithms to rd3
-          thrust::transform(
-            lnrd.begin(),
-            lnrd.end(),
-            rd3.begin(),
-            detail::exp3x<real_t>()
-          );
-        }
+	// host -> device (includes casting from real_t to uint! and rounding)
+	thrust::copy(
+          thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
+          thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
+          n.begin()
+        ); 
       }
+        
+      // detecting possible overflows of n type
+      thrust_size_t ix = thrust::max_element(n.begin(), n.end()) - n.begin();
+      assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+
+      // converting rd back from logarithms to rd3
+      thrust::transform(
+        lnrd.begin(),
+        lnrd.end(),
+        rd3.begin(),
+        detail::exp3x<real_t>()
+      );
     }
   };
 };
