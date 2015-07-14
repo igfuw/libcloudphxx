@@ -34,7 +34,7 @@ void setopts_micro(
   opts.add_options()
     ("backend", po::value<std::string>()->required() , "one of: CUDA, OpenMP, serial")
     ("async", po::value<bool>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
-    ("sd_conc_mean", po::value<thrust_real_t>()->required() , "mean super-droplet concentration per grid cell (int)")
+    ("sd_conc", po::value<unsigned long long>()->required() , "super-droplet number per grid cell (unsigned long long)")
     // processes
     ("adve", po::value<bool>()->default_value(rt_params.cloudph_opts.adve) , "particle advection     (1=on, 0=off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "particle sedimentation (1=on, 0=off)")
@@ -60,7 +60,7 @@ void setopts_micro(
 
   rt_params.async = vm["async"].as<bool>();
 
-  rt_params.cloudph_opts_init.sd_conc_mean = vm["sd_conc_mean"].as<thrust_real_t>();;
+  rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
   boost::assign::ptr_map_insert<
