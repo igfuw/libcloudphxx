@@ -28,10 +28,16 @@ target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
 target_link_libraries(icicle ${Boost_LIBRARIES})
 
-find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn ${CMAKE_SOURCE_DIR}/../../build/src)
-if (NOT libmpdataxx_LIBRARIES)
+# search for a local version of libcloudphxx
+find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn ${CMAKE_SOURCE_DIR}/../../build/src NO_DEFAULT_PATH)
+# if no local version found, look for an installed one
+find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn)
+
+if (NOT libcloudphxx_LIBRARIES)
   message(FATAL_ERROR "libclouphxx++ not found")
 endif()
+
+target_include_directories(icicle PUBLIC ${CMAKE_SOURCE_DIR}/../../include)
 target_link_libraries(icicle ${libcloudphxx_LIBRARIES})
 
 install(TARGETS icicle DESTINATION bin)
