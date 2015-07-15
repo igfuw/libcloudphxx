@@ -81,6 +81,8 @@ script:
     - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
     ## parcel
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y python-matplotlib python-gnuplot; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install matplotlib gnuplot-py; fi
     - git clone --depth=1 git://github.com/igfuw/parcel.git
     - cd parcel
     - py.test -s -v unit_test
