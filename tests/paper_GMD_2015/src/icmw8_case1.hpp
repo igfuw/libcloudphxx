@@ -18,7 +18,7 @@
 // 8th ICMW case 1 by Wojciech Grabowski)
 namespace icmw8_case1
 {
-  using real_t = float;
+  using real_t = double;
 
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
@@ -58,6 +58,10 @@ namespace icmw8_case1
   const quantity<si::dimensionless, real_t> kappa = .61; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
   // for blk_2m:
   const quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride
+
+  //th and rv relaxation time and height
+  const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
+  const quantity<si::length, real_t> z_rlx = 200 * si::metres;
 
   // density profile as a function of altitude
   struct rhod

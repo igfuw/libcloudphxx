@@ -46,22 +46,20 @@ class kin_cloud_2d_common : public
   )   
   {   
     parent_t::update_rhs(rhs, dt, at);
+    using ix = typename ct_params_t::ix;
 
     // relaxation terms
     {
       // computed level-wise
-      //for (int j = 0; j < this->span[0]; ++j)
+      for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        // th
+        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * this->dj / icmw8_case1::z_rlx * si::metres);
+
+        for(auto a: std::list<int>(ix::th, ix::rv))
         {
-          // TODO ...
-          //const auto &psi = this->state(ix::th);
-          //const auto psi_mean = this->mem->sum(psi, this->i, j) / this->span[0];
-          //rhs.at(ix::th)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau(j...);
-        }
-        // rv
-        {
-          // TODO: same as above...
+          const auto &psi = this->state(a);
+          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false) /  (this->i.last() - this->i.first());
+          rhs.at(ix::th)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau;
         }
       }
     }
