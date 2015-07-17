@@ -17,6 +17,7 @@ class kin_cloud_2d_common : public
 
   typename ct_params_t::real_t dx, dz; // 0->dx, 1->dy ! TODO
   int spinup; // number of timesteps
+  bool relax_th_rv;
 
   // spinup stuff
   virtual bool get_rain() = 0;
@@ -49,6 +50,7 @@ class kin_cloud_2d_common : public
     using ix = typename ct_params_t::ix;
 
     // relaxation terms
+    if(relax_th_rv)
     {
       // computed level-wise
       for (int j = this->j.first(); j <= this->j.last(); ++j)
@@ -63,7 +65,6 @@ class kin_cloud_2d_common : public
         }
       }
     }
-
   }
 
   public:
@@ -72,6 +73,7 @@ class kin_cloud_2d_common : public
   { 
     typename ct_params_t::real_t dx = 0, dz = 0;
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
+    bool relax_th_rv = true;
   };
 
   // ctor
@@ -82,7 +84,8 @@ class kin_cloud_2d_common : public
     parent_t(args, p),
     dx(p.dx),
     dz(p.dz),
-    spinup(p.spinup)
+    spinup(p.spinup),
+    relax_th_rv(p.relax_th_rv)
   {
     assert(dx != 0);
     assert(dz != 0);
