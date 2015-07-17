@@ -102,7 +102,7 @@ namespace libcloudphxx
       }
 
       // chemistry
-      if (opts.chem) 
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
         if (pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
 
