@@ -46,6 +46,17 @@ namespace libcloudphxx
             p_kernel = (&(k_geometric[0])).get();
           }
           break;
+
+        case(Long):
+          // init kernel parameters vector
+          if(n_user_params > 0)
+          {
+            throw std::runtime_error("Long kernel doesn't take parameters.");
+          }
+            // init kernel
+            k_long.resize(1, kernel_long<real_t, n_t> ());
+            p_kernel = (&(k_long[0])).get();
+          break;
   
         //Hall kernel
         case(hall):
