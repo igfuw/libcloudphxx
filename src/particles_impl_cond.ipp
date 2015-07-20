@@ -255,7 +255,6 @@ namespace libcloudphxx
       cond_dm3_helper();
 
       // permute-copying the result to -dm_3
-      thrust::fill(drv.begin(), drv.end(), 0);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
