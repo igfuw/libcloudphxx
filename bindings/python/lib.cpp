@@ -49,9 +49,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
     bp::scope().attr("rho_w") = (real_t) (cmn::moist_air::rho_w<real_t>() * si::cubic_metres / si::kilograms);
-    bp::scope().attr("M_SO2") = (real_t) (cmn::molar_mass::M_SO2<real_t>() * si::moles / si::kilograms);
+    bp::scope().attr("M_SO2")  = (real_t) (cmn::molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_H2O2") = (real_t) (cmn::molar_mass::M_H2O2<real_t>() * si::moles / si::kilograms);
-    bp::scope().attr("M_O3") = (real_t) (cmn::molar_mass::M_O3<real_t>() * si::moles / si::kilograms);
+    bp::scope().attr("M_O3")   = (real_t) (cmn::molar_mass::M_O3<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_H")    = (real_t) (cmn::molar_mass::M_H<real_t>()    * si::moles / si::kilograms);
+    bp::scope().attr("H_SO2")  = (real_t) (cmn::henry::H_SO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_H2O2") = (real_t) (cmn::henry::H_H2O2<real_t>() * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_O3")   = (real_t) (cmn::henry::H_O3<real_t>()   * si::cubic_metres * si::pascals / si::moles);
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
@@ -137,7 +141,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sedi", &lgr::opts_t<real_t>::sedi)
       .def_readwrite("cond", &lgr::opts_t<real_t>::cond)
       .def_readwrite("coal", &lgr::opts_t<real_t>::coal)
-      .def_readwrite("chem", &lgr::opts_t<real_t>::chem)
+      .def_readwrite("chem_dsl", &lgr::opts_t<real_t>::chem_dsl)
+      .def_readwrite("chem_dsc", &lgr::opts_t<real_t>::chem_dsc)
+      .def_readwrite("chem_rct", &lgr::opts_t<real_t>::chem_rct)
       .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
       .add_property("chem_gas", &lgrngn::get_cg<real_t>, &lgrngn::set_cg<real_t>)
     ;

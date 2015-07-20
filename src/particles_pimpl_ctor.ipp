@@ -325,7 +325,8 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
+                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 

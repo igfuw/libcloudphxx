@@ -58,7 +58,9 @@ print "adve =", opts.adve
 print "sedi =", opts.sedi
 print "cond =", opts.cond
 print "coal =", opts.coal
-print "chem =", opts.chem
+print "chem_dsl =", opts.chem_dsl
+print "chem_dcs =", opts.chem_dsc
+print "chem_rct =", opts.chem_rct
 print "RH_max =", opts.RH_max
 
 opts.chem_gas = {
