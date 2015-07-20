@@ -110,7 +110,7 @@ namespace libcloudphxx
         case(onishi_hall_davis_no_waals):
           if(n_user_params != 2)
           {
-            throw std::runtime_error("Please supply two kernel parameters: rate of diffusion epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
+            throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
