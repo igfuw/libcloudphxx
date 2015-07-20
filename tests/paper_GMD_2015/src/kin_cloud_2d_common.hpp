@@ -61,7 +61,7 @@ class kin_cloud_2d_common : public
         {
           const auto &psi = this->state(a);
           const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false) /  (this->i.last() - this->i.first());
-          rhs.at(ix::th)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau;
+          rhs.at(a)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau;
         }
       }
     }
