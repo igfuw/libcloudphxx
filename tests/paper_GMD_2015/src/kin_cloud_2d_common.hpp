@@ -56,7 +56,7 @@ class kin_cloud_2d_common : public
       // computed level-wise
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * this->dj / icmw8_case1::z_rlx * si::metres);
+        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * dz / icmw8_case1::z_rlx * si::metres);
 
         for(auto a: std::list<int>({ix::th, ix::rv}))
         {
