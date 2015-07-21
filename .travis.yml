@@ -23,8 +23,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -t trusty -y  nvidia-cuda-toolkit; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s -f `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s -f `pwd`/odeint/include/boost/numeric/odeint /usr/include/boost/numeric/odeint; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo mv `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo mv `pwd`/odeint/include/boost/numeric/odeint /usr/include/boost/numeric/odeint; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
