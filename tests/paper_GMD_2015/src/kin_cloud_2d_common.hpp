@@ -17,7 +17,6 @@ class kin_cloud_2d_common : public
 
   typename ct_params_t::real_t dx, dz; // 0->dx, 1->dy ! TODO
   int spinup; // number of timesteps
-  int nx;
   bool relax_th_rv;
 
   // spinup stuff
@@ -61,7 +60,7 @@ class kin_cloud_2d_common : public
         for(auto a: std::list<int>({ix::th, ix::rv}))
         {
           const auto &psi = this->state(a);
-          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  nx;
+          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  this->mem->grid_size[0];
           rhs.at(a)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau;
         }
       }
@@ -85,7 +84,6 @@ class kin_cloud_2d_common : public
     parent_t(args, p),
     dx(p.dx),
     dz(p.dz),
-    nx(p.grid_size[0]),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv)
   {
