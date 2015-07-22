@@ -184,7 +184,6 @@ namespace libcloudphxx
         &off(tmp_device_size_cell); // offset for getting index of particle within a cell
 
       // laying out scale factor onto ijk grid
-      thrust::fill(scl.begin(), scl.end(), real_t(0));
       thrust::copy(
         count_mom.begin(),                    // input - begin
         count_mom.begin() + count_n,          // input - end
@@ -195,7 +194,6 @@ namespace libcloudphxx
       );  
 
       // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
-      thrust::fill(off.begin(), off.end(), real_t(0));
       thrust::copy(
         count_num.begin(), 
         count_num.begin() + count_n, 
