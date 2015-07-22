@@ -254,8 +254,10 @@ namespace libcloudphxx
       // calculating the 3rd wet moment before condensation (still not divided by dv)
       cond_dm3_helper();
 
+      // fill with 0s if not all cells will be updated in the following transform
+      if(count_n!=n_cell)  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+
       // permute-copying the result to -dm_3
-      thrust::fill(drv.begin(), drv.end(), 0);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
