@@ -83,7 +83,7 @@ script:
     ## parcel
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y python-matplotlib python-gnuplot; fi
     - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy; fi
     - git clone --depth=1 git://github.com/igfuw/parcel.git
     - cd parcel
