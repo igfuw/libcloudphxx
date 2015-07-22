@@ -55,12 +55,12 @@ class kin_cloud_2d_common : public
       // computed level-wise
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * this->dj / icmw8_case1::z_rlx * si::metres);
+        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * dz / icmw8_case1::z_rlx * si::metres);
 
-        for(auto a: std::list<int>(ix::th, ix::rv))
+        for(auto a: std::list<int>({ix::th, ix::rv}))
         {
           const auto &psi = this->state(a);
-          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false) /  (this->i.last() - this->i.first());
+          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  this->mem->grid_size[0];
           rhs.at(a)(this->i, j) = - (psi(this->i, j) - psi_mean) / tau;
         }
       }
