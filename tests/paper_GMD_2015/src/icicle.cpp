@@ -151,17 +151,31 @@ int main(int argc, char** argv)
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
+
     if (micro == "blk_1m")
     {
       // libmpdata++'s compile-time parameters
-      struct ct_params_t : ct_params_common
+      if (relax_th_rv)
       {
-	enum { n_eqns = 4 };
-        struct ix { enum {th, rv, rc, rr}; };
-        enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) }; // only through adjustments
-      };
-      run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 4 };
+          struct ix { enum {th, rv, rc, rr}; };
+        };
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+          enum { n_eqns = 4 };
+          struct ix { enum {th, rv, rc, rr}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
     }
+
     else
     if (micro == "blk_2m")
     {
@@ -172,16 +186,29 @@ int main(int argc, char** argv)
       };
       run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
     }
+
     else 
     if (micro == "lgrngn")
     {
-      struct ct_params_t : ct_params_common
+      if (relax_th_rv)
       {
-	enum { n_eqns = 2 };
-	struct ix { enum {th, rv}; };
-        enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) }; // only through adjustments
-      };
-      run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 2 };
+  	  struct ix { enum {th, rv}; };
+        };
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 2 };
+  	  struct ix { enum {th, rv}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
     }
     else BOOST_THROW_EXCEPTION(
       po::validation_error(
