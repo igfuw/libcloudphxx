@@ -7,7 +7,7 @@ namespace libcloudphxx
     {
       switch(opts_init.kernel)
       {
-        case(golovin):
+        case(kernel_t::golovin):
           // init device kernel parameters vector
           if(n_kernel_params != 1)
           {
@@ -21,7 +21,7 @@ namespace libcloudphxx
           p_kernel = (&(k_golovin[0])).get();
           break;
 
-        case(geometric):
+        case(kernel_t::geometric):
           // init kernel parameters vector
           if(n_kernel_params > 1)
           {
@@ -38,7 +38,7 @@ namespace libcloudphxx
           break;
           
         default:
-          throw std::runtime_error("please supply a type of collision kernel to use");
+          ;
       }
     }
   }

@@ -19,6 +19,7 @@ opts_init = lgrngn.opts_init_t()
 kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.dt = 1
 opts_init.sd_conc_mean = 64
 opts_init.rng_seed = 396
@@ -40,12 +41,15 @@ print "y1 =", opts_init.y1
 print "z1 =", opts_init.z1
 
 print "chem_switch = ", opts_init.chem_switch
+print "coal_switch = ", opts_init.coal_switch
+print "sedi_switch = ", opts_init.sedi_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
 print "kernel =", opts_init.kernel 
+print "terminal_velocity =", opts_init.terminal_velocity
 print "sd_conc_mean =", opts_init.sd_conc_mean
 print "chem_rho =", opts_init.chem_rho
 

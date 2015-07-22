@@ -76,6 +76,11 @@ namespace libcloudphxx
     ) {
       assert(pimpl->should_now_run_async);
 
+      //sanity checks
+      if(opts.chem && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
+
       if (opts.cond) 
       { 
         // saving rv to be used as rv_old
@@ -104,8 +109,6 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem) 
       {
-        if (pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
-
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
           pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
       }
