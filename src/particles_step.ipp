@@ -42,13 +42,13 @@ namespace libcloudphxx
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
       // but also unneccesarily holds dyncore execution for a bit longer)
-      pimpl->rcyc(); 
+      thrust_size_t n_rcyc = pimpl->rcyc(); 
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi)
+      if (opts.adve || opts.sedi || n_rcyc)
       {
-        pimpl->hskpng_ijk(); // TODO: but rcyc() above could also have changed ijk!
+        pimpl->hskpng_ijk();
       }
 
       // condensation/evaporation 

@@ -19,6 +19,13 @@ namespace libcloudphxx
 	thrust::copy(v.begin(), v.end(), std::ostream_iterator<typename vec_t::value_type>(std::cerr, "\t"));
 	std::cerr << std::endl;
       }
+
+      template <typename vec_bgn_t, typename vec_end_t>
+      void print(const vec_bgn_t &bgn, const vec_end_t &end)
+      {
+	thrust::copy(bgn, end, std::ostream_iterator<typename vec_bgn_t::value_type>(std::cerr, "\t"));
+	std::cerr << std::endl;
+      }
     };
 //#endif
   };
