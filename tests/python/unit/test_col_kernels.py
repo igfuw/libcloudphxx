@@ -50,7 +50,9 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric,  lgrngn.ker
   Opts.sedi = False
   Opts.cond = False
   Opts.coal = True
-  Opts.chem = False
+  Opts.chem_dsl = False
+  Opts.chem_dsc = False
+  Opts.chem_rct = False
 
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)

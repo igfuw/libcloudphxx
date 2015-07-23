@@ -20,8 +20,8 @@ namespace libcloudphxx
 
         // ctor
         chem_init_water(const real_t &pH, const quantity<common::mass_over_amount, real_t> &M) : 
-          mltpl(pow(10,-pH) * real_t(4./3) * (M / si::kilograms * si::moles) * pi<real_t>())
-        {}
+          mltpl(pow(10,-pH) * real_t(4./3) * (M / si::kilograms * si::moles) * pi<real_t>() / 1e-3)
+        {}                                                                                  // litres -> m3
  
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)

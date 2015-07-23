@@ -15,7 +15,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t backend>
     void particles_t<real_t, backend>::impl::sanity_checks()
     {   
-      detail::opts_init_sanity_checks(opts_init);
     }  
 
     // instantiation 

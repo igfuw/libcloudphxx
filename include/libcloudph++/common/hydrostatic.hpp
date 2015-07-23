@@ -12,7 +12,7 @@ namespace libcloudphxx
     namespace hydrostatic
     {
       using theta_std::p_1000;
-      using moist_air::R; // TODO: czy na pewno potzebne?
+      using moist_air::R; 
       using moist_air::c_pd;
       using moist_air::R_d;
       using earth::g;

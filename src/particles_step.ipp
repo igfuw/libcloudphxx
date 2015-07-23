@@ -42,13 +42,13 @@ namespace libcloudphxx
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
       // but also unneccesarily holds dyncore execution for a bit longer)
-      pimpl->rcyc(); 
+      thrust_size_t n_rcyc = pimpl->rcyc(); 
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi)
+      if (opts.adve || opts.sedi || n_rcyc)
       {
-        pimpl->hskpng_ijk(); // TODO: but rcyc() above could also have changed ijk!
+        pimpl->hskpng_ijk();
       }
 
       // condensation/evaporation 
@@ -76,6 +76,11 @@ namespace libcloudphxx
     ) {
       assert(pimpl->should_now_run_async);
 
+      //sanity checks
+      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
+
       if (opts.cond) 
       { 
         // saving rv to be used as rv_old
@@ -102,12 +107,12 @@ namespace libcloudphxx
       }
 
       // chemistry
-      if (opts.chem) 
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
-        if (pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
-
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
+          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas, 
+                      opts.chem_dsl, opts.chem_dsc, opts.chem_rct
+                     );
       }
 
       // coalescence (before diagnostics -> one sort less)
