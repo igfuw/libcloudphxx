@@ -45,11 +45,11 @@ script:
     - cd ../..
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends libhdf5-7; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev libhdf5-serial-dev cmake; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get install --no-install-recommends -t trusty -y libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev libhdf5-serial-dev cmake; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
     - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
     - cd libmpdataxx/libmpdata++
