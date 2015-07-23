@@ -217,11 +217,11 @@ namespace libcloudphxx
         if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
         if (opts_init.coal_switch)
         {
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity");
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
           if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
         }
         if (opts_init.sedi_switch)
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity");
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
