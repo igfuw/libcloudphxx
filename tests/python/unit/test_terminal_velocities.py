@@ -23,14 +23,13 @@ def lognormal(lnr):
 kappa = .61
 
 opts_init.dry_distros = {kappa:lognormal}
-opts_init.sd_conc_mean = 50.
-opts_init.terminal_velocity=lgrngn.vt_t.beard
 
-for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.golovin]:
-  opts_init.kernel = kernel
-  opts_init.kernel_parameters = np.array([]);
-  if(kernel == lgrngn.kernel_t.golovin):
-    opts_init.kernel_parameters = np.array([1.]);
+opts_init.sd_conc_mean = 50.
+
+opts_init.kernel = lgrngn.kernel_t.geometric
+
+for vt_eq in [lgrngn.vt_t.beard, lgrngn.vt_t.khvorostyanov_spherical, lgrngn.vt_t.khvorostyanov_nonspherical]:
+  opts_init.terminal_velocity = vt_eq
 
   try:
     prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
@@ -44,9 +43,7 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.golovin]:
   Opts.sedi = False
   Opts.cond = False
   Opts.coal = True
-  Opts.chem_dsl = False
-  Opts.chem_dsc = False
-  Opts.chem_rct = False
+  Opts.chem = False
 
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)
