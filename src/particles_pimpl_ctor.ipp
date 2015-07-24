@@ -21,9 +21,9 @@ namespace libcloudphxx
   namespace lgrngn
   {
     namespace detail
-    { 
+    {   
       enum { invalid = -1 };
-    };
+    };  
 
     // pimpl stuff 
     template <typename real_t, backend_t device>
@@ -215,6 +215,13 @@ namespace libcloudphxx
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
         if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.coal_switch)
+        {
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
+          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
+        }
+        if (opts_init.sedi_switch)
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -325,7 +332,8 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
+                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 

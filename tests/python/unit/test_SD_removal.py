@@ -26,6 +26,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 opts_init.sd_conc_mean = 64
 
 opts_init.kernel = lgrngn.kernel_t.geometric
+opts_init.terminal_velocity = lgrngn.vt_t.khvorostyanov_spherical
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
 except:
@@ -38,7 +39,9 @@ Opts.adve = False
 Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
-Opts.chem = False
+Opts.chem_dsl = False
+Opts.chem_dsc = False
+Opts.chem_rct = False
 
 for i in range(900):
   prtcls.step_sync(Opts,th,rv,rhod)
