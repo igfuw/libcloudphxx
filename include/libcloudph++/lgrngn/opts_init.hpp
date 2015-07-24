@@ -41,6 +41,11 @@ namespace libcloudphxx
       // no. of super-droplets per cell
       unsigned long long sd_conc; 
 
+      // max no. of super-droplets in the system
+      // used to init sizes of containers
+      // should fit particles from sources
+      unsigned long long n_sd_max; 
+
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
