@@ -20,8 +20,8 @@
 #  define assert_fun __func__
 //#endif
 #define assert(cond) { \
-  if (!(cond)) std::cerr <<  \
+  if (!(cond)) throw std::runtime_error( <<  \
     __FILE__ ":" + std::to_string(__LINE__) + ": " + assert_fun + ": " \
     "Assertion `" assert_str(cond) "' failed." \
-  ; \
+  ); \
 }
