@@ -29,6 +29,7 @@ namespace libcloudphxx
       tmp_device_n_part.resize(n_part);
 
       rd3.resize(n_part);
+      rw2.resize(n_part);
       n.resize(n_part);
       kpa.resize(n_part);
       sd_stat.resize(n_part);

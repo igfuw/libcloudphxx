@@ -42,9 +42,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_wet()
     {
-      // memory allocation
-      rw2.resize(n_part);
-
       // initialising values of rw2
       {
 	// calculating rw_eq
