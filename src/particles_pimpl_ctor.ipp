@@ -77,6 +77,9 @@ namespace libcloudphxx
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
 
+      // particle status
+      thrust_device::vector<sd_stat_t> sd_stat;
+
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
         lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
