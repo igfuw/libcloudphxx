@@ -108,11 +108,6 @@ namespace libcloudphxx
         else found_optimal_range = true;
       }
 
-      // memory allocation
-      rd3.resize(n_part);
-      n.resize(n_part);
-      kpa.resize(n_part); 
-
       // filling kappas
       thrust::fill(kpa.begin(), kpa.end(), kappa);
 
