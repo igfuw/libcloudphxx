@@ -12,6 +12,7 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
+#include "detail/sd_status.hpp"
 
 #include "particles_impl_kernel.ipp"
 
