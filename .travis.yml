@@ -17,7 +17,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install --no-install-recommends -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install update-manager-core; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo do-release-upgrade -f DistUpgradeViewNonInteractive; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo do-release-upgrade -f -d DistUpgradeViewNonInteractive; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
@@ -53,8 +53,8 @@ script:
 
     # libmpdata (needed by icicle, skipping tests)
     - cd ../..
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
+    #- if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
+    #- if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev libhdf5-serial-dev cmake; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
