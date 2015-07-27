@@ -17,7 +17,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install --no-install-recommends -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install update-manager-core; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo do-release-upgrade -f -d DistUpgradeViewNonInteractive; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo do-release-upgrade -d -f DistUpgradeViewNonInteractive; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
