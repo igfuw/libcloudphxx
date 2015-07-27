@@ -65,6 +65,9 @@ namespace libcloudphxx
       // initialising wet radii
       pimpl->init_wet();
 
+      // initialising vterm
+      if(pimpl->opts_init.coal_switch || pimpl->opts_init.sedi_switch) pimpl->hskpng_vterm_all();
+
       // initialising chem stuff
       if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
