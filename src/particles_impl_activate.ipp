@@ -10,7 +10,7 @@ namespace libcloudphxx
         sd_stat.begin(), sd_stat.end(), // input 
         sd_stat.begin(),                // output
         detail::activate<real_t>(),     // operation (make it active)
-        detail::to_init()               // condition
+        detail::is_to_init()               // condition
       );  
     }  
   };

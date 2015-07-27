@@ -44,7 +44,7 @@ namespace libcloudphxx
             sd_stat.begin(),                                      // stencil
 	    vi.begin(),                                           // output
 	    detail::divide_by_constant_and_cast<real_t, int>(vd), // operation
-            detail::active_or_to_init()                           // predicate
+            detail::is_active_or_to_init()                           // predicate
 	  );
         }
       } helper;
@@ -59,7 +59,7 @@ namespace libcloudphxx
         case 0: 
           break;
         case 1:
-          thrust::copy_if(k.begin(), k.end(), sd_stat.begin(), ijk.begin(), detail::active_or_to_init());
+          thrust::copy_if(k.begin(), k.end(), sd_stat.begin(), ijk.begin(), detail::is_active_or_to_init());
           break;
         case 2:
           namespace arg = thrust::placeholders;
@@ -69,7 +69,7 @@ namespace libcloudphxx
             sd_stat.begin(),
             ijk.begin(),        // output
             arg::_1 * opts_init.nz + arg::_2,   // assuming z varies first
-            detail::active_or_to_init()
+            detail::is_active_or_to_init()
           );
           break;
         case 3:
@@ -81,7 +81,7 @@ namespace libcloudphxx
             ijk.begin(),        // output
             arg::_1 * (opts_init.nz * opts_init.ny) + 
             arg::_2 * opts_init.nz,
-            detail::active_or_to_init()
+            detail::is_active_or_to_init()
           );
           thrust::transform_if(
             ijk.begin(), ijk.end(),
@@ -89,7 +89,7 @@ namespace libcloudphxx
             sd_stat.begin(),
             ijk.begin(), // in-place!
             arg::_1 + arg::_2,
-            detail::active_or_to_init()
+            detail::is_active_or_to_init()
           );
           break;
         default:

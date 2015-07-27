@@ -42,7 +42,7 @@ namespace libcloudphxx
             sd_stat.begin(),
             x.begin(),
             detail::periodic<real_t>(opts_init.x0, opts_init.x1),
-            detail::active()
+            detail::is_active()
           );
 
           // hardcoded periodic boundary in y! (TODO - as an option)
@@ -53,7 +53,7 @@ namespace libcloudphxx
               sd_stat.begin(),
 	      y.begin(),
 	      detail::periodic<real_t>(opts_init.y0, opts_init.y1),
-              detail::active()
+              detail::is_active()
 	    );
           }
 
@@ -64,7 +64,7 @@ namespace libcloudphxx
 	    thrust::transform_if(
 	      z.begin(), z.end(),          // input - arg
 	      sd_stat.begin(),             // output
-              detail::flag<real_t>(),      // operation (mark it as inactive, TODO: recycle it?)
+              detail::deactivate<real_t>(),      // operation (mark it as inactive, TODO: recycle it?)
 	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
 	    );
           }

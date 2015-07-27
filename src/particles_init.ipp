@@ -81,6 +81,9 @@ namespace libcloudphxx
 
       // mark all initialized SDs as active
       pimpl->activate_SDs();
+
+      // init all vterm; vterm_all updates active particles
+      pimpl->hskpng_vterm_all();
     }
   };
 };

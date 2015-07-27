@@ -282,7 +282,7 @@ namespace libcloudphxx
         sd_stat.begin(),                // stencil
 	rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max),
-        detail::active()                // only on active SDs
+        detail::is_active()                // only on active SDs
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)

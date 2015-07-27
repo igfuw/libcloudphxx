@@ -8,7 +8,7 @@ namespace libcloudphxx
     {
       enum sd_stat_t { active, inactive, to_init, to_rcyc}; 
 
-      struct active_or_to_init : std::unary_function<bool, sd_stat_t>
+      struct is_active_or_to_init : std::unary_function<bool, sd_stat_t>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
@@ -17,16 +17,16 @@ namespace libcloudphxx
         }
       };
 
-      struct active : std::unary_function<bool, sd_stat_t>
+      struct is_active : std::unary_function<bool, sd_stat_t>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
         {
-          return (stat == active);
+          return (stat==active);
         }
       };
 
-      struct to_init : std::unary_function<bool, sd_stat_t>
+      struct is_to_init : std::unary_function<bool, sd_stat_t>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
