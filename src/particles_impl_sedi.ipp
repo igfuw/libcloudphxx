@@ -14,11 +14,13 @@ namespace libcloudphxx
     {   
       namespace arg = thrust::placeholders;
  
-      thrust::transform(
+      thrust::transform_if(
         z.begin(), z.end(),                // input - 1st arg
         vt.begin(),                        // input - 2nd arg
+        sd_status.begin(),
         z.begin(),                         // output
-        arg::_1 - opts_init.dt * arg::_2   // Euler scheme (assuming vt positive!)
+        arg::_1 - opts_init.dt * arg::_2,   // Euler scheme (assuming vt positive!)
+        detail::is_active()
       );
     }
   };  

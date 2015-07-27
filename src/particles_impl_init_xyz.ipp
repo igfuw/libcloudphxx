@@ -79,6 +79,8 @@ namespace libcloudphxx
 
       n_part = thrust::reduce(count_num.begin(), count_num.end());
 
+      if(n_part < opts_init.n_sd_max) throw std::runtime_error("n_sd_max < than initial number of SDs");
+
       // mark n_part SDs to be initialized
       thrust::fill(sd_stat.begin(), sd_stat.begin()+n_part, detail::to_init);
 

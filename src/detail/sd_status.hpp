@@ -8,7 +8,8 @@ namespace libcloudphxx
     {
       enum sd_stat_t { active, inactive, to_init, to_rcyc}; 
 
-      struct is_active_or_to_init : std::unary_function<bool, sd_stat_t>
+      // status getters
+      struct is_active_or_to_init : std::unary_function<sd_stat_t, bool>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
@@ -17,7 +18,7 @@ namespace libcloudphxx
         }
       };
 
-      struct is_active : std::unary_function<bool, sd_stat_t>
+      struct is_active : std::unary_function<sd_stat_t, bool>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
@@ -26,7 +27,7 @@ namespace libcloudphxx
         }
       };
 
-      struct is_to_init : std::unary_function<bool, sd_stat_t>
+      struct is_to_init : std::unary_function<sd_stat_t, bool>
       {
         BOOST_GPU_ENABLED
         bool operator()(const sd_stat_t &stat)
@@ -35,13 +36,14 @@ namespace libcloudphxx
         }
       };
 
+      // manipualtors
       template <typename real_t>
       struct deactivate
       {   
         BOOST_GPU_ENABLED
-        detail::sd_stat_t operator()(const real_t &)
+        sd_stat_t operator()(const real_t &)
         {
-          return detail::inactive;
+          return inactive;
         }
       };
 
@@ -49,11 +51,18 @@ namespace libcloudphxx
       struct activate
       {   
         BOOST_GPU_ENABLED
-        detail::sd_stat_t operator()(const real_t &)
+        sd_stat_t operator()(const real_t &)
         {
-          return detail::active;
+          return active;
         }
       };
+
+      // comparison
+      struct active_first : std:binary_function<sd_stat_t, sd_stat_t, bool>
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const sd_stat_t &a, const sd_stat_t &b) { return is_active(a);}         
+      }
     };
   };
 };
