@@ -39,7 +39,7 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      thrust_size_t n_part; 
+      thrust_size_t n_part;  // number of active SDs
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -78,7 +78,7 @@ namespace libcloudphxx
         sorted_id, sorted_ijk;
 
       // particle status
-      thrust_device::vector<sd_stat_t> sd_stat;
+      thrust_device::vector<detail::sd_stat_t> sd_stat;
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 

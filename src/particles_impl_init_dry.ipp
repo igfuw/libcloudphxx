@@ -124,13 +124,14 @@ namespace libcloudphxx
 	tmp_rhod.begin()          // to
       );
       thrust::copy(
-	ijk.begin(), ijk.end(), // from
+	ijk.begin(), ijk.begin() + n_part, // from
 	tmp_ijk.begin()         // to
       );
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
       
+      // ! count_num and sorted_ijk were filled in init_xyz !
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
       
@@ -158,11 +159,11 @@ namespace libcloudphxx
       // filling n with multiplicities
       // (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
       // device -> host (not needed for omp or cpp ... but happens just once)
-      thrust::copy(lnrd.begin(), lnrd.end(), tmp_real.begin()); 
+      thrust::copy(lnrd.begin(), lnrd.begin() + n_part, tmp_real.begin()); 
       
       // evaluating n_of_lnrd_stp
       thrust::transform(
-        tmp_real.begin(), tmp_real.end(), // input 
+        tmp_real.begin(), tmp_real.begin() + n_part, // input 
         tmp_real.begin(),                 // output
         detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
       );
@@ -173,7 +174,7 @@ namespace libcloudphxx
         using common::earth::rho_stp;
 
         thrust::transform(
-          tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+          tmp_real.begin(), tmp_real.begin() + n_part,            // input - 1st arg
           thrust::make_permutation_iterator( // input - 2nd arg
             tmp_rhod.begin(), 
             tmp_ijk.begin()
@@ -185,19 +186,19 @@ namespace libcloudphxx
 	// host -> device (includes casting from real_t to uint! and rounding)
 	thrust::copy(
           thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
-          thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
+          thrust::make_transform_iterator(tmp_real.begin() + n_part, arg::_1 + real_t(0.5)),
           n.begin()
         ); 
       }
         
       // detecting possible overflows of n type
-      thrust_size_t ix = thrust::max_element(n.begin(), n.end()) - n.begin();
+      thrust_size_t ix = thrust::max_element(n.begin(), n.begin() + n_part) - n.begin();
       assert(n[ix] < (typename impl::n_t)(-1) / 10000);
 
       // converting rd back from logarithms to rd3
       thrust::transform(
         lnrd.begin(),
-        lnrd.end(),
+        lnrd.begin() + n_part,
         rd3.begin(),
         detail::exp3x<real_t>()
       );

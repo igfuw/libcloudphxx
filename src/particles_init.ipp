@@ -47,6 +47,9 @@ namespace libcloudphxx
       // initialising housekeeping data of the size ncell
       pimpl->init_hskpng_ncell(); 
 
+      // initialising housekeeping data of the size of the max number of SDs
+      pimpl->init_hskpng_npart(); 
+
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       // done before init_xyz, cause it uses dv initialized here
       pimpl->init_grid();

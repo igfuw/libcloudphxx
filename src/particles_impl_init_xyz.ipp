@@ -63,6 +63,7 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
+      // initialize number of SDs to_init
       if(n_dims > 0)
       {
         namespace arg = thrust::placeholders;
@@ -77,12 +78,14 @@ namespace libcloudphxx
         thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
 
       n_part = thrust::reduce(count_num.begin(), count_num.end());
-      init_hskpng_npart();
+
+      // mark n_part SDs to be initialized
+      thrust::fill(sd_stat.begin(), sd_stat.begin()+n_part, detail::to_init);
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
-      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
+      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of to_init SDs in cells up to (i-1)
 
-      // fill sorted ijk with cell number of each SD
+      // fill sorted ijk with cell number of each SD (only to_init ones)
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(
           count_num.begin(), ptr.begin(), thrust::make_counting_iterator(0)
@@ -95,25 +98,26 @@ namespace libcloudphxx
 
       // get i, j, k from sorted_ijk 
       // i, j, k will be temporarily used
+      // only for to_init ones
       switch(n_dims)
       {
         case(0):
           break;
         case(1):
           // z
-          thrust::copy(sorted_ijk.begin(), sorted_ijk.end(), k.begin());
+          thrust::copy(sorted_ijk.begin(), sorted_ijk.begin()+n_part, k.begin());
           break;
         case 2:
           namespace arg = thrust::placeholders;
           // x
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            sorted_ijk.begin(), sorted_ijk.begin() + n_part, // input - first arg
             i.begin(),        // output
             arg::_1 / opts_init.nz   // assuming z varies first
           );
           // z
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            sorted_ijk.begin(), sorted_ijk.begin() + n_part, // input - first arg
             k.begin(),        // output
             arg::_1 % opts_init.nz   // assuming z varies first
           );
@@ -122,19 +126,19 @@ namespace libcloudphxx
           namespace arg = thrust::placeholders;
           // y
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            sorted_ijk.begin(), sorted_ijk.begin() + n_part, // input - first arg
             j.begin(),        // output
             arg::_1 / (opts_init.nz * opts_init.nx)   // assuming z and x vary first
           );
           // x
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            sorted_ijk.begin(), sorted_ijk.begin() + n_part, // input - first arg
             i.begin(),        // output
             arg::_1 % (opts_init.nz * opts_init.nx) / (opts_init.nz)   // assuming z varies first
           );
           // z
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            sorted_ijk.begin(), sorted_ijk.begin() + n_part, // input - first arg
             k.begin(),        // output
             arg::_1 % (opts_init.nz * opts_init.nx) % (opts_init.nz)   // assuming z varies first
           );
@@ -146,9 +150,6 @@ namespace libcloudphxx
       {
         if (n[ix] == 0) continue;
 
-        // memory allocation
-        v[ix]->resize(n_part);
-
         // tossing random numbers [0,1] 
         rand_u01(n_part);
 
@@ -157,7 +158,7 @@ namespace libcloudphxx
           namespace arg = thrust::placeholders;
 	  thrust::transform(
 	    u01.begin(), 
-	    u01.end(),
+	    u01.begin() + n_part,
             ii[ix]->begin(), 
 	    v[ix]->begin(), 
             detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
