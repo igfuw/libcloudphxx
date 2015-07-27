@@ -58,11 +58,11 @@ namespace libcloudphxx
       };
 
       // comparison
-      struct active_first : std:binary_function<sd_stat_t, sd_stat_t, bool>
+      struct active_first : std::binary_function<sd_stat_t, sd_stat_t, bool>
       {
         BOOST_GPU_ENABLED
-        bool operator()(const sd_stat_t &a, const sd_stat_t &b) { return is_active(a);}         
-      }
+        bool operator()(const sd_stat_t &a, const sd_stat_t &b) { return a == active;}         
+      };
     };
   };
 };

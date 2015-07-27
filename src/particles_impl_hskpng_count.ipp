@@ -22,7 +22,7 @@ namespace libcloudphxx
         thrust_device::vector<thrust_size_t>::iterator,
         thrust_device::vector<n_t>::iterator
       > n = thrust::reduce_by_key(
-        sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
+        sorted_ijk.begin(), sorted_ijk.begin() + n_part,   // input - keys
         thrust::make_constant_iterator(n_t(1)), // input - values
         count_ijk.begin(),                      // output - keys
         count_num.begin()                       // output - values
