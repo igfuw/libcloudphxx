@@ -24,16 +24,6 @@ namespace libcloudphxx
           return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
         }
       };
-
-      template <typename n_t, typename real_t>
-      struct flag
-      {
-        BOOST_GPU_ENABLED
-        n_t operator()(const real_t &)
-        {
-          return 0;
-        }
-      };
     };
 
     template <typename real_t, backend_t device>
@@ -47,19 +37,23 @@ namespace libcloudphxx
         case 2:
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
-          thrust::transform(
+          thrust::transform_if(
             x.begin(), x.end(),
+            sd_stat.begin(),
             x.begin(),
-            detail::periodic<real_t>(opts_init.x0, opts_init.x1)
+            detail::periodic<real_t>(opts_init.x0, opts_init.x1),
+            detail::active()
           );
 
           // hardcoded periodic boundary in y! (TODO - as an option)
           if (n_dims == 3)
           {
-	    thrust::transform(
+	    thrust::transform_if(
 	      y.begin(), y.end(),
+              sd_stat.begin(),
 	      y.begin(),
-	      detail::periodic<real_t>(opts_init.y0, opts_init.y1)
+	      detail::periodic<real_t>(opts_init.y0, opts_init.y1),
+              detail::active()
 	    );
           }
 
@@ -69,8 +63,8 @@ namespace libcloudphxx
             namespace arg = thrust::placeholders;
 	    thrust::transform_if(
 	      z.begin(), z.end(),          // input - arg
-	      n.begin(),                   // output
-              detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+	      sd_stat.begin(),             // output
+              detail::flag<real_t>(),      // operation (mark it as inactive, TODO: recycle it?)
 	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
 	    );
           }
@@ -83,8 +77,8 @@ namespace libcloudphxx
             namespace arg = thrust::placeholders;
 	    thrust::transform_if(   
 	      z.begin(), z.end(),          // input 
-	      n.begin(),                   // output
-	      detail::flag<n_t, real_t>(), // operation (zero-out)
+	      sd_stat.begin(),             // output
+	      detail::deactivate<real_t>(),      // operation (make it inactive)
 	      arg::_1 < opts_init.z0       // condition
 	    );
           }

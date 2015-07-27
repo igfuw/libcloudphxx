@@ -33,6 +33,7 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
+#include "particles_impl_activate.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
