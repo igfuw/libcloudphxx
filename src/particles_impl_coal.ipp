@@ -63,7 +63,7 @@ namespace libcloudphxx
 
       struct collider
       {
-        using sd_stat_t = detail::sd_stat_t;
+        typedef detail::sd_stat_t sd_stat_t;
         // read-only parameters
         typedef thrust::tuple<
           real_t,                       // random number (u01)
