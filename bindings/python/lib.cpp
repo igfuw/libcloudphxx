@@ -49,24 +49,41 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
     bp::scope().attr("rho_w") = (real_t) (cmn::moist_air::rho_w<real_t>() * si::cubic_metres / si::kilograms);
-
+    //molar mass of trace gases
     bp::scope().attr("M_SO2")   = (real_t) (cmn::molar_mass::M_SO2<real_t>()   * si::moles / si::kilograms);
     bp::scope().attr("M_H2O2")  = (real_t) (cmn::molar_mass::M_H2O2<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_O3")    = (real_t) (cmn::molar_mass::M_O3<real_t>()    * si::moles / si::kilograms);
-    bp::scope().attr("M_SO2_H2O")   = (real_t) (cmn::molar_mass::M_SO2_H2O<real_t>()   * si::moles / si::kilograms);
-    bp::scope().attr("M_O3_H2O")    = (real_t) (cmn::molar_mass::M_O3_H2O<real_t>()    * si::moles / si::kilograms);
-    bp::scope().attr("M_H2O2_H2O")  = (real_t) (cmn::molar_mass::M_H2O2_H2O<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_NH3")   = (real_t) (cmn::molar_mass::M_NH3<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_HNO3")  = (real_t) (cmn::molar_mass::M_HNO3<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_CO2")   = (real_t) (cmn::molar_mass::M_CO2<real_t>()    * si::moles / si::kilograms);
+    //H+ and OH-
     bp::scope().attr("M_H")     = (real_t) (cmn::molar_mass::M_H<real_t>()     * si::moles / si::kilograms);
     bp::scope().attr("M_OH")    = (real_t) (cmn::molar_mass::M_OH<real_t>()    * si::moles / si::kilograms);
+    //SO2 * H20
+    bp::scope().attr("M_SO2_H2O")   = (real_t) (cmn::molar_mass::M_SO2_H2O<real_t>()   * si::moles / si::kilograms);
     bp::scope().attr("M_HSO3")  = (real_t) (cmn::molar_mass::M_HSO3<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_SO3")   = (real_t) (cmn::molar_mass::M_SO3<real_t>()   * si::moles / si::kilograms);
+    //HSO4
     bp::scope().attr("M_H2SO4") = (real_t) (cmn::molar_mass::M_H2SO4<real_t>() * si::moles / si::kilograms);
     bp::scope().attr("M_HSO4")  = (real_t) (cmn::molar_mass::M_HSO4<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_SO4")   = (real_t) (cmn::molar_mass::M_SO4<real_t>()   * si::moles / si::kilograms);
-
+    //CO2 * H20
+    bp::scope().attr("M_CO2_H2O") = (real_t) (cmn::molar_mass::M_CO2_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_HCO3")    = (real_t) (cmn::molar_mass::M_HCO3<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_CO3")     = (real_t) (cmn::molar_mass::M_CO3<real_t>()   * si::moles / si::kilograms);
+    //NH3 * H20
+    bp::scope().attr("M_NH3_H2O") = (real_t) (cmn::molar_mass::M_NH3_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_NH4")     = (real_t) (cmn::molar_mass::M_NH4<real_t>()  * si::moles / si::kilograms);
+    //HNO3(aq)
+    bp::scope().attr("M_NO3")     = (real_t) (cmn::molar_mass::M_NO3<real_t>()   * si::moles / si::kilograms);
+ 
+    //Henry const
     bp::scope().attr("H_SO2")  = (real_t) (cmn::henry::H_SO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_H2O2") = (real_t) (cmn::henry::H_H2O2<real_t>() * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_O3")   = (real_t) (cmn::henry::H_O3<real_t>()   * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_HNO3") = (real_t) (cmn::henry::H_HNO3<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_NH3")  = (real_t) (cmn::henry::H_NH3<real_t>() * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_CO2")  = (real_t) (cmn::henry::H_CO2<real_t>()   * si::cubic_metres * si::pascals / si::moles);
 
     bp::scope().attr("K_H2O")  = (real_t) (cmn::dissoc::K_H2O<real_t>()  / si::moles / si::moles * si::cubic_metres * si::cubic_metres);
     bp::scope().attr("K_SO2")  = (real_t) (cmn::dissoc::K_SO2<real_t>()  / si::moles * si::cubic_metres);
@@ -150,6 +167,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("SO2",  lgr::SO2)
       .value("O3",   lgr::O3)
       .value("H2O2", lgr::H2O2)
+      .value("CO2",  lgr::CO2)
+      .value("NH3",  lgr::NH3)
+      .value("HNO3", lgr::HNO3)
       .value("HSO3", lgr::HSO3)
       .value("SO3",  lgr::SO3)
       .value("S_VI", lgr::S_VI)

@@ -392,12 +392,12 @@ namespace libcloudphxx
         // 1/4: equilibrium stuff: gas absortption
         // TODO: open/close system logic
         // TODO: K=K(T)
-        assert(SO2 == 0 && H2O2 == 1 && O3 == 2);
+        assert(SO2 == 0 && H2O2 == 1 && O3 == 2 && HNO3 == 3 && NH4 == 4 && CO2 == 5);
         static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
-	  H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>()
+	  H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>(), H_HNO3<real_t>(), H_NH3<real_t>(), H_CO2<real_t>()
         };
         static const quantity<common::mass_over_amount, real_t> M_[chem_gas_n] = {
-          M_SO2_H2O<real_t>(), M_H2O2_H2O<real_t>(), M_O3_H2O<real_t>()
+          M_SO2_H2O<real_t>(), M_H2O2<real_t>(), M_O3<real_t>(), M_HNO3<real_t>(), M_NH3_H2O<real_t>(), M_CO2_H2O<real_t>()
         };
         for (int i = 0; i < chem_gas_n; ++i)
         {
@@ -453,12 +453,12 @@ namespace libcloudphxx
       if (chem_rct == true){  //TODO move to a separate function and then move the logic to opts particle_step 
         // 3/4: non-equilibrium stuff
         {
-          chem_stepper.do_step(
-            detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
-            chem_noneq, 
-            real_t(0),
-            dt
-          );
+         // chem_stepper.do_step(
+         //   detail::chem_rhs<real_t>(V, chem_equil), // TODO: make it an impl member field
+         //   chem_noneq, 
+         //   real_t(0),
+         //   dt
+         // );
         }
       }
 
