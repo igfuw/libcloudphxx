@@ -89,6 +89,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("K_SO2")  = (real_t) (cmn::dissoc::K_SO2<real_t>()  / si::moles * si::cubic_metres);
     bp::scope().attr("K_HSO3") = (real_t) (cmn::dissoc::K_HSO3<real_t>() / si::moles * si::cubic_metres);
     bp::scope().attr("K_HSO4") = (real_t) (cmn::dissoc::K_HSO4<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_CO2")  = (real_t) (cmn::dissoc::K_CO2<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HCO3") = (real_t) (cmn::dissoc::K_HCO3<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_NH3")  = (real_t) (cmn::dissoc::K_NH3<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HNO3") = (real_t) (cmn::dissoc::K_HNO3<real_t>() / si::moles * si::cubic_metres);
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
@@ -172,6 +176,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("HNO3", lgr::HNO3)
       .value("HSO3", lgr::HSO3)
       .value("SO3",  lgr::SO3)
+      .value("HCO3", lgr::HCO3)
+      .value("CO3",  lgr::CO3)
+      .value("NH4",  lgr::NH4)
+      .value("NO3",  lgr::NO3)
       .value("S_VI", lgr::S_VI)
       .value("HSO4", lgr::HSO4)
       .value("SO4",  lgr::SO4);

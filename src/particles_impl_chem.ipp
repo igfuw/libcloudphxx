@@ -117,6 +117,10 @@ namespace libcloudphxx
             K_HSO4<real_t>()
             * m_S_VI / M_H2SO4<real_t>()
             / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+            // dissociation of CO2 * H2O to HCO3
+            // dissociation of HCO3 to CO3
+            // dissociation of NH3 * H2O to NH4
+            // dissociation of HNO3 to NO3
          )) / si::kilograms;
         }
       };
