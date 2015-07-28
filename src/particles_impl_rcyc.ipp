@@ -31,6 +31,9 @@ namespace libcloudphxx
       }
     };
 
+
+//TODO: rcyc doesn't work well with sd_stat now!!!!!
+
     template <typename real_t, backend_t device>
     thrust_size_t particles_t<real_t, device>::impl::rcyc()
     {   
@@ -38,7 +41,7 @@ namespace libcloudphxx
       thrust_size_t n_flagged;
       {
 	namespace arg = thrust::placeholders;
-        n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
+        n_flagged = thrust::count_if(sd_stat.begin(), sd_stat.end(), arg::_1 == detail::to_rcyc);
       }
       assert(n_flagged <= n_part / 2);
 
@@ -65,10 +68,10 @@ namespace libcloudphxx
 	  sorted_id.begin()
 	);
        
-        //see if there are any SDs to split, if not - remove SDs with n=0
+        //see if there are any SDs to split, if not - turn to_rcyc SDs into inactive 
         if(tmp.back()==1)
         {
-          hskpng_remove_n0();
+          to_rcyc_into_inactive();
           return n_flagged;
         }
       }

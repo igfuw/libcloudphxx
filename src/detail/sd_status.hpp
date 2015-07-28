@@ -36,6 +36,15 @@ namespace libcloudphxx
         }
       };
 
+      struct is_to_rcyc : std::unary_function<sd_stat_t, bool>
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const sd_stat_t &stat)
+        {
+          return (stat == to_rcyc);
+        }
+      };
+
       // manipualtors
       template <typename real_t>
       struct deactivate
@@ -44,6 +53,16 @@ namespace libcloudphxx
         sd_stat_t operator()(const real_t &)
         {
           return inactive;
+        }
+      };
+
+      template <typename real_t>
+      struct recycle
+      {   
+        BOOST_GPU_ENABLED
+        sd_stat_t operator()(const real_t &)
+        {
+          return to_rcyc;
         }
       };
 

@@ -328,8 +328,9 @@ namespace libcloudphxx
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
      
-      // turn to_init SDs into active SDs
-      void activate_SDs();
+      // SD status manipulation
+      void to_init_into_active();
+      void to_rcyc_into_inactive();
     };
 
     // ctor

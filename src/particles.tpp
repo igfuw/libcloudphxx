@@ -33,7 +33,6 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
-#include "particles_impl_activate.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
@@ -46,6 +45,8 @@
 #include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
+
+#include "particles_impl_stat_changes.ipp"
 
 #include "particles_impl_sync.ipp"
 

@@ -80,7 +80,7 @@ namespace libcloudphxx
       pimpl->init_kernel();
 
       // mark all initialized SDs as active
-      pimpl->activate_SDs();
+      pimpl->to_init_into_active();
     }
   };
 };

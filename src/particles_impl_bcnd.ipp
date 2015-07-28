@@ -64,7 +64,7 @@ namespace libcloudphxx
 	    thrust::transform_if(
 	      z.begin(), z.end(),          // input - arg
 	      sd_stat.begin(),             // output
-              detail::deactivate<real_t>(),      // operation (mark it as inactive, TODO: recycle it?)
+              detail::deactivate<real_t>(),      // operation (mark it as inactive, TODO: mark as to_rcyc after rcyc is fixed to work with sd_stat)
 	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
 	    );
           }
