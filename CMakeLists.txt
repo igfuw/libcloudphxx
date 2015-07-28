@@ -63,10 +63,11 @@ if (CUDA_FOUND)
   file(WRITE "${tmpdir}/test.cu" "
     #include <iostream>
 
-    int main() {
+    int main() 
+    {
       cudaDeviceProp prop; 
       cudaError_t err = cudaGetDeviceProperties(&prop, 0); 
-      if (err != cudaSuccess)
+      if (err == cudaSuccess)
         std::cout << prop.major << prop.minor;
       else
         std::cout << \"?\";
