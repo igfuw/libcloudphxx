@@ -5,6 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <thrust/count.h>
 
 namespace libcloudphxx
 {
@@ -29,14 +30,18 @@ namespace libcloudphxx
         int rw2_a, int rw2_b,
         int rd3_a, int rd3_b,
         int  vt_a, int  vt_b,
+        int sd_stat_a,
         typename tup_t
       >
       BOOST_GPU_ENABLED
       void collide(tup_t tpl, const n_t &col_no)
       {
+        // if multiplicity would be reduced to 0, mark as inactive
+        if(thrust::get<n_a>(tpl) == col_no * thrust::get<n_b>(tpl))
+          thrust::get<sd_stat_a>(tpl) = detail::inactive;
 	// multiplicity change (eq. 12 in Shima et al. 2009)
-	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
-
+        else thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+ 
 	// wet radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rw2_b>(tpl) = pow(
 	  col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
@@ -58,6 +63,7 @@ namespace libcloudphxx
 
       struct collider
       {
+        using sd_stat_t = detail::sd_stat_t;
         // read-only parameters
         typedef thrust::tuple<
           real_t,                       // random number (u01)
@@ -73,9 +79,10 @@ namespace libcloudphxx
           n_t,           n_t,           // n   (multiplicity)
           real_t,        real_t,        // rw2 (wet radius squared)
           real_t,        real_t,        // vt  (terminal velocity)
-          real_t,        real_t         // rd3 (dry radius cubed)
+          real_t,        real_t,        // rd3 (dry radius cubed)
+          sd_stat_t,     sd_stat_t      // sd_stat
         > tpl_rw_t;
-        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix, sd_stat_a_ix, sd_stat_b_ix };
 
         const real_t dt;
         const kernel_base<real_t, n_t> *p_kernel;
@@ -126,7 +133,7 @@ namespace libcloudphxx
           using std::min;
 #endif
           // performing the coalescence event if lucky
-          // note: >= causes equal-multiplicity collisions to result in flagging for recycling
+          // note: >= causes equal-multiplicity collisions to result in flagging as inactive
           if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
           {
             if(thrust::get<n_b_ix>(tpl_rw) > 0) 
@@ -135,7 +142,8 @@ namespace libcloudphxx
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
               rd3_a_ix, rd3_b_ix,
-               vt_a_ix,  vt_b_ix
+               vt_a_ix,  vt_b_ix,
+          sd_stat_a_ix
             >(thrust::get<1>(tpl_ro_rw), col_no);
 //              collide<real_t, n_t, n_a_ix, n_b_ix>(thrust::get<1>(tpl_ro_rw));
           }
@@ -147,7 +155,8 @@ namespace libcloudphxx
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,
               rd3_b_ix, rd3_a_ix,
-               vt_b_ix,  vt_a_ix
+               vt_b_ix,  vt_a_ix,
+          sd_stat_b_ix
             >(thrust::get<1>(tpl_ro_rw), col_no);
           }
         }
@@ -229,6 +238,11 @@ namespace libcloudphxx
       > pi_n_t;
 
       typedef thrust::permutation_iterator<
+        typename thrust_device::vector<detail::sd_stat_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_stat_t;
+
+      typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::iterator,
         thrust::transform_iterator<
           dividebytwo,
@@ -252,7 +266,8 @@ namespace libcloudphxx
           pi_n_t,    pi_n_t,    // n_a,   n_b
           pi_real_t, pi_real_t, // rw2_a, rw2_b
           pi_real_t, pi_real_t, // vt_a,  vt_b
-          pi_real_t, pi_real_t  // rd3_a, rd3_b 
+          pi_real_t, pi_real_t, // rd3_a, rd3_b 
+          pi_stat_t, pi_stat_t  // stat_a, stat_b
         >
       > zip_rw_t;
 
@@ -286,7 +301,10 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
           // dry radius cubed
           thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
-          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+          // SD status
+          thrust::make_permutation_iterator(sd_stat.begin(), sorted_id.begin()), 
+          thrust::make_permutation_iterator(sd_stat.begin(), sorted_id.begin())+1
         )
       );
 
@@ -295,6 +313,12 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel)
       );
+
+      // update n_part
+      n_part = thrust::count(
+        thrust::make_permutation_iterator(sd_stat.begin(), sorted_id.begin()), 
+        thrust::make_permutation_iterator(sd_stat.begin(), sorted_id.begin()+n_part),
+        detail::active);
     }
   };  
 };
