@@ -53,6 +53,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("M_SO2")   = (real_t) (cmn::molar_mass::M_SO2<real_t>()   * si::moles / si::kilograms);
     bp::scope().attr("M_H2O2")  = (real_t) (cmn::molar_mass::M_H2O2<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_O3")    = (real_t) (cmn::molar_mass::M_O3<real_t>()    * si::moles / si::kilograms);
+    bp::scope().attr("M_SO2_H2O")   = (real_t) (cmn::molar_mass::M_SO2_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_O3_H2O")    = (real_t) (cmn::molar_mass::M_O3_H2O<real_t>()    * si::moles / si::kilograms);
+    bp::scope().attr("M_H2O2_H2O")  = (real_t) (cmn::molar_mass::M_H2O2_H2O<real_t>()  * si::moles / si::kilograms);
     bp::scope().attr("M_H")     = (real_t) (cmn::molar_mass::M_H<real_t>()     * si::moles / si::kilograms);
     bp::scope().attr("M_OH")    = (real_t) (cmn::molar_mass::M_OH<real_t>()    * si::moles / si::kilograms);
     bp::scope().attr("M_HSO3")  = (real_t) (cmn::molar_mass::M_HSO3<real_t>()  * si::moles / si::kilograms);
@@ -64,6 +67,11 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("H_SO2")  = (real_t) (cmn::henry::H_SO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_H2O2") = (real_t) (cmn::henry::H_H2O2<real_t>() * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_O3")   = (real_t) (cmn::henry::H_O3<real_t>()   * si::cubic_metres * si::pascals / si::moles);
+
+    bp::scope().attr("K_H2O")  = (real_t) (cmn::dissoc::K_H2O<real_t>()  / si::moles / si::moles * si::cubic_metres * si::cubic_metres);
+    bp::scope().attr("K_SO2")  = (real_t) (cmn::dissoc::K_SO2<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HSO3") = (real_t) (cmn::dissoc::K_HSO3<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HSO4") = (real_t) (cmn::dissoc::K_HSO4<real_t>() / si::moles * si::cubic_metres);
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);

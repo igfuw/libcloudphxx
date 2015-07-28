@@ -93,29 +93,31 @@ namespace libcloudphxx
           const quantity<si::mass, real_t> m_H = arg * si::kilograms;
 
           return (-m_H + M_H<real_t>() * (
-            // HSO3 to SO3 dissoctation 
-            real_t(2) * // "2-" ion //TODO is it correct if we already start from HSO3- ion?
-            K_SO2<real_t>() * K_HSO3<real_t>() 
-            / (m_H / M_H<real_t>() / V + K_SO2<real_t>())
-            / (m_H / M_H<real_t>() / V + K_HSO3<real_t>())
-            / M_SO2<real_t>() * m_SO2 
-            +
-            // H2O*SO2 to HSO3 dissociation
-            K_SO2<real_t>() / (m_H / M_H<real_t>() / V + K_SO2<real_t>()) / M_SO2<real_t>() * m_SO2
-            +
             // dissociation of pure water 
             K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
+/*            +
+            // H2O*SO2 to HSO3 dissociation
+            K_SO2<real_t>() / (m_H / M_H<real_t>() / V) / M_SO2_H2O<real_t>() * m_SO2
             +
+            // HSO3 to SO3 dissoctation 
+            real_t(2) * // "2-" ion 
+            K_HSO3<real_t>() * K_SO2<real_t>()
+            / (m_H / M_H<real_t>() / V)
+            / (m_H / M_H<real_t>() / V)
+            / M_SO2_H2O<real_t>() * m_SO2 
+*/            +
             // dissociation of S_VI to HSO4
-            m_H / M_H<real_t>() / V / (real_t(2) * m_H / M_H<real_t>() / V + K_HSO4<real_t>())
-            * m_S_VI / M_H2SO4<real_t>() 
+            m_H / M_H<real_t>() 
+            * m_S_VI / M_H2SO4<real_t>()
+            / V
+            / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
             +
             // dissociation of HSO4 to SO4
             real_t(2) * // "2-" ion
-            K_HSO4<real_t>() / (m_H / M_H<real_t>() / V + real_t(2) * K_HSO4<real_t>())
+            K_HSO4<real_t>()
             * m_S_VI / M_H2SO4<real_t>()
-
-          )) / si::kilograms;
+            / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+         )) / si::kilograms;
         }
       };
 
@@ -129,10 +131,10 @@ namespace libcloudphxx
           using namespace common::molar_mass;
 
           const quantity<si::mass, real_t>
-            m_SO2  = thrust::get<0>(tpl) * si::kilograms,
-            m_S_VI = thrust::get<1>(tpl) * si::kilograms; 
+            m_SO2   = thrust::get<0>(tpl) * si::kilograms,
+            m_S_VI  = thrust::get<1>(tpl) * si::kilograms; 
           const quantity<si::volume, real_t> 
-            V      = thrust::get<2>(tpl) * si::cubic_metres;
+            V       = thrust::get<2>(tpl) * si::cubic_metres;
           
           // left side for search in toms748
           real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
@@ -142,7 +144,7 @@ namespace libcloudphxx
             m_H_pure, // min -> (pure water)
 	    real_t(1e-10) // max -> TODO
 	  ); 
-          //std::cerr << "  " << m_H_pure << " ... " << m_H << " ... " << "TODO" << std::endl;
+          // std::cerr << "  " << m_H_pure << " ... " << m_H << " ... " << "TODO" << real_t(1e-10) << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }
@@ -153,15 +155,14 @@ namespace libcloudphxx
       { // basing on the mass of H+ ions from chem_electroneutral
         // it recalculatess the mass of all other chemical species after dissociation
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::volume, real_t> 
             V      = thrust::get<0>(tpl) * si::cubic_metres;
           const quantity<si::mass, real_t>
             m_H    = thrust::get<1>(tpl) * si::kilograms,
             m_SO2  = thrust::get<2>(tpl) * si::kilograms,
-            m_HSO3 = thrust::get<3>(tpl) * si::kilograms,
-            m_S_VI = thrust::get<4>(tpl) * si::kilograms;
+            m_S_VI = thrust::get<3>(tpl) * si::kilograms;
 
           switch (chem_iter)
           {
@@ -176,39 +177,28 @@ namespace libcloudphxx
               ) / si::kilograms; 
             case HSO3:
               return (
-                K_SO2<real_t>() / (m_H / M_H<real_t>() / V + K_SO2<real_t>())              
-                * m_SO2 / M_SO2<real_t>() 
-                * M_HSO3<real_t>()
+                K_SO2<real_t>() * M_HSO3<real_t>()
+                / (m_H / M_H<real_t>() / V)              
+                * m_SO2 / M_SO2_H2O<real_t>() 
               ) / si::kilograms;
             case SO3:
               return (
-                K_HSO3<real_t>() * K_SO2<real_t>() 
-                / (m_H / M_H<real_t>() / V + K_SO2<real_t>())
-                / (m_H / M_H<real_t>() / V + K_HSO3<real_t>())
-                * m_SO2 / M_SO2<real_t>()
-                * M_SO3<real_t>()
-              ) / si::kilograms;
-            case SO2:
-                //TODO - assert/check if SO2 calculated from HSO3 dissoc gives the same values
-                // calculate SO2 basing on SO2 dissociation
-              return(
-                M_SO2<real_t>() / K_SO2<real_t>() / V 
-                * m_H / M_H<real_t>()
-                * m_HSO3 / M_HSO3<real_t>() 
+                M_SO3<real_t>() * K_HSO3<real_t>() * K_SO2<real_t>() 
+                / (m_H / M_H<real_t>() / V )
+                / (m_H / M_H<real_t>() / V )
+                * m_SO2 / M_SO2_H2O<real_t>()
               ) / si::kilograms;
             case HSO4:
               return (
-                M_HSO4<real_t>() / M_H<real_t>() / M_H2SO4<real_t>()
-                * m_H
-                * m_S_VI
-                / V 
-                / ( m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+                 M_HSO4<real_t>() * m_H / M_H<real_t>()
+                 * m_S_VI / M_H2SO4<real_t>()
+                 / V
+                 / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
               ) / si::kilograms;
             case SO4:
               return (
-                M_SO4<real_t>() / M_H2SO4<real_t>()
-                * K_HSO4<real_t>() 
-                * m_S_VI
+                M_SO4<real_t>() * K_HSO4<real_t>()
+                * m_S_VI / M_H2SO4<real_t>()
                 / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
               ) / si::kilograms;
             default:
@@ -251,7 +241,7 @@ namespace libcloudphxx
           // TODO: optimise - do not repeat or at least do note calculate it when not needed
           // helpers for O3 reactions
           quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> 
-            O3_SO2  = m_O3 / V * m_SO2  / M_SO2<real_t>()  * R_S_O3_k0<real_t>(),
+            O3_SO2  = m_O3 / V * m_SO2  / M_SO2_H2O<real_t>()* R_S_O3_k0<real_t>(),
             O3_HSO3 = m_O3 / V * m_HSO3 / M_HSO3<real_t>() * R_S_O3_k1<real_t>(),
             O3_SO3  = m_O3 / V * m_SO3  / M_SO3<real_t>()  * R_S_O3_k2<real_t>();
 
@@ -282,7 +272,7 @@ namespace libcloudphxx
               ) / si::kilograms * si::seconds;
             case SO2:
               return -(
-                M_SO2<real_t>() / M_O3<real_t>() * O3_SO2
+                M_SO2_H2O<real_t>() / M_O3<real_t>() * O3_SO2
               ) / si::kilograms * si::seconds;
             case HSO3:
               return -(
@@ -403,7 +393,7 @@ namespace libcloudphxx
 	  H_SO2<real_t>(), H_H2O2<real_t>(), H_O3<real_t>()
         };
         static const quantity<common::mass_over_amount, real_t> M_[chem_gas_n] = {
-          M_SO2<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
+          M_SO2_H2O<real_t>(), M_H2O2_H2O<real_t>(), M_O3_H2O<real_t>()
         };
         for (int i = 0; i < chem_gas_n; ++i)
         {
@@ -411,7 +401,7 @@ namespace libcloudphxx
 	    V.begin(), V.end(),                                        // input - 1st arg
 	    thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
 	    chem_bgn[i],                                               // output
-	    detail::chem_Henry_fun<real_t>(H_[i], M_[i], chem_gas[i])     // op
+	    detail::chem_Henry_fun<real_t>(H_[i], M_[i], chem_gas[i])  // op
 	  );
         }
       }
@@ -431,7 +421,7 @@ namespace libcloudphxx
 	    zip_it_t(thrust::make_tuple(chem_bgn[SO2], chem_bgn[S_VI], V.begin())),  // input - begin
 	    zip_it_t(thrust::make_tuple(chem_end[SO2], chem_end[S_VI], V.end())  ),  // input - end
 	    chem_bgn[H],                                                             // output
-	    detail::chem_electroneutral<real_t>()                                          // op
+	    detail::chem_electroneutral<real_t>()                                    // op
 	  );
         }
         { // diagnose the rest of ions basing on H+
@@ -440,19 +430,17 @@ namespace libcloudphxx
               typename thrust_device::vector<real_t>::iterator, // V
               typename thrust_device::vector<real_t>::iterator, // H 
               typename thrust_device::vector<real_t>::iterator, // SO2
-              typename thrust_device::vector<real_t>::iterator, // HSO3
               typename thrust_device::vector<real_t>::iterator  // S_VI
             >
           > zip_it_t;
 
           zip_it_t 
-            arg_begin(thrust::make_tuple(V.begin(), chem_bgn[H], chem_bgn[SO2], chem_bgn[HSO3], chem_bgn[S_VI])),
-            arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[HSO3], chem_end[S_VI]));
+            arg_begin(thrust::make_tuple(V.begin(), chem_bgn[H], chem_bgn[SO2], chem_bgn[S_VI])),
+            arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[S_VI]));
         
           thrust::transform(arg_begin, arg_end, chem_bgn[OH  ], detail::chem_dissoc_diag<real_t, OH  >());
-          thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_dissoc_diag<real_t, HSO3>()); 
-          thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_dissoc_diag<real_t, SO3 >());
-          thrust::transform(arg_begin, arg_end, chem_bgn[SO2 ], detail::chem_dissoc_diag<real_t, SO2 >()); // intentionally after HSO3 and SO3
+          //thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_dissoc_diag<real_t, HSO3>()); 
+          //thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_dissoc_diag<real_t, SO3 >());
           thrust::transform(arg_begin, arg_end, chem_bgn[HSO4], detail::chem_dissoc_diag<real_t, HSO4>());
           thrust::transform(arg_begin, arg_end, chem_bgn[SO4 ], detail::chem_dissoc_diag<real_t, SO4 >());
         }
