@@ -53,12 +53,53 @@ endif()
 set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
 
 if (CUDA_FOUND)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
+  # trying to figure out compute capability of the current 
+  message(STATUS "Trying to obtain CUDA capability of local hardware...")
+  set(pfx "compute cabability check")
+  execute_process(COMMAND "mktemp" "-d" RESULT_VARIABLE status OUTPUT_VARIABLE tmpdir)
+  if (NOT status EQUAL 0) 
+    message(FATAL_ERROR "${pfx}: mkdtemp failed")
+  endif()
+  file(WRITE "${tmpdir}/test.cu" "
+    #include <iostream>
+
+    int main() 
+    {
+      cudaDeviceProp prop; 
+      cudaError_t err = cudaGetDeviceProperties(&prop, 0); 
+      if (err == cudaSuccess)
+        std::cout << prop.major << prop.minor;
+      else
+        std::cout << \"?\";
+    }
+  ")
+  execute_process(COMMAND "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc" "test.cu" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
+  if (NOT status EQUAL 0) 
+    message(FATAL_ERROR "${pfx}: nvcc failed\n ${msg}")
+  endif()
+  execute_process(COMMAND "./a.out" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status OUTPUT_VARIABLE msg)
+  if (NOT status EQUAL 0)
+    message(FATAL_ERROR "${pfx}: test program failed")
+  endif()
+  message(STATUS "CUDA capability: ${msg}")
+  if (msg STREQUAL "?")
+    set (msg "20")
+    message(STATUS "CUDA capability check failed, assuming a default of ${msg}")
+  endif()
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg}")
+  if (msg EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
+    set(msg "20")
+  endif()
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${msg}")
+  unset(pfx)
+  unset(tmpdir)
+  unset(msg)
+  unset(status)
+
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=\"-Ofast -march=native -DNDEBUG\"")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG")
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage

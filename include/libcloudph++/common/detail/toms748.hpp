@@ -455,7 +455,7 @@ template <class F, class T>
 BOOST_GPU_ENABLED
 T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx)
 {
-  const uintmax_t n_iter = 20;
+  const uintmax_t n_iter = 44;
   uintmax_t max_iter = n_iter;
   T root = toms748_solve(f, ax, bx, fax, fbx, 
     common::detail::eps_tolerance<T>(sizeof(T) * 8 / 4),
