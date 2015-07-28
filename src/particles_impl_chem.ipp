@@ -117,13 +117,31 @@ namespace libcloudphxx
             K_HSO4<real_t>()
             * m_S_VI / M_H2SO4<real_t>()
             / (m_H / M_H<real_t>() / V + K_HSO4<real_t>())
+            +
             // dissociation of CO2 * H2O to HCO3
+            K_CO2<real_t>() * V 
+            * m_CO2 / M_CO2_H2O<real_t>()
+            / (m_H / M_H<real_t>())
+            +
             // dissociation of HCO3 to CO3
-            // dissociation of NH3 * H2O to NH4
+            real_t(2) * //"2-" ion
+            K_CO2<real_t>() * K_HCO3<real_t>()
+            * m_CO2 / M_CO2_H2O<real_t>()
+            / (m_H / M_H<real_t>() / V)
+            / (m_H / M_H<real_t>() / V)
+            +
             // dissociation of HNO3 to NO3
+            K_HNO3<real_t>() * V 
+            * m_HNO3 / M_HNO3<real_t>()
+            / (m_H / M_H<real_t>())
+            +
+            // dissociation of NH3 * H2O to NH4
+            K_NH3<real_t>() * m_NH3 / M_NH3_H2O<real_t>()
+            * m_H / M_H<real_t>() / V
+            / K_H2O<real_t>()
          )) / si::kilograms;
-        }
-      };
+        } 
+      };//add m_NH3, m_HNO3, m_CO2 to zip and parcel open/closed
 
       template <typename real_t>
       struct chem_electroneutral // TODO: does it have to be a struct/functor - perhaps ordinary function would suffice?
