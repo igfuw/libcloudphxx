@@ -97,7 +97,7 @@ namespace libcloudphxx
       real_t ret = pimpl->bcnd();
 
       // updating terminal velocities
-      if (opts.cond && (opts.sedi || opts.coal) ) 
+      if ( (opts.cond || opts.sedi || opts.adve) && (opts.sedi || opts.coal) ) 
         pimpl->hskpng_vterm_all();
 
       if (opts.sedi) 
