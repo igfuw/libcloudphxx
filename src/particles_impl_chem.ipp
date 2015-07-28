@@ -95,17 +95,17 @@ namespace libcloudphxx
           return (-m_H + M_H<real_t>() * (
             // dissociation of pure water 
             K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
-/*            +
+            +
             // H2O*SO2 to HSO3 dissociation
             K_SO2<real_t>() / (m_H / M_H<real_t>() / V) / M_SO2_H2O<real_t>() * m_SO2
             +
-            // HSO3 to SO3 dissoctation 
+            // HSO3 to SO3 dissociation 
             real_t(2) * // "2-" ion 
             K_HSO3<real_t>() * K_SO2<real_t>()
             / (m_H / M_H<real_t>() / V)
             / (m_H / M_H<real_t>() / V)
             / M_SO2_H2O<real_t>() * m_SO2 
-*/            +
+            +
             // dissociation of S_VI to HSO4
             m_H / M_H<real_t>() 
             * m_S_VI / M_H2SO4<real_t>()
@@ -139,10 +139,14 @@ namespace libcloudphxx
           // left side for search in toms748
           real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
+          uintmax_t max_iter = 44;
+
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(m_SO2, m_S_VI, V),
             m_H_pure, // min -> (pure water)
-	    real_t(1e-10) // max -> TODO
+	    real_t(1e-10), // max -> TODO
+            common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
+            max_iter
 	  ); 
           // std::cerr << "  " << m_H_pure << " ... " << m_H << " ... " << "TODO" << real_t(1e-10) << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
@@ -439,8 +443,8 @@ namespace libcloudphxx
             arg_end(  thrust::make_tuple(V.end(),   chem_end[H], chem_end[SO2], chem_end[S_VI]));
         
           thrust::transform(arg_begin, arg_end, chem_bgn[OH  ], detail::chem_dissoc_diag<real_t, OH  >());
-          //thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_dissoc_diag<real_t, HSO3>()); 
-          //thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_dissoc_diag<real_t, SO3 >());
+          thrust::transform(arg_begin, arg_end, chem_bgn[HSO3], detail::chem_dissoc_diag<real_t, HSO3>()); 
+          thrust::transform(arg_begin, arg_end, chem_bgn[SO3 ], detail::chem_dissoc_diag<real_t, SO3 >());
           thrust::transform(arg_begin, arg_end, chem_bgn[HSO4], detail::chem_dissoc_diag<real_t, HSO4>());
           thrust::transform(arg_begin, arg_end, chem_bgn[SO4 ], detail::chem_dissoc_diag<real_t, SO4 >());
         }
