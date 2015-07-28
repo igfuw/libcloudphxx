@@ -61,6 +61,7 @@ void setopts_micro(
   rt_params.async = vm["async"].as<bool>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
+  rt_params.cloudph_opts_init.n_sd_max = vm["sd_conc"].as<unsigned long long>() * nx * nz;
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
   boost::assign::ptr_map_insert<
