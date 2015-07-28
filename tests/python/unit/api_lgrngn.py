@@ -21,6 +21,7 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.dt = 1
 opts_init.sd_conc = 64
+opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
 
 print "nx =", opts_init.nx
