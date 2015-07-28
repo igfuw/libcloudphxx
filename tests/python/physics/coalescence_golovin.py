@@ -54,8 +54,8 @@ def golovin(v,t,n0,v0,b):
   return result 
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dt = 1
-opts_init.sstp_coal = 1
+opts_init.dt = simulation_time
+opts_init.sstp_coal = simulation_time
 
 rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
@@ -113,9 +113,8 @@ golovin_results = np.zeros(bins.size-1)
 init_number_of_particles = partno()
 
 #simulation loop
-for t in range(int((simulation_time)/opts_init.dt)):
-  prtcls.step_sync(opts, th, rv, rhod)
-  prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod)
+prtcls.step_async(opts)
     
 diag(results)
 calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero,b)
