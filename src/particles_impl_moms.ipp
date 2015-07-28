@@ -54,7 +54,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::copy(
-        n.begin(), n.end(),
+        n.begin(), n.begin()+n_part,
         n_filtered.begin()
       );
 
@@ -73,7 +73,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::transform(
-        n.begin(), n.end(),   // input - 1st arg
+        n.begin(), n.begin()+n_part,   // input - 1st arg
 	vec_bgn,              // input - 2nd arg
 	n_filtered.begin(),   // output
 	detail::range_filter<real_t>(min, max) 
@@ -94,7 +94,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::transform(
-        n.begin(), n.end(),                      // input - 1st arg
+        n.begin(), n.begin()+n_part,                      // input - 1st arg
         thrust::make_zip_iterator(               //
           thrust::make_tuple(vec1_bgn, vec2_bgn) // input - 2nd arg
         ),                                       // 
@@ -118,7 +118,7 @@ namespace libcloudphxx
       {
         namespace arg = thrust::placeholders;
         thrust::transform(
-          n.begin(), n.end(),                      // input - 1st arg
+          n.begin(), n.begin()+n_part,                      // input - 1st arg
           vec_bgn,                                 // input - 2nd arg
           n_filtered.begin(),                      // output
           arg::_1 * (arg::_2 >= 0)                 // op
@@ -154,6 +154,7 @@ namespace libcloudphxx
     )
     {
       assert(selected_before_counting);
+      hskpng_sort();  // make sure they are sorted
 
       // same as above
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
@@ -169,7 +170,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         // input - keys
-        sorted_ijk.begin(), sorted_ijk.end(),  
+        sorted_ijk.begin(), sorted_ijk.begin() + n_part,  
         // input - values
         thrust::make_transform_iterator(
 	  zip_it_t(thrust::make_tuple(
