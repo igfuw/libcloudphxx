@@ -123,6 +123,7 @@ namespace libcloudphxx
 	rhod.begin(), rhod.end(), // from
 	tmp_rhod.begin()          // to
       );
+      // first n_part SDs are to init
       thrust::copy(
 	ijk.begin(), ijk.begin() + n_part, // from
 	tmp_ijk.begin()         // to
