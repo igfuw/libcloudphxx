@@ -2,7 +2,6 @@
 
 import sys 
 sys.path.insert(0, "../../bindings/python/")
-sys.path.insert(0,'/home/pracownicy/pdziekan/praca/code/libcloudphxx/build/bindings/python/')
 
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
