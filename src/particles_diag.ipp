@@ -116,7 +116,7 @@ namespace libcloudphxx
             pimpl->ijk.begin()
           )
         )),                                   // input - 2nd arg 
-        sd_stat.begin(),                      // stencil
+        pimpl->sd_stat.begin(),                      // stencil
         RH_minus_Sc.begin(),                  // output
         detail::RH_minus_Sc<real_t>(),         // op
         detail::is_active()
@@ -146,7 +146,7 @@ namespace libcloudphxx
             pimpl->ijk.begin()
           )
         )),                                   // input - 2nd arg 
-        sd_stat.begin(),
+        pimpl->sd_stat.begin(),
         rc2.begin(),                          // output
         detail::rw3_cr<real_t>(),              // op
         detail::is_active()
