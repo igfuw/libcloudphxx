@@ -99,8 +99,11 @@ namespace libcloudphxx
       // intentionally using the same tmp vector as inside moms_cmp below
       thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
 
+      // filling with -1 so that SDs that are not active will not be selected
+      thrust::fill(RH_minus_Sc.begin(), RH_minus_Sc.end(), -1);
+
       // computing RH_minus_Sc for each particle
-      thrust::transform(
+      thrust::transform_if(
         pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
@@ -113,8 +116,10 @@ namespace libcloudphxx
             pimpl->ijk.begin()
           )
         )),                                   // input - 2nd arg 
+        sd_stat.begin(),                      // stencil
         RH_minus_Sc.begin(),                  // output
-        detail::RH_minus_Sc<real_t>()         // op
+        detail::RH_minus_Sc<real_t>(),         // op
+        detail::is_active()
       );
 
       // selecting those with RH - Sc >= 0
@@ -128,8 +133,11 @@ namespace libcloudphxx
       // intentionally using the same tmp vector as inside moms_cmp below
       thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
 
-      // computing rc2 for each particle
-      thrust::transform(
+      // filling with 44 m^2 so that SDs that are not active will not be selected
+      thrust::fill(rc2.begin(), rc2.end(), 44);
+
+      // computing rc2 for each active particle
+      thrust::transform_if(
         pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
@@ -138,8 +146,10 @@ namespace libcloudphxx
             pimpl->ijk.begin()
           )
         )),                                   // input - 2nd arg 
+        sd_stat.begin(),
         rc2.begin(),                          // output
-        detail::rw3_cr<real_t>()              // op
+        detail::rw3_cr<real_t>(),              // op
+        detail::is_active()
       );
 
       // selecting those with rw2 >= rc2
