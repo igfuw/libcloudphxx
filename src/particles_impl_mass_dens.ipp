@@ -34,8 +34,9 @@ namespace libcloudphxx
     )
     {
       assert(selected_before_counting); //TODO: force moms_all() before mass density estimation?
+      hskpng_sort();
 
-      // same as above
+      // vector of filtered n's
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       // number of SD in each cell casted to real_t
@@ -59,12 +60,13 @@ namespace libcloudphxx
 
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
 
+      // active SDs only
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         // input - keys
-        sorted_ijk.begin(), sorted_ijk.end(),
+        sorted_ijk.begin(), sorted_ijk.begin()+n_part,
         // input - values
         thrust::make_transform_iterator(
           zip_it_t(thrust::make_tuple(
