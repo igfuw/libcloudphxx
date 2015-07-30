@@ -29,7 +29,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::hskpng_ijk()
+    void particles_t<real_t, device>::impl::hskpng_ijk(bool update_i_j_k) // default is true
     {   
       // helper functor
       struct {
@@ -46,9 +46,12 @@ namespace libcloudphxx
         }
       } helper;
       
-      if (opts_init.nx != 0) helper(x, i, opts_init.dx);
-      if (opts_init.ny != 0) helper(y, j, opts_init.dy);
-      if (opts_init.nz != 0) helper(z, k, opts_init.dz);
+      if(update_i_j_k)
+      {
+        if (opts_init.nx != 0) helper(x, i, opts_init.dx);
+        if (opts_init.ny != 0) helper(y, j, opts_init.dy);
+        if (opts_init.nz != 0) helper(z, k, opts_init.dz);
+      }
 
       // raveling i, j & k into ijk
       switch (n_dims)
@@ -82,6 +85,7 @@ namespace libcloudphxx
             ijk.begin(), // in-place!
             arg::_1 + arg::_2
           );
+          // TODO: replace these two transforms with single one
           break;
         default:
           assert(false);

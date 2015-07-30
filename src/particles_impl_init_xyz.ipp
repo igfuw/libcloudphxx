@@ -94,7 +94,6 @@ namespace libcloudphxx
       );
 
       // get i, j, k from sorted_ijk 
-      // i, j, k will be temporarily used
       switch(n_dims)
       {
         case(0):
@@ -142,6 +141,7 @@ namespace libcloudphxx
         default:
           assert(false);
       }
+
       for (int ix = 0; ix < 3; ++ix)
       {
         if (n[ix] == 0) continue;
