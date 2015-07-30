@@ -21,7 +21,10 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
     )
     {
-      assert(!pimpl->should_now_run_async);
+      if (!pimpl->init_called)
+        throw std::runtime_error("please call init() before calling step_sync()");
+      if (pimpl->should_now_run_async)
+        throw std::runtime_error("please call step_async() before calling step_sync() again");
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
@@ -74,7 +77,8 @@ namespace libcloudphxx
     real_t particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {
-      assert(pimpl->should_now_run_async);
+      if (!pimpl->should_now_run_async)
+        throw std::runtime_error("please call step_sync() before calling step_async() again");
 
       //sanity checks
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
