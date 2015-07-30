@@ -63,14 +63,14 @@ namespace libcloudphxx
 	    );
           }
 
-          // hardcoded "stopping" boundary at the top of the domain 
+          // hardcoded "open" boundary at the top of the domain 
           // (just for numerical-error-sourced out-of-domain particles)
           {
             namespace arg = thrust::placeholders;
 	    thrust::transform_if(
 	      z.begin(), z.end(),          // input - arg
-	      z.begin(),                   // output
-              0.* arg::_1 + opts_init.z1 - (opts_init.dz * 1e-6), // operation, temp crude workaround
+	      n.begin(),                   // output
+	      detail::flag<n_t, real_t>(), // operation (zero-out)
 	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
 	    );
           }
