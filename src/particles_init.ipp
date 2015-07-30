@@ -59,7 +59,7 @@ namespace libcloudphxx
 
       // initialising more housekeeping data (incl. ijk)
       pimpl->hskpng_Tpr(); 
-      pimpl->hskpng_ijk(); 
+      pimpl->hskpng_ijk(false);  // false - only get ijk, i, j and k were initialized in xyz
 
       // initialising dry radii (needs positions, ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
