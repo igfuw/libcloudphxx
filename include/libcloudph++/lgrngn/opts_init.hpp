@@ -46,6 +46,15 @@ namespace libcloudphxx
       // should fit particles from sources
       unsigned long long n_sd_max; 
 
+      // source parameters
+      // source distro
+      dry_distros_t src_dry_distros;
+      // number of SDs created per cell per unit time
+      real_t src_sd_conc;
+      // height up to which aerosol will be created
+      // will be rounded to cell number - cells are supposed to be uniform
+      real_t src_z1;
+
       // coalescence Kernel type
       kernel_t kernel;
 //</listing>
@@ -54,7 +63,8 @@ namespace libcloudphxx
       std::vector<real_t> kernel_parameters;
 
       // chem
-      bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+      bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+           src_switch;
       int sstp_chem;
       real_t chem_rho;
 
@@ -74,10 +84,13 @@ namespace libcloudphxx
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
+        src_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
-        n_sd_max(0)
+        n_sd_max(0),
+        src_sd_conc(0),
+        src_z1(0)
       {}
     };
   }
