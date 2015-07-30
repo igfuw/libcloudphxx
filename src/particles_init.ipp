@@ -21,6 +21,10 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_z  // might be NULL
     )
     {
+      if (pimpl->init_called) 
+        throw std::runtime_error("init() may be called just once");
+      pimpl->init_called = true;
+
       // sanity checks
       assert(!th.is_null());
       assert(!rv.is_null());

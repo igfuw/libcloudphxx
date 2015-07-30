@@ -33,7 +33,7 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
       const opts_init_t<real_t> opts_init; // a copy
@@ -172,6 +172,7 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_init_t<real_t> &opts_init) : 
+        init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
 	opts_init(opts_init),

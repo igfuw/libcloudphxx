@@ -82,7 +82,17 @@ rv   = arr_t([  0.01])
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
+try: 
+  prtcls.init(th, rv, rhod)
+  raise Exception("multiple init call not reported!")
+except:
+  pass
 prtcls.step_sync(opts, th, rv, rhod)
+try:
+  prtcls.step_sync(opts, th, rv, rhod)
+  raise Exception("sync/async order mismatch not reported!")
+except:
+  pass
 rain = prtcls.step_async(opts)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
