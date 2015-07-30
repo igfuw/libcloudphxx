@@ -122,7 +122,7 @@ namespace libcloudphxx
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
       std::vector<typename thrust_device::vector<real_t>::iterator >
         chem_bgn, chem_end; // indexed with enum chem_species_t
-      thrust_device::vector<real_t> chem_noneq, chem_equil;
+      thrust_device::vector<real_t> chem_rhs, chem_ante_rhs, chem_post_rhs;
       /* TODO:
         On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
         > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
