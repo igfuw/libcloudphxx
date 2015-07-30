@@ -56,4 +56,5 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+#include "particles_impl_src.ipp"
 
