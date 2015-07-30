@@ -48,12 +48,14 @@ namespace libcloudphxx
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+      thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
+      thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
 
-      //number of parameters defined by user in opts_init
-      const n_t n_kernel_params;
+      //number of kernel parameters defined by user in opts_init
+      const n_t n_user_params;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -192,8 +194,8 @@ namespace libcloudphxx
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part),
+        n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        n_kernel_params(opts_init.kernel_parameters.size()),
         rng(opts_init.rng_seed)
       {
         // sanity checks

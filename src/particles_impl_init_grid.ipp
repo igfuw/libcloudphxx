@@ -67,7 +67,6 @@ namespace libcloudphxx
 	  dv.begin(),          // output  
 	  detail::dv_eval<real_t>(opts_init)
 	);
-
 	// memory allocation
 	abv.resize(n_cell);
 	blw.resize(n_cell);
