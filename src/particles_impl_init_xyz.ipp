@@ -82,7 +82,7 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
 
-      // fill sorted ijk with cell number of each SD
+      // fill ijk with cell number of each SD
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(
           count_num.begin(), ptr.begin(), thrust::make_counting_iterator(0)
@@ -90,29 +90,29 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           count_num.end(), ptr.end(), thrust::make_counting_iterator(n_cell)
         )), 
-        detail::arbitrary_sequence(&(sorted_ijk[0]))
+        detail::arbitrary_sequence(&(ijk[0]))
       );
 
-      // get i, j, k from sorted_ijk 
+      // get i, j, k from ijk 
       switch(n_dims)
       {
         case(0):
           break;
         case(1):
           // z
-          thrust::copy(sorted_ijk.begin(), sorted_ijk.end(), k.begin());
+          thrust::copy(ijk.begin(), ijk.end(), k.begin());
           break;
         case 2:
           namespace arg = thrust::placeholders;
           // x
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            ijk.begin(), ijk.end(), // input - first arg
             i.begin(),        // output
             arg::_1 / opts_init.nz   // assuming z varies first
           );
           // z
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            ijk.begin(), ijk.end(), // input - first arg
             k.begin(),        // output
             arg::_1 % opts_init.nz   // assuming z varies first
           );
@@ -121,19 +121,19 @@ namespace libcloudphxx
           namespace arg = thrust::placeholders;
           // y
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            ijk.begin(), ijk.end(), // input - first arg
             j.begin(),        // output
             arg::_1 / (opts_init.nz * opts_init.nx)   // assuming z and x vary first
           );
           // x
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            ijk.begin(), ijk.end(), // input - first arg
             i.begin(),        // output
             arg::_1 % (opts_init.nz * opts_init.nx) / (opts_init.nz)   // assuming z varies first
           );
           // z
           thrust::transform(
-            sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
+            ijk.begin(), ijk.end(), // input - first arg
             k.begin(),        // output
             arg::_1 % (opts_init.nz * opts_init.nx) % (opts_init.nz)   // assuming z varies first
           );
