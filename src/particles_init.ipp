@@ -78,9 +78,6 @@ namespace libcloudphxx
 
       //initialising collision kernel
       pimpl->init_kernel();
-
-      // mark all initialized SDs as active
-      pimpl->to_init_into_active();
     }
   };
 };

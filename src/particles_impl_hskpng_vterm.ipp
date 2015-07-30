@@ -32,17 +32,6 @@ namespace libcloudphxx
          ) / si::metres_per_second;
        }   
       }; 
-
-      struct invalid_and_active
-      {   
-        template <typename Tuple>
-        BOOST_GPU_ENABLED
-        bool operator()(Tuple tup)
-        {
-          return (thrust::get<0>(tup) == detail::invalid &&
-                  thrust::get<1>(tup) == detail::active);
-        }
-      }; 
     };
 
 
@@ -64,14 +53,10 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg   
-        thrust::make_zip_iterator(thrust::make_tuple
-        (
-          vt.begin(),
-          sd_stat.begin()
-        )), // condition argument
+        vt.begin(),                                             // condition argument
 	vt.begin(),                                             // output
 	detail::common__vterm__vt<real_t>(),
-        detail::invalid_and_active()
+        arg::_1 == real_t(detail::invalid)
       );
     }
 
@@ -84,17 +69,15 @@ namespace libcloudphxx
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
 
-      thrust::transform_if(
+      thrust::transform(
         rw2.begin(), rw2.end(),                                 // input - 1st arg
 	zip_it_t(thrust::make_tuple(
           thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
           thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
           thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
         )),                                                     // input - 2nd arg
-        sd_stat.begin(),
 	vt.begin(),                                             // output
-	detail::common__vterm__vt<real_t>(),
-        detail::is_active()
+	detail::common__vterm__vt<real_t>()
       );
     }
   };  

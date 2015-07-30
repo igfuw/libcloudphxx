@@ -70,13 +70,11 @@ namespace libcloudphxx
             const pi_real_size
               C_lft(courant_x.begin(), pi_size_size(lft.begin(), ijk.begin())),
               C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), ijk.begin()));
-            thrust::transform_if(
+            thrust::transform(
               thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
-              thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+opts_init.n_sd_max, C_rgt+opts_init.n_sd_max)), // input - end
-              sd_stat.begin(), // stencil
+              thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
               x.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dx),
-              detail::is_active() // move only active particles
+              detail::adve_helper<real_t>(opts_init.dx)
             );
           }
 
@@ -85,13 +83,11 @@ namespace libcloudphxx
             const pi_real_size
               C_fre(courant_x.begin(), pi_size_size(fre.begin(), ijk.begin())),
               C_hnd(courant_x.begin(), pi_size_size(hnd.begin(), ijk.begin()));
-            thrust::transform_if(
+            thrust::transform(
               thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
-              thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+opts_init.n_sd_max, C_hnd+opts_init.n_sd_max)), // input - end
-              sd_stat.begin(), // stencil
+              thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
               y.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dy),
-              detail::is_active() // move only active particles
+              detail::adve_helper<real_t>(opts_init.dy)
             );
           }
 
@@ -99,13 +95,11 @@ namespace libcloudphxx
             const pi_real_size
               C_abv(courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
               C_blw(courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
-            thrust::transform_if(
+            thrust::transform(
               thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       )), // input - begin
-              thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+opts_init.n_sd_max, C_abv+opts_init.n_sd_max)), // input - end
-              sd_stat.begin(), // stencil
+              thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
               z.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dz),
-              detail::is_active() // move only active particles
+              detail::adve_helper<real_t>(opts_init.dz)
             );
           }
 

@@ -51,7 +51,7 @@ namespace libcloudphxx
 	typename thrust_device::vector<thrust_size_t>::iterator,
 	typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
-	sorted_ijk.begin(), sorted_ijk.begin() + n_part,   // input - keys
+	sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
 	thrust::transform_iterator<             // input - values
           detail::dm_3_summator<n_t, real_t>,
           zip_it_t,
@@ -252,7 +252,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
 
       // calculating the 3rd wet moment before condensation (still not divided by dv)
-      // only on active particles
       cond_dm3_helper();
 
       // permute-copying the result to -dm_3
@@ -264,7 +263,7 @@ namespace libcloudphxx
       );
 
       // calculating drop growth in a timestep using backward Euler 
-      thrust::transform_if(
+      thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
@@ -279,10 +278,8 @@ namespace libcloudphxx
             vt.begin()
           )
         ), 
-        sd_stat.begin(),                // stencil
 	rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max),
-        detail::is_active()                // only on active SDs
+        detail::advance_rw2<real_t>(dt, RH_max)
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)

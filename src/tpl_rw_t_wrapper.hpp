@@ -15,8 +15,7 @@ namespace libcloudphxx
              n_t,           n_t,        // n   (multiplicity)
           real_t,        real_t,        // rw2 (wet radius squared)
           real_t,        real_t,        // vt  (terminal velocity)
-          real_t,        real_t,        // rd3 (dry radius cubed)
-          sd_stat_t,     sd_stat_t      // sd_stat
+          real_t,        real_t         // rd3 (dry radius cubed)
         > tpl_rw_t;
 
         tpl_rw_t tpl_rw;

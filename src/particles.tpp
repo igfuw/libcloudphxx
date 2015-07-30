@@ -12,7 +12,6 @@
 
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
-#include "detail/sd_status.hpp"
 
 #include "particles_impl_kernel.ipp"
 
@@ -40,13 +39,12 @@
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
 #include "particles_impl_hskpng_remove.ipp"
+#include "particles_impl_hskpng_resize.ipp"
 
 #include "particles_impl_moms.ipp"
 #include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
-
-#include "particles_impl_stat_changes.ipp"
 
 #include "particles_impl_sync.ipp"
 
