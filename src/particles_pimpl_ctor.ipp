@@ -323,6 +323,8 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
+      void src();
+
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
     };

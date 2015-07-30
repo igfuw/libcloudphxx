@@ -16,11 +16,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src()
     {   
-      // check if we have enough inactive SDs
+      // increase n_part
 
-      // mark inactive SDs as to_init
+      // resize to n_part
+
+      // sort by n / get indices of n==0 / later do if n==0
  
-      // init xyz
+      // init xyz starting with count_num ?
 
       // init ijk
 

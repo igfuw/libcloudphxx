@@ -110,7 +110,7 @@ namespace libcloudphxx
           pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas);
       }
 
-      // coalescence (before diagnostics -> one sort less)
+      // coalescence
       if (opts.coal) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
@@ -126,6 +126,14 @@ namespace libcloudphxx
 
       pimpl->should_now_run_async = false;
       pimpl->selected_before_counting = false;
+
+      // aerosol source
+      if (opts.src) 
+      {
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        pimpl->src();
+      }
 
       return ret;
     }
