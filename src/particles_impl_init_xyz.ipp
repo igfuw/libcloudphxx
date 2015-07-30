@@ -49,10 +49,10 @@ namespace libcloudphxx
       };
     };
 
-    // Init SD positions. Particles are considered to be sorted by cell number, in order
-    // to obtain uniform initial distribution in each cell (see particles_impl_init_dry)
+    // init i,j,k,x,y,z based on the number of SDs to init in each cell stored in count_num
+    // reused in source
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_xyz()
+    void particles_t<real_t, device>::impl::init_xyz_helper()
     {
       thrust_device::vector<real_t> 
                   *v[3] = { &x,           &y,           &z           };
@@ -63,24 +63,13 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      if(n_dims > 0)
-      {
-        namespace arg = thrust::placeholders;
-        // some cells may be used only partially in thr super-droplet method
-        // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
-        // Eulerian domain (0, nx*dx, etc...)
-        // sd_conc defines number of SDs per Eulerian cell
-        thrust::transform(dv.begin(), dv.end(), count_num.begin(), (real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) + real_t(0.5))); 
-      }
-      // parcel setup
-      else
-        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
-
-      n_part = thrust::reduce(count_num.begin(), count_num.end());
+      thrust_size_t n_part_old = n_part; // initially 0
+      thrust_size_t n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
+      n_part += n_part_to_init;
       hskpng_resize_npart();      
 
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
-      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells up to (i-1)
+      thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
       // fill sorted ijk with cell number of each SD
       thrust::for_each(
@@ -100,20 +89,20 @@ namespace libcloudphxx
           break;
         case(1):
           // z
-          thrust::copy(sorted_ijk.begin(), sorted_ijk.end(), k.begin());
+          thrust::copy(sorted_ijk.begin(), sorted_ijk.end(), k.begin() + n_part_old);
           break;
         case 2:
           namespace arg = thrust::placeholders;
           // x
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
-            i.begin(),        // output
+            i.begin() + n_part_old,        // output
             arg::_1 / opts_init.nz   // assuming z varies first
           );
           // z
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
-            k.begin(),        // output
+            k.begin() + n_part_old,        // output
             arg::_1 % opts_init.nz   // assuming z varies first
           );
           break;
@@ -122,19 +111,19 @@ namespace libcloudphxx
           // y
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
-            j.begin(),        // output
+            j.begin() + n_part_old,        // output
             arg::_1 / (opts_init.nz * opts_init.nx)   // assuming z and x vary first
           );
           // x
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
-            i.begin(),        // output
+            i.begin() + n_part_old,        // output
             arg::_1 % (opts_init.nz * opts_init.nx) / (opts_init.nz)   // assuming z varies first
           );
           // z
           thrust::transform(
             sorted_ijk.begin(), sorted_ijk.end(), // input - first arg
-            k.begin(),        // output
+            k.begin() + n_part_old,        // output
             arg::_1 % (opts_init.nz * opts_init.nx) % (opts_init.nz)   // assuming z varies first
           );
           break;
@@ -147,20 +136,42 @@ namespace libcloudphxx
         if (n[ix] == 0) continue;
 
         // tossing random numbers [0,1] 
-        rand_u01(n_part);
+        rand_u01(n_part_to_init);
 
 	// shifting from [0,1] to random position within respective cell 
         {
           namespace arg = thrust::placeholders;
 	  thrust::transform(
 	    u01.begin(), 
-	    u01.end(),
-            ii[ix]->begin(), 
-	    v[ix]->begin(), 
+	    u01.begin() + n_part_to_init,
+            ii[ix]->begin() + n_part_old, 
+	    v[ix]->begin() + n_part_old, 
             detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
 	  );
         }
       }
+    }
+
+    // Init SD positions. Particles are considered to be sorted by cell number, in order
+    // to obtain uniform initial distribution in each cell (see particles_impl_init_dry)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_xyz()
+    {
+
+      if(n_dims > 0)
+      {
+        namespace arg = thrust::placeholders;
+        // some cells may be used only partially in thr super-droplet method
+        // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
+        // Eulerian domain (0, nx*dx, etc...)
+        // sd_conc defines number of SDs per Eulerian cell
+        thrust::transform(dv.begin(), dv.end(), count_num.begin(), (real_t(opts_init.sd_conc) * arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) + real_t(0.5))); 
+      }
+      // parcel setup
+      else
+        thrust::fill(count_num.begin(), count_num.end(), opts_init.sd_conc);
+
+      init_xyz_helper(); 
     }
   };
 };

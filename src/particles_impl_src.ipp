@@ -20,7 +20,7 @@ namespace libcloudphxx
 
       // resize to n_part
 
-      // sort by n / get indices of n==0 / later do if n==0
+      // update all vectors between n_part_old and n_part
  
       // init xyz starting with count_num ?
 

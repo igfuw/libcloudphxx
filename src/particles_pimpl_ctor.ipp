@@ -184,6 +184,7 @@ namespace libcloudphxx
           m1(opts_init.nz)
         ),
         zero(0), 
+        n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
         un(tmp_device_n_part),
@@ -254,6 +255,7 @@ namespace libcloudphxx
         const common::unary_function<real_t> *n_of_lnrd
       );
       void init_xyz();
+      void init_xyz_helper();
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
