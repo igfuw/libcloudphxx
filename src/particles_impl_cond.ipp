@@ -12,7 +12,7 @@
 #include <libcloudph++/common/transition_regime.hpp>
 #include <libcloudph++/common/ventil.hpp>
 #include <libcloudph++/common/mean_free_path.hpp>
-#include <libcloudph++/common/detail/bisect.hpp>
+#include <libcloudph++/common/detail/toms748.hpp>
 
 namespace libcloudphxx
 {
@@ -202,29 +202,40 @@ namespace libcloudphxx
 	  using std::abs;
 #endif
 
-          // ''predictor'' step using explicit Euler scheme
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
           if (drw2 == 0) return rw2_old;
 
-          // ''corrector'' step using implicit Euler scheme
           const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
-          const real_t tol_r2 = rd2 / 10; // TODO !!! (think of a better value, document)
-
-          const real_t mlt = 2; // results in explicit Euler scheme if root not found // TODO: investidate why not found...
           
+          const int mlt = 2; // arbitrary!
+ 
           const real_t 
             a = max(rd2, rw2_old + min(real_t(0), mlt * drw2)),
             b =          rw2_old + max(real_t(0), mlt * drw2);
- 
+
           // numerics (drw2 != 0 but a==b)
           if (a == b) return rw2_old;
 
+          real_t fa, fb;
+
           if (drw2 > 0) 
-            return common::detail::bisect(f, a, b, tol_r2, drw2); // for implicit Euler its equal to min_fun(x_old) 
+          {
+            fa = drw2; // for implicit Euler its equal to min_fun(x_old) 
+            fb = f(b);
+          }
           else
-            return common::detail::bisect(f, a, b, tol_r2, f(a), drw2);
+          {
+            fa = f(a);
+            fb = drw2; // for implicit Euler its equal to min_fun(x_old) 
+          }
+
+          // root-finding ill posed => explicit Euler 
+	  if (fa * fb > 0) return rw2_old + drw2;
+
+          // otherwise implicit Euler
+	  return common::detail::toms748_solve(f, a, b, fa, fb); 
         }
       };
     };
@@ -244,7 +255,8 @@ namespace libcloudphxx
       cond_dm3_helper();
 
       // permute-copying the result to -dm_3
-      thrust::fill(drv.begin(), drv.end(), 0);
+      // fill with 0s if not all cells will be updated in the following transform
+      if(count_n!=n_cell)  thrust::fill(drv.begin(), drv.end(), real_t(0.));
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output

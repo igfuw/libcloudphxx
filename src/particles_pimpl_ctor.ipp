@@ -21,9 +21,9 @@ namespace libcloudphxx
   namespace lgrngn
   {
     namespace detail
-    { 
+    {   
       enum { invalid = -1 };
-    };
+    };  
 
     // pimpl stuff 
     template <typename real_t, backend_t device>
@@ -39,8 +39,8 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      const thrust_size_t n_part; 
-      detail::u01<real_t, device> rng;
+      thrust_size_t n_part; 
+      detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -152,7 +152,10 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_cell,
-	&u01; // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+      thrust_device::vector<unsigned int>
+        tmp_device_n_part,
+        &un; // uniform natural random numbers between 0 and max value of unsigned int
       thrust_device::vector<thrust_size_t>
         tmp_device_size_cell;
 
@@ -161,6 +164,9 @@ namespace libcloudphxx
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
+
+      // fills un[0:n] with random numbers
+      void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
       // compile-time min(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
@@ -189,7 +195,9 @@ namespace libcloudphxx
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(opts_init.kernel_parameters.size())
+        n_user_params(opts_init.kernel_parameters.size()),
+        un(tmp_device_n_part),
+        rng(opts_init.rng_seed)
       {
         // sanity checks
         if (n_dims > 0)
@@ -210,6 +218,13 @@ namespace libcloudphxx
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
         if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.coal_switch)
+        {
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
+          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
+        }
+        if (opts_init.sedi_switch)
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -217,11 +232,12 @@ namespace libcloudphxx
 	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
+	tmp_device_n_part.resize(n_part);
 
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
           {
             case 3:
               n_grid = std::max(std::max(
@@ -277,12 +293,16 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_remove_n0();
 
       void moms_all();
    
       void moms_cmp(
         const typename thrust_device::vector<real_t>::iterator &vec1_bgn,
         const typename thrust_device::vector<real_t>::iterator &vec2_bgn
+      );
+      void moms_ge0(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
       );
       void moms_rng(
         const real_t &min, const real_t &max, 
@@ -315,8 +335,9 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
-      void rcyc();
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
+                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
+      thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
       void sstp_step(const int &step, const bool &var_rho);

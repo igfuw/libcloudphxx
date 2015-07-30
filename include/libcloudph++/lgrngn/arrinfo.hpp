@@ -16,7 +16,6 @@ namespace libcloudphxx
       real_t * const dataZero;
       const ptrdiff_t *strides;
 
-      // methods...
 //</listing>
 
       // ctors

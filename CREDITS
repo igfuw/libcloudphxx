@@ -1,0 +1,31 @@
+Development of libcloudph++ has been carried out at the
+Faculty of Physics [1], University of Warsaw [2], Poland.
+The University of Warsaw holds the copyright to libcloudph++.
+
+The development was funded mainly by the Poland's National
+Science Centre (NCN, [3]).
+
+The development team consists of (in alphabetic order):
+
+  Sylwester Arabas 
+    (library design, core code in lagrangian scheme, 
+    GPU/CPU option, Python bindings, documentation [4])
+  Piotr Dziekan
+    (validation and extensions of the coalescence scheme)
+  Dorota Jarecka 
+    (Python bindings)
+  Anna Jaruga 
+    (bulk schemes, aqueous chemistry in lagrangian scheme,
+    documentation [4])
+  Hanna Pawłowska 
+    (team management, documentation [4])
+  Wojciech Grabowski 
+    (consultancy, documentation [4])
+  Maciej Waruszewski 
+    (misc help)
+
+[1]: http://www.fuw.edu.pl/
+[2]: http://en.uw.edu.pl/
+[3]: http://www.ncn.gov.pl/
+[4]: http://arxiv.org/abs/1407.1309 
+     http://www.geosci-model-dev-discuss.net/7/8275/2014/

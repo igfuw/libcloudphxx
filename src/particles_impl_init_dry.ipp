@@ -31,9 +31,6 @@ namespace libcloudphxx
 	BOOST_GPU_ENABLED 
 	real_t operator()(real_t x) 
 	{ 
-#if !defined(__NVCC__)
-          using std::exp;
-#endif
 	  return exp(3*x); 
 	} 
       };
@@ -66,6 +63,35 @@ namespace libcloudphxx
       const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
     )
     {
+      // probing the spectrum to find rd_min-rd_max range
+      // values to start the search 
+      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
+      real_t rd_min = rd_min_init, rd_max = rd_max_init;
+
+      bool found_optimal_range = false;
+      real_t multiplier;
+      while (!found_optimal_range)
+      {
+	multiplier = log(rd_max / rd_min) 
+	  / opts_init.sd_conc_mean 
+	  * (n_dims == 0
+	    ? dv[0]
+	    : (opts_init.dx * opts_init.dy * opts_init.dz)
+	  );
+        impl::n_t 
+          n_min = (*n_of_lnrd_stp)(log(rd_min)) * multiplier, 
+          n_max = (*n_of_lnrd_stp)(log(rd_max)) * multiplier;
+
+        if (rd_min == rd_min_init && n_min != 0) 
+          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_min_init");
+        if (rd_max == rd_max_init && n_max != 0) 
+          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_max_init");
+        
+        if      (n_min == 0) rd_min *= 1.1;
+        else if (n_max == 0) rd_max /= 1.1;
+        else found_optimal_range = true;
+      }
+
       // memory allocation
       rd3.resize(n_part);
       n.resize(n_part);
@@ -79,10 +105,6 @@ namespace libcloudphxx
 
       // sorting them (does not harm and makes rd_min/rd_max search simpler)
       thrust::sort(u01.begin(), u01.end());
-
-      // values to start the search 
-      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
-      real_t rd_min = rd_min_init, rd_max = rd_max_init;
 
       // temporary space on the host 
       thrust::host_vector<real_t> tmp(n_part);
@@ -98,19 +120,11 @@ namespace libcloudphxx
 	tmp_ijk.begin()         // to
       );
 
-      bool found_optimal_range = 0;
-
-      while (!found_optimal_range)
       {
         namespace arg = thrust::placeholders;
 
 	// rd3 temporarily means logarithm of radius!
 	thrust_device::vector<real_t> &lnrd(rd3);
-
-#if !defined(__NVCC__)
-        using std::log;
-        using std::exp;
-#endif
 
 	// shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
 	thrust::transform(
@@ -120,15 +134,8 @@ namespace libcloudphxx
 	  log(rd_min) + arg::_1 * (log(rd_max) - log(rd_min)) 
 	);
  
-	// filling n with multiplicities
-	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
-	real_t multiplier = log(rd_max / rd_min) 
-          / opts_init.sd_conc_mean 
-          * opts_init.dx 
-          * opts_init.dy 
-          * opts_init.dz;
-
 	// device -> host (not needed for omp or cpp ... but happens just once)
+	// (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
 	thrust::copy(lnrd.begin(), lnrd.end(), tmp.begin()); 
 
 	// evaluating n_of_lnrd_stp
@@ -157,43 +164,9 @@ namespace libcloudphxx
 	// host -> device (includes casting from real_t to uint!)
 	thrust::copy(tmp.begin(), tmp.end(), n.begin()); 
 
-        found_optimal_range = 1;
-
-	// chosing an optimal rd_min/rd_max range for a given pdf and grid
-	thrust_size_t ix;
-	ix = thrust::find_if(n.begin(), n.end(), arg::_1 != 0) - n.begin();
-	if (rd_min == rd_min_init) 
-	{
-          if(ix == n_part)
-            std::runtime_error("Initial dry radii distribution outside of the range [1e-11, 1e-3] meters\n");
-          if(ix == 0)
-            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-11 meters\n");
-	  rd_min = exp(lnrd[ix-1]); // adjusting the range
-	}
-        else if (ix>0)
-        {
-	  rd_min = exp(lnrd[ix+1]); // adjusting the range
-          found_optimal_range = 0;
-        }
-
-	ix = n.rend() - thrust::find_if(n.rbegin(), n.rend(), arg::_1 != 0);
-	if (rd_max == rd_max_init) 
-	{
-          if(ix == n_part)
-            std::runtime_error("Initial dry radii distribution is non-zero for r=1e-3 meters\n");
-	  rd_max = exp(lnrd[ix+1]); // adjusting the range
-          found_optimal_range = 0;
-	}
-        else if (ix < n_part)
-        {
-	  rd_max = exp(lnrd[ix-1]); // adjusting the range
-          found_optimal_range = 0;
-        }
-
-        if(found_optimal_range)
         {
           // detecting possible overflows of n type
-          ix = thrust::max_element(n.begin(), n.end()) - n.begin();
+          thrust_size_t ix = thrust::max_element(n.begin(), n.end()) - n.begin();
           assert(n[ix] < (typename impl::n_t)(-1) / 10000);
 
           // converting rd back from logarithms to rd3

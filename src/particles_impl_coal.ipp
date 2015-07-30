@@ -129,7 +129,8 @@ namespace libcloudphxx
           // note: >= causes equal-multiplicity collisions to result in flagging for recycling
           if (thrust::get<n_a_ix>(tpl_rw) >= thrust::get<n_b_ix>(tpl_rw)) 
           {
-            col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
+            if(thrust::get<n_b_ix>(tpl_rw) > 0) 
+              col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
             collide<real_t, n_t,
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
@@ -140,7 +141,8 @@ namespace libcloudphxx
           }
           else
           {
-            col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
+            if(thrust::get<n_a_ix>(tpl_rw) > 0) 
+              col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
             collide<real_t, n_t,
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,
@@ -150,6 +152,15 @@ namespace libcloudphxx
           }
         }
       };
+    };
+
+    struct dividebytwo : public thrust::unary_function<int, int>
+    {
+      __host__ __device__
+      int operator()(int x) const
+      {
+        return x/2;
+      }
     };
 
     template <typename real_t, backend_t device>
@@ -173,7 +184,9 @@ namespace libcloudphxx
         &off(tmp_device_size_cell); // offset for getting index of particle within a cell
 
       // laying out scale factor onto ijk grid
-      thrust::fill(scl.begin(), scl.end(), real_t(0));
+      // fill with 0s if not all cells will be updated in the following copy
+      if(count_n!=n_cell)  thrust::fill(scl.begin(), scl.end(), real_t(0.));
+      
       thrust::copy(
         count_mom.begin(),                    // input - begin
         count_mom.begin() + count_n,          // input - end
@@ -184,7 +197,8 @@ namespace libcloudphxx
       );  
 
       // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
-      thrust::fill(off.begin(), off.end(), real_t(0));
+      // fill with 0s if not all cells will be updated in the following copy
+      if(count_n!=n_cell)  thrust::fill(off.begin(), off.end(), real_t(0.));
       thrust::copy(
         count_num.begin(), 
         count_num.begin() + count_n, 
@@ -199,7 +213,7 @@ namespace libcloudphxx
       );
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      rand_u01(n_part); // TODO: n_part/2 is enough but how to do it with the logic below???
+      rand_u01(n_part/2);
 
       // colliding
       typedef thrust::permutation_iterator<
@@ -217,9 +231,17 @@ namespace libcloudphxx
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
 
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        thrust::transform_iterator<
+          dividebytwo,
+          thrust::counting_iterator<int>
+        >
+      > pi_rand_t;                                                       
+
       typedef thrust::zip_iterator<
-        thrust::tuple< 
-          typename thrust_device::vector<real_t>::iterator,        // u01
+        thrust::tuple<
+          pi_rand_t,                                               // u01
           pi_real_t,                                               // scl
           thrust::counting_iterator<thrust_size_t>,                // ix_a
           thrust::counting_iterator<thrust_size_t>,                // ix_b
@@ -239,8 +261,8 @@ namespace libcloudphxx
 
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
-          // u01
-          u01.begin(),
+          // u01, each pair gets one number
+          thrust::make_permutation_iterator(u01.begin(), thrust::make_transform_iterator(thrust::make_counting_iterator(0), dividebytwo())),
           // scl
           thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
           // ix

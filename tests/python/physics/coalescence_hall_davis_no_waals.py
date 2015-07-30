@@ -32,8 +32,8 @@ def expvolumelnr(lnr):
   return n_zero * 3.*np.power(r,3)/np.power(r_zero,3)*np.exp(- np.power((r/r_zero),3));
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dt = 1
-opts_init.sstp_coal = 1
+opts_init.dt = simulation_time
+opts_init.sstp_coal = simulation_time
 
 opts_init.dx = 100
 opts_init.dz = 1
@@ -81,9 +81,8 @@ def diag(arg):
 results = np.zeros(bins.size-1)
 
 #simulation loop
-for t in range(int((simulation_time)/opts_init.dt)):
-  prtcls.step_sync(opts, th, rv, rhod)
-  prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod)
+prtcls.step_async(opts)
     
 diag(results)
 
