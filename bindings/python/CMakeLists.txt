@@ -36,6 +36,9 @@ if (NOT BLITZ_FOUND)
   ")
 else()
   target_link_libraries(cloudphxx blitz)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBZDEBUG)
+  endif()
 endif()
 
 # ... where to find libclouph++
