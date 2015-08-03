@@ -20,7 +20,7 @@ def lognormal(lnr):
 kappa = .61
 
 count = 0
-for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.Long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin]:
+for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin]:
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
   opts_init.dry_distros = {kappa:lognormal}

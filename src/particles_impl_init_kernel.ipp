@@ -48,7 +48,7 @@ namespace libcloudphxx
           }
           break;
 
-        case(Long):
+        case(kernel_t::Long):
           // init kernel parameters vector
           if(n_user_params > 0)
           {
