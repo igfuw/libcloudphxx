@@ -76,13 +76,24 @@ print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
 # 0D (parcel)
+print "0D"
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
+try: 
+  prtcls.init(th, rv, rhod)
+  raise Exception("multiple init call not reported!")
+except:
+  pass
 prtcls.step_sync(opts, th, rv, rhod)
+try:
+  prtcls.step_sync(opts, th, rv, rhod)
+  raise Exception("sync/async order mismatch not reported!")
+except:
+  pass
 rain = prtcls.step_async(opts)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
@@ -93,23 +104,30 @@ prtcls.diag_all()
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
 
-# 1D
+# 1D (periodic horizontal domain)
+print "1D"
 rhod = arr_t([  1.,   1.,   1.])
 th   = arr_t([300., 300., 300.])
 rv   = arr_t([   .01,  .01,  .01])
+C    = arr_t([   .5,   .5,   .5,  .5])
 
-opts_init.nz = 3 
-opts_init.dz = 10
-opts_init.z1 = opts_init.nz * opts_init.dz
-# TODO... still not implemented in the library itself!
-#prtcls = lgrngn.factory(backend, opts_init)
-#prtcls.init(th, rv, rhod)
-#prtcls.diag_sd_conc()
-#assert len(frombuffer(prtcls.outbuf())) == opts_init.nz
-#assert (frombuffer(prtcls.outbuf()) > 0).all()
-#assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.sd_conc_mean
+opts_init.nx = 3 
+opts_init.dx = 10
+opts_init.x1 = opts_init.nx * opts_init.dx
+prtcls = lgrngn.factory(backend, opts_init)
+print rhod.shape
+print th.shape
+print rv.shape
+print C.shape
+prtcls.init(th, rv, rhod, C)
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc_mean
 
 # 2D
+print "2D"
 rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
 th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01],[    .01,    .01]])
@@ -130,6 +148,7 @@ assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc_mean
 
 # 3arg variant (const rho)
+print "3D"
 prtcls.step_sync(opts, th, rv) #TODO: this should fail as no Courants were passed in init!
 rain = prtcls.step_async(opts)
 

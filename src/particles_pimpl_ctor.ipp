@@ -33,7 +33,7 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
       const opts_init_t<real_t> opts_init; // a copy
@@ -65,9 +65,9 @@ namespace libcloudphxx
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 2D and 3D)
+	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 1D, 2D and 3D)
+	z;   // z spatial coordinate (for 2D and 3D)
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -173,6 +173,7 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_init_t<real_t> &opts_init) : 
+        init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
 	opts_init(opts_init),
@@ -237,7 +238,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is x
           {
             case 3:
               n_grid = std::max(std::max(
@@ -252,10 +253,13 @@ namespace libcloudphxx
                 (opts_init.nx+0) * (opts_init.nz+1)
               );
               break;
+            case 1:
+              n_grid = opts_init.nx+1;
+              break;
             case 0:
               n_grid = 1;
               break;
-            default: assert(false); // TODO: 1D case
+            default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);

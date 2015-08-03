@@ -121,7 +121,7 @@ namespace libcloudphxx
         zip_param_pos_t zip_param_pos(
           thrust::make_tuple(
             thrust::make_zip_iterator(tup_params), 
-            thrust::make_zip_iterator(thrust::make_tuple(z.begin(), k.begin()))
+            thrust::make_zip_iterator(thrust::make_tuple(x.begin(), i.begin()))
           )
         );
 
