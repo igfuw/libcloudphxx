@@ -45,6 +45,7 @@ namespace libcloudphxx
       {
         case 3:
         case 2:
+        case 1:
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
           thrust::transform(
@@ -63,36 +64,36 @@ namespace libcloudphxx
 	    );
           }
 
-          // hardcoded "open" boundary at the top of the domain 
-          // (just for numerical-error-sourced out-of-domain particles)
+          if (n_dims > 1)
           {
-            namespace arg = thrust::placeholders;
-	    thrust::transform_if(
-	      z.begin(), z.end(),          // input - arg
-	      n.begin(),                   // output
-	      detail::flag<n_t, real_t>(), // operation (zero-out)
-	      arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-	    );
-          }
+	    // hardcoded "open" boudary at the top of the domain 
+	    // (just for numerical-error-sourced out-of-domain particles)
+	    {
+	      namespace arg = thrust::placeholders;
+	      thrust::transform_if(
+		z.begin(), z.end(),          // input - arg
+		n.begin(),                   // output
+		detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+		arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+	      );
+	    }
 
-          // precipitation on the bottom edge of the domain
-          //// first: count the volume of particles below the domain
-          // TODO! (using tranform_reduce?)
-          //// second: zero-out multiplicities so they will be recycled
-          {
-            namespace arg = thrust::placeholders;
-	    thrust::transform_if(   
-	      z.begin(), z.end(),          // input 
-	      n.begin(),                   // output
-	      detail::flag<n_t, real_t>(), // operation (zero-out)
-	      arg::_1 < opts_init.z0       // condition
-	    );
+	    // precipitation on the bottom edge of the domain
+	    //// first: count the volume of particles below the domain
+	    // TODO! (using tranform_reduce?)
+	    //// second: zero-out multiplicities so they will be recycled
+	    {
+	      namespace arg = thrust::placeholders;
+	      thrust::transform_if(   
+		z.begin(), z.end(),          // input 
+		n.begin(),                   // output
+		detail::flag<n_t, real_t>(), // operation (zero-out)
+		arg::_1 < opts_init.z0       // condition
+	      );
+	    }
           }
           break; 
         }
-        case 1:
-          assert(false && "TODO");
-          break;
         case 0: break;
         default: assert(false);
       }

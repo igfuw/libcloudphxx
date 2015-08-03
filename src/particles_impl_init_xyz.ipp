@@ -85,50 +85,48 @@ namespace libcloudphxx
       // get i, j, k from ijk 
       switch(n_dims)
       {
-        case(0):
-          break;
-        case(1):
-          // z
-          thrust::copy(ijk.begin(), ijk.end(), k.begin() + n_part_old);
-          break;
-        case 2:
-          namespace arg = thrust::placeholders;
-          // x
-          thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
-            i.begin() + n_part_old,        // output
-            arg::_1 / opts_init.nz   // assuming z varies first
-          );
-          // z
-          thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
-            k.begin() + n_part_old,        // output
-            arg::_1 % opts_init.nz   // assuming z varies first
-          );
-          break;
         case 3:
           namespace arg = thrust::placeholders;
           // y
           thrust::transform(
             ijk.begin(), ijk.end(), // input - first arg
             j.begin() + n_part_old,        // output
-            arg::_1 / (opts_init.nz * opts_init.nx)   // assuming z and x vary first
-          );
-          // x
-          thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
-            i.begin() + n_part_old,        // output
-            arg::_1 % (opts_init.nz * opts_init.nx) / (opts_init.nz)   // assuming z varies first
+            (arg::_1 / opts_init.nz) % (opts_init.ny) // z varies first
           );
           // z
           thrust::transform(
             ijk.begin(), ijk.end(), // input - first arg
             k.begin() + n_part_old,        // output
-            arg::_1 % (opts_init.nz * opts_init.nx) % (opts_init.nz)   // assuming z varies first
+            arg::_1 % (opts_init.nz)   // z varies first
           );
+          // x
+          thrust::transform(
+            ijk.begin(), ijk.end(), // input - first arg
+            i.begin() + n_part_old,        // output
+            arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
+          );
+          break;
+        case 2:
+          // z
+          thrust::transform(
+            ijk.begin(), ijk.end(), // input - first arg
+            k.begin() + n_part_old,        // output
+            arg::_1 % (opts_init.nz)   // z varies first
+          );
+          // x
+          thrust::transform(
+            ijk.begin(), ijk.end(), // input - first arg
+            i.begin() + n_part_old,        // output
+            arg::_1 / (opts_init.nz)
+          );
+          break;
+        case 1:
+          thrust::copy(ijk.begin(), ijk.end(), i.begin() + n_part_old); // only x
+        case 0:
           break;
         default:
           assert(false);
+          break;
       }
 
       for (int ix = 0; ix < 3; ++ix)

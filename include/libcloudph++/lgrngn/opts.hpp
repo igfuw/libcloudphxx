@@ -25,14 +25,15 @@ namespace libcloudphxx
       real_t RH_max;       
 //</listing>
 
-      // chem stuff
-      bool chem;
+      // process toggling for chemistry
+      bool chem_dsl, chem_dsc, chem_rct;
 
       std::vector<real_t> chem_gas;
 
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 
-        adve(true), sedi(true), cond(true), coal(true), chem(false), src(false),
+        adve(true), sedi(true), cond(true), coal(true), src(false)
+        chem_dsl(false), chem_dsc(false), chem_rct(false),
         RH_max(44), // :) (anything greater than 1.1 would be enough
         chem_gas(chem_gas_n)
       {

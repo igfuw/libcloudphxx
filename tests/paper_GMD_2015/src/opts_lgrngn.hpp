@@ -40,7 +40,9 @@ void setopts_micro(
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "particle sedimentation (1=on, 0=off)")
     ("cond", po::value<bool>()->default_value(rt_params.cloudph_opts.cond) , "condensational growth  (1=on, 0=off)")
     ("coal", po::value<bool>()->default_value(rt_params.cloudph_opts.coal) , "collisional growth     (1=on, 0=off)")
-    ("chem", po::value<bool>()->default_value(rt_params.cloudph_opts.chem) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
+    ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
+    ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -86,7 +88,9 @@ void setopts_micro(
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
   //rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
-  rt_params.cloudph_opts.chem = vm["chem"].as<bool>();
+  rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
+  rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
+  rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();

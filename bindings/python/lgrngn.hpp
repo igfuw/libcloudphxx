@@ -67,6 +67,24 @@ namespace libcloudphxx
 	);
       }
 
+      // 1D kinematic version
+      template <typename real_t>
+      void init_4arg(
+	lgr::particles_proto_t<real_t> *arg,
+	const bp::numeric::array &th,
+	const bp::numeric::array &rv,
+	const bp::numeric::array &rhod,
+        const bp::numeric::array &Cx
+      )
+      {
+	arg->init(
+	  np2ai<real_t>(th,      sz(*arg)),
+	  np2ai<real_t>(rv,      sz(*arg)),
+	  np2ai<real_t>(rhod,    sz(*arg)),
+          np2ai<real_t>(Cx,      sz(*arg))
+	);
+      }
+
       // 2D kinematic version
       template <typename real_t>
       void init_5arg(
@@ -87,7 +105,7 @@ namespace libcloudphxx
 	);
       }
 
-      // TODO: 1D & 3D kinematic versions
+      // TODO: 3D kinematic version
 
       template <typename real_t>
       void step_sync_3arg(

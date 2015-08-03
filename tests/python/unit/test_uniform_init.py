@@ -19,7 +19,7 @@ n_zero = 1.42e8
 
 opts_init = lgrngn.opts_init_t()
 opts_init.kernel = lgrngn.kernel_t.geometric
-#opts_init.terminal_velocity = lgrngn.vt_t.khvorostyanov_spherical
+opts_init.terminal_velocity = lgrngn.vt_t.khvorostyanov_spherical
 opts_init.dt = 1
 opts_init.dx = 1
 opts_init.dz = 1

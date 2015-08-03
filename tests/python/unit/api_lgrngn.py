@@ -19,6 +19,7 @@ opts_init = lgrngn.opts_init_t()
 kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
@@ -41,6 +42,8 @@ print "y1 =", opts_init.y1
 print "z1 =", opts_init.z1
 
 print "chem_switch = ", opts_init.chem_switch
+print "coal_switch = ", opts_init.coal_switch
+print "sedi_switch = ", opts_init.sedi_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
@@ -48,6 +51,7 @@ print "sstp_chem =", opts_init.sstp_chem
 
 print "kernel =", opts_init.kernel 
 print "sd_conc =", opts_init.sd_conc
+print "terminal_velocity =", opts_init.terminal_velocity
 print "chem_rho =", opts_init.chem_rho
 
 print lgrngn.backend_t.OpenMP
@@ -59,7 +63,9 @@ print "adve =", opts.adve
 print "sedi =", opts.sedi
 print "cond =", opts.cond
 print "coal =", opts.coal
-print "chem =", opts.chem
+print "chem_dsl =", opts.chem_dsl
+print "chem_dcs =", opts.chem_dsc
+print "chem_rct =", opts.chem_rct
 print "RH_max =", opts.RH_max
 
 opts.chem_gas = {
@@ -71,13 +77,24 @@ print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
 # 0D (parcel)
+print "0D"
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
+try: 
+  prtcls.init(th, rv, rhod)
+  raise Exception("multiple init call not reported!")
+except:
+  pass
 prtcls.step_sync(opts, th, rv, rhod)
+try:
+  prtcls.step_sync(opts, th, rv, rhod)
+  raise Exception("sync/async order mismatch not reported!")
+except:
+  pass
 rain = prtcls.step_async(opts)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
@@ -88,23 +105,30 @@ prtcls.diag_all()
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
-# 1D
+# 1D (periodic horizontal domain)
+print "1D"
 rhod = arr_t([  1.,   1.,   1.])
 th   = arr_t([300., 300., 300.])
 rv   = arr_t([   .01,  .01,  .01])
+C    = arr_t([   .5,   .5,   .5,  .5])
 
-opts_init.nz = 3 
-opts_init.dz = 10
-opts_init.z1 = opts_init.nz * opts_init.dz
-# TODO... still not implemented in the library itself!
-#prtcls = lgrngn.factory(backend, opts_init)
-#prtcls.init(th, rv, rhod)
-#prtcls.diag_sd_conc()
-#assert len(frombuffer(prtcls.outbuf())) == opts_init.nz
-#assert (frombuffer(prtcls.outbuf()) > 0).all()
-#assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.sd_conc_mean
+opts_init.nx = 3 
+opts_init.dx = 10
+opts_init.x1 = opts_init.nx * opts_init.dx
+prtcls = lgrngn.factory(backend, opts_init)
+print rhod.shape
+print th.shape
+print rv.shape
+print C.shape
+prtcls.init(th, rv, rhod, C)
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
 
 # 2D
+print "2D"
 rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
 th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01],[    .01,    .01]])
@@ -125,6 +149,7 @@ assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc
 
 # 3arg variant (const rho)
+print "3D"
 prtcls.step_sync(opts, th, rv) #TODO: this should fail as no Courants were passed in init!
 rain = prtcls.step_async(opts)
 

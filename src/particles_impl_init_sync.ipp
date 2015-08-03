@@ -30,7 +30,7 @@ namespace libcloudphxx
           courant_z.resize(opts_init.nx * (opts_init.nz + 1));
           break;
         case 1:
-          courant_z.resize(opts_init.nz + 1);
+          courant_x.resize(opts_init.nx + 1);
           break;
         case 0: break;
         default: assert(false); 
