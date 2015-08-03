@@ -56,7 +56,7 @@ namespace libcloudphxx
         case 0: 
           break;
         case 1:
-          thrust::copy(k.begin(), k.end(), ijk.begin());
+          thrust::copy(i.begin(), i.end(), ijk.begin());
           break;
         case 2:
           namespace arg = thrust::placeholders;
@@ -73,8 +73,8 @@ namespace libcloudphxx
             i.begin(), i.end(), // input - first arg
             j.begin(),          // input - second arg
             ijk.begin(),        // output
-            arg::_2 * (opts_init.nz * opts_init.nx) + 
-            arg::_1 * opts_init.nz
+            arg::_1 * (opts_init.nz * opts_init.ny) + 
+            arg::_2 * opts_init.nz
           );
           thrust::transform(
             ijk.begin(), ijk.end(),

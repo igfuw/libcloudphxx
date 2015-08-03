@@ -10,6 +10,7 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/kappa_koehler.hpp>
 #include <libcloudph++/common/hydrostatic.hpp>
+#include <libcloudph++/common/henry.hpp>
 
 namespace libcloudphxx
 {
