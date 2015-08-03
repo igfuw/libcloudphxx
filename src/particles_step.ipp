@@ -133,8 +133,8 @@ namespace libcloudphxx
         }
       }
 
-      pimpl->should_now_run_async = false;
-      pimpl->selected_before_counting = false;
+      // remove SDs with n = 0
+      if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
 
       // aerosol source
       if (opts.src) 
@@ -143,6 +143,9 @@ namespace libcloudphxx
 
         pimpl->src();
       }
+
+      pimpl->should_now_run_async = false;
+      pimpl->selected_before_counting = false;
 
       return ret;
     }

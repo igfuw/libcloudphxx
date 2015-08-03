@@ -63,8 +63,9 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
 
-      thrust_size_t n_part_old = n_part; // initially 0
-      thrust_size_t n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
+      n_part_old = n_part; // initially 0
+      n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
+      if(n_part_to_init == 0) return;
       n_part += n_part_to_init;
       hskpng_resize_npart();      
 
@@ -79,7 +80,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           count_num.end(), ptr.end(), thrust::make_counting_iterator(n_cell)
         )), 
-        detail::arbitrary_sequence(&(ijk[0]))
+        detail::arbitrary_sequence(&(ijk[n_part_old]))
       );
 
       // get i, j, k from ijk 

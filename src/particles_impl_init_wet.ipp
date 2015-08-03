@@ -61,15 +61,15 @@ namespace libcloudphxx
           > zip_it_t;
 
           zip_it_t zip_it(thrust::make_tuple(
-            rd3.begin(), 
-            kpa.begin(), 
-            pi_t(RH.begin(), ijk.begin()),
-            pi_t(T.begin(),  ijk.begin())
+            rd3.begin() + n_part_old, 
+            kpa.begin() + n_part_old, 
+            pi_t(RH.begin(), ijk.begin() + n_part_old),
+            pi_t(T.begin(),  ijk.begin() + n_part_old)
           ));
 
 	  thrust::transform(
-	    zip_it, zip_it + n_part, // input
-	    rw2.begin(), // output
+	    zip_it, zip_it + n_part_to_init, // input
+	    rw2.begin() + n_part_old, // output
             detail::rw2_eq<real_t>(opts_init.RH_max) 
 	  );
         }

@@ -68,7 +68,8 @@ namespace libcloudphxx
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
       pimpl->init_dry(
         pimpl->opts_init.dry_distros.begin()->first,
-        pimpl->opts_init.dry_distros.begin()->second 
+        pimpl->opts_init.dry_distros.begin()->second,
+        pimpl->opts_init.sd_conc
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // initialising wet radii

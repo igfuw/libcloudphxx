@@ -39,7 +39,9 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      thrust_size_t n_part; 
+      thrust_size_t n_part,            // total number of SDs
+                    n_part_old,        // total number of SDs before source
+                    n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
 
       // pointer to collision kernel
@@ -265,7 +267,8 @@ namespace libcloudphxx
 
       void init_dry(
         const real_t kappa, // TODO: map
-        const common::unary_function<real_t> *n_of_lnrd
+        const common::unary_function<real_t> *n_of_lnrd,
+        const n_t sd_conc
       );
       void init_xyz();
       void init_xyz_helper();
