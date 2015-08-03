@@ -181,9 +181,10 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      void set_dd(
+      void set_d_helper(
 	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func
+	const bp::dict &kappa_func,
+        bool src
       )
       {
 	for (int i = 0; i < len(kappa_func.keys()); ++i)
@@ -205,11 +206,33 @@ namespace libcloudphxx
 	    }
 	  };
 
-	  boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
-	    bp::extract<real_t>(kappa_func.keys()[i]), 
-	    pyunary(kappa_func.values()[i])
-	  );
+          if(src)  // set the source distro
+	    boost::assign::ptr_map_insert<pyunary>(arg->src_dry_distros)(
+  	      bp::extract<real_t>(kappa_func.keys()[i]), 
+  	      pyunary(kappa_func.values()[i])
+  	    );
+          else    // set the initial distro
+	    boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
+  	      bp::extract<real_t>(kappa_func.keys()[i]), 
+  	      pyunary(kappa_func.values()[i])
+  	    );
 	}
+      }
+
+      template <typename real_t>
+      void set_dd(
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        set_d_helper(arg, kappa_func, false);
+      }
+
+      template <typename real_t>
+      void set_sdd(
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        set_d_helper(arg, kappa_func, true);
       }
 
       template <typename real_t>
@@ -218,6 +241,14 @@ namespace libcloudphxx
       )
       {
 	throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void get_sdd(
+	lgr::opts_init_t<real_t> *arg
+      )
+      {
+	throw std::runtime_error("source_dry_distros does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
