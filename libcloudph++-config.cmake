@@ -19,7 +19,7 @@ set(libcloudphxx_CXX_FLAGS_RELEASE "")
 
 ############################################################################################
 # debug mode compiler flags
-set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -DBZ_DEBUG -g") #TODO: -Og if compiler supports it?
+set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g") #TODO: -Og if compiler supports it?
 
 ############################################################################################
 # release mode compiler flags
