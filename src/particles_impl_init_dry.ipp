@@ -77,7 +77,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_dry(
       const real_t kappa,
       const common::unary_function<real_t> *n_of_lnrd_stp, // TODO: kappa-spectrum map
-      const impl::n_t sd_conc
+      const impl::n_t sd_conc,
+      const real_t dt
     )
     {
       // probing the spectrum to find rd_min-rd_max range
@@ -91,6 +92,7 @@ namespace libcloudphxx
       {
 	multiplier = log(rd_max / rd_min) 
 	  / sd_conc
+          * dt
 	  * (n_dims == 0
 	    ? dv[0]
 	    : (opts_init.dx * opts_init.dy * opts_init.dz)

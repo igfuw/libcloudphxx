@@ -14,7 +14,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src()
+    void particles_t<real_t, device>::impl::src(const real_t &dt)
     {   
       // sanity checks
       if(n_dims < 2)            throw std::runtime_error("Source only works in 2D and 3D");
@@ -53,13 +53,12 @@ namespace libcloudphxx
       init_dry(
         opts_init.src_dry_distros.begin()->first,
         opts_init.src_dry_distros.begin()->second,
-        opts_init.src_sd_conc
+        opts_init.src_sd_conc,
+        dt
       ); // TODO: document that n_of_lnrd_stp is expected!
- 
 
       // init rw
       init_wet();
-
 
       // init chem (TODO)
  

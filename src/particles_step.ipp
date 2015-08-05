@@ -80,7 +80,7 @@ namespace libcloudphxx
       if (!pimpl->should_now_run_async)
         throw std::runtime_error("please call step_sync() before calling step_async() again");
 
-      //sanity checks
+      // sanity checks
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
       if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
       if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
@@ -139,10 +139,20 @@ namespace libcloudphxx
       // aerosol source
       if (opts.src) 
       {
+        // sanity check
         if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
 
-        pimpl->src();
+        // update the step counter since src was turned on
+        ++pimpl->stp_ctr;
+
+        // introduce new particles with the given time interval
+        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+          pimpl->stp_ctr = 0;
+        }
       }
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       pimpl->should_now_run_async = false;
       pimpl->selected_before_counting = false;

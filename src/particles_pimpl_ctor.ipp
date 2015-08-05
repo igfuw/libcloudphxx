@@ -115,6 +115,9 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
+      // timestep counter
+      n_t stp_ctr;
+
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
       std::map<
@@ -194,7 +197,8 @@ namespace libcloudphxx
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        rng(opts_init.rng_seed)
+        rng(opts_init.rng_seed),
+        stp_ctr(0)
       {
         // sanity checks
         if (n_dims > 0)
@@ -268,7 +272,8 @@ namespace libcloudphxx
       void init_dry(
         const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd,
-        const n_t sd_conc
+        const n_t sd_conc,
+        const real_t dt = 1.
       );
       void init_xyz();
       void init_xyz_helper();
@@ -342,7 +347,7 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
-      void src();
+      void src(const real_t &dt);
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();

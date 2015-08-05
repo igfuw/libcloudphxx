@@ -35,6 +35,9 @@ namespace libcloudphxx
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
+  
+      // superstep frequency
+      int supstp_src;
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -90,6 +93,7 @@ namespace libcloudphxx
         sd_conc(0), 
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        supstp_src(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
         coal_switch(true),  // coalescence turned on by default
