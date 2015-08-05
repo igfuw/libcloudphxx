@@ -54,15 +54,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz_helper()
     {
-      thrust_device::vector<real_t> 
-                  *v[3] = { &x,           &y,           &z           };
-      const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
-      const real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
-      const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
-      const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
-      thrust_device::vector<thrust_size_t> 
-                  *ii[3] = { &i,           &j,           &k           };
-
       n_part_old = n_part; // initially 0
       n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
       if(n_part_to_init == 0) return;
@@ -90,19 +81,19 @@ namespace libcloudphxx
           namespace arg = thrust::placeholders;
           // y
           thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
+            ijk.begin() + n_part_old, ijk.end(), // input - first arg
             j.begin() + n_part_old,        // output
             (arg::_1 / opts_init.nz) % (opts_init.ny) // z varies first
           );
           // z
           thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
+            ijk.begin() + n_part_old, ijk.end(), // input - first arg
             k.begin() + n_part_old,        // output
             arg::_1 % (opts_init.nz)   // z varies first
           );
           // x
           thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
+            ijk.begin() + n_part_old, ijk.end(), // input - first arg
             i.begin() + n_part_old,        // output
             arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
           );
@@ -110,25 +101,34 @@ namespace libcloudphxx
         case 2:
           // z
           thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
+            ijk.begin() + n_part_old, ijk.end(), // input - first arg
             k.begin() + n_part_old,        // output
             arg::_1 % (opts_init.nz)   // z varies first
           );
           // x
           thrust::transform(
-            ijk.begin(), ijk.end(), // input - first arg
+            ijk.begin() + n_part_old, ijk.end(), // input - first arg
             i.begin() + n_part_old,        // output
             arg::_1 / (opts_init.nz)
           );
           break;
         case 1:
-          thrust::copy(ijk.begin(), ijk.end(), i.begin() + n_part_old); // only x
+          thrust::copy(ijk.begin() + n_part_old, ijk.end(), i.begin() + n_part_old); // only x
         case 0:
           break;
         default:
           assert(false);
           break;
       }
+
+      thrust_device::vector<real_t> 
+                  *v[3] = { &x,           &y,           &z           };
+      const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
+      const real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
+      const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
+      const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
+      thrust_device::vector<thrust_size_t> 
+                  *ii[3] = { &i,           &j,           &k           };
 
       for (int ix = 0; ix < 3; ++ix)
       {

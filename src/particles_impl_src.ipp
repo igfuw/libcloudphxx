@@ -35,9 +35,9 @@ namespace libcloudphxx
           thrust::make_counting_iterator(0),
           count_num.begin(), 
           opts_init.src_sd_conc * opts_init.dt *                    // no of SDs to create
-          arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) +  // ratio of volumes
-          real_t(0.5),
-          (arg::_1 % opts_init.nz) <= k1
+          arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) +
+          real_t(0.5),   // ratio of volumes          
+          (arg::_1 % opts_init.nz) < k1
         ); 
       }
 
@@ -49,6 +49,7 @@ namespace libcloudphxx
       init_xyz_helper();
 
       // init rd, n
+/*
       init_dry(
         opts_init.src_dry_distros.begin()->first,
         opts_init.src_dry_distros.begin()->second,
@@ -58,8 +59,12 @@ namespace libcloudphxx
 
       // init rw
       init_wet();
+*/
 
       // init chem (TODO)
+ 
+      // after source particles are no longer sorted
+      sorted = false;
     }
   };  
 };
