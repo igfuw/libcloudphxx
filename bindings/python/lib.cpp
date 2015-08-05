@@ -81,10 +81,18 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("H_SO2")  = (real_t) (cmn::henry::H_SO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_H2O2") = (real_t) (cmn::henry::H_H2O2<real_t>() * si::cubic_metres * si::pascals / si::moles);
     bp::scope().attr("H_O3")   = (real_t) (cmn::henry::H_O3<real_t>()   * si::cubic_metres * si::pascals / si::moles);
-    bp::scope().attr("H_HNO3") = (real_t) (cmn::henry::H_HNO3<real_t>()  * si::cubic_metres * si::pascals / si::moles);
-    bp::scope().attr("H_NH3")  = (real_t) (cmn::henry::H_NH3<real_t>() * si::cubic_metres * si::pascals / si::moles);
-    bp::scope().attr("H_CO2")  = (real_t) (cmn::henry::H_CO2<real_t>()   * si::cubic_metres * si::pascals / si::moles);
-
+    bp::scope().attr("H_HNO3") = (real_t) (cmn::henry::H_HNO3<real_t>() * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_NH3")  = (real_t) (cmn::henry::H_NH3<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_CO2")  = (real_t) (cmn::henry::H_CO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    //Henry dep on temperature
+    bp::scope().attr("dHR_SO2")  = (real_t) (cmn::henry::dHR_SO2<real_t>()  / si::kelvins);
+    bp::scope().attr("dHR_H2O2") = (real_t) (cmn::henry::dHR_H2O2<real_t>() / si::kelvins);
+    bp::scope().attr("dHR_O3")   = (real_t) (cmn::henry::dHR_O3<real_t>()   / si::kelvins);
+    bp::scope().attr("dHR_HNO3") = (real_t) (cmn::henry::dHR_HNO3<real_t>() / si::kelvins);
+    bp::scope().attr("dHR_NH3")  = (real_t) (cmn::henry::dHR_NH3<real_t>()  / si::kelvins);
+    bp::scope().attr("dHR_CO2")  = (real_t) (cmn::henry::dHR_CO2<real_t>()  / si::kelvins);
+ 
+    //dissoc const
     bp::scope().attr("K_H2O")  = (real_t) (cmn::dissoc::K_H2O<real_t>()  / si::moles / si::moles * si::cubic_metres * si::cubic_metres);
     bp::scope().attr("K_SO2")  = (real_t) (cmn::dissoc::K_SO2<real_t>()  / si::moles * si::cubic_metres);
     bp::scope().attr("K_HSO3") = (real_t) (cmn::dissoc::K_HSO3<real_t>() / si::moles * si::cubic_metres);

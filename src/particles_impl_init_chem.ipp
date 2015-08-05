@@ -44,7 +44,7 @@ namespace libcloudphxx
       chem_ante_rhs.resize((chem_rhs_beg - 0           ) * n_part);
       chem_post_rhs.resize((chem_all     - chem_rhs_fin) * n_part);
       chem_stepper.adjust_size(chem_rhs);
-      
+
       // helper iterators
       for (int i = 0; i < chem_all; ++i)
       {
@@ -65,7 +65,6 @@ namespace libcloudphxx
         chem_end[i] = vec.begin() + (i+1 - offset) * n_part;
       }
 
-      // initial values
       for (int i = 0; i < chem_all; ++i)
       {
         // implied by the lognormal distro and split between SO4, H and NH4 ions

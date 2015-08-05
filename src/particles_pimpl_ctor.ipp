@@ -150,6 +150,7 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
+        tmp_device_real_part_2,
         tmp_device_real_cell,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
@@ -229,6 +230,7 @@ namespace libcloudphxx
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
+	tmp_device_real_part_2.resize(n_part); // TODO: only in chemistry, but probably soon not needed when V will be cached
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 	tmp_device_n_part.resize(n_part);

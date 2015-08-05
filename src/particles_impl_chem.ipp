@@ -41,26 +41,43 @@ namespace libcloudphxx
       struct chem_Henry_fun
       { // gas absorption into cloud droplets (Henrys law)
         const quantity<common::amount_over_volume_over_pressure, real_t> H;
+        const quantity<si::temperature, real_t> &dHR;
         const quantity<common::mass_over_amount, real_t> M;
         const quantity<si::dimensionless, real_t> c;
+        const quantity<common::diffusivity, real_t> D;
+        const quantity<si::dimensionless, real_t> acc_coeff;
+        const quantity<si::time, real_t> dt;
 
         // ctor
         chem_Henry_fun(
           const quantity<common::amount_over_volume_over_pressure, real_t> &H,
+          const quantity<si::temperature, real_t> &dHR,
           const quantity<common::mass_over_amount, real_t> &M,
-          const quantity<si::dimensionless, real_t> &c
+          const quantity<si::dimensionless, real_t> &c,
+          const quantity<common::diffusivity, real_t> &D,
+          const quantity<si::dimensionless, real_t> &acc_coeff,
+          const quantity<si::time, real_t> &dt
         ) : 
-          H(H), M(M), c(c)
+          H(H), dHR(dHR), M(M), c(c), D(D), acc_coeff(acc_coeff), dt(dt)
         {}
 
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &V, const real_t &p) const
-        { 
+        real_t operator()(const real_t &V, const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
+        {
+          const quantity<si::pressure, real_t>    p      = thrust::get<0>(tpl) * si::pascals; 
+          const quantity<si::temperature, real_t> T      = thrust::get<1>(tpl) * si::kelvins;     
+          const quantity<si::mass, real_t>        m_old  = thrust::get<2>(tpl) * si::kilograms;     
+          const quantity<si::area, real_t>        rw2    = thrust::get<3>(tpl) * si::metres * si::metres;  
+
+          //implicit solution to the eq. 8.22 from chapter 8.4.2 in Peter Warneck Chemistry of the Natural Atmosphere  
           return (
-            H                       // Henry's law
-            * c * (p * si::pascals) // volume concentration -> partial pressure
-            * V * si::cubic_metres  // drop volume 
-	    * M                     // moles -> kilograms
+            (m_old + M * V * si::cubic_metres * c * p / T / common::moist_air::kaBoNA<real_t>() 
+                     * dt * common::henry::mass_trans(rw2, D, acc_coeff, T, M)) 
+            /
+            (real_t(1.) 
+              + common::henry::mass_trans(rw2, D, acc_coeff, T, M) * dt 
+                / common::henry::H_temp(T, H, dHR) / common::moist_air::kaBoNA<real_t>() / T
+            )
           ) / si::kilograms;
         }
       };
@@ -171,12 +188,13 @@ namespace libcloudphxx
 
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(m_SO2, m_S_VI, m_CO2, m_HNO3, m_NH3, V),
-            m_H_pure, // min -> (pure water)
+            //m_H_pure, // min -> (pure water)
+            real_t(1e-40),
 	    real_t(1e-10), // max -> TODO
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
-          // std::cerr << "  " << m_H_pure << " ... " << m_H << " ... " << "TODO" << real_t(1e-10) << std::endl;
+          // std::cerr << "  " << real_t(1e-40) << " ... " << m_H << " ... " << "TODO" << real_t(1e-10) << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }
@@ -287,13 +305,13 @@ namespace libcloudphxx
         ) const
         {
           const quantity<si::mass, real_t>
-            m_SO2  = thrust::get<SO2  - chem_rhs_beg>(tpl) * si::kilograms,
-            m_H2O2 = thrust::get<H2O2 - chem_rhs_beg>(tpl) * si::kilograms,
-            m_O3   = thrust::get<O3   - chem_rhs_beg>(tpl) * si::kilograms,
-            m_HSO3 = thrust::get<HSO3 - chem_rhs_beg>(tpl) * si::kilograms,
-            m_S_VI = thrust::get<S_VI - chem_rhs_beg>(tpl) * si::kilograms,
-            m_SO3  = thrust::get<SO3  - chem_rhs_beg>(tpl) * si::kilograms,
-            m_H    = thrust::get<H    - chem_rhs_beg>(tpl) * si::kilograms;
+            m_SO2  = thrust::get<0>(tpl) * si::kilograms,
+            m_H2O2 = thrust::get<1>(tpl) * si::kilograms,
+            m_O3   = thrust::get<2>(tpl) * si::kilograms,
+            m_HSO3 = thrust::get<3>(tpl) * si::kilograms,
+            m_S_VI = thrust::get<4>(tpl) * si::kilograms,
+            m_SO3  = thrust::get<5>(tpl) * si::kilograms,
+            m_H    = thrust::get<6>(tpl) * si::kilograms;
           const quantity<si::volume, real_t> V = V_ * si::cubic_metres; 
 
           using namespace common::molar_mass;
@@ -413,15 +431,48 @@ namespace libcloudphxx
                     m_H
                   )), 
                   // output
-                  dot_psi.begin() + chem_iter * n_part, 
+                  dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   // op
                   chem_rhs_helper<real_t>(chem_iter)
                 );
+                assert(std::isfinite(*thrust::min_element(
+                  dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
+                  dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part + n_part
+                )));
                 break;
               default: 
                 assert(false);
             }
           }
+        }
+      };
+
+      template <typename real_t>
+      struct chem_new_rd3
+      { // recalculation of dry radii basing on created H2SO4
+        const quantity<si::mass_density, real_t> chem_rho;
+
+        // ctor
+        chem_new_rd3(
+          const real_t &chem_rho
+        ) : 
+          chem_rho(chem_rho * si::kilograms / si::cubic_metres)
+        {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(
+          const thrust::tuple<real_t, real_t, real_t> &tpl
+        ) 
+        { 
+          const quantity<si::mass, real_t>
+            m_S6_old  = thrust::get<0>(tpl) * si::kilograms,     // old H2SO4
+            m_S6_new  = thrust::get<1>(tpl) * si::kilograms;     // new H2SO4
+          const quantity<si::volume, real_t> 
+            rd3       = thrust::get<2>(tpl) * si::cubic_metres;  // old dry radii^3
+
+          return (
+            rd3 + (real_t(3./4) / pi<real_t>() / chem_rho) * (m_S6_new - m_S6_old)
+          ) / si::cubic_metres;
         }
       };
     };
@@ -454,21 +505,58 @@ namespace libcloudphxx
           HNO3 == 0 && NH3  == 1 && CO2 == 2 &&
           SO2  == 3 && H2O2 == 4 && O3  == 5 
         );
+        //Henry constant
         static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
           H_HNO3<real_t>(), H_NH3<real_t>(),  H_CO2<real_t>(),
 	  H_SO2<real_t>(),  H_H2O2<real_t>(), H_O3<real_t>()
         };
+        //correction to Henry const due to temperature
+        static const quantity<si::temperature, real_t> dHR_[chem_gas_n] = {
+          dHR_HNO3<real_t>(), dHR_NH3<real_t>(),  dHR_CO2<real_t>(),
+	  dHR_SO2<real_t>(),  dHR_H2O2<real_t>(), dHR_O3<real_t>()
+        };
+        //molar mass
         static const quantity<common::mass_over_amount, real_t> M_[chem_gas_n] = {
           M_HNO3<real_t>(),    M_NH3_H2O<real_t>(), M_CO2_H2O<real_t>(),
           M_SO2_H2O<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
         };
+        //gas phase diffusivity
+        static const quantity<common::diffusivity, real_t> D_[chem_gas_n] = {
+          D_HNO3<real_t>(), D_NH3<real_t>(),  D_CO2<real_t>(),
+          D_SO2<real_t>(),  D_H2O2<real_t>(), D_O3<real_t>()
+        };
+        //accomodation coefficient
+         static const quantity<si::dimensionless, real_t> ac_[chem_gas_n] = {
+          ac_HNO3<real_t>(), ac_NH3<real_t>(),  ac_CO2<real_t>(),
+          ac_SO2<real_t>(),  ac_H2O2<real_t>(), ac_O3<real_t>()
+        };
+
+	typedef thrust::permutation_iterator<
+	  typename thrust_device::vector<real_t>::iterator,
+	  typename thrust_device::vector<thrust_size_t>::iterator
+	> pi_t;
+
+	typedef thrust::zip_iterator<
+          thrust::tuple<
+            pi_t,                                              // pressure
+            pi_t,                                              // temprarature
+            typename thrust_device::vector<real_t>::iterator,  // m_old
+            typename thrust_device::vector<real_t>::iterator   // rw2
+          >
+        > zip_it_t;
+
         for (int i = 0; i < chem_gas_n; ++i)
         {
-	  thrust::transform(
-	    V.begin(), V.end(),                                        // input - 1st arg
-	    thrust::make_permutation_iterator(p.begin(), ijk.begin()), // input - 2nd arg
-	    chem_bgn[i],                                               // output
-	    detail::chem_Henry_fun<real_t>(H_[i], M_[i], chem_gas[i])  // op
+          thrust::transform(
+            V.begin(), V.end(),            // input - 1st arg
+            zip_it_t(thrust::make_tuple(   // input - 2nd arg
+	      thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+	      thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              chem_bgn[i],
+              rw2.begin() 
+            )),
+	    chem_bgn[i],                                                                                        // output
+	    detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_[i], chem_gas[i], D_[i], ac_[i], dt * si::seconds) // op
 	  );
         }
       }
@@ -531,29 +619,39 @@ namespace libcloudphxx
 
       if (chem_rct == true){  //TODO move to a separate function and then move the logic to opts particle_step 
         // 3/4: non-equilibrium stuff
-        {
-          chem_stepper.do_step(
-            detail::chem_rhs<real_t>(V, chem_bgn[H]), // TODO: make it an impl member field
-            chem_rhs, 
-            real_t(0),
-            dt
-          );
-        }
-      }
-
-      // 4/4: recomputing dry radii
-      {
-        namespace arg = thrust::placeholders;
-        // TODO: using namespace for S_VI
-        thrust::transform(
-          chem_bgn[S_VI], chem_end[S_VI],                               // input
-          rd3.begin(),                                                  // output
-          (real_t(3./4) / pi<real_t>() / opts_init.chem_rho) * arg::_1  // op
+        thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part_2);
+        // copy old H2SO4 values to allow dry radii recalculation
+        thrust::copy(
+          chem_bgn[S_VI], chem_end[S_VI], // from
+          old_S_VI.begin()                // to
         );
 
-        //debug::print(rd3)
-        //debug::print(chem_bgn[S_VI], chem_end[S_VI])
-      };
+        chem_stepper.do_step(
+          detail::chem_rhs<real_t>(V, chem_bgn[H]), // TODO: make it an impl member field
+          chem_rhs, 
+          real_t(0),
+          dt
+        );
+
+        // 4/4: recomputing dry radii
+        // TODO: using namespace for S_VI
+        typedef thrust::zip_iterator<
+          thrust::tuple<
+            typename thrust_device::vector<real_t>::iterator, // old S_VI 
+            typename thrust_device::vector<real_t>::iterator, // new_S_VI
+            typename thrust_device::vector<real_t>::iterator  // rd3
+          >
+        > zip_it_t;
+
+        zip_it_t 
+          arg_begin(thrust::make_tuple(old_S_VI.begin(), chem_bgn[S_VI], rd3.begin())),
+          arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
+       
+        thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
+
+        //debug::print(rd3);
+        //debug::print(chem_bgn[S_VI], chem_end[S_VI]);
+      }
     }
   };  
 };
