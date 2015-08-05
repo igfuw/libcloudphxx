@@ -34,9 +34,9 @@ namespace libcloudphxx
           dv.begin(), dv.end(), 
           thrust::make_counting_iterator(0),
           count_num.begin(), 
-          opts_init.src_sd_conc * opts_init.dt *                    // no of SDs to create
-          arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) +
-          real_t(0.5),   // ratio of volumes          
+          real_t(opts_init.src_sd_conc) *                           // no of SDs to create
+          arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) +  // ratio of volumes
+          real_t(0.5),             
           (arg::_1 % opts_init.nz) < k1
         ); 
       }
@@ -49,17 +49,17 @@ namespace libcloudphxx
       init_xyz_helper();
 
       // init rd, n
-/*
+
       init_dry(
         opts_init.src_dry_distros.begin()->first,
         opts_init.src_dry_distros.begin()->second,
-        impl::n_t(opts_init.src_sd_conc * opts_init.dt + 0.5)
+        opts_init.src_sd_conc
       ); // TODO: document that n_of_lnrd_stp is expected!
  
 
       // init rw
       init_wet();
-*/
+
 
       // init chem (TODO)
  

@@ -48,10 +48,10 @@ namespace libcloudphxx
       unsigned long long n_sd_max; 
 
       // source parameters
-      // source distro
+      // source distro per unit time
       dry_distros_t src_dry_distros;
-      // number of SDs created per cell per unit time
-      real_t src_sd_conc;
+      // number of SDs created per cell per source iteration
+      unsigned long long src_sd_conc;
       // height up to which aerosol will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_z1;
