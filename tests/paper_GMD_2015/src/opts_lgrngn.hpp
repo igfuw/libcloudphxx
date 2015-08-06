@@ -117,7 +117,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
 
   // coalescence kernel choice
-  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
+  //rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
+  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
   //rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard;
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
