@@ -34,6 +34,16 @@ namespace libcloudphxx
           return 0;
         }
       };
+
+      struct count_vol
+      {   
+        template <typename n_t, typename real_t>
+        BOOST_GPU_ENABLED
+        real_t operator()(const n_t &n, const real_t &rw2)
+        {
+          return n * pow(rw2, 3./2.);
+        }
+      };  
     };
 
     template <typename real_t, backend_t device>
@@ -79,11 +89,31 @@ namespace libcloudphxx
 	    }
 
 	    // precipitation on the bottom edge of the domain
-	    //// first: count the volume of particles below the domain
-	    // TODO! (using tranform_reduce?)
-	    //// second: zero-out multiplicities so they will be recycled
 	    {
 	      namespace arg = thrust::placeholders;
+
+              thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+
+              thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
+
+              thrust::transform_if(
+                n.begin(), n.end(),               // input 1
+                rw2.begin(),                      // input 2
+                z.begin(),                        // stencil
+                n_filtered.begin(),               // output
+                detail::count_vol(),              // operation
+                arg::_1 < opts_init.z0            // condition
+              );
+  
+              ret = 4./3. * thrust::reduce(n_filtered.begin(), n_filtered.end())
+#if !defined(__NVCC__)
+              * pi<real_t>();
+#else
+              * CUDART_PI;
+#endif
+
+
+              // zero-out multiplicities
 	      thrust::transform_if(   
 		z.begin(), z.end(),          // input 
 		n.begin(),                   // output
