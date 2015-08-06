@@ -41,7 +41,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const n_t &n, const real_t &rw2)
         {
-          return n * pow(rw2, 3./2.);
+          return n * pow(rw2, real_t(3./2.));
         }
       };  
     };
