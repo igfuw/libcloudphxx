@@ -21,9 +21,9 @@ namespace libcloudphxx
   namespace lgrngn
   {
     namespace detail
-    { 
+    {   
       enum { invalid = -1 };
-    };
+    };  
 
     // pimpl stuff 
     template <typename real_t, backend_t device>
@@ -33,7 +33,7 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
       const opts_init_t<real_t> opts_init; // a copy
@@ -48,7 +48,9 @@ namespace libcloudphxx
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+      thrust_device::vector<kernel_long<real_t, n_t> > k_long;
       thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
+      thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
       thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
@@ -64,9 +66,9 @@ namespace libcloudphxx
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 2D and 3D)
+	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 1D, 2D and 3D)
+	z;   // z spatial coordinate (for 2D and 3D)
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -172,6 +174,7 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_init_t<real_t> &opts_init) : 
+        init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
 	opts_init(opts_init),
@@ -217,6 +220,13 @@ namespace libcloudphxx
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
         if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.coal_switch)
+        {
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
+          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
+        }
+        if (opts_init.sedi_switch)
+          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -229,7 +239,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims)
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is x
           {
             case 3:
               n_grid = std::max(std::max(
@@ -244,10 +254,13 @@ namespace libcloudphxx
                 (opts_init.nx+0) * (opts_init.nz+1)
               );
               break;
+            case 1:
+              n_grid = opts_init.nx+1;
+              break;
             case 0:
               n_grid = 1;
               break;
-            default: assert(false); // TODO: 1D case
+            default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
@@ -285,12 +298,16 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_remove_n0();
 
       void moms_all();
    
       void moms_cmp(
         const typename thrust_device::vector<real_t>::iterator &vec1_bgn,
         const typename thrust_device::vector<real_t>::iterator &vec2_bgn
+      );
+      void moms_ge0(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
       );
       void moms_rng(
         const real_t &min, const real_t &max, 
@@ -323,8 +340,9 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas);
-      void rcyc();
+      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
+                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
+      thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
       void sstp_step(const int &step, const bool &var_rho);

@@ -5,7 +5,6 @@ from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
 import numpy as np
 
-
 rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
@@ -20,19 +19,24 @@ def lognormal(lnr):
 
 kappa = .61
 
-
-for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin, lgrngn.kernel_t.onishi_hall_davis_no_waals]:
+count = 0
+for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin, lgrngn.kernel_t.onishi_hall_davis_no_waals]:
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
-  opts_init.kernel = kernel
   opts_init.dry_distros = {kappa:lognormal}
   opts_init.sd_conc_mean = 50.
   opts_init.terminal_velocity=lgrngn.vt_t.beard
-  opts_init.kernel_parameters = np.array([]);
+  opts_init.kernel = kernel
+  opts_init.kernel_parameters = np.array([])
   if(kernel == lgrngn.kernel_t.golovin):
-    opts_init.kernel_parameters = np.array([1.]);
-  if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals):
-    opts_init.kernel_parameters = np.array([0.04, 100]);
+    opts_init.kernel_parameters = np.array([1.])
+  if(kernel == lgrngn.kernel_t.geometric):
+    if(count == 0):
+    # geometric
+      count+=1
+    else:
+    # geometric with multiplier
+      opts_init.kernel_parameters = np.array([10.])
 
   try:
     prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
@@ -46,7 +50,9 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.hall, lgrngn.kernel_t.
   Opts.sedi = False
   Opts.cond = False
   Opts.coal = True
-  Opts.chem = False
+  Opts.chem_dsl = False
+  Opts.chem_dsc = False
+  Opts.chem_rct = False
 
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)

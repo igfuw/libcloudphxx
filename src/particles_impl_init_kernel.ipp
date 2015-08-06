@@ -10,7 +10,8 @@ namespace libcloudphxx
 
       switch(opts_init.kernel)
       {
-        case(golovin):
+        case(kernel_t::golovin):
+          // init device kernel parameters vector
           if(n_user_params != 1)
           {
             throw std::runtime_error("Golovin kernel accepts exactly one parameter.");
@@ -24,20 +25,42 @@ namespace libcloudphxx
           p_kernel = (&(k_golovin[0])).get();
           break;
 
-        case(geometric):
-          if(n_user_params != 0)
+        case(kernel_t::geometric):
+          // init kernel parameters vector
+          if(n_user_params > 1)
           {
-            throw std::runtime_error("Geometric kernel doesn't accept parameters.");
+            throw std::runtime_error("Geometric kernel accepts up to one parameter.");
           }
+          else if(n_user_params == 1)
+          {
+            kernel_parameters.resize(1);
+            thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
 
-          // init kernel
-          k_geometric.resize(1, kernel_geometric<real_t, n_t> ());
-          p_kernel = (&(k_geometric[0])).get();
+            // init kernel
+            k_geometric_with_multiplier.resize(1, kernel_geometric_with_multiplier<real_t, n_t> (kernel_parameters.data()));
+            p_kernel = (&(k_geometric_with_multiplier[0])).get();
+          }
+          else //without multiplier
+          {
+            // init kernel
+            k_geometric.resize(1, kernel_geometric<real_t, n_t> ());
+            p_kernel = (&(k_geometric[0])).get();
+          }
           break;
-        
+
+        case(kernel_t::Long):
+          // init kernel parameters vector
+          if(n_user_params > 0)
+          {
+            throw std::runtime_error("Long kernel doesn't take parameters.");
+          }
+            // init kernel
+            k_long.resize(1, kernel_long<real_t, n_t> ());
+            p_kernel = (&(k_long[0])).get();
+          break;
   
         //Hall kernel
-        case(hall):
+        case(kernel_t::hall):
           if(n_user_params != 0)
           {
             throw std::runtime_error("Hall kernel doesn't accept parameters.");
@@ -61,7 +84,7 @@ namespace libcloudphxx
 
 
         //Hall kernel with Davis and Jones (no van der Waals) efficiencies for small molecules (like Shima et al. 2009)
-        case(hall_davis_no_waals):
+        case(kernel_t::hall_davis_no_waals):
           if(n_user_params != 0)
           {
             throw std::runtime_error("Hall + Davis kernel doesn't accept parameters.");
@@ -130,7 +153,7 @@ namespace libcloudphxx
           break;
 
         default:
-          throw std::runtime_error("please supply a type of collision kernel to use"); //TODO: move to pimpl ctor sanity checks?
+          ;
       }
     }
   }

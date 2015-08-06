@@ -80,19 +80,6 @@ namespace libcloudphxx
         count_mom.begin()
       );
 
-      count_n = n.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
-      // dividing by dv
-      thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-        thrust::make_permutation_iterator(                  // input - second arg
-          dv.begin(),
-          count_ijk.begin()
-        ),
-        count_mom.begin(),                                  // output (in place)
-        thrust::divides<real_t>()
-      );
-
       real_t prefactor = 4. / 3. * ( common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres ) *
 #if !defined(__NVCC__)
         sqrt(pi<real_t>() / 2.);
@@ -100,12 +87,20 @@ namespace libcloudphxx
         sqrt(CUDART_PI / 2.);
 #endif
 
-      // multiplying by prefactor
+      namespace arg = thrust::placeholders;
+
+      count_n = n.first - count_ijk.begin();
+      assert(count_n > 0 && count_n <= n_cell);
+
+      //multiply by prefactor and divide by dv
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-        thrust::make_constant_iterator(prefactor),          // input - second arg        
+        thrust::make_permutation_iterator(                  // input - second arg
+          dv.begin(),
+          count_ijk.begin()
+        ),
         count_mom.begin(),                                  // output (in place)
-        thrust::multiplies<real_t>()
+        prefactor * arg::_1 / arg::_2
       );
     }
   };

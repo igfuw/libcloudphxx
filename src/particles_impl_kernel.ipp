@@ -112,6 +112,52 @@ namespace libcloudphxx
       }
     };
 
+    //geometric kernel with a multiplier
+    template <typename real_t, typename n_t>
+    struct kernel_geometric_with_multiplier : kernel_geometric<real_t, n_t>
+    {
+      //ctor
+      kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
+
+      BOOST_GPU_ENABLED
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      {
+        return kernel_geometric<real_t, n_t>::calc(tpl_wrap) * kernel_base<real_t, n_t>::k_params[0];
+      }
+    };
+
+    //Long kernel
+    template <typename real_t, typename n_t>
+    struct kernel_long : kernel_geometric<real_t, n_t>
+    {
+      enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+      //ctor
+      kernel_long() : kernel_geometric<real_t, n_t>() {}
+
+      BOOST_GPU_ENABLED
+      virtual real_t calc(const tpl_rw_t_wrap<real_t,n_t> &tpl_wrap) const
+      {
+#if !defined(__NVCC__)
+        using std::abs;
+        using std::pow;
+        using std::max;
+        using std::min;
+#endif
+        real_t res = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
+
+        real_t r_L = max(sqrt(thrust::get<rw2_a_ix>(tpl_wrap())), sqrt(thrust::get<rw2_b_ix>(tpl_wrap())));
+        if(r_L < 5.e-6)
+        {
+          real_t r_s = min(sqrt(thrust::get<rw2_a_ix>(tpl_wrap())), sqrt(thrust::get<rw2_b_ix>(tpl_wrap())));
+          if(r_s <= 3e-6)
+            res = 0.;
+          else
+            res *= 4.5e8 * r_L * r_L * (1. - 3e-6/r_s);
+        }
+        
+        return  res;
+      }
+    };
 
     template <typename real_t, typename n_t>
     struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>

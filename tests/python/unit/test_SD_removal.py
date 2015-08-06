@@ -39,9 +39,14 @@ Opts.adve = False
 Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
-Opts.chem = False
+Opts.chem_dsl = False
+Opts.chem_dsc = False
+Opts.chem_rct = False
 
 for i in range(900):
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)
 
+prtcls.diag_sd_conc()
+if(np.frombuffer(prtcls.outbuf())[0] != 6):
+  raise Exception("wrong amount of SDs were removed")

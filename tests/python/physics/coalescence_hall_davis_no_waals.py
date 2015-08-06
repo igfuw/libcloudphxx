@@ -22,7 +22,7 @@ def RMSD(a1, a2):
   return np.sqrt(tot/nonempty)
 
 #initial conditions, ca. 1g / m^3
-r_zero = 3.0531e-6                      # can't be greater due to rd_max_init = 1e-5
+r_zero = 30.084e-6                      # can't be greater due to rd_max_init = 1e-5
 n_zero = 1.25 * pow(2,23)
 
 # initial exponential distribution in droplet volume, cf. Shima 2009
@@ -32,8 +32,8 @@ def expvolumelnr(lnr):
   return n_zero * 3.*np.power(r,3)/np.power(r_zero,3)*np.exp(- np.power((r/r_zero),3));
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dt = 1
-opts_init.sstp_coal = 1
+opts_init.dt = simulation_time
+opts_init.sstp_coal = simulation_time
 
 opts_init.dx = 100
 opts_init.dz = 1
@@ -46,7 +46,7 @@ rhod =   1. * np.ones((opts_init.nx, opts_init.nz))
 th   = 300. * np.ones((opts_init.nx, opts_init.nz))
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.nz))
 
-kappa = 50. #unrealistic, but we want initial wet radii of the order of 30 um so that coalescence takes place 
+kappa = 0.
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
@@ -81,9 +81,8 @@ def diag(arg):
 results = np.zeros(bins.size-1)
 
 #simulation loop
-for t in range(int((simulation_time)/opts_init.dt)):
-  prtcls.step_sync(opts, th, rv, rhod)
-  prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod)
+prtcls.step_async(opts)
     
 diag(results)
 

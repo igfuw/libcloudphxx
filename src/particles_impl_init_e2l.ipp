@@ -26,7 +26,14 @@ namespace libcloudphxx
 	  break;
 	case 1:  
           assert(arr.strides[0] == 1);
-          assert(false && "TODO"); // TODO: 1D case
+	  thrust::transform(
+            // input
+            zero, zero + l2e[key].size(), 
+            // output
+            l2e[key].begin(), 
+            // op
+            arg::_1
+	  );
 	  break;
 	case 2:
           // assumes z veries fastest
@@ -50,15 +57,7 @@ namespace libcloudphxx
             l2e[key].begin(),
             // op
 	    arr.strides[0] * /* i = */ (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) +  
-	    arr.strides[1] * /* j = */ (
-                                         (
-                                           arg::_1 - 
-                                           (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) * 
-                                           ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))
-                                         ) 
-                                         / 
-                                         (opts_init.nz + ext_z)
-                                       ) +   
+            arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
 	    arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
           );
           break;

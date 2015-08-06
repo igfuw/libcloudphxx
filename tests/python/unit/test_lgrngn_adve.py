@@ -19,8 +19,8 @@ def lognormal(lnr):
 Opts_init = lgrngn.opts_init_t()
 kappa = .61
 Opts_init.dry_distros = {kappa:lognormal}
-Opts_init.kernel = lgrngn.kernel_t.geometric
-Opts_init.terminal_velocity = lgrngn.vt_t.beard
+Opts_init.coal_switch = False
+Opts_init.sedi_switch = False
 
 Opts_init.dt = 1
 
