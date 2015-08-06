@@ -28,6 +28,8 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   opts_init.terminal_velocity=lgrngn.vt_t.beard
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([])
+  if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals):
+    opts_init.kernel_parameters = np.array([0.04, 100]);
   if(kernel == lgrngn.kernel_t.golovin):
     opts_init.kernel_parameters = np.array([1.])
   if(kernel == lgrngn.kernel_t.geometric):

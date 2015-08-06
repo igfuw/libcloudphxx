@@ -107,7 +107,7 @@ namespace libcloudphxx
           break;
 
         //Hall kernel with Pinsky gravitational (stagnant) efficiencies for small molecules at p=1000mb
-        case(hall_pinsky_1000mb_grav):
+        case(kernel_t::hall_pinsky_1000mb_grav):
           if(n_user_params != 0)
           {
             throw std::runtime_error("Hall + Pinsky kernel doesn't accept parameters.");
@@ -130,7 +130,7 @@ namespace libcloudphxx
           break;
 
         //Onishi turbulent kernel (Onishi 2015 JAS) with Hall, Davis and Jones (no van der Waals) efficiencies 
-        case(onishi_hall_davis_no_waals):
+        case(kernel_t::onishi_hall_davis_no_waals):
           if(n_user_params != 2)
           {
             throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");

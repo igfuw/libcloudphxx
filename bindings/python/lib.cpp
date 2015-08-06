@@ -133,7 +133,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("golovin", lgr::kernel_t::golovin)
       .value("hall", lgr::kernel_t::hall)
       .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals)
-      .value("long", lgr::kernel_t::Long);
+      .value("long", lgr::kernel_t::Long)
       .value("hall_pinsky_1000mb_grav", lgr::kernel_t::hall_davis_no_waals)
       .value("onishi_hall_davis_no_waals", lgr::kernel_t::onishi_hall_davis_no_waals);
     bp::enum_<lgr::vt_t::vt_t>("vt_t") 
