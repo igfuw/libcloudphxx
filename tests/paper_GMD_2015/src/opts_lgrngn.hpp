@@ -98,6 +98,8 @@ void setopts_micro(
 
   // coalescence kernel choice
   rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
+  // terminal velocity choice
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
   // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
   rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
 
