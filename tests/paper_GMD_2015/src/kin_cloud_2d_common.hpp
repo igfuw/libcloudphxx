@@ -17,6 +17,7 @@ class kin_cloud_2d_common : public
 
   typename ct_params_t::real_t dx, dz; // 0->dx, 1->dy ! TODO
   int spinup; // number of timesteps
+  int src_t0, src_t1; //time interval of source
 
   // relaxation stuff
   bool relax_th_rv;
@@ -26,6 +27,10 @@ class kin_cloud_2d_common : public
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
 
+  // source stuff
+  virtual bool get_src() = 0;
+  virtual void set_src(bool) = 0;
+
   void hook_ante_loop(int nt) 
   {
     if (get_rain() == false) 
@@ -34,6 +39,7 @@ class kin_cloud_2d_common : public
       spinup = relax_th_rv = 0;      
     }
     if (spinup > 0) set_rain(false);
+    if (src_t0 > 0) set_src(false);
 
     parent_t::hook_ante_loop(nt); 
   }
@@ -44,6 +50,15 @@ class kin_cloud_2d_common : public
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
+    }
+
+    if (src_t0 != 0 && src_t0 == this->timestep)
+    {
+      set_src(true);
+    }
+    if (src_t1 != 0 && src_t1 == this->timestep)
+    {
+      set_src(false);
     }
 
     using ix = typename ct_params_t::ix;
@@ -98,6 +113,7 @@ class kin_cloud_2d_common : public
   { 
     typename ct_params_t::real_t dx = 0, dz = 0;
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
+    int src_t0, src_t1;
     bool relax_th_rv = true;
   };
 
@@ -110,6 +126,8 @@ class kin_cloud_2d_common : public
     dx(p.dx),
     dz(p.dz),
     spinup(p.spinup),
+    src_t0(p.src_t0),
+    src_t1(p.src_t1),
     relax_th_rv(p.relax_th_rv),
     th_eq(this->mem->grid_size[1]),
     rv_eq(this->mem->grid_size[1])

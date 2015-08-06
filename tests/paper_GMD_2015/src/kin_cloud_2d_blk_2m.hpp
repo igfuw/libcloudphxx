@@ -98,6 +98,9 @@ class kin_cloud_2d_blk_2m : public kin_cloud_2d_common<ct_params_t>
     opts.acnv = val; 
     opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup
   };
+  bool get_src() {}; 
+  void set_src(bool val){};
+
 
   public:
 

@@ -24,7 +24,7 @@ namespace setup = icmw8_case1;
 
 // model run logic - the same for any microphysics
 template <class solver_t>
-void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv)
+void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv, int src_t0, int src_t1)
 {
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -34,9 +34,12 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   p.outdir = outdir;
   p.outfreq = outfreq;
   p.spinup = spinup;
+  p.src_t0 = src_t0;
+  p.src_t1 = src_t1;  
   p.relax_th_rv = relax_th_rv;
   setup::setopts(p, nx, nz);
   setopts_micro<solver_t>(p, nx, nz, nt);
+  if(p.src_t1 == 0) p.src_t1 == nt;
 
   // solver instantiation
   std::unique_ptr<
@@ -108,6 +111,8 @@ int main(int argc, char** argv)
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
+      ("src_t0", po::value<int>()->default_value(2400) , "time at which source is turned on")
+      ("src_t1", po::value<int>()->default_value(2400) , "time at which source is turned off")
       ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
       ("relax_th_rv", po::value<bool>()->default_value(true) , "relaxation of th and rv")
       ("help", "produce a help message (see also --micro X --help)")
@@ -141,6 +146,8 @@ int main(int argc, char** argv)
       nx = vm["nx"].as<int>(),
       nz = vm["nz"].as<int>(),
       nt = vm["nt"].as<int>(),
+      src_t0 = vm["src_t0"].as<int>(),
+      src_t1 = vm["src_t1"].as<int>(),
       spinup = vm["spinup"].as<int>();
 
     // handling serial-advection-forcing flag
@@ -162,7 +169,7 @@ int main(int argc, char** argv)
   	  enum { n_eqns = 4 };
           struct ix { enum {th, rv, rc, rr}; };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv, src_t0, src_t1);
       }
       else
       {
@@ -172,7 +179,7 @@ int main(int argc, char** argv)
           struct ix { enum {th, rv, rc, rr}; };
           enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv, src_t0, src_t1);
       }
     }
 
@@ -184,7 +191,7 @@ int main(int argc, char** argv)
 	enum { n_eqns = 6 };
 	struct ix { enum {th, rv, rc, rr, nc, nr}; }; 
       };
-      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv, src_t0, src_t1);
     }
 
     else 
@@ -197,7 +204,7 @@ int main(int argc, char** argv)
   	  enum { n_eqns = 2 };
   	  struct ix { enum {th, rv}; };
         };
-        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv, src_t0, src_t1);
       }
       else
       {
@@ -207,7 +214,7 @@ int main(int argc, char** argv)
   	  struct ix { enum {th, rv}; };
           enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
         };
-        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv, src_t0, src_t1);
       }
     }
     else BOOST_THROW_EXCEPTION(
