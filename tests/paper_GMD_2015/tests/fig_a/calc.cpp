@@ -33,11 +33,11 @@ int main(int ac, char** av)
   }
 
   string opts_common = 
-    "--outfreq=200 --nt=96000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=true --src_t0=15000 --src_t1=96000";
+    "--outfreq=1200 --nt=96000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=true --src_t0=7200 --src_t1=96000";
   set<string> opts_micro({
 //    "--micro=blk_1m --outdir=out_blk_1m",
 //    "--micro=blk_2m --outdir=out_blk_2m",
-    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=64 --src_sd_conc=64 --supstp_src=600 --sstp_cond=15 --sstp_coal=1"  
+    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=64 --src_sd_conc=64 --supstp_src=200 --sstp_cond=15 --sstp_coal=1"  
       " --out_wet=\""
         ".5e-6:25e-6|0,1,2,3;" // FSSP
         "25e-6:1|0,3;"         // "rain"
