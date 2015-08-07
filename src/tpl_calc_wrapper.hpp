@@ -23,8 +23,8 @@ namespace libcloudphxx
           real_t                        // eta
         > tpl_ro_calc_t;
 
-        tpl_rw_t &tpl_rw;
-        tpl_ro_calc_t &tpl_ro_calc;
+        tpl_rw_t tpl_rw;
+        tpl_ro_calc_t tpl_ro_calc;
 
         BOOST_GPU_ENABLED
         tpl_calc_wrap(tpl_rw_t _tpl_rw, tpl_ro_calc_t _tpl_ro_calc):
