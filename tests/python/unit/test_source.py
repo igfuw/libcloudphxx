@@ -48,8 +48,6 @@ opts_init.cond_switch = 0;
 opts_init.sedi_switch = 0;
 opts_init.src_switch = 1;
 
-backend = lgrngn.backend_t.OpenMP
-
 opts = lgrngn.opts_t()
 
 opts.adve = 0;
@@ -62,7 +60,11 @@ rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
 th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01],[    .01,    .01]])
 
-prtcls = lgrngn.factory(backend, opts_init)
+try:
+  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+except:
+  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+
 prtcls.init(th, rv, rhod)
 
 # 100 steps during which number of droplets should be doubled in two calls to src
