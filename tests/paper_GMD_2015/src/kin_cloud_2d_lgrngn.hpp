@@ -118,8 +118,8 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       // libmpdata++'s grid interpretation
       params.cloudph_opts_init.x0 = params.dx / 2;
       params.cloudph_opts_init.z0 = params.dz / 2;
-      params.cloudph_opts_init.x1 = (this->mem->grid_size[0] - .5) * params.dx;
-      params.cloudph_opts_init.z1 = (this->mem->grid_size[1] - .5) * params.dz;
+      params.cloudph_opts_init.x1 = (this->mem->grid_size[0].length() - .5) * params.dx;
+      params.cloudph_opts_init.z1 = (this->mem->grid_size[1].length() - .5) * params.dz;
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
         (libcloudphxx::lgrngn::backend_t)params.backend, 
@@ -131,12 +131,12 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         // temporarily Cx & Cz are multiplied by rhod ...
         auto 
           Cx = this->mem->GC[0](
-            rng_t(0, this->mem->grid_size[0]-1)^h, 
-            rng_t(0, this->mem->grid_size[1]-1)
+            this->mem->grid_size[0]^h, 
+            this->mem->grid_size[1]
           ).reindex({0,0}).copy(),
           Cz = this->mem->GC[1](
-            rng_t(0, this->mem->grid_size[0]-1), 
-            rng_t(0, this->mem->grid_size[1]-1)^h
+            this->mem->grid_size[0], 
+            this->mem->grid_size[1]^h
           ).reindex({0,0}).copy();
 
         // ... and now dividing them by rhod (z=0 is located at j=1/2)
