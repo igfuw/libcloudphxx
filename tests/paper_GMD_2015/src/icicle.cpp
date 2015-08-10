@@ -17,9 +17,6 @@ namespace setup = icmw8_case1;
 #include "opts_blk_2m.hpp"
 #include "opts_lgrngn.hpp"
 
-// exception handling
-#include <boost/exception/all.hpp>
-
 #include "panic.hpp"
 
 // model run logic - the same for any microphysics
@@ -97,7 +94,6 @@ int main(int argc, char** argv)
   ac = argc;
   av = argv;
 
-  try
   {
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
@@ -130,8 +126,8 @@ int main(int argc, char** argv)
     int outfreq;
     if (!vm.count("help"))
     {
-      if (!vm.count("outdir")) BOOST_THROW_EXCEPTION(po::required_option("outdir"));
-      if (!vm.count("outfreq")) BOOST_THROW_EXCEPTION(po::required_option("outfreq"));
+      if (!vm.count("outdir")) throw po::required_option("outdir");
+      if (!vm.count("outfreq")) throw po::required_option("outfreq");
       outdir = vm["outdir"].as<std::string>();
       outfreq = vm["outfreq"].as<int>();
     }
@@ -210,15 +206,9 @@ int main(int argc, char** argv)
         run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
     }
-    else BOOST_THROW_EXCEPTION(
+    else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 
-      )
-    );
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << boost::current_exception_diagnostic_information();
-    exit(EXIT_FAILURE);
+      );
   }
 }
