@@ -67,6 +67,7 @@ namespace libcloudphxx
       // mean molecular velocity
       // mean of the Maxwell distribution at a given temperature
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> molec_vel(
         const quantity<si::temperature, real_t> &T,
         const quantity<mass_over_amount, real_t> &M
@@ -74,7 +75,13 @@ namespace libcloudphxx
         return (
           real_t(  //bug in boost #6957
             sqrt(
-              real_t(8.) / pi<real_t>() 
+              real_t(8.) / 
+
+#if !defined(__NVCC__)
+	      pi<real_t>()
+#else
+	      CUDART_PI
+#endif
               * (moist_air::kaBoNA<real_t>() * T  / M) / si::square_metres * si::seconds * si::seconds
             )
           ) * si::metres / si::seconds
@@ -84,6 +91,7 @@ namespace libcloudphxx
       //mass transfer coefficient
       //Peter Warneck - Chemistry of the Natural Atmosphere (chapter 8.4.2 eq. 8.23)
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<one_over_time, real_t> mass_trans(
         const quantity<si::area, real_t> &rw2,
         const quantity<diffusivity, real_t> &D,
@@ -101,6 +109,7 @@ namespace libcloudphxx
 
       //Henry constant(temperature)
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<amount_over_volume_over_pressure, real_t> H_temp(
         const quantity<si::temperature, real_t> &T,
         const quantity<amount_over_volume_over_pressure, real_t> &H,

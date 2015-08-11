@@ -483,10 +483,12 @@ namespace libcloudphxx
                   // op
                   chem_rhs_helper<real_t>(chem_iter)
                 );
+#if !defined(__NVCC__) // TODO...
                 assert(std::isfinite(*thrust::min_element(
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part + n_part
                 )));
+#endif
                 break;
               default: 
                 assert(false);
@@ -519,7 +521,13 @@ namespace libcloudphxx
             rd3       = thrust::get<2>(tpl) * si::cubic_metres;  // old dry radii^3
 
           return (
-            rd3 + (real_t(3./4) / pi<real_t>() / chem_rho) * (m_S6_new - m_S6_old)
+            rd3 + (real_t(3./4) /
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            / chem_rho) * (m_S6_new - m_S6_old)
           ) / si::cubic_metres;
         }
       };

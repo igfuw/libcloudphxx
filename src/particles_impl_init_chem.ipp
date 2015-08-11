@@ -29,6 +29,75 @@ namespace libcloudphxx
           return mltpl * pow(rw2, real_t(3./2));
         }
       };
+
+      template <typename real_t>
+      struct chem_init_NH4
+      {
+        const real_t chem_rho;
+
+        chem_init_NH4(const real_t &chem_rho) : chem_rho(chem_rho) {}
+
+	BOOST_GPU_ENABLED
+	real_t operator()(const real_t &rd3) const 
+        { 
+          using namespace common::molar_mass;
+          return 
+            real_t(4./3) * 
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            * chem_rho * rd3
+            * (M_NH4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+	}
+      };
+
+      template <typename real_t>
+      struct chem_init_SO4
+      {
+        const real_t chem_rho;
+
+        chem_init_SO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
+
+	BOOST_GPU_ENABLED
+	real_t operator()(const real_t &rd3) const 
+        { 
+          using namespace common::molar_mass;
+          return 
+            real_t(4./3) * 
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            * chem_rho * rd3
+            * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+	}
+      };
+
+      template <typename real_t>
+      struct chem_init_H
+      {
+        const real_t chem_rho;
+
+        chem_init_H(const real_t &chem_rho) : chem_rho(chem_rho) {}
+
+	BOOST_GPU_ENABLED
+	real_t operator()(const real_t &rd3) const 
+        { 
+          using namespace common::molar_mass;
+          return 
+            real_t(4./3) * 
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            * chem_rho * rd3
+            * (M_H<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+	}
+      };
     };
 
     template <typename real_t, backend_t device>
@@ -74,34 +143,28 @@ namespace libcloudphxx
         {
           case NH4:
           {
-            namespace arg = thrust::placeholders;
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
-              (real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * arg::_1 
-                * (M_NH4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()))  // op
+              detail::chem_init_NH4<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
           case SO4:
           {
-            namespace arg = thrust::placeholders;
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
-              (real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * arg::_1 
-                * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()))  // op
+              detail::chem_init_SO4<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
           case H:
           {
-            namespace arg = thrust::placeholders;
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
-              (real_t(4./3) * pi<real_t>() * opts_init.chem_rho) * arg::_1 
-                * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()))  // op
+              detail::chem_init_H<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
