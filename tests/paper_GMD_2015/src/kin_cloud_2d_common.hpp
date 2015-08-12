@@ -68,8 +68,8 @@ class kin_cloud_2d_common : public
       // they will be the relaxation goals
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0] - 1);
-        rv_eq(j) = this->mem->sum(this->state(ix::rv), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0] - 1);
+        th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length() - 1);
+        rv_eq(j) = this->mem->sum(this->state(ix::rv), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length() - 1);
       }
     }
 
@@ -99,7 +99,7 @@ class kin_cloud_2d_common : public
           const auto &psi = this->state(a);
           // relax horizontal mean
           /*
-          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0] - 1);
+          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length() - 1);
           if(a == ix::th)
             rhs.at(a)(this->i, j) =  (th_eq(j) - psi_mean) / tau;
           else
@@ -137,8 +137,8 @@ class kin_cloud_2d_common : public
     src_t0(p.src_t0),
     src_t1(p.src_t1),
     relax_th_rv(p.relax_th_rv),
-    th_eq(this->mem->grid_size[1]),
-    rv_eq(this->mem->grid_size[1])
+    th_eq(this->mem->grid_size[1].length()),
+    rv_eq(this->mem->grid_size[1].length())
   {
     assert(dx != 0);
     assert(dz != 0);
