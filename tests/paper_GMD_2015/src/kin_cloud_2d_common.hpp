@@ -111,8 +111,8 @@ class kin_cloud_2d_common : public
     dz(p.dz),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv),
-    th_eq(this->mem->grid_size[1]),
-    rv_eq(this->mem->grid_size[1])
+    th_eq(this->mem->grid_size[1].length()),
+    rv_eq(this->mem->grid_size[1].length())
   {
     assert(dx != 0);
     assert(dz != 0);
