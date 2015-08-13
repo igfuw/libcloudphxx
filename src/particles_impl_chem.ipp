@@ -41,7 +41,7 @@ namespace libcloudphxx
       struct chem_Henry_fun
       { // gas absorption into cloud droplets (Henrys law)
         const quantity<common::amount_over_volume_over_pressure, real_t> H;
-        const quantity<si::temperature, real_t> &dHR;
+        const quantity<si::temperature, real_t> dHR;
         const quantity<common::mass_over_amount, real_t> M;
         const quantity<si::dimensionless, real_t> c;
         const quantity<common::diffusivity, real_t> D;
@@ -85,7 +85,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_save_moles_2
       {
-        const quantity<common::mass_over_amount, real_t> &M1, &M2, &M3; //molar mass
+        const quantity<common::mass_over_amount, real_t> M1, M2, M3; //molar mass
 	
         // ctor
         BOOST_GPU_ENABLED
@@ -111,7 +111,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_save_moles_1
       {
-        const quantity<common::mass_over_amount, real_t> &M1, &M2; //molar mass
+        const quantity<common::mass_over_amount, real_t> M1, M2; //molar mass
 	
         // ctor
         BOOST_GPU_ENABLED
@@ -138,9 +138,9 @@ namespace libcloudphxx
         // returns the difference between the mass of H+ ions already present 
         // and the mass of H+ ions needed to be added (due to dissociation)
         // in order to maintain electroneutrality
-	const quantity<si::amount, real_t> &n_SO2_old, &n_CO2_old, &n_HNO3_old, &n_NH3_old;
-	const quantity<si::mass, real_t> &m_S_VI;
-	const quantity<si::volume, real_t> &V;
+	const quantity<si::amount, real_t> n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old;
+	const quantity<si::mass, real_t> m_S_VI;
+	const quantity<si::volume, real_t> V;
         
         // ctor
         BOOST_GPU_ENABLED
@@ -731,7 +731,36 @@ namespace libcloudphxx
           thrust::transform(arg_begin, arg_end, chem_bgn[NO3],  detail::chem_dissoc_diag<real_t, NO3 >());
           thrust::transform(arg_begin, arg_end, chem_bgn[NH3],  detail::chem_dissoc_diag<real_t, NH3 >());
           thrust::transform(arg_begin, arg_end, chem_bgn[NH4],  detail::chem_dissoc_diag<real_t, NH4 >());
-        }
+/*
+          std::cerr<<" "<<std::endl;
+          std::cerr<<"positive ions: "<< std::endl;
+          std::cerr<<"H+"<<std::endl;
+          debug::print(chem_bgn[H], chem_end[H]);
+          std::cerr<<"NH4+"<<std::endl;
+          debug::print(chem_bgn[NH4], chem_end[NH4]);
+          std::cerr<<"negative ions: "<< std::endl;
+
+          std::cerr<<"OH-"<<std::endl;
+          debug::print(chem_bgn[OH], chem_end[OH]);
+
+          std::cerr<<"HSO3-"<<std::endl;
+          debug::print(chem_bgn[HSO3], chem_end[HSO3]);
+          std::cerr<<"SO3--"<<std::endl;
+          debug::print(chem_bgn[SO3], chem_end[SO3]);
+
+          std::cerr<<"HSO4-"<<std::endl;
+          debug::print(chem_bgn[HSO4], chem_end[HSO4]);
+          std::cerr<<"SO4--"<<std::endl;
+          debug::print(chem_bgn[SO4], chem_end[SO4]);
+
+          std::cerr<<"HCO3-"<<std::endl;
+          debug::print(chem_bgn[HCO3], chem_end[HCO3]);
+          std::cerr<<"CO3--"<<std::endl;
+          debug::print(chem_bgn[CO3], chem_end[CO3]);
+
+          std::cerr<<"NO3-"<<std::endl;
+          debug::print(chem_bgn[NO3], chem_end[NO3]);
+*/        }
       }
 
       if (chem_rct == true){  //TODO move to a separate function and then move the logic to opts particle_step 

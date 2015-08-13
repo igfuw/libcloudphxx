@@ -77,6 +77,30 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct chem_init_S6
+      {//TODO - done temporarily to pass the info on the initial condition of SO4 ions to dissociation
+       // think of a better way for init cond of ony NH4+ and SO4-- ions...
+        const real_t chem_rho;
+
+        chem_init_S6(const real_t &chem_rho) : chem_rho(chem_rho) {}
+
+	BOOST_GPU_ENABLED
+	real_t operator()(const real_t &rd3) const 
+        { 
+          using namespace common::molar_mass;
+          return 
+            real_t(4./3) * 
+#if !defined(__NVCC__)
+            pi<real_t>()
+#else
+            CUDART_PI
+#endif
+            * chem_rho * rd3
+            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+	}
+      };
+
+      template <typename real_t>
       struct chem_init_H
       {
         const real_t chem_rho;
@@ -133,6 +157,9 @@ namespace libcloudphxx
         chem_bgn[i] = vec.begin() + (i   - offset) * n_part;
         chem_end[i] = vec.begin() + (i+1 - offset) * n_part;
       }
+      assert(chem_end[chem_rhs_beg-1] == chem_ante_rhs.end());
+      assert(chem_end[chem_rhs_fin-1] == chem_rhs.end());
+      assert(chem_end[chem_all-1] == chem_post_rhs.end());
 
       for (int i = 0; i < chem_all; ++i)
       {
@@ -165,6 +192,15 @@ namespace libcloudphxx
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
               detail::chem_init_H<real_t>(opts_init.chem_rho)
+	    );
+          }
+          break;
+          case S_VI:
+          {
+	    thrust::transform(
+              rd3.begin(), rd3.end(),                                                    // input
+              chem_bgn[i],                                                               // output
+              detail::chem_init_S6<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
