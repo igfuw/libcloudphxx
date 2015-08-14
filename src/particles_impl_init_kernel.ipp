@@ -71,9 +71,6 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
@@ -95,9 +92,6 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
@@ -106,11 +100,51 @@ namespace libcloudphxx
           p_kernel = (&(k_geometric_with_efficiencies[0])).get();
           break;
 
+        //Vohl kernel with Davis and Jones (no van der Waals) efficiencies for small molecules
+        case(kernel_t::vohl_davis_no_waals):
+          if(n_user_params != 0)
+          {
+            throw std::runtime_error("Vohl + Davis kernel doesn't accept parameters.");
+          }
+          //read in kernel efficiencies to a temporary container
+          detail::vohl_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
+         
+          //reserve device memory for kernel parameters vector
+          kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
+
+          //append efficiencies to device vector
+          thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
+
+          // init kernel
+          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::vohl_davis_no_waals_r_max<real_t>()));
+          p_kernel = (&(k_geometric_with_efficiencies[0])).get();
+          break;
+
+        //Hall efficiencies plus turbulent efficiencies from Pinsky (2008) for stratocumuli (r<=21 um)
+        case(kernel_t::hall_pinsky_stratocumulus):
+          if(n_user_params != 0)
+          {
+            throw std::runtime_error("Hall + Pinsky (stratocumulus) kernel doesn't accept parameters.");
+          }
+          //read in kernel efficiencies to a temporary container
+          detail::hall_pinsky_stratocumulus_efficiencies<real_t> (tmp_kernel_eff);
+         
+          //reserve device memory for kernel parameters vector
+          kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
+
+          //append efficiencies to device vector
+          thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
+
+          // init kernel
+          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::hall_pinsky_stratocumulus_r_max<real_t>()));
+          p_kernel = (&(k_geometric_with_efficiencies[0])).get();
+          break;
+
         //Hall kernel with Pinsky gravitational (stagnant) efficiencies for small molecules at p=1000mb
         case(kernel_t::hall_pinsky_1000mb_grav):
           if(n_user_params != 0)
           {
-            throw std::runtime_error("Hall + Pinsky kernel doesn't accept parameters.");
+            throw std::runtime_error("Hall + Pinsky (gravitational 1000mb) kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_pinsky_1000mb_grav_efficiencies<real_t> (tmp_kernel_eff);
@@ -118,14 +152,31 @@ namespace libcloudphxx
           //reserve device memory for kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
 
-          //copy user-defined parameters to device memory
-          thrust::copy(opts_init.kernel_parameters.begin(), opts_init.kernel_parameters.end(), kernel_parameters.begin());
-
           //append efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
 
           // init kernel
           k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::hall_pinsky_1000mb_grav_r_max<real_t>()));
+          p_kernel = (&(k_geometric_with_efficiencies[0])).get();
+          break;
+
+        //Hall efficiencies plus turbulent efficiencies from Pinsky (2008) for cumulonimbus (r<=21 um)
+        case(kernel_t::hall_pinsky_cumulonimbus):
+          if(n_user_params != 0)
+          {
+            throw std::runtime_error("Hall + Pinsky (cumulonimbus) kernel doesn't accept parameters.");
+          }
+          //read in kernel efficiencies to a temporary container
+          detail::hall_pinsky_cumulonimbus_efficiencies<real_t> (tmp_kernel_eff);
+         
+          //reserve device memory for kernel parameters vector
+          kernel_parameters.resize(opts_init.kernel_parameters.size() + tmp_kernel_eff.size());
+
+          //append efficiencies to device vector
+          thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_parameters.begin()+n_user_params);
+
+          // init kernel
+          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::hall_pinsky_cumulonimbus_r_max<real_t>()));
           p_kernel = (&(k_geometric_with_efficiencies[0])).get();
           break;
 

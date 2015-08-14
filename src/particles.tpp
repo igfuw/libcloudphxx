@@ -19,6 +19,9 @@
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions/vohl_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #include "particles_impl_kernel.ipp"
