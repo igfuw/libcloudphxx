@@ -13,6 +13,8 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 #include "detail/kernel_utils.hpp"
+#include "detail/wang_collision_enhancement.hpp"
+#include "detail/kernel_onishi_nograv.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -20,6 +22,7 @@
 #include "detail/kernel_definitions/vohl_davis_no_waals_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #include "particles_impl_kernel.ipp"
 
@@ -45,6 +48,7 @@
 #include "particles_impl_hskpng_vterm.ipp"
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
+#include "particles_impl_hskpng_remove.ipp"
 
 #include "particles_impl_moms.ipp"
 #include "particles_impl_mass_dens.ipp"

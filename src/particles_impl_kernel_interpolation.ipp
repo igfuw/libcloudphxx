@@ -6,15 +6,17 @@ namespace libcloudphxx
   {
     template <typename real_t, typename n_t>
     BOOST_GPU_ENABLED
-    real_t kernel_geometric<real_t, n_t>::bilinear_interpolation(real_t r1, real_t r2) const
+    real_t kernel_geometric<real_t, n_t>::interpolated_efficiency(real_t r1, real_t r2) const //radii in meters
     {
-      n_t dx, dy, // distance between efficiencies in the matrix
-          x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
+      r1*=1e6; r2*=1e6; // to work on micrometers
 
       if(r1 >= kernel_base<real_t, n_t>::r_max) 
         r1 = kernel_base<real_t, n_t>::r_max - 1e-6;
       if(r2 >= kernel_base<real_t, n_t>::r_max) 
         r2 = kernel_base<real_t, n_t>::r_max - 1e-6; 
+
+      n_t dx, dy, // distance between efficiencies in the matrix
+          x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
 
       if(r1 >= 100.)
       {
@@ -40,22 +42,12 @@ namespace libcloudphxx
       x[1] = x[0] + dx;
       x[3] = x[2] + dy;
 
-      n_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
+      thrust_size_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
-      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]));
-      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]));
-      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]));
-      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]));
-
-      // do not interpolate if one of probabilities == 0, since there are some large differences (i.e. 0 | 0.97 | 0.98 | 0.99 | 1.) 
-      for(int i = 0; i < 4;++i)
-        if(kernel_base<real_t, n_t>::k_params[iv[i]]==0)
-          return kernel_base<real_t, n_t>::k_params[
-                   detail::kernel_vector_index<n_t>(
-                     detail::kernel_index_round<real_t, n_t>(r1),
-                     detail::kernel_index_round<real_t, n_t>(r2)
-                   )
-                 ];
+      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
+      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
+      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
+      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
 
       real_t w[4];   //  weighting factors
       w[0] = r1 - x[0];

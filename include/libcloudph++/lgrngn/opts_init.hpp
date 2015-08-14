@@ -63,12 +63,15 @@ namespace libcloudphxx
       // RH threshold for calculating equilibrium condition at t=0
       real_t RH_max;
 
+      // rng seed
+      int rng_seed;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
-        nx(0), ny(0), nz(0), // the defaults are OK for a parcel set-up 
-        dx(1), dy(1), dz(1), // (but are only used to compute n_part -
-        x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
-        x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
+        nx(0), ny(0), nz(0),
+        dx(1), dy(1), dz(1),
+        x0(0), y0(0), z0(0),
+        x1(1), y1(1), z1(1),
         sd_conc_mean(0), 
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
@@ -77,6 +80,7 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
+        rng_seed(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined)
       {}

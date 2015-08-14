@@ -4,6 +4,7 @@
 
 #if defined(__NVCC__)
 #  include <curand.h>
+#  include <limits>
 #else
 #  include <random>
 #  include <algorithm>
@@ -16,39 +17,56 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t, int backend>
-      class u01
+      class rng
       {
 #if !defined(__NVCC__)
 	// serial version using C++11's <random>
 	using engine_t = std::mt19937;
-        using dist_t = std::uniform_real_distribution<real_t>;
+        using dist_u01_t = std::uniform_real_distribution<real_t>;
+        using dist_un_t = std::uniform_int_distribution<unsigned int>;
 	engine_t engine;
-	dist_t dist;
+	dist_u01_t dist_u01;
+	dist_un_t dist_un;
 
-	struct fnctr
+	struct fnctr_u01
 	{
           engine_t &engine;
-          dist_t &dist;
-	  real_t operator()() { return dist(engine); }
+          dist_u01_t &dist_u01;
+	  real_t operator()() { return dist_u01(engine); }
+	};
+
+	struct fnctr_un
+	{
+          engine_t &engine;
+          dist_un_t &dist_un;
+	  real_t operator()() { return dist_un(engine); }
 	};
 
 	public:
 
         // ctor
-        u01() : engine(44), dist(0,1) {}
+        rng(int seed) : engine(seed), dist_u01(0,1), dist_un(0, std::numeric_limits<unsigned int>::max()) {}
 
 	void generate_n(
 	  thrust_device::vector<real_t> &u01, 
 	  const thrust_size_t n
 	) {
           // note: generate_n copies the third argument!!!
-	  std::generate_n(u01.begin(), n, fnctr({.engine = engine, .dist = dist})); 
+	  std::generate_n(u01.begin(), n, fnctr_u01({.engine = engine, .dist_u01 = dist_u01})); 
+	}
+
+	void generate_n(
+	  thrust_device::vector<unsigned int> &un, 
+	  const thrust_size_t n
+	) {
+          // note: generate_n copies the third argument!!!
+	  std::generate_n(un.begin(), n, fnctr_un({.engine = engine, .dist_un = dist_un})); 
 	}
 #endif
       };
  
       template <typename real_t>
-      class u01<real_t, CUDA>
+      class rng<real_t, CUDA>
       {
 #if defined(__NVCC__)
 	// CUDA parallel version using curand
@@ -58,7 +76,7 @@ namespace libcloudphxx
 	
 	public:
 
-	u01()
+	rng(int seed)
 	{
           {
 	    int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
@@ -66,13 +84,13 @@ namespace libcloudphxx
 	    _unused(status);
           }
           {
-	    int status = curandSetPseudoRandomGeneratorSeed(gen, 44);
+	    int status = curandSetPseudoRandomGeneratorSeed(gen, seed);
 	    assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
             _unused(status);
 	  }
         }
 
-	~u01()
+	~rng()
 	{
 	  int status = curandDestroyGenerator(gen); 
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandDestroyGenerator failed"*/);
@@ -95,6 +113,16 @@ namespace libcloudphxx
 	)
 	{
 	  int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
+	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+          _unused(status);
+	}
+
+	void generate_n(
+	  thrust_device::vector<unsigned int> &v, 
+	  const thrust_size_t n
+	)
+	{
+	  int status = curandGenerate(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
 	}

@@ -26,3 +26,9 @@ assert common.th_std2dry(common.th_dry2std(th, rv), rv) == th
 rd3 = (.2e-6)**3
 assert common.rw3_cr(rd3, .5, 300) > rd3
 assert common.S_cr(rd3, .5, 300) > 1
+
+# just testing if pressure at 200m is lower than at 100m
+assert common.p_hydro(100, 300, .01, 0, 100000) > common.p_hydro(200, 300, .01, 0, 100000)
+
+# just testing if the density is > 1 kg / m3
+assert common.rhod(100000, 300, 0) > 1

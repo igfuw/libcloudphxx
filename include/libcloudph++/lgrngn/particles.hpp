@@ -43,9 +43,9 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_z
+        const arrinfo_t<real_t> courant_x
       ) { 
-        this->init(th, rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), courant_z); 
+        this->init(th, rv, rhod, courant_x, arrinfo_t<real_t>(), arrinfo_t<real_t>()); 
       }  
 
       // 0D version

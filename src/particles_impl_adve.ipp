@@ -55,6 +55,7 @@ namespace libcloudphxx
       {
         case 3:
         case 2:
+        case 1:
         {
           // advection
           typedef thrust::permutation_iterator<
@@ -78,7 +79,7 @@ namespace libcloudphxx
             );
           }
 
-          if (n_dims == 3)
+          if (n_dims > 2)
           {
             const pi_real_size
               C_fre(courant_x.begin(), pi_size_size(fre.begin(), ijk.begin())),
@@ -91,6 +92,7 @@ namespace libcloudphxx
             );
           }
 
+          if (n_dims > 1) 
           {
             const pi_real_size
               C_abv(courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
@@ -105,9 +107,6 @@ namespace libcloudphxx
 
           break; 
         }
-        case 1:
-          assert(false && "TODO");
-          break;
         case 0: break;
         default: assert(false);
       }
