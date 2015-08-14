@@ -11,6 +11,17 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      template<typename t_a, typename t_b>
+      struct two_keys_sort
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const thrust::tuple<t_a, t_b> &a, const thrust::tuple<t_a, t_b> &b)
+        {
+          if(a.head < b.head) return true;
+          if(a.head == b.head) return a.tail < b.tail;
+          return false;
+        }
+      };
     };
 
     template <typename real_t, backend_t device>
@@ -43,11 +54,54 @@ namespace libcloudphxx
 
       // TODO: assert that we do not introduce particles into supersaturated cells?
 
-      // update all vectors between n_part_old and n_part
+      // --- sort already existing SDs; primary key ijk, secondary rd ---
+      // filling-in sorted_id with a sequence
+      thrust::sequence(sorted_id.begin(), sorted_id.end());
+     
+      // use tmp_device_real_part as tmp copy of rd3
+      thrust::copy(
+        rd3.begin(), rd3.end(), // from
+        tmp_device_real_part.begin()      // to
+      );
 
-      // init ijk and n_part
+      // copy ijk to sorted ijk
+      thrust::copy(
+        ijk.begin(), ijk.end(), // from
+        sorted_ijk.begin()      // to
+      );
+
+      // sorting by ijk and rd3
+      thrust::sort_by_key(
+        thrust::make_zip_iterator(thrust::make_tuple(
+          sorted_ijk.begin(),
+          tmp_device_real_part.begin()
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple(
+          sorted_ijk.begin(),
+          tmp_device_real_part.begin()
+        )) + n_part,                           // keys
+        sorted_id.begin(),                     // values
+        detail::two_keys_sort<thrust_size_t, real_t>()
+      ); 
+
+      // --- see how many already existing SDs fall into size bins
+      {
+        // tmp vector to hold number of particles in a given size bin in a given cell
+        // potentially could be rather large...
+        // TODO: will it be emptied when it goes out of scope?
+        thrust_device::vector<thrust_size_t> bin_cell_count(opts_init.src_sd_conc * n_cell);
+        // TODO: some cells will have different bins due to differen vol, hense different src_sd_conc.....
+
+        // tmp vector od IDs of SDs that are the smallest ones to fall into the first bin in given cell
+        thrust_device::vector<thrust_size_t> &first_id(tmp_device_size_cell);
+      }
+
+      // ------ update all vectors between n_part_old and n_part ------
+
+      // init ijk and n_part, resize vectors
       // also set n_part_old and n_part_to_init used by init_dry and init_wet
       init_ijk();
+
 
       // init rd, n
       init_dry(
@@ -65,7 +119,7 @@ namespace libcloudphxx
 
       // init chem (TODO)
  
-      // after source particles are no longer sorted
+      // --- after source particles are no longer sorted ---
       sorted = false;
     }
   };  

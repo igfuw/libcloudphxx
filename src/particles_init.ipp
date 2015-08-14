@@ -62,13 +62,13 @@ namespace libcloudphxx
       pimpl->init_sstp();
 
       // --------  init super-droplet characteristics  --------
-      // initialising housekeeping data of the size of the max number of SDs
+      // reserve memory for data of the size of the max number of SDs
       pimpl->init_hskpng_npart(); 
 
       // init number of SDs in cells
       pimpl->init_count_num();
 
-      // init ijk vector
+      // init ijk vector, also n_part and resize n_part vectors
       pimpl->init_ijk();
 
       // initialising dry radii (needs ijk and rhod)

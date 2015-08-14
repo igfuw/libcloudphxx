@@ -28,7 +28,7 @@ namespace libcloudphxx
     };
 
     // init ijk based on the number of SDs to init in each cell stored in count_num
-    // Particles are considered to be sorted by cell number, in order
+    // Particles to init are considered to be sorted by cell number, in order
     // to obtain uniform initial distribution in each cell (see particles_impl_init_dry)
     // reused in source
     template <typename real_t, backend_t device>
