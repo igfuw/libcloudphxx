@@ -30,6 +30,7 @@ namespace libcloudphxx
       assert(!rv.is_null());
       assert(!rhod.is_null());
 
+      // --------  init cell characteristics  --------
       // initialising Eulerian-Lagrandian coupling
       pimpl->init_sync();
       pimpl->init_e2l(th,   &pimpl->th);
@@ -51,20 +52,26 @@ namespace libcloudphxx
       // initialising housekeeping data of the size ncell
       pimpl->init_hskpng_ncell(); 
 
-      // initialising housekeeping data of the size of the max number of SDs
-      pimpl->init_hskpng_npart(); 
-
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
       // done before init_xyz, cause it uses dv initialized here
       pimpl->init_grid();
 
-      // initialising particle positions
-      pimpl->init_xyz();
-
       // initialising Tpr
       pimpl->hskpng_Tpr(); 
 
-      // initialising dry radii (needs positions, ijk and rhod)
+      pimpl->init_sstp();
+
+      // --------  init super-droplet characteristics  --------
+      // initialising housekeeping data of the size of the max number of SDs
+      pimpl->init_hskpng_npart(); 
+
+      // init number of SDs in cells
+      pimpl->init_count_num();
+
+      // init ijk vector
+      pimpl->init_ijk();
+
+      // initialising dry radii (needs ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
       pimpl->init_dry(
         pimpl->opts_init.dry_distros.begin()->first,
@@ -75,11 +82,13 @@ namespace libcloudphxx
       // initialising wet radii
       pimpl->init_wet();
 
+      // initialising particle positions
+      pimpl->init_xyz();
+
       // initialising chem stuff
       if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
-      pimpl->init_sstp();
-
+      // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
     }

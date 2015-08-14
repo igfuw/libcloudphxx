@@ -275,8 +275,9 @@ namespace libcloudphxx
         const n_t sd_conc,
         const real_t dt = 1.
       );
+      void init_ijk();
       void init_xyz();
-      void init_xyz_helper();
+      void init_count_num();
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();

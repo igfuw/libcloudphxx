@@ -93,5 +93,5 @@ rmsd = RMSD(results,bott1800)
 
 print 'RMSD = ' + str(rmsd);
 
-if(rmsd > 4.6e-2):
+if(rmsd > 5.e-2):
   raise Exception("Simulation result does not agree with analytic prediction")

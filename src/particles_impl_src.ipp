@@ -44,12 +44,12 @@ namespace libcloudphxx
       // TODO: assert that we do not introduce particles into supersaturated cells?
 
       // update all vectors between n_part_old and n_part
-      // init x, y, z, ijk, i, j, k, n_part
+
+      // init ijk and n_part
       // also set n_part_old and n_part_to_init used by init_dry and init_wet
-      init_xyz_helper();
+      init_ijk();
 
       // init rd, n
-
       init_dry(
         opts_init.src_dry_distros.begin()->first,
         opts_init.src_dry_distros.begin()->second,
@@ -59,6 +59,9 @@ namespace libcloudphxx
 
       // init rw
       init_wet();
+
+      // init x, y, z, i, j, k
+      init_xyz();
 
       // init chem (TODO)
  
