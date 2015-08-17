@@ -73,10 +73,14 @@ namespace libcloudphxx
 
       // initialising dry radii (needs ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      pimpl->init_dry(
-        pimpl->opts_init.dry_distros.begin()->first,
+      // analyze the distribution
+      pimpl->dist_analysis(
         pimpl->opts_init.dry_distros.begin()->second,
         pimpl->opts_init.sd_conc
+      );
+      pimpl->init_dry(
+        pimpl->opts_init.dry_distros.begin()->first,
+        pimpl->opts_init.dry_distros.begin()->second
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // initialising wet radii

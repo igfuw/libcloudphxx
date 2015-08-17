@@ -70,6 +70,11 @@ namespace libcloudphxx
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 2D and 3D)
 
+      // dry radii distribution characteristics
+      real_t log_rd_min, // logarithm of the lower bound of the distr
+             log_rd_max, // logarithm of the upper bound of the distr
+             multiplier; // multiplier calculated for the above values
+
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
 
@@ -271,6 +276,9 @@ namespace libcloudphxx
 
       void init_dry(
         const real_t kappa, // TODO: map
+        const common::unary_function<real_t> *n_of_lnrd
+      );
+      void dist_analysis(
         const common::unary_function<real_t> *n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.

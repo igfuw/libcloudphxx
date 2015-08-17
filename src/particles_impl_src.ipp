@@ -84,8 +84,23 @@ namespace libcloudphxx
         detail::two_keys_sort<thrust_size_t, real_t>()
       ); 
 
+      // analyze distribution to get rd_min and max needed for bin sizes
+      // TODO: this could be done once at the beginning of the simulation
+      dist_analysis(
+        opts_init.src_dry_distros.begin()->second,
+        opts_init.src_sd_conc,
+        dt
+      ); 
+/*
       // --- see how many already existing SDs fall into size bins
       {
+        // tmp vector with bin number of existing SDs
+        thrust_device::vector<unsigned int> &bin_no(tmp_device_n_part);
+ 
+        thrust::transform(
+          rd3.begin(),
+ 
+ 
         // tmp vector to hold number of particles in a given size bin in a given cell
         // potentially could be rather large...
         // TODO: will it be emptied when it goes out of scope?
@@ -95,7 +110,7 @@ namespace libcloudphxx
         // tmp vector od IDs of SDs that are the smallest ones to fall into the first bin in given cell
         thrust_device::vector<thrust_size_t> &first_id(tmp_device_size_cell);
       }
-
+*/
       // ------ update all vectors between n_part_old and n_part ------
 
       // init ijk and n_part, resize vectors
@@ -106,9 +121,7 @@ namespace libcloudphxx
       // init rd, n
       init_dry(
         opts_init.src_dry_distros.begin()->first,
-        opts_init.src_dry_distros.begin()->second,
-        opts_init.src_sd_conc,
-        dt
+        opts_init.src_dry_distros.begin()->second
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // init rw

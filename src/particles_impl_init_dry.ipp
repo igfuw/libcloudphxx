@@ -76,41 +76,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry(
       const real_t kappa,
-      const common::unary_function<real_t> *n_of_lnrd_stp, // TODO: kappa-spectrum map
-      const impl::n_t sd_conc,
-      const real_t dt
+      const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
     )
     {
-      // probing the spectrum to find rd_min-rd_max range
-      // values to start the search 
-      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
-      real_t rd_min = rd_min_init, rd_max = rd_max_init;
-
-      bool found_optimal_range = false;
-      real_t multiplier;
-      while (!found_optimal_range)
-      {
-	multiplier = log(rd_max / rd_min) 
-	  / sd_conc
-          * dt
-	  * (n_dims == 0
-	    ? dv[0]
-	    : (opts_init.dx * opts_init.dy * opts_init.dz)
-	  );
-        impl::n_t 
-          n_min = (*n_of_lnrd_stp)(log(rd_min)) * multiplier, 
-          n_max = (*n_of_lnrd_stp)(log(rd_max)) * multiplier;
-
-        if (rd_min == rd_min_init && n_min != 0) 
-          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_min_init");
-        if (rd_max == rd_max_init && n_max != 0) 
-          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_max_init");
-        
-        if      (n_min == 0) rd_min *= 1.1;
-        else if (n_max == 0) rd_max /= 1.1;
-        else found_optimal_range = true;
-      }
-
       // filling kappas
       thrust::fill(kpa.begin() + n_part_old, kpa.end(), kappa);
 
@@ -155,7 +123,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(ptr.begin(), ijk.begin() + n_part_old)        // number of SDs in cells up to this one
         )) + n_part_to_init,
         lnrd.begin() + n_part_old, 
-        calc_lnrd<real_t>(log(rd_min), log(rd_max))
+        calc_lnrd<real_t>(log_rd_min, log_rd_max)
       );
       
       // filling n with multiplicities
