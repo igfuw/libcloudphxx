@@ -40,6 +40,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
    
     // recording total precipitation volume through the lower boundary
     f_prec << this->timestep << " "  << prec_vol << "\n";
+    prec_vol = 0.;
    
     // recording requested statistical moments
     {
@@ -200,7 +201,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         ((this->timestep - 1) % this->outfreq != 0) // ... and not after diag call
       ) {
         assert(ftr.valid());
-        ftr.get();
+        prec_vol += ftr.get();
       } else assert(!ftr.valid());
 #endif
 
@@ -229,7 +230,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
           assert(ftr.valid());
         } else 
 #endif
-          prec_vol = prtcls->step_async(params.cloudph_opts);
+          prec_vol += prtcls->step_async(params.cloudph_opts);
       }
 
       // performing diagnostics
@@ -239,7 +240,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         if (params.async)
         {
           assert(ftr.valid());
-          prec_vol = ftr.get();
+          prec_vol += ftr.get();
         }
 #endif
         diag();
