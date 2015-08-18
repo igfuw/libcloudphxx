@@ -23,7 +23,7 @@ namespace libcloudphxx
     namespace bp = boost::python;
     using py_ptr_t = long; // TODO: acquire it using some decltype()
 
-    inline void sanity_checks(const bp::numeric::array &arg)
+    void sanity_checks(const bp::numeric::array &arg)
     {
       // assuring double precision
       if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
@@ -35,7 +35,7 @@ namespace libcloudphxx
     }
 
     template <class arr_t>
-    inline arr_t np2bz(const bp::numeric::array &arg)
+    arr_t np2bz(const bp::numeric::array &arg)
     {
       sanity_checks(arg);
 
@@ -53,7 +53,7 @@ namespace libcloudphxx
     }
 
     template <class real_t>
-    inline lgrngn::arrinfo_t<real_t> np2ai(
+    lgrngn::arrinfo_t<real_t> np2ai(
       const bp::numeric::array &arg,
       const std::array<int, 3> &sz
     ) {
