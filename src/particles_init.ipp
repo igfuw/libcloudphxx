@@ -85,7 +85,10 @@ namespace libcloudphxx
         pimpl->opts_init.dry_distros.begin()->second,
         pimpl->opts_init.sd_conc
       );
-      pimpl->init_dry(
+      pimpl->init_dry();
+
+      // init multiplicities
+      pimpl->init_n(
         pimpl->opts_init.dry_distros.begin()->first,
         pimpl->opts_init.dry_distros.begin()->second
       ); // TODO: document that n_of_lnrd_stp is expected!

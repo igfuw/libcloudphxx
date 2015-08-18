@@ -29,6 +29,7 @@
 // details
 #include "particles_impl_dist_analysis.ipp"
 #include "particles_impl_init_dry.ipp"
+#include "particles_impl_init_n.ipp"
 #include "particles_impl_init_wet.ipp"
 #include "particles_impl_init_xyz.ipp"
 #include "particles_impl_init_ijk.ipp"

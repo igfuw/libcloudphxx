@@ -274,7 +274,8 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
 
-      void init_dry(
+      void init_dry();
+      void init_n(
         const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd
       );

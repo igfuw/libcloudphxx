@@ -34,70 +34,30 @@ namespace libcloudphxx
 	  return exp(3*x); 
 	} 
       };
-
-      template <typename real_t>
-      struct eval_and_multiply
-      {   
-        const common::unary_function<real_t> &fun;
-        const real_t &mul;
-
-        // ctor
-        eval_and_multiply(
-          const common::unary_function<real_t> &fun, 
-          const real_t &mul
-        )
-          : fun(fun), mul(mul)
-        {}
-
-        real_t operator()(real_t x)  
-        {
-          return mul * fun(x); 
-        }
-      };  
-    };
     
-    template<typename real_t>
-    struct calc_lnrd
-    {
-      const real_t ln_rd_min,
-                   ln_rd_max;
-   
-      calc_lnrd(const real_t &ln_rd_min, const real_t &ln_rd_max): ln_rd_min(ln_rd_min), ln_rd_max(ln_rd_max) {}
-
-      template<typename Tuple>
-      BOOST_GPU_ENABLED
-      real_t operator()(Tuple tup)
+      template<typename real_t>
+      struct calc_lnrd
       {
-        return ln_rd_min + real_t(thrust::get<2>(tup) - thrust::get<3>(tup) + thrust::get<0>(tup)) * (ln_rd_max - ln_rd_min)  / real_t(thrust::get<1>(tup));
-      }
+        const real_t ln_rd_min,
+                     ln_rd_max;
+     
+        calc_lnrd(const real_t &ln_rd_min, const real_t &ln_rd_max): ln_rd_min(ln_rd_min), ln_rd_max(ln_rd_max) {}
+  
+        template<typename Tuple>
+        BOOST_GPU_ENABLED
+        real_t operator()(Tuple tup)
+        {
+          return ln_rd_min + real_t(thrust::get<2>(tup) - thrust::get<3>(tup) + thrust::get<0>(tup)) * (ln_rd_max - ln_rd_min)  / real_t(thrust::get<1>(tup));
+        }
+      };
     };
 
     // init
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_dry(
-      const real_t kappa,
-      const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
-    )
+    void particles_t<real_t, device>::impl::init_dry()
     {
-      // filling kappas
-      thrust::fill(kpa.begin() + n_part_old, kpa.end(), kappa);
-
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part_to_init);
-
-      // temporary space on the host 
-      thrust::host_vector<real_t> tmp_real(n_part_to_init);
-      thrust::host_vector<thrust_size_t> tmp_ijk(n_part_to_init);
-      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
-
-      thrust::copy(
-	rhod.begin(), rhod.end(), // from
-	tmp_rhod.begin()          // to
-      );
-      thrust::copy(
-	ijk.begin()+n_part_old, ijk.end(), // from
-	tmp_ijk.begin()         // to
-      );
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
@@ -123,48 +83,9 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(ptr.begin(), ijk.begin() + n_part_old)        // number of SDs in cells up to this one
         )) + n_part_to_init,
         lnrd.begin() + n_part_old, 
-        calc_lnrd<real_t>(log_rd_min, log_rd_max)
+        detail::calc_lnrd<real_t>(log_rd_min, log_rd_max)
       );
       
-      // filling n with multiplicities
-      // (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
-      // device -> host (not needed for omp or cpp ... but happens just once)
-      thrust::copy(lnrd.begin()+n_part_old, lnrd.end(), tmp_real.begin()); 
-      
-      // evaluating n_of_lnrd_stp
-      thrust::transform(
-        tmp_real.begin(), tmp_real.end(), // input 
-        tmp_real.begin(),                 // output
-        detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
-      );
-
-      // correcting STP -> actual ambient conditions
-      {
-        namespace arg = thrust::placeholders;
-        using common::earth::rho_stp;
-
-        thrust::transform(
-          tmp_real.begin(), tmp_real.end(),            // input - 1st arg
-          thrust::make_permutation_iterator( // input - 2nd arg
-            tmp_rhod.begin(), 
-            tmp_ijk.begin()
-          ),
-          tmp_real.begin(),                       // output
-          arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
-        ); 
-
-	// host -> device (includes casting from real_t to uint! and rounding)
-	thrust::copy(
-          thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
-          thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
-          n.begin() + n_part_old
-        ); 
-      }
-        
-      // detecting possible overflows of n type
-      thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
-      assert(n[ix] < (typename impl::n_t)(-1) / 10000);
-
       // converting rd back from logarithms to rd3
       thrust::transform(
         lnrd.begin() + n_part_old,

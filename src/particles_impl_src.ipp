@@ -222,12 +222,14 @@ namespace libcloudphxx
       // also set n_part_old and n_part_to_init used by init_dry and init_wet
       init_ijk();
 
-
-      // init rd, n
-      init_dry(
+      // init n
+      init_n(
         opts_init.src_dry_distros.begin()->first,
         opts_init.src_dry_distros.begin()->second
       ); // TODO: document that n_of_lnrd_stp is expected!
+
+      // init rd
+      init_dry(); 
 
       // init rw
       init_wet();
