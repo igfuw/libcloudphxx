@@ -34,12 +34,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_ijk()
     {
-      n_part_old = n_part; // initially 0
-      n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
-      if(n_part_to_init == 0) return;
-      n_part += n_part_to_init;
-      hskpng_resize_npart();      
-
       thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 

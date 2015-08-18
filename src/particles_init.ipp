@@ -68,6 +68,13 @@ namespace libcloudphxx
       // init number of SDs in cells
       pimpl->init_count_num();
 
+      // update no of particles
+      // TODO: move to a separate function
+      pimpl->n_part_old = 0;
+      pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+      pimpl->n_part += pimpl->n_part_to_init;
+      pimpl->hskpng_resize_npart(); 
+
       // init ijk vector, also n_part and resize n_part vectors
       pimpl->init_ijk();
 
