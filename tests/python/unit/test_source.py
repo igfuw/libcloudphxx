@@ -17,7 +17,12 @@ def lognormal(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 def lognormal_src(lnr):
-  return lognormal(lnr) / 100
+  mean_r = .08e-6 / 2
+  stdev  = 1.4
+  n_tot  = 60e4
+  return n_tot * exp(
+    -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
+  ) / log(stdev) / sqrt(2*pi);
 
 opts_init = lgrngn.opts_init_t()
 kappa = .61
@@ -78,7 +83,7 @@ prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())
 print 'diag_sd_conc', tmp
 
-if not(tmp[0] == 256 and tmp[2] == 256):
+if not(tmp[0] == 152 and tmp[2] == 152):
   raise Exception("wrong amount of SDs were added")
 
 if not(tmp[1] == 128 and tmp[3] == 128):
@@ -89,11 +94,11 @@ prtcls.diag_wet_mom(0)
 tmp = frombuffer(prtcls.outbuf())
 print 'wet mom0', tmp
 if (abs( 2 - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
-  raise Exception("multiplicity of SDs added doesn't agree with those initialized")
+  raise Exception("incorrect multiplicity after source")
 
 prtcls.diag_all()
 prtcls.diag_wet_mom(1)
 tmp = frombuffer(prtcls.outbuf())
 print 'wet mom1', tmp
 if (abs( 2 - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
-  raise Exception("radius of SDs added doesn't agree with those initialized")
+  raise Exception("incorrect radius after source")
