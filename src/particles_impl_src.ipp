@@ -47,6 +47,7 @@ namespace libcloudphxx
       // sanity checks
       if(n_dims < 2)            throw std::runtime_error("Source only works in 2D and 3D");
       if(opts_init.chem_switch) throw std::runtime_error("Source is not yet compatible with chemistry.");
+      if(opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
 
       // set number of SDs to init; use count_num as storage
       {
@@ -71,6 +72,7 @@ namespace libcloudphxx
 
       // TODO: assert that we do not introduce particles into supersaturated cells?
 
+      // -------- TODO: match not only sizes of old particles, but also kappas and chemical composition... --------
 
       // --- sort already existing SDs; primary key ijk, secondary rd ---
       // TODO: do all of this only on SDs in cells below src_z1?
@@ -115,7 +117,7 @@ namespace libcloudphxx
         dt
       ); 
 
-      // --- see how many already existing SDs fall into size bins
+      // --- see how many already existing SDs match size bins
       {
         namespace arg = thrust::placeholders;
         // tmp vector with bin number of existing SDs
@@ -133,13 +135,30 @@ namespace libcloudphxx
 
         // set no of particles to init
         n_part_old = n_part;
-        n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());// - count_bins;
+        n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
+        n_part = n_part_old + n_part_to_init;
+        hskpng_resize_npart();
+
+        thrust_size_t n_part_bfr_src = n_part_old,
+                      n_part_tot_in_src = n_part_to_init;
+                    
+        // init ijk and rd3 of new particles
+        init_ijk();
+        init_dry();
+        // translate these new rd3 into bin no; bin_no just got resized
+        thrust::transform(
+          rd3.begin() + n_part_old,
+          rd3.end(),
+          thrust::make_permutation_iterator(count_num.begin(), ijk.begin() + n_part_old),
+          bin_no.begin() + n_part_old,
+          detail::get_bin_no<real_t, n_t, unsigned int, out_of_bins>(log_rd_min, log_rd_max)
+        );
 
         // -- decrease count_num by number of SDs with increased n -- 
         {
 //          debug::print(count_num);
-          thrust_device::vector<unsigned int> tmp_bin_no(n_part);
-          thrust::copy(bin_no.begin(), bin_no.end(), tmp_bin_no.begin());
+          thrust_device::vector<unsigned int> tmp_bin_no(n_part_old);
+          thrust::copy(bin_no.begin(), bin_no.begin() + n_part_old, tmp_bin_no.begin());
 
           thrust_size_t n_out_of_bins = thrust::count(tmp_bin_no.begin(), tmp_bin_no.end(), out_of_bins);
         
@@ -154,39 +173,94 @@ namespace libcloudphxx
             thrust::make_zip_iterator(thrust::make_tuple(
               tmp_bin_no.begin(), 
               sorted_ijk.begin()
-            )) + n_part,
+            )) + n_part_old,
             tmp_bin_no.begin(),
             arg::_1 == out_of_bins
           );
       //    printf("po usunieciu out_of_bins, n_out_of_bins = %lf\n", real_t(n_out_of_bins));
 //          debug::print(tmp_bin_no);
 //          debug::print(sorted_ijk);
-          // sorted_ijk no longer valid
 
           thrust_size_t count_bins;
           {
             thrust::pair<
               thrust_device::vector<unsigned int>::iterator,
               typename thrust_device::vector<thrust_size_t>::iterator
-            > n = thrust::unique_by_key(tmp_bin_no.begin(), tmp_bin_no.begin() + n_part - n_out_of_bins, sorted_ijk.begin());
+            > n = thrust::unique_by_key(tmp_bin_no.begin(), tmp_bin_no.begin() + n_part_old - n_out_of_bins, sorted_ijk.begin());
             count_bins = n.first - tmp_bin_no.begin();
           }
 //          printf("po unique, count_bins = %lf\n", real_t(count_bins));
 //          debug::print(tmp_bin_no);
 //          debug::print(sorted_ijk);
 
-          thrust::fill(tmp_bin_no.begin(), tmp_bin_no.begin() + count_bins, 1);
+          // --- remove rd3 and ijk of newly added SDs that have counterparts ---
+          thrust_device::vector<bool> have_match(n_part_to_init);
+          // find those with a match
+          thrust::binary_search(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              tmp_bin_no.begin,
+              sorted_ijk.begin
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              tmp_bin_no.begin,
+              sorted_ijk.begin
+            )) + count_bins,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              bin_no.begin + n_part_old,
+              ijk.begin + n_part_old
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              bin_no.begin + n_part_old,
+              ijk.begin + n_part_old
+            )) + n_part_to_init,
+            have_match.begin()
+          );
+          // remove those with a match
+          thrust::remove_if(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              rd3.begin + n_part_old,
+              ijk.begin + n_part_old
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              rd3.begin + n_part_old,
+              ijk.begin + n_part_old
+            )) + n_part_to_init,
+            have_match.begin(),
+            thrust::identity<bool>()
+          );
+
+          n_part_to_init -= count_bins;
+          n_part -= count_bins;
+          hskpng_resize_npart();
+
+          // init other peoperties of SDs that didnt have a match
+          // init n
+          init_n(
+            opts_init.src_dry_distros.begin()->first,
+            opts_init.src_dry_distros.begin()->second
+          ); // TODO: document that n_of_lnrd_stp is expected!
+
+          // init rw
+          init_wet();
+
+          // init x, y, z, i, j, k
+          init_xyz();
+
+          // init chem (TODO)
+            
+
+//          thrust::fill(tmp_bin_no.begin(), tmp_bin_no.begin() + count_bins, 1);
           {
             thrust::pair<
               thrust_device::vector<thrust_size_t>::iterator,
               typename thrust_device::vector<unsigned int>::iterator
             > n =  thrust::reduce_by_key(
               sorted_ijk.begin(), sorted_ijk.begin() + count_bins, 
-              tmp_bin_no.begin(), 
+              thrust::make_constant_iterator<unsigned int>(1), 
               sorted_ijk.begin(), 
               tmp_bin_no.begin()
             );
-            count_bins = n.first - sorted_ijk.begin(); 
+            count_bins = n.first - sorted_ijk.begin(); // now it counts no of cells that have any bins matched
           }
 
 //          printf("po fill i reduce, count_bins = %lf\n", real_t(count_bins));
@@ -201,13 +275,17 @@ namespace libcloudphxx
             arg::_1 - arg::_2
           );
 //          debug::print(count_num);
+          // sorted_ijk no longer valid
         }
+
+//        n_part_old = n_part_bfr_src;
+//        n_part_to_init = n_part_tot_in_src;
 
         // tmp vector to hold number of particles in a given size bin in a given cell
         // TODO: will it be emptied when it goes out of scope?
-        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_to_init +  n_cell + 1); // needs space for out_of_bins
+        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
         // tmp vector for number of particles in bins up to this one
-        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_to_init +  n_cell + 1);
+        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
 
         // calc no of SDs in bins/cells
         thrust::pair<
@@ -215,7 +293,7 @@ namespace libcloudphxx
           typename thrust_device::vector<thrust_size_t>::iterator
         > n = thrust::reduce_by_key(
             bin_no.begin(),
-            bin_no.begin() + n_part_old,
+            bin_no.begin() + n_part_bfr_src,
             thrust::make_constant_iterator<unsigned int>(1),
             bin_no.begin(),// output bin no - in place 
             bin_cell_count.begin()// output number of SDs
@@ -256,10 +334,6 @@ namespace libcloudphxx
         debug::print(bin_no);
         debug::print(bin_cell_count);
 
-        n_part_to_init -= count_bins;
-        assert(n_part_to_init == thrust::reduce(count_num.begin(), count_num.end()));
-        n_part += n_part_to_init;
-        hskpng_resize_npart();   
         // dotad sie zgadza - nie sprawdzalem tylko ptr
 
         // randomly select which old SD will be increased
@@ -283,9 +357,52 @@ namespace libcloudphxx
         );
         debug::print(bin_cell_count);
 
-        // increase multiplicity of existing SDs
-/*
+        // --- increase multiplicity of existing SDs ---
+ 
+        // copy rd3 and ijk of the selected SDs to the end of the respective vectors
+
+        n_part_old = n_part; // number of those before src + no of those w/o match
+        n_part_to_init = count_bins; // number of matched SDs
+        n_part = n_part_old + n_part_to_init;
+        hskpng_resize_npart();
+
+        thrust::copy(
+          thrust::make_permutation_iterator(
+            rd3.begin(), thrust::make_permutation_iterator(
+              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
+            )
+          ),
+          thrust::make_permutation_iterator(
+            rd3.begin(), thrust::make_permutation_iterator(
+              sorted_id.begin(), bin_cell_count.begin()
+            )
+          ) + count_bins,
+          rd3.begin() + n_part_old     // output
+        );
+        thrust::copy(
+          thrust::make_permutation_iterator(
+            ijk.begin(), thrust::make_permutation_iterator(
+              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
+            )
+          ),
+          thrust::make_permutation_iterator(
+            ijk.begin(), thrust::make_permutation_iterator(
+              sorted_id.begin(), bin_cell_count.begin()
+            )
+          ) + count_bins,
+          ijk.begin() + n_part_old     // output
+        );
+
+        // init n of the copied SDs, but using the src distribution
+        init_n(
+          opts_init.src_dry_distros.begin()->first,
+          opts_init.src_dry_distros.begin()->second
+        ); // TODO: document that n_of_lnrd_stp is expected!
+
+        // add the just-initialized multiplicities to the old ones
         thrust::transform(
+          n.begin() + n_part_old,
+          n.end(),
           thrust::make_permutation_iterator(
             n.begin(), thrust::make_permutation_iterator(
               sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
@@ -293,39 +410,17 @@ namespace libcloudphxx
           ),
           thrust::make_permutation_iterator(
             n.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()
+              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
             )
-          ) + count_bins,
-          n.begin(),     // output
-                         // operation
+          ), //in-place
+          thrust::plus<n_t>()
         );
-*/
-      // --- set rd3 of those that did not have counterparts ---
+        // TODO: check for overflows of na after addition
 
-
-
- 
+        // --- properly reduce size of the vectors back to no before src + no w/o match ---
+        n_part = n_part_old;
+        hskpng_resize_npart();   
       }
-
-      // ------ update all vectors between n_part_old and n_part ------
-
-      // init ijk and n_part, resize vectors
-      // also set n_part_old and n_part_to_init used by init_dry and init_wet
-      init_ijk();
-
-      // init n
-      init_n(
-        opts_init.src_dry_distros.begin()->first,
-        opts_init.src_dry_distros.begin()->second
-      ); // TODO: document that n_of_lnrd_stp is expected!
-
-      // init rw
-      init_wet();
-
-      // init x, y, z, i, j, k
-      init_xyz();
-
-      // init chem (TODO)
  
       // --- after source particles are no longer sorted ---
       sorted = false;
