@@ -65,11 +65,10 @@ rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
 th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01],[    .01,    .01]])
 
-#try:
-#  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-#except:
-#  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
-prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
+try:
+  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+except:
+  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
 prtcls.init(th, rv, rhod)
 
