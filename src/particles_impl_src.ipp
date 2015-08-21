@@ -134,7 +134,7 @@ namespace libcloudphxx
         // tmp vector with bin number of existing SDs
         thrust_device::vector<thrust_size_t> bin_no(n_part);
 
-        enum {out_of_bins = std::numeric_limits<thrust_size_t>::max()};
+        const thrust_size_t out_of_bins = 4444444444; // would cause an error for src_sd_conc > out_of_bins
         // calc bin no
         thrust::transform(
           sorted_rd3.begin(),
@@ -176,17 +176,18 @@ namespace libcloudphxx
 
           // remove reference to those outside of bins from tmp_bin_no and sorted_ijk
           thrust::remove_if(
-            thrust::make_zip_iterator(thrust::make_tuple(
-              tmp_bin_no.begin(), 
-              sorted_ijk.begin()
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              tmp_bin_no.begin(), 
-              sorted_ijk.begin()
-            )) + n_part_old,
+            sorted_ijk.begin(),
+            sorted_ijk.begin() + n_part_old,
             tmp_bin_no.begin(),
             arg::_1 == out_of_bins
           );
+
+          thrust::remove(
+            tmp_bin_no.begin(),
+            tmp_bin_no.begin() + n_part_old,
+            out_of_bins
+          ); // if these two removes are done in a single step with a tuple, it fails on CUDA; TODO: report this?
+
           printf("po usunieciu out_of_bins, n_out_of_bins = %lf\n", real_t(n_out_of_bins));
           debug::print(tmp_bin_no);
           debug::print(sorted_ijk);

@@ -38,19 +38,10 @@ namespace libcloudphxx
           : fun(fun), mul(mul)
         {}
 
-        real_t operator()(real_t x)  
+        real_t operator()(real_t x)  // x is rd3
         {
-          return mul * fun(x); 
-        }
-      };  
-
-      struct r3_to_lnrd
-      {   
-        template <typename real_t>
-        BOOST_GPU_ENABLED
-        real_t operator()(real_t x)  
-        {
-          return log(x) / 3.; 
+          real_t lnrd = log(x) / 3.;
+          return mul * fun(lnrd); 
         }
       };  
     };
@@ -82,7 +73,7 @@ namespace libcloudphxx
       // filling n with multiplicities
       // (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
       // device -> host (not needed for omp or cpp ... but happens just once)
-      thrust::transform(rd3.begin()+n_part_old, rd3.end(), tmp_real.begin(), detail::r3_to_lnrd()); 
+      thrust::copy(rd3.begin()+n_part_old, rd3.end(), tmp_real.begin());
       
       // evaluating n_of_lnrd_stp
       thrust::transform(

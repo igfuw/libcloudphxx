@@ -17,7 +17,7 @@ def lognormal(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 def lognormal_src(lnr):
-  mean_r = .04e-6 / 2
+  mean_r = .10e-6 / 2
   stdev  = 1.4
   n_tot  = 60e4
   return n_tot * exp(
@@ -65,10 +65,11 @@ rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
 th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01],[    .01,    .01]])
 
-try:
-  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-except:
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+#try:
+#  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+#except:
+#  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
 
 prtcls.init(th, rv, rhod)
 
@@ -83,11 +84,11 @@ prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())
 print 'diag_sd_conc', tmp
 
-#if not(tmp[0] == 152 and tmp[2] == 152):
-#  raise Exception("wrong amount of SDs were added")
+if not(tmp[0] == 1158 and tmp[2] == 1158):
+  raise Exception("wrong amount of SDs were added")
 
-#if not(tmp[1] == 128 and tmp[3] == 128):
-#  raise Exception("SDs were added in wrong cells")
+if not(tmp[1] == 1024 and tmp[3] == 1024):
+  raise Exception("SDs were added in wrong cells")
 
 prtcls.diag_all()
 prtcls.diag_wet_mom(0)
@@ -100,5 +101,5 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(1)
 tmp = frombuffer(prtcls.outbuf())
 print 'wet mom1', tmp
-if (abs( 3 - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
+if (abs( (7.84 / 2.12) - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
   raise Exception("incorrect radius after source")
