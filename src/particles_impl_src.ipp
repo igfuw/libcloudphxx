@@ -147,9 +147,6 @@ namespace libcloudphxx
         // init ijk and rd3 of new particles
         init_ijk();
         init_dry(); 
-        printf("po init ijk i rd3 nowych; old: %lf to_init: %lf n_part: %lf\n", real_t(n_part_old), real_t(n_part_to_init), real_t(n_part));
-        debug::print(ijk);
-        debug::print(rd3);
 
         // translate these new rd3 into bin no; bin_no just got resized
         thrust::transform(
@@ -159,21 +156,14 @@ namespace libcloudphxx
           bin_no.begin() + n_part_old,
           detail::get_bin_no<real_t, n_t, thrust_size_t, out_of_bins>(log_rd_min, log_rd_max)
         );
-        printf("nowe bin no\n");
-        debug::print(bin_no);
 
         // -- init new SDs that didnt have a match -- 
         {
-          debug::print(count_num);
           thrust_device::vector<thrust_size_t> tmp_bin_no(n_part_old);
           thrust::copy(bin_no.begin(), bin_no.begin() + n_part_old, tmp_bin_no.begin());
 
           thrust_size_t n_out_of_bins = thrust::count(tmp_bin_no.begin(), tmp_bin_no.end(), out_of_bins);
         
-          printf("przed\n");
-          debug::print(tmp_bin_no);
-          debug::print(sorted_ijk);
-
           // remove reference to those outside of bins from tmp_bin_no and sorted_ijk
           thrust::remove_if(
             sorted_ijk.begin(),
@@ -188,10 +178,6 @@ namespace libcloudphxx
             out_of_bins
           ); // if these two removes are done in a single step with a tuple, it fails on CUDA; TODO: report this?
 
-          printf("po usunieciu out_of_bins, n_out_of_bins = %lf\n", real_t(n_out_of_bins));
-          debug::print(tmp_bin_no);
-          debug::print(sorted_ijk);
-
           thrust_size_t count_bins;
           {
           // remove duplicates from tmp_bin_no
@@ -201,9 +187,6 @@ namespace libcloudphxx
             > np = thrust::unique_by_key(tmp_bin_no.begin(), tmp_bin_no.begin() + n_part_old - n_out_of_bins, sorted_ijk.begin());
             count_bins = np.first - tmp_bin_no.begin(); // total no of bins with a match
           }
-          printf("po unique, count_bins = %lf\n", real_t(count_bins));
-          debug::print(tmp_bin_no);
-          debug::print(sorted_ijk);
 
           // --- remove rd3 and ijk of newly added SDs that have counterparts ---
           thrust_device::vector<bool> have_match(n_part_to_init);
@@ -228,8 +211,6 @@ namespace libcloudphxx
             have_match.begin(),
             detail::two_keys_sort<thrust_size_t, thrust_size_t>()
           );
-          printf("match\n");
-          debug::print(have_match);
           // remove those with a match
           thrust::remove_if(
             thrust::make_zip_iterator(thrust::make_tuple(
@@ -243,13 +224,9 @@ namespace libcloudphxx
             have_match.begin(),
             thrust::identity<bool>()
           );
-          printf("po wyczyszczeniu rd3 i ijk\n");
-          debug::print(ijk);
-          debug::print(rd3);
 
           n_part_to_init -= count_bins;
           n_part -= count_bins;
-          printf("old: %lf to_init: %lf n_part: %lf\n", real_t(n_part_old), real_t(n_part_to_init), real_t(n_part));
           hskpng_resize_npart();
 
           // init other peoperties of SDs that didnt have a match
@@ -284,10 +261,6 @@ namespace libcloudphxx
             count_bins = np.first - sorted_ijk.begin(); // now it counts no of cells that have any bins matched
           }
 
-          printf("po fill i reduce, count_bins = %lf\n", real_t(count_bins));
-          debug::print(tmp_bin_no);
-          debug::print(sorted_ijk);
-
           // set count_num to the number of SDs matched per cell
           // they still need to be initialized
           thrust::copy(
@@ -295,7 +268,6 @@ namespace libcloudphxx
             tmp_bin_no.begin() + count_bins,
             thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin())
           );
-          debug::print(count_num);
           // sorted_ijk no longer valid
         }
 
@@ -308,9 +280,7 @@ namespace libcloudphxx
         // tmp vector for number of particles in bins up to this one
         thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
 
-        printf("poczatek init matched\n");
         thrust_size_t count_bins;
-        debug::print(bin_no);
         {
           thrust_device::vector<thrust_size_t> &out(bin_cell_count_ptr); // use it temporarily
           // calc no of SDs in bins/cells
@@ -327,9 +297,6 @@ namespace libcloudphxx
           count_bins = np.second - bin_cell_count.begin(); // number of bins with SDs inside, includes the out_of_bins
           thrust::copy(out.begin(), out.begin() + count_bins, bin_no.begin());
         }
-        printf("po reduce - ile starych przypada na bin, count_bins = %lf\n", real_t(count_bins));
-        debug::print(bin_no);
-        debug::print(bin_cell_count);
 
         // number of SDs (incl. out_of_bins) in bins up to (i-1)
         thrust::exclusive_scan(
@@ -360,13 +327,6 @@ namespace libcloudphxx
              bin_cell_count_ptr.begin()
            )); // count_bins now does not count out_of_bins
 
-        printf("po usunieciu out_of_bins, count_bins = %lf\n", real_t(count_bins));
-        debug::print(bin_no);
-        debug::print(bin_cell_count);
-        debug::print(bin_cell_count_ptr);
-
-        // dotad sie zgadza - nie sprawdzalem tylko ptr
-
         // randomly select which old SD will be increased
         // overwrites sorted_rd3
         rand_u01(count_bins);
@@ -389,7 +349,6 @@ namespace libcloudphxx
           bin_cell_count.begin(),
           thrust::plus<real_t>()
         );
-        debug::print(bin_cell_count);
 
         // --- increase multiplicity of existing SDs ---
  
@@ -399,7 +358,6 @@ namespace libcloudphxx
         n_part = n_part_old + n_part_to_init;
         hskpng_resize_npart();
 
-        printf("old: %lf to_init: %lf n_part: %lf\n", real_t(n_part_old), real_t(n_part_to_init), real_t(n_part));
         // copy rd3 and ijk of the selected SDs to the end of the respective vectors
         thrust::copy(
           thrust::make_permutation_iterator(
@@ -427,17 +385,12 @@ namespace libcloudphxx
           ) + count_bins,
           ijk.begin() + n_part_old     // output
         );
-        printf("rd3 i ijk po kopii\n");
-        debug::print(rd3);
-        debug::print(ijk);
 
         // init n of the copied SDs, but using the src distribution
         init_n(
           opts_init.src_dry_distros.begin()->first,
           opts_init.src_dry_distros.begin()->second
         ); // TODO: document that n_of_lnrd_stp is expected!
-        printf("n przed\n");
-        debug::print(n);
 
         // add the just-initialized multiplicities to the old ones
         thrust::transform(
@@ -455,8 +408,6 @@ namespace libcloudphxx
           ), //in-place
           thrust::plus<n_t>()
         );
-        debug::print(n);
-        debug::print(ijk);
         // TODO: check for overflows of na after addition
 
         // --- properly reduce size of the vectors back to no before src + no w/o match ---
