@@ -135,7 +135,7 @@ namespace icmw8_case1
     real_t 
       dx = (X / si::metres) / (nx-1), 
       dz = (Z / si::metres) / (nz-1); 
-    real_t A = (w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>();
+    real_t A = (w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>() / 2.;
 
     // constant potential temperature & water vapour mixing ratio profiles
     solver.advectee(ix::th) = (theta_dry::std2dry(th_0, rv_0) / si::kelvins); 
