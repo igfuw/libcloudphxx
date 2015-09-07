@@ -50,5 +50,5 @@ for i in range(900):
 prtcls.diag_sd_conc()
 tmp = np.frombuffer(prtcls.outbuf())[0]
 print 'final no of SDs: ', tmp
-if(tmp != 5):
+if(tmp >= 10 || tmp == 0):
   raise Exception("wrong amount of SDs were removed")
