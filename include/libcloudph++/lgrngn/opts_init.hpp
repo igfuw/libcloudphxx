@@ -66,6 +66,9 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
+      // no of GPUs to use, 0 for all available
+      int dev_count; 
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -82,7 +85,8 @@ namespace libcloudphxx
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
-        kernel(kernel_t::undefined)
+        kernel(kernel_t::undefined),
+        dev_count(0)
       {}
     };
   }
