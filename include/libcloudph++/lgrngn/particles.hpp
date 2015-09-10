@@ -222,5 +222,69 @@ namespace libcloudphxx
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
     };
+
+
+    // prototype of what's implemented in the .tpp file
+    // specialization for the multi_GPU backend
+    // has the init, stepping and diag functions
+    // plus list of pointers to particles_t<CUDA> on each GPU
+//<listing>
+    template <typename real_t>
+    struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
+    {
+      // initialisation 
+      void init(
+        const arrinfo_t<real_t> th,
+        const arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_1,
+        const arrinfo_t<real_t> courant_2, 
+        const arrinfo_t<real_t> courant_3
+      );
+
+      // time-stepping methods
+      void step_sync(
+        const opts_t<real_t> &,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> courant_1,
+        const arrinfo_t<real_t> courant_2,
+        const arrinfo_t<real_t> courant_3,
+        const arrinfo_t<real_t> rhod 
+      );
+      real_t step_async(
+        const opts_t<real_t> &
+      );
+
+      // diagnostic methods
+      void diag_sd_conc();
+      void diag_dry_rng(
+        const real_t &r_mi, const real_t &r_mx
+      );
+      void diag_wet_rng(
+        const real_t &r_mi, const real_t &r_mx
+      );
+      void diag_dry_mom(const int &k);
+      void diag_wet_mom(const int &k);
+      void diag_wet_mass_dens(const real_t&, const real_t&);
+      real_t *outbuf();
+
+      // ...
+//</listing>
+
+      void diag_chem(const enum chem_species_t&);
+      void diag_rw_ge_rc();
+      void diag_RH_ge_Sc();
+      void diag_all();
+
+      int dev_count; // number of GPUs used
+      std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
+
+      // constructor
+      particles_t(const opts_init_t<real_t> &);
+
+      // helper typedef
+      typedef particles_proto_t<real_t> parent_t;
+    };
   };
 };

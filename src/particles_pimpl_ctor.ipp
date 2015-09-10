@@ -39,8 +39,8 @@ namespace libcloudphxx
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
+      thrust_size_t n_part; 
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -48,8 +48,10 @@ namespace libcloudphxx
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+      thrust_device::vector<kernel_long<real_t, n_t> > k_long;
       thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
+      thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
