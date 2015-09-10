@@ -217,7 +217,7 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &);
+      particles_t(const opts_init_t<real_t> &, int tid = -1);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
@@ -277,11 +277,11 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
 
-      int dev_count; // number of GPUs used
       std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
+      opts_init_t<real_t> opts_init; // copy of opts_init
 
       // constructor
-      particles_t(const opts_init_t<real_t> &);
+      particles_t(const opts_init_t<real_t> &opts_init, int tid = -1);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

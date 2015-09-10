@@ -1,5 +1,6 @@
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
+#include "detail/multiGPU_utils.hpp"
 
 // macro to check for cuda errors, taken from 
 // http://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
@@ -23,8 +24,16 @@ namespace libcloudphxx
 
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &opts_init)
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, int tid) :
+      opts_init(_opts_init)
     {
+      int dev_count;
+      // TODO: move these sanity checks to sanity_checks?
+
+      // multi_CUDA works only for 2D and 3D
+      if(opts.init.nz == 0)
+        throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
+
       // get number of available devices
       gpuErrchk(cudaGetDeviceCount(&dev_count)); 
       
@@ -36,6 +45,8 @@ namespace libcloudphxx
         else 
           dev_count = opts_init.dev_count;
       }
+      // copy dev_count to opts_init for threads to use
+      opts_init.dev_count = dev_count;
    
       // check if all GPUs support UVA, TODO: move this to cmake
       for (int i = 0; i < dev_count; ++i)
@@ -47,10 +58,6 @@ namespace libcloudphxx
           throw std::runtime_error("One of the GPUs doesn't support Unified Virtual Addressing.");
       }
       
-      // multi_CUDA works only for 2D and 3D
-      if(opts.init.nz == 0)
-        throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
-
       // resize the pointer vector
       particles.resize(dev_count);
 
@@ -59,7 +66,16 @@ namespace libcloudphxx
       {
         const int tid = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(tid));
-        particles.at(tid) = new particles_t<real_t, CUDA>(opts_init);
+
+        opts_init_t<real_t> opts_init_tmp(opts_init); // different for each thread
+        // modify nx, x0, x1 for each thread
+        opts_init_tmp.nx = detail::get_dev_nx(opts_init, tid);
+        if(tid != 0)
+          opts_init_tmp.x0 = 0.; // TODO: what if x0 > size in x of the first GPU's domain
+        if(tid != opts_init_tmp.dev_count - 1)
+          opts_init_tmp.x1 = opts_init_tmp.nx * opts_init_tmp.dx; // TODO: see above
+
+        particles.at(tid) = new particles_t<real_t, CUDA>(opts_init_tmp, tid);
       }
     }
 

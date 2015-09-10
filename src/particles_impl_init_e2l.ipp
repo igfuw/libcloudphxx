@@ -28,7 +28,7 @@ namespace libcloudphxx
           assert(arr.strides[0] == 1);
 	  thrust::transform(
             // input
-            zero, zero + l2e[key].size(), 
+            global_cell_no, global_cell_no + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
@@ -40,7 +40,7 @@ namespace libcloudphxx
           assert(arr.strides[1] == 1);
 	  thrust::transform(
             // input
-            zero, zero + l2e[key].size(), 
+            global_cell_no, global_cell_no + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
@@ -52,7 +52,7 @@ namespace libcloudphxx
           assert(arr.strides[2] == 1);
           thrust::transform(
             // input
-            zero, zero + l2e[key].size(),
+            global_cell_no, global_cell_no + l2e[key].size(),
             // output
             l2e[key].begin(),
             // op
