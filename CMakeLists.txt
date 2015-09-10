@@ -1,3 +1,5 @@
+#TODO: pass fopenmp to Xcompiler of nvcc for multi GPU?!
+
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
 project(libcloudph++ CXX C)
 
