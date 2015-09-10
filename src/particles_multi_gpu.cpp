@@ -46,6 +46,10 @@ namespace libcloudphxx
         if(!devProp.unifiedAddressing)
           throw std::runtime_error("One of the GPUs doesn't support Unified Virtual Addressing.");
       }
+      
+      // multi_CUDA works only for 2D and 3D
+      if(opts.init.nz == 0)
+        throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
 
       // resize the pointer vector
       particles.resize(dev_count);
@@ -70,6 +74,12 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_3
     )
     {
+      // run init on each device
+      #pragma omp parallel num_threads(dev_count)
+      {
+        const int tid = omp_get_thread_num();
+        particles[tid]->init(th, rv, rhod, courant_1, courant_2, courant_3);
+      }
     }
 
     // time-stepping methods
