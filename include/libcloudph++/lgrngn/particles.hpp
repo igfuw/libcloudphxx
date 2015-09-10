@@ -217,7 +217,7 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &, int tid = -1);
+      particles_t(const opts_init_t<real_t> &, int dev_id = -1);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
@@ -281,7 +281,7 @@ namespace libcloudphxx
       opts_init_t<real_t> opts_init; // copy of opts_init
 
       // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, int tid = -1);
+      particles_t(const opts_init_t<real_t> &opts_init, int dev_id = -1);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

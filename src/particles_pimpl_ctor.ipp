@@ -174,14 +174,14 @@ namespace libcloudphxx
       // compile-time min(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
 
-      // number of thread, used only for multi GPU setup
-      const int tid;
+      // device number, used only for multi GPU setup
+      const int dev_id;
 
       // for multi GPU setup - count global cell number (aware of cells on other GPUs)
       const thrust::counting_iterator<thrust_size_t> global_cell_no;
 
       // ctor 
-      impl(const opts_init_t<real_t> &opts_init, const int &tid) : 
+      impl(const opts_init_t<real_t> &opts_init, const int &dev_id) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -197,10 +197,10 @@ namespace libcloudphxx
           m1(opts_init.nz)
         ),
         zero(0),
-        tid(tid),
+        dev_id(dev_id),
         global_cell_no(
           opts_init.dev_count > 0 ?
-            tid * detail::get_dev_nx(opts_init, 0) * m1(opts_init.ny) * m1(opts_init.nz)
+            dev_id * detail::get_dev_nx(opts_init, 0) * m1(opts_init.ny) * m1(opts_init.nz)
             : 0), 
         sorted(false), 
         u01(tmp_device_real_part),
@@ -357,8 +357,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, int tid) :
-      pimpl(new impl(opts_init, tid))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, int dev_id) :
+      pimpl(new impl(opts_init, dev_id))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();

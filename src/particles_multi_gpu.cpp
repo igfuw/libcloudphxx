@@ -24,14 +24,14 @@ namespace libcloudphxx
 
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, int tid) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, int dev_id) :
       opts_init(_opts_init)
     {
       int dev_count;
       // TODO: move these sanity checks to sanity_checks?
 
       // multi_CUDA works only for 2D and 3D
-      if(opts.init.nz == 0)
+      if(opts_init.nz == 0)
         throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
 
       // get number of available devices
@@ -64,18 +64,14 @@ namespace libcloudphxx
       // assign device to each thread and create particles_t in each
       #pragma omp parallel num_threads(dev_count)
       {
-        const int tid = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(tid));
+        const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
 
         opts_init_t<real_t> opts_init_tmp(opts_init); // different for each thread
-        // modify nx, x0, x1 for each thread
-        opts_init_tmp.nx = detail::get_dev_nx(opts_init, tid);
-        if(tid != 0)
-          opts_init_tmp.x0 = 0.; // TODO: what if x0 > size in x of the first GPU's domain
-        if(tid != opts_init_tmp.dev_count - 1)
-          opts_init_tmp.x1 = opts_init_tmp.nx * opts_init_tmp.dx; // TODO: see above
+        // modify nx for each device
+        opts_init_tmp.nx = detail::get_dev_nx(opts_init, dev_id);
 
-        particles.at(tid) = new particles_t<real_t, CUDA>(opts_init_tmp, tid);
+        particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id);
       }
     }
 
@@ -90,11 +86,10 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_3
     )
     {
-      // run init on each device
       #pragma omp parallel num_threads(dev_count)
       {
-        const int tid = omp_get_thread_num();
-        particles[tid]->init(th, rv, rhod, courant_1, courant_2, courant_3);
+        const int dev_id = omp_get_thread_num();
+        particles[dev_id]->init(th, rv, rhod, courant_1, courant_2, courant_3);
       }
     }
 
