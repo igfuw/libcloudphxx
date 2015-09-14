@@ -94,7 +94,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_3
     )
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->init(th, rv, rhod, courant_1, courant_2, courant_3);
@@ -113,7 +113,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod
     )
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
@@ -126,7 +126,7 @@ namespace libcloudphxx
     )
     {
       real_t res = 0.;
-      #pragma omp parallel reduction(+:res) num_threads(dev_count)
+      #pragma omp parallel reduction(+:res) num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         res = particles[dev_id]->step_async(opts);
@@ -138,7 +138,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_sd_conc()
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_sd_conc();
@@ -150,7 +150,7 @@ namespace libcloudphxx
       const real_t &r_mi, const real_t &r_mx
     )
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_dry_rng(r_mi, r_mx);
@@ -162,7 +162,7 @@ namespace libcloudphxx
       const real_t &r_mi, const real_t &r_mx
     )
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_wet_rng(r_mi, r_mx);
@@ -172,7 +172,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_dry_mom(const int &k)
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_dry_mom(k);
@@ -182,7 +182,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_wet_mom(const int &k)
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_wet_mom(k);
@@ -192,7 +192,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_wet_mass_dens(const real_t &a, const real_t &b)
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_wet_mass_dens(a, b);
@@ -205,7 +205,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_chem(const enum chem_species_t &spec)
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_chem(spec);
@@ -215,7 +215,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_rw_ge_rc()
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_rw_ge_rc();
@@ -225,7 +225,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_RH_ge_Sc()
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_RH_ge_Sc();
@@ -235,7 +235,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_all()
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->diag_all();
@@ -245,14 +245,14 @@ namespace libcloudphxx
     template <typename real_t>
     real_t* particles_t<real_t, multi_CUDA>::outbuf()
     {
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel num_threads(opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->pimpl->fill_outbuf();
       }
       // fill the global output
       int n_cell_bfr;
-      for (int dev_id = 0; dev_id < dev_count; ++dev_id)
+      for (int dev_id = 0; dev_id < opts_init.dev_count; ++dev_id)
       {
         n_cell_bfr = dev_id * detail::get_dev_nx(opts_init, 0) * detail::m1(opts_init.ny) * detail::m1(opts_init.nz);
         thrust::copy(
