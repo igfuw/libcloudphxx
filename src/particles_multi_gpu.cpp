@@ -263,8 +263,8 @@ namespace libcloudphxx
             thrust::make_counting_iterator<int>(n_cell_bfr)
           )
         );
-        return &(*(real_n_cell_tot.begin()));
       }
+      return &(*(real_n_cell_tot.begin()));
     }
   };
 };
