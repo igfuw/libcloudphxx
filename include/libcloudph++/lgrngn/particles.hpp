@@ -224,7 +224,6 @@ namespace libcloudphxx
     };
 
 
-    // prototype of what's implemented in the .tpp file
     // specialization for the multi_GPU backend
     // has the init, stepping and diag functions
     // plus list of pointers to particles_t<CUDA> on each GPU
@@ -232,6 +231,12 @@ namespace libcloudphxx
     template <typename real_t>
     struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
     {
+      // additional members
+      std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
+      opts_init_t<real_t> opts_init; // global copy of opts_init (threads store their own in impl)
+      const int n_cell_tot; // total number of cells
+      std::vector<real_t> real_n_cell_tot; // vector of the size of the total number of cells to store output
+
       // initialisation 
       void init(
         const arrinfo_t<real_t> th,
@@ -276,9 +281,6 @@ namespace libcloudphxx
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
-
-      std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
-      opts_init_t<real_t> opts_init; // copy of opts_init
 
       // constructor
       particles_t(const opts_init_t<real_t> &opts_init, int dev_id = -1);

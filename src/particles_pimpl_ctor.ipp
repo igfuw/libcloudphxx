@@ -171,7 +171,7 @@ namespace libcloudphxx
       // fills un[0:n] with random numbers
       void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
-      // compile-time min(1, n) 
+      // compile-time max(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // device number, used only for multi GPU setup

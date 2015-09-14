@@ -20,12 +20,20 @@ namespace libcloudphxx
             if (abort) exit(code);
          }
       }
+      // compile-time max(1, n), same as in pimpl_ctor...
+      int m1(int n) { return n == 0 ? 1 : n; }      
     };
 
     // constructor
     template <typename real_t>
     particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, int dev_id) :
-      opts_init(_opts_init)
+      opts_init(_opts_init),
+      n_cell_tot(
+        detail::m1(opts_init.nx) *
+        detail::m1(opts_init.ny) *
+        detail::m1(opts_init.nz)
+      ),
+      real_n_cell_tot(n_cell_tot)
     {
       int dev_count;
       // TODO: move these sanity checks to sanity_checks?
@@ -187,7 +195,26 @@ namespace libcloudphxx
     template <typename real_t>
     real_t* particles_t<real_t, multi_CUDA>::outbuf()
     {
+      #pragma omp parallel num_threads(dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
+        particles[dev_id]->pimpl->fill_outbuf();
+      }
+      // fill the global output
+      int n_cell_bfr;
+      for (int dev_id = 0; dev_id < dev_count; ++dev_id)
+      {
+        n_cell_bfr = dev_id * detail::get_dev_nx(opts_init, 0) * detail::m1(opts_init.ny) * detail::m1(opts_init.nz);
+        thrust::copy(
+          particles[dev_id]->pimpl->tmp_host_real_cell.begin(),
+          particles[dev_id]->pimpl->tmp_host_real_cell.end(),
+          thrust::make_permutation_iterator(
+            real_n_cell_tot.begin(),
+            thrust::make_counting_iterator<int>(n_cell_bfr)
+          )
+        );
+        return &(*(real_n_cell_tot.begin()));
+      }
     }
-
   };
 };
