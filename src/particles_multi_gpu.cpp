@@ -61,17 +61,17 @@ namespace libcloudphxx
       // resize the pointer vector
       particles.resize(dev_count);
 
+
       // assign device to each thread and create particles_t in each
-      #pragma omp parallel num_threads(dev_count)
+      #pragma omp parallel firstprivate(opts_init) num_threads(dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
 
-        opts_init_t<real_t> opts_init_tmp(opts_init); // different for each thread
         // modify nx for each device
-        opts_init_tmp.nx = detail::get_dev_nx(opts_init, dev_id);
+        opts_init.nx = detail::get_dev_nx(opts_init, dev_id);
 
-        particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id);
+        particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init, dev_id); // impl stores a copy of opts_init
       }
     }
 
@@ -96,7 +96,7 @@ namespace libcloudphxx
     // time-stepping methods
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_sync(
-      const opts_t<real_t> &opts_init,
+      const opts_t<real_t> &opts,
       arrinfo_t<real_t> th,
       arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> courant_1,
@@ -105,6 +105,11 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod
     )
     {
+      #pragma omp parallel num_threads(dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
+        particles[dev_id]->step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
+      }
     }
 
     template <typename real_t>
@@ -112,6 +117,13 @@ namespace libcloudphxx
       const opts_t<real_t> &opts
     )
     {
+      real_t res = 0.;
+      #pragma omp parallel reduction(+:res) num_threads(dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
+        res = particles[dev_id]->step_async(opts);
+      }
+      return res;
     }
 
     // diagnostic methods
