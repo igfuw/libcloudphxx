@@ -38,7 +38,7 @@ namespace libcloudphxx
       bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
-      const opts_init_t<real_t> opts_init; // a copy
+      opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
       detail::rng<real_t, device> rng;

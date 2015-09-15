@@ -160,7 +160,7 @@ namespace libcloudphxx
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
-      const opts_init_t<real_t> *opts_init;
+      opts_init_t<real_t> *opts_init;
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -217,7 +217,7 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &, int dev_id = -1);
+      particles_t(const opts_init_t<real_t> &, const int &dev_id = -1);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
