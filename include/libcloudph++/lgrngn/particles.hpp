@@ -233,7 +233,8 @@ namespace libcloudphxx
     {
       // additional members
       std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
-      opts_init_t<real_t> opts_init; // global copy of opts_init (threads store their own in impl)
+      opts_init_t<real_t> glob_opts_init; // global copy of opts_init (threads store their own in impl), 
+                                     // note: there is also a pointer called opts_init from parent class, remains not initialized!
       const int n_cell_tot; // total number of cells
       std::vector<real_t> real_n_cell_tot; // vector of the size of the total number of cells to store output
 
@@ -283,7 +284,7 @@ namespace libcloudphxx
       void diag_all();
 
       // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, int dev_id = -1);
+      particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id = -1); // dev_id should not be changed by the user!
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

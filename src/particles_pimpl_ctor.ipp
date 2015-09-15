@@ -357,9 +357,12 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, int dev_id) :
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id):
       pimpl(new impl(opts_init, dev_id))
     {
+      if(dev_id == -1) pimpl->opts_init.dev_count = 0; // if particles_t is not spawned by mutli_CUDA,
+                                                       // override dev_count to 0 to tell impl that it's 
+                                                       // a single-device simulation
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }
