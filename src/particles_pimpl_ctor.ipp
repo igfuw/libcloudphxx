@@ -217,8 +217,9 @@ namespace libcloudphxx
             throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
             throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+//        disabled since x1 remains the global x1 and nx is local
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
             throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
 	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
