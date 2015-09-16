@@ -26,14 +26,13 @@ namespace libcloudphxx
 
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &dev_id) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_cell_bfr) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
         detail::m1(glob_opts_init.ny) *
         detail::m1(glob_opts_init.nz)
-      ),
-      real_n_cell_tot(n_cell_tot)
+      )
     {
       int dev_count;
       // TODO: move these sanity checks to sanity_checks?
@@ -68,18 +67,26 @@ namespace libcloudphxx
       
       // resize the pointer vector
       particles.resize(dev_count);
+      // resize the output buffer
+      real_n_cell_tot.resize(n_cell_tot);
 
+      // make opts_init point to global opts init
+      this->opts_init = &glob_opts_init;
 
       // assign device to each thread and create particles_t in each
-      #pragma omp parallel firstprivate(glob_opts_init) num_threads(dev_count)
+      #pragma omp parallel num_threads(dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
 
-        // modify nx for each device
-        glob_opts_init.nx = detail::get_dev_nx(glob_opts_init, dev_id);
+        opts_init_t<real_t> opts_init_tmp(glob_opts_init); // firstprivate didn't work
 
-        particles.at(dev_id) = new particles_t<real_t, CUDA>(glob_opts_init, dev_id); // impl stores a copy of opts_init
+        const int n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
+
+        // modify nx for each device
+        opts_init_tmp.nx = detail::get_dev_nx(opts_init_tmp, dev_id);
+
+        particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
       }
     }
 
@@ -249,19 +256,12 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         particles[dev_id]->pimpl->fill_outbuf();
-      }
-      // fill the global output
-      int n_cell_bfr;
-      for (int dev_id = 0; dev_id < glob_opts_init.dev_count; ++dev_id)
-      {
+        int n_cell_bfr;
         n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
         thrust::copy(
           particles[dev_id]->pimpl->tmp_host_real_cell.begin(),
           particles[dev_id]->pimpl->tmp_host_real_cell.end(),
-          thrust::make_permutation_iterator(
-            real_n_cell_tot.begin(),
-            thrust::make_counting_iterator<int>(n_cell_bfr)
-          )
+          real_n_cell_tot.begin() + n_cell_bfr
         );
       }
       return &(*(real_n_cell_tot.begin()));
