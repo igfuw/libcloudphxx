@@ -181,7 +181,7 @@ namespace libcloudphxx
       const thrust::counting_iterator<thrust_size_t> global_cell_no;
 
       // ctor 
-      impl(const opts_init_t<real_t> &opts_init, const int &dev_id) : 
+      impl(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_cell_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -198,10 +198,7 @@ namespace libcloudphxx
         ),
         zero(0),
         dev_id(dev_id),
-        global_cell_no(
-          opts_init.dev_count > 0 ?
-            dev_id * detail::get_dev_nx(opts_init, 0) * m1(opts_init.ny) * m1(opts_init.nz)
-            : 0), 
+        global_cell_no(opts_init.dev_count > 0 ? n_cell_bfr : 0),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
@@ -358,8 +355,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id):
-      pimpl(new impl(opts_init, dev_id))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_cell_bfr):
+      pimpl(new impl(opts_init, dev_id, n_cell_bfr))
     {
       if(dev_id == -1) pimpl->opts_init.dev_count = 0; // if particles_t is not spawned by mutli_CUDA,
                                                        // override dev_count to 0 to tell impl that it's 
