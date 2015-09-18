@@ -63,6 +63,8 @@ namespace libcloudphxx
         gpuErrchk(cudaGetDeviceProperties(&devProp, i));
         if(!devProp.unifiedAddressing)
           throw std::runtime_error("One of the GPUs doesn't support Unified Virtual Addressing.");
+        if(devProp.computeMode != 0)
+          throw std::runtime_error("All GPUs used have to be in the \"shared\" compute mode.");
       }
       
       // resize the pointer vector
@@ -104,6 +106,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->init(th, rv, rhod, courant_1, courant_2, courant_3);
       }
     }
@@ -123,6 +126,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
       }
     }
@@ -136,6 +140,7 @@ namespace libcloudphxx
       #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         res = particles[dev_id]->step_async(opts);
       }
       return res;
@@ -148,6 +153,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_sd_conc();
       }
     }
@@ -160,6 +166,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_dry_rng(r_mi, r_mx);
       }
     }
@@ -172,6 +179,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_wet_rng(r_mi, r_mx);
       }
     }
@@ -182,6 +190,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_dry_mom(k);
       }
     }
@@ -192,6 +201,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_wet_mom(k);
       }
     }
@@ -202,6 +212,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_wet_mass_dens(a, b);
       }
     }
@@ -215,6 +226,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_chem(spec);
       }
     }
@@ -225,6 +237,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_rw_ge_rc();
       }
     }
@@ -235,6 +248,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_RH_ge_Sc();
       }
     }
@@ -245,6 +259,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->diag_all();
       }
     }
@@ -255,6 +270,7 @@ namespace libcloudphxx
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id]->pimpl->fill_outbuf();
         int n_cell_bfr;
         n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
