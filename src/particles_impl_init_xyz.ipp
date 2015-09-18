@@ -59,11 +59,6 @@ namespace libcloudphxx
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
       real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
       real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
-      if(opts_init.dev_count > 0) // running on multiple GPUs
-      {
-        if(dev_id != 0) a[0] = 0.; // TODO: what if x0 is greater than domain of first device?
-        if(dev_id != opts_init.dev_count-1) b[0] = opts_init.nx * opts_init.dx; // TODO: same as above
-      }
       const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
       thrust_device::vector<thrust_size_t> 
                   *ii[3] = { &i,           &j,           &k           };
