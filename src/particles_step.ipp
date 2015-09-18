@@ -109,9 +109,6 @@ namespace libcloudphxx
         pimpl->sedi();
       }
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
@@ -134,6 +131,9 @@ namespace libcloudphxx
             pimpl->hskpng_vterm_invalid(); 
         }
       }
+
+      // boundary condition + accumulated rainfall to be returned
+      real_t ret = pimpl->bcnd();
 
       pimpl->selected_before_counting = false;
 
