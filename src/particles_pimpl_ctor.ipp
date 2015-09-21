@@ -41,6 +41,9 @@ namespace libcloudphxx
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
+      thrust_size_t n_part,            // total number of SDs
+                    n_part_old,        // total number of SDs before source
+                    n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
       thrust_size_t n_part; 
 
@@ -71,6 +74,11 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 2D and 3D)
+
+      // dry radii distribution characteristics
+      real_t log_rd_min, // logarithm of the lower bound of the distr
+             log_rd_max, // logarithm of the upper bound of the distr
+             multiplier; // multiplier calculated for the above values
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -116,6 +124,9 @@ namespace libcloudphxx
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
+
+      // timestep counter
+      n_t stp_ctr;
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
@@ -202,11 +213,13 @@ namespace libcloudphxx
           opts_init.dev_count > 0 ?
             dev_id * detail::get_dev_nx(opts_init, 0) * m1(opts_init.ny) * m1(opts_init.nz)
             : 0), 
+        n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        rng(opts_init.rng_seed)
+        rng(opts_init.rng_seed),
+        stp_ctr(0)
       {
         // sanity checks
         if (n_dims > 0)
@@ -234,6 +247,11 @@ namespace libcloudphxx
         }
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
+        if (opts_init.dev_count>0)
+        {
+          if(opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
+          if(opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
+        }
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -277,11 +295,19 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
 
-      void init_dry(
+      void init_dry();
+      void init_n(
         const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd
       );
+      void dist_analysis(
+        const common::unary_function<real_t> *n_of_lnrd,
+        const n_t sd_conc,
+        const real_t dt = 1.
+      );
+      void init_ijk();
       void init_xyz();
+      void init_count_num();
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
@@ -305,6 +331,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_remove_n0();
+      void hskpng_resize_npart();
 
       void moms_all();
    
@@ -350,6 +377,8 @@ namespace libcloudphxx
                 const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
+
+      void src(const real_t &dt);
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();

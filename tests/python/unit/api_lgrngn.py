@@ -22,7 +22,11 @@ opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.dt = 1
 opts_init.sd_conc = 64
+opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
+opts_init.src_dry_distros = {kappa:lognormal}
+opts_init.src_sd_conc = 64
+opts_init.src_z1 = opts_init.dz
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
@@ -43,6 +47,7 @@ print "z1 =", opts_init.z1
 print "chem_switch = ", opts_init.chem_switch
 print "coal_switch = ", opts_init.coal_switch
 print "sedi_switch = ", opts_init.sedi_switch
+print "src_switch = ", opts_init.src_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
@@ -50,6 +55,7 @@ print "sstp_chem =", opts_init.sstp_chem
 
 print "kernel =", opts_init.kernel 
 print "sd_conc =", opts_init.sd_conc
+print "n_sd_max =", opts_init.n_sd_max
 print "terminal_velocity =", opts_init.terminal_velocity
 print "chem_rho =", opts_init.chem_rho
 
@@ -62,6 +68,7 @@ print "adve =", opts.adve
 print "sedi =", opts.sedi
 print "cond =", opts.cond
 print "coal =", opts.coal
+print "src =", opts.src
 print "chem_dsl =", opts.chem_dsl
 print "chem_dcs =", opts.chem_dsc
 print "chem_rct =", opts.chem_rct

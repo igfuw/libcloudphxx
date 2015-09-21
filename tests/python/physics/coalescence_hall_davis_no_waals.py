@@ -51,6 +51,7 @@ kappa = 0.
 opts_init.dry_distros = {kappa:expvolumelnr}
 
 opts_init.sd_conc = pow(2,14)
+opts_init.n_sd_max = opts_init.sd_conc
 
 opts_init.kernel = lgrngn.kernel_t.hall_davis_no_waals
 opts_init.terminal_velocity = lgrngn.vt_t.beard
@@ -92,5 +93,5 @@ rmsd = RMSD(results,bott1800)
 
 print 'RMSD = ' + str(rmsd);
 
-if(rmsd > 4.6e-2):
+if(rmsd > 5.e-2):
   raise Exception("Simulation result does not agree with analytic prediction")

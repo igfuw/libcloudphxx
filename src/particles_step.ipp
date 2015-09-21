@@ -45,7 +45,8 @@ namespace libcloudphxx
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
       // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = pimpl->rcyc(); 
+      thrust_size_t n_rcyc = 0;//pimpl->rcyc();
+      // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
@@ -99,11 +100,8 @@ namespace libcloudphxx
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // updating terminal velocities
-      if (opts.sedi || opts.coal) 
+      if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
       if (opts.sedi) 
@@ -121,7 +119,7 @@ namespace libcloudphxx
                      );
       }
 
-      // coalescence (before diagnostics -> one sort less)
+      // coalescence
       if (opts.coal) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
@@ -134,6 +132,32 @@ namespace libcloudphxx
             pimpl->hskpng_vterm_invalid(); 
         }
       }
+
+      // boundary condition + accumulated rainfall to be returned
+      // multi_GPU version invalidates i and j; TODO: check if i and j are not needed by src
+      // for a source implementation with multi-GPU
+      real_t ret = pimpl->bcnd();
+
+      // remove SDs with n = 0
+      if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
+
+      // aerosol source
+      if (opts.src) 
+      {
+        // sanity check
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        // update the step counter since src was turned on
+        ++pimpl->stp_ctr;
+
+        // introduce new particles with the given time interval
+        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+          pimpl->stp_ctr = 0;
+        }
+      }
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       pimpl->selected_before_counting = false;
 
