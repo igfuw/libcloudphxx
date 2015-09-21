@@ -152,6 +152,13 @@ namespace libcloudphxx
           break;
 	default: assert(false && "TODO");
       }
+
+      // if running on multiple GPUs, set x0 and x1 to local domain size, global size was needed for dv eval
+      if(opts_init.dev_count > 0)
+      {
+        if(dev_id != 0) opts_init.x0 = 0.; // TODO: what if x0 greater than domain of first device?
+        if(dev_id != opts_init.dev_count-1) opts_init.x1 = opts_init.nx * opts_init.dx; //TODO: same as above
+      }
     }
   };
 };

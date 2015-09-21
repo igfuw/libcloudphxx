@@ -1,5 +1,3 @@
-#TODO: pass fopenmp to Xcompiler of nvcc for multi GPU?!
-
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
 project(libcloudph++ CXX C)
 
@@ -101,9 +99,11 @@ if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
     if(NOT DEFINED ENV{TRAVIS})
       set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")

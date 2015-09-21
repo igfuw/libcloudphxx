@@ -217,25 +217,25 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &, const int &dev_id = -1);
+      particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id = -1, const int &n_cell_bfr = 0); // only opts_init specified by user
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
     };
 
 
+
     // specialization for the multi_GPU backend
     // has the init, stepping and diag functions
     // plus list of pointers to particles_t<CUDA> on each GPU
-//<listing>
+    // TODO: more elegant way?
     template <typename real_t>
     struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
     {
       // additional members
       std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
       opts_init_t<real_t> glob_opts_init; // global copy of opts_init (threads store their own in impl), 
-                                     // note: there is also a pointer called opts_init from parent class, remains not initialized!
-      const int n_cell_tot; // total number of cells
+      const int n_cell_tot;               // total number of cells
       std::vector<real_t> real_n_cell_tot; // vector of the size of the total number of cells to store output
 
       // initialisation 
@@ -275,16 +275,13 @@ namespace libcloudphxx
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 
-      // ...
-//</listing>
-
       void diag_chem(const enum chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
 
-      // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id = -1); // dev_id should not be changed by the user!
+      // constructors
+      particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id = -1, const int &n_cell_bfr = 0); // only opts_init specified by user
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

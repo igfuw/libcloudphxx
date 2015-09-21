@@ -183,15 +183,22 @@ namespace libcloudphxx
 
       // compile-time max(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
-
+ 
       // device number, used only for multi GPU setup
       const int dev_id;
+
+      // number of particles to be copied left/right in multi-GPU setup
+      int n_lft, n_rgt;
+
+      // in/out buffers for SDs copied from other GPUs
+      thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // for multi GPU setup - count global cell number (aware of cells on other GPUs)
       const thrust::counting_iterator<thrust_size_t> global_cell_no;
 
       // ctor 
-      impl(const opts_init_t<real_t> &opts_init, const int &dev_id) : 
+      impl(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_cell_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -208,11 +215,7 @@ namespace libcloudphxx
         ),
         zero(0),
         dev_id(dev_id),
-        global_cell_no(
-          opts_init.dev_count > 0 ?
-            dev_id * detail::get_dev_nx(opts_init, 0) * m1(opts_init.ny) * m1(opts_init.nz)
-            : 0), 
-        n_part(0),
+        global_cell_no(opts_init.dev_count > 0 ? n_cell_bfr : 0),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
@@ -229,8 +232,9 @@ namespace libcloudphxx
             throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
             throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+//        disabled since x1 remains the global x1 and nx is local
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
             throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
 	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
@@ -385,8 +389,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id):
-      pimpl(new impl(opts_init, dev_id))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_cell_bfr):
+      pimpl(new impl(opts_init, dev_id, n_cell_bfr))
     {
       if(dev_id == -1) pimpl->opts_init.dev_count = 0; // if particles_t is not spawned by mutli_CUDA,
                                                        // override dev_count to 0 to tell impl that it's 
