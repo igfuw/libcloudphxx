@@ -38,12 +38,12 @@ namespace libcloudphxx
       kpa.reserve(opts_init.n_sd_max);
 
       // reserve memory for in/out buffers
-      // too much (enough for courant_x=1),
-      // but over time many SDs could accumulate in single cells (e. g. icicle)
-      in_n_bfr.resize(opts_init.ny * opts_init.nz * opts_init.sd_conc);     // for n
-      out_n_bfr.resize(opts_init.ny * opts_init.nz * opts_init.sd_conc);     
-      in_real_bfr.resize(6 * opts_init.ny * opts_init.nz * opts_init.sd_conc);     // for rd3 rw2 kpa x y z
-      out_real_bfr.resize(6 * opts_init.ny * opts_init.nz * opts_init.sd_conc);     
+      // for courant_x = 0.1 and n_sd_max
+      // overkill?
+      in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
+      out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
+      in_real_bfr.resize(6 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa x y z
+      out_real_bfr.resize(6 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa x y z
     }
   };
 };
