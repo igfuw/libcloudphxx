@@ -27,6 +27,14 @@ namespace libcloudphxx
       
       tmp_device_real_part.resize(n_part);
       tmp_device_n_part.resize(n_part);
+
+      // reserve memory for in/out buffers
+      // too much (enough for courant_x=1),
+      // but over time many SDs could accumulate in single cells (e. g. icicle)
+      in_n_bfr.resize(opts_init.ny * opts_init.nz * opts_init.sd_conc);     // for n
+      out_n_bfr.resize(opts_init.ny * opts_init.nz * opts_init.sd_conc);     
+      in_real_bfr.resize(6 * opts_init.ny * opts_init.nz * opts_init.sd_conc);     // for rd3 rw2 kpa x y z
+      out_real_bfr.resize(6 * opts_init.ny * opts_init.nz * opts_init.sd_conc);     
     }
   };
 };

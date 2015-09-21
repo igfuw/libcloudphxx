@@ -133,6 +133,7 @@ namespace libcloudphxx
       }
 
       // boundary condition + accumulated rainfall to be returned
+      // NOTE: i, j, k and ijk are invalid after multi-GPU bcond
       real_t ret = pimpl->bcnd();
 
       pimpl->selected_before_counting = false;

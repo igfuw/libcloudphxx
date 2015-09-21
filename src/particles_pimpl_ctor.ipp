@@ -173,9 +173,16 @@ namespace libcloudphxx
 
       // compile-time max(1, n) 
       int m1(int n) { return n == 0 ? 1 : n; }
-
+ 
       // device number, used only for multi GPU setup
       const int dev_id;
+
+      // number of particles to be copied left/right in multi-GPU setup
+      int n_lft, n_rgt;
+
+      // in/out buffers for SDs copied from other GPUs
+      thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // for multi GPU setup - count global cell number (aware of cells on other GPUs)
       const thrust::counting_iterator<thrust_size_t> global_cell_no;
