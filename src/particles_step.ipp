@@ -133,12 +133,9 @@ namespace libcloudphxx
         }
       }
 
-      // boundary condition + accumulated rainfall to be returned
-      // multi_GPU version invalidates i and j; TODO: check if i and j are not needed by src
-      // for a source implementation with multi-GPU
-      real_t ret = pimpl->bcnd();
 
       // remove SDs with n = 0
+      // TODO: do this after bcond?
       if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
 
       // aerosol source
@@ -158,6 +155,12 @@ namespace libcloudphxx
         }
       }
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
+
+      // boundary condition + accumulated rainfall to be returned
+      // multi_GPU version invalidates i and j;
+      // this has to be done last since i and j will be used by multi_gpu copy to other devices
+      // TODO: instead of using i and j define new vectors ?
+      real_t ret = pimpl->bcnd();
 
       pimpl->selected_before_counting = false;
 
