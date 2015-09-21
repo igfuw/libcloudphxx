@@ -45,7 +45,6 @@ namespace libcloudphxx
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
-      thrust_size_t n_part; 
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
