@@ -165,20 +165,16 @@ namespace libcloudphxx
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
         res = particles[dev_id]->step_async(opts);
-      }
-      // --- copy advected SDs to other devices ---
-      if(opts.adve && opts_init.dev_count>1)
-      {
-        namespace arg = thrust::placeholders;
-        #pragma omp parallel num_threads(glob_opts_init.dev_count)
+
+        // prepare for copying SDs to other devices
+        if(opts.adve && opts_init.dev_count>1)
         {
-          const int dev_id = omp_get_thread_num();
-          gpuErrchk(cudaSetDevice(dev_id));
+          namespace arg = thrust::placeholders;
           // i and j must have not changed since bcnd !!
           thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->i);
           thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->j);
 
-          // -- before copy - change x to match new device --
+          // change x to match new device space
           int dest_id;
           // left
           dest_id = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1; // periodic boundary in x
@@ -197,6 +193,16 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()), // in place
             arg::_1 + particles[dest_id]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
           );
+        }
+      }
+
+      // --- copy advected SDs to other devices ---
+      if(opts.adve && opts_init.dev_count>1)
+      {
+        #pragma omp parallel num_threads(glob_opts_init.dev_count)
+        {
+          const int dev_id = omp_get_thread_num();
+          gpuErrchk(cudaSetDevice(dev_id));
         }
       }
       return res;
