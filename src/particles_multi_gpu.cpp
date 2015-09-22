@@ -160,12 +160,13 @@ namespace libcloudphxx
       const opts_t<real_t> &opts
     )
     {
-      // do step async on each device
       real_t res = 0.;
       #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+
+        // do step async on each device
         res = particles[dev_id]->step_async(opts);
 
         // --- copy advected SDs to other devices ---
@@ -177,6 +178,7 @@ namespace libcloudphxx
           // helper aliases
           const unsigned int &lft_count(particles[dev_id]->pimpl->lft_count);
           const unsigned int &rgt_count(particles[dev_id]->pimpl->rgt_count);
+          thrust_size_t &n_part(particles[dev_id]->pimpl->n_part);
           thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
           const thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
           const thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
@@ -186,14 +188,12 @@ namespace libcloudphxx
           const thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
           thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
           thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
-          // i and j must have not changed since impl->bcnd !!
+          // i and k must have not changed since impl->bcnd !!
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
-          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->j);
+          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->k);
 
-          int dest_id;
-
-          // -- copy left --
-          dest_id = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1; // periodic boundary in x
+          const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1, // periodic boundary in x
+                    rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
 
           // prepare buffer with n_t to be copied left
           thrust::copy(
@@ -204,55 +204,140 @@ namespace libcloudphxx
 
           // start async copy of n buffer to the left
           cudaMemcpyPeerAsync(
-            particles[dest_id]->pimpl->in_n_bfr.data().get(), dest_id,  //dst
+            particles[lft_dev]->pimpl->in_n_bfr.data().get(), lft_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             lft_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id]                                             //best performance if stream belongs to src
           );
+          // barrier to make sure that all devices started copying
+          #pragma omp barrier
 
-          // adjust x to match new device's domain
+          // adjust x of prtcls to be sent left to match new device's domain
           thrust::transform(
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            arg::_1 + particles[dest_id]->opts_init->x1 - particles[dev_id]->opts_init->x0   // operation
+            arg::_1 + particles[lft_dev]->opts_init->x1 - particles[dev_id]->opts_init->x0   // operation
           );
 
           // prepare the real_t buffer for copy left
-          const thrust_device::vector<real_t> * real_t_vctrs[6] = {&rd3, &rw2, &kpa, &x, &y, &z};
-          for(int i = 0; i < 6; ++i)
+          const thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &x, &z, &y};
+          const int real_vctrs_count = global_opts_init.ny == 0 ? 5 : 6;
+          for(int i = 0; i < real_vctrs_count; ++i)
             thrust::copy(
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
               out_real_bfr.begin() + i * lft_count
             );
 
+          // wait for the copy of n from right into current device to finish
+          cudaStreamSynchronize(streams[rgt_dev]);
+          // unpack the n buffer sent to this device from right
+          int n_copied = particles[rgt_dev]->pimpl->lft_count;
+          n_part_old = n_part;
+          n_part += n_copied;
+          n.resize(n_part);
+          thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
           cudaMemcpyPeerAsync(
-            particles[dest_id]->pimpl->in_real_bfr.data().get(), dest_id,  //dst
+            particles[lft_dev]->pimpl->in_real_bfr.data().get(), lft_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
-            6 * lft_count * sizeof(real_t),                                //no of bytes
+            real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
             streams[dev_id]                                                //best performance if stream belongs to src
           );
+          // barrier to make sure that all devices started copying
+          #pragma omp barrier
 
-          // unpack the n buffer
+          // prepare buffer with n_t to be copied right
+          thrust::copy(
+            thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
+            thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
+            out_n_bfr.begin()
+          );
 
-          // barrier?
-
-          // unpack the real buffer...
-
-          // -- copy right --
-          dest_id = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
-          // adjust x to match new device's domain
+          // adjust x of prtcls to be sent right to match new device's domain
           thrust::transform(
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            arg::_1 + particles[dest_id]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
+            arg::_1 + particles[rgt_dev]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
+          );
+
+          // wait for the copy of real from right into current device to finish
+          cudaStreamSynchronize(streams[rgt_dev]);
+
+          // unpack the real buffer sent to this device from right
+          for(int i = 0; i < real_vctrs_count; ++i)
+          {
+            real_t_vctrs[i]->resize(n_part);
+            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i].begin() + n_part_old);
+          }
+
+          // start async copy of n buffer to the right
+          cudaMemcpyPeerAsync(
+            particles[rgt_dev]->pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
+            out_n_bfr.data().get(), dev_id,                             //src 
+            rgt_count * sizeof(n_t),                                    //no of bytes
+            streams[dev_id]                                             //best performance if stream belongs to src
+          );
+          // barrier to make sure that all devices started copying
+          #pragma omp barrier
+
+          // prepare the real_t buffer for copy to the right
+          for(int i = 0; i < real_vctrs_count; ++i)
+            thrust::copy(
+              thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()),
+              thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
+              out_real_bfr.begin() + i * rgt_count
+            );
+
+          // wait for the copy of n from left into current device to finish
+          cudaStreamSynchronize(streams[lft_dev]);
+          // unpack the n buffer sent to this device from left
+          n_copied = particles[lft_dev]->pimpl->rgt_count;
+          n_part_old = n_part;
+          n_part += n_copied;
+          n.resize(n_part);
+          thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+
+          // start async copy of real buffer to the right
+          cudaMemcpyPeerAsync(
+            particles[rgt_dev]->pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
+            out_real_bfr.data().get(), dev_id,                             //src 
+            real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
+            streams[dev_id]                                                //best performance if stream belongs to src
+          );
+          // barrier to make sure that all devices started copying
+          #pragma omp barrier
+
+          // flag SDs sent left/right for removal
+          thrust::copy(
+            thrust::make_constant_iterator<n_t>(0),
+            thrust::make_constant_iterator<n_t>(0) + lft_count,
+            thrust::make_permutation_iterator(n.begin(), lft_id.begin()
+          );
+          thrust::copy(
+            thrust::make_constant_iterator<n_t>(0),
+            thrust::make_constant_iterator<n_t>(0) + rgt_count,
+            thrust::make_permutation_iterator(n.begin(), rgt_id.begin()
           );
           
+          // wait for the copy of real from left into current device to finish
+          cudaStreamSynchronize(streams[lft_dev]);
 
+          // unpack the real buffer sent to this device from left
+          for(int i = 0; i < real_vctrs_count; ++i)
+          {
+            real_t_vctrs[i]->resize(n_part);
+            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i].begin() + n_part_old);
+          }
 
+          // remove particles sent left/right and resize all n_part vectors
+          particles[dev_id]->pimpl->hskpng_remove_n0();
+
+          // particles are not sorted now
+          particles[dev_id]->pimpl->sorted = false;          
         }
       }
       return res;

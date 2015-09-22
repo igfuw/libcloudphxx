@@ -157,9 +157,9 @@ namespace libcloudphxx
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
-      // multi_GPU version invalidates i and j;
-      // this has to be done last since i and j will be used by multi_gpu copy to other devices
-      // TODO: instead of using i and j define new vectors ?
+      // multi_GPU version invalidates i and k;
+      // this has to be done last since i and k will be used by multi_gpu copy to other devices
+      // TODO: instead of using i and k define new vectors ?
       real_t ret = pimpl->bcnd();
 
       pimpl->selected_before_counting = false;
