@@ -158,12 +158,46 @@ namespace libcloudphxx
       const opts_t<real_t> &opts
     )
     {
+      // do step async on each device
       real_t res = 0.;
       #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
         res = particles[dev_id]->step_async(opts);
+      }
+      // --- copy advected SDs to other devices ---
+      if(opts.adve && opts_init.dev_count>1)
+      {
+        namespace arg = thrust::placeholders;
+        #pragma omp parallel num_threads(glob_opts_init.dev_count)
+        {
+          const int dev_id = omp_get_thread_num();
+          gpuErrchk(cudaSetDevice(dev_id));
+          // i and j must have not changed since bcnd !!
+          thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->i);
+          thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->j);
+
+          // -- before copy - change x to match new device --
+          int dest_id;
+          // left
+          dest_id = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1; // periodic boundary in x
+          thrust::transform(
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()),
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()) + particles[dev_id]->lft_count,
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()), // in place
+            arg::_1 + particles[dest_id]->opts_init->x1 - particles[dev_id]->opts_init->x0   // operation
+          );
+
+          // right
+          dest_id = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
+          thrust::transform(
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()),
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()) + particles[dev_id]->rgt_count,
+            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()), // in place
+            arg::_1 + particles[dest_id]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
+          );
+        }
       }
       return res;
     }
