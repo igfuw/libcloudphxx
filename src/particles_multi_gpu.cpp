@@ -179,15 +179,18 @@ namespace libcloudphxx
           const unsigned int &lft_count(particles[dev_id]->pimpl->lft_count);
           const unsigned int &rgt_count(particles[dev_id]->pimpl->rgt_count);
           thrust_size_t &n_part(particles[dev_id]->pimpl->n_part);
+          thrust_size_t &n_part_old(particles[dev_id]->pimpl->n_part_old);
           thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
-          const thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
-          const thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
-          const thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
-          const thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
-          const thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
-          const thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
+          thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
+          thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
+          thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
+          thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
+          thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
+          thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
           thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
           thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
+          thrust_device::vector<n_t> &in_n_bfr(particles[dev_id]->pimpl->in_n_bfr);
+          thrust_device::vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
           // i and k must have not changed since impl->bcnd !!
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->k);
@@ -221,8 +224,8 @@ namespace libcloudphxx
           );
 
           // prepare the real_t buffer for copy left
-          const thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &x, &z, &y};
-          const int real_vctrs_count = global_opts_init.ny == 0 ? 5 : 6;
+          thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &x, &z, &y};
+          const int real_vctrs_count = glob_opts_init.ny == 0 ? 5 : 6;
           for(int i = 0; i < real_vctrs_count; ++i)
             thrust::copy(
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
@@ -271,7 +274,7 @@ namespace libcloudphxx
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i].begin() + n_part_old);
+            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // start async copy of n buffer to the right
@@ -315,12 +318,12 @@ namespace libcloudphxx
           thrust::copy(
             thrust::make_constant_iterator<n_t>(0),
             thrust::make_constant_iterator<n_t>(0) + lft_count,
-            thrust::make_permutation_iterator(n.begin(), lft_id.begin()
+            thrust::make_permutation_iterator(n.begin(), lft_id.begin())
           );
           thrust::copy(
             thrust::make_constant_iterator<n_t>(0),
             thrust::make_constant_iterator<n_t>(0) + rgt_count,
-            thrust::make_permutation_iterator(n.begin(), rgt_id.begin()
+            thrust::make_permutation_iterator(n.begin(), rgt_id.begin())
           );
           
           // wait for the copy of real from left into current device to finish
@@ -330,7 +333,7 @@ namespace libcloudphxx
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i].begin() + n_part_old);
+            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // remove particles sent left/right and resize all n_part vectors
