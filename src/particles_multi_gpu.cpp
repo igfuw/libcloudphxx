@@ -100,15 +100,17 @@ namespace libcloudphxx
           const int dev_id = omp_get_thread_num();
           gpuErrchk(cudaSetDevice(dev_id));
           // to the left
-          dev_id != 0 ? 
-            gpuErrchk(cudaDeviceEnablePeerAccess(dev_id-1, 0)) : 
-            gpuErrchk(cudaDeviceEnablePeerAccess(dev_count-1, 0));
+          if(dev_id != 0)
+          { gpuErrchk(cudaDeviceEnablePeerAccess(dev_id-1, 0));}
+          else
+          {gpuErrchk(cudaDeviceEnablePeerAccess(dev_count-1, 0));}
           // to the right
-          dev_id != dev_count-1 ? 
-            gpuErrchk(cudaDeviceEnablePeerAccess(dev_id+1, 0)) : 
-            gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));
+          if(dev_id != dev_count-1)
+          {gpuErrchk(cudaDeviceEnablePeerAccess(dev_id+1, 0));} 
+          else
+          {gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));}
           // create a stream
-          cudaStreamCreate(&streams.at(i));
+          cudaStreamCreate(&streams.at(dev_id));
         }
       }
     }
@@ -166,43 +168,91 @@ namespace libcloudphxx
         gpuErrchk(cudaSetDevice(dev_id));
         res = particles[dev_id]->step_async(opts);
 
-        // prepare for copying SDs to other devices
-        if(opts.adve && opts_init.dev_count>1)
+        // --- copy advected SDs to other devices ---
+        if(opts.adve && glob_opts_init.dev_count>1)
         {
           namespace arg = thrust::placeholders;
-          // i and j must have not changed since bcnd !!
-          thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->i);
-          thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->j);
+          typedef unsigned long long n_t; // TODO: same typedef is in impl struct !!
 
-          // change x to match new device space
+          // helper aliases
+          const unsigned int &lft_count(particles[dev_id]->pimpl->lft_count);
+          const unsigned int &rgt_count(particles[dev_id]->pimpl->rgt_count);
+          thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
+          const thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
+          const thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
+          const thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
+          const thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
+          const thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
+          const thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
+          thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
+          thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
+          // i and j must have not changed since impl->bcnd !!
+          const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
+          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->j);
+
           int dest_id;
-          // left
+
+          // -- copy left --
           dest_id = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1; // periodic boundary in x
+
+          // prepare buffer with n_t to be copied left
+          thrust::copy(
+            thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
+            thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
+            out_n_bfr.begin()
+          );
+
+          // start async copy of n buffer to the left
+          cudaMemcpyPeerAsync(
+            particles[dest_id]->pimpl->in_n_bfr.data().get(), dest_id,  //dst
+            out_n_bfr.data().get(), dev_id,                             //src 
+            lft_count * sizeof(n_t),                                    //no of bytes
+            streams[dev_id]                                             //best performance if stream belongs to src
+          );
+
+          // adjust x to match new device's domain
           thrust::transform(
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()),
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()) + particles[dev_id]->lft_count,
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), lft_id.begin()), // in place
+            thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
+            thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
+            thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
             arg::_1 + particles[dest_id]->opts_init->x1 - particles[dev_id]->opts_init->x0   // operation
           );
 
-          // right
+          // prepare the real_t buffer for copy left
+          const thrust_device::vector<real_t> * real_t_vctrs[6] = {&rd3, &rw2, &kpa, &x, &y, &z};
+          for(int i = 0; i < 6; ++i)
+            thrust::copy(
+              thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
+              thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
+              out_real_bfr.begin() + i * lft_count
+            );
+
+          // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
+          cudaMemcpyPeerAsync(
+            particles[dest_id]->pimpl->in_real_bfr.data().get(), dest_id,  //dst
+            out_real_bfr.data().get(), dev_id,                             //src 
+            6 * lft_count * sizeof(real_t),                                //no of bytes
+            streams[dev_id]                                                //best performance if stream belongs to src
+          );
+
+          // unpack the n buffer
+
+          // barrier?
+
+          // unpack the real buffer...
+
+          // -- copy right --
           dest_id = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
+          // adjust x to match new device's domain
           thrust::transform(
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()),
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()) + particles[dev_id]->rgt_count,
-            thrust::make_permutation_iterator(particles[dev_id]->x.begin(), rgt_id.begin()), // in place
+            thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
+            thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
+            thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
             arg::_1 + particles[dest_id]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
           );
-        }
-      }
+          
 
-      // --- copy advected SDs to other devices ---
-      if(opts.adve && opts_init.dev_count>1)
-      {
-        #pragma omp parallel num_threads(glob_opts_init.dev_count)
-        {
-          const int dev_id = omp_get_thread_num();
-          gpuErrchk(cudaSetDevice(dev_id));
+
         }
       }
       return res;

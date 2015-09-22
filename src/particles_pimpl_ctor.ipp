@@ -188,7 +188,7 @@ namespace libcloudphxx
       const int dev_id;
 
       // number of particles to be copied left/right in multi-GPU setup
-      int lft_count, rgt_count;
+      unsigned int lft_count, rgt_count;
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
