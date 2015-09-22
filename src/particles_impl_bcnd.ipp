@@ -76,14 +76,14 @@ namespace libcloudphxx
             thrust_device::vector<thrust_size_t> &rgt_id(j);
  
             // save ids of SDs to copy
-            lft_n = thrust::copy_if(
+            lft_count = thrust::copy_if(
               zero, zero+n_part,
               x.begin(),
               lft_id.begin(),
               arg::_1 < opts_init.x0
             ) - lft_id.begin();
 
-            rgt_n = thrust::copy_if(
+            rgt_count = thrust::copy_if(
               zero, zero+n_part,
               x.begin(),
               rgt_id.begin(),
