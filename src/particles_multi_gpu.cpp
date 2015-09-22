@@ -90,7 +90,29 @@ namespace libcloudphxx
 
         particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
       }
+      // allow direct memory access between nieghbouring devices
+      // and create stream for each device
+      if(dev_count>1)
+      {
+        streams.resize(dev_count);
+        #pragma omp parallel num_threads(dev_count)
+        {
+          const int dev_id = omp_get_thread_num();
+          gpuErrchk(cudaSetDevice(dev_id));
+          // to the left
+          dev_id != 0 ? 
+            gpuErrchk(cudaDeviceEnablePeerAccess(dev_id-1, 0)) : 
+            gpuErrchk(cudaDeviceEnablePeerAccess(dev_count-1, 0));
+          // to the right
+          dev_id != dev_count-1 ? 
+            gpuErrchk(cudaDeviceEnablePeerAccess(dev_id+1, 0)) : 
+            gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));
+          // create a stream
+          cudaStreamCreate(&streams.at(i));
+        }
+      }
     }
+    // TODO: move methods to a separate file
 
     // initialisation 
     template <typename real_t>
