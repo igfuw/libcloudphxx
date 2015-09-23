@@ -36,6 +36,9 @@ namespace libcloudphxx
     {
       int dev_count;
       // TODO: move these sanity checks to sanity_checks?
+      
+      if(glob_opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
+      if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
 
       // multi_CUDA works only for 2D and 3D
       if(glob_opts_init.nz == 0)
