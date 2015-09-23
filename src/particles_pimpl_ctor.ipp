@@ -216,7 +216,7 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         dev_id(dev_id),
-        global_cell_no(opts_init.dev_count > 0 ? n_cell_bfr : 0),
+        global_cell_no(opts_init.dev_count > 1 ? n_cell_bfr : 0),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
