@@ -44,6 +44,9 @@ namespace libcloudphxx
       if(glob_opts_init.nz == 0)
         throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
 
+      if (!(glob_opts_init.x1 > glob_opts_init.x0 && glob_opts_init.x1 <= glob_opts_init.nx * glob_opts_init.dx))
+        throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+
       // get number of available devices
       gpuErrchk(cudaGetDeviceCount(&dev_count)); 
       
@@ -57,6 +60,7 @@ namespace libcloudphxx
       }
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
+printf("dev count %d\n", dev_count);
    
       // check if all GPUs support UVA, TODO: move this to cmake
       for (int i = 0; i < dev_count; ++i)
@@ -81,15 +85,21 @@ namespace libcloudphxx
       // assign device to each thread and create particles_t in each
       #pragma omp parallel num_threads(dev_count)
       {
+printf("get thread num\n");
         const int dev_id = omp_get_thread_num();
+printf("set dev to %d\n", dev_id);
         gpuErrchk(cudaSetDevice(dev_id));
 
-        opts_init_t<real_t> opts_init_tmp(glob_opts_init); // firstprivate didn't work
+printf("init temp opts_init\n");
+        opts_init_t<real_t> opts_init_tmp(_opts_init); // firstprivate didn't work
 
+printf("calc n_cell_bfr\n");
         const int n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
 
+printf("n cell bfr %d\n", n_cell_bfr);
         // modify nx for each device
         opts_init_tmp.nx = detail::get_dev_nx(opts_init_tmp, dev_id);
+printf("local nx %d\n", opts_init_tmp.nx);
 
         particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
       }
@@ -104,14 +114,17 @@ namespace libcloudphxx
           gpuErrchk(cudaSetDevice(dev_id));
           // to the left
           if(dev_id != 0)
-          { gpuErrchk(cudaDeviceEnablePeerAccess(dev_id-1, 0));}
+            {gpuErrchk(cudaDeviceEnablePeerAccess(dev_id-1, 0));}
           else
-          {gpuErrchk(cudaDeviceEnablePeerAccess(dev_count-1, 0));}
+            {gpuErrchk(cudaDeviceEnablePeerAccess(dev_count-1, 0));}
           // to the right
-          if(dev_id != dev_count-1)
-          {gpuErrchk(cudaDeviceEnablePeerAccess(dev_id+1, 0));} 
-          else
-          {gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));}
+          if(dev_count > 2)
+          {
+            if(dev_id != dev_count-1)
+              {gpuErrchk(cudaDeviceEnablePeerAccess(dev_id+1, 0));} 
+            else
+              {gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));}
+          }
           // create a stream
           cudaStreamCreate(&streams.at(dev_id));
         }

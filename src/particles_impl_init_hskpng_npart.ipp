@@ -42,7 +42,7 @@ namespace libcloudphxx
       // overkill?
       if(opts_init.dev_count > 1)
       {
-        in_n_bfr.resize(int(opts_init.n_sd_max / opts_init.nx / 10));     // for n
+        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
         in_real_bfr.resize(6 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa x y z
         out_real_bfr.resize(6 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa x y z
