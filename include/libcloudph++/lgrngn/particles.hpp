@@ -234,8 +234,8 @@ namespace libcloudphxx
     struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
     {
       // additional members
-      std::vector<boost::shared_ptr<particles_t<real_t, CUDA > > > particles; // pointers to particles_t on each GPU
-//      boost::ptr_vector<particles_t<real_t, CUDA> > particles; // pointer to particles_t on each GPU
+//      std::vector<boost::shared_ptr<particles_t<real_t, CUDA > > > particles; // pointers to particles_t on each GPU
+      boost::ptr_vector<particles_t<real_t, CUDA> > particles; // pointer to particles_t on each GPU
 #if defined(__NVCC__)
       cudaStream_t *streams; // cuda Stream on each device, used during P2P async memory copies
 #endif

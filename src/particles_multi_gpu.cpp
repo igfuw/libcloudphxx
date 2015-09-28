@@ -76,8 +76,8 @@ printf("dev count %d\n", dev_count);
       }
       
       // resize the pointer vector
-      particles.resize(dev_count);
-//      particles.reserve(dev_count);
+//      particles.resize(dev_count);
+      particles.reserve(dev_count);
       // resize the output buffer
       real_n_cell_tot.resize(n_cell_tot);
 
@@ -85,12 +85,12 @@ printf("dev count %d\n", dev_count);
       this->opts_init = &glob_opts_init;
 
       // assign device to each thread and create particles_t in each
-      #pragma omp parallel num_threads(dev_count)
-//      int n_cell_bfr;
-  //    for(int dev_id = 0; dev_id < dev_count; ++dev_id)
+//      #pragma omp parallel num_threads(dev_count)
+      int n_cell_bfr;
+      for(int dev_id = 0; dev_id < dev_count; ++dev_id)
       {
 printf("get thread num\n");
-        const int dev_id = omp_get_thread_num();
+//        const int dev_id = omp_get_thread_num();
 printf("set dev to %d\n", dev_id);
         gpuErrchk(cudaSetDevice(dev_id));
 
@@ -98,15 +98,15 @@ printf("init temp opts_init\n");
         opts_init_t<real_t> opts_init_tmp(_opts_init); // firstprivate didn't work
 
 printf("calc n_cell_bfr\n");
-        const int n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
+        /*const int */n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
 
 printf("n cell bfr %d\n", n_cell_bfr);
         // modify nx for each device
         opts_init_tmp.nx = detail::get_dev_nx(opts_init_tmp, dev_id);
 printf("local nx %d\n", opts_init_tmp.nx);
 
-//        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr)); // impl stores a copy of opts_init
-        particles.at(dev_id) = boost::make_shared<particles_t<real_t, CUDA> >(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
+        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr)); // impl stores a copy of opts_init
+//        particles.at(dev_id) = boost::make_shared<particles_t<real_t, CUDA> >(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
       }
       // allow direct memory access between nieghbouring devices
       // and create stream for each device
@@ -153,7 +153,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->init(th, rv, rhod, courant_1, courant_2, courant_3);
+        particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3);
       }
     }
 
@@ -173,7 +173,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
+        particles[dev_id].step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
       }
     }
 
@@ -189,7 +189,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
         gpuErrchk(cudaSetDevice(dev_id));
 
         // do step async on each device
-        res = particles[dev_id]->step_async(opts);
+        res = particles[dev_id].step_async(opts);
 
         // --- copy advected SDs to other devices ---
         if(opts.adve && glob_opts_init.dev_count>1)
@@ -198,24 +198,24 @@ printf("local nx %d\n", opts_init_tmp.nx);
           typedef unsigned long long n_t; // TODO: same typedef is in impl struct !!
 
           // helper aliases
-          const unsigned int &lft_count(particles[dev_id]->pimpl->lft_count);
-          const unsigned int &rgt_count(particles[dev_id]->pimpl->rgt_count);
-          thrust_size_t &n_part(particles[dev_id]->pimpl->n_part);
-          thrust_size_t &n_part_old(particles[dev_id]->pimpl->n_part_old);
-          thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
-          thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
-          thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
-          thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
-          thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
-          thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
-          thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
-          thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
-          thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
-          thrust_device::vector<n_t> &in_n_bfr(particles[dev_id]->pimpl->in_n_bfr);
-          thrust_device::vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
+          const unsigned int &lft_count(particles[dev_id].pimpl->lft_count);
+          const unsigned int &rgt_count(particles[dev_id].pimpl->rgt_count);
+          thrust_size_t &n_part(particles[dev_id].pimpl->n_part);
+          thrust_size_t &n_part_old(particles[dev_id].pimpl->n_part_old);
+          thrust_device::vector<real_t> &x(particles[dev_id].pimpl->x);
+          thrust_device::vector<real_t> &y(particles[dev_id].pimpl->y);
+          thrust_device::vector<real_t> &z(particles[dev_id].pimpl->z);
+          thrust_device::vector<n_t> &n(particles[dev_id].pimpl->n);
+          thrust_device::vector<real_t> &rd3(particles[dev_id].pimpl->rd3);
+          thrust_device::vector<real_t> &rw2(particles[dev_id].pimpl->rw2);
+          thrust_device::vector<real_t> &kpa(particles[dev_id].pimpl->kpa);
+          thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
+          thrust_device::vector<real_t> &out_real_bfr(particles[dev_id].pimpl->out_real_bfr);
+          thrust_device::vector<n_t> &in_n_bfr(particles[dev_id].pimpl->in_n_bfr);
+          thrust_device::vector<real_t> &in_real_bfr(particles[dev_id].pimpl->in_real_bfr);
           // i and k must have not changed since impl->bcnd !!
-          const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
-          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->k);
+          const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
+          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
 
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1, // periodic boundary in x
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
@@ -229,7 +229,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
 
           // start async copy of n buffer to the left
           cudaMemcpyPeerAsync(
-            particles[lft_dev]->pimpl->in_n_bfr.data().get(), lft_dev,  //dst
+            particles[lft_dev].pimpl->in_n_bfr.data().get(), lft_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             lft_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id+1]                                             //best performance if stream belongs to src
@@ -242,7 +242,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            arg::_1 + particles[lft_dev]->opts_init->x1 - particles[dev_id]->opts_init->x0   // operation
+            arg::_1 + particles[lft_dev].opts_init->x1 - particles[dev_id].opts_init->x0   // operation
           );
 
           // prepare the real_t buffer for copy left
@@ -258,7 +258,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
           // wait for the copy of n from right into current device to finish
           gpuErrchk(cudaStreamSynchronize(streams[rgt_dev+1]));
           // unpack the n buffer sent to this device from right
-          int n_copied = particles[rgt_dev]->pimpl->lft_count;
+          int n_copied = particles[rgt_dev].pimpl->lft_count;
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
@@ -266,7 +266,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
 
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
           cudaMemcpyPeerAsync(
-            particles[lft_dev]->pimpl->in_real_bfr.data().get(), lft_dev,  //dst
+            particles[lft_dev].pimpl->in_real_bfr.data().get(), lft_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
             streams[dev_id+1]                                                //best performance if stream belongs to src
@@ -286,7 +286,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            arg::_1 + particles[rgt_dev]->opts_init->x0 - particles[dev_id]->opts_init->x1   // operation
+            arg::_1 + particles[rgt_dev].opts_init->x0 - particles[dev_id].opts_init->x1   // operation
           );
 
           // wait for the copy of real from right into current device to finish
@@ -301,7 +301,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
 
           // start async copy of n buffer to the right
           cudaMemcpyPeerAsync(
-            particles[rgt_dev]->pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
+            particles[rgt_dev].pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             rgt_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id+1]                                             //best performance if stream belongs to src
@@ -320,7 +320,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
           // wait for the copy of n from left into current device to finish
           gpuErrchk(cudaStreamSynchronize(streams[lft_dev+1]));
           // unpack the n buffer sent to this device from left
-          n_copied = particles[lft_dev]->pimpl->rgt_count;
+          n_copied = particles[lft_dev].pimpl->rgt_count;
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
@@ -328,7 +328,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
 
           // start async copy of real buffer to the right
           cudaMemcpyPeerAsync(
-            particles[rgt_dev]->pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
+            particles[rgt_dev].pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
             streams[dev_id+1]                                                //best performance if stream belongs to src
@@ -359,10 +359,10 @@ printf("local nx %d\n", opts_init_tmp.nx);
           }
 
           // remove particles sent left/right and resize all n_part vectors
-          particles[dev_id]->pimpl->hskpng_remove_n0();
+          particles[dev_id].pimpl->hskpng_remove_n0();
 
           // particles are not sorted now
-          particles[dev_id]->pimpl->sorted = false;          
+          particles[dev_id].pimpl->sorted = false;          
         }
       }
       return res;
@@ -376,7 +376,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_sd_conc();
+        particles[dev_id].diag_sd_conc();
       }
     }
 
@@ -389,7 +389,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_dry_rng(r_mi, r_mx);
+        particles[dev_id].diag_dry_rng(r_mi, r_mx);
       }
     }
 
@@ -402,7 +402,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_wet_rng(r_mi, r_mx);
+        particles[dev_id].diag_wet_rng(r_mi, r_mx);
       }
     }
 
@@ -413,7 +413,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_dry_mom(k);
+        particles[dev_id].diag_dry_mom(k);
       }
     }
 
@@ -424,7 +424,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_wet_mom(k);
+        particles[dev_id].diag_wet_mom(k);
       }
     }
 
@@ -435,7 +435,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_wet_mass_dens(a, b);
+        particles[dev_id].diag_wet_mass_dens(a, b);
       }
     }
 
@@ -449,7 +449,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_chem(spec);
+        particles[dev_id].diag_chem(spec);
       }
     }
 
@@ -460,7 +460,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_rw_ge_rc();
+        particles[dev_id].diag_rw_ge_rc();
       }
     }
 
@@ -471,7 +471,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_RH_ge_Sc();
+        particles[dev_id].diag_RH_ge_Sc();
       }
     }
 
@@ -482,7 +482,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->diag_all();
+        particles[dev_id].diag_all();
       }
     }
 
@@ -493,12 +493,12 @@ printf("local nx %d\n", opts_init_tmp.nx);
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->pimpl->fill_outbuf();
+        particles[dev_id].pimpl->fill_outbuf();
         int n_cell_bfr;
         n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
         thrust::copy(
-          particles[dev_id]->pimpl->tmp_host_real_cell.begin(),
-          particles[dev_id]->pimpl->tmp_host_real_cell.end(),
+          particles[dev_id].pimpl->tmp_host_real_cell.begin(),
+          particles[dev_id].pimpl->tmp_host_real_cell.end(),
           real_n_cell_tot.begin() + n_cell_bfr
         );
       }
