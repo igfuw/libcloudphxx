@@ -61,7 +61,7 @@ namespace libcloudphxx
       }
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
-printf("dev count %d\n", dev_count);
+//printf("dev count %d\n", dev_count);
    
       // check if all GPUs support UVA, TODO: move this to cmake
       for (int i = 0; i < dev_count; ++i)
@@ -89,21 +89,21 @@ printf("dev count %d\n", dev_count);
       int n_cell_bfr;
       for(int dev_id = 0; dev_id < dev_count; ++dev_id)
       {
-printf("get thread num\n");
+//printf("get thread num\n");
 //        const int dev_id = omp_get_thread_num();
-printf("set dev to %d\n", dev_id);
+//printf("set dev to %d\n", dev_id);
         gpuErrchk(cudaSetDevice(dev_id));
 
-printf("init temp opts_init\n");
-        opts_init_t<real_t> opts_init_tmp(_opts_init); // firstprivate didn't work
+//printf("init temp opts_init\n");
+        opts_init_t<real_t> opts_init_tmp(glob_opts_init); // firstprivate didn't work
 
-printf("calc n_cell_bfr\n");
+//printf("calc n_cell_bfr\n");
         /*const int */n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
 
-printf("n cell bfr %d\n", n_cell_bfr);
+//printf("n cell bfr %d\n", n_cell_bfr);
         // modify nx for each device
         opts_init_tmp.nx = detail::get_dev_nx(opts_init_tmp, dev_id);
-printf("local nx %d\n", opts_init_tmp.nx);
+//printf("local nx %d\n", opts_init_tmp.nx);
 
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr)); // impl stores a copy of opts_init
 //        particles.at(dev_id) = boost::make_shared<particles_t<real_t, CUDA> >(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
