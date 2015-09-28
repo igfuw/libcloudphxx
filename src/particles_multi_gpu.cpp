@@ -3,6 +3,7 @@
 #include "detail/multiGPU_utils.hpp"
 
 // macro to check for cuda errors, taken from 
+// move it to utils...
 // http://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans) { detail::gpuAssert((ans), __FILE__, __LINE__); }
 
@@ -111,7 +112,8 @@ printf("local nx %d\n", opts_init_tmp.nx);
       // and create stream for each device
       if(dev_count>1)
       {
-        streams.resize(dev_count);
+        streams = new cudaStream_t[dev_count+1]; // stream[0] left for host - see CUDA example 0_simple/UnifiedMemoryStreams
+        cudaStreamCreate(&streams[0]);
         #pragma omp parallel num_threads(dev_count)
         {
           const int dev_id = omp_get_thread_num();
@@ -130,7 +132,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
               {gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));}
           }
           // create a stream
-          cudaStreamCreate(&streams.at(dev_id));
+          cudaStreamCreate(&streams[dev_id+1]);
         }
       }
     }
@@ -230,7 +232,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             particles[lft_dev]->pimpl->in_n_bfr.data().get(), lft_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             lft_count * sizeof(n_t),                                    //no of bytes
-            streams[dev_id]                                             //best performance if stream belongs to src
+            streams[dev_id+1]                                             //best performance if stream belongs to src
           );
           // barrier to make sure that all devices started copying
           #pragma omp barrier
@@ -254,7 +256,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             );
 
           // wait for the copy of n from right into current device to finish
-          cudaStreamSynchronize(streams[rgt_dev]);
+          gpuErrchk(cudaStreamSynchronize(streams[rgt_dev+1]));
           // unpack the n buffer sent to this device from right
           int n_copied = particles[rgt_dev]->pimpl->lft_count;
           n_part_old = n_part;
@@ -267,7 +269,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             particles[lft_dev]->pimpl->in_real_bfr.data().get(), lft_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
-            streams[dev_id]                                                //best performance if stream belongs to src
+            streams[dev_id+1]                                                //best performance if stream belongs to src
           );
           // barrier to make sure that all devices started copying
           #pragma omp barrier
@@ -288,7 +290,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
           );
 
           // wait for the copy of real from right into current device to finish
-          cudaStreamSynchronize(streams[rgt_dev]);
+          gpuErrchk(cudaStreamSynchronize(streams[rgt_dev+1]));
 
           // unpack the real buffer sent to this device from right
           for(int i = 0; i < real_vctrs_count; ++i)
@@ -302,7 +304,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             particles[rgt_dev]->pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             rgt_count * sizeof(n_t),                                    //no of bytes
-            streams[dev_id]                                             //best performance if stream belongs to src
+            streams[dev_id+1]                                             //best performance if stream belongs to src
           );
           // barrier to make sure that all devices started copying
           #pragma omp barrier
@@ -316,7 +318,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             );
 
           // wait for the copy of n from left into current device to finish
-          cudaStreamSynchronize(streams[lft_dev]);
+          gpuErrchk(cudaStreamSynchronize(streams[lft_dev+1]));
           // unpack the n buffer sent to this device from left
           n_copied = particles[lft_dev]->pimpl->rgt_count;
           n_part_old = n_part;
@@ -329,7 +331,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
             particles[rgt_dev]->pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
-            streams[dev_id]                                                //best performance if stream belongs to src
+            streams[dev_id+1]                                                //best performance if stream belongs to src
           );
           // barrier to make sure that all devices started copying
           #pragma omp barrier
@@ -347,7 +349,7 @@ printf("local nx %d\n", opts_init_tmp.nx);
           );
           
           // wait for the copy of real from left into current device to finish
-          cudaStreamSynchronize(streams[lft_dev]);
+          gpuErrchk(cudaStreamSynchronize(streams[lft_dev+1]));
 
           // unpack the real buffer sent to this device from left
           for(int i = 0; i < real_vctrs_count; ++i)

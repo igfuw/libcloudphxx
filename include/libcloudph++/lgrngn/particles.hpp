@@ -237,7 +237,7 @@ namespace libcloudphxx
       std::vector<boost::shared_ptr<particles_t<real_t, CUDA > > > particles; // pointers to particles_t on each GPU
 //      boost::ptr_vector<particles_t<real_t, CUDA> > particles; // pointer to particles_t on each GPU
 #if defined(__NVCC__)
-      std::vector<cudaStream_t> streams; // cuda Stream on each device, used during P2P async memory copies
+      cudaStream_t *streams; // cuda Stream on each device, used during P2P async memory copies
 #endif
       opts_init_t<real_t> glob_opts_init; // global copy of opts_init (threads store their own in impl), 
       const int n_cell_tot;               // total number of cells
