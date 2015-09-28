@@ -26,7 +26,7 @@ namespace libcloudphxx
 
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_cell_bfr) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &__dev_id, const int &__n_cell_bfr) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
@@ -76,6 +76,7 @@ printf("dev count %d\n", dev_count);
       
       // resize the pointer vector
       particles.resize(dev_count);
+//      particles.reserve(dev_count);
       // resize the output buffer
       real_n_cell_tot.resize(n_cell_tot);
 
@@ -84,6 +85,8 @@ printf("dev count %d\n", dev_count);
 
       // assign device to each thread and create particles_t in each
       #pragma omp parallel num_threads(dev_count)
+//      int n_cell_bfr;
+  //    for(int dev_id = 0; dev_id < dev_count; ++dev_id)
       {
 printf("get thread num\n");
         const int dev_id = omp_get_thread_num();
@@ -101,7 +104,8 @@ printf("n cell bfr %d\n", n_cell_bfr);
         opts_init_tmp.nx = detail::get_dev_nx(opts_init_tmp, dev_id);
 printf("local nx %d\n", opts_init_tmp.nx);
 
-        particles.at(dev_id) = new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
+//        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_cell_bfr)); // impl stores a copy of opts_init
+        particles.at(dev_id) = boost::make_shared<particles_t<real_t, CUDA> >(opts_init_tmp, dev_id, n_cell_bfr); // impl stores a copy of opts_init
       }
       // allow direct memory access between nieghbouring devices
       // and create stream for each device

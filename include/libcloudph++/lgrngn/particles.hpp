@@ -161,6 +161,7 @@ namespace libcloudphxx
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
       opts_init_t<real_t> *opts_init;
+
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -233,7 +234,8 @@ namespace libcloudphxx
     struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
     {
       // additional members
-      std::vector<particles_t<real_t, CUDA> *> particles; // pointer to particles_t on each GPU
+      std::vector<boost::shared_ptr<particles_t<real_t, CUDA > > > particles; // pointers to particles_t on each GPU
+//      boost::ptr_vector<particles_t<real_t, CUDA> > particles; // pointer to particles_t on each GPU
 #if defined(__NVCC__)
       std::vector<cudaStream_t> streams; // cuda Stream on each device, used during P2P async memory copies
 #endif
