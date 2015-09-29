@@ -61,6 +61,7 @@ void setopts_micro(
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
   else if (backend_str == "OpenMP") rt_params.backend = libcloudphxx::lgrngn::OpenMP;
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
+  else if (backend_str == "multi_CUDA") rt_params.backend = libcloudphxx::lgrngn::multi_CUDA;
 
   rt_params.async = vm["async"].as<bool>();
 
@@ -69,6 +70,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.n_sd_max = vm["sd_conc"].as<unsigned long long>() * nx * nz * 10;
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
+//  rt_params.cloudph_opts_init.dev_count = 1;
+//
   boost::assign::ptr_map_insert<
     setup::log_dry_radii<thrust_real_t> // value type
   >(
@@ -102,7 +105,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.coal_switch = 1;
   rt_params.cloudph_opts_init.chem_switch = 0;
-  rt_params.cloudph_opts_init.src_switch = 1;
+  rt_params.cloudph_opts_init.src_switch = 0;
   rt_params.cloudph_opts_init.sedi_switch = 1;
 
   //rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
@@ -117,9 +120,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
 
   // coalescence kernel choice
-  //rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
-  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
-  //rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard;
+  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
   // parsing --out_dry and --out_wet options values
