@@ -160,6 +160,7 @@ namespace libcloudphxx
       // multi_GPU version invalidates i and k;
       // this has to be done last since i and k will be used by multi_gpu copy to other devices
       // TODO: instead of using i and k define new vectors ?
+      // TODO: do this only if we advect/sediment?
       real_t ret = pimpl->bcnd();
 
       pimpl->selected_before_counting = false;
