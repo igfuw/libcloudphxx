@@ -49,6 +49,7 @@ void setopts_micro(
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     ("supstp_src", po::value<int>()->default_value(rt_params.cloudph_opts_init.supstp_src), "no of timesteps per which src is ran")
+    ("dev_count", po::value<int>()->default_value(rt_params.cloudph_opts_init.dev_count), "no of GPUs to use")
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
@@ -70,7 +71,6 @@ void setopts_micro(
   rt_params.cloudph_opts_init.n_sd_max = vm["sd_conc"].as<unsigned long long>() * nx * nz * 10;
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
-//  rt_params.cloudph_opts_init.dev_count = 1;
 //
   boost::assign::ptr_map_insert<
     setup::log_dry_radii<thrust_real_t> // value type
@@ -118,6 +118,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
+  rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
 
   // coalescence kernel choice
   rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
