@@ -80,7 +80,7 @@ namespace libcloudphxx
 
       // initialising dry radii (needs ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      // analyze the distribution
+      // analyze the distribution;
       pimpl->dist_analysis(
         pimpl->opts_init.dry_distros.begin()->second,
         pimpl->opts_init.sd_conc

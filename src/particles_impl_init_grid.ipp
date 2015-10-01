@@ -158,6 +158,7 @@ namespace libcloudphxx
       {
         if(dev_id != 0) opts_init.x0 = 0.; // TODO: what if x0 greater than domain of first device?
         if(dev_id != opts_init.dev_count-1) opts_init.x1 = opts_init.nx * opts_init.dx; //TODO: same as above
+        else opts_init.x1 = opts_init.x1 - n_cell_bfr / opts_init.nz / m1(opts_init.ny) * opts_init.dx;
       }
     }
   };

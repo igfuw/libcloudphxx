@@ -41,6 +41,9 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
+  
+      printf("n po sync\n");
+      debug::print(n);
 
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
@@ -54,6 +57,9 @@ namespace libcloudphxx
       {
         pimpl->hskpng_ijk();
       }
+
+      printf("n po hspnkg ijk\n");
+      debug::print(n);
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -69,6 +75,9 @@ namespace libcloudphxx
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
+
+      printf("n po cond\n");
+      debug::print(n);
 
       pimpl->should_now_run_async = true;
       pimpl->selected_before_counting = false;
@@ -88,27 +97,53 @@ namespace libcloudphxx
       if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
       if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
 
+      printf("async n_part %d\n", pimpl->n_part);
+
+      printf("n pocz async\n");
+      debug::print(n);
+   
+      printf("sstp_save\n");
+
       if (opts.cond) 
       { 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
       }
 
+      printf("n po sstp save\n");
+      debug::print(n);
+
+      printf("hskpng tpr\n");
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
+      printf("n po hspnkg tpr\n");
+      debug::print(n);
+
       // advection 
+      printf("adve\n");
       if (opts.adve) pimpl->adve(); 
 
+      printf("n po adve\n");
+      debug::print(n);
+
+      printf("vterm\n");
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
+      printf("n po vterm\n");
+      debug::print(n);
+
+      printf("sedi\n");
       if (opts.sedi) 
       {
         // advection with terminal velocity
         pimpl->sedi();
       }
+
+      printf("n po sedi\n");
+      debug::print(n);
 
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
@@ -119,6 +154,7 @@ namespace libcloudphxx
                      );
       }
 
+      printf("sstp_coal\n");
       // coalescence
       if (opts.coal) 
       {
@@ -133,10 +169,17 @@ namespace libcloudphxx
         }
       }
 
+      printf("n po coal\n");
+      debug::print(n);
 
+
+      printf("remove n0\n");
       // remove SDs with n = 0
       // TODO: do this after bcond?
       if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
+
+      printf("n po remove\n");
+      debug::print(n);
 
       // aerosol source
       if (opts.src) 
@@ -156,12 +199,20 @@ namespace libcloudphxx
       }
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
+      printf("bcnd\n");
       // boundary condition + accumulated rainfall to be returned
       // multi_GPU version invalidates i and k;
       // this has to be done last since i and k will be used by multi_gpu copy to other devices
       // TODO: instead of using i and k define new vectors ?
       // TODO: do this only if we advect/sediment?
       real_t ret = pimpl->bcnd();
+
+      printf("n po bcnd\n");
+      debug::print(n);
+      printf("x po bcnd\n");
+      debug::print(x);
+      printf("z po bcnd\n");
+      debug::print(z);
 
       pimpl->selected_before_counting = false;
 

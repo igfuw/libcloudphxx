@@ -25,6 +25,7 @@ namespace libcloudphxx
     namespace detail
     {   
       enum { invalid = -1 };
+
     };  
 
     // pimpl stuff 
@@ -49,7 +50,7 @@ namespace libcloudphxx
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
  
-      //containters for all kernel types
+      // containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
       thrust_device::vector<kernel_long<real_t, n_t> > k_long;
@@ -175,20 +176,14 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // fills u01[0:n] with random numbers
-      void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
-
-      // fills un[0:n] with random numbers
-      void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
-
-      // compile-time max(1, n) 
-      int m1(int n) { return n == 0 ? 1 : n; }
- 
       // device number, used only for multi GPU setup
       const int dev_id;
 
       // number of particles to be copied left/right in multi-GPU setup
       unsigned int lft_count, rgt_count;
+
+      // number of cells in devices to the left of this one
+      unsigned int n_cell_bfr;
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
@@ -197,8 +192,17 @@ namespace libcloudphxx
       // for multi GPU setup - count global cell number (aware of cells on other GPUs)
       const thrust::counting_iterator<thrust_size_t> global_cell_no;
 
+      // fills u01[0:n] with random numbers
+      void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
+
+      // fills un[0:n] with random numbers
+      void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
+
+      // max(1, n)
+      int m1(int n) { return n == 0 ? 1 : n; }
+
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_cell_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &_n_cell_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -216,13 +220,14 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         dev_id(dev_id),
-        global_cell_no(dev_id != -1 ? n_cell_bfr : 0), // dev_id == -1 means that its not a multi_CUDA run
+        global_cell_no(dev_id != -1 ? _n_cell_bfr : 0), // dev_id == -1 means that its not a multi_CUDA run
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
-        stp_ctr(0)
+        stp_ctr(0),
+        n_cell_bfr(_n_cell_bfr)
       {
         // sanity checks
         if (n_dims > 0)

@@ -90,6 +90,8 @@ namespace libcloudphxx
               rgt_id.begin(),
               arg::_1 >= opts_init.x1
             ) - rgt_id.begin();
+            if(lft_count > in_n_bfr.size() || rgt_count > in_n_bfr.size())
+              throw std::runtime_error("Overflow of the in/out buffer\n"); // TODO: resize buffers?
           }
 
           // hardcoded periodic boundary in y! (TODO - as an option)

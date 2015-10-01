@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+      void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
       {
          if (code != cudaSuccess) 
          {
@@ -21,8 +21,9 @@ namespace libcloudphxx
             if (abort) exit(code);
          }
       }
-      // compile-time max(1, n), same as in pimpl_ctor...
-      int m1(int n) { return n == 0 ? 1 : n; }      
+
+      // max(1, n)
+      int m1(int n) { return n == 0 ? 1 : n; }
     };
 
     // constructor
@@ -113,7 +114,9 @@ namespace libcloudphxx
       if(dev_count>1)
       {
         streams = new cudaStream_t[dev_count+1]; // stream[0] left for host - see CUDA example 0_simple/UnifiedMemoryStreams
+        events = new cudaEvent_t[dev_count+1]; // stream[0] left for host - see CUDA example 0_simple/UnifiedMemoryStreams
         cudaStreamCreate(&streams[0]);
+        cudaEventCreateWithFlags (&events[0], cudaEventDisableTiming );
         #pragma omp parallel num_threads(dev_count)
         {
           const int dev_id = omp_get_thread_num();
@@ -132,7 +135,9 @@ namespace libcloudphxx
               {gpuErrchk(cudaDeviceEnablePeerAccess(0, 0));}
           }
           // create a stream
-          cudaStreamCreate(&streams[dev_id+1]);
+          gpuErrchk(cudaStreamCreate(&streams[dev_id+1]));
+          // create an event
+          cudaEventCreateWithFlags(&events[dev_id+1], cudaEventDisableTiming );
         }
       }
     }
@@ -151,9 +156,13 @@ namespace libcloudphxx
     {
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
+        #pragma omp critical
+        {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+        printf("call init on dev %d\n", dev_id);
         particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3);
+        }
       }
     }
 
@@ -171,9 +180,13 @@ namespace libcloudphxx
     {
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
+        #pragma omp critical
+        {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+        printf("call sync on dev %d\n", dev_id);
         particles[dev_id].step_sync(opts, th, rv, courant_1, courant_2, courant_3, rhod);
+        }
       }
     }
 
@@ -188,14 +201,19 @@ namespace libcloudphxx
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
 
+        #pragma omp critical
+        {
         // do step async on each device
+        printf("call async on dev %d\n", dev_id);
         res = particles[dev_id].step_async(opts);
+        }
 
         // --- copy advected SDs to other devices ---
         if(opts.adve && glob_opts_init.dev_count>1)
         {
+          printf("start of copying on dev %d\n", dev_id);
           namespace arg = thrust::placeholders;
-          typedef unsigned long long n_t; // TODO: same typedef is in impl struct !!
+          typedef unsigned long long n_t; // TODO: same typedef is in impl struct !! TODO: particles::impl::n_t ? 
 
           // helper aliases
           const unsigned int &lft_count(particles[dev_id].pimpl->lft_count);
@@ -205,14 +223,14 @@ namespace libcloudphxx
           thrust_device::vector<real_t> &x(particles[dev_id].pimpl->x);
           thrust_device::vector<real_t> &y(particles[dev_id].pimpl->y);
           thrust_device::vector<real_t> &z(particles[dev_id].pimpl->z);
-          thrust_device::vector<n_t> &n(particles[dev_id].pimpl->n);
           thrust_device::vector<real_t> &rd3(particles[dev_id].pimpl->rd3);
           thrust_device::vector<real_t> &rw2(particles[dev_id].pimpl->rw2);
           thrust_device::vector<real_t> &kpa(particles[dev_id].pimpl->kpa);
-          thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
           thrust_device::vector<real_t> &out_real_bfr(particles[dev_id].pimpl->out_real_bfr);
-          thrust_device::vector<n_t> &in_n_bfr(particles[dev_id].pimpl->in_n_bfr);
           thrust_device::vector<real_t> &in_real_bfr(particles[dev_id].pimpl->in_real_bfr);
+          thrust_device::vector<n_t> &n(particles[dev_id].pimpl->n);
+          thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
+          thrust_device::vector<n_t> &in_n_bfr(particles[dev_id].pimpl->in_n_bfr);
           // i and k must have not changed since impl->bcnd !!
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
@@ -221,22 +239,43 @@ namespace libcloudphxx
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
 
           // prepare buffer with n_t to be copied left
+          // TODO: use serialization to pack the buffers (e.g. from boost)?
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
             out_n_bfr.begin()
           );
 
+          #pragma omp critical
+          {
+            printf("przed copy dev %d lft_count %d rgt count %d npart %d lft_dev %d rgt_dev %d n_part %d\n", dev_id, lft_count, rgt_count, n_part, lft_dev, rgt_dev, int(n_part));
+            printf("lft_id\n");
+            debug::print(lft_id.begin(), lft_id.begin() + lft_count);
+            printf("rgt_id\n");
+            debug::print(rgt_id.begin(), rgt_id.begin() + rgt_count);
+            printf("n\n");
+            debug::print(n.begin(), n.end());
+            printf("x\n");
+            debug::print(x.begin(), x.end());
+  
+            printf("out_n_bfr left\n");
+            debug::print(out_n_bfr.begin(), out_n_bfr.begin() + lft_count);
+          }
+
+          printf("copy 2 on dev %d\n", dev_id);
           // start async copy of n buffer to the left
-          cudaMemcpyPeerAsync(
+          gpuErrchk(cudaMemcpyPeerAsync(
             particles[lft_dev].pimpl->in_n_bfr.data().get(), lft_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             lft_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id+1]                                             //best performance if stream belongs to src
-          );
+          ));
+          // record beginning of copying
+          gpuErrchk(cudaEventRecord(events[dev_id+1], streams[dev_id+1]));
           // barrier to make sure that all devices started copying
           #pragma omp barrier
 
+          printf("copy 3 on dev %d\n", dev_id);
           // adjust x of prtcls to be sent left to match new device's domain
           thrust::transform(
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
@@ -245,6 +284,7 @@ namespace libcloudphxx
             arg::_1 + particles[lft_dev].opts_init->x1 - particles[dev_id].opts_init->x0   // operation
           );
 
+          printf("copy 4 on dev %d\n", dev_id);
           // prepare the real_t buffer for copy left
           thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &x, &z, &y};
           const int real_vctrs_count = glob_opts_init.ny == 0 ? 5 : 6;
@@ -255,15 +295,37 @@ namespace libcloudphxx
               out_real_bfr.begin() + i * lft_count
             );
 
+          #pragma omp critical
+          {
+            printf("po zmianie lewych x dev %d lft_count %d rgt count %d npart %d lft_dev %d rgt_dev %d n_part %d\n", dev_id, lft_count, rgt_count, n_part, lft_dev, rgt_dev, int(n_part));
+            printf("x\n");
+            debug::print(x.begin(), x.end());
+            printf("out real bfr na lewo\n");
+            debug::print(out_real_bfr.begin(), out_real_bfr.begin() + real_vctrs_count * lft_count);
+          }
+          
+
+          printf("copy 5 on dev %d\n", dev_id);
           // wait for the copy of n from right into current device to finish
-          gpuErrchk(cudaStreamSynchronize(streams[rgt_dev+1]));
+          gpuErrchk(cudaStreamWaitEvent(streams[dev_id+1], events[rgt_dev+1], 0));
+          printf("copy 6 on dev %d\n", dev_id);
           // unpack the n buffer sent to this device from right
           int n_copied = particles[rgt_dev].pimpl->lft_count;
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
           thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+          #pragma omp critical
+          {
+            printf("po przyjeciu n z prawej dev %d lft_count %d rgt count %d npart %d lft_dev %d rgt_dev %d n_part %d\n", dev_id, lft_count, rgt_count, n_part, lft_dev, rgt_dev, int(n_part));
+            printf("n copied from right %d\n", n_copied);
+            printf("in_n_bfr z prawej\n");
+            debug::print(in_n_bfr.begin(), in_n_bfr.begin() + n_copied);
+            printf("n\n");
+            debug::print(n.begin(), n.end());
+          }
 
+          printf("copy 7 on dev %d\n", dev_id);
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
           cudaMemcpyPeerAsync(
             particles[lft_dev].pimpl->in_real_bfr.data().get(), lft_dev,  //dst
@@ -271,16 +333,27 @@ namespace libcloudphxx
             real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
             streams[dev_id+1]                                                //best performance if stream belongs to src
           );
+          // record beginning of copying
+          gpuErrchk(cudaEventRecord(events[dev_id+1], streams[dev_id+1]));
           // barrier to make sure that all devices started copying
           #pragma omp barrier
 
+          printf("copy 8 on dev %d\n", dev_id);
           // prepare buffer with n_t to be copied right
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
             out_n_bfr.begin()
           );
+          #pragma omp critical
+          {
+            printf("gotowy bufor n prawo dev %d lft_count %d rgt count %d npart %d lft_dev %d rgt_dev %d n_part %d\n", dev_id, lft_count, rgt_count, n_part, lft_dev, rgt_dev, int(n_part));
+  
+            printf("out_n_bfr na prawo\n");
+            debug::print(out_n_bfr.begin(), out_n_bfr.begin() + rgt_count);
+          }
 
+          printf("copy 9 on dev %d\n", dev_id);
           // adjust x of prtcls to be sent right to match new device's domain
           thrust::transform(
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
@@ -290,7 +363,7 @@ namespace libcloudphxx
           );
 
           // wait for the copy of real from right into current device to finish
-          gpuErrchk(cudaStreamSynchronize(streams[rgt_dev+1]));
+          gpuErrchk(cudaStreamWaitEvent(streams[dev_id+1], events[rgt_dev+1], 0));
 
           // unpack the real buffer sent to this device from right
           for(int i = 0; i < real_vctrs_count; ++i)
@@ -298,7 +371,16 @@ namespace libcloudphxx
             real_t_vctrs[i]->resize(n_part);
             thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
+          #pragma omp critical
+          {
+            printf("po zmianie prawych x i rozpakowaniu bufora z prawej dev %d lft_count %d rgt count %d npart %d lft_dev %d rgt_dev %d n_part %d\n", dev_id, lft_count, rgt_count, n_part, lft_dev, rgt_dev, int(n_part));
+            printf("x\n");
+            debug::print(x.begin(), x.end());
+            printf("in real bfr z prawej\n");
+            debug::print(in_real_bfr.begin(), in_real_bfr.begin() + real_vctrs_count * n_copied);
+          }
 
+          printf("copy 10 on dev %d\n", dev_id);
           // start async copy of n buffer to the right
           cudaMemcpyPeerAsync(
             particles[rgt_dev].pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
@@ -306,6 +388,8 @@ namespace libcloudphxx
             rgt_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id+1]                                             //best performance if stream belongs to src
           );
+          // record beginning of copying
+          gpuErrchk(cudaEventRecord(events[dev_id+1], streams[dev_id+1]));
           // barrier to make sure that all devices started copying
           #pragma omp barrier
 
@@ -318,14 +402,16 @@ namespace libcloudphxx
             );
 
           // wait for the copy of n from left into current device to finish
-          gpuErrchk(cudaStreamSynchronize(streams[lft_dev+1]));
+          gpuErrchk(cudaStreamWaitEvent(streams[dev_id+1], events[lft_dev+1], 0));
           // unpack the n buffer sent to this device from left
           n_copied = particles[lft_dev].pimpl->rgt_count;
+          printf("n copied from left %d\n", n_copied);
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
           thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
+          printf("copy 11 on dev %d\n", dev_id);
           // start async copy of real buffer to the right
           cudaMemcpyPeerAsync(
             particles[rgt_dev].pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
@@ -333,9 +419,12 @@ namespace libcloudphxx
             real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
             streams[dev_id+1]                                                //best performance if stream belongs to src
           );
+          // record beginning of copying
+          gpuErrchk(cudaEventRecord(events[dev_id+1], streams[dev_id+1]));
           // barrier to make sure that all devices started copying
           #pragma omp barrier
 
+          printf("copy 12 on dev %d\n", dev_id);
           // flag SDs sent left/right for removal
           thrust::copy(
             thrust::make_constant_iterator<n_t>(0),
@@ -349,7 +438,8 @@ namespace libcloudphxx
           );
           
           // wait for the copy of real from left into current device to finish
-          gpuErrchk(cudaStreamSynchronize(streams[lft_dev+1]));
+          gpuErrchk(cudaStreamWaitEvent(streams[dev_id+1], events[lft_dev+1], 0));
+          printf("copy 13 on dev %d\n", dev_id);
 
           // unpack the real buffer sent to this device from left
           for(int i = 0; i < real_vctrs_count; ++i)
@@ -363,6 +453,7 @@ namespace libcloudphxx
 
           // particles are not sorted now
           particles[dev_id].pimpl->sorted = false;          
+          printf("copy end on dev %d\n", dev_id);
         }
       }
       return res;

@@ -102,8 +102,16 @@ if (CUDA_FOUND)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
         -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo 
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g
+# non-synchronizing default stream to make copies between GPUs async with
+# respect to thrust launches (to be checked in nvvp)
+# alternative: explicitly specify other streams in thrust calls in copy code
+# TODO: not needed? see
+# http://on-demand.gputechconf.com/gtc-express/2011/presentations/StreamsAndConcurrencyWebinar.pdf
+  #      -default-stream=per-thread
+       ")  
+
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
     if(NOT DEFINED ENV{TRAVIS})
       set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")
