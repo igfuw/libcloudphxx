@@ -43,7 +43,7 @@ namespace libcloudphxx
       pimpl->sync(rhod,           pimpl->rhod);
   
       printf("n po sync\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
@@ -59,7 +59,7 @@ namespace libcloudphxx
       }
 
       printf("n po hspnkg ijk\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -77,7 +77,7 @@ namespace libcloudphxx
       }
 
       printf("n po cond\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       pimpl->should_now_run_async = true;
       pimpl->selected_before_counting = false;
@@ -100,7 +100,7 @@ namespace libcloudphxx
       printf("async n_part %d\n", pimpl->n_part);
 
       printf("n pocz async\n");
-      debug::print(n);
+      debug::print(pimpl->n);
    
       printf("sstp_save\n");
 
@@ -111,21 +111,21 @@ namespace libcloudphxx
       }
 
       printf("n po sstp save\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       printf("hskpng tpr\n");
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
       printf("n po hspnkg tpr\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       // advection 
       printf("adve\n");
       if (opts.adve) pimpl->adve(); 
 
       printf("n po adve\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       printf("vterm\n");
       // updating terminal velocities
@@ -133,7 +133,7 @@ namespace libcloudphxx
         pimpl->hskpng_vterm_all();
 
       printf("n po vterm\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       printf("sedi\n");
       if (opts.sedi) 
@@ -143,7 +143,7 @@ namespace libcloudphxx
       }
 
       printf("n po sedi\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
@@ -170,7 +170,7 @@ namespace libcloudphxx
       }
 
       printf("n po coal\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
 
       printf("remove n0\n");
@@ -179,7 +179,7 @@ namespace libcloudphxx
       if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
 
       printf("n po remove\n");
-      debug::print(n);
+      debug::print(pimpl->n);
 
       // aerosol source
       if (opts.src) 
@@ -208,11 +208,11 @@ namespace libcloudphxx
       real_t ret = pimpl->bcnd();
 
       printf("n po bcnd\n");
-      debug::print(n);
+      debug::print(pimpl->n);
       printf("x po bcnd\n");
-      debug::print(x);
+      debug::print(pimpl->x);
       printf("z po bcnd\n");
-      debug::print(z);
+      debug::print(pimpl->z);
 
       pimpl->selected_before_counting = false;
 
