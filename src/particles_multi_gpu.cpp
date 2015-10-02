@@ -448,12 +448,26 @@ namespace libcloudphxx
             thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
-          // remove particles sent left/right and resize all n_part vectors
-          particles[dev_id].pimpl->hskpng_remove_n0();
-
           // particles are not sorted now
           particles[dev_id].pimpl->sorted = false;          
           printf("copy end on dev %d\n", dev_id);
+        }
+
+        // finalize async, same as in impl_step - TODO: move to a single function...
+        if(glob_opts_init.dev_count>1)
+        {   
+          // recycling out-of-domain/invalidated particles 
+          // currently DISABLED
+          thrust_size_t n_rcyc = 0;//pimpl->rcyc();
+          // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
+ 
+          // remove particles sent left/right, coalesced or oud of domain and resize all n_part vectors
+          if(opts.sedi || opts.adve || opts.coal)
+            particles[dev_id].pimpl->hskpng_remove_n0();
+ 
+          // updating particle->cell look-up table
+          if (opts.adve || opts.sedi || n_rcyc)
+            particles[dev_id].pimpl->hskpng_ijk();
         }
       }
       return res;

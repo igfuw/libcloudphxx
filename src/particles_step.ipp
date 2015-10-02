@@ -1,4 +1,5 @@
 // vim:filetype=cpp
+
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -42,18 +43,6 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
-      // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = 0;//pimpl->rcyc();
-      // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
-
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -158,9 +147,29 @@ namespace libcloudphxx
       // TODO: do this only if we advect/sediment?
       real_t ret = pimpl->bcnd();
 
-      // remove SDs with n = 0
-      // for more than 2 GPUs, remove will be called from multi_gpu.cpp
-      if (pimpl->opts_init.dev_count < 2 && (opts.sedi || opts.adve || opts.coal)) pimpl->hskpng_remove_n0();  
+      // some stuff to be done at the end of the step.
+      // if using more than 1 GPU
+      // has to be done after copy 
+      // TODO:  move it to a separate function
+      if (pimpl->opts_init.dev_count < 2)
+      {
+        // recycling out-of-domain/invalidated particles 
+        // (doing it here and not in async reduces the need for a second sort before diagnostics,
+        // but also unneccesarily holds dyncore execution for a bit longer)
+        // currently DISABLED
+        thrust_size_t n_rcyc = 0;//pimpl->rcyc();
+        // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
+
+        // remove SDs with n = 0
+        // for more than 2 GPUs, remove will be called from multi_gpu.cpp
+        if(opts.sedi || opts.adve || opts.coal) 
+          pimpl->hskpng_remove_n0();  
+
+        // updating particle->cell look-up table
+        // (before advection and sedimentation so that their order does not matter,
+        if (opts.adve || opts.sedi || n_rcyc)
+          pimpl->hskpng_ijk();
+      }
 
       pimpl->selected_before_counting = false;
 
