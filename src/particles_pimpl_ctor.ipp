@@ -16,8 +16,6 @@
 
 #include <map>
 
-#include "detail/multiGPU_utils.hpp"
-
 namespace libcloudphxx
 {
   namespace lgrngn
