@@ -1,4 +1,5 @@
 // vim:filetype=cpp
+
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -41,25 +42,6 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
-  
-      printf("n po sync\n");
-      debug::print(pimpl->n);
-
-      // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = 0;//pimpl->rcyc();
-      // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
-
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
-
-      printf("n po hspnkg ijk\n");
-      debug::print(pimpl->n);
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -75,9 +57,6 @@ namespace libcloudphxx
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
-
-      printf("n po cond\n");
-      debug::print(pimpl->n);
 
       pimpl->should_now_run_async = true;
       pimpl->selected_before_counting = false;
@@ -97,53 +76,27 @@ namespace libcloudphxx
       if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
       if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
 
-      printf("async n_part %d\n", pimpl->n_part);
-
-      printf("n pocz async\n");
-      debug::print(pimpl->n);
-   
-      printf("sstp_save\n");
-
       if (opts.cond) 
       { 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
       }
 
-      printf("n po sstp save\n");
-      debug::print(pimpl->n);
-
-      printf("hskpng tpr\n");
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
-      printf("n po hspnkg tpr\n");
-      debug::print(pimpl->n);
-
       // advection 
-      printf("adve\n");
       if (opts.adve) pimpl->adve(); 
 
-      printf("n po adve\n");
-      debug::print(pimpl->n);
-
-      printf("vterm\n");
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
-      printf("n po vterm\n");
-      debug::print(pimpl->n);
-
-      printf("sedi\n");
       if (opts.sedi) 
       {
         // advection with terminal velocity
         pimpl->sedi();
       }
-
-      printf("n po sedi\n");
-      debug::print(pimpl->n);
 
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
@@ -154,7 +107,6 @@ namespace libcloudphxx
                      );
       }
 
-      printf("sstp_coal\n");
       // coalescence
       if (opts.coal) 
       {
@@ -168,18 +120,6 @@ namespace libcloudphxx
             pimpl->hskpng_vterm_invalid(); 
         }
       }
-
-      printf("n po coal\n");
-      debug::print(pimpl->n);
-
-
-      printf("remove n0\n");
-      // remove SDs with n = 0
-      // TODO: do this after bcond?
-      if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
-
-      printf("n po remove\n");
-      debug::print(pimpl->n);
 
       // aerosol source
       if (opts.src) 
@@ -199,7 +139,6 @@ namespace libcloudphxx
       }
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
-      printf("bcnd\n");
       // boundary condition + accumulated rainfall to be returned
       // multi_GPU version invalidates i and k;
       // this has to be done last since i and k will be used by multi_gpu copy to other devices
@@ -207,12 +146,29 @@ namespace libcloudphxx
       // TODO: do this only if we advect/sediment?
       real_t ret = pimpl->bcnd();
 
-      printf("n po bcnd\n");
-      debug::print(pimpl->n);
-      printf("x po bcnd\n");
-      debug::print(pimpl->x);
-      printf("z po bcnd\n");
-      debug::print(pimpl->z);
+      // some stuff to be done at the end of the step.
+      // if using more than 1 GPU
+      // has to be done after copy 
+      // TODO:  move it to a separate function
+      if (pimpl->opts_init.dev_count < 2)
+      {
+        // recycling out-of-domain/invalidated particles 
+        // (doing it here and not in async reduces the need for a second sort before diagnostics,
+        // but also unneccesarily holds dyncore execution for a bit longer)
+        // currently DISABLED
+        thrust_size_t n_rcyc = 0;//pimpl->rcyc();
+        // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
+
+        // remove SDs with n = 0
+        // for more than 2 GPUs, remove will be called from multi_gpu.cpp
+        if(opts.sedi || opts.adve || opts.coal) 
+          pimpl->hskpng_remove_n0();  
+
+        // updating particle->cell look-up table
+        // (before advection and sedimentation so that their order does not matter,
+        if (opts.adve || opts.sedi || n_rcyc)
+          pimpl->hskpng_ijk();
+      }
 
       pimpl->selected_before_counting = false;
 

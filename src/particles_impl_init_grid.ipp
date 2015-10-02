@@ -94,7 +94,7 @@ namespace libcloudphxx
         case 0: break;
 	case 2:
 	  thrust::transform(
-            global_cell_no, global_cell_no + n_cell,    // input - 1st arg
+            zero, zero + n_cell,    // input - 1st arg
             blw.begin(),            // output
             arg::_1 + (arg::_1 / opts_init.nz)
 	  );
@@ -106,7 +106,7 @@ namespace libcloudphxx
           // intentionally no break!
         case 1:
 	  thrust::transform(
-            global_cell_no, global_cell_no + n_cell,    // input - 1st arg
+            zero, zero + n_cell,    // input - 1st arg
             lft.begin(),            // output
             arg::_1
 	  );
@@ -118,7 +118,7 @@ namespace libcloudphxx
 	  break;
         case 3:
 	  thrust::transform(
-            global_cell_no, global_cell_no + n_cell,    // input - 1st arg
+            zero, zero + n_cell,    // input - 1st arg
             lft.begin(),            // output
             arg::_1 
 	  );
@@ -128,7 +128,7 @@ namespace libcloudphxx
             arg::_1 + opts_init.nz * opts_init.ny
 	  );
 	  thrust::transform(
-            global_cell_no, global_cell_no + n_cell,    // input - 1st arg
+            zero, zero + n_cell,    // input - 1st arg
             blw.begin(),            // output
             arg::_1 
             + opts_init.ny * (arg::_1 / (opts_init.nz * opts_init.ny)) 
@@ -140,7 +140,7 @@ namespace libcloudphxx
             arg::_1 + 1
 	  );
           thrust::transform(
-            global_cell_no, global_cell_no + n_cell,    // input - 1st arg
+            zero, zero + n_cell,    // input - 1st arg
             fre.begin(),            // output
             arg::_1 + (arg::_1 / (opts_init.nz * opts_init.ny)) * opts_init.nz
           );

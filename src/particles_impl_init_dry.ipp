@@ -93,8 +93,6 @@ namespace libcloudphxx
         rd3.begin() + n_part_old,
         detail::exp3x<real_t>()
       );
-      printf("rd3 w init_dry\n");
-      debug::print(rd3);
     }
   };
 };
