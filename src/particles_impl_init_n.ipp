@@ -65,21 +65,15 @@ namespace libcloudphxx
 	rhod.begin(), rhod.end(), // from
 	tmp_rhod.begin()          // to
       );
-      printf("rhod w init_n\n");
-      debug::print(tmp_rhod);
       thrust::copy(
 	ijk.begin()+n_part_old, ijk.end(), // from
 	tmp_ijk.begin()         // to
       );
-      printf("ijk w init_n\n");
-      debug::print(tmp_ijk);
 
       // filling n with multiplicities
       // (performing it on a local copy as n_of_lnrd_stp may lack __device__ qualifier)
       // device -> host (not needed for omp or cpp ... but happens just once)
       thrust::copy(rd3.begin()+n_part_old, rd3.end(), tmp_real.begin());
-      printf("rd3 w init_n\n");
-      debug::print(tmp_real);
       
       // evaluating n_of_lnrd_stp
       thrust::transform(
@@ -87,8 +81,6 @@ namespace libcloudphxx
         tmp_real.begin(),                 // output
         detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
       );
-      printf("n (real) po eval and multi w init_n, multiplier %lf\n", double(multiplier));
-      debug::print(tmp_real);
 
       // correcting STP -> actual ambient conditions
       {
@@ -104,8 +96,6 @@ namespace libcloudphxx
           tmp_real.begin(),                       // output
           arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
         ); 
-      printf("n (real) po poprawce rhod w init_n\n");
-      debug::print(tmp_real);
 
 	// host -> device (includes casting from real_t to uint! and rounding)
 	thrust::copy(
@@ -114,8 +104,6 @@ namespace libcloudphxx
           n.begin() + n_part_old
         ); 
       }
-      printf("n po skpiowaniu na device i zamianie w int\n");
-      debug::print(n);
         
       // detecting possible overflows of n type
       thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);

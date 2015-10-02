@@ -53,7 +53,6 @@ namespace libcloudphxx
         else if (n_max == 0) rd_max /= 1.1;
         else found_optimal_range = true;
       }
-      printf("rd min %lf rd max %lf\n", rd_min, rd_max);
     };
   };
 };
