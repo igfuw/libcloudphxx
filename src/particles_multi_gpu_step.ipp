@@ -124,13 +124,13 @@ namespace libcloudphxx
             );
 
           // wait for the copy of n from right into current device to finish
-          gpuErrchk(cudaStreamWaitEvent(streams[dev_id], events[rgt_dev], 0));
+          gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
           // unpack the n buffer sent to this device from right
           int n_copied = particles[rgt_dev].pimpl->lft_count;
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
-          thrust::copy(thrust::cuda::par(streams[dev_id]), in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+          thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
           gpuErrchk(cudaMemcpyPeerAsync(
@@ -160,13 +160,13 @@ namespace libcloudphxx
           );
 
           // wait for the copy of real from right into current device to finish
-          gpuErrchk(cudaStreamWaitEvent(streams[dev_id], events[rgt_dev], 0));
+          gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
 
           // unpack the real buffer sent to this device from right
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(thrust::cuda::par(streams[dev_id]), in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
+            thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // start async copy of n buffer to the right
@@ -190,13 +190,13 @@ namespace libcloudphxx
             );
 
           // wait for the copy of n from left into current device to finish
-          gpuErrchk(cudaStreamWaitEvent(streams[dev_id], events[lft_dev], 0));
+          gpuErrchk(cudaEventSynchronize(events[lft_dev]));
           // unpack the n buffer sent to this device from left
           n_copied = particles[lft_dev].pimpl->rgt_count;
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
-          thrust::copy(thrust::cuda::par(streams[dev_id]), in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+          thrust::copy( in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
           // start async copy of real buffer to the right
           gpuErrchk(cudaMemcpyPeerAsync(
@@ -223,13 +223,13 @@ namespace libcloudphxx
           );
           
           // wait for the copy of real from left into current device to finish
-          gpuErrchk(cudaStreamWaitEvent(streams[dev_id], events[lft_dev], 0));
+          gpuErrchk(cudaEventSynchronize(events[lft_dev]));
 
           // unpack the real buffer sent to this device from left
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(thrust::cuda::par(streams[dev_id]), in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
+            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // particles are not sorted now
