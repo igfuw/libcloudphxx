@@ -1,3 +1,10 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
 namespace libcloudphxx

@@ -1,3 +1,11 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
+
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
 
@@ -74,17 +82,16 @@ namespace libcloudphxx
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1, // periodic boundary in x
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
 
+          // init stream and event
+          gpuErrchk(cudaStreamCreate(&streams[dev_id]));
+          gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
+
           // prepare buffer with n_t to be copied left
-          // TODO: use serialization to pack the buffers (e.g. from boost)?
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
             out_n_bfr.begin()
           );
-
-          // init stream and event
-          gpuErrchk(cudaStreamCreate(&streams[dev_id]));
-          gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
 
           // start async copy of n buffer to the left
           gpuErrchk(cudaMemcpyPeerAsync(
