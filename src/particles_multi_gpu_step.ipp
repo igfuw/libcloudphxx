@@ -130,15 +130,15 @@ namespace libcloudphxx
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
-          thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+          thrust::copy(thrust::cuda::par(streams[dev_id]), in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
-          cudaMemcpyPeerAsync(
+          gpuErrchk(cudaMemcpyPeerAsync(
             particles[lft_dev].pimpl->in_real_bfr.data().get(), lft_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
             streams[dev_id]                                                //best performance if stream belongs to src
-          );
+          ));
           // record beginning of copying
           gpuErrchk(cudaEventRecord(events[dev_id], streams[dev_id]));
           // barrier to make sure that all devices started copying
@@ -166,16 +166,16 @@ namespace libcloudphxx
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
+            thrust::copy(thrust::cuda::par(streams[dev_id]), in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // start async copy of n buffer to the right
-          cudaMemcpyPeerAsync(
+          gpuErrchk(cudaMemcpyPeerAsync(
             particles[rgt_dev].pimpl->in_n_bfr.data().get(), rgt_dev,  //dst
             out_n_bfr.data().get(), dev_id,                             //src 
             rgt_count * sizeof(n_t),                                    //no of bytes
             streams[dev_id]                                             //best performance if stream belongs to src
-          );
+          ));
           // record beginning of copying
           gpuErrchk(cudaEventRecord(events[dev_id], streams[dev_id]));
           // barrier to make sure that all devices started copying
@@ -196,15 +196,15 @@ namespace libcloudphxx
           n_part_old = n_part;
           n_part += n_copied;
           n.resize(n_part);
-          thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+          thrust::copy(thrust::cuda::par(streams[dev_id]), in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
           // start async copy of real buffer to the right
-          cudaMemcpyPeerAsync(
+          gpuErrchk(cudaMemcpyPeerAsync(
             particles[rgt_dev].pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
             out_real_bfr.data().get(), dev_id,                             //src 
             real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
             streams[dev_id]                                                //best performance if stream belongs to src
-          );
+          ));
           // record beginning of copying
           gpuErrchk(cudaEventRecord(events[dev_id], streams[dev_id]));
           // barrier to make sure that all devices started copying
@@ -229,13 +229,14 @@ namespace libcloudphxx
           for(int i = 0; i < real_vctrs_count; ++i)
           {
             real_t_vctrs[i]->resize(n_part);
-            thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
+            thrust::copy(thrust::cuda::par(streams[dev_id]), in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
           // particles are not sorted now
           particles[dev_id].pimpl->sorted = false;          
 
           // clean streams and events
+          #pragma omp barrier
           gpuErrchk(cudaStreamDestroy(streams[dev_id]));
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
