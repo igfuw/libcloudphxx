@@ -79,14 +79,16 @@ namespace libcloudphxx
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
 
-          const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1, // periodic boundary in x
-                    rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0; // periodic boundary in x
+          // IDs of devices to the left/right, periodic boundary in x
+          const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
+                    rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0;
 
           // init stream and event
           gpuErrchk(cudaStreamCreate(&streams[dev_id]));
           gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
 
           // prepare buffer with n_t to be copied left
+          // TODO: serialize n_t and real_t with boost serialize
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,

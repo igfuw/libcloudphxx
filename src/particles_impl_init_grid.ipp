@@ -65,7 +65,7 @@ namespace libcloudphxx
       {
         // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
 	thrust::transform(
-	  global_cell_no, global_cell_no + n_cell, // input - 1st arg
+	  zero + n_cell_bfr, zero + n_cell_bfr + n_cell, // input - 1st arg
 	  dv.begin(),          // output  
 	  detail::dv_eval<real_t>(opts_init)
 	);

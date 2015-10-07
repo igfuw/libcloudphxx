@@ -139,12 +139,10 @@ namespace libcloudphxx
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id].pimpl->fill_outbuf();
-        int n_cell_bfr;
-        n_cell_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0) * detail::m1(glob_opts_init.ny) * detail::m1(glob_opts_init.nz);
         thrust::copy(
           particles[dev_id].pimpl->tmp_host_real_cell.begin(),
           particles[dev_id].pimpl->tmp_host_real_cell.end(),
-          real_n_cell_tot.begin() + n_cell_bfr
+          real_n_cell_tot.begin() + particles[dev_id].pimpl->n_cell_bfr
         );
       }
       return &(*(real_n_cell_tot.begin()));

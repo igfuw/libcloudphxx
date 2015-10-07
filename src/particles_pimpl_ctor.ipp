@@ -180,15 +180,15 @@ namespace libcloudphxx
       // number of particles to be copied left/right in multi-GPU setup
       unsigned int lft_count, rgt_count;
 
+      // nx in devices to the left of this one
+      unsigned int n_x_bfr;
+
       // number of cells in devices to the left of this one
       unsigned int n_cell_bfr;
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
-
-      // for multi GPU setup - count global cell number (aware of cells on other GPUs)
-      const thrust::counting_iterator<thrust_size_t> global_cell_no;
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -200,7 +200,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &_n_cell_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_x_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -218,14 +218,14 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         dev_id(dev_id),
-        global_cell_no(dev_id != -1 ? _n_cell_bfr : 0), // dev_id == -1 means that its not a multi_CUDA run
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
-        n_cell_bfr(_n_cell_bfr)
+        n_x_bfr(n_x_bfr),
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
       {
         // sanity checks
         if (n_dims > 0)
@@ -311,7 +311,7 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_count_num();
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
@@ -389,8 +389,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_cell_bfr):
-      pimpl(new impl(opts_init, dev_id, n_cell_bfr))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_x_bfr):
+      pimpl(new impl(opts_init, dev_id, n_x_bfr))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();

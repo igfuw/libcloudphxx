@@ -13,7 +13,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
       thrust_device::vector<real_t> * key,
-      const int ext_x, const int ext_y, const int ext_z
+      const int ext_x, const int ext_y, const int ext_z,
+      const int offset
     )
     {
       // allocating and filling in l2e with values
@@ -28,7 +29,7 @@ namespace libcloudphxx
           assert(arr.strides[0] == 1);
 	  thrust::transform(
             // input
-            global_cell_no, global_cell_no + l2e[key].size(), 
+            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
@@ -40,7 +41,7 @@ namespace libcloudphxx
           assert(arr.strides[1] == 1);
 	  thrust::transform(
             // input
-            global_cell_no, global_cell_no + l2e[key].size(), 
+            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
@@ -52,7 +53,7 @@ namespace libcloudphxx
           assert(arr.strides[2] == 1);
           thrust::transform(
             // input
-            global_cell_no, global_cell_no + l2e[key].size(),
+            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(),
             // output
             l2e[key].begin(),
             // op
