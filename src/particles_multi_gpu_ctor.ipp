@@ -103,8 +103,16 @@ namespace libcloudphxx
         opts_init_t<real_t> opts_init_tmp(glob_opts_init);
         n_x_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0);
 
-        // modify nx for each device
-        opts_init_tmp.nx = detail::get_dev_nx(glob_opts_init, dev_id);
+        if(dev_count > 1)
+        {
+          // modify nx for each device
+          opts_init_tmp.nx = detail::get_dev_nx(glob_opts_init, dev_id);
+
+          // adjust x0, x1 for each device
+          if(dev_id != 0) opts_init_tmp.x0 = 0.; // TODO: what if x0 greater than domain of first device?
+          if(dev_id != dev_count-1) opts_init_tmp.x1 = opts_init_tmp.nx * opts_init_tmp.dx; //TODO: same as above
+          else opts_init_tmp.x1 = opts_init_tmp.x1 - n_x_bfr * opts_init.dx;
+        }
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_x_bfr)); // impl stores a copy of opts_init
       }
     }
