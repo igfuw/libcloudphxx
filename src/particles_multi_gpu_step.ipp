@@ -116,8 +116,8 @@ namespace libcloudphxx
           );
 
           // prepare the real_t buffer for copy left
-          thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &x, &z, &y};
-          const int real_vctrs_count = glob_opts_init.ny == 0 ? 5 : 6;
+          thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+          const int real_vctrs_count = glob_opts_init.ny == 0 ? 6 : 7;
           for(int i = 0; i < real_vctrs_count; ++i)
             thrust::copy(
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
