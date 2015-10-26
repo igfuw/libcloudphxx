@@ -17,7 +17,6 @@ namespace libcloudphxx
   {
     namespace detail
     {
-
       template <typename real_t>
       struct c_arr_get
       {   
@@ -44,6 +43,23 @@ namespace libcloudphxx
           return true;
         } 
       }; 
+
+      template <typename real_t>
+      struct periodic
+      {
+        real_t a, b, ext_a;
+
+        periodic(real_t a, real_t b) : a(a), b(b), ext_a(a) {}
+        periodic(real_t a, real_t b, real_t ext_a) : a(a), b(b), ext_a(ext_a) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          // use fmodf to avoid double to float truncation, which could lead to invalid x and ijk?
+          // TODO: use fmod if running in double precision
+          return ext_a + fmodf((x-a) + (b-a), b-a); // this should call CUDA's fmod!
+        }
+      };
     };
   };
 };
