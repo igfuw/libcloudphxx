@@ -113,7 +113,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            arg::_1 + particles[lft_dev].opts_init->x1 - particles[dev_id].opts_init->x0   // operation
+            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x0)
           );
 
           // prepare the real_t buffer for copy left
@@ -159,7 +159,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            arg::_1 + particles[rgt_dev].opts_init->x0 - particles[dev_id].opts_init->x1   // operation
+            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
           );
 
           // wait for the copy of real from right into current device to finish
