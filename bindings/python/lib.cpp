@@ -169,7 +169,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("geometric", lgr::kernel_t::geometric)
       .value("golovin", lgr::kernel_t::golovin)
       .value("hall", lgr::kernel_t::hall)
-      .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals);
+      .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals)
+      .value("long", lgr::kernel_t::Long)
+      .value("hall_pinsky_1000mb_grav", lgr::kernel_t::hall_davis_no_waals)
+      .value("onishi_hall_davis_no_waals", lgr::kernel_t::onishi_hall_davis_no_waals)
+      .value("vohl_davis_no_waals", lgr::kernel_t::vohl_davis_no_waals)
+      .value("hall_pinsky_stratocumulus", lgr::kernel_t::hall_pinsky_stratocumulus)
+      .value("hall_pinsky_cumulonimbus", lgr::kernel_t::hall_pinsky_cumulonimbus);
     bp::enum_<lgr::vt_t::vt_t>("vt_t") 
       .value("beard", lgr::vt_t::beard)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
@@ -236,11 +242,24 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
-      .def("init",         &lgrngn::init_3arg<real_t>)
-      .def("init",         &lgrngn::init_5arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_3arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_4arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_6arg<real_t>)
+      .def("init",         &lgrngn::init<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
+      .def("step_sync",    &lgrngn::step_sync<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)

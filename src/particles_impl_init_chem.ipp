@@ -138,6 +138,9 @@ namespace libcloudphxx
       chem_post_rhs.resize((chem_all     - chem_rhs_fin) * n_part);
       chem_stepper.adjust_size(chem_rhs);
 
+      for (int i = 0; i < chem_gas_n; ++i)
+        ambient_chem[(chem_species_t)i].resize(n_cell);
+      
       // helper iterators
       for (int i = 0; i < chem_all; ++i)
       {

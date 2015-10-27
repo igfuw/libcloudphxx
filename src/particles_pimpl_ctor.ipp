@@ -33,14 +33,14 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
       const opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
-      thrust_size_t n_part; 
       detail::rng<real_t, device> rng;
+      thrust_size_t n_part; 
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -48,8 +48,10 @@ namespace libcloudphxx
       //containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
+      thrust_device::vector<kernel_long<real_t, n_t> > k_long;
       thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
+      thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
@@ -64,9 +66,9 @@ namespace libcloudphxx
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 2D and 3D)
+	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 1D, 2D and 3D)
+	z;   // z spatial coordinate (for 2D and 3D)
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -92,7 +94,7 @@ namespace libcloudphxx
         count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
-      // Eulerian-Lagrangian interface vers
+      // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         th,      // potential temperature (dry)
@@ -103,6 +105,8 @@ namespace libcloudphxx
         courant_x, 
         courant_y, 
         courant_z;
+
+      std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]
@@ -177,6 +181,7 @@ namespace libcloudphxx
 
       // ctor 
       impl(const opts_init_t<real_t> &opts_init) : 
+        init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
 	opts_init(opts_init),
@@ -246,7 +251,7 @@ namespace libcloudphxx
         // initialising host temporary arrays
         {
           int n_grid;
-          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is z
+          switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is x
           {
             case 3:
               n_grid = std::max(std::max(
@@ -261,10 +266,13 @@ namespace libcloudphxx
                 (opts_init.nx+0) * (opts_init.nz+1)
               );
               break;
+            case 1:
+              n_grid = opts_init.nx+1;
+              break;
             case 0:
               n_grid = 1;
               break;
-            default: assert(false); // TODO: 1D case
+            default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);

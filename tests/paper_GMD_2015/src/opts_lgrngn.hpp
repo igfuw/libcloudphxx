@@ -101,6 +101,9 @@ void setopts_micro(
   // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
   rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
 
+  // terminal velocity choice
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
   for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))

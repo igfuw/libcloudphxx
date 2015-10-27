@@ -68,18 +68,18 @@ namespace libcloudphxx
 	  detail::dv_eval<real_t>(opts_init)
 	);
 	// memory allocation
-	abv.resize(n_cell);
-	blw.resize(n_cell);
+	lft.resize(n_cell);
+	rgt.resize(n_cell);
       }
 
       if (n_dims > 1)
       {
 	// memory allocation
-	lft.resize(n_cell);
-	rgt.resize(n_cell);
+	abv.resize(n_cell);
+	blw.resize(n_cell);
       }
       
-      if (n_dims > 2)
+      if (n_dims == 3)
       {
         // memory allocation
         fre.resize(n_cell);
@@ -93,16 +93,6 @@ namespace libcloudphxx
 	case 2:
 	  thrust::transform(
             zero, zero + n_cell,    // input - 1st arg
-            lft.begin(),            // output
-            arg::_1
-	  );
-	  thrust::transform(
-            lft.begin(), lft.end(), // input - 1st arg
-            rgt.begin(),            // output
-            arg::_1 + opts_init.nz
-	  );
-	  thrust::transform(
-            zero, zero + n_cell,    // input - 1st arg
             blw.begin(),            // output
             arg::_1 + (arg::_1 / opts_init.nz)
 	  );
@@ -110,6 +100,18 @@ namespace libcloudphxx
             blw.begin(), blw.end(), // input - 1st arg
             abv.begin(),            // output
             arg::_1 + 1
+	  );
+          // intentionally no break!
+        case 1:
+	  thrust::transform(
+            zero, zero + n_cell,    // input - 1st arg
+            lft.begin(),            // output
+            arg::_1
+	  );
+	  thrust::transform(
+            lft.begin(), lft.end(), // input - 1st arg
+            rgt.begin(),            // output
+            arg::_1 + opts_init.nz
 	  );
 	  break;
         case 3:
