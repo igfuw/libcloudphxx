@@ -9,7 +9,6 @@
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include <libcloudph++/lgrngn/factory.hpp>
-#include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
 {
