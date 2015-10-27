@@ -21,8 +21,12 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.dt = 1
-opts_init.sd_conc_mean = 64
+opts_init.sd_conc = 64
+opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
+opts_init.src_dry_distros = {kappa:lognormal}
+opts_init.src_sd_conc = 64
+opts_init.src_z1 = opts_init.dz
 
 print "nx =", opts_init.nx
 print "ny =", opts_init.ny
@@ -43,14 +47,16 @@ print "z1 =", opts_init.z1
 print "chem_switch = ", opts_init.chem_switch
 print "coal_switch = ", opts_init.coal_switch
 print "sedi_switch = ", opts_init.sedi_switch
+print "src_switch = ", opts_init.src_switch
 print "dt =", opts_init.dt
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
 print "kernel =", opts_init.kernel 
+print "sd_conc =", opts_init.sd_conc
+print "n_sd_max =", opts_init.n_sd_max
 print "terminal_velocity =", opts_init.terminal_velocity
-print "sd_conc_mean =", opts_init.sd_conc_mean
 print "chem_rho =", opts_init.chem_rho
 
 print lgrngn.backend_t.OpenMP
@@ -62,6 +68,7 @@ print "adve =", opts.adve
 print "sedi =", opts.sedi
 print "cond =", opts.cond
 print "coal =", opts.coal
+print "src =", opts.src
 print "chem_dsl =", opts.chem_dsl
 print "chem_dcs =", opts.chem_dsc
 print "chem_rct =", opts.chem_rct
@@ -102,7 +109,7 @@ prtcls.diag_wet_mom(1)
 prtcls.diag_all()
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
-assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc_mean # parcel set-up
+assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
 # 1D (periodic horizontal domain)
 print "1D"
@@ -124,7 +131,7 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc_mean
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
 
 # 2D
 print "2D"
@@ -145,7 +152,7 @@ prtcls.init(th, rv, rhod) #TODO: test passing rhoCx, rhoCy, rhoCz here
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc_mean
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc
 
 # 3arg variant (const rho)
 print "3D"
@@ -172,7 +179,7 @@ prtcls.init(th, rv, rhod) #TODO: test passing rhoCx, rhoCy, rhoCz here
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc_mean
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
 # 3 arg variant
 prtcls.step_sync(opts, th, rv) #TODO: should fail with no Courant in init

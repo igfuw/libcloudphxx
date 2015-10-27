@@ -1,4 +1,5 @@
 // vim:filetype=cpp
+
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -28,10 +29,14 @@ namespace libcloudphxx
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
+        // TODO: many max or m1 used, unify it
+#if !defined(__NVCC__)
+        using std::max;
+#endif
         // TODO: copy-pasted from init
-	if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0); 
-	if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0); 
-	if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
       }
 
       // syncing in Eulerian fields (if not null)
@@ -41,18 +46,6 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
-
-      // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = pimpl->rcyc(); 
-
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -99,11 +92,8 @@ namespace libcloudphxx
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // updating terminal velocities
-      if (opts.sedi || opts.coal) 
+      if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
       if (opts.sedi) 
@@ -121,7 +111,7 @@ namespace libcloudphxx
                      );
       }
 
-      // coalescence (before diagnostics -> one sort less)
+      // coalescence
       if (opts.coal) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
@@ -133,6 +123,55 @@ namespace libcloudphxx
           if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
+      }
+
+      // aerosol source
+      if (opts.src) 
+      {
+        // sanity check
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        // update the step counter since src was turned on
+        ++pimpl->stp_ctr;
+
+        // introduce new particles with the given time interval
+        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+          pimpl->stp_ctr = 0;
+        }
+      }
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
+
+      // boundary condition + accumulated rainfall to be returned
+      // multi_GPU version invalidates i and k;
+      // this has to be done last since i and k will be used by multi_gpu copy to other devices
+      // TODO: instead of using i and k define new vectors ?
+      // TODO: do this only if we advect/sediment?
+      real_t ret = pimpl->bcnd();
+
+      // some stuff to be done at the end of the step.
+      // if using more than 1 GPU
+      // has to be done after copy 
+      // TODO:  move it to a separate function
+      if (pimpl->opts_init.dev_count < 2)
+      {
+        // recycling out-of-domain/invalidated particles 
+        // (doing it here and not in async reduces the need for a second sort before diagnostics,
+        // but also unneccesarily holds dyncore execution for a bit longer)
+        // currently DISABLED
+        thrust_size_t n_rcyc = 0;//pimpl->rcyc();
+        // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
+
+        // remove SDs with n = 0
+        // for more than 2 GPUs, remove will be called from multi_gpu.cpp
+        if(opts.sedi || opts.adve || opts.coal) 
+          pimpl->hskpng_remove_n0();  
+
+        // updating particle->cell look-up table
+        // (before advection and sedimentation so that their order does not matter,
+        if (opts.adve || opts.sedi || n_rcyc)
+          pimpl->hskpng_ijk();
       }
 
       pimpl->selected_before_counting = false;

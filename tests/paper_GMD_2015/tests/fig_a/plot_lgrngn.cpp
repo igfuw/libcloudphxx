@@ -15,7 +15,7 @@ int main(int ac, char** av)
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
-    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na"}))
+    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "th", "rv", "sd"}))
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
@@ -130,6 +130,27 @@ int main(int ac, char** av)
 	gp << "set title 'aerosol concentration [mg^{-1}]'\n";
 	tmp /= 1e6;
 	plot(gp, tmp);
+      }
+      else if (plt == "th")
+      {
+	// effective radius
+	auto r_eff = h5load(h5, "th", at * n["outfreq"]);
+	gp << "set title 'potential temperature [K]'\n"; 
+	plot(gp, r_eff);
+      }
+      else if (plt == "rv")
+      {
+	// effective radius
+	auto r_eff = h5load(h5, "rv", at * n["outfreq"]);
+	gp << "set title 'water vapour mixing ratio'\n"; 
+	plot(gp, r_eff);
+      }
+      else if (plt == "sd")
+      {
+	// effective radius
+	auto r_eff = h5load(h5, "sd_conc", at * n["outfreq"]);
+	gp << "set title 'number of SDs'\n"; 
+	plot(gp, r_eff);
       }
       else assert(false);
     } // var loop

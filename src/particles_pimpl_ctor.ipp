@@ -23,6 +23,7 @@ namespace libcloudphxx
     namespace detail
     {   
       enum { invalid = -1 };
+
     };  
 
     // pimpl stuff 
@@ -36,16 +37,18 @@ namespace libcloudphxx
       bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
-      const opts_init_t<real_t> opts_init; // a copy
+      opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
+      thrust_size_t n_part,            // total number of SDs
+                    n_part_old,        // total number of SDs before source
+                    n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
-      thrust_size_t n_part; 
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
  
-      //containters for all kernel types
+      // containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
       thrust_device::vector<kernel_long<real_t, n_t> > k_long;
@@ -69,6 +72,11 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z;   // z spatial coordinate (for 2D and 3D)
+
+      // dry radii distribution characteristics
+      real_t log_rd_min, // logarithm of the lower bound of the distr
+             log_rd_max, // logarithm of the upper bound of the distr
+             multiplier; // multiplier calculated for the above values
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
@@ -114,6 +122,9 @@ namespace libcloudphxx
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
+
+      // timestep counter
+      n_t stp_ctr;
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
@@ -163,21 +174,37 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
+      // device number, used only for multi GPU setup
+      const int dev_id;
+
+      // number of particles to be copied left/right in multi-GPU setup
+      unsigned int lft_count, rgt_count;
+
+      // nx in devices to the left of this one
+      unsigned int n_x_bfr;
+
+      // number of cells in devices to the left of this one
+      unsigned int n_cell_bfr;
+
+      // in/out buffers for SDs copied from other GPUs
+      thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
+
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
       // fills un[0:n] with random numbers
       void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
-      // compile-time min(1, n) 
+      // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &opts_init) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_x_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
-	opts_init(opts_init),
+	opts_init(_opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
@@ -188,18 +215,17 @@ namespace libcloudphxx
           m1(opts_init.ny) *
           m1(opts_init.nz)
         ),
-	n_part( // TODO: what if multiple spectra/kappas
-          opts_init.sd_conc_mean * 
-	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
-	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
-	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
-        ),
-        zero(0), 
+        zero(0),
+        n_part(0),
+        dev_id(dev_id),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        rng(opts_init.rng_seed)
+        rng(opts_init.rng_seed),
+        stp_ctr(0),
+        n_x_bfr(n_x_bfr),
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
       {
         // sanity checks
         if (n_dims > 0)
@@ -210,7 +236,7 @@ namespace libcloudphxx
             throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
             throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
+	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
             throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
             throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
@@ -219,7 +245,7 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
         if (opts_init.coal_switch)
         {
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
@@ -228,13 +254,13 @@ namespace libcloudphxx
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
+        if(dev_id == -1) opts_init.dev_count = 0; // if particles_t is not spawned by mutli_CUDA, override dev_count to 0
+
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
-	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
-	tmp_device_n_part.resize(n_part);
 
         // initialising host temporary arrays
         {
@@ -272,16 +298,25 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
 
-      void init_dry(
+      void init_dry();
+      void init_n(
         const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd
       );
+      void dist_analysis(
+        const common::unary_function<real_t> *n_of_lnrd,
+        const n_t sd_conc,
+        const real_t dt = 1.
+      );
+      void init_ijk();
       void init_xyz();
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
+      void init_count_num();
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
-      void init_hskpng();
+      void init_hskpng_ncell();
+      void init_hskpng_npart();
       void init_chem();
       void init_sstp();
       void init_kernel();
@@ -299,6 +334,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_remove_n0();
+      void hskpng_resize_npart();
 
       void moms_all();
    
@@ -345,14 +381,16 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
+      void src(const real_t &dt);
+
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
     };
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init) :
-      pimpl(new impl(opts_init))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_x_bfr):
+      pimpl(new impl(opts_init, dev_id, n_x_bfr))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();

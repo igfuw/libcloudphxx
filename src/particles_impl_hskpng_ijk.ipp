@@ -82,6 +82,7 @@ namespace libcloudphxx
             ijk.begin(), // in-place!
             arg::_1 + arg::_2
           );
+          // TODO: replace these two transforms with single one
           break;
         default:
           assert(false);
