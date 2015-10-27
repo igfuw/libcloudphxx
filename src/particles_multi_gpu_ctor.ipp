@@ -112,6 +112,9 @@ namespace libcloudphxx
           if(dev_id != 0) opts_init_tmp.x0 = 0.; // TODO: what if x0 greater than domain of first device?
           if(dev_id != dev_count-1) opts_init_tmp.x1 = opts_init_tmp.nx * opts_init_tmp.dx; //TODO: same as above
           else opts_init_tmp.x1 = opts_init_tmp.x1 - n_x_bfr * opts_init_tmp.dx;
+
+          // adjust max numer of SDs on each card
+          opts_init_tmp.n_sd_max = opts_init_tmp.n_sd_max / dev_count + 1;
         }
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, dev_id, n_x_bfr)); // impl stores a copy of opts_init
       }
