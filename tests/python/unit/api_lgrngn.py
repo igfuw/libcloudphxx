@@ -141,7 +141,7 @@ opts_init.x1 = opts_init.nx * opts_init.dx
 
 prtcls = lgrngn.factory(backend, opts_init)
 assert opts_init.nx == prtcls.opts_init.nx
-prtcls.init(th, rv, rhod) #TODO: test passing rhoCx, rhoCy, rhoCz here 
+prtcls.init(th, rv, rhod) #TODO: test passing Cx, Cy, Cz here 
 prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
 assert (frombuffer(prtcls.outbuf()) > 0).all()
@@ -183,10 +183,10 @@ prtcls.step_sync(opts, th, rv, rhod) #TODO: should fail with no Courants in init
 rain = prtcls.step_async(opts)
 
 # 6 arg variant
-rhoCx = zeros((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
-rhoCy = zeros((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
-rhoCz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
-prtcls.step_sync(opts, th, rv, rhoCx, rhoCy, rhoCz)
+Cx = zeros((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
+Cy = zeros((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
+Cz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
+prtcls.step_sync(opts, th, rv, Cx=Cx, Cy=Cy, Cz=Cz)
 rain = prtcls.step_async(opts)
 
 #TODO: test profile vs. 3D array
