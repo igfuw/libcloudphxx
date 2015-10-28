@@ -174,9 +174,6 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // device number, used only for multi GPU setup
-      const int dev_id;
-
       // number of particles to be copied left/right in multi-GPU setup
       unsigned int lft_count, rgt_count;
 
@@ -200,7 +197,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &dev_id, const int &n_x_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -217,7 +214,6 @@ namespace libcloudphxx
         ),
         zero(0),
         n_part(0),
-        dev_id(dev_id),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
@@ -236,8 +232,9 @@ namespace libcloudphxx
             throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
             throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
-            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
+//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
+//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
             throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
 	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
@@ -253,8 +250,6 @@ namespace libcloudphxx
         }
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
-
-        if(dev_id == -1) opts_init.dev_count = 0; // if particles_t is not spawned by mutli_CUDA, override dev_count to 0
 
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -389,8 +384,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &dev_id, const int &n_x_bfr):
-      pimpl(new impl(opts_init, dev_id, n_x_bfr))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr):
+      pimpl(new impl(opts_init, n_x_bfr))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
