@@ -42,7 +42,7 @@ namespace libcloudphxx
     }
 
     // explicit instantiation
-    template particles_proto_t<float> *factory(const backend_t, const opts_init_t<float> &);
-    template particles_proto_t<double> *factory(const backend_t, const opts_init_t<double> &);
+    template particles_proto_t<float> *factory(const backend_t, opts_init_t<float>);
+    template particles_proto_t<double> *factory(const backend_t, opts_init_t<double>);
   };
 };
