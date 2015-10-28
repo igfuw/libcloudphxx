@@ -174,6 +174,9 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
+      // flag if ran on a distributed memory system (MPI or multi_CUDA)
+      bool dist_mem;
+
       // number of particles to be copied left/right in multi-GPU setup
       unsigned int lft_count, rgt_count;
 
@@ -197,7 +200,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &dist_mem) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -221,6 +224,7 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
+        dist_mem(dist_mem),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
       {
         // sanity checks
@@ -384,8 +388,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr):
-      pimpl(new impl(opts_init, n_x_bfr))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, const bool &dist_mem):
+      pimpl(new impl(opts_init, n_x_bfr, dist_mem))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
