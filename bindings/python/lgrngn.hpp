@@ -22,7 +22,7 @@ namespace libcloudphxx
       template <typename real_t>
       lgr::particles_proto_t<real_t> *factory(
 	const lgr::backend_t &backend,
-	const lgr::opts_init_t<real_t> &opts_init
+	lgr::opts_init_t<real_t> opts_init
       ) {
 	return lgr::factory(backend, opts_init);
       }
