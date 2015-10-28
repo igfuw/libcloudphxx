@@ -71,19 +71,14 @@ namespace libcloudphxx
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0;
 
-          // check if access is available
+          // if available, allow direct memory access; otherwise copy through host memory will be done
           int can_access_peer;
           gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, lft_dev));
           if(can_access_peer)
-            {gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, rgt_dev));}
-          if(!can_access_peer)
-            throw std::runtime_error("Peer access unavalable between some of the GPUs\n");
-
-          // to the left
-          gpuErrchk(cudaDeviceEnablePeerAccess(lft_dev, 0));
-          // to the right
-          if(dev_count > 2)
-            {gpuErrchk(cudaDeviceEnablePeerAccess(rgt_dev, 0));} 
+            {gpuErrchk(cudaDeviceEnablePeerAccess(lft_dev, 0));}
+          gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, rgt_dev));
+          if(can_access_peer && dev_count > 2)
+            {gpuErrchk(cudaDeviceEnablePeerAccess(rgt_dev, 0));}
         }
       }
       
