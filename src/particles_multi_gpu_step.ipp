@@ -16,11 +16,11 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct periodic
+      struct periodic_ext
       {
         real_t a, b, ext;
 
-        periodic(real_t a, real_t b, real_t ext) : a(a), b(b), ext(ext) {}
+        periodic_ext(real_t a, real_t b, real_t ext) : a(a), b(b), ext(ext) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
@@ -97,7 +97,7 @@ namespace libcloudphxx
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
 
-          // IDs of devices to the left/right, periodic boundary in x
+          // IDs of devices to the left/right, periodic_ext boundary in x
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0;
 
@@ -130,7 +130,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x1)
+            detail::periodic_ext<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x1)
           );
 
           // prepare the real_t buffer for copy left
@@ -142,6 +142,8 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
               out_real_bfr.begin() + i * lft_count
             );
+          printf("out bfr lft\n");
+          debug::print(out_real_bfr.begin(), out_real_bfr.begin() + real_vctrs_count * lft_count);
 
           // wait for the copy of n from right into current device to finish
           gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
@@ -176,7 +178,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
+            detail::periodic_ext<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
           );
 
           // wait for the copy of real from right into current device to finish
@@ -208,6 +210,8 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
               out_real_bfr.begin() + i * rgt_count
             );
+          printf("out bfr rgt\n");
+          debug::print(out_real_bfr.begin(), out_real_bfr.begin() + real_vctrs_count * rgt_count);
 
           // wait for the copy of n from left into current device to finish
           gpuErrchk(cudaEventSynchronize(events[lft_dev]));
