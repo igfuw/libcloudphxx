@@ -30,6 +30,20 @@ namespace libcloudphxx
           return n * pow(rw2, real_t(3./2.));
         }
       };  
+  
+      template <typename real_t>
+      struct periodic
+      {
+        real_t a, b;
+
+        periodic(real_t a, real_t b) : a(a), b(b) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return a + fmodf((x-a) + (b-a), b-a); // this should call CUDA's fmod!
+        }
+      };
     };
 
     template <typename real_t, backend_t device>

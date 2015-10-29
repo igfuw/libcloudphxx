@@ -13,6 +13,23 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      template <typename real_t>
+      struct periodic
+      {
+        real_t a, b, ext;
+
+        periodic(real_t a, real_t b, real_t ext) : a(a), b(b), ext(ext) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return ext + fmodf(x-a, b-a); // this should call CUDA's fmod!
+        }
+      };
+
+    };
     // time-stepping methods
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_sync(
@@ -113,7 +130,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x0)
+            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x1)
           );
 
           // prepare the real_t buffer for copy left
