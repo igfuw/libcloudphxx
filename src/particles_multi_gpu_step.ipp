@@ -142,8 +142,6 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
               out_real_bfr.begin() + i * lft_count
             );
-          printf("out bfr lft\n");
-          debug::print(out_real_bfr.begin(), out_real_bfr.begin() + real_vctrs_count * lft_count);
 
           // wait for the copy of n from right into current device to finish
           gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
@@ -210,8 +208,6 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
               out_real_bfr.begin() + i * rgt_count
             );
-          printf("out bfr rgt\n");
-          debug::print(out_real_bfr.begin(), out_real_bfr.begin() + real_vctrs_count * rgt_count);
 
           // wait for the copy of n from left into current device to finish
           gpuErrchk(cudaEventSynchronize(events[lft_dev]));
