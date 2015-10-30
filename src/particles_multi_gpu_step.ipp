@@ -7,6 +7,8 @@
 
 
 // contains definitions of members of particles_t specialized for multiple GPUs
+// TODO: multi_CUDA doesn't work for real_t=float, most probably because position in x 
+// is out of domain after copy left... (i.e. x=x1)
 #include <omp.h>
 
 namespace libcloudphxx
