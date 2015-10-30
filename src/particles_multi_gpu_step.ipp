@@ -16,19 +16,33 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct periodic_ext
+      struct remote_rgt
       {
-        real_t a, b, ext;
+        real_t x1, rmt_x0;
 
-        periodic_ext(real_t a, real_t b, real_t ext) : a(a), b(b), ext(ext) {}
+        remote_rgt(real_t x1, real_t rmt_x0) : x1(x1), rmt_x0(rmt_x0) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return ext + fmodf(x-a, b-a); // this should call CUDA's fmod!
+          return rmt_x0 + x - x1;
         }
       };
 
+      template <typename real_t>
+      struct remote_lft
+      {
+        real_t x0, rmt_x1;
+
+        remote_lft(real_t x0, real_t rmt_x1) : x0(x0), rmt_x1(rmt_x1) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          real_t diff = x - x0 == real_t(0) ? nextafterf(0, -1) : x - x0; // x == rmt_x1 would cause crashes
+          return rmt_x1 + diff;
+        }
+      };
     };
     // time-stepping methods
     template <typename real_t>
@@ -130,7 +144,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            detail::periodic_ext<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x1)
+            detail::remote_lft<real_t>(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1)
           );
 
           // prepare the real_t buffer for copy left
@@ -176,7 +190,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            detail::periodic_ext<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
+            detail::remote_rgt<real_t>(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
           );
 
           // wait for the copy of real from right into current device to finish

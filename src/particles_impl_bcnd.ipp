@@ -41,7 +41,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return a + fmodf((x-a) + (b-a), b-a); // this should call CUDA's fmod!
+          return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
         }
       };
     };
