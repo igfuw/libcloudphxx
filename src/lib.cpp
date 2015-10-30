@@ -1,6 +1,7 @@
 #include <iostream>
 #include <exception>
 #include <libcloudph++/lgrngn/factory.hpp>
+#include "detail/distmem_opts.hpp"
 
 namespace libcloudphxx
 {
@@ -12,12 +13,17 @@ namespace libcloudphxx
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {
-
 #if defined(USE_MPI)
-      const int n_cell_bfr = ;
+      int rank, size, n_x_bfr;
+
+      MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
+      MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
+
+      // adjust opts_init for this process
+      n_x_bfr = detail::distmem_opts(&opts_init, rank);
       const bool dist_mem = true;
 #else
-      const int n_cell_bfr = 0;
+      const int n_x_bfr = 0;
       const bool dist_mem = false;
 #endif
 
@@ -25,24 +31,24 @@ namespace libcloudphxx
       {
 	case multi_CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions(), TODO: some other check in CMake?
-	  return new particles_t<real_t, multi_CUDA>(opts_init, n_cell_bfr, dist_mem);
+	  return new particles_t<real_t, multi_CUDA>(opts_init, n_x_bfr, dist_mem);
 #else
           throw std::runtime_error("multi_CUDA backend was not compiled");
 #endif
 	case CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
-	  return new particles_t<real_t, CUDA>(opts_init, n_cell_bfr, dist_mem);
+	  return new particles_t<real_t, CUDA>(opts_init, n_x_bfr, dist_mem);
 #else
           throw std::runtime_error("CUDA backend was not compiled");
 #endif
 	case OpenMP:
 #if defined(_OPENMP)
-	  return new particles_t<real_t, OpenMP>(opts_init, n_cell_bfr, dist_mem);
+	  return new particles_t<real_t, OpenMP>(opts_init, n_x_bfr, dist_mem);
 #else
           throw std::runtime_error("OpenMP backend was not compiled"); 
 #endif
 	case serial:
-	  return new particles_t<real_t, serial>(opts_init, n_cell_bfr, dist_mem);
+	  return new particles_t<real_t, serial>(opts_init, n_x_bfr, dist_mem);
 	default:
           throw std::runtime_error("unknown backend"); 
       }
