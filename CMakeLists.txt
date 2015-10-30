@@ -37,6 +37,24 @@ if (NOT THRUST_FOUND)
 endif()
 
 ############################################################################################
+# MPI - detecting if the C++ compiler is actually an MPI wrapper
+set(msg "Detecting if the compiler is an MPI wrapper...")
+message(STATUS "${msg}")
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-show" RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_QUIET)
+if (status EQUAL 0 AND output MATCHES "mpi")
+  set(USE_MPI TRUE)
+  set(libmpdataxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DUSE_MPI")
+  set(libmpdataxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -DUSE_MPI")
+else()
+  set(USE_MPI FALSE)
+endif()
+message(STATUS "${msg} - ${USE_MPI}")
+unset(msg)
+unset(status)
+unset(output)
+
+############################################################################################
+
 # CUDA
 find_package(CUDA QUIET)
 if (NOT CUDA_FOUND)
