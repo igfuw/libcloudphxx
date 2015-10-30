@@ -154,7 +154,7 @@ namespace libcloudphxx
       // if using more than 1 GPU
       // has to be done after copy 
       // TODO:  move it to a separate function
-      if (!dist_mem)
+      if (!pimpl->dist_mem)
       {
         // recycling out-of-domain/invalidated particles 
         // (doing it here and not in async reduces the need for a second sort before diagnostics,
