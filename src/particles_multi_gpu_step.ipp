@@ -7,12 +7,30 @@
 
 
 // contains definitions of members of particles_t specialized for multiple GPUs
+// TODO: multi_CUDA doesn't work for real_t=float, most probably because position in x 
+// is out of domain after copy left... (i.e. x=x1)
 #include <omp.h>
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      template <typename real_t>
+      struct remote
+      {
+        real_t lcl, rmt;
+
+        remote(real_t lcl, real_t rmt) : lcl(lcl), rmt(rmt) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return rmt + x - lcl;
+        }
+      };
+    };
     // time-stepping methods
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_sync(
@@ -80,7 +98,7 @@ namespace libcloudphxx
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
 
-          // IDs of devices to the left/right, periodic boundary in x
+          // IDs of devices to the left/right, periodic_ext boundary in x
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
                     rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0;
 
@@ -113,7 +131,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
             thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[lft_dev].opts_init->x0)
+            detail::remote<real_t>(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1)
           );
 
           // prepare the real_t buffer for copy left
@@ -159,7 +177,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
             thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-            detail::periodic<real_t>(particles[dev_id].opts_init->x0, particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
+            detail::remote<real_t>(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
           );
 
           // wait for the copy of real from right into current device to finish
