@@ -2,6 +2,9 @@
 #include <exception>
 #include <libcloudph++/lgrngn/factory.hpp>
 #include "detail/distmem_opts.hpp"
+#if defined(USE_MPI)
+ #include <mpi.h>
+#endif
 
 namespace libcloudphxx
 {
@@ -14,14 +17,18 @@ namespace libcloudphxx
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {
 #if defined(USE_MPI)
+      // initialize mpi if compiled with an mpi wrapper
       int rank, size, n_x_bfr;
 
+      MPI_CHECK(MPI_Init(nullptr, nullptr));
       MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
       MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
+//      printf("rank %d size %d\n",rank,size);
 
       // adjust opts_init for this process
-      n_x_bfr = detail::distmem_opts(&opts_init, rank);
+      n_x_bfr = detail::distmem_opts<real_t>(opts_init, rank, size);
       const bool dist_mem = true;
+//      printf("using mpi\n");
 #else
       const int n_x_bfr = 0;
       const bool dist_mem = false;

@@ -1,5 +1,11 @@
 #pragma once
 
+// Error handling macros
+#define MPI_CHECK(call) \
+    if((call) != MPI_SUCCESS) { \
+        std::cerr << "MPI error calling \""#call"\"\n"; \
+        MPI_Abort(MPI_COMM_WORLD, -1);}
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -7,12 +13,12 @@ namespace libcloudphxx
     namespace detail
     {   
       template<class real_t>
-      int get_dev_nx(const opts_init_t<real_t> &opts_init, const int &dev_no)
+      int get_dev_nx(const opts_init_t<real_t> &opts_init, const int &rank, const int &size)
       {
-        if(dev_no < opts_init.dev_count-1)
-          return opts_init.nx / opts_init.dev_count + .5;
+        if(rank < size-1)
+          return opts_init.nx / size + .5;
         else
-          return opts_init.nx - dev_no * int(opts_init.nx / opts_init.dev_count + .5);
+          return opts_init.nx - rank * int(opts_init.nx / size + .5);
       }
 
       // adjust opts_int for a distributed memory system
@@ -20,9 +26,9 @@ namespace libcloudphxx
       template <class real_t>
       int distmem_opts(opts_init_t<real_t> &opts_init, const int &rank, const int &size)
       {
-        int n_x_bfr = rank * get_dev_nx(opts_init, 0);
+        int n_x_bfr = rank * get_dev_nx(opts_init, 0, size);
 
-        opts_init.nx = detail::get_dev_nx(opts_init, rank);
+        opts_init.nx = detail::get_dev_nx(opts_init, rank, size);
  
         if(rank != 0)      opts_init.x0 = 0.;  // TODO: what if x0 greater than domain of first device?
         if(rank != size-1) opts_init.x1 = opts_init.nx * opts_init.dx;

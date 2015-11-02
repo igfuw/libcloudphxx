@@ -99,7 +99,7 @@ namespace libcloudphxx
 
         // adjust opts_init for each device
         if(dev_count > 1)
-          n_x_bfr = detail::distmem_opts(&opts_init_tmp, dev_id, dev_count); 
+          n_x_bfr = detail::distmem_opts(opts_init_tmp, dev_id, dev_count); 
 
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, true)); // impl stores a copy of opts_init
       }
