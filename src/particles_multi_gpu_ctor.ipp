@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &__n_x_bfr) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &_n_x_bfr, const bool &_dist_mem) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
@@ -100,6 +100,9 @@ namespace libcloudphxx
         // adjust opts_init for each device
         if(dev_count > 1)
           n_x_bfr = detail::distmem_opts(opts_init_tmp, dev_id, dev_count); 
+
+        // add cells from other processes (MPI)
+        n_x_bfr += _n_x_bfr;
 
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, true)); // impl stores a copy of opts_init
       }
