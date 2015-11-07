@@ -70,7 +70,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
-            np2ai<real_t>(bp::extract<const bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
 	arg->init(
@@ -187,27 +187,6 @@ namespace libcloudphxx
       )
       {
 	throw std::runtime_error("kernel_paramteres does not feature a getter yet - TODO");
-      }
-
-      template <typename real_t>
-      void set_cg(
-	lgr::opts_t<real_t> *arg,
-	const bp::dict &vec
-      )
-      {
-	for (int i = 0; i < len(vec.keys()); ++i)
-	  arg->chem_gas.at(i) = bp::extract<real_t>(vec[i]);
-      }
-
-      template <typename real_t>
-      bp::dict get_cg(
-	lgr::opts_t<real_t> *arg
-      )
-      {
-	bp::dict tmp;
-	for (int i = 0; i < arg->chem_gas.size(); ++i)
-	  tmp[i] = arg->chem_gas.at(i);
-	return tmp;
       }
     };
   };

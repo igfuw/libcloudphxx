@@ -66,6 +66,7 @@ namespace libcloudphxx
 
       // mean molecular velocity
       // mean of the Maxwell distribution at a given temperature
+      // eq. 8.2 from Seinfeld and Pandis
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> molec_vel(
@@ -76,7 +77,6 @@ namespace libcloudphxx
           real_t(  //bug in boost #6957
             sqrt(
               real_t(8.) / 
-
 #if !defined(__NVCC__)
 	      pi<real_t>()
 #else
@@ -99,7 +99,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<mass_over_amount, real_t> &M
       ) {
-        return( 
+        return(
           real_t(1.) / (
             rw2 / real_t(3.) / D 
             + 

@@ -155,6 +155,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_part_2,
+        tmp_device_real_part_mass,  //TODO is it needed?
         tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
         tmp_device_real_part_NH3,
         tmp_device_real_part_SO2,
@@ -240,6 +241,7 @@ namespace libcloudphxx
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
 	tmp_device_real_part_2.resize(n_part); // TODO: only in chemistry, but probably soon not needed when V will be cached
+	tmp_device_real_part_mass.resize(n_part); // TODO: only in chemistry, maybe not needed?
 	tmp_device_real_part_HNO3.resize(n_part); // TODO: only in chemistry, but can we do it without?
 	tmp_device_real_part_NH3.resize(n_part); // TODO: only in chemistry, but can we do it without?
 	tmp_device_real_part_CO2.resize(n_part); // TODO: only in chemistry, but can we do it without?
@@ -352,8 +354,8 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
-                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
+      void chem(const real_t &dt, 
+                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct, const bool &chem_sys_cls);
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 

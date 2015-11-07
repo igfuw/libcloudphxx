@@ -51,6 +51,9 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
+      // initialising chem stuff (at the beginning to have ambient_chem vectors allocated)
+      if(pimpl->opts_init.chem_switch) pimpl->init_chem();
+
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();
       pimpl->init_e2l(th,   &pimpl->th);
@@ -101,9 +104,6 @@ namespace libcloudphxx
 
       // initialising wet radii
       pimpl->init_wet();
-
-      // initialising chem stuff
-      if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
       pimpl->init_sstp();
 
