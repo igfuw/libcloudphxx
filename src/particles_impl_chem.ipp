@@ -240,15 +240,15 @@ namespace libcloudphxx
           const quantity<si::volume, real_t>  V       = thrust::get<5>(tpl) * si::cubic_metres;
           
           // left side for search in toms748
-          real_t m_H_pure = ((real_t(1e-7 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_lft = ((real_t(1e-1 * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_rht = ((real_t(1e-14 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
           uintmax_t max_iter = 44;
 
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old, m_S_VI, V),
-            //m_H_pure, // min -> (pure water)
-            real_t(1e-40),
-	    real_t(1e-10), // max -> TODO
+            m_H_lft,
+	    m_H_rht,
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
