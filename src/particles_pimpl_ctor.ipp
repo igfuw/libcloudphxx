@@ -154,7 +154,8 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_2,
+        tmp_device_real_part_V_old,
+        tmp_device_real_part_SVI,
         tmp_device_real_part_mass,  //TODO is it needed?
         tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
         tmp_device_real_part_NH3,
@@ -240,12 +241,13 @@ namespace libcloudphxx
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
 	tmp_device_real_part.resize(n_part);
-	tmp_device_real_part_2.resize(n_part); // TODO: only in chemistry, but probably soon not needed when V will be cached
+	tmp_device_real_part_SVI.resize(n_part);  // TODO: only in chemistry, but probably soon not needed when V will be cached
+	tmp_device_real_part_V_old.resize(n_part);// TODO: only in chemistry, but can we do without it?
 	tmp_device_real_part_mass.resize(n_part); // TODO: only in chemistry, maybe not needed?
 	tmp_device_real_part_HNO3.resize(n_part); // TODO: only in chemistry, but can we do it without?
-	tmp_device_real_part_NH3.resize(n_part); // TODO: only in chemistry, but can we do it without?
-	tmp_device_real_part_CO2.resize(n_part); // TODO: only in chemistry, but can we do it without?
-	tmp_device_real_part_SO2.resize(n_part); // TODO: only in chemistry, but can we do it without?
+	tmp_device_real_part_NH3.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+	tmp_device_real_part_CO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+	tmp_device_real_part_SO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 	tmp_device_n_part.resize(n_part);
@@ -354,8 +356,12 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, 
-                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct, const bool &chem_sys_cls);
+      void chem_vol_ante();
+      void chem_henry(const real_t &dt, const bool &chem_sys_cls);
+      void chem_dissoc();
+      void chem_react(const real_t &dt);
+      void chem_vol_post();
+ 
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 

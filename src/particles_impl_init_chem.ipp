@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      template <typename real_t>
+/*    template <typename real_t>
       struct chem_init_water // water
       {
         const real_t mltpl;
@@ -29,7 +29,7 @@ namespace libcloudphxx
           return mltpl * pow(rw2, real_t(3./2));
         }
       };
-
+*/
       template <typename real_t>
       struct chem_init_NH4
       {

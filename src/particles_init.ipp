@@ -105,6 +105,12 @@ namespace libcloudphxx
       // initialising wet radii
       pimpl->init_wet();
 
+      // calculate initail volume (helper for Henry in chem)
+      if (pimpl->opts_init.chem_switch){
+        pimpl->chem_vol_ante();
+        pimpl->chem_vol_post();
+      }
+	
       pimpl->init_sstp();
 
       //initialising collision kernel

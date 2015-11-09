@@ -30,7 +30,7 @@ namespace libcloudphxx
           const real_t rw2 = thrust::get<1>(tpl);
           return n * pow(rw2, real_t(3./2));
         }
-      };  
+      };
     };
 
     template <typename real_t, backend_t device>
