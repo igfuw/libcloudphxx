@@ -77,6 +77,13 @@ namespace libcloudphxx
         > tpl_rw_t;
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 
+        // read-only parameters passed to the calc function
+        typedef thrust::tuple<
+          real_t,                      // rhod (dry air density)
+          real_t                       // eta (dynamic viscosity)
+        > tpl_ro_calc_t;
+        enum { rhod_ix, eta_ix };
+
         const real_t dt;
         const kernel_base<real_t, n_t> *p_kernel;
 
@@ -89,6 +96,8 @@ namespace libcloudphxx
         {
           const tpl_ro_t tpl_ro = thrust::get<0>(tpl_ro_rw);
           const tpl_rw_t tpl_rw = thrust::get<1>(tpl_ro_rw);
+          const tpl_ro_calc_t tpl_ro_calc = thrust::get<2>(tpl_ro_rw);
+
           // sanity checks
 #if !defined(__NVCC__)
           assert(thrust::get<ix_a_ix>(tpl_ro) + 1 == thrust::get<ix_b_ix>(tpl_ro));
@@ -107,8 +116,8 @@ namespace libcloudphxx
             if (cix_a != cix_b - 1) return;
           }
 
-          //wrap the tpl_rw tuple to pass it to kernel
-          tpl_rw_t_wrap<real_t,n_t> tpl_wrap(tpl_rw);
+          //wrap the tpl_rw and tpl_ro_calc tuples to pass it to kernel
+          tpl_calc_wrap<real_t,n_t> tpl_wrap(tpl_rw, tpl_ro_calc);
 
           // computing the probability of collision
           real_t prob = dt / thrust::get<dv_ix>(tpl_ro)
@@ -259,6 +268,13 @@ namespace libcloudphxx
         >
       > zip_rw_t;
 
+      typedef thrust::zip_iterator<
+        thrust::tuple<
+          pi_real_t,  // rhod
+          pi_real_t   // eta
+        >
+      > zip_ro_calc_t;    //read-only parameters passed to the calc() function, later also epsilon and Re_lambda
+
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
           // u01, each pair gets one number
@@ -273,6 +289,15 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
           // dv
           thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+        )
+      );
+
+      zip_ro_calc_t zip_ro_calc_it(
+        thrust::make_tuple(
+          // rhod
+          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+          // eta
+          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin())
         )
       );
 
@@ -294,8 +319,8 @@ namespace libcloudphxx
       );
 
       thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)),
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it)) + n_part - 1,
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel)
       );
     }

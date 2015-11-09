@@ -51,10 +51,13 @@ class kin_cloud_2d_common : public
     {
       // save horizontal means of th and rv after spinup
       // they will be the relaxation goals
+      // TODO: when calculating mean, do not include first or last point (which is the same in cyclic boundaries);
+      //       right now it is accounted for twice, but the concurrency-aware sum cannot exclude single point
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  this->mem->grid_size[0];
-        rv_eq(j) = this->mem->sum(this->state(ix::rv), this->i, rng_t(j, j), false)  /  this->mem->grid_size[0];
+        th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
+        rv_eq(j) = this->mem->sum(this->state(ix::rv), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
+        
       }
     }
 
@@ -82,7 +85,7 @@ class kin_cloud_2d_common : public
         for(auto a: std::list<int>({ix::th, ix::rv}))
         {
           const auto &psi = this->state(a);
-          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  this->mem->grid_size[0];
+          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
           if(a == ix::th)
             rhs.at(a)(this->i, j) =  (th_eq(j) - psi_mean) / tau;
           else
@@ -111,8 +114,8 @@ class kin_cloud_2d_common : public
     dz(p.dz),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv),
-    th_eq(this->mem->grid_size[1]),
-    rv_eq(this->mem->grid_size[1])
+    th_eq(this->mem->grid_size[1].length()),
+    rv_eq(this->mem->grid_size[1].length())
   {
     assert(dx != 0);
     assert(dz != 0);
