@@ -35,12 +35,16 @@ namespace libcloudphxx
       {
         const real_t chem_rho;
 
-        chem_init_NH4(const real_t &chem_rho) : chem_rho(chem_rho) {}
+        //ctor
+        chem_init_NH4(const real_t &chem_rho) : 
+          chem_rho(chem_rho) 
+        {}
 
 	BOOST_GPU_ENABLED
 	real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
+
           return 
             real_t(4./3) * 
 #if !defined(__NVCC__)
@@ -64,6 +68,7 @@ namespace libcloudphxx
 	real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
+ 
           return 
             real_t(4./3) * 
 #if !defined(__NVCC__)
@@ -88,6 +93,7 @@ namespace libcloudphxx
 	real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
+
           return 
             real_t(4./3) * 
 #if !defined(__NVCC__)
@@ -104,13 +110,14 @@ namespace libcloudphxx
       struct chem_init_H
       {
         const real_t chem_rho;
-
+ 
         chem_init_H(const real_t &chem_rho) : chem_rho(chem_rho) {}
-
+ 
 	BOOST_GPU_ENABLED
 	real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
+
           return 
             real_t(4./3) * 
 #if !defined(__NVCC__)
@@ -129,7 +136,6 @@ namespace libcloudphxx
     {
       // don't do it if not using chem...
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
-
       // memory allocation
       chem_bgn.resize(chem_all);
       chem_end.resize(chem_all);
@@ -163,6 +169,13 @@ namespace libcloudphxx
       assert(chem_end[chem_rhs_beg-1] == chem_ante_rhs.end());
       assert(chem_end[chem_rhs_fin-1] == chem_rhs.end());
       assert(chem_end[chem_all-1] == chem_post_rhs.end());
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_chem_aq()
+    {
+      // don't do it if not using chem...
+      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
 
       for (int i = 0; i < chem_all; ++i)
       {
