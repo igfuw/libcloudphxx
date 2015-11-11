@@ -84,6 +84,9 @@ namespace libcloudphxx
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined)
       {}
+
+      // dtor (just to silence -Winline warnings)
+      ~opts_init_t() {}
     };
   }
 };
