@@ -53,6 +53,10 @@ namespace icmw8_case1
     n1_stp = real_t(60e6) / si::cubic_metres,
     n2_stp = real_t(40e6) / si::cubic_metres;
 
+  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
+    n1_stp_src = real_t(60e6 / 3600.) / si::cubic_metres,
+    n2_stp_src = real_t(40e6 / 3600.) / si::cubic_metres;
+
   //aerosol chemical composition parameters (needed for activation)
   // for lgrngn:
   const quantity<si::dimensionless, real_t> kappa = .61; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
@@ -181,5 +185,23 @@ namespace icmw8_case1
 
     log_dry_radii *do_clone() const 
     { return new log_dry_radii( *this ); }
+  };
+
+
+  // lognormal aerosol distribution of the source (per time unit)
+  template <typename T>
+  struct log_dry_radii_src : public libcloudphxx::common::unary_function<T>
+  {
+    T funval(const T lnrd) const
+    {
+      return T((
+          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp_src, quantity<si::dimensionless, real_t>(lnrd)) +
+          lognormal::n_e(mean_rd2, sdev_rd2, n2_stp_src, quantity<si::dimensionless, real_t>(lnrd)) 
+        ) * si::cubic_metres
+      );
+    }
+
+    log_dry_radii_src *do_clone() const 
+    { return new log_dry_radii_src( *this ); }
   };
 };

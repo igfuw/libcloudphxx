@@ -44,6 +44,9 @@ class kin_cloud_2d_blk_1m : public kin_cloud_2d_common<ct_params_t>
 
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
+  bool get_src() {};
+  void set_src(bool val){};
+
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
