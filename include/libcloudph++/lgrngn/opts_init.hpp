@@ -107,6 +107,9 @@ namespace libcloudphxx
         src_sd_conc(0),
         src_z1(0)
       {}
+
+      // dtor (just to silence -Winline warnings)
+      ~opts_init_t() {}
     };
   }
 };

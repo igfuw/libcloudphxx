@@ -27,7 +27,7 @@ opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
 
 opts_init.kernel = lgrngn.kernel_t.geometric
-opts_init.terminal_velocity = lgrngn.vt_t.khvorostyanov_spherical
+opts_init.terminal_velocity = lgrngn.vt_t.beard
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
 except:
@@ -48,3 +48,8 @@ for i in range(900):
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)
 
+prtcls.diag_sd_conc()
+tmp = np.frombuffer(prtcls.outbuf())[0]
+print 'final no of SDs: ', tmp
+if(tmp >= 10 or tmp == 0):
+  raise Exception("wrong amount of SDs were removed")

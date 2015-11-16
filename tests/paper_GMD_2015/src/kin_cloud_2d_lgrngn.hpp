@@ -134,7 +134,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       params.cloudph_opts_init.z0 = params.dz / 2;
       params.cloudph_opts_init.x1 = (this->mem->grid_size[0].length() - .5) * params.dx;
       params.cloudph_opts_init.z1 = (this->mem->grid_size[1].length() - .5) * params.dz;
-
       params.cloudph_opts_init.src_z1 = params.dz; // aerosol added only in the lowest cells
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(

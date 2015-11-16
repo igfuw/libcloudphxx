@@ -66,6 +66,8 @@ class kin_cloud_2d_common : public
     {
       // save horizontal means of th and rv after spinup
       // they will be the relaxation goals
+      // TODO: when calculating mean, do not include first or last point (which is the same in cyclic boundaries);
+      //       right now it is accounted for twice, but the concurrency-aware sum cannot exclude single point
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
         th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());

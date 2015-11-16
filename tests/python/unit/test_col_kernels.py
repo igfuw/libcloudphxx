@@ -20,7 +20,7 @@ def lognormal(lnr):
 kappa = .61
 
 count = 0
-for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin]:
+for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin, lgrngn.kernel_t.onishi_hall_davis_no_waals, lgrngn.kernel_t.vohl_davis_no_waals, lgrngn.kernel_t.hall_pinsky_cumulonimbus, lgrngn.kernel_t.hall_pinsky_stratocumulus]:
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
   opts_init.dry_distros = {kappa:lognormal}
@@ -29,6 +29,8 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric,  lgrngn.ker
   opts_init.terminal_velocity=lgrngn.vt_t.beard
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([])
+  if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals):
+    opts_init.kernel_parameters = np.array([0.04, 100]);
   if(kernel == lgrngn.kernel_t.golovin):
     opts_init.kernel_parameters = np.array([1.])
   if(kernel == lgrngn.kernel_t.geometric):

@@ -8,7 +8,7 @@ std::map<std::string, int> h5n(
   const string &file
 )
 {
-  H5::H5File h5f(file + "/coord.h5", H5F_ACC_RDONLY);
+  H5::H5File h5f(file + "/const.h5", H5F_ACC_RDONLY);
   hsize_t n[2];
   std::map<std::string, int> map;
 

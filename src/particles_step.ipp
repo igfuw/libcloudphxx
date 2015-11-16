@@ -81,7 +81,9 @@ namespace libcloudphxx
       if (!pimpl->should_now_run_async)
         throw std::runtime_error("please call step_sync() before calling step_async() again");
 
-      // sanity checks
+      pimpl->should_now_run_async = false;
+
+      //sanity checks
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
       if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
       if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
@@ -98,9 +100,6 @@ namespace libcloudphxx
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
@@ -110,6 +109,9 @@ namespace libcloudphxx
         // advection with terminal velocity
         pimpl->sedi();
       }
+
+      // boundary condition + accumulated rainfall to be returned
+      real_t ret = pimpl->bcnd();
 
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
@@ -155,7 +157,6 @@ namespace libcloudphxx
       }
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
-      pimpl->should_now_run_async = false;
       pimpl->selected_before_counting = false;
 
       return ret;
