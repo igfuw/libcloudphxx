@@ -2,7 +2,6 @@
 
 #include "kin_cloud_2d_common.hpp"
 #include "outmom.hpp"
-#include <fstream>
 
 #include <libcloudph++/lgrngn/factory.hpp>
 
@@ -26,8 +25,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
-  real_t prec_vol;
-  std::ofstream f_prec;
 
   // helper methods
   void diag()
@@ -37,9 +34,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     // recording super-droplet concentration per grid cell 
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc", prtcls->outbuf());
-   
-    // recording total precipitation volume through the lower boundary
-    f_prec << this->timestep << " "  << prec_vol << "\n";
    
     // recording requested statistical moments
     {
@@ -168,9 +162,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 	  make_arrinfo(Cz)
 	); 
       }
-      // open file for output of precitpitation volume
-      f_prec.open(this->outdir+"/prec_vol.dat");
-      prec_vol = 0.;
 
       // writing diagnostic data for the initial condition
       diag();
@@ -228,7 +219,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
           assert(ftr.valid());
         } else 
 #endif
-          prec_vol = prtcls->step_async(params.cloudph_opts);
+          prtcls->step_async(params.cloudph_opts);
       }
 
       // performing diagnostics
@@ -238,7 +229,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         if (params.async)
         {
           assert(ftr.valid());
-          prec_vol = ftr.get();
+          ftr.get();
         }
 #endif
         diag();
