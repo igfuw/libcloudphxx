@@ -24,7 +24,6 @@ kappa = .01
 opts_init.dry_distros = {kappa:expvolumelnr}
 
 opts_init.sd_conc = 64
-opts_init.n_sd_max = 64
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard
