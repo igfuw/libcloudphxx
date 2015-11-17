@@ -42,6 +42,9 @@ namespace libcloudphxx
       };
     };
 
+    // create new aerosol particles
+    // if any SDs with dry radius similar to the one to be added are present,
+    // we increase their multiplicity instead of adding new SDs
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src(const real_t &dt)
     {   
@@ -244,9 +247,6 @@ namespace libcloudphxx
 
           // init chem (TODO)
             
-// DOTAD JEST OK
-
-//          thrust::fill(tmp_bin_no.begin(), tmp_bin_no.begin() + count_bins, 1);
           {
             // count number of matched bins per cell
             thrust::pair<
@@ -271,11 +271,7 @@ namespace libcloudphxx
           // sorted_ijk no longer valid
         }
 
-//        n_part_old = n_part_bfr_src;
-//        n_part_to_init = n_part_tot_in_src;
-
         // tmp vector to hold number of particles in a given size bin in a given cell
-        // TODO: will it be emptied when it goes out of scope?
         thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
         // tmp vector for number of particles in bins up to this one
         thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
@@ -291,7 +287,7 @@ namespace libcloudphxx
               bin_no.begin(),
               bin_no.begin() + n_part_bfr_src,
               thrust::make_constant_iterator<thrust_size_t>(1),
-              out.begin(),// output bin no - in place didn't work well ?! 
+              out.begin(),// output bin no - in place didn't work well, why?
               bin_cell_count.begin()// output number of SDs
             );
           count_bins = np.second - bin_cell_count.begin(); // number of bins with SDs inside, includes the out_of_bins
@@ -351,7 +347,6 @@ namespace libcloudphxx
         );
 
         // --- increase multiplicity of existing SDs ---
- 
 
         n_part_old = n_part; // number of those before src + no of those w/o match
         n_part_to_init = count_bins; // number of matched SDs
