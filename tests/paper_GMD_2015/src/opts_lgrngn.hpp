@@ -63,7 +63,6 @@ void setopts_micro(
   rt_params.async = vm["async"].as<bool>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
-  rt_params.cloudph_opts_init.n_sd_max = vm["sd_conc"].as<unsigned long long>() * nx * nz * 10;
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
   boost::assign::ptr_map_insert<
@@ -88,11 +87,6 @@ void setopts_micro(
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
 
-
-  rt_params.cloudph_opts_init.coal_switch = 1;
-  rt_params.cloudph_opts_init.chem_switch = 0;
-  rt_params.cloudph_opts_init.sedi_switch = 1;
-
   //rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
@@ -104,7 +98,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
 
   // coalescence kernel choice
-  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
+  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
+  // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
+  rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
   // parsing --out_dry and --out_wet options values
