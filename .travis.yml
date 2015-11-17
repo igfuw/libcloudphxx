@@ -86,16 +86,16 @@ script:
     - mkdir build
     - cd build
     - cmake ..
-    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+#    - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
     ## parcel
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy gnuplot; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
-    - git clone --depth=1 git://github.com/igfuw/parcel.git
-    - cd parcel
-    - py.test -s -v unit_test
-    - py.test -s -v long_test
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy gnuplot; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
+#    - git clone --depth=1 git://github.com/igfuw/parcel.git
+#    - cd parcel
+#    - py.test -s -v unit_test
+#    - py.test -s -v long_test
