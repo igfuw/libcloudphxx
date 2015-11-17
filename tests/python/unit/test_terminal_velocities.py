@@ -25,7 +25,6 @@ kappa = .61
 opts_init.dry_distros = {kappa:lognormal}
 
 opts_init.sd_conc = 50
-opts_init.n_sd_max = 50
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 

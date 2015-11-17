@@ -32,7 +32,6 @@ Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
 Opts_init.sd_conc = 50 / (Opts_init.nx * Opts_init.nz)
-Opts_init.n_sd_max = 50
 
 Backend = lgrngn.backend_t.serial
 
