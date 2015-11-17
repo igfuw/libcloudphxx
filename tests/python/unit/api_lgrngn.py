@@ -16,15 +16,16 @@ def lognormal(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 opts_init = lgrngn.opts_init_t()
-kappa = .61
-opts_init.dry_distros = {kappa:lognormal}
+kappa1 = .61
+kappa2 = 1.28
+opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard
 opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
-opts_init.src_dry_distros = {kappa:lognormal}
+opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
 

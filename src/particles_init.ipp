@@ -65,42 +65,59 @@ namespace libcloudphxx
       // reserve memory for data of the size of the max number of SDs
       pimpl->init_hskpng_npart(); 
 
-      // init number of SDs in cells
-      pimpl->init_count_num();
+      // calc sum of ln(rd) ranges of all distributions
+      real_t tot_lnrd_rng = 0.;
+      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+      {
+        pimpl->dist_analysis(
+          ddi->second,
+          pimpl->opts_init.sd_conc
+        );
+        tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
+      }
 
-      // update no of particles
-      // TODO: move to a separate function
       pimpl->n_part_old = 0;
-      pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
-      pimpl->n_part += pimpl->n_part_to_init;
-      pimpl->hskpng_resize_npart(); 
 
-      // init ijk vector, also n_part and resize n_part vectors
-      pimpl->init_ijk();
+      // initialize SDs of each kappa-type
+      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+      {
+        // analyze the distribution, TODO: just did it
+        pimpl->dist_analysis(
+          ddi->second,
+          pimpl->opts_init.sd_conc
+        );
 
-      // initialising dry radii (needs ijk and rhod)
-      assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      // analyze the distribution
-      pimpl->dist_analysis(
-        pimpl->opts_init.dry_distros.begin()->second,
-        pimpl->opts_init.sd_conc
-      );
-      pimpl->init_dry();
-
-      // init multiplicities
-      pimpl->init_n(
-        pimpl->opts_init.dry_distros.begin()->first,
-        pimpl->opts_init.dry_distros.begin()->second
-      ); // TODO: document that n_of_lnrd_stp is expected!
-
-      // initialising wet radii
-      pimpl->init_wet();
-
-      // initialising particle positions
-      pimpl->init_xyz();
-
-      // initialising chem stuff
-      if(pimpl->opts_init.chem_switch) pimpl->init_chem();
+        // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
+        pimpl->init_count_num( (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng);
+  
+        // update no of particles
+        // TODO: move to a separate function
+        pimpl->n_part_old = pimpl->n_part;
+        pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+        pimpl->n_part += pimpl->n_part_to_init;
+        pimpl->hskpng_resize_npart(); 
+  
+        // init ijk vector, also n_part and resize n_part vectors
+        pimpl->init_ijk();
+  
+        // initialising dry radii (needs ijk and rhod)
+        pimpl->init_dry();
+  
+        // init multiplicities
+        pimpl->init_n(
+          ddi->first,
+          ddi->second
+        ); // TODO: document that n_of_lnrd_stp is expected!
+  
+        // initialising wet radii
+        pimpl->init_wet();
+  
+        // initialising particle positions
+        pimpl->init_xyz();
+  
+        // initialising chem stuff, TODO: fix init_chem
+//        if(pimpl->opts_init.chem_switch) pimpl->init_chem();
+      }
 
       // --------  other inits  --------
       //initialising collision kernel

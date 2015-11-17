@@ -1,4 +1,4 @@
-// vim:filetype=cpp
+/// vim:filetype=cpp
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -288,7 +288,7 @@ namespace libcloudphxx
       );
       void init_ijk();
       void init_xyz();
-      void init_count_num();
+      void init_count_num(const real_t & = 1);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
