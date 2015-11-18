@@ -334,6 +334,10 @@ namespace libcloudphxx
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
+      void moms_calc_cond(
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const real_t power
+      );
 
       void mass_dens_estim(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
@@ -354,6 +358,7 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
+      void update_th_rv(thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 
