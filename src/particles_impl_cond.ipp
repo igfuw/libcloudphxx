@@ -20,59 +20,6 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      template <typename n_t, typename real_t>
-      struct dm_3_summator
-      {   
-        BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<n_t, real_t> &tpl) const
-        {
-          const n_t n = thrust::get<0>(tpl);
-          const real_t rw2 = thrust::get<1>(tpl);
-          return n * pow(rw2, real_t(3./2));
-        }
-      };  
-    };
-
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::cond_dm3_helper() // TODO: move it into a common_count_mom?
-    {   
-      // TODO... or at least these typedefs!
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<n_t>::iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_n_t;
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_r_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_r_t> > zip_it_t;
-
-      thrust::pair<
-	typename thrust_device::vector<thrust_size_t>::iterator,
-	typename thrust_device::vector<real_t>::iterator
-      > n = thrust::reduce_by_key(
-	sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
-	thrust::transform_iterator<             // input - values
-          detail::dm_3_summator<n_t, real_t>,
-          zip_it_t,
-          real_t
-        >( 
-	  zip_it_t(thrust::make_tuple(
-	    pi_n_t(this->n.begin(), sorted_id.begin()),
-	    pi_r_t(rw2.begin(),     sorted_id.begin())
-	  )),
-	  detail::dm_3_summator<n_t, real_t>()
-	),
-	count_ijk.begin(),                      // output - keys
-	count_mom.begin()                       // output - values
-      );  
-      count_n = n.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
-    }
-
-
-    namespace detail
-    {
       template <typename real_t>
       struct advance_rw2_minfun
       {
@@ -230,12 +177,10 @@ namespace libcloudphxx
     ) {   
       // prerequisite
       hskpng_sort(); 
-
-      //
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
 
       // calculating the 3rd wet moment before condensation (still not divided by dv)
-      cond_dm3_helper();
+      moms_calc_cond(rw2.begin(), real_t(3./2.));
 
       // permute-copying the result to -dm_3
       // fill with 0s if not all cells will be updated in the following transform
@@ -267,7 +212,7 @@ namespace libcloudphxx
       );
 
       // calculating the 3rd wet moment after condensation (still not divided by dv)
-      cond_dm3_helper();
+      moms_calc_cond(rw2.begin(), real_t(3./2.));
 
       // adding the third moment after condensation to dm_3
       thrust::transform(
