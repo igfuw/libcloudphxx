@@ -47,6 +47,7 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
+#include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"

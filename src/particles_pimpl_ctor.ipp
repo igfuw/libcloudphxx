@@ -354,6 +354,7 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
+      void update_th_rv(thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 
