@@ -41,9 +41,9 @@ script:
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
-    - VERBOSE=1 make 
-    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+    - if [[ $CXX == 'clang++'     ]]; then make -DCMAKE_BUILD_TYPE=Debug ../; fi 
+    - if [[ $CXX == 'clang++'     ]]; then VERBOSE=1 make; fi     # no debug build on c++ machine - it was running out of memory
+    - if [[ $CXX == 'clang++'     ]]; then OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log; fi / # "/" intentional! (just to make cat exit with an error code)
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - VERBOSE=1 make 
     - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
