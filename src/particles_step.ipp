@@ -64,7 +64,28 @@ namespace libcloudphxx
           pimpl->hskpng_Tpr(); 
           pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
+      }
 
+      // aerosol source, in sync since it changes th/rv
+      if (opts.src) 
+      {
+        // sanity check
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        // update the step counter since src was turned on
+        ++pimpl->stp_ctr;
+
+        // introduce new particles with the given time interval
+        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+          pimpl->stp_ctr = 0;
+        }
+      }
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
+
+      if(opts.cond || pimpl->stp_ctr == pimpl->opts_init.supstp_src)
+      {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
@@ -138,24 +159,6 @@ namespace libcloudphxx
 
       // remove SDs with n = 0
       if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
-
-      // aerosol source
-      if (opts.src) 
-      {
-        // sanity check
-        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
-
-        // update the step counter since src was turned on
-        ++pimpl->stp_ctr;
-
-        // introduce new particles with the given time interval
-        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
-          pimpl->stp_ctr = 0;
-        }
-      }
-      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       pimpl->selected_before_counting = false;
 
