@@ -42,18 +42,9 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
-      // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = 0;//pimpl->rcyc();
-      // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
-
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
+      pimpl->hskpng_ijk();
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -157,8 +148,8 @@ namespace libcloudphxx
         }
       }
 
-      // remove SDs with n = 0
-      if (opts.sedi || opts.adve || opts.coal) pimpl->hskpng_remove_n0(); 
+      // recycling out-of-domain/invalidated particles 
+      pimpl->rcyc();
 
       pimpl->selected_before_counting = false;
 
