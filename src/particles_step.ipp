@@ -44,10 +44,7 @@ namespace libcloudphxx
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
+      pimpl->hskpng_ijk();
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -152,7 +149,7 @@ namespace libcloudphxx
       }
 
       // recycling out-of-domain/invalidated particles 
-      thrust_size_t n_rcyc = pimpl->rcyc();
+      pimpl->rcyc();
 
       pimpl->selected_before_counting = false;
 
