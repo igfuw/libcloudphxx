@@ -81,16 +81,18 @@ namespace libcloudphxx
             pimpl->ambient_chem[(chem_species_t)i]
           );
 
+      // initialising housekeeping data of the size ncell
+      pimpl->init_hskpng_ncell(); 
+
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      // done before init_xyz, cause it uses dv initialized here
+      pimpl->init_grid();
+
       // initialising particle positions
       pimpl->init_xyz();
 
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      pimpl->init_grid();
-
-      // initialising housekeeping data (incl. ijk)
-      pimpl->init_hskpng(); 
+      // initialising Tpr
       pimpl->hskpng_Tpr(); 
-      pimpl->hskpng_ijk(); 
 
       // initialising dry radii (needs positions, ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas

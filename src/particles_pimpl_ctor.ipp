@@ -190,12 +190,6 @@ namespace libcloudphxx
           m1(opts_init.ny) *
           m1(opts_init.nz)
         ),
-	n_part( // TODO: what if multiple spectra/kappas
-          opts_init.sd_conc_mean * 
-	  ((opts_init.x1 - opts_init.x0) / opts_init.dx) *
-	  ((opts_init.y1 - opts_init.y0) / opts_init.dy) *
-	  ((opts_init.z1 - opts_init.z0) / opts_init.dz)
-        ),
         zero(0), 
         sorted(false), 
         u01(tmp_device_real_part),
@@ -221,7 +215,7 @@ namespace libcloudphxx
         }
 
         if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc_mean == 0) throw std::runtime_error("please specify opts_init.sd_conc");
+        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
         if (opts_init.coal_switch)
         {
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
@@ -233,10 +227,8 @@ namespace libcloudphxx
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
-	tmp_device_real_part.resize(n_part);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
-	tmp_device_n_part.resize(n_part);
 
         // initialising host temporary arrays
         {
@@ -283,7 +275,8 @@ namespace libcloudphxx
       void init_wet();
       void init_sync();
       void init_grid();
-      void init_hskpng();
+      void init_hskpng_ncell();
+      void init_hskpng_npart();
       void init_chem();
       void init_sstp();
       void init_kernel();

@@ -139,9 +139,6 @@ namespace libcloudphxx
       // advection 
       if (opts.adve) pimpl->adve(); 
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // updating terminal velocities
       if (opts.sedi || opts.coal) 
         pimpl->hskpng_vterm_all();
@@ -151,6 +148,9 @@ namespace libcloudphxx
         // advection with terminal velocity
         pimpl->sedi();
       }
+
+      // boundary condition + accumulated rainfall to be returned
+      real_t ret = pimpl->bcnd();
 
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
