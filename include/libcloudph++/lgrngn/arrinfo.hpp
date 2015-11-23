@@ -29,8 +29,8 @@ namespace libcloudphxx
       bool is_null() const { return dataZero==NULL || strides==NULL; }
 
       // alternative usage with local storage of the strides
-      arrinfo_t(real_t * const dataZero, const std::vector<ptrdiff_t> &strvec) :
-        strvec(strvec), dataZero(dataZero), strides(&strvec[0])
+      arrinfo_t(real_t * const dataZero, const std::vector<ptrdiff_t> &_strvec) :
+        strvec(_strvec), dataZero(dataZero), strides(&strvec[0])
       {}
 
       // non-default copy ctor handling both the original and alternative usage
