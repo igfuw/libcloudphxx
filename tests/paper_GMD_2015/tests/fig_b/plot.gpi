@@ -27,10 +27,10 @@ set format y "  %g"
 set key outside Left reverse invert
 
 datafile = "timings.txt"
-idx_cpp = "lgrngn --backend=serial  --sd_conc_mean="
-idx_om2 = "lgrngn --backend=OpenMP OMP_NUM_THREADS=2 --sd_conc_mean="
-idx_om4 = "lgrngn --backend=OpenMP OMP_NUM_THREADS=4 --sd_conc_mean="
-idx_cda = "lgrngn --backend=CUDA  --sd_conc_mean="
+idx_cpp = "lgrngn --backend=serial  --sd_conc="
+idx_om2 = "lgrngn --backend=OpenMP OMP_NUM_THREADS=2 --sd_conc="
+idx_om4 = "lgrngn --backend=OpenMP OMP_NUM_THREADS=4 --sd_conc="
+idx_cda = "lgrngn --backend=CUDA  --sd_conc="
 
 set key font ",12" samplen .75 spacing .82
 set output "timings.svg"
