@@ -56,4 +56,6 @@ mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
  water_content = np.frombuffer(prtcls.outbuf())[i]
  if(abs(water_content - mean_water_content)/water_content > 0.1):
-   raise Exception("Not uniform initialization: relative difference between water content in one of the cells and mean value greater than 10%.")
+   raise Exception("Not uniform initialization: \
+     relative difference between water content in one of the cells and mean value greater than 10%: " \
+     + str(abs(water_content - mean_water_content)/water_content) + " > 0.1")

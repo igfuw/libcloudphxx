@@ -24,7 +24,7 @@ namespace libcloudphxx
 	case 0:  
 	  l2e[key][0] = 0;  
 	  break;
-	case 1:  
+	case 1:
           assert(arr.strides[0] == 1);
 	  thrust::transform(
             // input
