@@ -197,14 +197,14 @@ print "3D"
 rhod = arr_t([rhod, rhod])
 th   = arr_t([th,   th  ])
 rv   = arr_t([rv,   rv  ])
-Cx = 0.5 * ones((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
-Cy = 0.5 * ones((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
-Cz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
-
 
 opts_init.ny = 2
 opts_init.dy = 10
 opts_init.y1 = opts_init.ny * opts_init.dy
+
+Cx = 0.5 * ones((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
+Cy = 0.5 * ones((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
+Cz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
 
 for it in range(2):
   prtcls = lgrngn.factory(backend, opts_init)
