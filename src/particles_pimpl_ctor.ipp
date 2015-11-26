@@ -94,7 +94,7 @@ namespace libcloudphxx
         count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
-      // Eulerian-Lagrangian interface vers
+      // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         th,      // potential temperature (dry)
@@ -105,6 +105,8 @@ namespace libcloudphxx
         courant_x, 
         courant_y, 
         courant_z;
+
+      std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]
