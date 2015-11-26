@@ -221,6 +221,7 @@ for it in range(2):
   prtcls.diag_sd_conc()
 
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+  print frombuffer(prtcls.outbuf())
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
