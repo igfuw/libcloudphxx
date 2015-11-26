@@ -24,7 +24,7 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
   opts_init.dry_distros = {kappa:lognormal}
-  opts_init.sd_conc_mean = 50.
+  opts_init.sd_conc = 50
   opts_init.terminal_velocity=lgrngn.vt_t.beard
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([])

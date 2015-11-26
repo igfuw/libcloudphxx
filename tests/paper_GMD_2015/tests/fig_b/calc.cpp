@@ -68,9 +68,9 @@ int main(int ac, char** av)
       ) {
 	for (auto &sd_conc : micro == "lgrngn"
 	  ? list<string>({
-	    "--sd_conc_mean=8",
-	    "--sd_conc_mean=32",
-	    "--sd_conc_mean=128"
+	    "--sd_conc=8",
+	    "--sd_conc=32",
+	    "--sd_conc=128"
 	  }) 
 	  : list<string>({""})
 	) {
@@ -82,8 +82,8 @@ int main(int ac, char** av)
 	    // multiplynig the time of the simulation to avoid measuring too short wall times
 	    int mlt = 1;
             if (micro != "lgrngn") mlt *= 10;
-            if (sd_conc == "--sd_conc_mean=8") mlt *= 6; 
-            if (sd_conc == "--sd_conc_mean=32") mlt *= 3;
+            if (sd_conc == "--sd_conc=8") mlt *= 6; 
+            if (sd_conc == "--sd_conc=32") mlt *= 3;
             if (backend == "--backend=CUDA") mlt *= 3;
 
 	    double time_avg = 0;

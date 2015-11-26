@@ -39,7 +39,8 @@
 #include "particles_impl_init_e2l.ipp"
 #include "particles_impl_init_grid.ipp"
 #include "particles_impl_init_sync.ipp"
-#include "particles_impl_init_hskpng.ipp"
+#include "particles_impl_init_hskpng_npart.ipp"
+#include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
 

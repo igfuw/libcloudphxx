@@ -39,8 +39,8 @@ namespace libcloudphxx
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
-      // mean no. of super-droplets per cell
-      real_t sd_conc_mean; 
+      // no. of super-droplets per cell
+      unsigned long long sd_conc; 
 
       // coalescence Kernel type
       kernel_t::kernel_t kernel;
@@ -72,7 +72,7 @@ namespace libcloudphxx
         dx(1), dy(1), dz(1),
         x0(0), y0(0), z0(0),
         x1(1), y1(1), z1(1),
-        sd_conc_mean(0), 
+        sd_conc(0), 
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         chem_switch(false),  // chemical reactions turned off by default
@@ -84,6 +84,9 @@ namespace libcloudphxx
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined)
       {}
+
+      // dtor (just to silence -Winline warnings)
+      ~opts_init_t() {}
     };
   }
 };
