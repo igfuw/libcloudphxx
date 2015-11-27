@@ -68,6 +68,7 @@ namespace libcloudphxx
       );
 
       // drv = -tot_vol_bfr + dry_vol_bfr
+/*
       moms_calc_cond(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
@@ -75,7 +76,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()
       );
-
+*/
 
       // set number of SDs to init; use count_num as storage
       {
@@ -449,14 +450,16 @@ namespace libcloudphxx
         thrust::plus<real_t>()
       );
 
-      moms_calc_cond(rd3.begin(), 1);
       // drv = tot_vol_after - dry_vol_after - tot_vol_bfr + dry_vol_bfr
+/*
+      moms_calc_cond(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::minus<real_t>()
       );
+*/
 
       // update th and rv according to change in total liquid water volume
       update_th_rv(drv);
