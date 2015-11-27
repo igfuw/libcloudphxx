@@ -205,13 +205,24 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
-      .def("init",         &lgrngn::init_3arg<real_t>)
-      .def("init",         &lgrngn::init_4arg<real_t>)
-      .def("init",         &lgrngn::init_5arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_3arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_4arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_5arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_6arg<real_t>)
+      .def("init",         &lgrngn::init<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
+      .def("step_sync",    &lgrngn::step_sync<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)

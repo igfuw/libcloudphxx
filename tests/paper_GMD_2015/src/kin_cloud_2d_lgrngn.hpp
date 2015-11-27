@@ -152,6 +152,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 	  make_arrinfo(this->mem->advectee(ix::rv)),
 	  make_arrinfo(this->mem->g_factor()),
 	  make_arrinfo(Cx),
+          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
 	  make_arrinfo(Cz)
 	); 
       }

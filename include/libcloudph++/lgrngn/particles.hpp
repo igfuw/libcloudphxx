@@ -15,57 +15,29 @@ namespace libcloudphxx
     template <typename real_t>
     struct particles_proto_t 
     {
-      // 3D version
+      // initialisation 
       virtual void init(
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod, 
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z
-      ) { 
-        assert(false); 
-      }  
-
-      // 2D version
-      void init(
-        const arrinfo_t<real_t> th,
-        const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_z
+        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
+        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, const arrinfo_t<real_t> >()
       ) { 
-        this->init(th, rv, rhod, courant_x, arrinfo_t<real_t>(), courant_z); 
+        assert(false);
       }  
  
-      // 1D version
-      void init(
-        const arrinfo_t<real_t> th,
-        const arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x
-      ) { 
-        this->init(th, rv, rhod, courant_x, arrinfo_t<real_t>(), arrinfo_t<real_t>()); 
-      }  
-
-      // 0D version
-      void init(
-        const arrinfo_t<real_t> th,
-        const arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod
-      ) { 
-        this->init(th, rv, rhod, arrinfo_t<real_t>(), arrinfo_t<real_t>(), arrinfo_t<real_t>()); 
-      }  
-
-      // 3D variable density version
+      // stuff that requires Eulerian component to wait
       virtual void step_sync(
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z,
-        const arrinfo_t<real_t> rhod
+        const arrinfo_t<real_t> rhod      = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
+        const std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
       }  
@@ -76,73 +48,6 @@ namespace libcloudphxx
       ) { 
         assert(false); 
         return 0;
-      }  
-
-      // 3D constant density version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_y,
-        const arrinfo_t<real_t> courant_z
-      ) { 
-        this->step_sync(opts, th, rv, courant_x, courant_y, courant_z, arrinfo_t<real_t>()); 
-      }  
-
-      // kinematic version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv
-      ) { 
-        this->step_sync(
-          opts,
-          th, 
-          rv, 
-          arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>()
-        ); 
-      }  
-
-
-      // 2D constant density version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> courant_x,
-        const arrinfo_t<real_t> courant_z
-      ) { 
-        this->step_sync(
-          opts,
-          th, 
-          rv, 
-          courant_x, 
-          arrinfo_t<real_t>(), 
-          courant_z, 
-          arrinfo_t<real_t>()
-        ); 
-      }  
-
-      // 0D version
-      void step_sync(
-        const opts_t<real_t> &opts,
-        arrinfo_t<real_t> th,
-        arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod
-      ) { 
-        this->step_sync(
-          opts,
-          th, 
-          rv, 
-          arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>(), 
-          arrinfo_t<real_t>(), 
-          rhod
-        ); 
       }  
 
       // method for accessing super-droplet statistics
@@ -164,7 +69,6 @@ namespace libcloudphxx
     };  
 
     // prototype of what's implemented in the .tpp file
-//<listing>
     template <typename real_t, backend_t backend>
     struct particles_t: particles_proto_t<real_t>
     {
@@ -173,9 +77,10 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_1,
-        const arrinfo_t<real_t> courant_2, 
-        const arrinfo_t<real_t> courant_3
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y, 
+        const arrinfo_t<real_t> courant_z,
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
       );
 
       // time-stepping methods
@@ -183,11 +88,13 @@ namespace libcloudphxx
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> courant_1,
-        const arrinfo_t<real_t> courant_2,
-        const arrinfo_t<real_t> courant_3,
-        const arrinfo_t<real_t> rhod 
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
+
       real_t step_async(
         const opts_t<real_t> &
       );
@@ -206,7 +113,6 @@ namespace libcloudphxx
       real_t *outbuf();
 
       // ...
-//</listing>
 
       void diag_chem(const enum chem_species_t&);
       void diag_rw_ge_rc();

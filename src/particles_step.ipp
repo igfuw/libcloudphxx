@@ -15,16 +15,44 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       arrinfo_t<real_t> th,
       arrinfo_t<real_t> rv,
+      const arrinfo_t<real_t> rhod,      // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const arrinfo_t<real_t> rhod       // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
+      const std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
+      // sanity checks
       if (!pimpl->init_called)
         throw std::runtime_error("please call init() before calling step_sync()");
       if (pimpl->should_now_run_async)
         throw std::runtime_error("please call step_async() before calling step_sync() again");
+
+      if (th.is_null() || rv.is_null())
+        throw std::runtime_error("passing th and rv is mandatory");
+
+ // <TODO> - code duplicated from init() !
+      if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
+      {
+	if (pimpl->n_dims == 0)
+	  throw std::runtime_error("Courant numbers passed in 0D setup");
+
+	if (pimpl->n_dims == 1 && (courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null()))
+	  throw std::runtime_error("Only X Courant number allowed in 1D setup");
+
+	if (pimpl->n_dims == 2 && (courant_x.is_null() || !courant_y.is_null() || courant_z.is_null()))
+	  throw std::runtime_error("Only X and Z Courant numbers allowed in 2D setup");
+
+	if (pimpl->n_dims == 3 && (courant_x.is_null() || courant_y.is_null() || courant_z.is_null()))
+	  throw std::runtime_error("All XYZ Courant number components required in 3D setup");
+      }
+
+      if (pimpl->opts_init.chem_switch && ambient_chem.size() != chem_gas_n)
+        throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
+
+      if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
+        throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
+// </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
@@ -41,6 +69,13 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
+
+      if (pimpl->opts_init.chem_switch)
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->sync(
+            ambient_chem.at((chem_species_t)i), 
+            pimpl->ambient_chem[(chem_species_t)i]
+          );
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
@@ -90,15 +125,20 @@ namespace libcloudphxx
     real_t particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {
+      //sanity checks
       if (!pimpl->should_now_run_async)
         throw std::runtime_error("please call step_sync() before calling step_async() again");
 
       pimpl->should_now_run_async = false;
 
-      //sanity checks
-      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
-      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
-      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
+      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
+        throw std::runtime_error("all chemistry was switched off in opts_init");
+
+      if(opts.coal && !pimpl->opts_init.coal_switch) 
+        throw std::runtime_error("all coalescence was switched off in opts_init");
+
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) 
+        throw std::runtime_error("all sedimentation was switched off in opts_init");
 
       if (opts.cond) 
       { 

@@ -103,6 +103,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
+  // terminal velocity choice
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
   for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
