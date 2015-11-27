@@ -185,11 +185,11 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init) : 
+      impl(const opts_init_t<real_t> &opts_init) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
-	opts_init(_opts_init),
+	opts_init(opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
