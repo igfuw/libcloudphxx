@@ -51,7 +51,18 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
+      // initialising housekeeping data of the size ncell
+      pimpl->init_hskpng_ncell(); 
+ 
+      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
+      // done before init_xyz, cause it uses dv initialized here
+      pimpl->init_grid();
+
+      // initialising particle positions
+      pimpl->init_xyz();
+
       // memory allocation for chemical reactions (at the beginning to have ambient_chem vectors allocated)
+      // but after init xyz to have npart defined
       if(pimpl->opts_init.chem_switch){
         pimpl->init_chem();
       }
@@ -86,16 +97,6 @@ namespace libcloudphxx
             pimpl->ambient_chem[(chem_species_t)i]
           );
 
-      // initialising housekeeping data of the size ncell
-      pimpl->init_hskpng_ncell(); 
-
-      // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      // done before init_xyz, cause it uses dv initialized here
-      pimpl->init_grid();
-
-      // initialising particle positions
-      pimpl->init_xyz();
-
       // initialising Tpr
       pimpl->hskpng_Tpr(); 
 
@@ -113,13 +114,13 @@ namespace libcloudphxx
       if(pimpl->opts_init.chem_switch){
         pimpl->init_chem_aq();
       }
-
+ 
       // calculate initail volume (helper for Henry in chem)
       if (pimpl->opts_init.chem_switch){
         pimpl->chem_vol_ante();
         pimpl->chem_vol_post();
       }
-	
+ 
       pimpl->init_sstp();
 
       //initialising collision kernel

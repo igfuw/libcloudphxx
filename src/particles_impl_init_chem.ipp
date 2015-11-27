@@ -136,6 +136,7 @@ namespace libcloudphxx
     {
       // don't do it if not using chem...
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
+
       // memory allocation
       chem_bgn.resize(chem_all);
       chem_end.resize(chem_all);
@@ -176,7 +177,7 @@ namespace libcloudphxx
     {
       // don't do it if not using chem...
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
-
+       
       for (int i = 0; i < chem_all; ++i)
       {
         // implied by the lognormal distro and split between SO4, H and NH4 ions
