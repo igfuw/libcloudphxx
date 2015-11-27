@@ -58,11 +58,11 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct chem_init_SO4
+      struct chem_init_HSO4
       {
         const real_t chem_rho;
 
-        chem_init_SO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
+        chem_init_HSO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
 
 	BOOST_GPU_ENABLED
 	real_t operator()(const real_t &rd3) const 
@@ -77,7 +77,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+            * (M_HSO4<real_t>() / M_H2SO4<real_t>());
 	}
       };
 
@@ -101,8 +101,8 @@ namespace libcloudphxx
 #else
             CUDART_PI
 #endif
-            * chem_rho * rd3
-            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+            * chem_rho * rd3;
+//            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
 	}
       };
 
@@ -126,7 +126,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+            * (M_H<real_t>() / M_H2SO4<real_t>());
 	}
       };
     };
@@ -185,7 +185,7 @@ namespace libcloudphxx
         using namespace common::molar_mass;
         switch (i)
         {
-          case NH4:
+/*          case NH4:
           {
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
@@ -194,12 +194,12 @@ namespace libcloudphxx
 	    );
           }
           break;
-          case SO4:
+          case HSO4:
           {
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
-              detail::chem_init_SO4<real_t>(opts_init.chem_rho)
+              detail::chem_init_HSO4<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
@@ -221,6 +221,7 @@ namespace libcloudphxx
 	    );
           }
           break;
+*/
           default: 
             thrust::fill(chem_bgn[i], chem_end[i], 0);
         }
