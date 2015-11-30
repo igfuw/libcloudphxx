@@ -162,6 +162,7 @@ namespace libcloudphxx
         tmp_device_real_part_SO2,
         tmp_device_real_part_CO2,
         tmp_device_real_cell,
+        tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -235,6 +236,7 @@ namespace libcloudphxx
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
+        tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
