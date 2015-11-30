@@ -30,6 +30,8 @@ namespace libcloudphxx
       if (th.is_null() || rv.is_null() || rhod.is_null())
         throw std::runtime_error("passing th, rv and rhod is mandatory");
 
+      // --------  init cell characteristics  --------
+      // initialising Eulerian-Lagrandian coupling
       if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
       {
 	if (pimpl->n_dims == 0)
@@ -88,27 +90,53 @@ namespace libcloudphxx
       // done before init_xyz, cause it uses dv initialized here
       pimpl->init_grid();
 
-      // initialising particle positions
-      pimpl->init_xyz();
-
       // initialising Tpr
       pimpl->hskpng_Tpr(); 
 
-      // initialising dry radii (needs positions, ijk and rhod)
+      pimpl->init_sstp();
+
+      // --------  init super-droplet characteristics  --------
+      // reserve memory for data of the size of the max number of SDs
+      pimpl->init_hskpng_npart(); 
+
+      // init number of SDs in cells
+      pimpl->init_count_num();
+
+      // update no of particles
+      // TODO: move to a separate function
+      pimpl->n_part_old = 0;
+      pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+      pimpl->n_part += pimpl->n_part_to_init;
+      pimpl->hskpng_resize_npart(); 
+
+      // init ijk vector, also n_part and resize n_part vectors
+      pimpl->init_ijk();
+
+      // initialising dry radii (needs ijk and rhod)
       assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      pimpl->init_dry(
+      // analyze the distribution
+      pimpl->dist_analysis(
+        pimpl->opts_init.dry_distros.begin()->second,
+        pimpl->opts_init.sd_conc
+      );
+      pimpl->init_dry();
+
+      // init multiplicities
+      pimpl->init_n(
         pimpl->opts_init.dry_distros.begin()->first,
-        pimpl->opts_init.dry_distros.begin()->second 
+        pimpl->opts_init.dry_distros.begin()->second
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // initialising wet radii
       pimpl->init_wet();
 
+      // initialising particle positions
+      pimpl->init_xyz();
+
       // initialising chem stuff
       if(pimpl->opts_init.chem_switch) pimpl->init_chem();
 
-      pimpl->init_sstp();
-
+      // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
     }
