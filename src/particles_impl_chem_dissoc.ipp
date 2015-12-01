@@ -323,16 +323,16 @@ namespace libcloudphxx
       > zip_it_t_2;
 
       thrust::transform(
-        zip_it_t_2(thrust::make_tuple(chem_bgn[HNO3], chem_bgn[NO3])),  //input begin
-        zip_it_t_2(thrust::make_tuple(chem_end[HNO3], chem_end[NO3])),  //input end
-        n_HNO3_old.begin(),                                           //output
+        zip_it_t_2(thrust::make_tuple(chem_bgn[HNO3], chem_bgn[NO3])),       //input begin
+        zip_it_t_2(thrust::make_tuple(chem_end[HNO3], chem_end[NO3])),       //input end
+        n_HNO3_old.begin(),                                                  //output
         detail::chem_save_moles_1<real_t>(M_HNO3<real_t>(), M_NO3<real_t>()) //op
       );
 
       thrust::transform(
-        zip_it_t_2(thrust::make_tuple(chem_bgn[NH3], chem_bgn[NH4])),  //input begin
-        zip_it_t_2(thrust::make_tuple(chem_end[NH3], chem_end[NH4])),  //input end
-        n_NH3_old.begin(),                                           //output
+        zip_it_t_2(thrust::make_tuple(chem_bgn[NH3], chem_bgn[NH4])),           //input begin
+        zip_it_t_2(thrust::make_tuple(chem_end[NH3], chem_end[NH4])),           //input end
+        n_NH3_old.begin(),                                                      //output
         detail::chem_save_moles_1<real_t>(M_NH3_H2O<real_t>(), M_NH4<real_t>()) //op
       );
 
@@ -375,6 +375,9 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
+//std::cerr<<"old nh3"<<std::endl;
+//debug::print(n_NH3_old.begin(), n_NH3_old.end());
+
         zip_it_t 
           arg_begin(thrust::make_tuple(V.begin(), 
             chem_bgn[H], chem_bgn[S_VI], n_SO2_old.begin(), n_CO2_old.begin(), n_HNO3_old.begin(), n_NH3_old.begin())
@@ -396,6 +399,20 @@ namespace libcloudphxx
         thrust::transform(arg_begin, arg_end, chem_bgn[NO3],  detail::chem_dissoc_diag<real_t, NO3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH3],  detail::chem_dissoc_diag<real_t, NH3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH4],  detail::chem_dissoc_diag<real_t, NH4 >());
+
+
+      thrust::transform(
+        zip_it_t_2(thrust::make_tuple(chem_bgn[NH3], chem_bgn[NH4])),           //input begin
+        zip_it_t_2(thrust::make_tuple(chem_end[NH3], chem_end[NH4])),           //input end
+        n_NH3_old.begin(),                                                      //output
+        detail::chem_save_moles_1<real_t>(M_NH3_H2O<real_t>(), M_NH4<real_t>()) //op
+      );
+//std::cerr<<"new nh3"<<std::endl;
+//debug::print(n_NH3_old.begin(), n_NH3_old.end());
+
+
+
+
 /*
           std::cerr<<" "<<std::endl;
           std::cerr<<"positive ions: "<< std::endl;

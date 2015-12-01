@@ -27,7 +27,7 @@ namespace libcloudphxx
 
       template <typename real_t>
       struct ambient_chem_calculator
-      {
+      { // calculate the chenge in trace gases due to Henrys law
         const quantity<common::mass_over_amount, real_t> M_gas;
         const quantity<common::mass_over_amount, real_t> M_aq;
  
@@ -42,13 +42,14 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &m_new, 
-          const thrust::tuple<real_t, real_t, real_t> &tpl) const
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::mass, real_t>          m_old  = thrust::get<0>(tpl) * si::kilograms;     
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<1>(tpl) * si::kilograms / si::cubic_metres; 
-          const quantity<si::volume, real_t>        dv  = thrust::get<2>(tpl) * si::cubic_metres;
+          const quantity<si::volume, real_t>        dv     = thrust::get<2>(tpl) * si::cubic_metres;
+          const quantity<si::dimensionless, real_t> c      = thrust::get<3>(tpl); 
 
-          return (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
+          return c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
         }
       };
 
@@ -116,39 +117,38 @@ namespace libcloudphxx
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
       // gas absorption
-      // TODO: so far it works only for 0D parcel model
       // TODO: open/close system logic -> async/sync timestep
       assert(
         HNO3 == 0 && NH3  == 1 && CO2 == 2 &&
         SO2  == 3 && H2O2 == 4 && O3  == 5 
       );
       //Henry constant
-      static const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
+      const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
         H_HNO3<real_t>(), H_NH3<real_t>(),  H_CO2<real_t>(),
         H_SO2<real_t>(),  H_H2O2<real_t>(), H_O3<real_t>()
       };
       //correction to Henry const due to temperature
-      static const quantity<si::temperature, real_t> dHR_[chem_gas_n] = {
+      const quantity<si::temperature, real_t> dHR_[chem_gas_n] = {
         dHR_HNO3<real_t>(), dHR_NH3<real_t>(),  dHR_CO2<real_t>(),
         dHR_SO2<real_t>(),  dHR_H2O2<real_t>(), dHR_O3<real_t>()
       };
       //molar mass of gases
-      static const quantity<common::mass_over_amount, real_t> M_gas_[chem_gas_n] = {
+      const quantity<common::mass_over_amount, real_t> M_gas_[chem_gas_n] = {
         M_HNO3<real_t>(), M_NH3<real_t>(),  M_CO2<real_t>(),
         M_SO2<real_t>(),  M_H2O2<real_t>(), M_O3<real_t>()
       };
       //molar mass of dissolved chem species
-      static const quantity<common::mass_over_amount, real_t> M_aq_[chem_gas_n] = {
+      const quantity<common::mass_over_amount, real_t> M_aq_[chem_gas_n] = {
         M_HNO3<real_t>(),    M_NH3_H2O<real_t>(), M_CO2_H2O<real_t>(),
         M_SO2_H2O<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
       };
       //gas phase diffusivity
-      static const quantity<common::diffusivity, real_t> D_[chem_gas_n] = {
+      const quantity<common::diffusivity, real_t> D_[chem_gas_n] = {
         D_HNO3<real_t>(), D_NH3<real_t>(),  D_CO2<real_t>(),
         D_SO2<real_t>(),  D_H2O2<real_t>(), D_O3<real_t>()
       };
       //accomodation coefficient
-      static const quantity<si::dimensionless, real_t> ac_[chem_gas_n] = {
+      const quantity<si::dimensionless, real_t> ac_[chem_gas_n] = {
         ac_HNO3<real_t>(), ac_NH3<real_t>(),  ac_CO2<real_t>(),
         ac_SO2<real_t>(),  ac_H2O2<real_t>(), ac_O3<real_t>()
       };
@@ -160,8 +160,8 @@ namespace libcloudphxx
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_r_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_r_t> > zip_it_t;
+      > pi_chem_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_chem_t> > zip_it_t;
 
       if (chem_sys_cls == true){   //closed chemical system - reduce mixing ratio due to Henrys law
 
@@ -176,16 +176,16 @@ namespace libcloudphxx
           // store the total mass of chem species in cloud droplets per cell
           thrust::reduce_by_key(
             sorted_ijk.begin(), sorted_ijk.end(),
-            thrust::transform_iterator<             // input - values
+            thrust::transform_iterator<             
               detail::chem_summator<real_t>,
               zip_it_t,
               real_t
             >(
               zip_it_t(thrust::make_tuple(
                 pi_n_t(n.begin(), sorted_id.begin()),
-                pi_r_t(chem_bgn[i], sorted_id.begin())
+                pi_chem_t(chem_bgn[i], sorted_id.begin())
               )),
-              detail::chem_summator<real_t>() // op
+              detail::chem_summator<real_t>() 
             ),
             count_ijk.begin(),
             mass_old.begin()
@@ -193,7 +193,7 @@ namespace libcloudphxx
 
           // apply Henrys law tp the in-drop chemical compounds 
           thrust::transform(
-            V.begin(), V.end(),            // input - 1st arg
+            V.begin(), V.end(),                             // input - 1st arg
             thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               thrust::make_permutation_iterator(T.begin(), ijk.begin()),
@@ -206,6 +206,8 @@ namespace libcloudphxx
             chem_bgn[i],                                                                                        // output
             detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
           );
+
+          //TODO - check if its needed in some 2D test
           /*thrust::transform(
             thrust::make_permutation_iterator(V.begin(), sorted_id.begin()),
             thrust::make_permutation_iterator(V.begin(), sorted_id.end()),
@@ -236,12 +238,12 @@ namespace libcloudphxx
             >(
               zip_it_t(thrust::make_tuple(
                 pi_n_t(n.begin(), sorted_id.begin()),
-                pi_r_t(chem_bgn[i], sorted_id.begin())
+                pi_chem_t(chem_bgn[i], sorted_id.begin())
               )),
               detail::chem_summator<real_t>() // op
             ),
             count_ijk.begin(),
-            mass_old.begin()
+            mass_new.begin()
           );
           count_n = np.first - count_ijk.begin();
           assert(count_n > 0 && count_n <= n_cell);
@@ -253,7 +255,11 @@ namespace libcloudphxx
             thrust::make_zip_iterator(thrust::make_tuple(
               mass_old.begin(),
               thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 
-              thrust::make_permutation_iterator(dv.begin(), count_ijk.begin())
+              thrust::make_permutation_iterator(dv.begin(), count_ijk.begin()),
+              thrust::make_permutation_iterator(
+                ambient_chem[(chem_species_t)i].begin(), 
+                count_ijk.begin()
+              )
             )),
             thrust::make_permutation_iterator(
               ambient_chem[(chem_species_t)i].begin(), 
@@ -263,6 +269,7 @@ namespace libcloudphxx
           );
         }
       }
+
       else{ // open chemical system - do not change trace gase mixing ratios due to Henrys law
         for (int i = 0; i < chem_gas_n; ++i)
         {
@@ -283,6 +290,7 @@ namespace libcloudphxx
           );
         }
       }
+
     }
   };  
 };
