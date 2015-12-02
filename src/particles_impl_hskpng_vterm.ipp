@@ -31,14 +31,23 @@ namespace libcloudphxx
 #endif
          switch(vt_eq)
          {
-           case(vt_t::beard):
-             return common::vterm::vt_beard(
+           case(vt_t::beard76):
+             return common::vterm::vt_beard76(
                sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                thrust::get<0>(tpl) * si::kelvins,
                thrust::get<1>(tpl) * si::pascals,
                thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                thrust::get<3>(tpl) * si::pascals * si::seconds
              ) / si::metres_per_second;
+
+           case(vt_t::beard77):
+             return 
+               common::vterm::vt_beard77_fact(
+                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
+                 thrust::get<1>(tpl) * si::pascals,
+                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+                 thrust::get<3>(tpl) * si::pascals * si::seconds
+               ) * (common::vterm::vt_beard77_v0(sqrt(rw2) * si::metres) / si::metres_per_second);
 
            case(vt_t::khvorostyanov_spherical):
              return common::vterm::vt_khvorostyanov(

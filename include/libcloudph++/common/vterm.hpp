@@ -94,10 +94,64 @@ namespace libcloudphxx
 	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second;
       }
 
-      // terminal fall velocity according to Beard (1976), Table 1
+      // terminal fall velocity at sea level according to Beard (1977)
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::velocity, real_t> vt_beard( 
+      quantity<si::velocity, real_t> vt_beard77_v0( 
+	quantity<si::length, real_t> r //radius
+      ) 
+      {
+        // use 3rd degree polynominal for r<20um
+        real_t m_s[4] = {0.105035e2, 0.108750e1, -0.133245, -0.659969e-2};
+        // use 7th degree polynominal for r>20um
+        real_t m_l[8] = { 0.65639e1,    0.10391e1,    0.14001e1,    0.82736e0,    0.34277e0,    0.83072e-1,    0.10583e-1,    0.54208e-3};
+
+        real_t x = log(2*100*(r / si::metres));
+        real_t y = 0;
+        // calc V0 (sea-level velocity)
+        if(r <= quantity<si::length, real_t>(real_t(20e-6) * si::meters))
+          for(int i=0; i<4; ++i)
+            y += m_s[i] * pow(x, real_t(i));
+        else
+          for(int i=0; i<8; ++i)
+            y += m_l[i] * pow(x, real_t(i));
+
+        return quantity<si::velocity, real_t>((exp(y) / 100.) * si::metres_per_second);
+      }
+
+      // terminal fall velocity correction for given altitude according to Beard (1977)
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> vt_beard77_fact( 
+	quantity<si::length, real_t> r, //radius
+	quantity<si::pressure, real_t> p, //pressure
+	quantity<si::mass_density, real_t> rhoa, //density of air
+        quantity<si::dynamic_viscosity, real_t> eta
+      ) 
+      {
+        using earth::rho_stp; //note: our rho_stp is ca. 1.225 kg/m^3, while Beard uses 1.204
+        quantity<si::dynamic_viscosity, real_t> eta_0(1.818e-5 * si::pascals * si::seconds);
+
+        if(r <= quantity<si::length, real_t>(real_t(20e-6) * si::meters))
+        {
+          using earth::p_stp;
+	  quantity<si::length, real_t> l_0(6.62e-8 * si::metres);
+	  quantity<si::length, real_t> l(l_0 * (eta / eta_0) * sqrt(p_stp<real_t>() / p * rho_stp<real_t>() / rhoa));
+          return (eta_0 / eta) * (1 + 1.255 * (l / r)) / (1 + 1.255 * (l_0 / r));
+        }
+        else
+        {
+          real_t eps_s = (eta_0 / eta) - 1.;
+          real_t eps_c = sqrt(rho_stp<real_t>() / rhoa) - 1.;
+          return 1.104 * eps_s + ( (1.058*eps_c - 1.104*eps_s) * (5.52 + log(2*100 * (r / si::metres)))/5.01) +1.;
+        }
+      }
+ 
+      // the exact formula from Beard 1976
+      // TODO: causes crashes on some CUDA devices
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::velocity, real_t> vt_beard76( 
 	quantity<si::length, real_t> r, //radius
 	quantity<si::temperature, real_t> T, //temperature
 	quantity<si::pressure, real_t> p, //pressure
@@ -140,7 +194,7 @@ namespace libcloudphxx
             Y = Y + b[i] * pow(X, real_t(i));
           quantity<si::dimensionless, real_t> N_Re = pow(N_p, real_t(1./6.)) * exp(Y);
           return (eta * N_Re / rhoa / real_t(2.) / r);
-        }         
+        }
       }    
     };
   };

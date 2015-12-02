@@ -54,7 +54,7 @@ opts_init.sd_conc = pow(2,14)
 opts_init.n_sd_max = opts_init.sd_conc
 
 opts_init.kernel = lgrngn.kernel_t.hall_davis_no_waals
-opts_init.terminal_velocity = lgrngn.vt_t.beard
+opts_init.terminal_velocity = lgrngn.vt_t.beard76
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)

@@ -27,7 +27,7 @@ opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
 
 opts_init.kernel = lgrngn.kernel_t.geometric
-opts_init.terminal_velocity = lgrngn.vt_t.beard
+opts_init.terminal_velocity = lgrngn.vt_t.beard76
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
 except:

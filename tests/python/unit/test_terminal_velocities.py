@@ -29,7 +29,7 @@ opts_init.n_sd_max = 50
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 
-for vt_eq in [lgrngn.vt_t.beard, lgrngn.vt_t.khvorostyanov_spherical, lgrngn.vt_t.khvorostyanov_nonspherical]:
+for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.khvorostyanov_spherical, lgrngn.vt_t.khvorostyanov_nonspherical]:
   opts_init.terminal_velocity = vt_eq
 
   try:
