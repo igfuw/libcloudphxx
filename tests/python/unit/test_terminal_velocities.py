@@ -29,6 +29,13 @@ opts_init.n_sd_max = 50
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 
+Opts = lgrngn.opts_t()
+Opts.adve = False
+Opts.sedi = False
+Opts.cond = False
+Opts.coal = True
+Opts.chem = False
+
 for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.khvorostyanov_spherical, lgrngn.vt_t.khvorostyanov_nonspherical]:
   opts_init.terminal_velocity = vt_eq
 
@@ -39,12 +46,6 @@ for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.khvorostyano
 
   prtcls.init(th, rv, rhod)
 
-  Opts = lgrngn.opts_t()
-  Opts.adve = False
-  Opts.sedi = False
-  Opts.cond = False
-  Opts.coal = True
-  Opts.chem = False
 
   prtcls.step_sync(Opts,th,rv,rhod)
   prtcls.step_async(Opts)
