@@ -81,6 +81,10 @@ namespace libcloudphxx
       thrust_device::vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
       thrust_device::vector<real_t> vt_0; 
+      // no of bins for cached velocity
+      const int vt0_n_bin;
+      // ln of min and max radius of cached velocity
+      const real_t vt0_ln_r_min, vt0_ln_r_max;
 
       // grid-cell volumes (per grid cell)
       thrust_device::vector<real_t> dv;
@@ -172,7 +176,8 @@ namespace libcloudphxx
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
       thrust_device::vector<thrust_size_t>
-        tmp_device_size_cell;
+        tmp_device_size_cell,
+        tmp_device_size_part;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -209,7 +214,10 @@ namespace libcloudphxx
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
-        stp_ctr(0)
+        stp_ctr(0),
+        vt0_n_bin(10000),
+        vt0_ln_r_min(log(1e-9)),
+        vt0_ln_r_max(log(3e-3))  // 6mm is the max diameter in Beard 1977
       {
         // sanity checks
         if (n_dims > 0)

@@ -23,6 +23,7 @@ namespace libcloudphxx
       }
       n.resize(n_part);
       tmp_device_n_part.resize(n_part);
+      tmp_device_size_part.resize(n_part);
 
       if (opts_init.nx != 0) i.resize(n_part); 
       if (opts_init.ny != 0) j.resize(n_part); 

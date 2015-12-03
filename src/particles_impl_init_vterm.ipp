@@ -9,10 +9,10 @@ namespace libcloudphxx
       template<class real_t>
       struct bin_mid
       {
-        real_t ln_r_min, dlnr;
-        bin_mid(const real_t &r_min, const real_t &r_max, const int &n_bin):
-          ln_r_min(log(r_min)),
-          dlnr(log(r_max / r_min) / n_bin)
+        real_t dlnr, ln_r_min;
+        bin_mid(const real_t &ln_r_min, const real_t &ln_r_max, const int &n_bin):
+          ln_r_min(ln_r_min),
+          dlnr((ln_r_max - ln_r_min) / n_bin)
           {}
 
         BOOST_GPU_ENABLED
@@ -35,21 +35,19 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_vterm()
     {
-      if(opts_init.terminal_velocity != vt_t::beard77fast) return;
+      if(opts_init.terminal_velocity != vt_t::beard77fast) return; // it's the only term velocity formula using cached velocities
 
-      const int n_bin=4444;
-      const real_t r_min = 1e-9;
-      const real_t r_max = 3e-3; // 6mm is the max diameter Beard 1977 discusses
-      vt_0.resize(n_bin);
+      vt_0.resize(vt0_n_bin);
       
       // calc mid r of each bin
       thrust::transform
       (
         thrust::make_counting_iterator<int>(0),
-        thrust::make_counting_iterator<int>(0) + n_bin,
+        thrust::make_counting_iterator<int>(0) + vt0_n_bin,
         vt_0.begin(),
-        detail::bin_mid<real_t>(r_min, r_max, n_bin)
+        detail::bin_mid<real_t>(vt0_ln_r_min, vt0_ln_r_max, vt0_n_bin)
       );
+
       // calc vt_0
       thrust::transform
       (
