@@ -142,6 +142,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::enum_<lgr::vt_t::vt_t>("vt_t") 
       .value("beard76", lgr::vt_t::beard76)
       .value("beard77", lgr::vt_t::beard77)
+      .value("beard77fast", lgr::vt_t::beard77fast)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
       .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
 

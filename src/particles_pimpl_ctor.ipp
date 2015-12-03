@@ -79,6 +79,8 @@ namespace libcloudphxx
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
+      // sea level term velocity according to Beard 1977, compute once
+      thrust_device::vector<real_t> vt_0; 
 
       // grid-cell volumes (per grid cell)
       thrust_device::vector<real_t> dv;
@@ -300,6 +302,7 @@ namespace libcloudphxx
       void init_chem();
       void init_sstp();
       void init_kernel();
+      void init_vterm();
 
       void fill_outbuf();
 
