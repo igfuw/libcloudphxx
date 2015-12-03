@@ -216,8 +216,8 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         vt0_n_bin(10000),
-        vt0_ln_r_min(log(1e-9)),
-        vt0_ln_r_max(log(3e-3))  // 6mm is the max diameter in Beard 1977
+        vt0_ln_r_min(log(5e-7)),
+        vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
       {
         // sanity checks
         if (n_dims > 0)
