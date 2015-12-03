@@ -104,7 +104,7 @@ namespace libcloudphxx
         // use 3rd degree polynominal for r<20um
         real_t m_s[4] = {0.105035e2, 0.108750e1, -0.133245, -0.659969e-2};
         // use 7th degree polynominal for r>20um
-        real_t m_l[8] = { 0.65639e1,    0.10391e1,    0.14001e1,    0.82736e0,    0.34277e0,    0.83072e-1,    0.10583e-1,    0.54208e-3};
+        real_t m_l[8] = { 0.65639e1,    -0.10391e1,    -0.14001e1,    -0.82736e0,    -0.34277e0,    -0.83072e-1,    -0.10583e-1,    -0.54208e-3};
 
         real_t x = log(2*100*(r / si::metres));
         real_t y = 0;
