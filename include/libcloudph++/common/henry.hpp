@@ -115,7 +115,7 @@ namespace libcloudphxx
         const quantity<amount_over_volume_over_pressure, real_t> &H,
         const quantity<si::temperature, real_t> &dHR
       ) {
-        return (H * exp(dHR*((real_t(1./298) / si::kelvins) - real_t(1.)/T ))); 
+        return (H * exp(dHR * (real_t(1.) / T - (real_t(1./298) / si::kelvins)))); 
       }
     };
   };

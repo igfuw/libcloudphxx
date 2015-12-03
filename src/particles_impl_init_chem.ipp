@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
-/*    template <typename real_t>
+      template <typename real_t>
       struct chem_init_water // water
       {
         const real_t mltpl;
@@ -29,7 +29,7 @@ namespace libcloudphxx
           return mltpl * pow(rw2, real_t(3./2));
         }
       };
-*/
+
       template <typename real_t>
       struct chem_init_NH4
       {
@@ -221,7 +221,25 @@ namespace libcloudphxx
 	    );
           }
           break;
-*/
+*/        
+          case OH:
+          {
+            thrust::transform(
+              rw2.begin(), rw2.end(),
+              chem_bgn[i],
+              detail::chem_init_water<real_t>(7, M_OH<real_t>())
+            );
+          }
+ 
+          case H:
+          {
+            thrust::transform(
+              rw2.begin(), rw2.end(),
+              chem_bgn[i],
+              detail::chem_init_water<real_t>(7, M_H<real_t>())
+            );
+          }
+
           default: 
             thrust::fill(chem_bgn[i], chem_end[i], 0);
         }

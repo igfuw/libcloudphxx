@@ -30,13 +30,41 @@ namespace libcloudphxx
 
       //CO2 * H20 -> HCO3, CO3
       libcloudphxx_const(amount_over_volume, K_CO2,  4.3e-7 * 1e3, si::moles / si::cubic_metres)
-      libcloudphxx_const(amount_over_volume, K_HCO3, 4.7e-11 * 1e3, si::moles / si::cubic_metres)
+      libcloudphxx_const(amount_over_volume, K_HCO3, 4.68e-11 * 1e3, si::moles / si::cubic_metres)
 
       //NH3 * H20 -> NH4
       libcloudphxx_const(amount_over_volume, K_NH3,  1.7e-5 * 1e3, si::moles / si::cubic_metres)
 
       //HNO3 -> NO3
       libcloudphxx_const(amount_over_volume, K_HNO3,  15.4 * 1e3, si::moles / si::cubic_metres)
+
+      //modifications to dissociation constants due to temperature, Table 4 in Kreidenweiss et al 2003
+      libcloudphxx_const_derived(si::temperature, dKR_CO2,  real_t(-1000.) * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HCO3, real_t(-1760.) * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_SO2,  real_t(1960.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HSO3, real_t(1500.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_NH3,  real_t(-450.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HNO3, real_t(8700.)  * si::kelvins)
+      //modifications to dissociation constants due to temperature, Table 4 in Kreidenweiss et al 2003
+/*      libcloudphxx_const_derived(si::temperature, dKR_CO2,  real_t(0.) * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HCO3, real_t(0.) * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_SO2,  real_t(0.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HSO3, real_t(0.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_NH3,  real_t(0.)  * si::kelvins)
+      libcloudphxx_const_derived(si::temperature, dKR_HNO3, real_t(0.)  * si::kelvins)
+*/
+
+      //dissociation constant(temperature)
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<amount_over_volume, real_t> K_temp(
+        const quantity<si::temperature, real_t> &T,
+        const quantity<amount_over_volume, real_t> &K,
+        const quantity<si::temperature, real_t> &dKR
+      ) {
+        return (K * exp(dKR*( real_t(1.)/T - (real_t(1./298) / si::kelvins))));
+      }
+
     };
   };
 };

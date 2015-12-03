@@ -79,6 +79,7 @@ namespace libcloudphxx
 	const quantity<si::amount, real_t> n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old;
 	const quantity<si::mass, real_t> m_S_VI;
 	const quantity<si::volume, real_t> V;
+        const quantity<si::temperature, real_t> T; 
         
         // ctor
         BOOST_GPU_ENABLED
@@ -88,9 +89,11 @@ namespace libcloudphxx
 	  const quantity<si::amount, real_t> &n_HNO3_old,
 	  const quantity<si::amount, real_t> &n_NH3_old,
 	  const quantity<si::mass, real_t> &m_S_VI,
-	  const quantity<si::volume, real_t> &V
+	  const quantity<si::volume, real_t> &V,
+          const quantity<si::temperature, real_t> T
         ) :
-          n_SO2_old(n_SO2_old), n_CO2_old(n_CO2_old), n_HNO3_old(n_HNO3_old), n_NH3_old(n_NH3_old), m_S_VI(m_S_VI), V(V)
+          n_SO2_old(n_SO2_old), n_CO2_old(n_CO2_old), n_HNO3_old(n_HNO3_old), n_NH3_old(n_NH3_old), 
+          m_S_VI(m_S_VI), V(V), T(T)
         {}
 
         BOOST_GPU_ENABLED
@@ -98,7 +101,23 @@ namespace libcloudphxx
         {
 	  using namespace common::molar_mass;
 	  using namespace common::dissoc;
-
+          
+          //tmp?  calculate temperature dependant dissociation constants
+          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
+          Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
+          Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
+          Kt_SO2  = K_temp(T, K_SO2<real_t>(),  dKR_SO2<real_t>());
+          Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
+          Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
+          Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
+/*
+std::cerr<<Kt_CO2<< " vs "<<K_CO2<real_t>()<<std::endl;
+std::cerr<<Kt_HCO3<< " vs "<<K_HCO3<real_t>()<<std::endl;
+std::cerr<<Kt_SO2<< " vs "<<K_SO2<real_t>()<<std::endl;
+std::cerr<<Kt_HSO3<< " vs "<<K_HSO3<real_t>()<<std::endl;
+std::cerr<<Kt_NH3<< " vs "<<K_NH3<real_t>()<<std::endl;
+std::cerr<<Kt_HNO3<< " vs "<<K_HNO3<real_t>()<<std::endl;
+*/
           const quantity<si::mass, real_t> m_H = arg * si::kilograms;
 
           quantity<common::amount_over_volume, real_t> conc_H, CO2_helper, SO2_helper;
@@ -106,20 +125,20 @@ namespace libcloudphxx
           conc_H = m_H / M_H<real_t>() / V;
 
           CO2_helper = n_CO2_old / V 
-                       / (real_t(1) + K_CO2<real_t>() / conc_H + K_CO2<real_t>() * K_HCO3<real_t>() / conc_H / conc_H);
+                       / (real_t(1) + Kt_CO2 / conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H);
           SO2_helper = n_SO2_old / V 
-                       / (real_t(1) + K_SO2<real_t>() / conc_H + K_SO2<real_t>() * K_HSO3<real_t>() / conc_H / conc_H);
+                       / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
 
           return (-m_H + M_H<real_t>() * (
             // dissociation of pure water 
             K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
             +
             // H2O*SO2 to HSO3 dissociation
-            V * K_SO2<real_t>() / conc_H * SO2_helper
+            V * Kt_SO2 / conc_H * SO2_helper
             +
             // HSO3 to SO3 dissociation 
             real_t(2) * // "2-" ion 
-            V * K_SO2<real_t>() * K_HSO3<real_t>() / conc_H / conc_H * SO2_helper
+            V * Kt_SO2 * Kt_HSO3 / conc_H / conc_H * SO2_helper
             +
             // dissociation of S_VI to HSO4 (assumed there is no non-dissociated H2SO4)
             conc_H * m_S_VI / M_H2SO4<real_t>() / (conc_H + K_HSO4<real_t>())
@@ -129,17 +148,17 @@ namespace libcloudphxx
             K_HSO4<real_t>() * m_S_VI / M_H2SO4<real_t>() / (conc_H + K_HSO4<real_t>())
             +
             // dissociation of CO2 * H2O to HCO3
-            V * K_CO2<real_t>() / conc_H * CO2_helper
+            V * Kt_CO2 / conc_H * CO2_helper
             +
             // dissociation of HCO3 to CO3
             real_t(2) * //"2-" ion
-            V * K_CO2<real_t>() * K_HCO3<real_t>() / conc_H / conc_H * CO2_helper
+            V * Kt_CO2 * Kt_HCO3 / conc_H / conc_H * CO2_helper
             +
             // dissociation of HNO3 to NO3
-            K_HNO3<real_t>() * n_HNO3_old / (K_HNO3<real_t>() + conc_H)
+            Kt_HNO3 * n_HNO3_old / (Kt_HNO3 + conc_H)
             - 
             // dissociation of NH3 * H2O to NH4
-            K_NH3<real_t>() * n_NH3_old / (K_NH3<real_t>() + K_H2O<real_t>() / conc_H)
+            Kt_NH3 * n_NH3_old / (Kt_NH3 + K_H2O<real_t>() / conc_H)
          )) / si::kilograms;
         } 
       };
@@ -149,7 +168,7 @@ namespace libcloudphxx
       { // uses toms748 scheme to solve for mass of H+ after dissociation
         // that satisfies electroneutrality
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
         {
           using namespace common::molar_mass;
 
@@ -160,21 +179,22 @@ namespace libcloudphxx
             n_NH3_old  = thrust::get<3>(tpl) * si::moles;
           const quantity<si::mass, real_t>    m_S_VI  = thrust::get<4>(tpl) * si::kilograms;
           const quantity<si::volume, real_t>  V       = thrust::get<5>(tpl) * si::cubic_metres;
+          const quantity<si::temperature, real_t> T   = thrust::get<6>(tpl) * si::kelvins;
           
           // limits for search in toms748
-          real_t m_H_lft = ((real_t(1e-1 * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H_rht = ((real_t(1e-14 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_rht = ((real_t(1e-1  * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_lft = ((real_t(1e-14 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
           uintmax_t max_iter = 44;
 
           real_t m_H = common::detail::toms748_solve(
-	    detail::chem_minfun<real_t>(n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old, m_S_VI, V),
+	    detail::chem_minfun<real_t>(n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old, m_S_VI, V, T),
             m_H_lft,
 	    m_H_rht,
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
-          // std::cerr << "  " << real_t(1e-40) << " ... " << m_H << " ... " << "TODO" << real_t(1e-10) << std::endl;
+          // std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }
@@ -185,7 +205,7 @@ namespace libcloudphxx
       { // basing on the mass of H+ ions from chem_electroneutral
         // it recalculatess the mass of all other chemical species after dissociation
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::volume, real_t> 
             V      = thrust::get<0>(tpl) * si::cubic_metres;
@@ -197,18 +217,29 @@ namespace libcloudphxx
             n_CO2_old  = thrust::get<4>(tpl) * si::moles,
             n_HNO3_old = thrust::get<5>(tpl) * si::moles,
             n_NH3_old  = thrust::get<6>(tpl) * si::moles;
+          const quantity<si::temperature, real_t>
+            T      = thrust::get<7>(tpl) * si::kelvins;
 
           using namespace common::dissoc;     // K-prefixed
 	  using namespace common::molar_mass; // M-prefixed
+
+          //tmp?  calculate temperature dependant dissociation constants
+          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
+          Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
+          Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
+          Kt_SO2  = K_temp(T, K_SO2<real_t>(),  dKR_SO2<real_t>());
+          Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
+          Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
+          Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
 
           quantity<common::amount_over_volume, real_t> conc_H, CO2_helper, SO2_helper;
 
           conc_H = m_H / M_H<real_t>() / V;
     
           CO2_helper = n_CO2_old / V 
-                       / (real_t(1) + K_CO2<real_t>() / conc_H + K_CO2<real_t>() * K_HCO3<real_t>() / conc_H / conc_H);
+                       / (real_t(1) + Kt_CO2 / conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H);
           SO2_helper = n_SO2_old / V 
-                       / (real_t(1) + K_SO2<real_t>() / conc_H + K_SO2<real_t>() * K_HSO3<real_t>() / conc_H / conc_H);
+                       / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
 
           switch (chem_iter)
           {
@@ -224,11 +255,11 @@ namespace libcloudphxx
               ) / si::kilograms;
             case HSO3:
               return (
-                V * M_HSO3<real_t>() * K_SO2<real_t>() / conc_H * SO2_helper
+                V * M_HSO3<real_t>() * Kt_SO2 / conc_H * SO2_helper
               ) / si::kilograms;
             case SO3:
               return (
-                V * M_SO3<real_t>() * K_SO2<real_t>() * K_HSO3<real_t>() / conc_H / conc_H * SO2_helper
+                V * M_SO3<real_t>() * Kt_SO2 * Kt_HSO3 / conc_H / conc_H * SO2_helper
               ) / si::kilograms;
             case HSO4:
               return (
@@ -244,27 +275,27 @@ namespace libcloudphxx
               ) / si::kilograms;
             case HCO3:
               return (
-                V * M_HCO3<real_t>() * K_CO2<real_t>() / conc_H * CO2_helper
+                V * M_HCO3<real_t>() * Kt_CO2 / conc_H * CO2_helper
               ) / si::kilograms;
             case CO3:
               return ( 
-                V * M_CO3<real_t>() * K_CO2<real_t>() * K_HCO3<real_t>() / conc_H / conc_H * CO2_helper
+                V * M_CO3<real_t>() * Kt_CO2 * Kt_HCO3 / conc_H / conc_H * CO2_helper
               ) / si::kilograms;
             case NH3:
               return (
-                M_NH3_H2O<real_t>() * n_NH3_old * (K_H2O<real_t>() / conc_H) / (K_NH3<real_t>() + K_H2O<real_t>() / conc_H)
+                M_NH3_H2O<real_t>() * n_NH3_old * (K_H2O<real_t>() / conc_H) / (Kt_NH3 + K_H2O<real_t>() / conc_H)
               ) / si::kilograms;
             case NH4:
               return (
-                M_NH4<real_t>() * K_NH3<real_t>() * n_NH3_old / (K_NH3<real_t>() + K_H2O<real_t>() / conc_H)
+                M_NH4<real_t>() * Kt_NH3 * n_NH3_old / (Kt_NH3 + K_H2O<real_t>() / conc_H)
               ) / si::kilograms;
             case HNO3:
               return ( 
-                M_HNO3<real_t>() * n_HNO3_old * conc_H / (K_HNO3<real_t>() + conc_H) 
+                M_HNO3<real_t>() * n_HNO3_old * conc_H / (Kt_HNO3 + conc_H) 
               ) / si::kilograms;
             case NO3:
               return (
-                M_NO3<real_t>() * n_HNO3_old * K_HNO3<real_t>() / (K_HNO3<real_t>() + conc_H)
+                M_NO3<real_t>() * n_HNO3_old * Kt_HNO3 / (Kt_HNO3 + conc_H)
               ) / si::kilograms;
             default:
               assert(false);
@@ -336,6 +367,11 @@ namespace libcloudphxx
         detail::chem_save_moles_1<real_t>(M_NH3_H2O<real_t>(), M_NH4<real_t>()) //op
       );
 
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_t;
+
       { // calculate H+ ions after dissociation so that drops remain electroneutral
         typedef thrust::zip_iterator<
           thrust::tuple<
@@ -344,7 +380,8 @@ namespace libcloudphxx
             typename thrust_device::vector<real_t>::iterator, // HNO3_old
             typename thrust_device::vector<real_t>::iterator, // NH3_old
             typename thrust_device::vector<real_t>::iterator, // S_VI_old
-            typename thrust_device::vector<real_t>::iterator  // V
+            typename thrust_device::vector<real_t>::iterator, // V
+            pi_t  // T
           >
         > zip_it_t;
 
@@ -352,11 +389,13 @@ namespace libcloudphxx
           zip_it_t(thrust::make_tuple(
             n_SO2_old.begin(),n_CO2_old.begin(), n_HNO3_old.begin(), n_NH3_old.begin(),
             chem_bgn[S_VI], 
-            V.begin())),  // input - begin
+            V.begin(),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin()))),  // input - begin
           zip_it_t(thrust::make_tuple(
             n_SO2_old.end(), n_CO2_old.end(), n_HNO3_old.end(), n_NH3_old.end(),
             chem_end[S_VI], 
-            V.end())),  // input - end
+            V.end(),
+            thrust::make_permutation_iterator(T.end(), ijk.end()))),  // input - end
          chem_bgn[H],                                                             // output
          detail::chem_electroneutral<real_t>()                                    // op
         );
@@ -371,7 +410,8 @@ namespace libcloudphxx
             typename thrust_device::vector<real_t>::iterator, // n_SO2_old
             typename thrust_device::vector<real_t>::iterator, // n_CO2_old
             typename thrust_device::vector<real_t>::iterator, // n_HNO3_old
-            typename thrust_device::vector<real_t>::iterator  // n_NH3_old
+            typename thrust_device::vector<real_t>::iterator, // n_NH3_old
+            pi_t  // T
           >
         > zip_it_t;
 
@@ -380,11 +420,15 @@ namespace libcloudphxx
 
         zip_it_t 
           arg_begin(thrust::make_tuple(V.begin(), 
-            chem_bgn[H], chem_bgn[S_VI], n_SO2_old.begin(), n_CO2_old.begin(), n_HNO3_old.begin(), n_NH3_old.begin())
-          ),
+            chem_bgn[H], chem_bgn[S_VI], n_SO2_old.begin(), 
+            n_CO2_old.begin(), n_HNO3_old.begin(), n_NH3_old.begin(), 
+            thrust::make_permutation_iterator(T.begin(), ijk.begin())
+        )),
           arg_end(thrust::make_tuple(V.end(),
-            chem_end[H], chem_end[S_VI], n_SO2_old.begin(), n_CO2_old.begin(), n_HNO3_old.begin(), n_NH3_old.begin())
-          );
+            chem_end[H], chem_end[S_VI], n_SO2_old.begin(),
+            n_CO2_old.end(), n_HNO3_old.end(), n_NH3_old.end(),
+            thrust::make_permutation_iterator(T.end(), ijk.end())
+        ));
         
         thrust::transform(arg_begin, arg_end, chem_bgn[OH],   detail::chem_dissoc_diag<real_t, OH  >());
         thrust::transform(arg_begin, arg_end, chem_bgn[SO2],  detail::chem_dissoc_diag<real_t, SO2 >()); 
@@ -400,18 +444,8 @@ namespace libcloudphxx
         thrust::transform(arg_begin, arg_end, chem_bgn[NH3],  detail::chem_dissoc_diag<real_t, NH3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH4],  detail::chem_dissoc_diag<real_t, NH4 >());
 
-
-      thrust::transform(
-        zip_it_t_2(thrust::make_tuple(chem_bgn[NH3], chem_bgn[NH4])),           //input begin
-        zip_it_t_2(thrust::make_tuple(chem_end[NH3], chem_end[NH4])),           //input end
-        n_NH3_old.begin(),                                                      //output
-        detail::chem_save_moles_1<real_t>(M_NH3_H2O<real_t>(), M_NH4<real_t>()) //op
-      );
 //std::cerr<<"new nh3"<<std::endl;
 //debug::print(n_NH3_old.begin(), n_NH3_old.end());
-
-
-
 
 /*
           std::cerr<<" "<<std::endl;
