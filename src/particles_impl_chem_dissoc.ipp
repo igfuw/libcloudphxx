@@ -182,10 +182,13 @@ std::cerr<<Kt_HNO3<< " vs "<<K_HNO3<real_t>()<<std::endl;
           const quantity<si::temperature, real_t> T   = thrust::get<6>(tpl) * si::kelvins;
           
           // limits for search in toms748
-          real_t m_H_rht = ((real_t(1e-1  * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H_lft = ((real_t(1e-14 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_rht = ((real_t(1e2  * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_lft = ((real_t(1e-8 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
           uintmax_t max_iter = 44;
+
+          //std::cerr << "(base) left edge:  " << m_H_lft << std::endl;
+          //std::cerr << "(acid) right edge: " << m_H_rht << std::endl;
 
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old, m_S_VI, V, T),
@@ -194,7 +197,7 @@ std::cerr<<Kt_HNO3<< " vs "<<K_HNO3<real_t>()<<std::endl;
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
-          // std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << std::endl;
+          //std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }

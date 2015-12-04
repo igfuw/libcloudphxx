@@ -90,7 +90,8 @@ namespace libcloudphxx
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<5>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::volume, real_t>        V_old  = thrust::get<6>(tpl) * si::cubic_metres;
 
-          //implicit solution to the eq. 8.22 from chapter 8.4.2 in Peter Warneck Chemistry of the Natural Atmosphere  
+          // implicit solution to the eq. 8.22 from chapter 8.4.2 
+          // in Peter Warneck Chemistry of the Natural Atmosphere  
           return  ((m_old * (V * si::cubic_metres / V_old) 
                     + dt * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) 
                        * c * M_aq / M_gas * V * si::cubic_metres * rhod ) 
@@ -190,7 +191,17 @@ namespace libcloudphxx
             count_ijk.begin(),
             mass_old.begin()
           );
+/*  
+if (i == HNO3) std::cerr<< "HNO3" <<std::endl;
+if (i == NH3) std::cerr<< "NH3" <<std::endl;
+if (i == CO2) std::cerr<< "CO2" <<std::endl;
+if (i == SO2) std::cerr<< "SO2" <<std::endl;
+if (i == H2O2) std::cerr<< "H2O2" <<std::endl;
+if (i == O3) std::cerr<< "O3" <<std::endl;
 
+std::cerr<<"mass_old"<<std::endl;
+debug::print(mass_old.begin(), mass_old.end());
+*/
           // apply Henrys law tp the in-drop chemical compounds 
           thrust::transform(
             V.begin(), V.end(),                             // input - 1st arg
@@ -248,25 +259,25 @@ namespace libcloudphxx
           count_n = np.first - count_ijk.begin();
           assert(count_n > 0 && count_n <= n_cell);
 
+//std::cerr<<"mass_new"<<std::endl;
+//debug::print(mass_new.begin(), mass_new.end());
+
+
           // apply the change to the mixing ratios of trace gases
           thrust::transform(
-            mass_new.begin(),
-            mass_new.begin() + count_n,
-            thrust::make_zip_iterator(thrust::make_tuple(
+            mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
+            thrust::make_zip_iterator(thrust::make_tuple(                              // input - 2nd arg
               mass_old.begin(),
               thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 
               thrust::make_permutation_iterator(dv.begin(), count_ijk.begin()),
-              thrust::make_permutation_iterator(
-                ambient_chem[(chem_species_t)i].begin(), 
-                count_ijk.begin()
-              )
+              thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin())
             )),
-            thrust::make_permutation_iterator(
-              ambient_chem[(chem_species_t)i].begin(), 
-              count_ijk.begin()
-            ), 
-            detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i])
+            thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin()), // output 
+            detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i]) // op
           );
+          assert(*thrust::min_element(
+            ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
+          ) >= 0);
         }
       }
 
@@ -275,7 +286,7 @@ namespace libcloudphxx
         {
           // apply Henrys law to the in-drop chemical compounds 
           thrust::transform(
-            V.begin(), V.end(),            // input - 1st arg
+            V.begin(), V.end(),                             // input - 1st arg
             thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               thrust::make_permutation_iterator(T.begin(), ijk.begin()),
@@ -285,7 +296,7 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
               V_old.begin()
             )),
-            chem_bgn[i],                                                                                        // output
+            chem_bgn[i],                                                                                 // output
             detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
           );
         }

@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      template <typename real_t>
+    template <typename real_t>
       struct chem_init_water // water
       {
         const real_t mltpl;
@@ -53,16 +53,16 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_NH4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+            * (M_NH4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
 	}
       };
 
       template <typename real_t>
-      struct chem_init_HSO4
+      struct chem_init_SO4
       {
         const real_t chem_rho;
 
-        chem_init_HSO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
+        chem_init_SO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
 
 	BOOST_GPU_ENABLED
 	real_t operator()(const real_t &rd3) const 
@@ -77,7 +77,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_HSO4<real_t>() / M_H2SO4<real_t>());
+            * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
 	}
       };
 
@@ -101,8 +101,8 @@ namespace libcloudphxx
 #else
             CUDART_PI
 #endif
-            * chem_rho * rd3;
-//            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>() + M_H<real_t>()));
+            * chem_rho * rd3
+            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
 	}
       };
 
@@ -118,7 +118,7 @@ namespace libcloudphxx
         { 
           using namespace common::molar_mass;
 
-          return 
+          real_t tmp = 
             real_t(4./3) * 
 #if !defined(__NVCC__)
             pi<real_t>()
@@ -126,7 +126,12 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H<real_t>() / M_H2SO4<real_t>());
+            * (M_H<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
+
+//          real_t tmp = 3.3e-30;
+//          std::cerr << "initial mass of H+" << tmp << std::endl;
+
+          return tmp;
 	}
       };
     };
@@ -185,24 +190,30 @@ namespace libcloudphxx
         using namespace common::molar_mass;
         switch (i)
         {
-/*          case NH4:
+
+          case NH4:
           {
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
               detail::chem_init_NH4<real_t>(opts_init.chem_rho)
 	    );
+//std::cerr<<"  "<<std::endl;
+//std::cerr<<"initial NH4 mass from init"<<std::endl;
+//debug::print(chem_bgn[i], chem_end[i]);
           }
           break;
-          case HSO4:
+/*
+          case SO4:
           {
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
-              detail::chem_init_HSO4<real_t>(opts_init.chem_rho)
+              detail::chem_init_SO4<real_t>(opts_init.chem_rho)
 	    );
           }
           break;
+*/
           case H:
           {
 	    thrust::transform(
@@ -212,6 +223,7 @@ namespace libcloudphxx
 	    );
           }
           break;
+
           case S_VI:
           {
 	    thrust::transform(
@@ -221,7 +233,8 @@ namespace libcloudphxx
 	    );
           }
           break;
-*/        
+
+/*        
           case OH:
           {
             thrust::transform(
@@ -230,7 +243,6 @@ namespace libcloudphxx
               detail::chem_init_water<real_t>(7, M_OH<real_t>())
             );
           }
- 
           case H:
           {
             thrust::transform(
@@ -239,11 +251,13 @@ namespace libcloudphxx
               detail::chem_init_water<real_t>(7, M_H<real_t>())
             );
           }
-
+*/
           default: 
             thrust::fill(chem_bgn[i], chem_end[i], 0);
         }
       }
+//std::cerr<<"initial mass of H+"<<std::endl;
+//debug::print(chem_bgn[H], chem_end[H]);
     }
   };
 };
