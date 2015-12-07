@@ -102,7 +102,8 @@ namespace libcloudphxx
 	  using namespace common::molar_mass;
 	  using namespace common::dissoc;
           
-          //tmp?  calculate temperature dependant dissociation constants
+          //calculate temperature dependant dissociation constants
+          // TODO repeated in chem dissoc diag
           quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
           Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
           Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
@@ -180,9 +181,6 @@ namespace libcloudphxx
 
           uintmax_t max_iter = 44;
 
-          //std::cerr << "(base) left edge:  " << m_H_lft << std::endl;
-          //std::cerr << "(acid) right edge: " << m_H_rht << std::endl;
-
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(n_SO2_old, n_CO2_old, n_HNO3_old, n_NH3_old, m_S_VI, V, T),
             m_H_lft,
@@ -219,7 +217,8 @@ namespace libcloudphxx
           using namespace common::dissoc;     // K-prefixed
 	  using namespace common::molar_mass; // M-prefixed
 
-          //tmp?  calculate temperature dependant dissociation constants
+          //calculate temperature dependant dissociation constants
+          // TODO - repeated in chem_min_fun
           quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
           Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
           Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
@@ -411,9 +410,6 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-//std::cerr<<"old nh3"<<std::endl;
-//debug::print(n_NH3_old.begin(), n_NH3_old.end());
-
         zip_it_t 
           arg_begin(thrust::make_tuple(V.begin(), 
             chem_bgn[H], chem_bgn[S_VI], n_SO2_old.begin(), 
@@ -421,7 +417,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(T.begin(), ijk.begin())
         )),
           arg_end(thrust::make_tuple(V.end(),
-            chem_end[H], chem_end[S_VI], n_SO2_old.begin(),
+            chem_end[H], chem_end[S_VI], n_SO2_old.end(),
             n_CO2_old.end(), n_HNO3_old.end(), n_NH3_old.end(),
             thrust::make_permutation_iterator(T.end(), ijk.end())
         ));
@@ -440,39 +436,6 @@ namespace libcloudphxx
         thrust::transform(arg_begin, arg_end, chem_bgn[NH3],  detail::chem_dissoc_diag<real_t, NH3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH4],  detail::chem_dissoc_diag<real_t, NH4 >());
 
-//std::cerr<<"new nh3"<<std::endl;
-//debug::print(n_NH3_old.begin(), n_NH3_old.end());
-
-/*
-          std::cerr<<" "<<std::endl;
-          std::cerr<<"positive ions: "<< std::endl;
-          std::cerr<<"H+"<<std::endl;
-          debug::print(chem_bgn[H], chem_end[H]);
-          std::cerr<<"NH4+"<<std::endl;
-          debug::print(chem_bgn[NH4], chem_end[NH4]);
-          std::cerr<<"negative ions: "<< std::endl;
-
-          std::cerr<<"OH-"<<std::endl;
-          debug::print(chem_bgn[OH], chem_end[OH]);
-
-          std::cerr<<"HSO3-"<<std::endl;
-          debug::print(chem_bgn[HSO3], chem_end[HSO3]);
-          std::cerr<<"SO3--"<<std::endl;
-          debug::print(chem_bgn[SO3], chem_end[SO3]);
-
-          std::cerr<<"HSO4-"<<std::endl;
-          debug::print(chem_bgn[HSO4], chem_end[HSO4]);
-          std::cerr<<"SO4--"<<std::endl;
-          debug::print(chem_bgn[SO4], chem_end[SO4]);
-
-          std::cerr<<"HCO3-"<<std::endl;
-          debug::print(chem_bgn[HCO3], chem_end[HCO3]);
-          std::cerr<<"CO3--"<<std::endl;
-          debug::print(chem_bgn[CO3], chem_end[CO3]);
-
-          std::cerr<<"NO3-"<<std::endl;
-          debug::print(chem_bgn[NO3], chem_end[NO3]);
-*/      
       }
     }
   };  

@@ -50,7 +50,6 @@ namespace libcloudphxx
             O3_HSO3 = m_O3 / V * m_HSO3 / M_HSO3<real_t>() * R_S_O3_k1<real_t>(),
             O3_SO3  = m_O3 / V * m_SO3  / M_SO3<real_t>()  * R_S_O3_k2<real_t>();
 
-
 	  // helper for H2O2 reactions
 	  quantity<divide_typeof_helper<si::amount, si::time>::type, real_t> 
             H2O2_HSO3 = R_S_H2O2_k<real_t>() / (V*V) 
@@ -250,9 +249,6 @@ namespace libcloudphxx
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
        
       thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
-
-      //debug::print(rd3);
-      //debug::print(chem_bgn[S_VI], chem_end[S_VI]);
     }
   };  
 };
