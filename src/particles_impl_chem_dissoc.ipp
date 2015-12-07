@@ -110,14 +110,7 @@ namespace libcloudphxx
           Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
           Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
           Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
-/*
-std::cerr<<Kt_CO2<< " vs "<<K_CO2<real_t>()<<std::endl;
-std::cerr<<Kt_HCO3<< " vs "<<K_HCO3<real_t>()<<std::endl;
-std::cerr<<Kt_SO2<< " vs "<<K_SO2<real_t>()<<std::endl;
-std::cerr<<Kt_HSO3<< " vs "<<K_HSO3<real_t>()<<std::endl;
-std::cerr<<Kt_NH3<< " vs "<<K_NH3<real_t>()<<std::endl;
-std::cerr<<Kt_HNO3<< " vs "<<K_HNO3<real_t>()<<std::endl;
-*/
+
           const quantity<si::mass, real_t> m_H = arg * si::kilograms;
 
           quantity<common::amount_over_volume, real_t> conc_H, CO2_helper, SO2_helper;
