@@ -102,7 +102,7 @@ if (CUDA_FOUND)
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -Xcompiler=-Ofast,-march=native,-DNDEBUG") #TODO: fix -use_fast_math, now it causes incorrect Beard velocities
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG \"-DBOOST_NOINLINE=__attribute__((noinline))\"")
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
