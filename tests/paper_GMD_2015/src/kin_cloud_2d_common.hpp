@@ -57,7 +57,6 @@ class kin_cloud_2d_common : public
       {  
         th_eq(j) = this->mem->sum(this->state(ix::th), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
         rv_eq(j) = this->mem->sum(this->state(ix::rv), this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
-        
       }
     }
 
@@ -85,11 +84,19 @@ class kin_cloud_2d_common : public
         for(auto a: std::list<int>({ix::th, ix::rv}))
         {
           const auto &psi = this->state(a);
+          // relax horizontal mean
+          /*
           const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
           if(a == ix::th)
             rhs.at(a)(this->i, j) =  (th_eq(j) - psi_mean) / tau;
           else
             rhs.at(a)(this->i, j) =  (rv_eq(j) - psi_mean) / tau;
+          */
+          // relax each cell 
+          if(a == ix::th)
+            rhs.at(a)(this->i, j) =  (th_eq(j) - psi(this->i, j)) / tau;
+          else
+            rhs.at(a)(this->i, j) =  (rv_eq(j) - psi(this->i, j)) / tau;
         }
       }
     }

@@ -33,9 +33,13 @@
 #include "particles_diag.ipp"
 
 // details
+#include "particles_impl_dist_analysis.ipp"
 #include "particles_impl_init_dry.ipp"
+#include "particles_impl_init_n.ipp"
 #include "particles_impl_init_wet.ipp"
 #include "particles_impl_init_xyz.ipp"
+#include "particles_impl_init_ijk.ipp"
+#include "particles_impl_init_count_num.ipp"
 #include "particles_impl_init_e2l.ipp"
 #include "particles_impl_init_grid.ipp"
 #include "particles_impl_init_sync.ipp"
@@ -43,6 +47,7 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
+#include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
@@ -50,6 +55,7 @@
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
 #include "particles_impl_hskpng_remove.ipp"
+#include "particles_impl_hskpng_resize.ipp"
 
 #include "particles_impl_moms.ipp"
 #include "particles_impl_mass_dens.ipp"
@@ -69,5 +75,6 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+#include "particles_impl_src.ipp"
 #include "particles_impl_kernel_interpolation.ipp"
 

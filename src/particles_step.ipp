@@ -79,17 +79,9 @@ namespace libcloudphxx
         }
       }
 
-      // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = pimpl->rcyc(); 
-
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-      {
-        pimpl->hskpng_ijk();
-      }
+      pimpl->hskpng_ijk();
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -100,10 +92,31 @@ namespace libcloudphxx
           pimpl->hskpng_Tpr(); 
           pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
+      }
 
+      // aerosol source, in sync since it changes th/rv
+      if (opts.src) 
+      {
+        // sanity check
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        // update the step counter since src was turned on
+        ++pimpl->stp_ctr;
+
+        // introduce new particles with the given time interval
+        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+        }
+      }
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
+
+      if(opts.cond || pimpl->stp_ctr == pimpl->opts_init.supstp_src)
+      {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
+        pimpl->stp_ctr = 0; //reset the counter
       }
 
       // chemistry
@@ -174,7 +187,7 @@ namespace libcloudphxx
       if (opts.adve) pimpl->adve(); 
 
       // updating terminal velocities
-      if (opts.sedi || opts.coal) 
+      if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
       if (opts.sedi) 
@@ -186,7 +199,7 @@ namespace libcloudphxx
       // boundary condition + accumulated rainfall to be returned
       real_t ret = pimpl->bcnd();
 
-      // coalescence (before diagnostics -> one sort less)
+      // coalescence
       if (opts.coal) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
@@ -199,6 +212,9 @@ namespace libcloudphxx
             pimpl->hskpng_vterm_invalid(); 
         }
       }
+
+      // recycling out-of-domain/invalidated particles 
+      pimpl->rcyc();
 
       pimpl->selected_before_counting = false;
 
