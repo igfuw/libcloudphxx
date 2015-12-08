@@ -161,7 +161,7 @@ namespace libcloudphxx
                   chem_rhs_helper<real_t>(chem_iter)
                 );
 #if !defined(__NVCC__) // TODO...
-                assert(std::isfinite(*thrust::min_element(
+                assert(boost::math::isfinite(*thrust::min_element(
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part + n_part
                 )));
