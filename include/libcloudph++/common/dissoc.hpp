@@ -45,6 +45,8 @@ namespace libcloudphxx
       libcloudphxx_const_derived(si::temperature, dKR_HSO3, real_t(1500.)  * si::kelvins)
       libcloudphxx_const_derived(si::temperature, dKR_NH3,  real_t(-450.)  * si::kelvins)
       libcloudphxx_const_derived(si::temperature, dKR_HNO3, real_t(8700.)  * si::kelvins)
+      // Seinfeld and Pandis table 6.A.1 Equilibrum Reactions
+      libcloudphxx_const_derived(si::temperature, dKR_HSO4, real_t(2720.)  * si::kelvins)
 
       //dissociation constant(temperature)
       template <typename real_t>

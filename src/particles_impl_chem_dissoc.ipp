@@ -104,13 +104,14 @@ namespace libcloudphxx
           
           //calculate temperature dependant dissociation constants
           // TODO repeated in chem dissoc diag
-          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
+          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3, Kt_HSO4;
           Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
           Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
           Kt_SO2  = K_temp(T, K_SO2<real_t>(),  dKR_SO2<real_t>());
           Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
           Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
           Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
+          Kt_HSO4 = K_temp(T, K_HSO4<real_t>(),  dKR_HSO4<real_t>());
 
           const quantity<si::mass, real_t> m_H = arg * si::kilograms;
 
@@ -125,8 +126,8 @@ namespace libcloudphxx
 
           return (-m_H + M_H<real_t>() * (
             // dissociation of pure water 
-            K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
-            +
+             K_H2O<real_t>() * M_H<real_t>() * (V*V) / m_H
+             +
             // H2O*SO2 to HSO3 dissociation
             V * Kt_SO2 / conc_H * SO2_helper
             +
@@ -135,11 +136,11 @@ namespace libcloudphxx
             V * Kt_SO2 * Kt_HSO3 / conc_H / conc_H * SO2_helper
             +
             // dissociation of S_VI to HSO4 (assumed there is no non-dissociated H2SO4)
-            conc_H * m_S_VI / M_H2SO4<real_t>() / (conc_H + K_HSO4<real_t>())
+            conc_H * m_S_VI / M_H2SO4<real_t>() / (conc_H + Kt_HSO4)
             +
             // dissociation of HSO4 to SO4  (assumed there is no non-dissociated H2SO4)
             real_t(2) * // "2-" ion
-            K_HSO4<real_t>() * m_S_VI / M_H2SO4<real_t>() / (conc_H + K_HSO4<real_t>())
+            Kt_HSO4 * m_S_VI / M_H2SO4<real_t>() / (conc_H + Kt_HSO4)
             +
             // dissociation of CO2 * H2O to HCO3
             V * Kt_CO2 / conc_H * CO2_helper
@@ -219,13 +220,14 @@ namespace libcloudphxx
 
           //calculate temperature dependant dissociation constants
           // TODO - repeated in chem_min_fun
-          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3;
+          quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3, Kt_SO2, Kt_HSO3, Kt_NH3, Kt_HNO3, Kt_HSO4;
           Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
           Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
           Kt_SO2  = K_temp(T, K_SO2<real_t>(),  dKR_SO2<real_t>());
           Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
           Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
           Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
+          Kt_HSO4 = K_temp(T, K_HSO4<real_t>(),  dKR_HSO4<real_t>());
 
           quantity<common::amount_over_volume, real_t> conc_H, CO2_helper, SO2_helper;
 
@@ -258,11 +260,11 @@ namespace libcloudphxx
               ) / si::kilograms;
             case HSO4:
               return (
-                 M_HSO4<real_t>() * m_S_VI / M_H2SO4<real_t>() * conc_H / (conc_H + K_HSO4<real_t>())
+                 M_HSO4<real_t>() * m_S_VI / M_H2SO4<real_t>() * conc_H / (conc_H + Kt_HSO4)
               ) / si::kilograms;
             case SO4:
               return (
-                M_SO4<real_t>() * K_HSO4<real_t>() * m_S_VI / M_H2SO4<real_t>() / (conc_H + K_HSO4<real_t>())
+                M_SO4<real_t>() * Kt_HSO4 * m_S_VI / M_H2SO4<real_t>() / (conc_H + Kt_HSO4)
               ) / si::kilograms;
             case CO2:
               return ( 
