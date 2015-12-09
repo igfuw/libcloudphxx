@@ -34,7 +34,7 @@ namespace libcloudphxx
 
       if(opts_init.chem_switch)
       {
-        tmp_device_real_part_SVI.resize(n_part);  // TODO: only in chemistry, but probably soon not needed when V will be cached
+        tmp_device_real_part_chem.resize(n_part);  // TODO: reuse outside of chem if needed
         V_old.resize(n_part);// TODO: only in chemistry, but can we do without it?
         tmp_device_real_part_HNO3.resize(n_part); // TODO: only in chemistry, but can we do it without?
         tmp_device_real_part_NH3.resize(n_part);  // TODO: only in chemistry, but can we do it without?
