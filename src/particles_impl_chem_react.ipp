@@ -110,6 +110,7 @@ namespace libcloudphxx
       struct chem_rhs
       {
         const thrust_device::vector<real_t> &V;
+        const thrust_device::vector<unsigned int> &chem_flag;
  
         typedef thrust::permutation_iterator<
           typename thrust_device::vector<real_t>::iterator,
@@ -124,9 +125,10 @@ namespace libcloudphxx
         chem_rhs(
           const thrust_device::vector<real_t> &V,
           const pi_t &T,
-          const typename thrust_device::vector<real_t>::const_iterator &m_H
+          const typename thrust_device::vector<real_t>::const_iterator &m_H,
+          const thrust_device::vector<unsigned int> &chem_flag
         ) :
-          V(V), T(T), m_H(m_H), n_part(V.size())
+          V(V), T(T), m_H(m_H), n_part(V.size()), chem_flag(chem_flag)
         {}
 
         void operator()(
@@ -162,7 +164,7 @@ namespace libcloudphxx
               case SO2:
               case HSO3:
               case SO3:
-                thrust::transform(
+                thrust::transform_if(
                   // input - 1st arg
                   V.begin(), V.end(),                
                   // input - 2nd arg
@@ -176,10 +178,19 @@ namespace libcloudphxx
                     psi.begin() + (SO3  - chem_rhs_beg) * n_part, 
                     m_H
                   )), 
+                  // chemical reactions are only done for selected droplets 
+                  // (with wet radius significantly bigger than dry radius)
+                  // to avoid problems in activation when dry radius (due to chemistry) 
+                  // is bigger than predicted wet radius in condensation
+                  // 
+                  // stencil 
+                  chem_flag.begin(),
                   // output
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   // op
-                  chem_rhs_helper<real_t>(chem_iter)
+                  chem_rhs_helper<real_t>(chem_iter),
+                  // condition
+                  thrust::identity<unsigned int>()
                 );
 #if !defined(__NVCC__) // TODO...
                 assert(boost::math::isfinite(*thrust::min_element(
@@ -237,6 +248,7 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
 
       thrust_device::vector<real_t> &V(tmp_device_real_part);
+      thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
@@ -251,7 +263,7 @@ namespace libcloudphxx
 
       // do chemical reactions
       chem_stepper.do_step(
-        detail::chem_rhs<real_t>(V, thrust::make_permutation_iterator(T.begin(), ijk.begin()), chem_bgn[H]), // TODO: make it an impl member field
+        detail::chem_rhs<real_t>(V, thrust::make_permutation_iterator(T.begin(), ijk.begin()), chem_bgn[H], chem_flag), // TODO: make it an impl member field
         chem_rhs, 
         real_t(0),
         dt

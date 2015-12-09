@@ -122,8 +122,10 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
-        //calculate new volume of droplets (needed for Henrys law)
+        // calculate new volume of droplets (needed for Henrys law)
         pimpl->chem_vol_ante();
+        // set flag for those SD that are big enough to have chemical reactions
+        pimpl->chem_flag_ante();
 
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
         {

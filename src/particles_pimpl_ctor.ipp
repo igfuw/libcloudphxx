@@ -373,6 +373,7 @@ namespace libcloudphxx
       void coal(const real_t &dt);
 
       void chem_vol_ante();
+      void chem_flag_ante();
       void chem_henry(const real_t &dt, const bool &chem_sys_cls);
       void chem_dissoc();
       void chem_react(const real_t &dt);
