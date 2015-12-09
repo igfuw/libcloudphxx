@@ -95,6 +95,7 @@ namespace libcloudphxx
       }
 
       // terminal fall velocity at sea level according to Beard (1977)
+      // has to be calculated using double prec, on single prec with -use_fast_math it fails on CUDA
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_beard77_v0( 
@@ -102,19 +103,19 @@ namespace libcloudphxx
       ) 
       {
         // use 3rd degree polynominal for r<20um
-        real_t m_s[4] = {0.105035e2, 0.108750e1, -0.133245, -0.659969e-2};
+        double m_s[4] = {0.105035e2, 0.108750e1, -0.133245, -0.659969e-2};
         // use 7th degree polynominal for r>20um
-        real_t m_l[8] = { 0.65639e1,    -0.10391e1,    -0.14001e1,    -0.82736e0,    -0.34277e0,    -0.83072e-1,    -0.10583e-1,    -0.54208e-3};
+        double m_l[8] = { 0.65639e1,    -0.10391e1,    -0.14001e1,    -0.82736e0,    -0.34277e0,    -0.83072e-1,    -0.10583e-1,    -0.54208e-3};
 
-        real_t x = log(2*100*(r / si::metres));
-        real_t y = 0;
+        double x = log(2*100*(r / si::metres));
+        double y = 0;
         // calc V0 (sea-level velocity)
-        if(r <= quantity<si::length, real_t>(real_t(20e-6) * si::meters))
+        if(r <= quantity<si::length, double>(double(20e-6) * si::meters))
           for(int i=0; i<4; ++i)
-            y += m_s[i] * pow(x, real_t(i));
+            y += m_s[i] * pow(x, double(i));
         else
           for(int i=0; i<8; ++i)
-            y += m_l[i] * pow(x, real_t(i));
+            y += m_l[i] * pow(x, double(i));
 
         return quantity<si::velocity, real_t>((exp(y) / 100.) * si::metres_per_second);
       }
@@ -148,7 +149,7 @@ namespace libcloudphxx
       }
  
       // the exact formula from Beard 1976
-      // TODO: causes crashes on some CUDA devices
+      // has to be calculated using double prec, on single prec with -use_fast_math it fails on CUDA
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_beard76( 
@@ -172,14 +173,14 @@ namespace libcloudphxx
 
         else if(r <= quantity<si::length, real_t>(real_t(5.035e-4) * si::meters))
         {
-          const real_t b[7] = { -0.318657e1, 0.992696, -0.153193e-2, -0.987059e-3, -0.578878e-3, 0.855176e-4,-0.327815e-5};
+          const double b[7] = { -0.318657e1, 0.992696, -0.153193e-2, -0.987059e-3, -0.578878e-3, 0.855176e-4,-0.327815e-5};
           quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
           quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
           quantity<si::dimensionless, real_t> log_N_Da = log( real_t(32./3.) * r * r * r * rhoa * (rho_w<real_t>() - rhoa) * g<real_t>() / eta / eta );
           quantity<si::dimensionless, real_t> Y = 0.;
           for(int i=0; i<7; ++i)
-            Y = Y + b[i] * pow(log_N_Da, real_t(i));
-          quantity<si::dimensionless, real_t> N_Re = C_ac * exp(Y);
+            Y = double(Y) + b[i] * pow(double(log_N_Da), double(i));
+          quantity<si::dimensionless, real_t> N_Re = C_ac * exp(double(Y));
           return (eta * N_Re / rhoa / real_t(2.) / r);
         }
         else //TODO: > 7mm
