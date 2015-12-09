@@ -54,7 +54,6 @@ namespace libcloudphxx
 
       //save the current drop volume in V_old (to be used in the next step for Henrys law)
       thrust_device::vector<real_t> &V(tmp_device_real_part);
-      thrust_device::vector<real_t> &V_old(tmp_device_real_part_V_old);
     
       thrust::copy(V.begin(), V.end(), V_old.begin());
     }

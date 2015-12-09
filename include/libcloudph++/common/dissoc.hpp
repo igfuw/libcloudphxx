@@ -13,7 +13,6 @@ namespace libcloudphxx
     namespace dissoc
     {
       // dissociation constants for chemical compounds of droplets
-      // TODO temperature dependence (provided values are for T=298K)
 
       // pure water 
       // bec. there are so few water ions instead of K we have K [H2O]
