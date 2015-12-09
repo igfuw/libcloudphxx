@@ -41,7 +41,6 @@ namespace libcloudphxx
       {
         tmp_device_real_part_SVI.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but probably soon not needed when V will be cached
         V_old.reserve(opts_init.n_sd_max);// TODO: only in chemistry, but can we do without it?
-        tmp_device_real_part_mass.reserve(opts_init.n_sd_max); // TODO: only in chemistry, maybe not needed?
         tmp_device_real_part_HNO3.reserve(opts_init.n_sd_max); // TODO: only in chemistry, but can we do it without?
         tmp_device_real_part_NH3.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?
         tmp_device_real_part_CO2.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?

@@ -168,7 +168,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_part_SVI,
-        tmp_device_real_part_mass,  //TODO is it needed?
         tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
         tmp_device_real_part_NH3,
         tmp_device_real_part_SO2,
