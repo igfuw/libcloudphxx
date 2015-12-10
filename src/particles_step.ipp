@@ -105,7 +105,6 @@ namespace libcloudphxx
         if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
         {
           pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
-          pimpl->stp_ctr = 0;
         }
       }
       else pimpl->stp_ctr = 0; //reset the counter if source was turned off
@@ -115,6 +114,7 @@ namespace libcloudphxx
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
+        pimpl->stp_ctr = 0; //reset the counter
       }
 
       pimpl->should_now_run_async = true;
