@@ -113,7 +113,6 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
 
       thrust_device::vector<real_t> &V(tmp_device_real_part);
-      thrust_device::vector<real_t> &V_old(tmp_device_real_part_V_old);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 

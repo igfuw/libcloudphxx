@@ -156,6 +156,9 @@ namespace libcloudphxx
         boost::numeric::odeint::never_resizer
       > chem_stepper;
 
+      // vector to store volume of SDs, needed by chem Henry
+      thrust_device::vector<real_t>  V_old;
+
       // temporary data
       thrust::host_vector<real_t>
         tmp_host_real_grid,
@@ -164,9 +167,7 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_V_old,
-        tmp_device_real_part_SVI,
-        tmp_device_real_part_mass,  //TODO is it needed?
+        tmp_device_real_part_chem,  // only allocated if chem_switch==1
         tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
         tmp_device_real_part_NH3,
         tmp_device_real_part_SO2,
@@ -372,6 +373,7 @@ namespace libcloudphxx
       void coal(const real_t &dt);
 
       void chem_vol_ante();
+      void chem_flag_ante();
       void chem_henry(const real_t &dt, const bool &chem_sys_cls);
       void chem_dissoc();
       void chem_react(const real_t &dt);

@@ -104,6 +104,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     //dissoc const dep on temperature
     bp::scope().attr("dKR_SO2")  = (real_t) (cmn::dissoc::dKR_SO2<real_t>()  / si::kelvins);
     bp::scope().attr("dKR_HSO3") = (real_t) (cmn::dissoc::dKR_HSO3<real_t>() / si::kelvins);
+    bp::scope().attr("dKR_HSO4") = (real_t) (cmn::dissoc::dKR_HSO4<real_t>() / si::kelvins);
     bp::scope().attr("dKR_HNO3") = (real_t) (cmn::dissoc::dKR_HNO3<real_t>() / si::kelvins);
     bp::scope().attr("dKR_NH3")  = (real_t) (cmn::dissoc::dKR_NH3<real_t>()  / si::kelvins);
     bp::scope().attr("dKR_CO2")  = (real_t) (cmn::dissoc::dKR_CO2<real_t>()  / si::kelvins);
