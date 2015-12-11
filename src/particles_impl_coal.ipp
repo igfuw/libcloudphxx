@@ -275,6 +275,69 @@ namespace libcloudphxx
         >
       > zip_ro_calc_t;    //read-only parameters passed to the calc() function, later also epsilon and Re_lambda
 
+      typedef thrust::zip_iterator<
+        thrust::tuple<
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t   
+        >
+      > zip_chem6_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple<
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t,  
+          pi_real_t   
+        >
+      > zip_chem10_t;
+
+      zip_chem10_t zip_chem10_1, zip_chem10_2, zip_chem10_3;
+      zip_chem6_t zip_chem6;
+      std::vector<zip_chem10_t> chem10 = {zip_chem10_1, zip_chem10_2, zip_chem10_3};
+      if(opts_init.chem_switch)
+      {
+        for(int i=0; i<3; ++i)
+        {
+          zip_chem10_t &zip_chem(chem10[i]);
+          zip_chem10_t tmp_tpl(
+            thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin())+1 
+            )
+          );
+          thrust::swap(tmp_tpl, zip_chem);
+        }
+        zip_chem6_t tmp_tpl(
+          thrust::make_tuple(
+            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin()), 
+            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin())+1, 
+            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin()), 
+            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin())+1, 
+            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin()), 
+            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin())+1
+          )
+        );
+        thrust::swap(tmp_tpl, zip_chem6);
+      }
+
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
           // u01, each pair gets one number
