@@ -38,6 +38,8 @@ install:
 
 script:
     # libcloudph++ 
+    - ls /usr/include | grep python
+    - ls /usr/lib | grep python
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
