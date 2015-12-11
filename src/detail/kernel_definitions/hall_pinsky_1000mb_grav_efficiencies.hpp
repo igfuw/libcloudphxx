@@ -1,4 +1,5 @@
 #pragma once
+// Hall efficiencies for large drops and Pinsky 2001 1000mb efficiencies for r <= 21um
 namespace libcloudphxx
 {
   namespace lgrngn
