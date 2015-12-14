@@ -49,10 +49,10 @@ namespace libcloudphxx
           quantity<common::volume_square_over_amount_square_over_time, real_t> R_H2O2_k;
 
           // temperature dependance
-          R_O3_k0  = R_temp(T, R_S_O3_k0<real_t>(),  dER_O3_k0<real_t>());
-          R_O3_k1  = R_temp(T, R_S_O3_k1<real_t>(),  dER_O3_k1<real_t>());
-          R_O3_k2  = R_temp(T, R_S_O3_k2<real_t>(),  dER_O3_k2<real_t>());
-          R_H2O2_k = R_temp(T, R_S_H2O2_k<real_t>(), dER_H2O2_k<real_t>()); 
+          R_O3_k0  = R_temp_O3(T, R_S_O3_k0<real_t>(),  dER_O3_k0<real_t>());
+          R_O3_k1  = R_temp_O3(T, R_S_O3_k1<real_t>(),  dER_O3_k1<real_t>());
+          R_O3_k2  = R_temp_O3(T, R_S_O3_k2<real_t>(),  dER_O3_k2<real_t>());
+          R_H2O2_k = R_temp_H2O2(T, R_S_H2O2_k<real_t>(), dER_H2O2_k<real_t>()); 
 
           // helpers for O3 reactions
           quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> 
