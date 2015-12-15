@@ -32,7 +32,7 @@ namespace libcloudphxx
         typename tup_t
       >
       BOOST_GPU_ENABLED
-      void collide(tup_t tpl, const n_t &col_no)
+      void collide(const n_t &col_no, tup_t tpl)
       {
 	// multiplicity change (eq. 12 in Shima et al. 2009)
 	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
@@ -52,8 +52,43 @@ namespace libcloudphxx
 	// invalidating vt
 	thrust::get<vt_b>(tpl) = detail::invalid;
 
-	// TODO: kappa, chemistry (only if enabled)
+	// TODO: kappa
       }
+
+      // assumes _a have higher multiplicities
+      template <typename real_t, typename n_t,
+        int   n_a, int   n_b,
+        int rw2_a, int rw2_b,
+        int rd3_a, int rd3_b,
+        int  vt_a, int  vt_b,
+        typename tup_t, typename tup_chem10_t, typename tup_chem6_t
+      >
+      BOOST_GPU_ENABLED
+      void collide(const n_t &col_no, tup_t tpl, tup_chem10_t tup_chem10_1, tup_chem10_t tup_chem10_2, tup_chem10_t tup_chem10_3, tup_chem6_t tup_chem6 )
+      {
+        // add radii and multiplicities
+        collide<n_a, n_b, rw2_a, rw2_b, rd3_a, rd3_b, vt_a, vt_b>(col_no, tpl);
+        // add chemistry
+        const int offset(n_a > n_b ? 1 : 0); // = 0 if first of a pair ha greater n, 1 otherwise
+        constexpr int greater_n[18] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34}; 
+
+        std::vector<tup_chem10_t> chem10 = {tup_chem10_1, tup_chem10_2, tup_chem10_3};
+        for(int i=0; i<3; ++i)
+          for(int j=0; j<5; ++j)
+          {
+            if(offset)
+              thrust::get<greater_n[i*j]>(chem10[i]) 
+                = col_no *thrust::get<smaller_n>(chem10[i]) + thrust::get<greater_n>(chem10[i]);
+          }
+        for(int j=0; j<3; ++j)
+        {
+          int greater_n = 2*j + offset; // position in the tuple of the j-th chemical compound of the drop with greater multiplicity
+          int smaller_n = offset ? greater_n - 1 : greater_n + 1;
+          thrust::get<greater_n>(chem6) 
+            = col_no *thrust::get<smaller_n>(chem6) + thrust::get<greater_n>(chem6);
+        }
+      }
+
       template <typename real_t, typename n_t>
 
       struct collider
@@ -86,9 +121,10 @@ namespace libcloudphxx
 
         const real_t dt;
         const kernel_base<real_t, n_t> *p_kernel;
+        bool chem;
 
         //ctor
-        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel) : dt(dt), p_kernel(p_kernel) {}
+        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel, const bool &chem = false) : dt(dt), p_kernel(p_kernel), chem(chem) {}
 
         template <class tup_ro_rw_t>
         BOOST_GPU_ENABLED
@@ -140,24 +176,39 @@ namespace libcloudphxx
           {
             if(thrust::get<n_b_ix>(tpl_rw) > 0) 
               col_no = min( col_no, n_t(thrust::get<n_a_ix>(tpl_rw) / thrust::get<n_b_ix>(tpl_rw)));
-            collide<real_t, n_t,
-                n_a_ix,   n_b_ix,
-              rw2_a_ix, rw2_b_ix,
-              rd3_a_ix, rd3_b_ix,
-               vt_a_ix,  vt_b_ix
-            >(thrust::get<1>(tpl_ro_rw), col_no);
-//              collide<real_t, n_t, n_a_ix, n_b_ix>(thrust::get<1>(tpl_ro_rw));
+            if(!chem)
+              collide<real_t, n_t,
+                  n_a_ix,   n_b_ix,
+                rw2_a_ix, rw2_b_ix,
+                rd3_a_ix, rd3_b_ix,
+                 vt_a_ix,  vt_b_ix
+              >(col_no, thrust::get<1>(tpl_ro_rw));
+            else
+              collide<real_t, n_t,
+                  n_a_ix,   n_b_ix,
+                rw2_a_ix, rw2_b_ix,
+                rd3_a_ix, rd3_b_ix,
+                 vt_a_ix,  vt_b_ix
+              >(col_no, thrust::get<1>(tpl_ro_rw), thrust::get<3>(tpl_ro_rw), thrust::get<4>(tpl_ro_rw), thrust::get<5>(tpl_ro_rw), thrust::get<6>(tpl_ro_rw));
           }
           else
           {
             if(thrust::get<n_a_ix>(tpl_rw) > 0) 
               col_no = min( col_no, n_t(thrust::get<n_b_ix>(tpl_rw) / thrust::get<n_a_ix>(tpl_rw)));
-            collide<real_t, n_t,
-                n_b_ix,   n_a_ix,
-              rw2_b_ix, rw2_a_ix,
-              rd3_b_ix, rd3_a_ix,
-               vt_b_ix,  vt_a_ix
-            >(thrust::get<1>(tpl_ro_rw), col_no);
+            if(!chem)
+              collide<real_t, n_t,
+                  n_b_ix,   n_a_ix,
+                rw2_b_ix, rw2_a_ix,
+                rd3_b_ix, rd3_a_ix,
+                 vt_b_ix,  vt_a_ix
+              >(col_no, thrust::get<1>(tpl_ro_rw));
+            else
+              collide<real_t, n_t,
+                  n_b_ix,   n_a_ix,
+                rw2_b_ix, rw2_a_ix,
+                rd3_b_ix, rd3_a_ix,
+                 vt_b_ix,  vt_a_ix
+              >(col_no, thrust::get<1>(tpl_ro_rw), thrust::get<3>(tpl_ro_rw), thrust::get<4>(tpl_ro_rw), thrust::get<5>(tpl_ro_rw), thrust::get<6>(tpl_ro_rw));
           }
         }
       };
@@ -301,42 +352,6 @@ namespace libcloudphxx
         >
       > zip_chem10_t;
 
-      zip_chem10_t zip_chem10_1, zip_chem10_2, zip_chem10_3;
-      zip_chem6_t zip_chem6;
-      std::vector<zip_chem10_t> chem10 = {zip_chem10_1, zip_chem10_2, zip_chem10_3};
-      if(opts_init.chem_switch)
-      {
-        for(int i=0; i<3; ++i)
-        {
-          zip_chem10_t &zip_chem(chem10[i]);
-          zip_chem10_t tmp_tpl(
-            thrust::make_tuple(
-              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin()), 
-              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin())+1, 
-              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin()), 
-              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin())+1, 
-              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin()), 
-              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin())+1, 
-              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin()), 
-              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin())+1, 
-              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin()), 
-              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin())+1 
-            )
-          );
-          thrust::swap(tmp_tpl, zip_chem);
-        }
-        zip_chem6_t tmp_tpl(
-          thrust::make_tuple(
-            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin()), 
-            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin())+1, 
-            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin()), 
-            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin())+1, 
-            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin()), 
-            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin())+1
-          )
-        );
-        thrust::swap(tmp_tpl, zip_chem6);
-      }
 
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
@@ -381,11 +396,59 @@ namespace libcloudphxx
         )
       );
 
-      thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
-        detail::collider<real_t, n_t>(dt, p_kernel)
-      );
+      zip_chem10_t zip_chem10_1, zip_chem10_2, zip_chem10_3;
+      zip_chem6_t zip_chem6;
+      std::vector<zip_chem10_t> chem10 = {zip_chem10_1, zip_chem10_2, zip_chem10_3};
+      if(opts_init.chem_switch)
+      {
+        for(int i=0; i<3; ++i)
+        {
+          zip_chem10_t &zip_chem(chem10[i]);
+          zip_chem10_t tmp_tpl(
+            thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+1], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+2], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+3], sorted_id.begin())+1, 
+              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin()), 
+              thrust::make_permutation_iterator(chem_bgn[5*i+4], sorted_id.begin())+1 
+            )
+          );
+          thrust::swap(tmp_tpl, zip_chem);
+        }
+        zip_chem6_t tmp_tpl(
+          thrust::make_tuple(
+            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin()), 
+            thrust::make_permutation_iterator(chem_bgn[15], sorted_id.begin())+1, 
+            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin()), 
+            thrust::make_permutation_iterator(chem_bgn[16], sorted_id.begin())+1, 
+            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin()), 
+            thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin())+1
+          )
+        );
+        thrust::swap(tmp_tpl, zip_chem6);
+      }
+
+      if(!opts_init.chem_switch)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
+          detail::collider<real_t, n_t>(dt, p_kernel)
+        );
+      }
+      else
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_chem10_1, zip_chem10_2, zip_chem10_3, zip_chem6)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_chem10_1, zip_chem10_2, zip_chem10_3, zip_chem6)) + n_part - 1,
+          detail::collider<real_t, n_t>(dt, p_kernel, true)
+        );
+      }
     }
   };  
 };
