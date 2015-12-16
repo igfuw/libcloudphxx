@@ -7,8 +7,6 @@
 
 
 // contains definitions of members of particles_t specialized for multiple GPUs
-// TODO: multi_CUDA doesn't work for real_t=float, most probably because position in x 
-// is out of domain after copy left... (i.e. x=x1)
 #include <omp.h>
 
 namespace libcloudphxx
@@ -27,7 +25,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return rmt + x - lcl;
+          real_t res = rmt + x - lcl;
+          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1
+          return res;
         }
       };
     };
