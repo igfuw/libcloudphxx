@@ -347,14 +347,14 @@ namespace libcloudphxx
         for(int i=0; i<chem_all; ++i)
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
-              chem_bgn[i],
-              chem_bgn[i]+1,
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
               col.begin(),
               col.begin()+1
             )),
             thrust::make_zip_iterator(thrust::make_tuple(
-              chem_bgn[i],
-              chem_bgn[i]+1,
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
               col.begin(),
               col.begin()+1
             )) + n_part -1,
