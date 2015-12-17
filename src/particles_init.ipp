@@ -56,9 +56,6 @@ namespace libcloudphxx
       if (pimpl->opts_init.chem_switch && pimpl->opts_init.src_switch) 
         throw std::runtime_error("chemistry and source are not compatible");
 
-      if (pimpl->opts_init.chem_switch && pimpl->opts_init.chem_rho == real_t(0)) 
-        throw std::runtime_error("please specify chem_rho or turn off chem_switch");
-
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
       pimpl->init_e2l(th,   &pimpl->th);
