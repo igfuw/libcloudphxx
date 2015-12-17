@@ -29,7 +29,7 @@ def expvolumelnr(lnr):
   r=np.exp(lnr)
   return n_zero * 3.*np.power(r,3)/np.power(r_zero,3)*np.exp(- np.power((r/r_zero),3));
 
-kappa = 0.
+kappa = 0.1
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
