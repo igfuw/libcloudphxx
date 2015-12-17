@@ -263,7 +263,7 @@ namespace libcloudphxx
 
       typedef thrust::zip_iterator<
         thrust::tuple< 
-          typename thrust_device::vector<real_t>::iterator,        // u01
+          i_real_t,                                                // u01
           pi_real_t,                                               // scl
           thrust::counting_iterator<thrust_size_t>,                // ix_a
           thrust::counting_iterator<thrust_size_t>,                // ix_b
