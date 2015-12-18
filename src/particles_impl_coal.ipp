@@ -12,6 +12,21 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      enum{na_ge_nb = -2, nb_gt_na = -1};
+
+      struct summator
+      {
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+          if(thrust::get<2>(tpl) <= 0) return; // do nothing if no collisions or first one passed was a SD with an uneven number in the cell
+          thrust::get<3>(tpl) == na_ge_nb ?    // does the first SD of the pair have greater multiplicity?
+            thrust::get<1>(tpl) += thrust::get<2>(tpl) * thrust::get<0>(tpl): // add col_no *val(SD with greater multiplicity) to the one with smaller multiplicity
+            thrust::get<0>(tpl) += thrust::get<2>(tpl) * thrust::get<1>(tpl); // add col_no *val(SD with greater multiplicity) to the one with smaller multiplicity
+        }
+      };
+
       template <typename real_t, typename n_t>
       struct scale_factor
       {
@@ -54,8 +69,8 @@ namespace libcloudphxx
 
 	// TODO: kappa, chemistry (only if enabled)
       }
-      template <typename real_t, typename n_t>
 
+      template <typename real_t, typename n_t>
       struct collider
       {
         // read-only parameters
@@ -73,9 +88,10 @@ namespace libcloudphxx
           n_t,           n_t,           // n   (multiplicity)
           real_t,        real_t,        // rw2 (wet radius squared)
           real_t,        real_t,        // vt  (terminal velocity)
-          real_t,        real_t         // rd3 (dry radius cubed)
+          real_t,        real_t,        // rd3 (dry radius cubed)
+          real_t,        real_t         // number of collisions (output); same vector as u01!
         > tpl_rw_t;
-        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
+        enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix, col_a_ix, col_b_ix };
 
         // read-only parameters passed to the calc function
         typedef thrust::tuple<
@@ -94,9 +110,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         void operator()(tup_ro_rw_t tpl_ro_rw)
         {
-          const tpl_ro_t tpl_ro = thrust::get<0>(tpl_ro_rw);
-          const tpl_rw_t tpl_rw = thrust::get<1>(tpl_ro_rw);
-          const tpl_ro_calc_t tpl_ro_calc = thrust::get<2>(tpl_ro_rw);
+          const tpl_ro_t &tpl_ro(thrust::get<0>(tpl_ro_rw));
+          const tpl_rw_t &tpl_rw(thrust::get<1>(tpl_ro_rw));
+          const tpl_ro_calc_t &tpl_ro_calc(thrust::get<2>(tpl_ro_rw));
 
           // sanity checks
 #if !defined(__NVCC__)
@@ -113,7 +129,11 @@ namespace libcloudphxx
             const thrust_size_t &cix_b = thrust::get<ix_b_ix>(tpl_ro) - thrust::get<off_b_ix>(tpl_ro);
 
             // only droplets within the same cell
-            if (cix_a != cix_b - 1) return;
+            if (cix_a != cix_b - 1)
+            {
+              thrust::get<col_a_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(0.);
+              return;
+            }
           }
 
           //wrap the tpl_rw and tpl_ro_calc tuples to pass it to kernel
@@ -124,12 +144,16 @@ namespace libcloudphxx
             * thrust::get<scl_ix>(tpl_ro)
             * p_kernel->calc(tpl_wrap);
   
-          // sanity check for random sampling validity
           n_t col_no = n_t(prob); //number of collisions between the pair; rint?
 
           // comparing the upscaled probability with a random number and returning if unlucky
           if (thrust::get<u01_ix>(tpl_ro) < prob - col_no) ++col_no;
-          if(col_no == 0) return;
+          if(col_no == 0) 
+          {
+            thrust::get<col_a_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(0.);
+            thrust::get<col_b_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(0.);
+            return;
+          }
 
 #if !defined(__NVCC__)
           using std::min;
@@ -146,7 +170,7 @@ namespace libcloudphxx
               rd3_a_ix, rd3_b_ix,
                vt_a_ix,  vt_b_ix
             >(thrust::get<1>(tpl_ro_rw), col_no);
-//              collide<real_t, n_t, n_a_ix, n_b_ix>(thrust::get<1>(tpl_ro_rw));
+            thrust::get<col_b_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(na_ge_nb); // col vector for the second in a pair stores info on which one has greater multiplicity
           }
           else
           {
@@ -158,18 +182,11 @@ namespace libcloudphxx
               rd3_b_ix, rd3_a_ix,
                vt_b_ix,  vt_a_ix
             >(thrust::get<1>(tpl_ro_rw), col_no);
+            thrust::get<col_b_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(nb_gt_na); // col vector for the second in a pair stores info on which one has greater multiplicity
           }
+          thrust::get<col_a_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(col_no); // col vector for the first in a pair stores info on number of collisions
         }
       };
-    };
-
-    struct dividebytwo : public thrust::unary_function<int, int>
-    {
-      __host__ __device__
-      int operator()(int x) const
-      {
-        return x/2;
-      }
     };
 
     template <typename real_t, backend_t device>
@@ -188,7 +205,9 @@ namespace libcloudphxx
 
       // references to tmp data
       thrust_device::vector<real_t> 
-        &scl(tmp_device_real_cell); // scale factor for probablility
+        &scl(tmp_device_real_cell), // scale factor for probablility
+        &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
+                                    // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
       thrust_device::vector<thrust_size_t> 
         &off(tmp_device_size_cell); // offset for getting index of particle within a cell
 
@@ -222,7 +241,7 @@ namespace libcloudphxx
       );
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      rand_u01(n_part/2);
+      rand_u01(n_part);
 
       // colliding
       typedef thrust::permutation_iterator<
@@ -235,22 +254,16 @@ namespace libcloudphxx
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_real_t;
 
+      typedef  typename thrust_device::vector<real_t>::iterator i_real_t;
+
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<n_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
 
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::iterator,
-        thrust::transform_iterator<
-          dividebytwo,
-          thrust::counting_iterator<int>
-        >
-      > pi_rand_t;                                                       
-
       typedef thrust::zip_iterator<
-        thrust::tuple<
-          pi_rand_t,                                               // u01
+        thrust::tuple< 
+          i_real_t,                                                // u01
           pi_real_t,                                               // scl
           thrust::counting_iterator<thrust_size_t>,                // ix_a
           thrust::counting_iterator<thrust_size_t>,                // ix_b
@@ -264,7 +277,8 @@ namespace libcloudphxx
           pi_n_t,    pi_n_t,    // n_a,   n_b
           pi_real_t, pi_real_t, // rw2_a, rw2_b
           pi_real_t, pi_real_t, // vt_a,  vt_b
-          pi_real_t, pi_real_t  // rd3_a, rd3_b 
+          pi_real_t, pi_real_t, // vt_a,  vt_b
+          i_real_t, i_real_t    // col_a, col_b 
         >
       > zip_rw_t;
 
@@ -277,8 +291,8 @@ namespace libcloudphxx
 
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
-          // u01, each pair gets one number
-          thrust::make_permutation_iterator(u01.begin(), thrust::make_transform_iterator(thrust::make_counting_iterator(0), dividebytwo())),
+          // u01
+          u01.begin(),
           // scl
           thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
           // ix
@@ -314,7 +328,10 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
           // dry radius cubed
           thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
-          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+          // output
+          col.begin(),  // number of collisions
+          col.begin()+1 // which one has greater multiplicity
         )
       );
 
@@ -323,6 +340,43 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel)
       );
+
+      // add masses of chemicals and V_old
+      if(opts_init.chem_switch)
+      {
+        for(int i=0; i<chem_all; ++i)
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1
+            )) + n_part -1,
+            detail::summator()
+          );
+
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            V_old.begin(),
+            V_old.begin()+1,
+            col.begin(),
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            V_old.begin(),
+            V_old.begin()+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::summator()
+        );
+      }
     }
   };  
 };

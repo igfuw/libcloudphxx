@@ -32,6 +32,16 @@ namespace libcloudphxx
       if (opts_init.nx != 0) x.resize(n_part); 
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
+
+      if(opts_init.chem_switch)
+      {
+        tmp_device_real_part_chem.resize(n_part);  // TODO: reuse outside of chem if needed
+        V_old.resize(n_part);// TODO: only in chemistry, but can we do without it?
+        tmp_device_real_part_HNO3.resize(n_part); // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_NH3.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_CO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_SO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+      }
     }
   };
 };

@@ -73,7 +73,10 @@ if (CUDA_FOUND)
       if (err == cudaSuccess)
         std::cout << prop.major << prop.minor;
       else
+      {
+        std::cerr << cudaGetErrorString(err);
         std::cout << \"?\";
+      }
     }
   ")
   execute_process(COMMAND "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc" "test.cu" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
