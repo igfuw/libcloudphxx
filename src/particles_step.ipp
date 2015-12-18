@@ -154,7 +154,7 @@ namespace libcloudphxx
       // if using more than 1 GPU
       // has to be done after copy 
       if (pimpl->opts_init.dev_count < 2)
-        pimpl->step_finalize();
+        pimpl->step_finalize(opts);
 
       pimpl->selected_before_counting = false;
 

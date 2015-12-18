@@ -380,6 +380,8 @@ namespace libcloudphxx
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
+
+      void step_finalize(const opts_t<real_t>&);
     };
 
     // ctor

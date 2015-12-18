@@ -264,7 +264,7 @@ namespace libcloudphxx
 
         // finalize async
         if(glob_opts_init.dev_count>1)
-          particles[dev_id].pimpl->step_finalize();
+          particles[dev_id].pimpl->step_finalize(opts);
       }
       return res;
     }
