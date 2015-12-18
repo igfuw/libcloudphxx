@@ -1,4 +1,5 @@
 #pragma once
+// Hall efficiencies for large drops and Pinsky 2001 1000mb efficiencies for r <= 21um
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -11,6 +12,7 @@ namespace libcloudphxx
         return 1100.;
       }
 
+      // Hall efficiencies for large drops and Pinsky 2001 1000mb efficiencies for r <= 21um
       template<class real_t>
       void hall_pinsky_1000mb_grav_efficiencies(std::vector<real_t> &vec)
       {

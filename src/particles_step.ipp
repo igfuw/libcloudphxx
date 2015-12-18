@@ -19,7 +19,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
-      const std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
       // sanity checks
@@ -70,12 +70,14 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
-      if (pimpl->opts_init.chem_switch)
-        for (int i = 0; i < chem_gas_n; ++i)
+      if (pimpl->opts_init.chem_switch){
+        for (int i = 0; i < chem_gas_n; ++i){
           pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
+        }
+      }
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
@@ -115,6 +117,40 @@ namespace libcloudphxx
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
         pimpl->stp_ctr = 0; //reset the counter
+      }
+
+      // chemistry
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      {
+        // calculate new volume of droplets (needed for Henrys law)
+        pimpl->chem_vol_ante();
+        // set flag for those SD that are big enough to have chemical reactions
+        pimpl->chem_flag_ante();
+
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
+        {
+          //dissolving trace gases (Henrys law)
+          if (opts.chem_dsl == true)
+            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
+
+          //dissociation
+          if (opts.chem_dsc == true)
+            pimpl->chem_dissoc();
+
+          //oxidation 
+          if (opts.chem_rct == true)
+          pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+        }
+
+        //save the current drop volume in V_old (to be used in the next step for Henrys law)
+        pimpl->chem_vol_post();
+
+        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->sync(
+            pimpl->ambient_chem[(chem_species_t)i],
+            ambient_chem.at((chem_species_t)i)
+          );
       }
 
       pimpl->should_now_run_async = true;
@@ -164,15 +200,6 @@ namespace libcloudphxx
 
       // boundary condition + accumulated rainfall to be returned
       real_t ret = pimpl->bcnd();
-
-      // chemistry
-      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
-      {
-        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
-          pimpl->chem(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_gas, 
-                      opts.chem_dsl, opts.chem_dsc, opts.chem_rct
-                     );
-      }
 
       // coalescence
       if (opts.coal) 

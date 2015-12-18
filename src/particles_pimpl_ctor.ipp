@@ -138,7 +138,7 @@ namespace libcloudphxx
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
       std::vector<typename thrust_device::vector<real_t>::iterator >
         chem_bgn, chem_end; // indexed with enum chem_species_t
-      thrust_device::vector<real_t> chem_noneq, chem_equil;
+      thrust_device::vector<real_t> chem_rhs, chem_ante_rhs, chem_post_rhs;
       /* TODO:
         On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
         > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
@@ -156,6 +156,9 @@ namespace libcloudphxx
         boost::numeric::odeint::never_resizer
       > chem_stepper;
 
+      // vector to store volume of SDs, needed by chem Henry
+      thrust_device::vector<real_t>  V_old;
+
       // temporary data
       thrust::host_vector<real_t>
         tmp_host_real_grid,
@@ -164,7 +167,13 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
+        tmp_device_real_part_chem,  // only allocated if chem_switch==1
+        tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
+        tmp_device_real_part_NH3,
+        tmp_device_real_part_SO2,
+        tmp_device_real_part_CO2,
         tmp_device_real_cell,
+        tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -240,6 +249,7 @@ namespace libcloudphxx
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
+        tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
@@ -298,6 +308,7 @@ namespace libcloudphxx
       void init_hskpng_ncell();
       void init_hskpng_npart();
       void init_chem();
+      void init_chem_aq();
       void init_sstp();
       void init_kernel();
 
@@ -361,8 +372,13 @@ namespace libcloudphxx
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
-                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
+      void chem_vol_ante();
+      void chem_flag_ante();
+      void chem_henry(const real_t &dt, const bool &chem_sys_cls);
+      void chem_dissoc();
+      void chem_react(const real_t &dt);
+      void chem_vol_post();
+ 
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
