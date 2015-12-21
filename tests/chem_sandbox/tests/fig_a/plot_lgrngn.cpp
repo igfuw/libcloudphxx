@@ -2,6 +2,11 @@
 #include "bins.hpp"
 #include "gnuplot.hpp"
 #include "hdf5.hpp"
+#include "../../../../include/libcloudph++/common/molar_mass.hpp"
+#include "../../../../include/libcloudph++/common/moist_air.hpp"
+
+using namespace libcloudphxx::common::molar_mass;
+using namespace libcloudphxx::common::moist_air;
 
 int main(int ac, char** av)
 {
@@ -15,7 +20,8 @@ int main(int ac, char** av)
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
-    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na"}))
+    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "sd_conc", "th", "rv", 
+                                           "SO2g", "O3g", "H2O2g", "CO2g", "NH3g", "HNO3g"}))
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
@@ -130,6 +136,70 @@ int main(int ac, char** av)
 	gp << "set title 'aerosol concentration [mg^{-1}]'\n";
 	tmp /= 1e6;
 	plot(gp, tmp);
+      }
+      else if (plt == "sd_conc")
+      {
+        // super-droplet concentration
+        auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
+        gp << "set title 'super-droplet concentration [dv-1]'\n";
+        gp << "set cbrange [0:128]\n";
+        plot(gp, sd_conc);
+      }
+      else if (plt == "th")
+      {
+        auto th = h5load(h5, "th", at * n["outfreq"]);
+        gp << "set title 'potential temperature [K]'\n";
+        gp << "set cbrange [289.5:292]\n";
+        plot(gp, th);
+      }
+      else if (plt == "rv")
+      {
+        auto rv = h5load(h5, "rv", at * n["outfreq"]) * 1000;
+        gp << "set title 'water vapour mixing ratio [g/kg]'\n";
+        gp << "set cbrange [6.5:7.7]\n";
+        plot(gp, rv);
+      }
+      else if (plt == "SO2g")
+      {                                                  // TODO this is lazy (assumes pd = p), do it better
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [0:0.2]\n";
+        plot(gp, chem);
+      }
+      else if (plt == "O3g")
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_O3<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [50:50.1]\n";
+        plot(gp, chem);
+      }
+      else if (plt == "H2O2g")
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_H2O2<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [0.45:0.5]\n";
+        plot(gp, chem);
+      }
+      else if (plt == "CO2g")
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_CO2<float>()) * 1e6;
+        gp << "set title 'gas vol conc [ppm]'\n";
+        gp << "set cbrange [360:361.2]\n";
+        plot(gp, chem);
+      }
+      else if (plt == "NH3g")
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_NH3<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [0:0.1]\n";
+        plot(gp, chem);
+      }
+      else if (plt == "HNO3g")
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_HNO3<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [0:0.1]\n";
+        plot(gp, chem);
       }
       else assert(false);
     } // var loop
