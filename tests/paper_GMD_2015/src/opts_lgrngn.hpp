@@ -66,7 +66,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
   rt_params.cloudph_opts_init.n_sd_max = nx * nz * rt_params.cloudph_opts_init.sd_conc;;
-
+ 
   boost::assign::ptr_map_insert<
     setup::log_dry_radii<thrust_real_t> // value type
   >(

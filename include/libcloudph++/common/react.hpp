@@ -47,7 +47,7 @@ namespace libcloudphxx
       //reaction rate(temperature) for H2O2 reaction
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<volume_square_over_amount_square_over_time, real_t> R_temp(
+      quantity<volume_square_over_amount_square_over_time, real_t> R_temp_H2O2(
         const quantity<si::temperature, real_t> &T, 
         const quantity<volume_square_over_amount_square_over_time, real_t> &R, 
         const quantity<si::temperature, real_t> &dER
@@ -58,7 +58,7 @@ namespace libcloudphxx
       //reaction rate(temperature) for O3 reaction
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<volume_over_amount_over_time, real_t> R_temp(
+      quantity<volume_over_amount_over_time, real_t> R_temp_O3(
         const quantity<si::temperature, real_t> &T, 
         const quantity<volume_over_amount_over_time, real_t> &R, 
         const quantity<si::temperature, real_t> &dER
