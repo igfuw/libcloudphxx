@@ -171,6 +171,8 @@ namespace chem_case
     // constant potential temperature & water vapour mixing ratio profiles
     solver.advectee(ix::th) = (theta_dry::std2dry(th_0, rv_0) / si::kelvins); 
     solver.advectee(ix::rv) = real_t(rv_0);
+
+    // trace gases profiles
     solver.advectee(ix::SO2g)  = mixr_helper()(j * dz) * (SO2_g_0  * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
     solver.advectee(ix::O3g)   = mixr_helper()(j * dz) * (O3_g_0   * molar_mass::M_O3<real_t>()   * si::moles / si::kilograms);
     solver.advectee(ix::H2O2g) = mixr_helper()(j * dz) * (H2O2_g_0 * molar_mass::M_H2O2<real_t>() * si::moles / si::kilograms);

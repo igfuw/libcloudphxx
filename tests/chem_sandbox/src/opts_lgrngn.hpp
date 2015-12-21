@@ -79,7 +79,6 @@ void setopts_micro(
 
   // output variables
   rt_params.outvars = {
-    // <TODO>: make it common among all three micro?
     {solver_t::ix::th, {"th", "[K]"}},
     {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
     {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
@@ -88,7 +87,6 @@ void setopts_micro(
     {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
     {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
     {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
-    // </TODO>
   };
 
   // process toggling
