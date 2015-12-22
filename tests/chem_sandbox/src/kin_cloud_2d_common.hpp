@@ -25,6 +25,7 @@ class kin_cloud_2d_common : public
   // spinup stuff
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
+  virtual void set_chem(bool) = 0;
 
   void hook_ante_loop(int nt) 
   {
@@ -34,6 +35,7 @@ class kin_cloud_2d_common : public
       spinup = relax_th_rv = 0;      
     }
     if (spinup > 0) set_rain(false);
+    set_chem(false);
 
     parent_t::hook_ante_loop(nt); 
   }
@@ -44,6 +46,7 @@ class kin_cloud_2d_common : public
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
+      set_chem(true);
     }
 
     using ix = typename ct_params_t::ix;

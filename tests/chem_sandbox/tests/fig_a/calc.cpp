@@ -37,7 +37,7 @@ int main(int ac, char** av)
   set<string> opts_micro({
 //    "--micro=blk_1m --outdir=out_blk_1m",
 //    "--micro=blk_2m --outdir=out_blk_2m",
-    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=64 --sstp_cond=10 --coal=False  --chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rct=True"  
+    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=64 --sstp_cond=10 --coal=False --sedi=False --chem_switch=True --chem_dsl=True --chem_dsc=True"  //chem_rct switched on afetr spinup in set_chem  
       " --out_wet=\""
         ".5e-6:25e-6|0,1,2,3;" // FSSP
         "25e-6:1|0,3;"         // "rain"
