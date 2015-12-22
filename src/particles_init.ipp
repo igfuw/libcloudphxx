@@ -155,6 +155,9 @@ namespace libcloudphxx
       // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
+
+      //initialising vterm
+      if(pimpl->opts_init.coal_switch || pimpl->opts_init.sedi_switch) pimpl->init_vterm();
     }
   };
 };
