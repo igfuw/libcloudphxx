@@ -97,5 +97,5 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
     - git clone --depth=1 git://github.com/igfuw/parcel.git
     - cd parcel
-    #- py.test -s -v unit_test
-    #- py.test -s -v long_test
+    - py.test -s -v unit_test
+    - py.test -s -v long_test
