@@ -76,6 +76,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::chem_flag_ante()
     { 
       thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
+
+std::cerr<< "chem vol ante"<< std::endl;
  
       // set flag to those SDs that take part in chemical reactions
       thrust::transform(

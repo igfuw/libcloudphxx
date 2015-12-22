@@ -41,7 +41,7 @@ endif()
 
 ############################################################################################
 # CUDA
-find_package(CUDA QUIET)
+#find_package(CUDA QUIET)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 

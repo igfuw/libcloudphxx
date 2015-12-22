@@ -27,7 +27,7 @@ namespace libcloudphxx
 
       template <typename real_t>
       struct ambient_chem_calculator
-      { // calculate the chenge in trace gases due to Henrys law
+      { // calculate the change in trace gases due to Henrys law
         const quantity<common::mass_over_amount, real_t> M_gas;
         const quantity<common::mass_over_amount, real_t> M_aq;
  
@@ -115,6 +115,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &V(tmp_device_real_part);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+
+std::cerr<<"chem Henry"<<  std::endl;
 
       // gas absorption
       // TODO: open/close system logic -> async/sync timestep

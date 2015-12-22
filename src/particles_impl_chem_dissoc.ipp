@@ -311,6 +311,8 @@ namespace libcloudphxx
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
+std::cerr << "chem dissoc" << std::endl;
+
       // equilibrium stuff: dissociation
  
       // save number of moles of dissolving chem species

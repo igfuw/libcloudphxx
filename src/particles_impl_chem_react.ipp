@@ -253,6 +253,8 @@ namespace libcloudphxx
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
+std::cerr<<"chem react"<< std::endl;
+
       thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part_chem);
 
       // copy old H2SO4 values to allow dry radii recalculation
