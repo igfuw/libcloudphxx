@@ -120,6 +120,9 @@ namespace libcloudphxx
 	    }
 
 	    // precipitation on the bottom edge of the domain
+	    //// first: count the volume of particles below the domain
+	    // TODO! (using tranform_reduce?)
+	    //// second: zero-out multiplicities so they will be recycled
 	    {
 	      namespace arg = thrust::placeholders;
 

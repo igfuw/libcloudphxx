@@ -27,7 +27,7 @@ namespace libcloudphxx
       //   For g12(R): Zhou et al. (2001), J. Fluid Mech., 433, 77-104
       template<class real_t>
       BOOST_GPU_ENABLED
-      real_t kernel_onishi_nograv(const real_t &r1, const real_t &r2, const real_t &Re_l, const real_t &eps, const real_t &dnu, const real_t &ratio_den)
+      real_t kernel_onishi_nograv(const real_t &r1, const real_t &r2, const real_t &Re_l, const real_t &eps, real_t dnu, real_t ratio_den)
       {
 #if !defined(__NVCC__)
         using std::max;
@@ -113,7 +113,7 @@ namespace libcloudphxx
         else
         {
           y11 = 0.;
-          y21 = A2 * Re_l / St1*St1;
+          y21 = A2 * Re_l / (St1*St1);
         }
         y31 = A3 * sqrt(Re_l/St1);
   
@@ -125,7 +125,7 @@ namespace libcloudphxx
         else
         {
           y12 = 0.;
-          y22 = A2 * Re_l / St2*St2;
+          y22 = A2 * Re_l / (St2*St2);
         }
         y32 = A3 * sqrt(Re_l/St2);
   

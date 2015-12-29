@@ -31,6 +31,7 @@ namespace libcloudphxx
       
       tmp_device_real_part.reserve(opts_init.n_sd_max);
       tmp_device_n_part.reserve(opts_init.n_sd_max);
+      tmp_device_size_part.reserve(opts_init.n_sd_max);
 
       rd3.reserve(opts_init.n_sd_max);
       rw2.reserve(opts_init.n_sd_max);
@@ -46,6 +47,15 @@ namespace libcloudphxx
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);
         in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa vt x y z
         out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);
+      }
+      if(opts_init.chem_switch)
+      {
+        tmp_device_real_part_chem.reserve(opts_init.n_sd_max); 
+        V_old.reserve(opts_init.n_sd_max);
+        tmp_device_real_part_HNO3.reserve(opts_init.n_sd_max); // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_NH3.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_CO2.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part_SO2.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?
       }
     }
   };

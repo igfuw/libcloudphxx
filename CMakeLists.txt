@@ -8,11 +8,14 @@ if (NOT libcloudphxx_FOUND)
   message(FATAL_ERROR "local libcloudph++-config.cmake not found!")
 endif()
 
-# requireing C++11 and pointing to local headers
+# pointing to local headers
 set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 
+# enabling additional warnings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${libcloudphxx_CXX_FLAGS_RELEASE}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${libcloudphxx_CXX_FLAGS_RELEASE} -Winline")
   set(CMAKE_CXX_FLAGS_RELEASE "")
 else()
   set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
@@ -70,7 +73,10 @@ if (CUDA_FOUND)
       if (err == cudaSuccess)
         std::cout << prop.major << prop.minor;
       else
+      {
+        std::cerr << cudaGetErrorString(err);
         std::cout << \"?\";
+      }
     }
   ")
   execute_process(COMMAND "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc" "test.cu" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
