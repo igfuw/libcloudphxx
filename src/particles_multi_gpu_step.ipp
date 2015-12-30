@@ -254,6 +254,9 @@ namespace libcloudphxx
             thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
 
+          // resize all vectors of size n_part
+          particles[dev_id].pimpl->hskpng_resize_npart();
+
           // particles are not sorted now
           particles[dev_id].pimpl->sorted = false;          
 
