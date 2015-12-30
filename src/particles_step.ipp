@@ -84,10 +84,6 @@ namespace libcloudphxx
         }
       }
 
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      pimpl->hskpng_ijk();
-
       // condensation/evaporation 
       if (opts.cond) 
       {
