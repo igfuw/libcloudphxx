@@ -11,6 +11,7 @@
 #include <libcloudph++/common/kappa_koehler.hpp>
 #include <libcloudph++/common/hydrostatic.hpp>
 #include <libcloudph++/common/henry.hpp>
+#include <libcloudph++/common/dissoc.hpp>
 
 namespace libcloudphxx
 {

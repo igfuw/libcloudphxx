@@ -116,14 +116,15 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod,
       const arrinfo_t<real_t> courant_1,
       const arrinfo_t<real_t> courant_2,
-      const arrinfo_t<real_t> courant_3
+      const arrinfo_t<real_t> courant_3,
+      const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3);
+        particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
       }
     }
   };

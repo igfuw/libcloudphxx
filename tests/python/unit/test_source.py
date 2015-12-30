@@ -77,7 +77,6 @@ opts.src = 1
 for i in range(100):
   prtcls.step_sync(opts,th,rv,rhod)
   prtcls.step_async(opts)
-  prtcls.diag_sd_conc()
 
 prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())

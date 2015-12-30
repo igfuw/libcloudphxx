@@ -36,7 +36,7 @@ namespace libcloudphxx
       // no. of substeps 
       int sstp_cond, sstp_coal; 
   
-      // superstep frequency
+      // timestep interval at which source will be applied
       int supstp_src;
 
       // Lagrangian domain extents
@@ -46,15 +46,15 @@ namespace libcloudphxx
       unsigned long long sd_conc; 
 
       // max no. of super-droplets in the system
-      // used to init sizes of containers
-      // should fit particles from sources
+      // should be enough to store particles from sources
       unsigned long long n_sd_max; 
 
-      // source parameters
       // source distro per unit time
       dry_distros_t src_dry_distros;
+
       // number of SDs created per cell per source iteration
       unsigned long long src_sd_conc;
+
       // height up to which aerosol will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_z1;
@@ -111,6 +111,9 @@ namespace libcloudphxx
         src_sd_conc(0),
         src_z1(0)
       {}
+
+      // dtor (just to silence -Winline warnings)
+      ~opts_init_t() {}
     };
   }
 };
