@@ -109,6 +109,12 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta_d
         sstp_tmp_rh, // ditto for rho
+        sstp_tmp_chem_0, // ditto for trace gases
+        sstp_tmp_chem_1, // ditto for trace gases
+        sstp_tmp_chem_2, // ditto for trace gases
+        sstp_tmp_chem_3, // ditto for trace gases
+        sstp_tmp_chem_4, // ditto for trace gases
+        sstp_tmp_chem_5, // ditto for trace gases
         courant_x, 
         courant_y, 
         courant_z;
@@ -310,6 +316,7 @@ namespace libcloudphxx
       void init_chem();
       void init_chem_aq();
       void init_sstp();
+      void init_sstp_chem();
       void init_kernel();
 
       void fill_outbuf();
@@ -386,6 +393,9 @@ namespace libcloudphxx
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
+
+      void sstp_step_chem(const int &step, const bool &var_rho);
+      void sstp_save_chem();
     };
 
     // ctor

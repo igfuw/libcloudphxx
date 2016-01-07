@@ -142,7 +142,12 @@ namespace libcloudphxx
       if(pimpl->opts_init.chem_switch){
         pimpl->init_chem_aq();
       }
- 
+     
+      // init for substepping for chem reactions
+      if(pimpl->opts_init.chem_switch){
+       pimpl->init_sstp_chem();
+      }
+
       // calculate initail volume (helper for Henry in chem)
       if (pimpl->opts_init.chem_switch){
         pimpl->chem_vol_ante();

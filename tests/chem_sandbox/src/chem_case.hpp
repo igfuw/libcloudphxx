@@ -47,7 +47,7 @@ namespace chem_case
     Z    = 1500 * si::metres, 
     X    = 1500 * si::metres;
   const quantity<si::time, real_t>
-    dt = real_t(.1) * si::seconds;
+    dt = real_t(1) * si::seconds;
 
   // trace gases (mole fractions) 
   const quantity<si::dimensionless, real_t>
