@@ -253,8 +253,7 @@ namespace libcloudphxx
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-std::cerr<<"chem react"<< std::endl;
-
+//std::cerr<<"chem react"<< std::endl;
       thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part_chem);
 
       // copy old H2SO4 values to allow dry radii recalculation
@@ -271,6 +270,19 @@ std::cerr<<"chem react"<< std::endl;
         dt
       );
 
+      assert(opts_init.chem_rho != 0);
+//std::cerr<<"chem rho " << opts_init.chem_rho << std::endl;
+
+//std::cerr<<"chem flag" << std::endl;
+//debug::print(chem_flag);
+
+//std::cerr<<"dry radii before"<< std::endl;
+//debug::print(rd3);
+
+//std::cerr<<"chem before"<<std::endl;
+//for (int i = 0; i < chem_gas_n; ++i){
+//  debug::print(chem_bgn[i], chem_end[i]);
+//}
       // recompute dry radii
       // TODO: using namespace for S_VI
       typedef thrust::zip_iterator<
@@ -286,6 +298,15 @@ std::cerr<<"chem react"<< std::endl;
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
        
       thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
+
+//std::cerr<<"dry radii after"<< std::endl;
+//debug::print(rd3);
+
+      for (int i = 0; i < chem_gas_n; ++i){
+        //debug::print(chem_bgn[i], chem_end[i]);
+        assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+      }
+      assert(boost::math::isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
     }
   };  
 };

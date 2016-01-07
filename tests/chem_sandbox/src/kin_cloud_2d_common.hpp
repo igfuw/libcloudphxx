@@ -29,13 +29,18 @@ class kin_cloud_2d_common : public
 
   void hook_ante_loop(int nt) 
   {
+/* TODO - not true with chemistry 
     if (get_rain() == false) 
     {
       // spinup and relaxation do not make sense without autoconversion  (TODO: issue a warning?)
       spinup = relax_th_rv = 0;      
     }
-    if (spinup > 0) set_rain(false);
-    set_chem(false);
+*/
+    if (spinup > 0) 
+    {
+      set_rain(false);
+      set_chem(false);
+    }
 
     parent_t::hook_ante_loop(nt); 
   }
@@ -45,7 +50,7 @@ class kin_cloud_2d_common : public
     if (spinup != 0 && spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
-      set_rain(true);
+      set_rain(false);
       set_chem(true);
     }
 

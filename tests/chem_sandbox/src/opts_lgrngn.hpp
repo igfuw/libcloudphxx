@@ -29,6 +29,9 @@ void setopts_micro(
 )
 {
   using thrust_real_t = setup::real_t; // TODO: make it a choice?
+//TODO - ^^
+//TODO - halving collisions efficiency...
+//TODO - maybe we want some cleanups in icicle?
 
   po::options_description opts("Lagrangian microphysics options"); 
   opts.add_options()
@@ -42,9 +45,10 @@ void setopts_micro(
     ("coal", po::value<bool>()->default_value(rt_params.cloudph_opts.coal) , "collisional growth     (1=on, 0=off)")
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
-    ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
-    ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry      (1=on, 0=off)")
-
+    ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "chem. reactions        (1=on, 0=off)")
+    ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
+    ("chem_sys_cls", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_sys_cls) , "closed chem. system (1=on, 0=open chem. system)")
+    ("chem_rho", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.chem_rho) , "assumed dry aerosol density ")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -52,6 +56,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_chem", po::value<std::string>()->default_value("0:1|SO2,CO2"),  "dry radius ranges for which chem mass is outputted")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -100,7 +105,9 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
   rt_params.cloudph_opts_init.chem_switch = vm["chem_switch"].as<bool>();
-
+  rt_params.cloudph_opts_init.chem_rho    = vm["chem_rho"].as<setup::real_t>();
+  rt_params.cloudph_opts.chem_sys_cls = vm["chem_sys_cls"].as<bool>();
+ 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
@@ -115,7 +122,7 @@ void setopts_micro(
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : std::set<std::string>({"out_dry", "out_wet", "out_chem"}))
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;
@@ -125,11 +132,11 @@ void setopts_micro(
     auto last  = val.end();
 
     std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
-
+    outmom_t<thrust_real_t> &moms =  //TODO why?
+      opt != "out_dry"
+        ? (opt == "out_wet" ? rt_params.out_wet : rt_params.out_chem)
+        : rt_params.out_dry;
+ 
     const bool result = qi::phrase_parse(first, last, 
       *(
 	*(qi::char_-":")  >>  qi::lit(":") >>  

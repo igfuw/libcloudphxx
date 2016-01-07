@@ -1,9 +1,12 @@
 #pragma once
 
+#include <vector>
+
 #include "kin_cloud_2d_common.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
+#include <libcloudph++/lgrngn/chem.hpp>
 
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
@@ -64,6 +67,59 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
           this->record_aux(aux_name("rw", rng_num, mom), prtcls->outbuf());
         }
         rng_num++;
+      }
+    }
+
+    {
+      // chem
+      for (auto &rng_moms : params.out_chem)
+      {
+        auto &rng(rng_moms.first);
+        prtcls->diag_dry_rng(rng.first / si::metres, rng.second / si::metres);
+         
+        //TODO
+        //for (auto &chem_enum : libcloudphxx::lgrngn::chem_species_t)
+        {
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::SO2);
+          this->record_aux("chem_SO2_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::HSO3);
+          this->record_aux("chem_HSO3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::SO3);
+          this->record_aux("chem_SO3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::HSO4);
+          this->record_aux("chem_HSO4_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::SO4);
+          this->record_aux("chem_SO4_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::S_VI);
+          this->record_aux("chem_S_VI_aq", prtcls->outbuf());
+
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::O3);
+          this->record_aux("chem_O3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::H2O2);
+          this->record_aux("chem_H2O2_aq", prtcls->outbuf());
+
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::H);
+          this->record_aux("chem_H_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::OH);
+          this->record_aux("chem_OH_aq", prtcls->outbuf());
+
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::CO2);
+          this->record_aux("chem_CO2_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::HCO3);
+          this->record_aux("chem_HCO3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::CO3);
+          this->record_aux("chem_CO3_aq", prtcls->outbuf());
+
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::NH3);
+          this->record_aux("chem_NH3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::NH4);
+          this->record_aux("chem_NH4_aq", prtcls->outbuf());
+
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::HNO3);
+          this->record_aux("chem_HNO3_aq", prtcls->outbuf());
+          prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::NO3);
+          this->record_aux("chem_NO3_aq", prtcls->outbuf());
+        }
       }
     }
   } 
@@ -160,6 +216,23 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
           (libcloudphxx::lgrngn::chem_species_t::CO2,  make_arrinfo(this->mem->advectee(ix::CO2g)))
           (libcloudphxx::lgrngn::chem_species_t::NH3,  make_arrinfo(this->mem->advectee(ix::NH3g)))
           (libcloudphxx::lgrngn::chem_species_t::HNO3, make_arrinfo(this->mem->advectee(ix::HNO3g)));
+/*
+        std::cerr << "amb hno3 strides map " << ambient_chem_init.at((libcloudphxx::lgrngn::chem_species_t)0).strides << std::endl;
+        std::cerr << "amb hno3 strides[0] map " << ambient_chem_init.at((libcloudphxx::lgrngn::chem_species_t)0).strides[0] << std::endl;
+
+        std::cerr << "amb hno3 strdes[0] "<< this->mem->advectee(ix::HNO3g).stride().data()[0] << std::endl;
+        std::cerr <<  "amb hno3 strdes[1] "<<this->mem->advectee(ix::HNO3g).stride().data()[1] << std::endl;
+
+        std::cerr << "amb so2 strdes[0] "<< this->mem->advectee(ix::SO2g).stride().data()[0] << std::endl;
+        std::cerr <<  "amb so2 strdes[1] "<<this->mem->advectee(ix::SO2g).stride().data()[1] << std::endl;
+*/
+        // TODO!!! 
+        // why we need those is beyond me, but apparently without it
+        // strides in ambient_chem are wrong for some chemical species
+        // the problem is not present in Debug mode
+        libcloudphxx::lgrngn::arrinfo_t<real_t> th(make_arrinfo(this->mem->advectee(ix::th)));
+        libcloudphxx::lgrngn::arrinfo_t<real_t> rv(make_arrinfo(this->mem->advectee(ix::rv)));
+        libcloudphxx::lgrngn::arrinfo_t<real_t> g(make_arrinfo(this->mem->g_factor()));
 
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
@@ -270,7 +343,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
-    outmom_t<real_t> out_dry, out_wet;
+    outmom_t<real_t> out_dry, out_wet, out_chem;
   };
 
   private:

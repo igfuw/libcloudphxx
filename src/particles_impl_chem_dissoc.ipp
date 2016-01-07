@@ -178,7 +178,7 @@ namespace libcloudphxx
           
           // limits for search in toms748
           real_t m_H_rht = ((real_t(1e2  * 1e3)  * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H_lft = ((real_t(1e-8 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_lft = ((real_t(1e-9 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
           uintmax_t max_iter = 44;
 
@@ -189,7 +189,9 @@ namespace libcloudphxx
             common::detail::eps_tolerance<float>(sizeof(float) * 8), //TODO is it big enough?
             max_iter
 	  ); 
-          //std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << std::endl;
+
+          //real_t ph_helper = real_t(-1.) * log10(m_H / (M_H<real_t>() / si::kilograms * si::moles) / (V / si::cubic_metres) / real_t(1000.));
+          //std::cerr << "  " << m_H_lft << " ... " << m_H << " ... " << m_H_rht << " -> "<< ph_helper<< std::endl;
           // TODO: asserts for K = f(m_H, m_...)
           return m_H;
         }
@@ -311,7 +313,7 @@ namespace libcloudphxx
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-std::cerr << "chem dissoc" << std::endl;
+//std::cerr << "chem dissoc" << std::endl;
 
       // equilibrium stuff: dissociation
  
@@ -439,7 +441,10 @@ std::cerr << "chem dissoc" << std::endl;
         thrust::transform(arg_begin, arg_end, chem_bgn[NO3],  detail::chem_dissoc_diag<real_t, NO3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH3],  detail::chem_dissoc_diag<real_t, NH3 >());
         thrust::transform(arg_begin, arg_end, chem_bgn[NH4],  detail::chem_dissoc_diag<real_t, NH4 >());
+      }
 
+      for (int i = 0; i < chem_gas_n; ++i){
+        assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
       }
     }
   };  

@@ -48,7 +48,11 @@ namespace libcloudphxx
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<1>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::volume, real_t>        dv     = thrust::get<2>(tpl) * si::cubic_metres;
           const quantity<si::dimensionless, real_t> c      = thrust::get<3>(tpl); 
-
+/*
+real_t diff = (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
+printf("%.4e %.4e\n", double(c), double(diff));
+return c - diff;
+*/
           return c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
         }
       };
@@ -116,7 +120,7 @@ namespace libcloudphxx
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-std::cerr<<"chem Henry"<<  std::endl;
+//std::cerr<<"chem Henry"<<  std::endl;
 
       // gas absorption
       // TODO: open/close system logic -> async/sync timestep
@@ -174,8 +178,13 @@ std::cerr<<"chem Henry"<<  std::endl;
         thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
         thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
 
+//std::cerr<<"Henry!"<<std::endl;
+
         for (int i = 0; i < chem_gas_n; ++i)
         {
+
+//std::cerr<<"chem_gas enum "<<i<<std::endl;
+
           // store the total mass of chem species in cloud droplets per cell
           thrust::reduce_by_key(
             sorted_ijk.begin(), sorted_ijk.end(),
@@ -194,6 +203,7 @@ std::cerr<<"chem Henry"<<  std::endl;
             mass_old.begin()
           );
 
+
           // apply Henrys law to the in-drop chemical compounds 
           thrust::transform(
             V.begin(), V.end(),                             // input - 1st arg
@@ -211,21 +221,23 @@ std::cerr<<"chem Henry"<<  std::endl;
           );
 
           //TODO - check if its needed in some 2D test
-          /*thrust::transform(
+          /*
+          thrust::transform(
             thrust::make_permutation_iterator(V.begin(), sorted_id.begin()),
             thrust::make_permutation_iterator(V.begin(), sorted_id.end()),
             thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
               thrust::make_permutation_iterator(p.begin(), sorted_ijk.begin()),
               thrust::make_permutation_iterator(T.begin(), sorted_ijk.begin()),
               thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), sorted_ijk.begin()),
-              thrust::make_permutation_iterator(chem_bgn[i].begin(), sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
               thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()),
               thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
               thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin())
             )),
             thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
             detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
-          );*/
+          );
+          */
 
           // store the total mass of chem species in cloud droplets per cell after Henry
           thrust::pair<
@@ -251,7 +263,15 @@ std::cerr<<"chem Henry"<<  std::endl;
           count_n = np.first - count_ijk.begin();
           assert(count_n > 0 && count_n <= n_cell);
 
+/*
+printf("\nspecies %d count_n %d\n", i, int(count_n));
+std::cerr<<"ambient chem before henry:" << std::endl;
+debug::print(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end());
 
+debug::print(count_ijk);
+debug::print(mass_old);
+debug::print(mass_new);
+*/
           // apply the change to the mixing ratios of trace gases
           thrust::transform(
             mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
@@ -264,10 +284,17 @@ std::cerr<<"chem Henry"<<  std::endl;
             thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin()), // output 
             detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i])                                   // op
           );
+
           assert(*thrust::min_element(
             ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
           ) >= 0);
+/*
+std::cerr<<"ambient chem after henry:" << std::endl;
+debug::print(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end());
+printf("\n");
+*/
         }
+//printf("\n ------------------------- \n");
       }
 
       else{ // open chemical system - do not change trace gase mixing ratios due to Henrys law
@@ -291,6 +318,10 @@ std::cerr<<"chem Henry"<<  std::endl;
         }
       }
 
+      for (int i = 0; i < chem_gas_n; ++i){
+        //debug::print(chem_bgn[i], chem_end[i]);
+        assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+      }
     }
   };  
 };

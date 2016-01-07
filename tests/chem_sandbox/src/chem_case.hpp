@@ -19,31 +19,35 @@
 
 namespace chem_case
 {
-  using real_t = float;
+  using real_t = double;
 
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
-  namespace theta_std = libcloudphxx::common::theta_std;
-  namespace theta_dry = libcloudphxx::common::theta_dry;
-  namespace lognormal = libcloudphxx::common::lognormal;
+  namespace theta_std   = libcloudphxx::common::theta_std;
+  namespace theta_dry   = libcloudphxx::common::theta_dry;
+  namespace lognormal   = libcloudphxx::common::lognormal;
   namespace molar_mass  = libcloudphxx::common::molar_mass;
   namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions
 
   const quantity<si::temperature, real_t> 
+//    th_0 = real_t(285.2) * si::kelvins;
     th_0 = 289 * si::kelvins;
   const quantity<si::dimensionless, real_t> 
+//    rv_0 = 8.86e-3;
     rv_0 = 7.5e-3;
   const quantity<si::pressure, real_t> 
+//    p_0 = 95000 * si::pascals;
     p_0 = 101500 * si::pascals;
   const quantity<si::velocity, real_t> 
+//    w_max = real_t(.5) * si::metres_per_second;
     w_max = real_t(.6) * si::metres_per_second;
   const quantity<si::length, real_t> 
     z_0  = 0    * si::metres,
     Z    = 1500 * si::metres, 
     X    = 1500 * si::metres;
   const quantity<si::time, real_t>
-    dt = real_t(1) * si::seconds;
+    dt = real_t(.1) * si::seconds;
 
   // trace gases (mole fractions) 
   const quantity<si::dimensionless, real_t>
@@ -52,22 +56,27 @@ namespace chem_case
     H2O2_g_0 = real_t(500e-12),
     CO2_g_0  = real_t(360e-6),
     NH3_g_0  = real_t(100e-12),
-    HNO3_g_0 = real_t(100e-12);
+    //HNO3_g_0 = real_t(100e-12);
+    HNO3_g_0 = real_t(0);
 
   //aerosol bimodal lognormal dist. 
   const quantity<si::length, real_t>
+    //mean_rd1 = real_t(.04e-6) * si::metres;
     mean_rd1 = real_t(.04e-6 / 2) * si::metres,
     mean_rd2 = real_t(.15e-6 / 2) * si::metres;
   const quantity<si::dimensionless, real_t>
+    //sdev_rd1 = real_t(2.);
     sdev_rd1 = real_t(1.4),
     sdev_rd2 = real_t(1.6);
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
+    //n1_stp = real_t(600.7e6) / si::cubic_metres;
     n1_stp = real_t(60e6) / si::cubic_metres,
     n2_stp = real_t(40e6) / si::cubic_metres;
 
-  //aerosol chemical composition parameters (needed for activation)
+  //aerosol chemical composition parameters
   // for lgrngn:
-  const quantity<si::dimensionless, real_t> kappa = .61; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
+  const quantity<si::dimensionless, real_t> kappa    = .5;     // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
+  const quantity<si::mass_density,  real_t> chem_rho = real_t(1.8e3) * si::kilograms / si::cubic_metres;  // assumed density of dry aerosol
   // for blk_2m:
   const quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride
 
@@ -212,8 +221,8 @@ namespace chem_case
     T funval(const T lnrd) const
     {
       return T((
-          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp, quantity<si::dimensionless, real_t>(lnrd)) +
-          lognormal::n_e(mean_rd2, sdev_rd2, n2_stp, quantity<si::dimensionless, real_t>(lnrd)) 
+          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp, quantity<si::dimensionless, real_t>(lnrd))
+          + lognormal::n_e(mean_rd2, sdev_rd2, n2_stp, quantity<si::dimensionless, real_t>(lnrd)) 
         ) * si::cubic_metres
       );
     }

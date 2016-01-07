@@ -122,30 +122,36 @@ namespace libcloudphxx
       // chemistry
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
-        // calculate new volume of droplets (needed for Henrys law)
-        pimpl->chem_vol_ante();
         // set flag for those SD that are big enough to have chemical reactions
         pimpl->chem_flag_ante();
 
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
         {
+          // calculate new volume of droplets (needed for Henrys law)
+          pimpl->chem_vol_ante();
+
           //dissolving trace gases (Henrys law)
           if (opts.chem_dsl == true)
             pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
 
-          //dissociation
-          if (opts.chem_dsc == true)
-            pimpl->chem_dissoc();
-
-          //oxidation 
-          if (opts.chem_rct == true)
-          pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+          //save the current drop volume in V_old (to be used in the next step for Henrys law)
+          pimpl->chem_vol_post();
         }
 
-        //save the current drop volume in V_old (to be used in the next step for Henrys law)
-        pimpl->chem_vol_post();
+        //dissociation
+        if (opts.chem_dsc == true)
+          pimpl->chem_dissoc();
+
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
+        {
+          //oxidation 
+          if (opts.chem_rct == true)
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+        }
 
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
+//printf("before sync out\n");
+//debug::print(pimpl->ambient_chem[(chem_species_t)0]);
         for (int i = 0; i < chem_gas_n; ++i)
           pimpl->sync(
             pimpl->ambient_chem[(chem_species_t)i],

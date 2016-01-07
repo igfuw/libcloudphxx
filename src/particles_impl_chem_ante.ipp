@@ -41,8 +41,8 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::pow;
 #endif
-          return pow(rw2, real_t(3./2.)) > 1000. * rd3 ? 1 : 0;
-        }
+          return pow(rw2, real_t(3./2.)) > 2000. * rd3 ? 1 : 0;
+        }                                //1000
       };
     };
 
@@ -59,6 +59,8 @@ namespace libcloudphxx
         V.begin(),                      // output 
         detail::chem_vol_fun<real_t>()  // op
       );
+
+    assert(boost::math::isfinite(*thrust::min_element(V.begin(), V.end())));
     }
 
     template <typename real_t, backend_t device>
@@ -77,8 +79,6 @@ namespace libcloudphxx
     { 
       thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
-std::cerr<< "chem vol ante"<< std::endl;
- 
       // set flag to those SDs that take part in chemical reactions
       thrust::transform(
         rw2.begin(), rw2.end(),          // input 1st arg
