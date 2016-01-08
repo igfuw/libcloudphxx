@@ -385,6 +385,7 @@ namespace libcloudphxx
       void chem_dissoc();
       void chem_react(const real_t &dt);
       void chem_vol_post();
+      void chem_cleanup();
  
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall

@@ -41,10 +41,34 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::pow;
 #endif
-          return pow(rw2, real_t(3./2.)) > 2000. * rd3 ? 1 : 0;
+          return pow(rw2, real_t(3./2.)) > 1000. * rd3 ? 1 : 0;
         }                                //1000
       };
+
+      template <class real_t>
+      struct cleanup
+      { // remove small negatice values //TODO!!!
+
+        BOOST_GPU_ENABLED        
+        real_t operator()(const real_t &chem_tmp)
+        {
+          return chem_tmp >= real_t(0.) ? chem_tmp : real_t(0.);
+        }                            
+      };
     };
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::chem_cleanup()
+    {   
+      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+
+      for (int i = 0; i < chem_all; ++i)
+        thrust::transform(
+          chem_bgn[i], chem_end[i], // input
+          chem_bgn[i],              // output
+          detail::cleanup<real_t>() // op
+        );
+    }
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_vol_ante()

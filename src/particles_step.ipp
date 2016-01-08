@@ -124,33 +124,47 @@ namespace libcloudphxx
       {
         // set flag for those SD that are big enough to have chemical reactions
         pimpl->chem_flag_ante();
-        // calculate new volume of droplets (needed for Henrys law)
-        pimpl->chem_vol_ante();
 
         if (opts.chem_dsl == true){
           for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
           {
+            // calculate new volume of droplets (needed for Henrys law)
+            pimpl->chem_vol_ante();
+
             //adjust trace gases to substepping
             pimpl->sstp_step_chem(step, !rhod.is_null());
 
-            //dissolving trace gases (Henrys law)
+            pimpl->chem_cleanup();
+
+            //dissolving trace gases (Henrys law) TODO - not here
             pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
+
+            if (opts.chem_dsc == true)
+              pimpl->chem_dissoc();
+
+            pimpl->chem_cleanup();
+
+            //TODO - not here
+            //save the current drop volume in V_old (to be used in the next step for Henrys law)
+            pimpl->chem_vol_post();
           }
         }
 
-        //save the current drop volume in V_old (to be used in the next step for Henrys law)
-        pimpl->chem_vol_post();
- 
         //dissociation
-        if (opts.chem_dsc == true)
+        if (opts.chem_dsc == true){
           pimpl->chem_dissoc();
+          pimpl->chem_cleanup();
+        }
 
         //oxidation 
         if (opts.chem_rct == true){
           for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
           {
-            pimpl->chem_react(pimpl->opts_init.dt);
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+            pimpl->chem_cleanup();
+ 
             pimpl->chem_dissoc();
+            pimpl->chem_cleanup();
           }
         }
 

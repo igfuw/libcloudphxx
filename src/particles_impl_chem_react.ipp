@@ -298,10 +298,10 @@ namespace libcloudphxx
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
        
       thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
-
-//std::cerr<<"dry radii after"<< std::endl;
-//debug::print(rd3);
-
+/*
+std::cerr<<"dry radii after"<< std::endl;
+debug::print(rd3);
+*/
       for (int i = 0; i < chem_gas_n; ++i){
         //debug::print(chem_bgn[i], chem_end[i]);
         assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
