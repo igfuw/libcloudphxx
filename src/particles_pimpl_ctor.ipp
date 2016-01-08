@@ -173,11 +173,11 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_chem,  // only allocated if chem_switch==1
-        tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
-        tmp_device_real_part_NH3,
-        tmp_device_real_part_SO2,
-        tmp_device_real_part_CO2,
+        tmp_device_real_part1,  
+        tmp_device_real_part2,  
+        tmp_device_real_part3,
+        tmp_device_real_part4,
+        tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
