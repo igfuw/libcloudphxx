@@ -191,17 +191,23 @@ namespace libcloudphxx
         thrust::negate<real_t>()
       );
 
+      // same vectors as in sstp_step
+      thrust_device::vector<real_t> &Tp(tmp_device_real_part3),
+                                     pp(tmp_device_real_part4),
+                                     RHp(tmp_device_real_part5),
+                                     etap(tmp_device_real_part6);
+
       // calculating drop growth in a timestep using backward Euler 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
-	    thrust::make_permutation_iterator(rhod.begin(),    ijk.begin()),
-	    thrust::make_permutation_iterator(rv.begin(),      ijk.begin()),
-	    thrust::make_permutation_iterator(T.begin(),       ijk.begin()),
-	    thrust::make_permutation_iterator(p.begin(),       ijk.begin()),
-	    thrust::make_permutation_iterator(RH.begin(),      ijk.begin()),
-	    thrust::make_permutation_iterator(eta.begin(),     ijk.begin()),
+      sstp_tmp_rh.begin(),
+      sstp_tmp_rv.begin(),
+      Tp.begin(),
+      pp.begin(),
+      RHp.begin(),
+      etap.begin(),
 	    rd3.begin(),
 	    kpa.begin(),
             vt.begin()
@@ -223,7 +229,7 @@ namespace libcloudphxx
       );
 
       // update th and rv according to changes in third wet moment
-      update_th_rv(drv);
+      update_th_rv(drv, true);
     }
   };  
 };

@@ -178,6 +178,7 @@ namespace libcloudphxx
         tmp_device_real_part3,
         tmp_device_real_part4,
         tmp_device_real_part5,
+        tmp_device_real_part6,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
