@@ -15,34 +15,24 @@ namespace libcloudphxx
       {
         template<class real_t>
         BOOST_GPU_ENABLED
-        bool operator()(real_t rw2, real_t m_added)
+        real_t operator()(real_t rw2, real_t m_added)
         {
           // turn into added volume
-          m_added /= libcloudphxx::common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres;
           return pow(pow(rw2, real_t(3./2)) + 3. / 4. / 
 #if !defined(__NVCC__)
             pi<real_t>()
 #else
             CUDART_PI
 #endif
-            * m_added, real_t(2./3));
-        }
-      };
-
-      struct is_greater_than_zero
-      {
-        template<class real_t>
-        BOOST_GPU_ENABLED
-        bool operator()(real_t x)
-        {
-          return x > real_t(0.);
+            * m_added / (libcloudphxx::common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres),
+            real_t(2./3));
         }
       };
       struct divide
       {
         template<class real_t, class n_t>
         BOOST_GPU_ENABLED
-        bool operator()(real_t x, n_t y)
+        real_t operator()(real_t x, n_t y)
         {
           return x / real_t(y);
         }
@@ -55,36 +45,26 @@ namespace libcloudphxx
     {   
       // use tmp vector to store adjustment
       thrust_device::vector<real_t> &rc_adjust(tmp_device_real_cell);
-
+      if(!l2e.count(&rc_adjust))
+        init_e2l(_rc_adjust, &rc_adjust);
       // save input adjustment to the temp vector
       sync(_rc_adjust, rc_adjust);
 
-      // alias for filtered SDs with RH>=Sc
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
-
-      // turn n_filtered into activated? = yes/no 
-      thrust::replace_if(
-        n_filtered.begin(),
-        n_filtered.end(),
-        detail::is_greater_than_zero(),
-        real_t(1)
-      );
-
       hskpng_sort();
 
-      // count number of activated SDs per cell
+      // count number of particles per cell
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         thrust_device::vector<n_t>::iterator
-      > n = thrust::reduce_by_key(
+      > np = thrust::reduce_by_key(
         sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
-        n_filtered.begin(),                     // input - values
+        n.begin(),                     // input - values
         count_ijk.begin(),                      // output - keys
         count_num.begin()                       // output - values
       );  
-      count_n = n.first - count_ijk.begin();
+      count_n = np.first - count_ijk.begin();
 
-      // divide water adjustment by number of activated SDs
+      // divide water adjustment by number of drops
       thrust::transform(
         thrust::make_permutation_iterator(rc_adjust.begin(), count_ijk.begin()),
         thrust::make_permutation_iterator(rc_adjust.begin(), count_ijk.end()),
@@ -108,12 +88,12 @@ namespace libcloudphxx
         thrust::multiplies<real_t>()
       );
 
-      // apply the adjustment - change rw of activated SDs
+      // apply the adjustment - change rw of drops
       thrust::transform(
-        thrust::make_permutation_iterator(rw2.begin(), sorted_ijk.begin()),
-        thrust::make_permutation_iterator(rw2.begin(), sorted_ijk.end()),
-        thrust::make_permutation_iterator(rc_adjust.begin(), sorted_ijk.begin()), // mass to be added to each SD
-        thrust::make_permutation_iterator(rw2.begin(), sorted_ijk.begin()),
+        rw2.begin(),
+        rw2.end(),
+        thrust::make_permutation_iterator(rc_adjust.begin(), ijk.begin()), // mass to be added to each drop
+        rw2.begin(),
         detail::adj_rw2()
       );
     }

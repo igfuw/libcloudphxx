@@ -224,11 +224,8 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::step_rc_adjust(arrinfo_t<real_t> rc_adjust)
+    void particles_t<real_t, device>::step_rc_adjust(const arrinfo_t<real_t> rc_adjust)
     {
-      // select activated SDs, stored in tmp_device_real_part
-      diag_RH_ge_Sc();
-
       // apply the adjustment
       pimpl->rc_adjust(rc_adjust);
     }

@@ -52,7 +52,7 @@ namespace libcloudphxx
 
       // add some cloud water
       virtual void step_rc_adjust(
-        arrinfo_t<real_t> rc_adj
+        const arrinfo_t<real_t> rc_adj
       ) { 
         assert(false); 
       }  
@@ -107,7 +107,7 @@ namespace libcloudphxx
       );
 
       void step_rc_adjust(
-        arrinfo_t<real_t> 
+        const arrinfo_t<real_t> 
       ); 
 
       // diagnostic methods

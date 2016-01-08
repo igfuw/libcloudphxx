@@ -322,7 +322,7 @@ namespace libcloudphxx
       void init_sstp();
       void init_kernel();
       void init_vterm();
-      void rc_adjust(const arrinfo_t<real_t> &);
+      void rc_adjust(const arrinfo_t<real_t>&);
 
       void fill_outbuf();
 
