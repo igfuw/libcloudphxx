@@ -64,6 +64,7 @@
 #include "particles_impl_fill_outbuf.ipp"
 
 #include "particles_impl_sync.ipp"
+#include "particles_impl_rc_adjust.ipp"
 
 #include "particles_impl_adve.ipp"
 #include "particles_impl_cond.ipp"

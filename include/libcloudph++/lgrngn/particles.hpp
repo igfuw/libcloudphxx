@@ -50,6 +50,13 @@ namespace libcloudphxx
         return 0;
       }  
 
+      // add some cloud water
+      virtual void step_rc_adjust(
+        arrinfo_t<real_t> rc_adj
+      ) { 
+        assert(false); 
+      }  
+
       // method for accessing super-droplet statistics
       virtual void diag_sd_conc()                                   { assert(false); }
       virtual void diag_all()                                       { assert(false); }
@@ -98,6 +105,10 @@ namespace libcloudphxx
       real_t step_async(
         const opts_t<real_t> &
       );
+
+      void step_rc_adjust(
+        arrinfo_t<real_t> 
+      ); 
 
       // diagnostic methods
       void diag_sd_conc();

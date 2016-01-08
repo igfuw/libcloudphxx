@@ -122,6 +122,18 @@ namespace libcloudphxx
 	);
       }
 
+      // 
+      template <typename real_t>
+      void step_rc_adjust(
+      	lgr::particles_proto_t<real_t> *arg,
+	      const bp::numeric::array &rc_adjust
+      )
+      {
+      	arg->step_rc_adjust(
+      	  np2ai<real_t>(rc_adjust, sz(*arg))
+      	);
+      }
+
       template <typename real_t>
       const lgr::opts_init_t<real_t> get_oi(
         lgr::particles_proto_t<real_t> *arg

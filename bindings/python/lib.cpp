@@ -278,6 +278,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cz")  = bp::numeric::array(bp::object()),
         bp::arg("ambient_chem") = bp::dict()
       ))
+      .def("step_rc_adjust",    &lgrngn::step_rc_adjust<real_t>, (
+        bp::arg("rc_adjust")  = bp::numeric::array(bp::object())
+      ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)
