@@ -35,11 +35,6 @@ namespace libcloudphxx
     {   
       if (opts_init.sstp_cond == 1) return;
 
-      // memory allocation 
-      sstp_tmp_rv.resize(n_cell);
-      sstp_tmp_th.resize(n_cell);
-      sstp_tmp_rh.resize(n_cell);
-
       // initialise _old values
       sstp_save();
     }

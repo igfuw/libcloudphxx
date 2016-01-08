@@ -42,6 +42,11 @@ namespace libcloudphxx
       V_old.reserve(opts_init.n_sd_max);
       tmp_device_real_part2.reserve(opts_init.n_sd_max); 
       tmp_device_real_part3.reserve(opts_init.n_sd_max); 
+
+      sstp_tmp_rv.resize(opts_init.n_sd_max);
+      sstp_tmp_th.resize(opts_init.n_sd_max);
+      sstp_tmp_rh.resize(opts_init.n_sd_max);
+
       if(opts_init.chem_switch)
       {
         tmp_device_real_part4.reserve(opts_init.n_sd_max);  // TODO: only in chemistry, but can we do it without?
