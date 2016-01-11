@@ -96,8 +96,6 @@ namespace libcloudphxx
       // initialising Tpr
       pimpl->hskpng_Tpr(); 
 
-      pimpl->init_sstp();
-
       // --------  init super-droplet characteristics  --------
       // reserve memory for data of the size of the max number of SDs
       pimpl->init_hskpng_npart(); 
@@ -111,6 +109,8 @@ namespace libcloudphxx
       pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
       pimpl->n_part += pimpl->n_part_to_init;
       pimpl->hskpng_resize_npart(); 
+
+      pimpl->init_sstp();
 
       // init ijk vector, also n_part and resize n_part vectors
       pimpl->init_ijk();

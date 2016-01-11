@@ -35,7 +35,8 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
-      thrust_device::vector<real_t> &drv // change in water volume
+      thrust_device::vector<real_t> &drv, // change in water volume
+      bool update_perSD
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
@@ -78,6 +79,14 @@ namespace libcloudphxx
         thrust::plus<real_t>() 
       );
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+     
+      if(update_perSD)
+        thrust::transform(
+          sstp_tmp_rv.begin(), sstp_tmp_rv.end(),  // input - 1st arg
+          thrust::make_permutation_iterator(drv.begin(), ijk.begin()),           // input - 2nd arg
+          sstp_tmp_rv.begin(),            // output
+          thrust::plus<real_t>() 
+        );
 
       // updating th
       {
@@ -86,24 +95,39 @@ namespace libcloudphxx
           typename thrust_device::vector<real_t>::iterator,
           typename thrust_device::vector<real_t>::iterator
         > > zip_it_t;
- 
-	thrust::transform(
-	  th.begin(), th.end(),          // input - 1st arg
-	  thrust::transform_iterator<    // input - 2nd arg
-	    detail::dth<real_t>,
-	    zip_it_t,
-	    real_t
-	  >(
-            zip_it_t(thrust::make_tuple(  // args (note: rv cannot be used here as already modified)
-	      drv.begin(),      // 
-	      T.begin(),        // dth = drv * d_th_d_rv(T, th)
-	      th.begin()        //
-	    )),
-	    detail::dth<real_t>()     // func
-	  ),
-	  th.begin(),                 // output
-	  thrust::plus<real_t>()
-	);
+
+        thrust_device::vector<real_t> &delta_th(tmp_device_real_cell1);
+
+        // calc dth
+        thrust::transform(
+          zip_it_t(thrust::make_tuple(  
+            drv.begin(),      // 
+            T.begin(),        // dth = drv * d_th_d_rv(T, th)
+            th.begin()        //
+          )),
+          zip_it_t(thrust::make_tuple( 
+            drv.begin(),      // 
+            T.begin(),        // dth = drv * d_th_d_rv(T, th)
+            th.begin()        //
+          )) + n_cell,
+          delta_th.begin(),
+          detail::dth<real_t>()     // func
+        );
+
+        // apply dth
+        thrust::transform(
+          th.begin(), th.end(),          // input - 1st arg
+          delta_th.begin(),
+          th.begin(),                 // output
+          thrust::plus<real_t>()
+        );
+        if(update_perSD)
+          thrust::transform(
+            sstp_tmp_th.begin(), sstp_tmp_th.end(),          // input - 1st arg
+            delta_th.begin(),
+            sstp_tmp_th.begin(),                 // output
+            thrust::plus<real_t>()
+          );
       }
     }
   };  

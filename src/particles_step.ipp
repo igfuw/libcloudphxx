@@ -89,7 +89,7 @@ namespace libcloudphxx
         for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
         {   
           pimpl->sstp_step(step, !rhod.is_null());
-          pimpl->hskpng_Tpr(); 
+          pimpl->hskpng_Tpr_perSD(); 
           pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
         } 
       }

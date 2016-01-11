@@ -316,10 +316,10 @@ namespace libcloudphxx
       // save number of moles of dissolving chem species
       // could be avoided if we could have more than 10 elements in a tuple...
       // TODO - add thrust tuple for 12 arguments https://github.com/thrust/thrust
-      thrust_device::vector<real_t> &n_SO2_old(tmp_device_real_part_SO2);
-      thrust_device::vector<real_t> &n_CO2_old(tmp_device_real_part_CO2);
-      thrust_device::vector<real_t> &n_HNO3_old(tmp_device_real_part_HNO3);
-      thrust_device::vector<real_t> &n_NH3_old(tmp_device_real_part_NH3);
+      thrust_device::vector<real_t> &n_SO2_old(tmp_device_real_part2);
+      thrust_device::vector<real_t> &n_CO2_old(tmp_device_real_part3);
+      thrust_device::vector<real_t> &n_HNO3_old(tmp_device_real_part4);
+      thrust_device::vector<real_t> &n_NH3_old(tmp_device_real_part5);
 
       typedef thrust::zip_iterator<
         thrust::tuple<

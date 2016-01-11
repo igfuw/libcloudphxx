@@ -173,11 +173,12 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_chem,  // only allocated if chem_switch==1
-        tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
-        tmp_device_real_part_NH3,
-        tmp_device_real_part_SO2,
-        tmp_device_real_part_CO2,
+        tmp_device_real_part1,  
+        tmp_device_real_part2,  
+        tmp_device_real_part3,
+        tmp_device_real_part4,
+        tmp_device_real_part5,
+        tmp_device_real_part6,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -332,6 +333,7 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+      void hskpng_Tpr_perSD();
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
@@ -379,7 +381,7 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
-      void update_th_rv(thrust_device::vector<real_t> &);
+      void update_th_rv(thrust_device::vector<real_t> &, bool);
 
       void coal(const real_t &dt);
 

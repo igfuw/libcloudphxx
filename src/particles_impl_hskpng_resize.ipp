@@ -25,6 +25,10 @@ namespace libcloudphxx
       tmp_device_n_part.resize(n_part);
       tmp_device_size_part.resize(n_part);
 
+      sstp_tmp_rv.resize(n_part);
+      sstp_tmp_th.resize(n_part);
+      sstp_tmp_rh.resize(n_part);
+
       if (opts_init.nx != 0) i.resize(n_part); 
       if (opts_init.ny != 0) j.resize(n_part); 
       if (opts_init.nz != 0) k.resize(n_part); 
@@ -33,15 +37,17 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
 
-      if(opts_init.chem_switch)
+      if(opts_init.chem_switch || (opts_init.sstp_cond>1))
       {
-        tmp_device_real_part_chem.resize(n_part);  // TODO: reuse outside of chem if needed
-        V_old.resize(n_part);// TODO: only in chemistry, but can we do without it?
-        tmp_device_real_part_HNO3.resize(n_part); // TODO: only in chemistry, but can we do it without?
-        tmp_device_real_part_NH3.resize(n_part);  // TODO: only in chemistry, but can we do it without?
-        tmp_device_real_part_CO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
-        tmp_device_real_part_SO2.resize(n_part);  // TODO: only in chemistry, but can we do it without?
+        tmp_device_real_part1.resize(n_part);
+        tmp_device_real_part2.resize(n_part);
+        tmp_device_real_part3.resize(n_part);
+        tmp_device_real_part4.resize(n_part);  
+        tmp_device_real_part5.resize(n_part); 
+        tmp_device_real_part6.resize(n_part);
       }
+      if(opts_init.chem_switch)
+        V_old.resize(n_part);
     }
   };
 };

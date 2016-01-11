@@ -132,5 +132,67 @@ namespace libcloudphxx
         );
       }
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::hskpng_Tpr_perSD()
+    {   
+      thrust_device::vector<real_t> &Tp(tmp_device_real_part3),
+                                     pp(tmp_device_real_part4),
+                                     RHp(tmp_device_real_part5),
+                                     etap(tmp_device_real_part6);
+      // T  = common::theta_dry::T<real_t>(th, rhod);
+      thrust::transform(
+        sstp_tmp_th.begin(), sstp_tmp_th.end(),      // input - first arg
+        sstp_tmp_rh.begin(),                         // input - second arg
+        Tp.begin(),                                  // output
+        detail::common__theta_dry__T<real_t>() 
+      );
+
+      {
+        typedef thrust::zip_iterator<
+          thrust::tuple<
+            typename thrust_device::vector<real_t>::iterator,
+            typename thrust_device::vector<real_t>::iterator,
+            typename thrust_device::vector<real_t>::iterator
+          >
+        > zip_it_t;
+
+        // p  = common::theta_dry::p<real_t>(rhod, r, T); 
+        thrust::transform(
+          zip_it_t(thrust::make_tuple(sstp_tmp_rh.begin(), sstp_tmp_rv.begin(), Tp.begin())), // input - begin
+          zip_it_t(thrust::make_tuple(sstp_tmp_rh.end(),   sstp_tmp_rv.end(),   Tp.end()  )), // input - end
+          pp.begin(),                                                         // output
+          detail::common__theta_dry__p<real_t>()
+        );
+
+        // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
+	thrust::transform(
+	  zip_it_t(thrust::make_tuple(sstp_tmp_rh.begin(), sstp_tmp_rv.begin(), Tp.begin())),  // input - begin
+	  zip_it_t(thrust::make_tuple(sstp_tmp_rh.end(),   sstp_tmp_rv.end(),   Tp.end()  )),  // input - end
+	  RHp.begin(),                                                         // output
+	  detail::RH<real_t>()
+	);
+      }
+ 
+      // dynamic viscosity
+      {
+        thrust::transform(
+          Tp.begin(), Tp.end(), // 1st arg
+          etap.begin(),        // output
+          detail::common__vterm__visc<real_t>()
+        );
+      }
+
+      // adjusting dv if using a parcel set-up (1kg of dry air)
+      if (n_dims == 0)
+      {
+        namespace arg = thrust::placeholders;
+        thrust::transform(
+          rhod.begin(), rhod.end(), // input
+          dv.begin(),               // output
+          real_t(1) / arg::_1
+        );
+      }
+    }
   };  
 };
