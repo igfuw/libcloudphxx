@@ -462,7 +462,7 @@ namespace libcloudphxx
 */
 
       // update th and rv according to change in total liquid water volume
-      update_th_rv(drv);
+      update_th_rv(drv, false);
     }
   };  
 };

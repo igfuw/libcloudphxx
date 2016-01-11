@@ -333,6 +333,7 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+      void hskpng_Tpr_perSD();
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
@@ -380,7 +381,7 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
-      void update_th_rv(thrust_device::vector<real_t> &);
+      void update_th_rv(thrust_device::vector<real_t> &, bool);
 
       void coal(const real_t &dt);
 
