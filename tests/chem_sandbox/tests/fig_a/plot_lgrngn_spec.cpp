@@ -20,7 +20,7 @@ int main(int ac, char** av)
   float ymin = .4 * .01, ymax = .9 * 10000;
   const int at = 9000;
 
-  gp << "set term svg dynamic enhanced fsize 15 size 900, 1500 \n";
+  gp << "set term svg dynamic enhanced fsize 15 size 900, 1000 \n";
   gp << "set output '" << svg << "'\n";
   gp << "set logscale xy\n";
   gp << "set xrange [.002:100]\n";
@@ -91,7 +91,7 @@ int main(int ac, char** av)
       notice_macro("setting-up plot parameters");
       gp << "plot"
 	 << "'-' with histeps title 'wet radius' lw 3 lc rgb 'blue'," 
-	 << "'-' with histeps title 'dry radius' lw 1 lc rgb 'red' " << endl;
+	 << "'-' with histeps title 'dry radius' lw 3 lc rgb 'red' " << endl;
       gp.send(focus_w);
       gp.send(focus_d);
 

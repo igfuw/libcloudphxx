@@ -23,7 +23,7 @@ int main(int ac, char** av)
     for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv", 
                                            "SO2g",  "O3g",    "H2O2g",  "CO2g",   "NH3g",  "HNO3g", 
                                            "SO2aq", "HSO3aq", "SO3aq",  "HSO4aq", "SO4aq", "S_VIaq", 
-                                           "O3aq",  "H2O2aq", 
+                                           "O3aq",  "H2O2aq", "Haq",    "OHaq",  
                                            "CO2aq", "HCO3aq", "CO3aq", 
                                            "NH3aq", "NH4aq",  "HNO3aq", "NO3aq"}))
 
@@ -31,7 +31,7 @@ int main(int ac, char** av)
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-      if (n["x"] == 76 && n["z"] == 76)
+      if (n["x"] == 50 && n["z"] == 50) //76
       {
 	{
 	  char lbl = 'i';
@@ -85,7 +85,7 @@ int main(int ac, char** av)
 	//                                                         rho_w  kg2g
 	auto tmp = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
 	gp << "set title 'cloud water mixing ratio [g/kg]'\n";
-	//gp << "set cbrange [0:1.3]\n";
+	gp << "set cbrange [0:1.3]\n";
 	plot(gp, tmp);
       }
       else if (plt == "rr")
@@ -95,7 +95,7 @@ int main(int ac, char** av)
 	auto tmp = h5load(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
 	gp << "set logscale cb\n";
 	gp << "set title 'rain water mixing ratio [g/kg]'\n";
-	//gp << "set cbrange [1e-2:1]\n";
+	gp << "set cbrange [1e-2:1]\n";
 	plot(gp, tmp);
 	gp << "unset logscale cb\n";
       }
@@ -104,7 +104,7 @@ int main(int ac, char** av)
 	// cloud particle concentration
 	auto tmp = 1e-6 * h5load(h5, "rw_rng000_mom0", at * n["outfreq"]);
 	gp << "set title 'cloud droplet spec. conc. [mg^{-1}]'\n";
-	//gp << "set cbrange [0:150]\n";
+	gp << "set cbrange [0:150]\n";
 	plot(gp, tmp);
       }
       else if (plt == "nr")
@@ -112,7 +112,7 @@ int main(int ac, char** av)
 	// rain particle concentration
 	auto tmp = 1e-6 * h5load(h5, "rw_rng001_mom0", at * n["outfreq"]);
 	gp << "set title 'rain drop spec. conc. [mg^{-1}]'\n";
-//	gp << "set cbrange [.01:10]\n";
+	gp << "set cbrange [.01:10]\n";
 	gp << "set logscale cb\n";
 	plot(gp, tmp);
 	gp << "unset logscale cb\n";
@@ -122,7 +122,7 @@ int main(int ac, char** av)
 	// effective radius
 	auto r_eff = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) / h5load(h5, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
 	gp << "set title 'cloud droplet effective radius [μm]'\n"; 
-//	gp << "set cbrange [1:20]\n";
+	gp << "set cbrange [1:20]\n";
 	plot(gp, r_eff);
       }
 
@@ -138,7 +138,7 @@ int main(int ac, char** av)
 	  str << "rw_rng" << std::setw(3) << std::setfill('0') << i + 2  << "_mom0";
 	  tmp = tmp + h5load(h5, str.str(), at * n["outfreq"]);
 	}
-//	gp << "set cbrange [" << 0 << ":" << 150 << "]\n";
+	gp << "set cbrange [" << 0 << ":" << 150 << "]\n";
 	gp << "set title 'aerosol concentration [mg^{-1}]'\n";
 	tmp /= 1e6;
 	plot(gp, tmp);
@@ -146,7 +146,8 @@ int main(int ac, char** av)
       else if (plt == "rd")
       {
 	auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
-	gp << "dry radius [um/kg dry air]'\n"; 
+	gp << "set title 'dry radius [um/kg dry air]'\n"; 
+ 	gp << "set cbrange [0.03:0.1]\n";
 	plot(gp, r_d);
       }
 
@@ -155,193 +156,188 @@ int main(int ac, char** av)
         // super-droplet concentration
         auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
         gp << "set title 'super-droplet concentration [dv-1]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        gp << "set cbrange [0:128]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "th")
       {
         auto th = h5load(h5, "th", at * n["outfreq"]);
         gp << "set title 'potential temperature [K]'\n";
-    //    gp << "set cbrange [289.5:292]\n";
+        gp << "set cbrange [289.5:292]\n";
         plot(gp, th);
       }
       else if (plt == "rv")
       {
         auto rv = h5load(h5, "rv", at * n["outfreq"]) * 1000;
         gp << "set title 'water vapour mixing ratio [g/kg]'\n";
-      //  gp << "set cbrange [6.5:7.7]\n";
+        gp << "set cbrange [6.5:7.7]\n";
         plot(gp, rv);
       }
       else if (plt == "SO2g") //200e-12
       {                                                      // TODO this is lazy (assumes pd = p), do it better
-        auto chem = h5load(h5, plt, at * n["outfreq"]) *1e10; // * (M_d<float>() / M_SO2<float>()) * 1e9;
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [0:0.2]\n";
-        //gp << "set cbrange [0:4.4717e-10]\n";
+        gp << "set cbrange [0.05:0.2]\n";
         plot(gp, chem);
       }
       else if (plt == "O3g") //50e-9
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) *1e8;// * (M_d<float>() / M_O3<float>()) * 1e9;
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_O3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [50:50.1]\n";
-        //gp << "set cbrange [0:8.384436e-08]\n";
+        gp << "set cbrange [50.56:50.6]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") //500e-12 ; 0
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e10;// * (M_d<float>() / M_H2O2<float>()) * 1e9;
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_H2O2<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [0.45:0.5]\n";
+        gp << "set cbrange [0:0.5]\n";
         plot(gp, chem);
       }
       else if (plt == "CO2g") //360e-6
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e4;// * (M_d<float>() / M_CO2<float>()) * 1e6;
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_CO2<float>()) * 1e6;
         gp << "set title 'gas vol conc [ppm]'\n";
         //gp << "set cbrange [360:361.2]\n";
-        //gp << "set cbrange [0:0.0005533729]\n";
         plot(gp, chem);
       }
       else if (plt == "NH3g") // 100e-12
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e11;// * (M_d<float>() / M_NH3<float>()) * 1e9;
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_NH3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [0:0.1]\n";
-        //gp << "set cbrange [0:5.938977e-11]\n";
+        gp << "set cbrange [0:0.1]\n";
         plot(gp, chem);
       }
       else if (plt == "HNO3g") // 100e-12
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e10; // * (M_d<float>() / M_HNO3<float>()) * 1e9;
-        gp << "set title 'gas vol mixr *1e10'\n";
-        //gp << "set cbrange [0:0.1]\n"
-        //gp << "set cbrange [2.199:2.201]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_HNO3<float>()) * 1e9;
+        gp << "set title 'gas vol conc [ppb]'\n";
+        gp << "set cbrange [0:0.1]\n";
         plot(gp, chem);
       }
 
 
       else if (plt == "SO2aq")
       {
-        auto sd_conc = h5load(h5, "chem_SO2_aq", at * n["outfreq"]);
-        gp << "set title 'SO2_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_SO2_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'SO2_aq [ug/kg]'\n";
+        gp << "set cbrange [0:1e-5]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "HSO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_HSO3_aq", at * n["outfreq"]);
-        gp << "set title 'HSO3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_HSO3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'HSO3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.06]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "SO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_SO3_aq", at * n["outfreq"]);
-        gp << "set title 'SO3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_SO3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'SO3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.006]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "HSO4aq")
       {
-        auto sd_conc = h5load(h5, "chem_HSO4_aq", at * n["outfreq"]);
-        gp << "set title 'HSO3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_HSO4_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'HSO3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.7]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "SO4aq")
       {
-        auto sd_conc = h5load(h5, "chem_SO4_aq", at * n["outfreq"]);
-        gp << "set title 'SO4_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_SO4_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'SO4_aq [ug/kg]'\n";
+        gp << "set cbrange [0:1]\n";
         plot(gp, sd_conc);
       }
       else if (plt == "S_VIaq")
       {
-        auto sd_conc = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]);
-        gp << "set title 'S_VI_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'S_VI_aq [ug/kg]'\n";
+        gp << "set cbrange [0:1]\n";
         plot(gp, sd_conc);
       }
 
       else if (plt == "O3aq")
       {
-        auto sd_conc = h5load(h5, "chem_O3_aq", at * n["outfreq"]);
-        gp << "set title 'O3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_O3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'O3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:2.5e-5]\n";
         plot(gp, sd_conc);
       }
        else if (plt == "H2O2aq")
       {
-        auto sd_conc = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]);
-        gp << "set title 'H2O2_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'H2O2_aq [ug/kg]'\n";
+        gp << "set cbrange [0:1.2]\n";
         plot(gp, sd_conc);
       }
 
       else if (plt == "Haq")
       {
-        auto sd_conc = h5load(h5, "chem_H_aq", at * n["outfreq"]);
-        gp << "set title 'H_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_H_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'H_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.016]\n";
         plot(gp, sd_conc);
       }
        else if (plt == "OHaq")
       {
-        auto sd_conc = h5load(h5, "chem_OH_aq", at * n["outfreq"]);
-        gp << "set title 'OH_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_OH_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'OH_aq [ug/kg]'\n";
+        gp << "set cbrange [0:1.2e-4]\n";
         plot(gp, sd_conc);
       }
 
        else if (plt == "CO2aq")
       {
-        auto sd_conc = h5load(h5, "chem_CO2_aq", at * n["outfreq"]);
-        gp << "set title 'CO2_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_CO2_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'CO2_aq [ug/kg]'\n";
+        gp << "set cbrange [0:2.5]\n";
         plot(gp, sd_conc);
       }
        else if (plt == "HCO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_HCO3_aq", at * n["outfreq"]);
-        gp << "set title 'HCO3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_HCO3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'HCO3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.3]\n";
         plot(gp, sd_conc);
       }
        else if (plt == "CO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_CO3_aq", at * n["outfreq"]);
-        gp << "set title 'CO3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_CO3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'CO3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:6e-6]\n";
         plot(gp, sd_conc);
       }
 
        else if (plt == "NH3aq")
       {
-        auto sd_conc = h5load(h5, "chem_NH3_aq", at * n["outfreq"]);
-        gp << "set title 'NH3_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_NH3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'NH3_aq [ug/kg]'\n";
+        gp << "set cbrange [0:7e-5]\n";
         plot(gp, sd_conc);
       }
        else if (plt == "NH4aq")
       {
-        auto sd_conc = h5load(h5, "chem_NH4_aq", at * n["outfreq"]);
-        gp << "set title 'NH4_aq [kg/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        auto sd_conc = h5load(h5, "chem_NH4_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'NH4_aq [ug/kg]'\n";
+        gp << "set cbrange [0:0.22]\n";
         plot(gp, sd_conc);
       }
 
        else if (plt == "HNO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_HNO3_aq", at * n["outfreq"]);
-        gp << "set title 'HNO3_aq [kg/kg]'\n";
+        auto sd_conc = h5load(h5, "chem_HNO3_aq", at * n["outfreq"]) * 1e9; 
+        gp << "set title 'HNO3_aq [ug/kg]'\n";
   //      gp << "set cbrange [0:128]\n";
         plot(gp, sd_conc);
       }
         else if (plt == "NO3aq")
       {
-        auto sd_conc = h5load(h5, "chem_NO3_aq", at * n["outfreq"]);
-        gp << "set title 'NO3_aq [kg/kg]'\n";
+        auto sd_conc = h5load(h5, "chem_NO3_aq", at * n["outfreq"]) * 1e9;
+        gp << "set title 'NO3_aq [ug/kg]'\n";
   //      gp << "set cbrange [0:128]\n";
         plot(gp, sd_conc);
       }
