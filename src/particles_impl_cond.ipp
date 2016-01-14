@@ -20,20 +20,48 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      template<class real_t>
+      struct rw3diff2drv 
+      {
+        real_t mlt;
+        int n_dims;
+        rw3diff2drv(const real_t &mlt, const int &n_dims):
+          mlt(mlt), n_dims(n_dims) {}
+ 
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw3diff, const thrust::tuple<real_t, real_t, real_t> &tpl)
+        {
+          if(n_dims > 0)
+            return mlt * rw3diff * thrust::get<1>(tpl) / thrust::get<0>(tpl) / thrust::get<2>(tpl);
+          else // for parcel setup use 1/rhod instead of dv, dv will be updated in hskpng_Tpr in async
+            return mlt * rw3diff * thrust::get<1>(tpl);
+        }
+      };
+
+      template<class real_t>
+      struct rw2torw3 : thrust::unary_function<const real_t&, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2)
+        {
+          return pow(rw2, real_t(3./2));
+        }
+      };
+        
       template <typename real_t>
       struct advance_rw2_minfun
       {
         const quantity<si::area,              real_t> rw2_old;
         const quantity<si::time,              real_t> dt;
-	const quantity<si::mass_density,      real_t> rhod;
-	const quantity<si::dimensionless,     real_t> rv;
-	const quantity<si::temperature,       real_t> T;
-	const quantity<si::pressure,          real_t> p;
-	const quantity<si::dimensionless,     real_t> RH;
-	const quantity<si::dynamic_viscosity, real_t> eta;
-	const quantity<si::volume,            real_t> rd3;
-	const quantity<si::dimensionless,     real_t> kpa;
-	const quantity<si::velocity,          real_t> vt;
+        const quantity<si::mass_density,      real_t> rhod;
+        const quantity<si::dimensionless,     real_t> rv;
+        const quantity<si::temperature,       real_t> T;
+        const quantity<si::pressure,          real_t> p;
+        const quantity<si::dimensionless,     real_t> RH;
+        const quantity<si::dynamic_viscosity, real_t> eta;
+        const quantity<si::volume,            real_t> rd3;
+        const quantity<si::dimensionless,     real_t> kpa;
+        const quantity<si::velocity,          real_t> vt;
         const quantity<si::dimensionless,     real_t> RH_max;
 
         // ctor
@@ -74,8 +102,8 @@ namespace libcloudphxx
           using common::ventil::Nu;
           using std::sqrt;
 
-	  const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
-	  const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
+          const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
+          const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
 
           // TODO: common::moist_air:: below should not be needed
           // TODO: ventilation as option
@@ -103,12 +131,12 @@ namespace libcloudphxx
         }
 
         // backward Euler scheme:
-	// rw2_new = rw2_old + f_rw2(rw2_new) * dt
-	// rw2_new = rw2_old + 2 * rw * f_rw(rw2_new) * dt
+  // rw2_new = rw2_old + f_rw2(rw2_new) * dt
+  // rw2_new = rw2_old + 2 * rw * f_rw(rw2_new) * dt
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2_unitless) const
         {
-	  const quantity<si::area, real_t> rw2 = rw2_unitless * si::square_metres; 
+          const quantity<si::area, real_t> rw2 = rw2_unitless * si::square_metres; 
           return (rw2_old + dt * drw2_dt(rw2) - rw2) / si::square_metres;
         }
       };
@@ -126,10 +154,10 @@ namespace libcloudphxx
           const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
-	  using std::min;
-	  using std::max;
-	  using std::pow;
-	  using std::abs;
+    using std::min;
+    using std::max;
+    using std::pow;
+    using std::abs;
 #endif
 
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
@@ -162,10 +190,10 @@ namespace libcloudphxx
           }
 
           // root-finding ill posed => explicit Euler 
-	  if (fa * fb > 0) return rw2_old + drw2;
+          if (fa * fb > 0) return rw2_old + drw2;
 
           // otherwise implicit Euler
-	  return common::detail::toms748_solve(f, a, b, fa, fb); 
+          return common::detail::toms748_solve(f, a, b, fa, fb); 
         }
       };
     };
@@ -177,59 +205,131 @@ namespace libcloudphxx
     ) {   
       // prerequisite
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
-
-      // calculating the 3rd wet moment before condensation (still not divided by dv)
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
-
-      // permute-copying the result to -dm_3
-      // fill with 0s if not all cells will be updated in the following transform
-      if(count_n!=n_cell)  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+      // particle's local change in rv
+      thrust_device::vector<real_t> &pdrv(tmp_device_real_part4);
+      // -rw3_old
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+        thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+        pdrv.begin(),
         thrust::negate<real_t>()
       );
 
-      // same vectors as in sstp_step
-      thrust_device::vector<real_t> &Tp(tmp_device_real_part3),
-                                     pp(tmp_device_real_part4),
-                                     RHp(tmp_device_real_part5),
-                                     etap(tmp_device_real_part6);
+      // vector for each particle's T
+      thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
 
+      // calc Tp
+      thrust::transform(
+        sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
+        sstp_tmp_rh.begin(),                    // input - second arg
+        Tp.begin(),                             // output
+        detail::common__theta_dry__T<real_t>() 
+      );  
+
+
+printf("cond tmp_rh\n");
+debug::print(sstp_tmp_rh);
+printf("cond tmp_rv\n");
+debug::print(sstp_tmp_rv);
+printf("cond Tp\n");
+debug::print(Tp);
+
+printf("rw2 przed cond\n");
+
+debug::print(rw2);
       // calculating drop growth in a timestep using backward Euler 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(      // input - 2nd arg
           thrust::make_tuple(
-      sstp_tmp_rh.begin(),
-      sstp_tmp_rv.begin(),
-      Tp.begin(),
-      pp.begin(),
-      RHp.begin(),
-      etap.begin(),
-	    rd3.begin(),
-	    kpa.begin(),
+            sstp_tmp_rh.begin(),
+            sstp_tmp_rv.begin(),
+            Tp.begin(),
+            // particle-specific p
+            thrust::make_transform_iterator(
+              thrust::make_zip_iterator(
+                thrust::make_tuple(
+                  sstp_tmp_rh.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin()
+              )),
+              detail::common__theta_dry__p<real_t>()
+            ),
+            // particle-specific RH
+            thrust::make_transform_iterator(
+              thrust::make_zip_iterator(
+                thrust::make_tuple(
+                  sstp_tmp_rh.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin()
+              )),
+              detail::RH<real_t>()
+            ),
+            // particle-specific eta
+            thrust::make_transform_iterator(
+              Tp.begin(),
+              detail::common__vterm__visc<real_t>()
+            ),
+            rd3.begin(),
+            kpa.begin(),
             vt.begin()
           )
         ), 
-	rw2.begin(),                    // output
+        rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)
       );
+printf("rw2 po cond\n");
+debug::print(rw2);
 
-      // calculating the 3rd wet moment after condensation (still not divided by dv)
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
-
-      // adding the third moment after condensation to dm_3
+      // calc rw3_new - rw3_old
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+        thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+        pdrv.begin(),
+        pdrv.begin(),
         thrust::plus<real_t>()
       );
 
-      // update th and rv according to changes in third wet moment
-      update_th_rv(drv, true);
+      // calc - 4/3 * pi * rho_w * n * (rw3_new - rw3_old) / (dV * rhod)
+      thrust::transform(
+        pdrv.begin(), pdrv.end(),                  // input - 1st arg
+        thrust::make_zip_iterator(thrust::make_tuple(
+          sstp_tmp_rh.begin(),                                        // rhod
+          n.begin(),                                                  // n
+          thrust::make_permutation_iterator(dv.begin(), ijk.begin()) // dv
+        )),
+        pdrv.begin(),                             // output
+        detail::rw3diff2drv<real_t>(
+          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+          * real_t(4./3) * pi<real_t>(), n_dims
+        )
+      );  
+
+printf("cond pdrv\n");
+debug::print(pdrv);
+      // apply change in rv to sstp_tmp_rv
+      update_pstate(sstp_tmp_rv, pdrv);
+
+      // calc particle-specific change in th based on pdrv
+      thrust::transform(
+        thrust::make_zip_iterator(thrust::make_tuple(  
+          pdrv.begin(),       //  
+          Tp.begin(),         // dth = drv * d_th_d_rv(T, th)
+          sstp_tmp_th.begin() //  
+        )), 
+        thrust::make_zip_iterator(thrust::make_tuple(  
+          pdrv.end(),       //  
+          Tp.end(),         // dth = drv * d_th_d_rv(T, th)
+          sstp_tmp_th.end() //  
+        )), 
+        pdrv.begin(), // in-place
+        detail::dth<real_t>()
+      );
+
+printf("cond pdth\n");
+debug::print(pdrv);
+      // apply change in th to sstp_tmp_th
+      update_pstate(sstp_tmp_th, pdrv);
     }
   };  
 };

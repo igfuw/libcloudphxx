@@ -58,7 +58,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
       thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.));
 
       // drv = - tot_vol_bfr
       thrust::transform(
@@ -69,7 +70,7 @@ namespace libcloudphxx
 
       // drv = -tot_vol_bfr + dry_vol_bfr
 /*
-      moms_calc_cond(rd3.begin(), 1);
+      moms_calc(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
@@ -440,7 +441,8 @@ namespace libcloudphxx
 
       // --- calc liquid water content after src ---
       hskpng_sort(); 
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.));
 
       // drv = tot_vol_after -tot_vol_bfr + dry_vol_bfr
       thrust::transform(
@@ -452,7 +454,7 @@ namespace libcloudphxx
 
       // drv = tot_vol_after - dry_vol_after - tot_vol_bfr + dry_vol_bfr
 /*
-      moms_calc_cond(rd3.begin(), 1);
+      moms_calc(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
@@ -461,8 +463,19 @@ namespace libcloudphxx
       );
 */
 
-      // update th and rv according to change in total liquid water volume
-      update_th_rv(drv, false);
+      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+      thrust::transform(
+        drv.begin(), drv.end(),                  // input - 1st arg
+        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+          * real_t(4./3) * pi<real_t>()
+        ),
+        drv.begin(),                             // output
+        thrust::multiplies<real_t>()
+      );  
+
+      // update th and rv
+      update_th_rv(drv);
     }
   };  
 };

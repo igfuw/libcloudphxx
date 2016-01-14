@@ -38,8 +38,8 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &y, const thrust::tuple<real_t, real_t> &tpl)
         {
-	  const real_t &x = thrust::get<0>(tpl); 
-	  const real_t &c = thrust::get<1>(tpl); 
+          const real_t &x = thrust::get<0>(tpl); 
+          const real_t &c = thrust::get<1>(tpl); 
 
           return x >= c ? y : 0; 
         }
@@ -74,9 +74,9 @@ namespace libcloudphxx
 
       thrust::transform(
         n.begin(), n.end(),   // input - 1st arg
-	vec_bgn,              // input - 2nd arg
-	n_filtered.begin(),   // output
-	detail::range_filter<real_t>(min, max) 
+        vec_bgn,              // input - 2nd arg
+        n_filtered.begin(),   // output
+        detail::range_filter<real_t>(min, max) 
       );
 
       selected_before_counting = true;
@@ -147,18 +147,18 @@ namespace libcloudphxx
       };
 
       template <typename real_t, typename n_t>
-      struct moment_counter_cond : thrust::unary_function<const thrust::tuple<n_t, real_t>&, real_t>
+      struct moment_counter_perSD : thrust::unary_function<const thrust::tuple<n_t, real_t, real_t>&, real_t>
       {
         real_t xp;
 
-        moment_counter_cond(real_t xp) : xp(xp) {}
+        moment_counter_perSD(real_t xp) : xp(xp) {}
 
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<n_t, real_t> &tpl)
+        real_t operator()(const thrust::tuple<n_t, real_t, real_t> &tpl)
         {
           const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
-          return n * pow(x, xp); // TODO: check if xp=0 is optimised
+          return n * pow(x, xp) / thrust::get<2>(tpl); // TODO: check if xp=0 is optimised
         }
       };
     };
@@ -188,7 +188,7 @@ namespace libcloudphxx
         sorted_ijk.begin(), sorted_ijk.end(),  
         // input - values
         thrust::make_transform_iterator(
-	  zip_it_t(thrust::make_tuple(
+          zip_it_t(thrust::make_tuple(
             pi_t(n_filtered.begin(),   sorted_id.begin()),
             pi_t(vec_bgn,              sorted_id.begin())
           )),
@@ -208,7 +208,7 @@ namespace libcloudphxx
         count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
         thrust::make_permutation_iterator(                  // input - second arg
           dv.begin(),
-	  count_ijk.begin()
+          count_ijk.begin()
         ),
         count_mom.begin(),                                  // output (in place)
         thrust::divides<real_t>()
@@ -220,7 +220,7 @@ namespace libcloudphxx
         count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
         thrust::make_permutation_iterator(                  // input - second arg
           rhod.begin(),
-	  count_ijk.begin()
+          count_ijk.begin()
         ),
         count_mom.begin(),                                  // output (in place)
         thrust::divides<real_t>()
@@ -229,7 +229,7 @@ namespace libcloudphxx
 
     // similar to above, but used to calc moms diff during condensation
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::moms_calc_cond(
+    void particles_t<real_t, device>::impl::moms_calc_perSD(
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const real_t power
     )
@@ -244,7 +244,7 @@ namespace libcloudphxx
         typename thrust_device::vector<n_t>::const_iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_t> > zip_it_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_t, pi_t> > zip_it_t;
 
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
@@ -254,11 +254,12 @@ namespace libcloudphxx
         sorted_ijk.begin(), sorted_ijk.end(),  
         // input - values
         thrust::make_transform_iterator(
-	  zip_it_t(thrust::make_tuple(
+          zip_it_t(thrust::make_tuple(
             pi_n_t(this->n.begin(),   sorted_id.begin()),
-            pi_t(vec_bgn,              sorted_id.begin())
+            pi_t(vec_bgn,              sorted_id.begin()),
+            pi_t(this->sstp_tmp_rh.begin(),   sorted_id.begin())
           )),
-          detail::moment_counter_cond<real_t, n_t>(power)
+          detail::moment_counter_perSD<real_t, n_t>(power)
         ),
         // output - keys
         count_ijk.begin(),
@@ -268,6 +269,17 @@ namespace libcloudphxx
 
       count_n = n.first - count_ijk.begin();
       assert(count_n > 0 && count_n <= n_cell);
+
+      // dividing by dv
+      thrust::transform(
+        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+        thrust::make_permutation_iterator(                  // input - second arg
+          dv.begin(),
+          count_ijk.begin()
+        ),
+        count_mom.begin(),                                  // output (in place)
+        thrust::divides<real_t>()
+      );
     }
   };  
 };

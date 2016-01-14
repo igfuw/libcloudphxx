@@ -25,6 +25,8 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(fr[ix]->begin(), ijk.end()),
           to[ix]->begin()
         ); 
+        printf("sstp_save %d\n", ix);
+        debug::print(*to[ix]);
       }
     }
 
@@ -83,6 +85,8 @@ namespace libcloudphxx
       	    arg::_1 + arg::_2                     // op: rv = rv + drv_adv
       	  );
       	}
+        printf("sstp step %d\n", ix);
+        debug::print(*tmp[ix]);
       }
     }
   };  

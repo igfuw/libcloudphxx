@@ -178,7 +178,6 @@ namespace libcloudphxx
         tmp_device_real_part3,
         tmp_device_real_part4,
         tmp_device_real_part5,
-        tmp_device_real_part6,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -333,7 +332,6 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
-      void hskpng_Tpr_perSD();
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
@@ -357,7 +355,7 @@ namespace libcloudphxx
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
-      void moms_calc_cond(
+      void moms_calc_perSD(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
@@ -381,7 +379,9 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
-      void update_th_rv(thrust_device::vector<real_t> &, bool);
+      void update_th_rv(thrust_device::vector<real_t> &);
+      void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 
