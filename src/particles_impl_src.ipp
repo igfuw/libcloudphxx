@@ -463,17 +463,6 @@ namespace libcloudphxx
       );
 */
 
-      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
-      thrust::transform(
-        drv.begin(), drv.end(),                  // input - 1st arg
-        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
-          * real_t(4./3) * pi<real_t>()
-        ),
-        drv.begin(),                             // output
-        thrust::multiplies<real_t>()
-      );  
-
       // update th and rv
       update_th_rv(drv);
     }

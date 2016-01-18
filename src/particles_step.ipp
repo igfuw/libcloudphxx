@@ -86,14 +86,24 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
-        for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
-        {   
-          pimpl->sstp_step(step, !rhod.is_null());
+        if(pimpl->opts_init.sstp_cond > 1)
+        // apply substeps per-particle logic
+        {
+          for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+          {   
+            pimpl->sstp_step(step, !rhod.is_null());
+            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+          } 
+          // copy sstp_tmp_rv and th to rv and th
+          pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
+          pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+        }
+        else
+        // no substeps
+        {
+          pimpl->hskpng_Tpr();
           pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
-        } 
-        // copy sstp_tmp_rv and th to rv and th
-        pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
-        pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+        }
       }
 
       // aerosol source, in sync since it changes th/rv

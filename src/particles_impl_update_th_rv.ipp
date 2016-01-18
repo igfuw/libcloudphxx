@@ -31,7 +31,7 @@ namespace libcloudphxx
       };
     };
 
-    // update th and rv according to change in liquid water volume
+    // update th and rv according to change in 3rd specific wet moments
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
@@ -39,6 +39,17 @@ namespace libcloudphxx
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
+
+      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+      thrust::transform(
+        drv.begin(), drv.end(),                  // input - 1st arg
+        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+          * real_t(4./3) * pi<real_t>()
+        ),
+        drv.begin(),                             // output
+        thrust::multiplies<real_t>()
+      );  
 
       // updating rv 
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);

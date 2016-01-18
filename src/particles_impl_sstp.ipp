@@ -14,6 +14,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_save()
     {
+      if (opts_init.sstp_cond == 1) return;
+
       const int n = 3;
       thrust_device::vector<real_t>
         *fr[n] = { &rv,          &th,          &rhod        },
