@@ -85,11 +85,6 @@ namespace libcloudphxx
     {   
       if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
 
-printf("update sorted ijk\n");
-debug::print(sorted_ijk);
-printf("update pdstate\n");
-debug::print(pdstate);
-
       // cell-wise change in state
       thrust_device::vector<real_t> &dstate(tmp_device_real_cell);
       // init dstate with 0s
@@ -105,11 +100,6 @@ debug::print(pdstate);
         count_mom.begin()
       );
       count_n = n.first - count_ijk.begin();
-printf("update count ijk\n");
-debug::print(count_ijk);
-printf("update count mom\n");
-debug::print(count_mom);
-printf("update count n %d\n", int(count_n));
 
       // add this sum to dstate
       thrust::transform(
@@ -118,8 +108,6 @@ printf("update count n %d\n", int(count_n));
         thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()
       );
-printf("update dstate\n");
-debug::print(dstate);
 
       // add dstate to pstate
       thrust::transform(

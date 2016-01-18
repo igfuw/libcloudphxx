@@ -226,17 +226,6 @@ namespace libcloudphxx
         detail::common__theta_dry__T<real_t>() 
       );  
 
-
-printf("cond tmp_rh\n");
-debug::print(sstp_tmp_rh);
-printf("cond tmp_rv\n");
-debug::print(sstp_tmp_rv);
-printf("cond Tp\n");
-debug::print(Tp);
-
-printf("rw2 przed cond\n");
-
-debug::print(rw2);
       // calculating drop growth in a timestep using backward Euler 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
@@ -278,8 +267,6 @@ debug::print(rw2);
         rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)
       );
-printf("rw2 po cond\n");
-debug::print(rw2);
 
       // calc rw3_new - rw3_old
       thrust::transform(
@@ -305,8 +292,6 @@ debug::print(rw2);
         )
       );  
 
-printf("cond pdrv\n");
-debug::print(pdrv);
       // apply change in rv to sstp_tmp_rv
       update_pstate(sstp_tmp_rv, pdrv);
 
@@ -326,8 +311,6 @@ debug::print(pdrv);
         detail::dth<real_t>()
       );
 
-printf("cond pdth\n");
-debug::print(pdrv);
       // apply change in th to sstp_tmp_th
       update_pstate(sstp_tmp_th, pdrv);
     }
