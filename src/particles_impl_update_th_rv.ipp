@@ -85,6 +85,8 @@ namespace libcloudphxx
     {   
       if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
 
+printf("update sorted ijk\n");
+debug::print(sorted_ijk);
 printf("update pdstate\n");
 debug::print(pdstate);
 
@@ -98,11 +100,16 @@ debug::print(pdstate);
         typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         sorted_ijk.begin(), sorted_ijk.end(),
-        thrust::make_permutation_iterator(pdstate.begin(), sorted_ijk.begin()),
+        thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin()),
         count_ijk.begin(),
         count_mom.begin()
       );
       count_n = n.first - count_ijk.begin();
+printf("update count ijk\n");
+debug::print(count_ijk);
+printf("update count mom\n");
+debug::print(count_mom);
+printf("update count n %d\n", int(count_n));
 
       // add this sum to dstate
       thrust::transform(
