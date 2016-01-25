@@ -146,7 +146,7 @@ int main(int ac, char** av)
       else if (plt == "rd")
       {
 	auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
-	gp << "set title 'dry radius [um/kg dry air]'\n"; 
+	gp << "set title 'dry radius [μm]'\n"; 
  	gp << "set cbrange [0.03:0.1]\n";
 	plot(gp, r_d);
       }
