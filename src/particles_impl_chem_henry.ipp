@@ -48,11 +48,7 @@ namespace libcloudphxx
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<1>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::volume, real_t>        dv     = thrust::get<2>(tpl) * si::cubic_metres;
           const quantity<si::dimensionless, real_t> c      = thrust::get<3>(tpl); 
-/*
-real_t diff = (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
-printf("%.4e %.4e\n", double(c), double(diff));
-return c - diff;
-*/
+
           return c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
         }
       };
@@ -120,8 +116,6 @@ return c - diff;
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-//std::cerr<<"chem Henry"<<  std::endl;
-
       // gas absorption
       // TODO: open/close system logic -> async/sync timestep
       assert(
@@ -178,12 +172,8 @@ return c - diff;
         thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
         thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
 
-//std::cerr<<"Henry!"<<std::endl;
-
         for (int i = 0; i < chem_gas_n; ++i)
         {
-
-//std::cerr<<"chem_gas enum "<<i<<std::endl;
 
           // store the total mass of chem species in cloud droplets per cell
           thrust::reduce_by_key(
