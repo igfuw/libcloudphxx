@@ -56,6 +56,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_Henry_fun
       { // gas absorption into cloud droplets (Henrys law)
+        const int chem_iter,
         const quantity<common::amount_over_volume_over_pressure, real_t> H;
         const quantity<si::temperature, real_t> dHR;
         const quantity<common::mass_over_amount, real_t> M_gas;
@@ -66,6 +67,7 @@ namespace libcloudphxx
 
         // ctor
         chem_Henry_fun(
+          const int chem_iter,
           const quantity<common::amount_over_volume_over_pressure, real_t> &H,
           const quantity<si::temperature, real_t> &dHR,
           const quantity<common::mass_over_amount, real_t> &M_gas,
@@ -74,13 +76,13 @@ namespace libcloudphxx
           const quantity<si::dimensionless, real_t> &acc_coeff,
           const quantity<si::time, real_t> &dt
         ) : 
-          H(H), dHR(dHR), M_gas(M_gas), M_aq(M_aq), D(D), acc_coeff(acc_coeff), dt(dt)
+          chem_iter(chem_iter), H(H), dHR(dHR), M_gas(M_gas), M_aq(M_aq), D(D), acc_coeff(acc_coeff), dt(dt)
         {}
 
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &V, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::pressure, real_t>      p      = thrust::get<0>(tpl) * si::pascals; 
           const quantity<si::temperature, real_t>   T      = thrust::get<1>(tpl) * si::kelvins;     
@@ -89,6 +91,54 @@ namespace libcloudphxx
           const quantity<si::area, real_t>          rw2    = thrust::get<4>(tpl) * si::metres * si::metres; 
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<5>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::volume, real_t>        V_old  = thrust::get<6>(tpl) * si::cubic_metres;
+          const quantity<si::mass, real_t>          m_H    = thrust::get<7>(tpl) * si::kilograms;     
+
+          todo Henry
+
+          switch(chem_iter)
+          {
+            case SO2:
+            {
+
+              Henry = common::henry::H_temp(T, H, dHR) * (real_t(1.) + K / conc_H + K * K / conc_H / conc_H);
+            }
+            break;
+
+            case CO2:
+            {
+              Henry = common::henry::H_temp(T, H, dHR);
+            }
+            break;
+
+            case HNO3:
+            {
+              Henry = common::henry::H_temp(T, H, dHR);
+ 
+            }
+            break;
+
+            case NH3:
+            {
+              Henry = common::henry::H_temp(T, H, dHR);
+ 
+            }
+            break;
+
+            case O3:
+            {
+              Henry = common::henry::H_temp(T, H, dHR);
+            }
+            break;
+
+            case H2O2:
+            {
+              Henry = common::henry::H_temp(T, H, dHR);
+            }
+            break;
+
+            default:
+              assert(false);
+          }
 
           // implicit solution to the eq. 8.22 from chapter 8.4.2 
           // in Peter Warneck Chemistry of the Natural Atmosphere  
@@ -97,7 +147,7 @@ namespace libcloudphxx
                        * c * M_aq / M_gas * V * si::cubic_metres * rhod ) 
                    /
                    (real_t(1.) + common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) * dt 
-                                 / common::henry::H_temp(T, H, dHR) / common::moist_air::kaBoNA<real_t>() / T)
+                                 / Henry / common::moist_air::kaBoNA<real_t>() / T)
                  ) / si::kilograms;
         }
       };
@@ -174,7 +224,6 @@ namespace libcloudphxx
 
         for (int i = 0; i < chem_gas_n; ++i)
         {
-
           // store the total mass of chem species in cloud droplets per cell
           thrust::reduce_by_key(
             sorted_ijk.begin(), sorted_ijk.end(),
@@ -193,7 +242,6 @@ namespace libcloudphxx
             mass_old.begin()
           );
 
-
           // apply Henrys law to the in-drop chemical compounds 
           thrust::transform(
             V.begin(), V.end(),                             // input - 1st arg
@@ -206,28 +254,9 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
               V_old.begin()
             )),
-            chem_bgn[i],                                                                                         // output
-            detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
+            chem_bgn[i],                                                                                            // output
+            detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
           );
-
-          //TODO - check if its needed in some 2D test
-          /*
-          thrust::transform(
-            thrust::make_permutation_iterator(V.begin(), sorted_id.begin()),
-            thrust::make_permutation_iterator(V.begin(), sorted_id.end()),
-            thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
-              thrust::make_permutation_iterator(p.begin(), sorted_ijk.begin()),
-              thrust::make_permutation_iterator(T.begin(), sorted_ijk.begin()),
-              thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), sorted_ijk.begin()),
-              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
-              thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()),
-              thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
-              thrust::make_permutation_iterator(V_old.begin(), sorted_id.begin())
-            )),
-            thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
-            detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
-          );
-          */
 
           // store the total mass of chem species in cloud droplets per cell after Henry
           thrust::pair<
@@ -253,15 +282,6 @@ namespace libcloudphxx
           count_n = np.first - count_ijk.begin();
           assert(count_n > 0 && count_n <= n_cell);
 
-/*
-printf("\nspecies %d count_n %d\n", i, int(count_n));
-std::cerr<<"ambient chem before henry:" << std::endl;
-debug::print(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end());
-
-debug::print(count_ijk);
-debug::print(mass_old);
-debug::print(mass_new);
-*/
           // apply the change to the mixing ratios of trace gases
           thrust::transform(
             mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
@@ -278,13 +298,7 @@ debug::print(mass_new);
           assert(*thrust::min_element(
             ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
           ) >= 0);
-/*
-std::cerr<<"ambient chem after henry:" << std::endl;
-debug::print(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end());
-printf("\n");
-*/
         }
-//printf("\n ------------------------- \n");
       }
 
       else{ // open chemical system - do not change trace gase mixing ratios due to Henrys law
@@ -303,7 +317,7 @@ printf("\n");
               V_old.begin()
             )),
             chem_bgn[i],                                                                                         // output
-            detail::chem_Henry_fun<real_t>(H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
+            detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
           );
         }
       }
