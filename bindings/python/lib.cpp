@@ -191,22 +191,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
-      .value("OH",   lgr::OH)
       .value("SO2",  lgr::SO2)
       .value("O3",   lgr::O3)
       .value("H2O2", lgr::H2O2)
       .value("CO2",  lgr::CO2)
       .value("NH3",  lgr::NH3)
       .value("HNO3", lgr::HNO3)
-      .value("HSO3", lgr::HSO3)
-      .value("SO3",  lgr::SO3)
-      .value("HCO3", lgr::HCO3)
-      .value("CO3",  lgr::CO3)
-      .value("NH4",  lgr::NH4)
-      .value("NO3",  lgr::NO3)
-      .value("S_VI", lgr::S_VI)
-      .value("HSO4", lgr::HSO4)
-      .value("SO4",  lgr::SO4);
+      .value("S_VI", lgr::S_VI);
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)

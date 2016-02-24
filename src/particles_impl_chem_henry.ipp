@@ -7,6 +7,7 @@
 
 #include <libcloudph++/common/molar_mass.hpp>
 #include <libcloudph++/common/henry.hpp>
+#include <libcloudph++/common/dissoc.hpp>
 
 namespace libcloudphxx
 {
@@ -56,7 +57,7 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_Henry_fun
       { // gas absorption into cloud droplets (Henrys law)
-        const int chem_iter,
+        const int chem_iter;
         const quantity<common::amount_over_volume_over_pressure, real_t> H;
         const quantity<si::temperature, real_t> dHR;
         const quantity<common::mass_over_amount, real_t> M_gas;
@@ -82,7 +83,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &V, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::pressure, real_t>      p      = thrust::get<0>(tpl) * si::pascals; 
           const quantity<si::temperature, real_t>   T      = thrust::get<1>(tpl) * si::kelvins;     
@@ -90,37 +91,77 @@ namespace libcloudphxx
           const quantity<si::mass, real_t>          m_old  = thrust::get<3>(tpl) * si::kilograms;     
           const quantity<si::area, real_t>          rw2    = thrust::get<4>(tpl) * si::metres * si::metres; 
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<5>(tpl) * si::kilograms / si::cubic_metres; 
-          const quantity<si::volume, real_t>        V_old  = thrust::get<6>(tpl) * si::cubic_metres;
-          const quantity<si::mass, real_t>          m_H    = thrust::get<7>(tpl) * si::kilograms;     
+          const quantity<si::mass, real_t>          m_H    = thrust::get<6>(tpl) * si::kilograms;     
 
-          todo Henry
+          using namespace common::henry;      // H-prefixed
+          using namespace common::molar_mass; // M-prefixed
+          using namespace common::dissoc;     // K-prefixed
+
+          //helper for mass of the un-dissociated chem. compounds
+          quantity<si::dimensionless, real_t> hlp;
+
+          // helper for H+ concentration
+          quantity<common::amount_over_volume, real_t> conc_H;
+          conc_H = m_H / M_H<real_t>() / (V * si::cubic_metres);
+
+          // helper for Henry coefficient corrected for temperature and pH
+          typedef divide_typeof_helper<
+            divide_typeof_helper<
+              si::amount,
+              si::volume
+            >::type,
+            si::pressure
+          >::type amount_over_volume_over_pressure;
+
+          quantity<amount_over_volume_over_pressure, real_t> Henry;
 
           switch(chem_iter)
           {
             case SO2:
             {
+              quantity<common::amount_over_volume, real_t> Kt_SO2, Kt_HSO3;
 
-              Henry = common::henry::H_temp(T, H, dHR) * (real_t(1.) + K / conc_H + K * K / conc_H / conc_H);
+              Kt_SO2  = K_temp(T, K_SO2<real_t>(),  dKR_SO2<real_t>());
+              Kt_HSO3 = K_temp(T, K_HSO3<real_t>(), dKR_HSO3<real_t>());
+          
+              hlp = (real_t(1) + Kt_SO2/conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
+
+              Henry = common::henry::H_temp(T, H, dHR) * hlp;
             }
             break;
 
             case CO2:
             {
-              Henry = common::henry::H_temp(T, H, dHR);
+              quantity<common::amount_over_volume, real_t> Kt_CO2, Kt_HCO3;
+
+              Kt_CO2  = K_temp(T, K_CO2<real_t>(),  dKR_CO2<real_t>());
+              Kt_HCO3 = K_temp(T, K_HCO3<real_t>(), dKR_HCO3<real_t>());
+
+              hlp = (real_t(1) + Kt_CO2/conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H);
+
+              Henry = common::henry::H_temp(T, H, dHR) * hlp;
             }
             break;
 
             case HNO3:
             {
-              Henry = common::henry::H_temp(T, H, dHR);
- 
+              quantity<common::amount_over_volume, real_t> Kt_HNO3;
+              Kt_HNO3 = K_temp(T, K_HNO3<real_t>(), dKR_HNO3<real_t>());
+
+              hlp = (real_t(1) + Kt_HNO3 / conc_H);
+
+              Henry = common::henry::H_temp(T, H, dHR) * hlp;
             }
             break;
 
             case NH3:
             {
-              Henry = common::henry::H_temp(T, H, dHR);
- 
+              quantity<common::amount_over_volume, real_t> Kt_NH3;
+              Kt_NH3  = K_temp(T, K_NH3<real_t>(),  dKR_NH3<real_t>());
+
+              hlp = (real_t(1.) + Kt_NH3 / K_H2O<real_t>() * conc_H);
+
+              Henry = common::henry::H_temp(T, H, dHR) * hlp;
             }
             break;
 
@@ -142,13 +183,16 @@ namespace libcloudphxx
 
           // implicit solution to the eq. 8.22 from chapter 8.4.2 
           // in Peter Warneck Chemistry of the Natural Atmosphere  
-          return  ((m_old * (V * si::cubic_metres / V_old) 
-                    + dt * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) 
-                       * c * M_aq / M_gas * V * si::cubic_metres * rhod ) 
-                   /
-                   (real_t(1.) + common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) * dt 
-                                 / Henry / common::moist_air::kaBoNA<real_t>() / T)
-                 ) / si::kilograms;
+          return 
+            (
+              ( m_old 
+                + 
+                dt * (V * si::cubic_metres) * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) * c * rhod * M_aq / M_gas
+              )
+              /
+              (real_t(1.) + dt * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) 
+                             / Henry / common::moist_air::kaBoNA<real_t>() / T)
+            ) / si::kilograms;
         }
       };
     };
@@ -161,6 +205,7 @@ namespace libcloudphxx
     {   
       using namespace common::henry;      // H-prefixed
       using namespace common::molar_mass; // M-prefixed
+      using namespace common::dissoc;     // K-prefixed
 
       thrust_device::vector<real_t> &V(tmp_device_real_part);
 
@@ -252,7 +297,7 @@ namespace libcloudphxx
               chem_bgn[i],
               rw2.begin(),
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              V_old.begin()
+              chem_bgn[H]
             )),
             chem_bgn[i],                                                                                            // output
             detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
@@ -314,7 +359,7 @@ namespace libcloudphxx
               chem_bgn[i],
               rw2.begin(),
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              V_old.begin()
+              chem_bgn[H]
             )),
             chem_bgn[i],                                                                                         // output
             detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op

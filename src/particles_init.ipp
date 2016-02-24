@@ -151,7 +151,6 @@ namespace libcloudphxx
       // calculate initail volume (helper for Henry in chem)
       if (pimpl->opts_init.chem_switch){
         pimpl->chem_vol_ante();
-        pimpl->chem_vol_post();
       }
 
       // initialising particle positions

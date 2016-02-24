@@ -97,42 +97,27 @@ namespace libcloudphxx
           {
             for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
             {   
-              //dissociation
-              if (opts.chem_dsc == true){
-                pimpl->chem_dissoc();
-              }
- 
               // set flag for those SD that are big enough to have chemical reactions
               pimpl->chem_flag_ante();
 
-              if (opts.chem_dsl == true)
-              {
-                // calculate new volume of droplets (needed for Henrys law)
-                pimpl->chem_vol_ante();
+              // calculate new volume of droplets (needed for chemistry)
+              pimpl->chem_vol_ante();
 
-                //adjust trace gases to substepping
-                pimpl->sstp_step_chem(step, !rhod.is_null());
+              //adjust trace gases to substepping
+              pimpl->sstp_step_chem(step, !rhod.is_null());
 
-                //dissolving trace gases (Henrys law)
-                pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
+              //dissolving trace gases (Henrys law)
+              pimpl->chem_henry(pimpl->opts_init.dt/ pimpl->opts_init.sstp_cond / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
 
-                //cleanup
-                pimpl->chem_cleanup();
+              //cleanup - TODO think of something better
+              pimpl->chem_cleanup();
 
-                //save the current drop volume in V_old (to be used in the next step for Henrys law)
-                pimpl->chem_vol_post();
-              }
-            }
-
-            //dissociation
-            if (opts.chem_dsc == true){
+              //dissociation
               pimpl->chem_dissoc();
             }
 
             //oxidation 
-            if (opts.chem_rct == true){
-              pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
-            }
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
           }
         } 
       }

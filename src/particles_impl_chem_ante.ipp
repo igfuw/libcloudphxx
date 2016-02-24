@@ -75,7 +75,7 @@ namespace libcloudphxx
     {   
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-      //calculate new drop volumes (to be used in Henrys law)
+      //calculate new drop volumes (to be used in chem)
       thrust_device::vector<real_t> &V(tmp_device_real_part);
 
       thrust::transform(
@@ -85,17 +85,6 @@ namespace libcloudphxx
       );
 
     assert(boost::math::isfinite(*thrust::min_element(V.begin(), V.end())));
-    }
-
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::chem_vol_post()
-    {   
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
-
-      //save the current drop volume in V_old (to be used in the next step for Henrys law)
-      thrust_device::vector<real_t> &V(tmp_device_real_part);
-    
-      thrust::copy(V.begin(), V.end(), V_old.begin());
     }
 
     template <typename real_t, backend_t device>
@@ -111,6 +100,5 @@ namespace libcloudphxx
         detail::set_chem_flag<real_t>()  // op
       );
     }
-
   };  
 };
