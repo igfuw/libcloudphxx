@@ -103,21 +103,30 @@ namespace libcloudphxx
               // calculate new volume of droplets (needed for chemistry)
               pimpl->chem_vol_ante();
 
-              //adjust trace gases to substepping
-              pimpl->sstp_step_chem(step, !rhod.is_null());
+              if (opts.chem_dsl)
+              {
+                //adjust trace gases to substepping
+                pimpl->sstp_step_chem(step, !rhod.is_null());
 
-              //dissolving trace gases (Henrys law)
-              pimpl->chem_henry(pimpl->opts_init.dt/ pimpl->opts_init.sstp_cond / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
+                //dissolving trace gases (Henrys law)
+                pimpl->chem_henry(pimpl->opts_init.dt/ pimpl->opts_init.sstp_cond / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
 
-              //cleanup - TODO think of something better
-              pimpl->chem_cleanup();
-
-              //dissociation
-              pimpl->chem_dissoc();
+                //cleanup - TODO think of something better
+                pimpl->chem_cleanup();
+              }
+              
+              if (opts.chem_dsc)
+              {
+                //dissociation
+                pimpl->chem_dissoc();
+              }
             }
-
-            //oxidation 
-            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+            
+            if (opts.chem_rct)
+            {
+              //oxidation 
+              pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+            }
           }
         } 
       }
