@@ -208,7 +208,6 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("chem_dsl", &lgr::opts_t<real_t>::chem_dsl)
       .def_readwrite("chem_dsc", &lgr::opts_t<real_t>::chem_dsc)
       .def_readwrite("chem_rct", &lgr::opts_t<real_t>::chem_rct)
-      .def_readwrite("chem_sys_cls", &lgr::opts_t<real_t>::chem_sys_cls)
       .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")

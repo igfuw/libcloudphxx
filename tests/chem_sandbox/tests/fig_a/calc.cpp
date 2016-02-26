@@ -37,7 +37,7 @@ int main(int ac, char** av)
   //    "--outfreq=2000 --nt=90000 --spinup=10   --nx=76 --nz=76 --relax_th_rv=false";
     "--outfreq=200  --nt=9000 --spinup=7200  --nx=50 --nz=50 --relax_th_rv=false";
   set<string> opts_micro({
-    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --adv_serial=True --sd_conc=50 --sstp_cond=10 --sstp_chem=10 --coal=False --sedi=False --chem_switch=True --chem_dsl=True --chem_sys_cls=True --chem_dsc=True --chem_rho=1.8e3"  //chem_rct switched on afetr spinup in set_chem  
+    "--micro=lgrngn --outdir=out_lgrngn --backend=CUDA --adv_serial=True --sd_conc=50 --sstp_cond=10 --sstp_chem=10 --coal=False --sedi=False --chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3"  //chem_rct switched on afetr spinup in set_chem  
       " --out_wet=\""
         ".5e-6:25e-6|0,1,2,3;" // FSSP
         "25e-6:1|0,3;"         // "rain"

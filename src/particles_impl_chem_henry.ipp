@@ -199,8 +199,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_henry(
-      const real_t &dt,
-      const bool &chem_sys_cls
+      const real_t &dt
     )
     {   
       using namespace common::henry;      // H-prefixed
@@ -212,7 +211,6 @@ namespace libcloudphxx
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
       // gas absorption
-      // TODO: open/close system logic -> async/sync timestep
       assert(
         HNO3 == 0 && NH3  == 1 && CO2 == 2 &&
         SO2  == 3 && H2O2 == 4 && O3  == 5 
@@ -259,114 +257,92 @@ namespace libcloudphxx
       > pi_chem_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_chem_t> > zip_it_t;
 
-      if (chem_sys_cls == true){   //closed chemical system - reduce mixing ratio due to Henrys law
+      //closed chemical system - reduce mixing ratio due to Henrys law
 
-        hskpng_sort();
+      hskpng_sort();
 
-        // temporarily needed to store old mass per cell 
-        thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
-        thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
+      // temporarily needed to store old mass per cell 
+      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
+      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
 
-        for (int i = 0; i < chem_gas_n; ++i)
-        {
-          // store the total mass of chem species in cloud droplets per cell
-          thrust::reduce_by_key(
-            sorted_ijk.begin(), sorted_ijk.end(),
-            thrust::transform_iterator<             
-              detail::chem_summator<real_t>,
-              zip_it_t,
-              real_t
-            >(
-              zip_it_t(thrust::make_tuple(
-                pi_n_t(n.begin(), sorted_id.begin()),
-                pi_chem_t(chem_bgn[i], sorted_id.begin())
-              )),
-              detail::chem_summator<real_t>() 
-            ),
-            count_ijk.begin(),
-            mass_old.begin()
-          );
-
-          // apply Henrys law to the in-drop chemical compounds 
-          thrust::transform(
-            V.begin(), V.end(),                             // input - 1st arg
-            thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
-              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), ijk.begin()),
-              chem_bgn[i],
-              rw2.begin(),
-              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              chem_bgn[H]
+      for (int i = 0; i < chem_gas_n; ++i)
+      {
+        // store the total mass of chem species in cloud droplets per cell
+        thrust::reduce_by_key(
+          sorted_ijk.begin(), sorted_ijk.end(),
+          thrust::transform_iterator<             
+            detail::chem_summator<real_t>,
+            zip_it_t,
+            real_t
+          >(
+            zip_it_t(thrust::make_tuple(
+              pi_n_t(n.begin(), sorted_id.begin()),
+              pi_chem_t(chem_bgn[i], sorted_id.begin())
             )),
-            chem_bgn[i],                                                                                            // output
-            detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
-          );
+            detail::chem_summator<real_t>() 
+          ),
+          count_ijk.begin(),
+          mass_old.begin()
+        );
 
-          // store the total mass of chem species in cloud droplets per cell after Henry
-          thrust::pair<
-            typename thrust_device::vector<thrust_size_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator
-          > np =
-          thrust::reduce_by_key(
-            sorted_ijk.begin(), sorted_ijk.end(),
-            thrust::transform_iterator<             // input - values
-              detail::chem_summator<real_t>,
-              zip_it_t,
-              real_t
-            >(
-              zip_it_t(thrust::make_tuple(
-                pi_n_t(n.begin(), sorted_id.begin()),
-                pi_chem_t(chem_bgn[i], sorted_id.begin())
-              )),
-              detail::chem_summator<real_t>()      // op
-            ),
-            count_ijk.begin(),
-            mass_new.begin()
-          );
-          count_n = np.first - count_ijk.begin();
-          assert(count_n > 0 && count_n <= n_cell);
+        // apply Henrys law to the in-drop chemical compounds 
+        thrust::transform(
+          V.begin(), V.end(),                             // input - 1st arg
+          thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
+            thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), ijk.begin()),
+            chem_bgn[i],
+            rw2.begin(),
+            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+            chem_bgn[H]
+          )),
+          chem_bgn[i],                                                                                            // output
+          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
+        );
 
-          // apply the change to the mixing ratios of trace gases
-          thrust::transform(
-            mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
-            thrust::make_zip_iterator(thrust::make_tuple(                              // input - 2nd arg
-              mass_old.begin(),
-              thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 
-              thrust::make_permutation_iterator(dv.begin(), count_ijk.begin()),
-              thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin())
+        // store the total mass of chem species in cloud droplets per cell after Henry
+        thrust::pair<
+          typename thrust_device::vector<thrust_size_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator
+        > np =
+        thrust::reduce_by_key(
+          sorted_ijk.begin(), sorted_ijk.end(),
+          thrust::transform_iterator<             // input - values
+            detail::chem_summator<real_t>,
+            zip_it_t,
+            real_t
+          >(
+            zip_it_t(thrust::make_tuple(
+              pi_n_t(n.begin(), sorted_id.begin()),
+              pi_chem_t(chem_bgn[i], sorted_id.begin())
             )),
-            thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin()), // output 
-            detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i])                                   // op
-          );
+            detail::chem_summator<real_t>()      // op
+          ),
+          count_ijk.begin(),
+          mass_new.begin()
+        );
+        count_n = np.first - count_ijk.begin();
+        assert(count_n > 0 && count_n <= n_cell);
 
-          assert(*thrust::min_element(
-            ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
-          ) >= 0);
-        }
+        // apply the change to the mixing ratios of trace gases
+        thrust::transform(
+          mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
+          thrust::make_zip_iterator(thrust::make_tuple(                              // input - 2nd arg
+            mass_old.begin(),
+            thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 
+            thrust::make_permutation_iterator(dv.begin(), count_ijk.begin()),
+            thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin())
+          )),
+          thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin()), // output 
+          detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i])                                   // op
+        );
+
+        assert(*thrust::min_element(
+          ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
+        ) >= 0);
       }
-
-      else{ // open chemical system - do not change trace gase mixing ratios due to Henrys law
-        for (int i = 0; i < chem_gas_n; ++i)
-        {
-          // apply Henrys law to the in-drop chemical compounds 
-          thrust::transform(
-            V.begin(), V.end(),                             // input - 1st arg
-            thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
-              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), ijk.begin()),
-              chem_bgn[i],
-              rw2.begin(),
-              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              chem_bgn[H]
-            )),
-            chem_bgn[i],                                                                                         // output
-            detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
-          );
-        }
-      }
-
+    
       for (int i = 0; i < chem_gas_n; ++i){
         //debug::print(chem_bgn[i], chem_end[i]);
         assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));

@@ -47,7 +47,6 @@ void setopts_micro(
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "chem. reactions        (1=on, 0=off)")
     ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
-    ("chem_sys_cls", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_sys_cls) , "closed chem. system (1=on, 0=open chem. system)")
     ("chem_rho", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.chem_rho) , "assumed dry aerosol density ")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
@@ -106,7 +105,6 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
   rt_params.cloudph_opts_init.chem_switch = vm["chem_switch"].as<bool>();
   rt_params.cloudph_opts_init.chem_rho    = vm["chem_rho"].as<setup::real_t>();
-  rt_params.cloudph_opts.chem_sys_cls = vm["chem_sys_cls"].as<bool>();
  
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
