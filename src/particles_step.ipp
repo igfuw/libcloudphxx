@@ -1,4 +1,5 @@
 // vim:filetype=cpp
+
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -56,10 +57,14 @@ namespace libcloudphxx
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
+        // TODO: many max or m1 used, unify it
+#if !defined(__NVCC__)
+        using std::max;
+#endif
         // TODO: copy-pasted from init
-	if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0); 
-	if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0); 
-	if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
       }
 
       // syncing in Eulerian fields (if not null)
@@ -79,11 +84,7 @@ namespace libcloudphxx
         }
       }
 
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      pimpl->hskpng_ijk();
-
-      // condensation/evaporation
+      // condensation/evaporation 
       if (opts.cond) 
       { // cond/evap
         for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
@@ -178,6 +179,10 @@ namespace libcloudphxx
 
       pimpl->should_now_run_async = false;
 
+      //sanity checks
+      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
         throw std::runtime_error("all chemistry was switched off in opts_init");
 
@@ -215,9 +220,6 @@ namespace libcloudphxx
         pimpl->sedi();
       }
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // coalescence
       if (opts.coal) 
       {
@@ -232,8 +234,18 @@ namespace libcloudphxx
         }
       }
 
-      // recycling out-of-domain/invalidated particles 
-      pimpl->rcyc();
+      // boundary condition + accumulated rainfall to be returned
+      // multi_GPU version invalidates i and k;
+      // this has to be done last since i and k will be used by multi_gpu copy to other devices
+      // TODO: instead of using i and k define new vectors ?
+      // TODO: do this only if we advect/sediment?
+      real_t ret = pimpl->bcnd();
+
+      // some stuff to be done at the end of the step.
+      // if using more than 1 GPU
+      // has to be done after copy 
+      if (pimpl->opts_init.dev_count < 2)
+        pimpl->step_finalize(opts);
 
       pimpl->selected_before_counting = false;
 

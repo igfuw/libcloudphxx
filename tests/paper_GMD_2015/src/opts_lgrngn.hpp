@@ -47,6 +47,7 @@ void setopts_micro(
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
+    ("dev_count", po::value<int>()->default_value(rt_params.cloudph_opts_init.dev_count), "no of GPUs to use")
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
@@ -59,6 +60,7 @@ void setopts_micro(
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
   else if (backend_str == "OpenMP") rt_params.backend = libcloudphxx::lgrngn::OpenMP;
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
+  else if (backend_str == "multi_CUDA") rt_params.backend = libcloudphxx::lgrngn::multi_CUDA;
 
   rt_params.async = vm["async"].as<bool>();
 
@@ -98,6 +100,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
+  rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
 
   // coalescence kernel choice
   rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
