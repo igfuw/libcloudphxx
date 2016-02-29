@@ -61,6 +61,7 @@ namespace libcloudphxx
       virtual void diag_wet_mom(const int&)                         { assert(false); }
       virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
       virtual void diag_chem(const enum chem_species_t&)            { assert(false); }
+      virtual void diag_precip_rate()                               { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -119,6 +120,7 @@ namespace libcloudphxx
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
+      void diag_precip_rate();
 
       struct impl;
       std::auto_ptr<impl> pimpl;
@@ -188,6 +190,7 @@ namespace libcloudphxx
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
+      void diag_precip_rate();
 
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0); // only opts_init specified by user
