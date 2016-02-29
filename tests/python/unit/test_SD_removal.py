@@ -54,7 +54,7 @@ Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
 Opts.chem_dsl = True
-Opts.chem_dsc = True
+Opts.chem_dsc = False
 Opts.chem_rct = False
 
 for i in range(900):
