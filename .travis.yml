@@ -96,7 +96,7 @@ script:
     ## parcel
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
     #- git clone --depth=1 git://github.com/igfuw/parcel.git
-    - git clone -b git@github.com:trontrytel/parcel.git
+    - git clone -b git@github.com:trontrytel/parcel.git sstp_chem
     - cd parcel
     - mkdir plots/outputs
     - py.test unit_test
