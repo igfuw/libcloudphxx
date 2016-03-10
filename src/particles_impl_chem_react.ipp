@@ -277,10 +277,11 @@ namespace libcloudphxx
        
       thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
       
-      for (int i = 0; i < chem_gas_n; ++i){
-        assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
-      }
-      assert(boost::math::isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
+      // TODO
+      //for (int i = 0; i < chem_gas_n; ++i){
+      //  assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+      //}
+      //assert(boost::math::isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
     }
   };  
 };

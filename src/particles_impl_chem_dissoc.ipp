@@ -181,9 +181,10 @@ namespace libcloudphxx
         );
       }
 
-      for (int i = 0; i < chem_gas_n; ++i){
-        assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
-      }
+      // TODO
+      //for (int i = 0; i < chem_gas_n; ++i){
+      //  assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+      //}
     }
   };  
 };
