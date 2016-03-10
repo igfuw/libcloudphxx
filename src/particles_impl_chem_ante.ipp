@@ -84,8 +84,10 @@ namespace libcloudphxx
         detail::chem_vol_fun<real_t>()  // op
       );
 
-    assert((*thrust::min_element(V.begin(), V.end())) == 0); //check if its a problem with boost or thrust
-    //assert(boost::math::isfinite(*thrust::min_element(V.begin(), V.end())));
+#if !defined(__NVCC__)
+      using boost::math::isfinite;
+#endif
+      assert(isfinite(*thrust::min_element(V.begin(), V.end())));
     }
 
     template <typename real_t, backend_t device>
