@@ -182,13 +182,16 @@ namespace libcloudphxx
                   // condition
                   thrust::identity<unsigned int>()
                 );
-#if !defined(__NVCC__) // TODO...
-                assert(boost::math::isfinite(*thrust::min_element(
+
+#if !defined(__NVCC__)
+                using boost::math::isfinite;
+#endif
+                assert(isfinite(*thrust::min_element(
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part + n_part
                 )));
-#endif
                 break;
+
               default: 
                 assert(false);
             }
@@ -276,12 +279,15 @@ namespace libcloudphxx
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
        
       thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
-      
-      //for (int i = 0; i < chem_gas_n; ++i){
-      //  assert(boost::math::isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
-      //}
 
-      //assert(boost::math::isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
+#if !defined(__NVCC__)
+      using boost::math::isfinite;
+#endif
+      for (int i = 0; i < chem_gas_n; ++i){
+        assert(isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+      }
+
+      assert(isfinite(*thrust::min_element(rd3.begin(), rd3.end())));
     }
   };  
 };
