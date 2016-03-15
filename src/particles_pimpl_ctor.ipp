@@ -192,7 +192,7 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // distributed memory stuff
+      // -- distributed memory stuff --
 
       // flag if ran using MPI with n > 1
       bool distmem_mpi;
@@ -288,13 +288,6 @@ namespace libcloudphxx
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
-        // note: there could be less tmp data spaces if _cell vectors
-        //       would point to _part vector data... but using.end() would not possible
-        // initialising device temporary arrays
-        tmp_device_real_cell.resize(n_cell);
-        tmp_device_real_cell1.resize(n_cell);
-        tmp_device_size_cell.resize(n_cell);
-
         // initialising host temporary arrays
         {
           int n_grid;
@@ -324,8 +317,6 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
-        tmp_host_size_cell.resize(n_cell);
-        tmp_host_real_cell.resize(n_cell);
       }
 
       // methods
