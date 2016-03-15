@@ -224,8 +224,6 @@ namespace libcloudphxx
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
-      // ---- methods ----
-
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
@@ -358,6 +356,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      void mpi_exchange();
 
            // rename hskpng_ -> step_?
       void hskpng_sort_helper(bool);
