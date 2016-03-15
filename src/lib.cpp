@@ -1,10 +1,6 @@
 #include <iostream>
 #include <exception>
 #include <libcloudph++/lgrngn/factory.hpp>
-#include "detail/distmem_opts.hpp"
-#if defined(USE_MPI)
- #include <mpi.h>
-#endif
 
 namespace libcloudphxx
 {
@@ -17,47 +13,28 @@ namespace libcloudphxx
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {
-#if defined(USE_MPI)
-      // initialize mpi if compiled with an mpi wrapper
-      int rank, size, n_x_bfr;
-
-      MPI_CHECK(MPI_Init(nullptr, nullptr));
-      MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
-      MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
-//      printf("rank %d size %d\n",rank,size);
-
-      // adjust opts_init for this process
-      n_x_bfr = detail::distmem_opts<real_t>(opts_init, rank, size);
-      // flag stating if mpi copying has to be done
-      const bool distmem_mpi = size > 1 ? true : false;
-//      printf("using mpi\n");
-#else
-      const int n_x_bfr = 0;
-      const bool distmem_mpi = false;
-#endif
-
       switch (backend)
       {
 	case multi_CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions(), TODO: some other check in CMake?
-	  return new particles_t<real_t, multi_CUDA>(opts_init, n_x_bfr, distmem_mpi);
+	  return new particles_t<real_t, multi_CUDA>(opts_init);
 #else
           throw std::runtime_error("multi_CUDA backend was not compiled");
 #endif
 	case CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
-	  return new particles_t<real_t, CUDA>(opts_init, n_x_bfr, distmem_mpi);
+	  return new particles_t<real_t, CUDA>(opts_init);
 #else
           throw std::runtime_error("CUDA backend was not compiled");
 #endif
 	case OpenMP:
 #if defined(_OPENMP)
-	  return new particles_t<real_t, OpenMP>(opts_init, n_x_bfr, distmem_mpi);
+	  return new particles_t<real_t, OpenMP>(opts_init);
 #else
           throw std::runtime_error("OpenMP backend was not compiled"); 
 #endif
 	case serial:
-	  return new particles_t<real_t, serial>(opts_init, n_x_bfr, distmem_mpi);
+	  return new particles_t<real_t, serial>(opts_init);
 	default:
           throw std::runtime_error("unknown backend"); 
       }

@@ -16,6 +16,11 @@
 
 #include <map>
 
+#include "detail/distmem_opts.hpp"
+#if defined(USE_MPI)
+ #include <mpi.h>
+#endif
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -194,6 +199,9 @@ namespace libcloudphxx
 
       // -- distributed memory stuff --
 
+      const int mpi_rank,
+                mpi_size;
+
       // flag if ran using MPI with n > 1
       bool distmem_mpi;
 
@@ -228,7 +236,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda, const int &mpi_rank, const int &mpi_size) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -255,6 +263,8 @@ namespace libcloudphxx
         distmem_mpi(distmem_mpi),
         distmem_cuda(distmem_cuda),
         distmem(distmem_mpi || distmem_cuda),
+        mpi_rank(mpi_rank),
+        mpi_size(mpi_size),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
@@ -427,9 +437,29 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda):
-      pimpl(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda))
+    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda)
     {
+      // handle MPI init
+#if defined(USE_MPI)
+      int rank, size, n_x_bfr;
+
+      MPI_CHECK(MPI_Init(nullptr, nullptr));
+      MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
+      MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
+//      printf("rank %d size %d\n",rank,size);
+
+      // adjust opts_init for this process
+      n_x_bfr = detail::distmem_opts<real_t>(opts_init, rank, size);
+      // flag stating if mpi copying has to be done
+      const bool distmem_mpi = size > 1 ? true : false;
+//      printf("using mpi\n");
+#else
+      const int n_x_bfr = 0;
+      const bool distmem_mpi = false;
+#endif
+
+      // create impl instance
+      pimpl.reset(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda, rank, size));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }
