@@ -192,10 +192,18 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // flag if ran on a distributed memory system (MPI or multi_CUDA)
-      bool dist_mem;
+      // distributed memory stuff
 
-      // number of particles to be copied left/right in multi-GPU setup
+      // flag if ran using MPI with n > 1
+      bool distmem_mpi;
+
+      // flag if it is an instance spawned by multi_CUDA
+      bool distmem_cuda;
+
+      // flag if ran on a distributed memory system (MPI or multi_CUDA)
+      bool distmem;
+
+      // number of particles to be copied left/right in distmem setup
       unsigned int lft_count, rgt_count;
 
       // nx in devices to the left of this one
@@ -208,6 +216,8 @@ namespace libcloudphxx
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
+      // ---- methods ----
+
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
@@ -218,7 +228,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &dist_mem) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -242,7 +252,9 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
-        dist_mem(dist_mem),
+        distmem_mpi(distmem_mpi),
+        distmem_cuda(distmem_cuda),
+        distmem(distmem_mpi || distmem_cuda),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
@@ -424,8 +436,8 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, const bool &dist_mem):
-      pimpl(new impl(opts_init, n_x_bfr, dist_mem))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda):
+      pimpl(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda))
     {
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();

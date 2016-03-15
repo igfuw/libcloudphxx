@@ -58,8 +58,8 @@ namespace libcloudphxx
         case 1:
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
-          // when working on a single GPU simply apply bcond
-          if(!dist_mem)
+          // when working on a shared memory system, simply apply bcond
+          if(!distmem)
           {
             thrust::transform(
               x.begin(), x.end(),

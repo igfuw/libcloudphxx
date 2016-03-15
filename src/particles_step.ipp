@@ -218,16 +218,22 @@ namespace libcloudphxx
       }
 
       // boundary condition + accumulated rainfall to be returned
-      // multi_GPU version invalidates i and k;
-      // this has to be done last since i and k will be used by multi_gpu copy to other devices
+      // distmem version invalidates i and k;
+      // this has to be done last since i and k will be used when copying to other devices
       // TODO: instead of using i and k define new vectors ?
       // TODO: do this only if we advect/sediment?
       real_t ret = pimpl->bcnd();
+      
+      // placeholder for copy using mpi
+      // done if we use MPI and this instance is not a CUDA spawned by multi_CUDA
+      if (pimpl->distmem_mpi && !pimpl->distmem_cuda)
+        ;
 
       // some stuff to be done at the end of the step.
       // if using distributed memory
       // has to be done after copy 
-      if (!pimpl->dist_mem)
+      // if it is a spawn of multi_CUDA, multi_CUDA will handle copy and finalize
+      if(!pimpl->distmem_cuda)
         pimpl->step_finalize(opts);
 
       pimpl->selected_before_counting = false;

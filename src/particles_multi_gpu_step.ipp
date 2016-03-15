@@ -266,8 +266,8 @@ namespace libcloudphxx
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
 
-        // finalize async
-        if(glob_opts_init.dev_count>1)
+        // finalize async if more than one GPU on this node
+        if(glob_opts_init.dev_count>1) 
           particles[dev_id].pimpl->step_finalize(opts);
       }
       return res;

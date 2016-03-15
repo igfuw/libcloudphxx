@@ -24,8 +24,8 @@ namespace libcloudphxx
       // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
 
       // remove SDs with n = 0
-//      if(opts.sedi || opts.adve || opts.coal) 
-//      hskpng_remove_n0();  
+      // if(opts.sedi || opts.adve || opts.coal) 
+      // hskpng_remove_n0();  
 
       // updating particle->cell look-up table
       // (before advection and sedimentation so that their order does not matter,
