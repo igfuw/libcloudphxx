@@ -36,6 +36,9 @@ namespace libcloudphxx
 
         opts_init.n_sd_max = opts_init.n_sd_max / size + 1;
 
+        // different random seed on each process...
+        opts_init.rng_seed += rank;
+
         return n_x_bfr;
       }
     }
