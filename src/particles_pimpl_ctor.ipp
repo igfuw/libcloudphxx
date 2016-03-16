@@ -446,14 +446,14 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda)
+    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda, const int &n_x_bfr)
     {
       // handle MPI init
 #if defined(USE_MPI)
       // sanity checks
       if(opts_init.nz == 0) throw std::runtime_error("MPI works only for 2D and 3D simulations");
 
-      int rank, size, n_x_bfr;
+      int rank, size;
 
       // TODO: mpi_init_thread instead to allow multiple threads per process?
       MPI_CHECK(MPI_Init(nullptr, nullptr));
@@ -461,31 +461,9 @@ namespace libcloudphxx
       MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
       MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
 
-      // find x domain edges of the neighbouring processes
-      // TODO: same done in distmem copy, unify
-      const int lft_rank = rank > 0 ? rank - 1 : size - 1,
-                rgt_rank = rank < size - 1 ? rank + 1 : 0;
-
-      real_t lft_x1, rgt_x0;
-     
-      {
-        opts_init_t<real_t> tmp_opts_init(opts_init);
-        detail::distmem_opts<real_t>(tmp_opts_init, rgt_rank, size);
-        rgt_x0 = tmp_opts_init.x0;
-      }
-      {
-        opts_init_t<real_t> tmp_opts_init(opts_init);
-        detail::distmem_opts<real_t>(tmp_opts_init, lft_rank, size);
-        lft_x1 = tmp_opts_init.x1;
-      }
-
-      // adjust opts_init for this process
-      n_x_bfr = detail::distmem_opts<real_t>(opts_init, rank, size);
-
       // flag for mpi copying
       const bool distmem_mpi = size > 1 ? true : false;
 #else
-      const int n_x_bfr = 0;
       const bool distmem_mpi = false;
 #endif
 
