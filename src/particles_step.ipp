@@ -227,8 +227,10 @@ namespace libcloudphxx
       // copy advected SDs using MPI
       // done if we use MPI and this instance is not a CUDA spawned by multi_CUDA
       // NOTE: currently doesnt work with multi_CUDA
+#if defined(USE_MPI)
       if (opts.adve && pimpl->distmem_mpi && !pimpl->distmem_cuda)
         pimpl->mpi_exchange();
+#endif
 
       // some stuff to be done at the end of the step.
       // if using distributed memory

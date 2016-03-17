@@ -24,8 +24,12 @@
 #include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
-// MPI error handling
-#include "detail/mpi_check.hpp"
+#if defined(USE_MPI)
+  // MPI error handling
+  #include "detail/mpi_check.hpp"
+  // MPI copy
+  #include "particles_impl_mpi_exchange.ipp"
+#endif
 
 #include "particles_impl_kernel.ipp"
 
@@ -54,7 +58,6 @@
 
 #include "particles_impl_step_finalize.ipp"
 #include "particles_impl_update_th_rv.ipp"
-#include "particles_impl_mpi_exchange.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"

@@ -336,35 +336,38 @@ namespace libcloudphxx
         }
         // get boundaries of neighoburing processes
 #if defined(USE_MPI)
-        // ranks of processes to the left/right, periodic boundary in x
-        // TODO: same used in other places, unify
-        const int lft_rank = mpi_rank > 0 ? mpi_rank - 1 : mpi_size - 1,
-                  rgt_rank = mpi_rank < mpi_size - 1 ? mpi_rank + 1 : 0;
-
-        // exchange x0 x1 values
-        for(int i=0; i<2; ++i)
+        if(distmem_mpi)
         {
-          // nonblocking send
-          MPI_Isend(
-            i ? &opts_init.x1 : &opts_init.x0,       
-            1,                              // no of values
-            detail::get_mpi_type<real_t>(), // type
-            i ? rgt_rank : lft_rank,                       // dest comm
-            0,                              // message tag
-            MPI_COMM_WORLD,                 // communicator
-            new MPI_Request()
-          );
-          // blocking recv
-          MPI_Recv(
-            i ? &lft_x1 : &rgt_x0,       
-            1,                              // no of values
-            detail::get_mpi_type<real_t>(), // type
-            i ? lft_rank : rgt_rank,                       // src comm
-            0,                              // message tag
-            MPI_COMM_WORLD,                  // communicator
-            MPI_STATUS_IGNORE
-          );
-          MPI_Barrier(MPI_COMM_WORLD); 
+          // ranks of processes to the left/right, periodic boundary in x
+          // TODO: same used in other places, unify
+          const int lft_rank = mpi_rank > 0 ? mpi_rank - 1 : mpi_size - 1,
+                    rgt_rank = mpi_rank < mpi_size - 1 ? mpi_rank + 1 : 0;
+
+          // exchange x0 x1 values
+          for(int i=0; i<2; ++i)
+          {
+            // nonblocking send
+            MPI_Isend(
+              i ? &opts_init.x1 : &opts_init.x0,       
+              1,                              // no of values
+              detail::get_mpi_type<real_t>(), // type
+              i ? rgt_rank : lft_rank,                       // dest comm
+              0,                              // message tag
+              MPI_COMM_WORLD,                 // communicator
+              new MPI_Request()
+            );
+            // blocking recv
+            MPI_Recv(
+              i ? &lft_x1 : &rgt_x0,       
+              1,                              // no of values
+              detail::get_mpi_type<real_t>(), // type
+              i ? lft_rank : rgt_rank,                       // src comm
+              0,                              // message tag
+              MPI_COMM_WORLD,                  // communicator
+              MPI_STATUS_IGNORE
+            );
+            MPI_Barrier(MPI_COMM_WORLD); 
+          }
         }
 #endif
       }
@@ -479,12 +482,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda, const int &n_x_bfr)
     {
+      int rank, size;
       // handle MPI init
 #if defined(USE_MPI)
       // sanity checks
       if(opts_init.nz == 0) throw std::runtime_error("MPI works only for 2D and 3D simulations");
 
-      int rank, size, initialized;
+      int initialized;
 
       MPI_CHECK(MPI_Initialized(&initialized));
       // TODO: mpi_init_thread instead to allow multiple threads per process?
@@ -497,6 +501,8 @@ namespace libcloudphxx
       // flag for mpi copying
       const bool distmem_mpi = size > 1 ? true : false;
 #else
+      rank = 0;
+      size = 1;
       const bool distmem_mpi = false;
 #endif
 

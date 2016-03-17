@@ -17,7 +17,7 @@ namespace libcloudphxx
         real_t operator()(real_t x)
         {
           real_t res = rmt + x - lcl;
-          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1
+          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1, TODO: does it call CUDA's nextafter when used by multi_CUDA?
           return res;
         }
       };
