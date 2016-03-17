@@ -16,9 +16,9 @@
 
 #include <map>
 
-#include "detail/distmem_opts.hpp"
 #if defined(USE_MPI)
- #include <mpi.h>
+  #include <mpi.h>
+  #include "detail/get_mpi_type.hpp"
 #endif
 
 namespace libcloudphxx
@@ -243,7 +243,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda, const int &mpi_rank, const int &mpi_size, const real_t &lft_x1, const real_t &rgt_x0) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda, const int &mpi_rank, const int &mpi_size) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -273,8 +273,6 @@ namespace libcloudphxx
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
-        lft_x1(lft_x1),
-        rgt_x0(rgt_x0),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
@@ -336,6 +334,39 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
+        // get boundaries of neighoburing processes
+#if defined(USE_MPI)
+        // ranks of processes to the left/right, periodic boundary in x
+        // TODO: same used in other places, unify
+        const int lft_rank = mpi_rank > 0 ? mpi_rank - 1 : mpi_size - 1,
+                  rgt_rank = mpi_rank < mpi_size - 1 ? mpi_rank + 1 : 0;
+
+        // exchange x0 x1 values
+        for(int i=0; i<2; ++i)
+        {
+          // nonblocking send
+          MPI_Isend(
+            i ? &opts_init.x1 : &opts_init.x0,       
+            1,                              // no of values
+            detail::get_mpi_type<real_t>(), // type
+            i ? rgt_rank : lft_rank,                       // dest comm
+            0,                              // message tag
+            MPI_COMM_WORLD,                 // communicator
+            new MPI_Request()
+          );
+          // blocking recv
+          MPI_Recv(
+            i ? &lft_x1 : &rgt_x0,       
+            1,                              // no of values
+            detail::get_mpi_type<real_t>(), // type
+            i ? lft_rank : rgt_rank,                       // src comm
+            0,                              // message tag
+            MPI_COMM_WORLD,                  // communicator
+            MPI_STATUS_IGNORE
+          );
+          MPI_Barrier(MPI_COMM_WORLD); 
+        }
+#endif
       }
 
       void sanity_checks();
@@ -453,10 +484,12 @@ namespace libcloudphxx
       // sanity checks
       if(opts_init.nz == 0) throw std::runtime_error("MPI works only for 2D and 3D simulations");
 
-      int rank, size;
+      int rank, size, initialized;
 
+      MPI_CHECK(MPI_Initialized(&initialized));
       // TODO: mpi_init_thread instead to allow multiple threads per process?
-      MPI_CHECK(MPI_Init(nullptr, nullptr));
+      if(!initialized)
+        MPI_CHECK(MPI_Init(nullptr, nullptr));
       // TODO: create a communicator for 'our' processes?
       MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
       MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
@@ -468,7 +501,7 @@ namespace libcloudphxx
 #endif
 
       // create impl instance
-      pimpl.reset(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda, rank, size, lft_x1, rgt_x0));
+      pimpl.reset(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda, rank, size));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }

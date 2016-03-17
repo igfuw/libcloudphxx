@@ -1,11 +1,5 @@
 #pragma once
 
-// Error handling macros
-#define MPI_CHECK(call) \
-    if((call) != MPI_SUCCESS) { \
-        std::cerr << "MPI error calling \""#call"\"\n"; \
-        MPI_Abort(MPI_COMM_WORLD, -1);}
-
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -35,9 +29,6 @@ namespace libcloudphxx
         else               opts_init.x1 = opts_init.x1 - n_x_bfr * opts_init.dx;
 
         opts_init.n_sd_max = opts_init.n_sd_max / size + 1;
-
-        // different random seed on each process...
-        opts_init.rng_seed += rank;
 
         return n_x_bfr;
       }
