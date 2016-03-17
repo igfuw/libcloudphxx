@@ -25,10 +25,9 @@
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #if defined(USE_MPI)
+  #include <mpi.h>
   // MPI error handling
   #include "detail/mpi_check.hpp"
-  // MPI copy
-  #include "particles_impl_mpi_exchange.ipp"
 #endif
 
 #include "particles_impl_kernel.ipp"
@@ -88,3 +87,7 @@
 #include "particles_impl_src.ipp"
 #include "particles_impl_kernel_interpolation.ipp"
 
+#if defined(USE_MPI)
+  // MPI copy
+  #include "particles_impl_mpi_exchange.ipp"
+#endif

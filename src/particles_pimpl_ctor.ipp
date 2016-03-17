@@ -17,7 +17,6 @@
 #include <map>
 
 #if defined(USE_MPI)
-  #include <mpi.h>
   #include "detail/get_mpi_type.hpp"
 #endif
 
