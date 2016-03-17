@@ -178,7 +178,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       boost::numeric::odeint::thrust_operations 
     > chem_stepper;
   
-    thrust::cpp::vector<float> v(11);
+    thrust::cpp::vector<float> v(2);
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
