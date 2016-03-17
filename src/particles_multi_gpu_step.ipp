@@ -8,29 +8,12 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
+#include "detail/remote_boundary.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {
-      template <typename real_t>
-      struct remote
-      {
-        real_t lcl, rmt;
-
-        remote(real_t lcl, real_t rmt) : lcl(lcl), rmt(rmt) {}
-
-        BOOST_GPU_ENABLED
-        real_t operator()(real_t x)
-        {
-          real_t res = rmt + x - lcl;
-          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1
-          return res;
-        }
-      };
-    };
     // time-stepping methods
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_sync(

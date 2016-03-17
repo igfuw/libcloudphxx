@@ -6,6 +6,7 @@
   */
 
 #include "detail/get_mpi_type.hpp"
+#include "detail/remote_boundary.hpp"
 
 namespace libcloudphxx
 {
@@ -14,22 +15,6 @@ namespace libcloudphxx
     namespace detail
     {
       enum {tag_n_t = 654321, tag_real_t = 654322}; // hope other libs dont use these tags, TODO: using separate communicator would help?
-
-      template <typename real_t>
-      struct remote
-      {
-        real_t lcl, rmt;
-
-        remote(real_t lcl, real_t rmt) : lcl(lcl), rmt(rmt) {}
-
-        BOOST_GPU_ENABLED
-        real_t operator()(real_t x)
-        {
-          real_t res = rmt + x - lcl;
-          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1
-          return res;
-        }
-      };
     };
 
     // --- copy advected SDs to other devices ---
