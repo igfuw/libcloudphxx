@@ -121,6 +121,10 @@ if (CUDA_FOUND)
   unset(msg)
   unset(status)
 
+  if(USE_MPI)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-DUSE_MPI")
+  endif()
+
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
