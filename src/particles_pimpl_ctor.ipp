@@ -492,7 +492,7 @@ namespace libcloudphxx
       MPI_CHECK(MPI_Initialized(&initialized));
       // TODO: mpi_init_thread instead to allow multiple threads per process?
       if(!initialized)
-        MPI_CHECK(MPI_Init(nullptr, nullptr));
+        MPI_CHECK(MPI_Init(NULL, NULL));
       // TODO: create a communicator for 'our' processes?
       MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
       MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));

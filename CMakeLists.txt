@@ -122,17 +122,17 @@ if (CUDA_FOUND)
   unset(status)
 
   if(USE_MPI)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-DUSE_MPI")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -DUSE_MPI")
   endif()
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+        -Xcompiler -Ofast,-march=native,-DNDEBUG,-fopenmp")
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")  
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler -fopenmp,-g")  
 
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
     if(NOT DEFINED ENV{TRAVIS})
