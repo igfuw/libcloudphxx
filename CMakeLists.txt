@@ -72,6 +72,7 @@ if (NOT CUDA_FOUND)
 endif()
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
+set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
 
 if (CUDA_FOUND)
   # trying to figure out compute capability of the current 
