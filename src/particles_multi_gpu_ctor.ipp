@@ -104,20 +104,20 @@ namespace libcloudphxx
         particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp));
         
         // set n_x_bfr and n_cell_bfr and bcond type for this device 
-        particles[dev_id]->pimpl->n_x_bfr = n_x_bfr;
-        particles[dev_id]->pimpl->n_cell_bfr = n_x_bfr * m1(opts_init_tmp.ny) * m1(opts_init_tmp.nz);
+        particles[dev_id].pimpl->n_x_bfr = n_x_bfr;
+        particles[dev_id].pimpl->n_cell_bfr = n_x_bfr * detail::m1(opts_init_tmp.ny) * detail::m1(opts_init_tmp.nz);
         if(dev_count > 1)
         {
-          if(!particles[dev_id]->pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
-            particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+          if(!particles[dev_id].pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
+            particles[dev_id].pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
           else // if there is MPI, set in-node boundaries between devices to cuda
           {
             if(dev_id == 0)
-              particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
+              particles[dev_id].pimpl->bcond.second = detail::distmem_cuda;
             else if(dev_id == dev_count - 1)
-              particles[dev_id]->pimpl->bcond.first = detail::distmem_cuda;
+              particles[dev_id].pimpl->bcond.first = detail::distmem_cuda;
             else
-              particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+              particles[dev_id].pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
           }
         }
       }
