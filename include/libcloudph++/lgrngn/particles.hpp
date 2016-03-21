@@ -126,7 +126,7 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda = 0, const int &n_x_bfr = 0);
+      particles_t(opts_init_t<real_t> opts_init);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
@@ -193,7 +193,7 @@ namespace libcloudphxx
       void diag_precip_rate();
 
       // constructors
-      particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda = 0, const int &n_x_bfr = 0); 
+      particles_t(opts_init_t<real_t> opts_init); 
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
