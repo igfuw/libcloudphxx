@@ -78,7 +78,7 @@ namespace libcloudphxx
           thrust_device::vector<n_t> &n(particles[dev_id].pimpl->n);
           thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
           thrust_device::vector<n_t> &in_n_bfr(particles[dev_id].pimpl->in_n_bfr);
-          std::pair<detail::bcond_t, detai::bcond_t> &bcond(particles[dev_id].pimpl->bcond);
+          std::pair<detail::cond_t, detai::bcond_t> &bcond(particles[dev_id].pimpl->bcond);
           // i and k must have not changed since impl->bcnd !!
           const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
           const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->k);
