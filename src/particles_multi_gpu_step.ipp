@@ -55,13 +55,6 @@ namespace libcloudphxx
         // do step async on each device
         res = particles[dev_id].step_async(opts);
 
-        // no of SDs copied
-        int n_copied;
-
-        // real_t vectors to be copied
-        thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
-        const int real_vctrs_count = glob_opts_init.ny == 0 ? 6 : 7;
-
         // --- copy advected SDs to other devices ---
         if(opts.adve && glob_opts_init.dev_count>1)
         {
@@ -97,6 +90,13 @@ namespace libcloudphxx
           // init stream and event
           gpuErrchk(cudaStreamCreate(&streams[dev_id]));
           gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
+
+          // no of SDs copied
+          int n_copied;
+  
+          // real_t vectors to be copied
+          thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+          const int real_vctrs_count = glob_opts_init.ny == 0 ? 6 : 7;
 
           if(bcond.first == detail::distmem_cuda)
           {
