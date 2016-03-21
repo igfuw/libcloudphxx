@@ -15,6 +15,7 @@
 #include "detail/kernel_utils.hpp"
 #include "detail/wang_collision_enhancement.hpp"
 #include "detail/kernel_onishi_nograv.hpp"
+#include "detail/remote_boundary.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -55,7 +56,8 @@
 #include "particles_impl_init_kernel.ipp"
 #include "particles_impl_init_vterm.ipp"
 
-#include "particles_impl_step_finalize.ipp"
+#include "particles_impl_post_copy.ipp"
+#include "particles_impl_xchng_domains.ipp"
 #include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
@@ -70,6 +72,7 @@
 #include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
+#include "particles_impl_distmem_access.ipp"
 
 #include "particles_impl_sync.ipp"
 
@@ -87,7 +90,5 @@
 #include "particles_impl_src.ipp"
 #include "particles_impl_kernel_interpolation.ipp"
 
-#if defined(USE_MPI)
-  // MPI copy
-  #include "particles_impl_mpi_exchange.ipp"
-#endif
+// MPI copy
+#include "particles_impl_mpi_exchange.ipp"

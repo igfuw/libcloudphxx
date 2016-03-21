@@ -9,7 +9,6 @@ namespace libcloudphxx
     // the reasons to have this factory are:
     // - to handle errors like CUDA version not present
     // - to shorten the code on the caller side
-    // - handle MPI init
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {

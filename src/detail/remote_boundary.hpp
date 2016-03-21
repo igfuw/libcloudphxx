@@ -6,6 +6,11 @@ namespace libcloudphxx
   {
     namespace detail
     {   
+      enum bcond_t
+      {
+        sharedmem, distmem_cuda, distmem_mpi
+      };
+
       template <typename real_t>
       struct remote
       {   

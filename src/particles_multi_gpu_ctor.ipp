@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(opts_init_t<real_t> _opts_init, const bool &distmem_cuda, const int &_n_x_bfr) :
+    particles_t<real_t, multi_CUDA>::particles_t(opts_init_t<real_t> _opts_init) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
@@ -101,7 +101,25 @@ namespace libcloudphxx
         if(dev_count > 1)
           n_x_bfr = detail::distmem_opts(opts_init_tmp, dev_id, dev_count); 
 
-        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, true, n_x_bfr));
+        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp));
+        
+        // set n_x_bfr and n_cell_bfr and bcond type for this device 
+        particles[dev_id]->pimpl->n_x_bfr = n_x_bfr;
+        particles[dev_id]->pimpl->n_cell_bfr = n_x_bfr * m1(opts_init_tmp.ny) * m1(opts_init_tmp.nz);
+        if(dev_count > 1)
+        {
+          if(!particles[dev_id]->pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
+            particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+          else // if there is MPI, set in-node boundaries between devices to cuda
+          {
+            if(dev_id == 0)
+              particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
+            else if(dev_id == dev_count - 1)
+              particles[dev_id]->pimpl->bcond.first = detail::distmem_cuda;
+            else
+              particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+          }
+        }
       }
     }
 

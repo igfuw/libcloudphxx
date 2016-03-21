@@ -225,19 +225,13 @@ namespace libcloudphxx
       real_t ret = pimpl->bcnd();
       
       // copy advected SDs using MPI
-      // done if we use MPI and this instance is not a CUDA spawned by multi_CUDA
-      // NOTE: currently doesnt work with multi_CUDA
-#if defined(USE_MPI)
-      if (opts.adve && pimpl->distmem_mpi && !pimpl->distmem_cuda)
+      if (opts.adve && pimpl->distmem_mpi())
         pimpl->mpi_exchange();
-#endif
 
-      // some stuff to be done at the end of the step.
-      // if using distributed memory
-      // has to be done after copy 
+      // stuff has to be done after distmem copy 
       // if it is a spawn of multi_CUDA, multi_CUDA will handle finalize
-      if(!pimpl->distmem_cuda)
-        pimpl->step_finalize(opts);
+      if(!pimpl->distmem_cuda())
+        pimpl->post_copy(opts);
 
       pimpl->selected_before_counting = false;
 

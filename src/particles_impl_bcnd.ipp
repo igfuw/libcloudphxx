@@ -59,7 +59,7 @@ namespace libcloudphxx
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
           // when working on a shared memory system, simply apply bcond
-          if(!distmem)
+          if(!distmem())
           {
             thrust::transform(
               x.begin(), x.end(),

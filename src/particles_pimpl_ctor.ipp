@@ -202,14 +202,8 @@ namespace libcloudphxx
       const int mpi_rank,
                 mpi_size;
 
-      // flag if ran using MPI with n > 1
-      bool distmem_mpi;
-
-      // flag if it is an instance spawned by multi_CUDA
-      bool distmem_cuda;
-
-      // flag if ran on a distributed memory system (MPI or multi_CUDA)
-      bool distmem;
+      // boundary type (shared mem/distmem)
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
       // number of particles to be copied left/right in distmem setup
       unsigned int lft_count, rgt_count;
@@ -242,7 +236,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const bool &distmem_mpi, const bool &distmem_cuda, const int &mpi_rank, const int &mpi_size) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -265,13 +259,13 @@ namespace libcloudphxx
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
-        n_x_bfr(n_x_bfr),
-        distmem_mpi(distmem_mpi),
-        distmem_cuda(distmem_cuda),
-        distmem(distmem_mpi || distmem_cuda),
+        bcond(bcond),
+        n_x_bfr(0),
+        n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
+        lft_x1(-1),  // default to no
+        rgt_x0(-1),  // MPI boudanry
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
@@ -333,42 +327,6 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
-        // get boundaries of neighoburing processes
-#if defined(USE_MPI)
-        if(distmem_mpi)
-        {
-          // ranks of processes to the left/right, periodic boundary in x
-          // TODO: same used in other places, unify
-          const int lft_rank = mpi_rank > 0 ? mpi_rank - 1 : mpi_size - 1,
-                    rgt_rank = mpi_rank < mpi_size - 1 ? mpi_rank + 1 : 0;
-
-          // exchange x0 x1 values
-          for(int i=0; i<2; ++i)
-          {
-            // nonblocking send
-            MPI_Isend(
-              i ? &opts_init.x1 : &opts_init.x0,       
-              1,                              // no of values
-              detail::get_mpi_type<real_t>(), // type
-              i ? rgt_rank : lft_rank,                       // dest comm
-              0,                              // message tag
-              MPI_COMM_WORLD,                 // communicator
-              new MPI_Request()
-            );
-            // blocking recv
-            MPI_Recv(
-              i ? &lft_x1 : &rgt_x0,       
-              1,                              // no of values
-              detail::get_mpi_type<real_t>(), // type
-              i ? lft_rank : rgt_rank,                       // src comm
-              0,                              // message tag
-              MPI_COMM_WORLD,                  // communicator
-              MPI_STATUS_IGNORE
-            );
-            MPI_Barrier(MPI_COMM_WORLD); 
-          }
-        }
-#endif
       }
 
       void sanity_checks();
@@ -474,14 +432,19 @@ namespace libcloudphxx
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
 
-      void step_finalize(const opts_t<real_t>&);
+      void post_copy(const opts_t<real_t>&);
+      void xchng_domains();
+      bool distmem_mpi();
+      bool distmem_cuda();
+      bool distmem();
     };
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, const bool &distmem_cuda, const int &n_x_bfr)
+    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init)
     {
       int rank, size;
+
       // handle MPI init
 #if defined(USE_MPI)
       // sanity checks
@@ -496,17 +459,18 @@ namespace libcloudphxx
       // TODO: create a communicator for 'our' processes?
       MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
       MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
-
-      // flag for mpi copying
-      const bool distmem_mpi = size > 1 ? true : false;
 #else
       rank = 0;
       size = 1;
-      const bool distmem_mpi = false;
 #endif
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+      if(size > 1)
+        bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
+      else
+        bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
 
       // create impl instance
-      pimpl.reset(new impl(opts_init, n_x_bfr, distmem_mpi, distmem_cuda, rank, size));
+      pimpl.reset(new impl(opts_init, bcond, rank, size));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }

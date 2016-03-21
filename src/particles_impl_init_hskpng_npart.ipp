@@ -41,7 +41,7 @@ namespace libcloudphxx
       // reserve memory for in/out buffers
       // for courant_x = 0.1 and n_sd_max
       // overkill?
-      if(distmem)
+      if(distmem())
       {
         in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);
