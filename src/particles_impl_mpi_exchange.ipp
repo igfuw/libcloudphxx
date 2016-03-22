@@ -26,9 +26,9 @@ namespace libcloudphxx
 #if defined(USE_MPI)
       namespace arg = thrust::placeholders;
 
-      // i and k must have not changed since impl->bcnd !!
+      // i and tmp_device_size_part must have not changed since impl->bcnd !!
       const thrust_device::vector<thrust_size_t> &lft_id(i);
-      const thrust_device::vector<thrust_size_t> &rgt_id(k);
+      const thrust_device::vector<thrust_size_t> &rgt_id(tmp_device_size_part);
 
       // ranks of processes to the left/right, periodic boundary in x
       const int lft_rank = mpi_rank > 0 ? mpi_rank - 1 : mpi_size - 1,

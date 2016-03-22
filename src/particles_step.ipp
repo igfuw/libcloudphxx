@@ -218,10 +218,8 @@ namespace libcloudphxx
       }
 
       // boundary condition + accumulated rainfall to be returned
-      // distmem version invalidates i and k;
-      // this has to be done last since i and k will be used when copying to other devices
-      // TODO: instead of using i and k define new vectors ?
-      // TODO: do this only if we advect/sediment?
+      // distmem version overwrites i and tmp_device_size_part
+      // and they both need to be unchanged untill distmem copies
       real_t ret = pimpl->bcnd();
       
       // copy advected SDs using MPI

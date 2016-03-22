@@ -448,8 +448,6 @@ namespace libcloudphxx
       // handle MPI init
 #if defined(USE_MPI)
       // sanity checks
-      if(opts_init.nz == 0) throw std::runtime_error("MPI works only for 2D and 3D simulations");
-
       int initialized;
 
       MPI_CHECK(MPI_Initialized(&initialized));

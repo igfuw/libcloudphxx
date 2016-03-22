@@ -27,10 +27,6 @@ namespace libcloudphxx
       if(glob_opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
       if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
 
-      // multi_CUDA works only for 2D and 3D
-      if(glob_opts_init.nz == 0)
-        throw std::runtime_error("multi_CUDA backend works only for 2D and 3D simulations.");
-
       if (!(glob_opts_init.x1 > glob_opts_init.x0 && glob_opts_init.x1 <= glob_opts_init.nx * glob_opts_init.dx))
         throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
 
