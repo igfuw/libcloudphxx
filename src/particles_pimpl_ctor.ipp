@@ -462,6 +462,15 @@ namespace libcloudphxx
 #else
       rank = 0;
       size = 1;
+      // throw an error if ran with mpi, but not compiled for mpi
+      if (
+        // mpich
+        std::getenv("PMI_RANK") != NULL ||
+        // openmpi
+        std::getenv("OMPI_COMM_WORLD_RANK") != NULL ||
+        // lam
+        std::getenv("LAMRANK") != NULL
+      ) throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
 #endif
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
       if(size > 1)
