@@ -77,6 +77,13 @@ namespace libcloudphxx
             {gpuErrchk(cudaDeviceEnablePeerAccess(rgt_dev, 0));}
         }
       }
+
+      // initialize mpi with threading support
+      #if defined(USE_MPI)
+        const int prov_tlvl = detail::mpi_init_thread(MPI_THREAD_MULTIPLE);
+        if(prov_tlvl < MPI_THREAD_SERIALIZED)
+          throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_SERIALIZED");
+      #endif
       
       // resize the pointer vector
       particles.reserve(dev_count);

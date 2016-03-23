@@ -27,8 +27,8 @@
 
 #if defined(USE_MPI)
   #include <mpi.h>
-  // MPI error handling
-  #include "detail/mpi_check.hpp"
+  // MPI init
+  #include "detail/mpi_init.hpp"
 #endif
 
 #include "particles_impl_kernel.ipp"

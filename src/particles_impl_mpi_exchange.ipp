@@ -72,6 +72,7 @@ namespace libcloudphxx
       }
       // start async receiving of n buffer from right
       if(bcond.second == detail::distmem_mpi)
+      {
         MPI_Irecv(
           in_n_bfr.data().get(),        // raw pointer to the buffer
           in_n_bfr.size(),              // max no of values to recv
@@ -81,7 +82,7 @@ namespace libcloudphxx
           MPI_COMM_WORLD,               // communicator
           &req_recv_n_t
         );
-
+      }
 
       if(bcond.first == detail::distmem_mpi)
       {
@@ -139,7 +140,9 @@ namespace libcloudphxx
 
       // check if out_n_bfr sent left has been received
       if(bcond.first == detail::distmem_mpi)
+      {
         MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
+      }
 
       if(bcond.second == detail::distmem_mpi)
       {
@@ -182,6 +185,7 @@ namespace libcloudphxx
 
       // start async receiving of n buffer from left
       if(bcond.first == detail::distmem_mpi)
+      {
         MPI_Irecv(
           in_n_bfr.data().get(),        // raw pointer to the buffer
           in_n_bfr.size(),              // max no of values to recv
@@ -191,6 +195,7 @@ namespace libcloudphxx
           MPI_COMM_WORLD,               // communicator
           &req_recv_n_t
         );
+      }
 
       // prepare the real_t buffer for copy to the right
       if(bcond.second == detail::distmem_mpi)
@@ -217,6 +222,7 @@ namespace libcloudphxx
 
       // start async copy of real buffer to the right
       if(bcond.second == detail::distmem_mpi)
+      {
         MPI_Isend(
           out_real_bfr.data().get(),       // raw pointer to the buffer
           rgt_count * real_vctrs_count,                    // no of values to send
@@ -226,9 +232,11 @@ namespace libcloudphxx
           MPI_COMM_WORLD,                // communicator
           &req_send_real_t
         );
+      }
 
       // start async receiving of real buffer from left
       if(bcond.first == detail::distmem_mpi)
+      {
         MPI_Irecv(
           in_real_bfr.data().get(),        // raw pointer to the buffer
           in_real_bfr.size(),              // max no of values to recv
@@ -238,6 +246,7 @@ namespace libcloudphxx
           MPI_COMM_WORLD,               // communicator
           &req_recv_real_t
         );
+      }
 
       // flag SDs sent left/right for removal
       if(bcond.first == detail::distmem_mpi)
@@ -272,6 +281,9 @@ namespace libcloudphxx
 
       // particles are not sorted now
       sorted = false;          
+
+      // wait for all  processes to finish before continuing
+      MPI_Barrier(MPI_COMM_WORLD);
 #endif
     }
   };

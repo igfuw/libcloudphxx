@@ -202,6 +202,9 @@ namespace libcloudphxx
       const int mpi_rank,
                 mpi_size;
 
+      // should mpi calls from different threads on the node be serial
+      const bool mpi_serial;
+
       // boundary type (shared mem/distmem)
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
@@ -236,7 +239,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const bool &mpi_serial) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -264,6 +267,7 @@ namespace libcloudphxx
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
+        mpi_serial(mpi_serial),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
         vt0_n_bin(10000),
@@ -447,17 +451,15 @@ namespace libcloudphxx
 
       // handle MPI init
 #if defined(USE_MPI)
-      // sanity checks
-      int initialized;
+      // should be true only if its a multi_CUDA spawn and mpi doesnt support MPI_THREAD_MULTIPLE
+      bool serial_mpi = 
+        detail::mpi_init(MPI_THREAD_SINGLE, rank, size) == MPI_THREAD_SERIALIZED ?
+          true : false;
 
-      MPI_CHECK(MPI_Initialized(&initialized));
-      // TODO: mpi_init_thread instead to allow multiple threads per process?
-      if(!initialized)
-        MPI_CHECK(MPI_Init(NULL, NULL));
-      // TODO: create a communicator for 'our' processes?
-      MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
-      MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
+      // even if above is true, no need to serialize if we use only one device per node
+      serial_mpi = serial_mpi && (opts_init.dev_count > 1);
 #else
+      const bool serial_mpi = false;
       rank = 0;
       size = 1;
       // throw an error if ran with mpi, but not compiled for mpi
@@ -477,7 +479,7 @@ namespace libcloudphxx
         bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
 
       // create impl instance
-      pimpl.reset(new impl(opts_init, bcond, rank, size));
+      pimpl.reset(new impl(opts_init, bcond, rank, size, serial_mpi));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }
