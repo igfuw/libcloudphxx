@@ -9,11 +9,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {
-      enum {tag_n_t = 654321, tag_real_t = 654322}; // hope other libs dont use these tags, TODO: using separate communicator would help?
-    };
-
     // --- copy advected SDs to other devices ---
     // TODO: many similarities to copy between GPUS in particles_impl_multi_gpu_step!
     // TODO: use MPI's derived datatypes instead of packing/unpacking local buffers? wouldn't have to use separate buffers for n_t and real_t
