@@ -86,13 +86,48 @@ namespace libcloudphxx
 
       // condensation/evaporation 
       if (opts.cond) 
-      {
+      { // cond/evap
         for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
         {   
           pimpl->sstp_step(step, !rhod.is_null());
           pimpl->hskpng_Tpr(); 
-          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
-        } 
+          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
+        }
+      }
+
+      // chemistry
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      {
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
+        {   
+          // set flag for those SD that are big enough to have chemical reactions
+          pimpl->chem_flag_ante();
+
+          // calculate new volume of droplets (needed for chemistry)
+          pimpl->chem_vol_ante();
+
+          if (opts.chem_dsl)
+          {
+            //adjust trace gases to substepping
+            pimpl->sstp_step_chem(step, !rhod.is_null());
+
+            //dissolving trace gases (Henrys law)
+            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+
+            //cleanup - TODO think of something better
+            pimpl->chem_cleanup();
+          }
+              
+          if (opts.chem_dsc)
+          { //dissociation
+            pimpl->chem_dissoc();
+          }
+            
+          if (opts.chem_rct)
+          { //oxidation 
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+          }
+        }
       }
 
       // aerosol source, in sync since it changes th/rv
@@ -120,33 +155,9 @@ namespace libcloudphxx
         pimpl->stp_ctr = 0; //reset the counter
       }
 
-      // chemistry
-      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      if (opts.chem_dsl == true)
       {
-        // calculate new volume of droplets (needed for Henrys law)
-        pimpl->chem_vol_ante();
-        // set flag for those SD that are big enough to have chemical reactions
-        pimpl->chem_flag_ante();
-
-        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
-        {
-          //dissolving trace gases (Henrys law)
-          if (opts.chem_dsl == true)
-            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
-
-          //dissociation
-          if (opts.chem_dsc == true)
-            pimpl->chem_dissoc();
-
-          //oxidation 
-          if (opts.chem_rct == true)
-          pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
-        }
-
-        //save the current drop volume in V_old (to be used in the next step for Henrys law)
-        pimpl->chem_vol_post();
-
-        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
+        // syncing out trace gases // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         for (int i = 0; i < chem_gas_n; ++i)
           pimpl->sync(
             pimpl->ambient_chem[(chem_species_t)i],
@@ -185,6 +196,12 @@ namespace libcloudphxx
       { 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
+      }
+
+      if (opts.chem_dsl) 
+      { 
+        // saving rv to be used as rv_old
+        pimpl->sstp_save_chem();
       }
 
       // updating Tpr look-up table (includes RH update)
