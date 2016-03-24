@@ -8,7 +8,6 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
-#include "detail/remote_boundary.hpp"
 
 namespace libcloudphxx
 {
@@ -64,24 +63,11 @@ namespace libcloudphxx
           // helper aliases
           const unsigned int &lft_count(particles[dev_id].pimpl->lft_count);
           const unsigned int &rgt_count(particles[dev_id].pimpl->rgt_count);
-          thrust_size_t &n_part(particles[dev_id].pimpl->n_part);
-          thrust_size_t &n_part_old(particles[dev_id].pimpl->n_part_old);
-          thrust_device::vector<real_t> &x(particles[dev_id].pimpl->x);
-          thrust_device::vector<real_t> &y(particles[dev_id].pimpl->y);
-          thrust_device::vector<real_t> &z(particles[dev_id].pimpl->z);
-          thrust_device::vector<real_t> &rd3(particles[dev_id].pimpl->rd3);
-          thrust_device::vector<real_t> &rw2(particles[dev_id].pimpl->rw2);
-          thrust_device::vector<real_t> &kpa(particles[dev_id].pimpl->kpa);
-          thrust_device::vector<real_t> &vt(particles[dev_id].pimpl->vt);
           thrust_device::vector<real_t> &out_real_bfr(particles[dev_id].pimpl->out_real_bfr);
           thrust_device::vector<real_t> &in_real_bfr(particles[dev_id].pimpl->in_real_bfr);
-          thrust_device::vector<n_t> &n(particles[dev_id].pimpl->n);
           thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
           thrust_device::vector<n_t> &in_n_bfr(particles[dev_id].pimpl->in_n_bfr);
           std::pair<detail::bcond_t, detail::bcond_t> &bcond(particles[dev_id].pimpl->bcond);
-          // i and tmp_device_size_part must have not changed since impl->bcnd !!
-          const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id].pimpl->i);
-          const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id].pimpl->tmp_device_size_part);
 
           // IDs of devices to the left/right, periodic_ext boundary in x
           const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
@@ -91,22 +77,11 @@ namespace libcloudphxx
           gpuErrchk(cudaStreamCreate(&streams[dev_id]));
           gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
 
-          // no of SDs copied
-          int n_copied;
-  
-          // real_t vectors to be copied
-          thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
-          const int real_vctrs_count = glob_opts_init.ny == 0 ? 6 : 7;
-
           if(bcond.first == detail::distmem_cuda)
           {
             // prepare buffer with n_t to be copied left
             // TODO: serialize n_t and real_t with boost serialize
-            thrust::copy(
-              thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
-              thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
-              out_n_bfr.begin()
-            );
+            particles[dev_id].pack_n_lft();
 
             // start async copy of n buffer to the left
             gpuErrchk(cudaMemcpyPeerAsync(
@@ -121,23 +96,13 @@ namespace libcloudphxx
           // barrier to make sure that all devices started copying
           #pragma omp barrier
 
-          // adjust x of prtcls to be sent left to match new device's domain
           if(bcond.first == detail::distmem_cuda)
           {
-            thrust::transform(
-              thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
-              thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
-              thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
-              detail::remote<real_t>(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1)
-            );
+            // adjust x of prtcls to be sent left to match new device's domain
+            particles[dev_id].bcnd_remote_lft(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1);
 
             // prepare the real_t buffer for copy left
-            for(int i = 0; i < real_vctrs_count; ++i)
-              thrust::copy(
-                thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
-                thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
-                out_real_bfr.begin() + i * lft_count
-              );
+            particles[dev_id].pack_real_lft();
           }
 
           if(bcond.second == detail::distmem_cuda)
@@ -146,11 +111,7 @@ namespace libcloudphxx
             gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
 
             // unpack the n buffer sent to this device from right
-            n_copied = particles[rgt_dev].pimpl->lft_count;
-            n_part_old = n_part;
-            n_part += n_copied;
-            n.resize(n_part);
-            thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+            particles[dev_id].unpack_n(particles[rgt_dev].pimpl->lft_count); // also sets n_part_old and n_part
           }
 
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
@@ -171,29 +132,16 @@ namespace libcloudphxx
           if(bcond.second == detail::distmem_cuda)
           {
             // prepare buffer with n_t to be copied right
-            thrust::copy(
-              thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
-              thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
-              out_n_bfr.begin()
-            );
+            particles[dev_id].pack_n_rgt();
 
             // adjust x of prtcls to be sent right to match new device's domain
-            thrust::transform(
-              thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
-              thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
-              thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
-              detail::remote<real_t>(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0)
-            );
+            particles[dev_id].bcnd_remote_rgt(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0);
 
             // wait for the copy of real from right into current device to finish
             gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
 
             // unpack the real buffer sent to this device from right
-            for(int i = 0; i < real_vctrs_count; ++i)
-            {
-              real_t_vctrs[i]->resize(n_part);
-              thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
-            }
+            particles[dev_id].unpack_real(particles[rgt_dev].pimpl->lft_count);
 
             // start async copy of n buffer to the right
             gpuErrchk(cudaMemcpyPeerAsync(
@@ -210,23 +158,14 @@ namespace libcloudphxx
 
           // prepare the real_t buffer for copy to the right
           if(bcond.second == detail::distmem_cuda)
-            for(int i = 0; i < real_vctrs_count; ++i)
-              thrust::copy(
-                thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()),
-                thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
-                out_real_bfr.begin() + i * rgt_count
-              );
+            particles[dev_id].pack_real_rgt();
 
           if(bcond.first == detail::distmem_cuda)
           {
             // wait for the copy of n from left into current device to finish
             gpuErrchk(cudaEventSynchronize(events[lft_dev]));
             // unpack the n buffer sent to this device from left
-            n_copied = particles[lft_dev].pimpl->rgt_count;
-            n_part_old = n_part;
-            n_part += n_copied;
-            n.resize(n_part);
-            thrust::copy( in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+            particles[dev_id].unpack_n(particles[lft_dev].pimpl->rgt_count); // also sets n_part etc..
           }
 
           if(bcond.second == detail::distmem_cuda)
@@ -246,17 +185,10 @@ namespace libcloudphxx
 
           // flag SDs sent left/right for removal
           if(bcond.first == detail::distmem_cuda)
-            thrust::copy(
-              thrust::make_constant_iterator<n_t>(0),
-              thrust::make_constant_iterator<n_t>(0) + lft_count,
-              thrust::make_permutation_iterator(n.begin(), lft_id.begin())
-            );
+            particles[dev_id].flag_lft(); 
+
           if(bcond.second == detail::distmem_cuda)
-            thrust::copy(
-              thrust::make_constant_iterator<n_t>(0),
-              thrust::make_constant_iterator<n_t>(0) + rgt_count,
-              thrust::make_permutation_iterator(n.begin(), rgt_id.begin())
-            );
+            particles[dev_id].flag_lft(); 
           
           if(bcond.first == detail::distmem_cuda)
           {
@@ -264,11 +196,7 @@ namespace libcloudphxx
             gpuErrchk(cudaEventSynchronize(events[lft_dev]));
 
             // unpack the real buffer sent to this device from left
-            for(int i = 0; i < real_vctrs_count; ++i)
-            {
-              real_t_vctrs[i]->resize(n_part);
-              thrust::copy(in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
-            }
+            particles[dev_id].unpack_real(particles[lft_dev].pimpl->rgt_count);
           }
           // resize all vectors of size n_part
           particles[dev_id].pimpl->hskpng_resize_npart();

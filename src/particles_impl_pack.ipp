@@ -1,0 +1,108 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
+namespace libcloudphxx
+{
+  namespace lgrngn
+  {
+    namespace detail
+    {
+      template <typename real_t>
+      struct remote
+      {
+        real_t lcl, rmt;
+
+        remote(real_t lcl, real_t rmt) : lcl(lcl), rmt(rmt) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          real_t res = rmt + x - lcl;
+          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1, TODO: does it call CUDA's nextafter when used by multi_CUDA?
+          return res;
+        }
+      };
+    };
+ 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::pack_n_lft()
+    {
+      thrust::copy(
+        thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
+        thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
+        out_n_bfr.begin()
+      );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::pack_n_rgt()
+    {
+      thrust::copy(
+        thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
+        thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
+        out_n_bfr.begin()
+      );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::pack_real_lft()
+    {
+      // real_t vectors to be copied
+      thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+      const int real_vctrs_count = 
+        n_dims == 3 ? 7 : 
+          n_dims == 2 ? 6 : 5;
+
+      for(int i = 0; i < real_vctrs_count; ++i)
+        thrust::copy(
+          thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
+          thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()) + lft_count,
+          out_real_bfr.begin() + i * lft_count
+        );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::pack_real_rgt()
+    {
+      // real_t vectors to be copied
+      thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+      const int real_vctrs_count = 
+        n_dims == 3 ? 7 : 
+          n_dims == 2 ? 6 : 5;
+
+      for(int i = 0; i < real_vctrs_count; ++i)
+        thrust::copy(
+          thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()),
+          thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
+          out_real_bfr.begin() + i * rgt_count
+        );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::bcnd_remote_lft(const real_t &x0, const real_t &x1)
+    {
+      thrust::transform(
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count,
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
+        detail::remote<real_t>(x0, x1)
+      );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::bcnd_remote_rgt(const real_t &x1, const real_t &x0)
+    {
+      thrust::transform(
+        thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),
+        thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
+        thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
+        detail::remote<real_t>(x1, x0)
+      );
+    }
+  };
+};
+
