@@ -227,6 +227,9 @@ namespace libcloudphxx
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
+      // ids of sds to be copied with distmem
+      thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
       // methods
 
       // fills u01[0:n] with random numbers
@@ -239,7 +242,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const bool &mpi_serial) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -267,9 +270,11 @@ namespace libcloudphxx
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
-        mpi_serial(mpi_serial),
+        mpi_serial(false),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
+        lft_id(i),   // note: reuses i vector
+        rgt_id(tmp_device_size_part),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
@@ -437,10 +442,22 @@ namespace libcloudphxx
       void sstp_save();
 
       void post_copy(const opts_t<real_t>&);
+
+      // distmem stuff
       void xchng_domains();
       bool distmem_mpi();
       bool distmem_cuda();
       bool distmem();
+      void pack_n_lft();
+      void pack_n_rgt();
+      void pack_real_lft();
+      void pack_real_rgt();
+      void unpack_n(const int &);
+      void unpack_real(const int &);
+      void flag_lft();
+      void flag_rgt();
+      void bcnd_remote_lft(const real_t &, const real_t &);
+      void bcnd_remote_rgt(const real_t &, const real_t &);
     };
 
     // ctor
@@ -451,6 +468,10 @@ namespace libcloudphxx
 
       // handle MPI init
 #if defined(USE_MPI)
+      // sanity checks
+      if(opts_init.nx == 0)
+        throw std::runtime_error("MPI doesn't work for 0D setup");
+ 
       // should be true only if its a multi_CUDA spawn and mpi doesnt support MPI_THREAD_MULTIPLE
       bool serial_mpi = 
         detail::mpi_init(MPI_THREAD_SINGLE, rank, size) == MPI_THREAD_SERIALIZED ?
@@ -459,7 +480,6 @@ namespace libcloudphxx
       // even if above is true, no need to serialize if we use only one device per node
       serial_mpi = serial_mpi && (opts_init.dev_count > 1);
 #else
-      const bool serial_mpi = false;
       rank = 0;
       size = 1;
       // throw an error if ran with mpi, but not compiled for mpi
@@ -479,7 +499,7 @@ namespace libcloudphxx
         bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
 
       // create impl instance
-      pimpl.reset(new impl(opts_init, bcond, rank, size, serial_mpi));
+      pimpl.reset(new impl(opts_init, bcond, rank, size));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }

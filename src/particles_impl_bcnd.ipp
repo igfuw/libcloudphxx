@@ -71,9 +71,6 @@ namespace libcloudphxx
           else
           {
 	    namespace arg = thrust::placeholders;
-            // use i and tmp_device_size_part as temp storage - after bcond they are invalid anyway
-            thrust_device::vector<thrust_size_t> &lft_id(i);
-            thrust_device::vector<thrust_size_t> &rgt_id(tmp_device_size_part);
 
             // save ids of SDs to copy
             lft_count = thrust::copy_if(

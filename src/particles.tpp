@@ -15,7 +15,7 @@
 #include "detail/kernel_utils.hpp"
 #include "detail/wang_collision_enhancement.hpp"
 #include "detail/kernel_onishi_nograv.hpp"
-#include "detail/remote_boundary.hpp"
+#include "detail/bcond.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -91,4 +91,6 @@
 #include "particles_impl_kernel_interpolation.ipp"
 
 // MPI copy
+#include "particles_impl_pack.ipp"
+#include "particles_impl_unpack.ipp"
 #include "particles_impl_mpi_exchange.ipp"
