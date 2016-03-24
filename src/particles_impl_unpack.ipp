@@ -21,16 +21,10 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unpack_real(const int &n_copied)
     {
-      // real_t vectors copied
-      thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
-      const int real_vctrs_count =
-        n_dims == 3 ? 7 :
-          n_dims == 2 ? 6 : 5;
-
-      for(int i = 0; i < real_vctrs_count; ++i)
+      for(int i = 0; i < distmem_real_vctrs_count; ++i)
       {
-        real_t_vctrs[i]->resize(n_part);
-        thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
+        distmem_real_vctrs[i]->resize(n_part);
+        thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, distmem_real_vctrs[i]->begin() + n_part_old);
       }
     }
 

@@ -63,6 +63,7 @@ namespace libcloudphxx
           // helper aliases
           const unsigned int &lft_count(particles[dev_id].pimpl->lft_count);
           const unsigned int &rgt_count(particles[dev_id].pimpl->rgt_count);
+          const int &distmem_real_vctrs_count(particles[dev_id].pimpl->distmem_real_vctrs_count);
           thrust_device::vector<real_t> &out_real_bfr(particles[dev_id].pimpl->out_real_bfr);
           thrust_device::vector<real_t> &in_real_bfr(particles[dev_id].pimpl->in_real_bfr);
           thrust_device::vector<n_t> &out_n_bfr(particles[dev_id].pimpl->out_n_bfr);
@@ -81,7 +82,7 @@ namespace libcloudphxx
           {
             // prepare buffer with n_t to be copied left
             // TODO: serialize n_t and real_t with boost serialize
-            particles[dev_id].pack_n_lft();
+            particles[dev_id].pimpl->pack_n_lft();
 
             // start async copy of n buffer to the left
             gpuErrchk(cudaMemcpyPeerAsync(
@@ -99,10 +100,10 @@ namespace libcloudphxx
           if(bcond.first == detail::distmem_cuda)
           {
             // adjust x of prtcls to be sent left to match new device's domain
-            particles[dev_id].bcnd_remote_lft(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1);
+            particles[dev_id].pimpl->bcnd_remote_lft(particles[dev_id].opts_init->x0, particles[lft_dev].opts_init->x1);
 
             // prepare the real_t buffer for copy left
-            particles[dev_id].pack_real_lft();
+            particles[dev_id].pimpl->pack_real_lft();
           }
 
           if(bcond.second == detail::distmem_cuda)
@@ -111,7 +112,7 @@ namespace libcloudphxx
             gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
 
             // unpack the n buffer sent to this device from right
-            particles[dev_id].unpack_n(particles[rgt_dev].pimpl->lft_count); // also sets n_part_old and n_part
+            particles[dev_id].pimpl->unpack_n(particles[rgt_dev].pimpl->lft_count); // also sets n_part_old and n_part
           }
 
           // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
@@ -120,7 +121,7 @@ namespace libcloudphxx
             gpuErrchk(cudaMemcpyPeerAsync(
               particles[lft_dev].pimpl->in_real_bfr.data().get(), lft_dev,  //dst
               out_real_bfr.data().get(), dev_id,                             //src 
-              real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
+              distmem_real_vctrs_count * lft_count * sizeof(real_t),                 //no of bytes
               streams[dev_id]                                                //best performance if stream belongs to src
             ));
             // record beginning of copying
@@ -132,16 +133,16 @@ namespace libcloudphxx
           if(bcond.second == detail::distmem_cuda)
           {
             // prepare buffer with n_t to be copied right
-            particles[dev_id].pack_n_rgt();
+            particles[dev_id].pimpl->pack_n_rgt();
 
             // adjust x of prtcls to be sent right to match new device's domain
-            particles[dev_id].bcnd_remote_rgt(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0);
+            particles[dev_id].pimpl->bcnd_remote_rgt(particles[dev_id].opts_init->x1, particles[rgt_dev].opts_init->x0);
 
             // wait for the copy of real from right into current device to finish
             gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
 
             // unpack the real buffer sent to this device from right
-            particles[dev_id].unpack_real(particles[rgt_dev].pimpl->lft_count);
+            particles[dev_id].pimpl->unpack_real(particles[rgt_dev].pimpl->lft_count);
 
             // start async copy of n buffer to the right
             gpuErrchk(cudaMemcpyPeerAsync(
@@ -158,14 +159,14 @@ namespace libcloudphxx
 
           // prepare the real_t buffer for copy to the right
           if(bcond.second == detail::distmem_cuda)
-            particles[dev_id].pack_real_rgt();
+            particles[dev_id].pimpl->pack_real_rgt();
 
           if(bcond.first == detail::distmem_cuda)
           {
             // wait for the copy of n from left into current device to finish
             gpuErrchk(cudaEventSynchronize(events[lft_dev]));
             // unpack the n buffer sent to this device from left
-            particles[dev_id].unpack_n(particles[lft_dev].pimpl->rgt_count); // also sets n_part etc..
+            particles[dev_id].pimpl->unpack_n(particles[lft_dev].pimpl->rgt_count); // also sets n_part etc..
           }
 
           if(bcond.second == detail::distmem_cuda)
@@ -174,7 +175,7 @@ namespace libcloudphxx
             gpuErrchk(cudaMemcpyPeerAsync(
               particles[rgt_dev].pimpl->in_real_bfr.data().get(), rgt_dev,  //dst
               out_real_bfr.data().get(), dev_id,                             //src 
-              real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
+              distmem_real_vctrs_count * rgt_count * sizeof(real_t),                 //no of bytes
               streams[dev_id]                                                //best performance if stream belongs to src
             ));
             // record beginning of copying
@@ -185,10 +186,10 @@ namespace libcloudphxx
 
           // flag SDs sent left/right for removal
           if(bcond.first == detail::distmem_cuda)
-            particles[dev_id].flag_lft(); 
+            particles[dev_id].pimpl->flag_lft(); 
 
           if(bcond.second == detail::distmem_cuda)
-            particles[dev_id].flag_lft(); 
+            particles[dev_id].pimpl->flag_rgt(); 
           
           if(bcond.first == detail::distmem_cuda)
           {
@@ -196,7 +197,7 @@ namespace libcloudphxx
             gpuErrchk(cudaEventSynchronize(events[lft_dev]));
 
             // unpack the real buffer sent to this device from left
-            particles[dev_id].unpack_real(particles[lft_dev].pimpl->rgt_count);
+            particles[dev_id].pimpl->unpack_real(particles[lft_dev].pimpl->rgt_count);
           }
           // resize all vectors of size n_part
           particles[dev_id].pimpl->hskpng_resize_npart();
@@ -209,7 +210,31 @@ namespace libcloudphxx
           gpuErrchk(cudaStreamDestroy(streams[dev_id]));
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
+      }
 
+      // perform mpi copy; has to be done sequentially here as MPI isn't good with calls from many threads per node
+      if(glob_opts_init.dev_count>1)
+      {
+        // first node receives first 
+        // TODO: what if the first node has only 1 CUDA card?
+        //       then it started broadcasting already in step_async call
+        //       and it send left/receives from right now
+        //       could it cause a deadlock?
+        if(particles[0].pimpl->mpi_rank==0)
+        {
+          particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
+          particles[0].pimpl->mpi_exchange();
+        }
+        else  // other nodes send first
+        {
+          particles[0].pimpl->mpi_exchange();
+          particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
+        }
+      }
+
+      #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
         // finalize async if more than one GPU on this node
         if(glob_opts_init.dev_count>1) 
           particles[dev_id].pimpl->post_copy(opts);

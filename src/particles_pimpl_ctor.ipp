@@ -9,6 +9,7 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
+#include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
@@ -203,7 +204,7 @@ namespace libcloudphxx
                 mpi_size;
 
       // should mpi calls from different threads on the node be serial
-      const bool mpi_serial;
+      bool mpi_serial;
 
       // boundary type (shared mem/distmem)
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
@@ -229,6 +230,13 @@ namespace libcloudphxx
 
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      // real_t vectors copied in distributed memory case
+      std::vector<thrust_device::vector<real_t>*> distmem_real_vctrs;
+
+      // number of real_t vectors to be copied
+      const int distmem_real_vctrs_count;
+
 
       // methods
 
@@ -271,6 +279,12 @@ namespace libcloudphxx
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
         mpi_serial(false),
+        distmem_real_vctrs_count(
+          n_dims == 3 ? 7 :
+            n_dims == 2 ? 6 : 
+              n_dims == 1 ? 5:
+                0),  // distmem doesnt work for 0D anyway
+        distmem_real_vctrs(7),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
         lft_id(i),   // note: reuses i vector
@@ -336,6 +350,9 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
+          typedef thrust_device::vector<real_t>* ptr_t;
+          ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+          distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
       }
 
       void sanity_checks();

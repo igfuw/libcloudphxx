@@ -31,6 +31,9 @@ namespace libcloudphxx
                   req_send_n_t, 
                   req_send_real_t;
 
+      // no of SDs copied
+      int n_copied;
+
       // mpi status handler
       MPI_Status status;
 
@@ -75,7 +78,7 @@ namespace libcloudphxx
         // start async copy of real buffer to the left
         MPI_Isend(
           out_real_bfr.data().get(),       // raw pointer to the buffer
-          lft_count * real_vctrs_count,                    // no of values to send
+          lft_count * distmem_real_vctrs_count,                    // no of values to send
           detail::get_mpi_type<real_t>(),    // type
           lft_rank,                     // dest comm
           detail::tag_real_t,              // message tag
@@ -170,7 +173,7 @@ namespace libcloudphxx
       {
         MPI_Isend(
           out_real_bfr.data().get(),       // raw pointer to the buffer
-          rgt_count * real_vctrs_count,                    // no of values to send
+          rgt_count * distmem_real_vctrs_count,                    // no of values to send
           detail::get_mpi_type<real_t>(),    // type
           rgt_rank,                     // dest comm
           detail::tag_real_t,              // message tag

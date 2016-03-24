@@ -227,7 +227,7 @@ namespace libcloudphxx
       // (i.e. when using multi_CUDA with dev_count>1
       // and MPI implementation doesnt support THREAD_MULTIPLE)
       // then it wil be done by multi_gpu_step
-      if (opts.adve && pimpl->distmem_mpi() && !pimpl->mpi_serial)
+      if (opts.adve && pimpl->distmem_mpi() && !pimpl->distmem_cuda())
         pimpl->mpi_exchange();
 
       // stuff has to be done after distmem copy 
