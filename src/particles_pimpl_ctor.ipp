@@ -203,9 +203,6 @@ namespace libcloudphxx
       const int mpi_rank,
                 mpi_size;
 
-      // should mpi calls from different threads on the node be serial
-      bool mpi_serial;
-
       // boundary type (shared mem/distmem)
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
@@ -278,7 +275,6 @@ namespace libcloudphxx
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
-        mpi_serial(false),
         distmem_real_vctrs_count(
           n_dims == 3 ? 7 :
             n_dims == 2 ? 6 : 
@@ -321,6 +317,10 @@ namespace libcloudphxx
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
+        // set 0 dev_count to mark that its not a multi_CUDA spawn
+        // if its a spawn, multi_CUDA ctor will alter it
+        opts_init.dev_count = 0; 
+
         // initialising host temporary arrays
         {
           int n_grid;
@@ -350,9 +350,10 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
-          typedef thrust_device::vector<real_t>* ptr_t;
-          ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
-          distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+
+        typedef thrust_device::vector<real_t>* ptr_t;
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+        distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
       }
 
       void sanity_checks();
@@ -488,14 +489,8 @@ namespace libcloudphxx
       // sanity checks
       if(opts_init.nx == 0)
         throw std::runtime_error("MPI doesn't work for 0D setup");
- 
-      // should be true only if its a multi_CUDA spawn and mpi doesnt support MPI_THREAD_MULTIPLE
-      bool serial_mpi = 
-        detail::mpi_init(MPI_THREAD_SINGLE, rank, size) == MPI_THREAD_SERIALIZED ?
-          true : false;
 
-      // even if above is true, no need to serialize if we use only one device per node
-      serial_mpi = serial_mpi && (opts_init.dev_count > 1);
+      detail::mpi_init(MPI_THREAD_SINGLE, rank, size); 
 #else
       rank = 0;
       size = 1;

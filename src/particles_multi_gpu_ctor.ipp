@@ -81,16 +81,17 @@ namespace libcloudphxx
         }
       }
 
-      bool mpi_serial(false); // should mpi comm be serial
-
-      // initialize mpi with threading support
       #if defined(USE_MPI)
-        const int prov_tlvl = detail::mpi_init(MPI_THREAD_MULTIPLE);
-        if(prov_tlvl < MPI_THREAD_SERIALIZED)
-          throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_SERIALIZED, multi_CUDA backend won't work");
+        // initialize mpi with threading support
+        const int prov_tlvl = detail::mpi_init(MPI_THREAD_FUNNELED);
+        if(prov_tlvl < MPI_THREAD_FUNNELED)
+          throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_FUNNELED, multi_CUDA backend won't work");
 
-        if(prov_tlvl == MPI_THREAD_SERIALIZED && glob_opts_init.dev_count > 1)
-          mpi_serial = true;
+        // check if it's the main thread of MPI in order to FUNNELED to work
+        int main;
+        MPI_Is_thread_main(&main);
+        if(!main)
+          throw std::runtime_error("particles multi_CUDA ctor was called by a thread that is not the main thread of MPI (the mpi_init caller); aborting");
       #endif
       
       // resize the pointer vector
@@ -132,8 +133,8 @@ namespace libcloudphxx
               particles[dev_id].pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
           }
         }
-        // copy mpi_serial to threads
-        particles[dev_id].pimpl->mpi_serial = mpi_serial;
+        // store dev_count in the thread; regular ctor zeroes it
+        particles[dev_id].pimpl->opts_init.dev_count = dev_count;
       }
     }
 
@@ -154,6 +155,27 @@ namespace libcloudphxx
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
         particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+
+        #pragma omp master
+        {
+          // exchange domains using mpi; has to be done sequentially here as MPI isn't good with calls from many threads per node
+          if(glob_opts_init.dev_count > 1)
+          {
+            // first node receives first 
+            if(particles[0].pimpl->mpi_rank==0)
+            {
+              particles[0].pimpl->xchng_domains();
+              particles[glob_opts_init.dev_count-1].pimpl->xchng_domains();
+            }
+            else  // other nodes send first
+            {
+              particles[glob_opts_init.dev_count-1].pimpl->xchng_domains();
+              particles[0].pimpl->xchng_domains();
+            }
+          }
+          else
+            particles[0].pimpl->xchng_domains();
+        }
       }
     }
   };

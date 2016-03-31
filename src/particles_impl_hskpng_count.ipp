@@ -16,6 +16,16 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_count()
     {   
       hskpng_sort();
+printf("rank %d: hskpng_count x\n", mpi_rank);
+debug::print(x);
+printf("rank %d: hskpng_count n\n", mpi_rank);
+debug::print(n);
+printf("rank %d: hskpng_count i\n", mpi_rank);
+debug::print(ijk);
+printf("rank %d: hskpng_count ijk\n", mpi_rank);
+debug::print(ijk);
+printf("rank %d: hskpng_count sorted_ijk\n", mpi_rank);
+debug::print(sorted_ijk);
 
       // computing count_* - number of particles per grid cell
       thrust::pair<

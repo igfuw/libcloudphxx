@@ -15,6 +15,7 @@ namespace libcloudphxx
       thrust::fill(tmp_host_real_cell.begin(), tmp_host_real_cell.end(), 0);
 
 #if defined(__NVCC__)
+printf("rank %d przed copy raz w fill_outbuf\n", mpi_rank);
       thrust::copy(
         count_ijk.begin(), count_ijk.end(), // from
         tmp_host_size_cell.begin()
@@ -27,6 +28,7 @@ namespace libcloudphxx
       thrust::host_vector<thrust_size_t> &pi(tmp_host_size_cell);
 #endif
 
+printf("rank %d przed copy dwa w fill_outbuf count_n %d\n", mpi_rank, int(count_n));
       thrust::copy(
 	count_mom.begin(),               // input - begin
 	count_mom.begin() + count_n,     // input - end

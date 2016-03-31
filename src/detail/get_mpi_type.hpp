@@ -10,7 +10,7 @@ namespace libcloudphxx
       namespace
       {
         // mpi message tags
-        enum {tag_n_t = 654321, tag_real_t = 654322}; // hope other libs dont use these tags, TODO: using separate communicator would help?
+        enum {tag_n_lft = 654321, tag_real_lft, tag_n_rgt, tag_real_rgt}; // hope other libs dont use these tags, TODO: using separate communicator would help?
 
         template<typename real_t>
         MPI_Datatype get_mpi_type()

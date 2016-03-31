@@ -50,11 +50,21 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+#pragma omp critical
+{
+printf("rank %d dev %d: x przed step async\n", particles[dev_id].pimpl->mpi_rank, dev_id);
+debug::print(particles[dev_id].pimpl->x);
+}
 
         // do step async on each device
         res = particles[dev_id].step_async(opts);
+#pragma omp critical
+{
+printf("rank %d dev %d: x po step async\n", particles[dev_id].pimpl->mpi_rank, dev_id);
+debug::print(particles[dev_id].pimpl->x);
+}
 
-        // --- copy advected SDs to other devices ---
+        // --- copy advected SDs to other devices on the same node ---
         if(opts.adve && glob_opts_init.dev_count>1)
         {
           namespace arg = thrust::placeholders;
@@ -211,34 +221,57 @@ namespace libcloudphxx
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
       }
-
-      // perform mpi copy; has to be done sequentially here as MPI isn't good with calls from many threads per node
-      if(glob_opts_init.dev_count>1)
+//#pragma omp critical
+//{
+//printf("rank %d dev %d: x po cuda copy\n", particles[dev_id].pimpl->mpi_rank, dev_id);
+//debug::print(particles[dev_id].pimpl->x);
+//}
+      if(opts.adve)
       {
-        // first node receives first 
-        // TODO: what if the first node has only 1 CUDA card?
-        //       then it started broadcasting already in step_async call
-        //       and it send left/receives from right now
-        //       could it cause a deadlock?
-        if(particles[0].pimpl->mpi_rank==0)
+        // perform mpi copy; has to be done sequentially here as MPI isn't good with calls from many threads per node
+        if(glob_opts_init.dev_count > 1)
         {
-          particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
-          particles[0].pimpl->mpi_exchange();
+          // first node receives first 
+          // TODO: this causes a deadlock if the first node has dev_count==1!!!
+          if(particles[0].pimpl->mpi_rank==0)
+          {
+            gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
+            particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
+            gpuErrchk(cudaSetDevice(0));
+            particles[0].pimpl->mpi_exchange();
+          }
+          else  // other nodes send first
+          {
+            gpuErrchk(cudaSetDevice(0));
+            particles[0].pimpl->mpi_exchange();
+            gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
+            particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
+          }
         }
-        else  // other nodes send first
+        else
         {
+          gpuErrchk(cudaSetDevice(0));
           particles[0].pimpl->mpi_exchange();
-          particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
-        }
+        } 
       }
+//#pragma omp critical
+//{
+//printf("rank %d dev %d: x po mpi copy\n", particles[dev_id].pimpl->mpi_rank, dev_id);
+//debug::print(particles[dev_id].pimpl->x);
+//}
 
-      #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
+      #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
+        // finalize async
         const int dev_id = omp_get_thread_num();
-        // finalize async if more than one GPU on this node
-        if(glob_opts_init.dev_count>1) 
-          particles[dev_id].pimpl->post_copy(opts);
+        gpuErrchk(cudaSetDevice(dev_id));
+        particles[dev_id].pimpl->post_copy(opts);
       }
+//#pragma omp critical
+//{
+//printf("rank %d dev %d: x po finalize\n", particles[dev_id].pimpl->mpi_rank, dev_id);
+//debug::print(particles[dev_id].pimpl->x);
+//}
       return res;
     }
   };

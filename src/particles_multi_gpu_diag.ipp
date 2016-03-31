@@ -149,7 +149,9 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+        printf("rank %d dev %d: call outbuf nx %d\n", particles[dev_id].pimpl->mpi_rank, dev_id, particles[dev_id].pimpl->opts_init.nx);
         particles[dev_id].pimpl->fill_outbuf();
+        printf("rank %d dev %d: call copy\n", particles[dev_id].pimpl->mpi_rank, dev_id);
         thrust::copy(
           particles[dev_id].pimpl->tmp_host_real_cell.begin(),
           particles[dev_id].pimpl->tmp_host_real_cell.end(),

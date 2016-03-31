@@ -23,30 +23,39 @@ namespace libcloudphxx
       for(int i=0; i<2; ++i)
       {
         // nonblocking send
-        if( (i == 0 ? bcond.second : bcond.first) == detail::distmem_mpi)
+        if( (i ? bcond.first : bcond.second) == detail::distmem_mpi)
+        {
+          printf("rank %d: i %d przed send\n", mpi_rank, i);
           MPI_Isend(
-            i ? &opts_init.x1 : &opts_init.x0,
+            i ? &opts_init.x0 : &opts_init.x1,
             1,                              // no of values
             detail::get_mpi_type<real_t>(), // type
-            i ? rgt_rank : lft_rank,                       // dest comm
-            0,                              // message tag
+            i ? lft_rank : rgt_rank,                       // dest comm
+            i,                              // message tag
             MPI_COMM_WORLD,                 // communicator
             new MPI_Request()
           );
+          printf("rank %d: i %d po send, x0 %lf x1 %lf\n", mpi_rank, i, opts_init.x0, opts_init.x1);
+        }
 
           // blocking recv
-        if( (i == 1 ? bcond.second : bcond.first) == detail::distmem_mpi)
+        if( (i ? bcond.second : bcond.first) == detail::distmem_mpi)
+        {
+          printf("rank %d: i %d przed recv\n", mpi_rank, i);
           MPI_Recv(
-            i ? &lft_x1 : &rgt_x0,
+            i ? &rgt_x0 : &lft_x1,
             1,                              // no of values
             detail::get_mpi_type<real_t>(), // type
-            i ? lft_rank : rgt_rank,                       // src comm
-            0,                              // message tag
+            i ? rgt_rank : lft_rank,                       // src comm
+            i,                              // message tag
             MPI_COMM_WORLD,                  // communicator
             MPI_STATUS_IGNORE
           );
-        if(distmem_mpi())
-          MPI_Barrier(MPI_COMM_WORLD);
+          printf("rank %d: i %d po recv, lft_x1 %lf rgt_x0 %lf\n", mpi_rank, i, lft_x1, rgt_x0);
+        }
+//        printf("rank %d: i %d przed barrier\n", mpi_rank, i);
+//        MPI_Barrier(MPI_COMM_WORLD);
+//        printf("rank %d: i %d po barrier\n", mpi_rank, i);
       }
 #endif
     }
