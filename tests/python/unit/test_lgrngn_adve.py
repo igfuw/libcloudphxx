@@ -1,4 +1,4 @@
-import sys
+import sys, boost.mpi
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn

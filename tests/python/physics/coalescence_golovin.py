@@ -1,6 +1,6 @@
 #roughly test coalescence algorithm by comparing mass density function with analytic prediction of Golovin
 
-import sys 
+import sys, boost.mpi 
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
