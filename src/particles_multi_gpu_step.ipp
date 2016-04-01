@@ -50,19 +50,9 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-#pragma omp critical
-{
-printf("rank %d dev %d: x przed step async\n", particles[dev_id].pimpl->mpi_rank, dev_id);
-debug::print(particles[dev_id].pimpl->x);
-}
 
         // do step async on each device
         res = particles[dev_id].step_async(opts);
-#pragma omp critical
-{
-printf("rank %d dev %d: x po step async\n", particles[dev_id].pimpl->mpi_rank, dev_id);
-debug::print(particles[dev_id].pimpl->x);
-}
 
         // --- copy advected SDs to other devices on the same node ---
         if(opts.adve && glob_opts_init.dev_count>1)
@@ -221,11 +211,6 @@ debug::print(particles[dev_id].pimpl->x);
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
       }
-//#pragma omp critical
-//{
-//printf("rank %d dev %d: x po cuda copy\n", particles[dev_id].pimpl->mpi_rank, dev_id);
-//debug::print(particles[dev_id].pimpl->x);
-//}
       if(opts.adve)
       {
         // perform mpi copy; has to be done sequentially here as MPI isn't good with calls from many threads per node
@@ -245,7 +230,21 @@ debug::print(particles[dev_id].pimpl->x);
             gpuErrchk(cudaSetDevice(0));
             particles[0].pimpl->mpi_exchange();
             gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
+if(particles[0].pimpl->mpi_rank==1)
+{
+  printf("rank 1 dev 1 n przed mpi_exchange\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
+  printf("rank 1 dev 1 x przed mpi_exchange\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
+}
             particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
+if(particles[0].pimpl->mpi_rank==1)
+{
+  printf("rank 1 dev 1 n po mpi_exchange\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
+  printf("rank 1 dev 1 x po mpi_exchange\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
+}
           }
         }
         else
@@ -254,24 +253,28 @@ debug::print(particles[dev_id].pimpl->x);
           particles[0].pimpl->mpi_exchange();
         } 
       }
-//#pragma omp critical
-//{
-//printf("rank %d dev %d: x po mpi copy\n", particles[dev_id].pimpl->mpi_rank, dev_id);
-//debug::print(particles[dev_id].pimpl->x);
-//}
 
       #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         // finalize async
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
+if(particles[0].pimpl->mpi_rank==1)
+{
+  printf("rank 1 dev 1 n przed post copy\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
+  printf("rank 1 dev 1 x przed post_copy\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
+}
         particles[dev_id].pimpl->post_copy(opts);
+if(particles[0].pimpl->mpi_rank==1)
+{
+  printf("rank 1 dev 1 n po post copy\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
+  printf("rank 1 dev 1 x po post_copy\n");
+  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
+}
       }
-//#pragma omp critical
-//{
-//printf("rank %d dev %d: x po finalize\n", particles[dev_id].pimpl->mpi_rank, dev_id);
-//debug::print(particles[dev_id].pimpl->x);
-//}
       return res;
     }
   };

@@ -20,7 +20,6 @@ namespace libcloudphxx
     {
 #if defined(USE_MPI)
       if(!distmem_mpi()) return;
-      printf("rank %d mpi_exchange start\n", mpi_rank);
       namespace arg = thrust::placeholders;
 
       // ranks of processes to the left/right, periodic boundary in x
@@ -103,7 +102,6 @@ namespace libcloudphxx
         );
 
         // check if n buffer from right arrived
-      printf("rank %d w8 for n from right\n", mpi_rank);
         MPI_Wait(&req_recv_n_t, &status);
 
         // unpack the n buffer sent to this device from right
@@ -114,7 +112,6 @@ namespace libcloudphxx
       // check if out_n_bfr sent left has been received
       if(bcond.first == detail::distmem_mpi)
       {
-      printf("rank %d w8 for n sent left\n", mpi_rank);
         MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
       }
 
@@ -123,23 +120,14 @@ namespace libcloudphxx
         // prepare buffer with n_t to be copied right
         pack_n_rgt();
 
-printf("x przed adjust right\n");
-debug::print(x);
         // adjust x of prtcls to be sent right to match new device's domain
         bcnd_remote_rgt(opts_init.x1, rgt_x0);
-printf("x po adjust right\n");
-debug::print(x);
 
         // wait for the copy of real from right into current device to finish
-      printf("rank %d w8 for real from right\n", mpi_rank);
         MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
 
         // unpack the real buffer sent to this device from right
-printf("real bfr z prawej\n");
-debug::print(in_real_bfr);
         unpack_real(n_copied);
-printf("unpack real z prawej\n");
-debug::print(x);
 
         // start async copy of n buffer to the right
         MPI_Isend(
@@ -174,7 +162,6 @@ debug::print(x);
       // check if n buffer from left arrived
       if(bcond.first == detail::distmem_mpi)
       {
-      printf("rank %d w8 for n from left\n", mpi_rank);
         MPI_Wait(&req_recv_n_t, &status);
 
         // unpack the n buffer sent to this device from left
@@ -221,13 +208,10 @@ debug::print(x);
       // wait for the copy of real from left into current device to finish
       if(bcond.first == detail::distmem_mpi)
       {
-      printf("rank %d w8 for real from left\n", mpi_rank);
         MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
 
         // unpack the real buffer sent to this device from left
         unpack_real(n_copied);
-printf("unpack real z lewej\n");
-debug::print(x);
       }
 
       // resize all vectors of size n_part

@@ -25,7 +25,6 @@ namespace libcloudphxx
         // nonblocking send
         if( (i ? bcond.first : bcond.second) == detail::distmem_mpi)
         {
-          printf("rank %d: i %d przed send\n", mpi_rank, i);
           MPI_Isend(
             i ? &opts_init.x0 : &opts_init.x1,
             1,                              // no of values
@@ -35,13 +34,11 @@ namespace libcloudphxx
             MPI_COMM_WORLD,                 // communicator
             new MPI_Request()
           );
-          printf("rank %d: i %d po send, x0 %lf x1 %lf\n", mpi_rank, i, opts_init.x0, opts_init.x1);
         }
 
           // blocking recv
         if( (i ? bcond.second : bcond.first) == detail::distmem_mpi)
         {
-          printf("rank %d: i %d przed recv\n", mpi_rank, i);
           MPI_Recv(
             i ? &rgt_x0 : &lft_x1,
             1,                              // no of values
@@ -51,11 +48,7 @@ namespace libcloudphxx
             MPI_COMM_WORLD,                  // communicator
             MPI_STATUS_IGNORE
           );
-          printf("rank %d: i %d po recv, lft_x1 %lf rgt_x0 %lf\n", mpi_rank, i, lft_x1, rgt_x0);
         }
-//        printf("rank %d: i %d przed barrier\n", mpi_rank, i);
-//        MPI_Barrier(MPI_COMM_WORLD);
-//        printf("rank %d: i %d po barrier\n", mpi_rank, i);
       }
 #endif
     }
