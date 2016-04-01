@@ -486,10 +486,6 @@ namespace libcloudphxx
 
       // handle MPI init
 #if defined(USE_MPI)
-      // sanity checks
-      if(opts_init.nx == 0)
-        throw std::runtime_error("MPI doesn't work for 0D setup");
-
       detail::mpi_init(MPI_THREAD_SINGLE, rank, size); 
 #else
       rank = 0;

@@ -1,7 +1,7 @@
 # test coalescence algorithm for geometric kernel with Hall efficiencies for drops with r>30um and Davis&Rogers efficiencies for smaller ones
 # by comparing mass density function with results of EFM modeling
 
-import sys 
+import sys, boost.mpi 
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
