@@ -56,6 +56,10 @@ unset(msg)
 unset(status)
 unset(output)
 
+# if compiled with MPI support, we need Boost.MPI for python tests to work
+if(USE_MPI)
+  find_package(Boost COMPONENTS mpi QUIET)
+endif()
 ############################################################################################
 
 # CUDA
