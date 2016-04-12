@@ -230,21 +230,7 @@ namespace libcloudphxx
             gpuErrchk(cudaSetDevice(0));
             particles[0].pimpl->mpi_exchange();
             gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
-if(particles[0].pimpl->mpi_rank==1)
-{
-  printf("rank 1 dev 1 n przed mpi_exchange\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
-  printf("rank 1 dev 1 x przed mpi_exchange\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
-}
             particles[glob_opts_init.dev_count-1].pimpl->mpi_exchange();
-if(particles[0].pimpl->mpi_rank==1)
-{
-  printf("rank 1 dev 1 n po mpi_exchange\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
-  printf("rank 1 dev 1 x po mpi_exchange\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
-}
           }
         }
         else
@@ -259,21 +245,7 @@ if(particles[0].pimpl->mpi_rank==1)
         // finalize async
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-if(particles[0].pimpl->mpi_rank==1)
-{
-  printf("rank 1 dev 1 n przed post copy\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
-  printf("rank 1 dev 1 x przed post_copy\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
-}
         particles[dev_id].pimpl->post_copy(opts);
-if(particles[0].pimpl->mpi_rank==1)
-{
-  printf("rank 1 dev 1 n po post copy\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->n);
-  printf("rank 1 dev 1 x po post_copy\n");
-  debug::print(particles[glob_opts_init.dev_count-1].pimpl->x);
-}
       }
       return res;
     }

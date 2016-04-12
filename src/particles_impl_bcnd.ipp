@@ -67,7 +67,7 @@ namespace libcloudphxx
               detail::periodic<real_t>(opts_init.x0, opts_init.x1)
             );
           }
-          // more than one GPU - save ids of particles that need to be copied left/right
+          // distributed memory - save ids of particles that need to be copied left/right
           else
           {
 	    namespace arg = thrust::placeholders;
