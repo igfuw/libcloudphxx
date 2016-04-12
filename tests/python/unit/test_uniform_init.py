@@ -1,6 +1,11 @@
 #test if after initialization we have approximately the same water content in each cell
 
-import sys 
+import sys
+try:
+  import boost.mpi
+except:
+  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn

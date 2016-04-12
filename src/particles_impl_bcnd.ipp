@@ -58,8 +58,8 @@ namespace libcloudphxx
         case 1:
         {
           // hardcoded periodic boundary in x! (TODO - as an option)
-          // when working on a single GPU simply apply bcond
-          if(opts_init.dev_count < 2)
+          // when working on a shared memory system, simply apply bcond
+          if(!distmem())
           {
             thrust::transform(
               x.begin(), x.end(),
@@ -67,14 +67,10 @@ namespace libcloudphxx
               detail::periodic<real_t>(opts_init.x0, opts_init.x1)
             );
           }
-          // more than one GPU - save ids of particles that need to be copied left/right
+          // distributed memory - save ids of particles that need to be copied left/right
           else
           {
 	    namespace arg = thrust::placeholders;
-            // use i and k as temp storage - after bcond they are invalid anyway
-            // multi_CUDA works only for 2D and 3D
-            thrust_device::vector<thrust_size_t> &lft_id(i);
-            thrust_device::vector<thrust_size_t> &rgt_id(k);
 
             // save ids of SDs to copy
             lft_count = thrust::copy_if(

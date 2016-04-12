@@ -9,12 +9,17 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
+#include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
 #include <map>
+
+#if defined(USE_MPI)
+  #include "detail/get_mpi_type.hpp"
+#endif
 
 namespace libcloudphxx
 {
@@ -191,7 +196,16 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // number of particles to be copied left/right in multi-GPU setup
+      // -- distributed memory stuff --
+      // TODO: move to a separate struct?
+
+      const int mpi_rank,
+                mpi_size;
+
+      // boundary type (shared mem/distmem)
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+
+      // number of particles to be copied left/right in distmem setup
       unsigned int lft_count, rgt_count;
 
       // nx in devices to the left of this one
@@ -200,9 +214,27 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       unsigned int n_cell_bfr;
 
+      // x0 of the process to the right
+      real_t rgt_x0;
+
+      // x1 of the process to the left
+      real_t lft_x1;
+
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
+
+      // ids of sds to be copied with distmem
+      thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      // real_t vectors copied in distributed memory case
+      std::vector<thrust_device::vector<real_t>*> distmem_real_vctrs;
+
+      // number of real_t vectors to be copied
+      const int distmem_real_vctrs_count;
+
+
+      // methods
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -214,7 +246,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -237,8 +269,21 @@ namespace libcloudphxx
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
-        n_x_bfr(n_x_bfr),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
+        bcond(bcond),
+        n_x_bfr(0),
+        n_cell_bfr(0),
+        mpi_rank(mpi_rank),
+        mpi_size(mpi_size),
+        distmem_real_vctrs_count(
+          n_dims == 3 ? 7 :
+            n_dims == 2 ? 6 : 
+              n_dims == 1 ? 5:
+                0),  // distmem doesnt work for 0D anyway
+        distmem_real_vctrs(7),
+        lft_x1(-1),  // default to no
+        rgt_x0(-1),  // MPI boudanry
+        lft_id(i),   // note: reuses i vector
+        rgt_id(tmp_device_size_part),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
@@ -271,12 +316,9 @@ namespace libcloudphxx
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
-        // note: there could be less tmp data spaces if _cell vectors
-        //       would point to _part vector data... but using.end() would not possible
-        // initialising device temporary arrays
-        tmp_device_real_cell.resize(n_cell);
-        tmp_device_real_cell1.resize(n_cell);
-        tmp_device_size_cell.resize(n_cell);
+        // set 0 dev_count to mark that its not a multi_CUDA spawn
+        // if its a spawn, multi_CUDA ctor will alter it
+        opts_init.dev_count = 0; 
 
         // initialising host temporary arrays
         {
@@ -307,11 +349,12 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
 	  tmp_host_real_grid.resize(n_grid);
         }
-        tmp_host_size_cell.resize(n_cell);
-        tmp_host_real_cell.resize(n_cell);
+
+        typedef thrust_device::vector<real_t>* ptr_t;
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+        distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
       }
 
-      // methods
       void sanity_checks();
 
       void init_dry();
@@ -341,6 +384,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      void mpi_exchange();
 
            // rename hskpng_ -> step_?
       void hskpng_sort_helper(bool);
@@ -417,14 +461,57 @@ namespace libcloudphxx
       void sstp_step_chem(const int &step, const bool &var_rho);
       void sstp_save_chem();
 
-      void step_finalize(const opts_t<real_t>&);
+      void post_copy(const opts_t<real_t>&);
+
+      // distmem stuff
+      void xchng_domains();
+      bool distmem_mpi();
+      bool distmem_cuda();
+      bool distmem();
+      void pack_n_lft();
+      void pack_n_rgt();
+      void pack_real_lft();
+      void pack_real_rgt();
+      void unpack_n(const int &);
+      void unpack_real(const int &);
+      void flag_lft();
+      void flag_rgt();
+      void bcnd_remote_lft(const real_t &, const real_t &);
+      void bcnd_remote_rgt(const real_t &, const real_t &);
     };
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr):
-      pimpl(new impl(opts_init, n_x_bfr))
+    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init)
     {
+      int rank, size;
+
+      // handle MPI init
+#if defined(USE_MPI)
+      detail::mpi_init(MPI_THREAD_SINGLE, rank, size); 
+#else
+      rank = 0;
+      size = 1;
+      // throw an error if ran with mpi, but not compiled for mpi
+      if (
+        // mpich
+        std::getenv("PMI_RANK") != NULL ||
+        // openmpi
+        std::getenv("OMPI_COMM_WORLD_RANK") != NULL ||
+        // lam
+        std::getenv("LAMRANK") != NULL ||
+        // mvapich2
+        std::getenv("MV2_COMM_WORLD_RANK") != NULL
+      ) throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
+#endif
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+      if(size > 1)
+        bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
+      else
+        bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
+
+      // create impl instance
+      pimpl.reset(new impl(opts_init, bcond, rank, size));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }

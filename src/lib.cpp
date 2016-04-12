@@ -12,8 +12,6 @@ namespace libcloudphxx
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {
-      if(backend != multi_CUDA) opts_init.dev_count = 0; // override user-defined dev_count if not using multi_CUDA
-
       switch (backend)
       {
 	case multi_CUDA:

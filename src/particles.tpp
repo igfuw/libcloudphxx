@@ -15,6 +15,7 @@
 #include "detail/kernel_utils.hpp"
 #include "detail/wang_collision_enhancement.hpp"
 #include "detail/kernel_onishi_nograv.hpp"
+#include "detail/bcond.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -23,6 +24,12 @@
 #include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
+
+#if defined(USE_MPI)
+  #include <mpi.h>
+  // MPI init
+  #include "detail/mpi_init.hpp"
+#endif
 
 #include "particles_impl_kernel.ipp"
 
@@ -47,8 +54,10 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
-#include "particles_impl_step_finalize.ipp"
 #include "particles_impl_init_vterm.ipp"
+
+#include "particles_impl_post_copy.ipp"
+#include "particles_impl_xchng_domains.ipp"
 #include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
@@ -63,6 +72,7 @@
 #include "particles_impl_mass_dens.ipp"
 
 #include "particles_impl_fill_outbuf.ipp"
+#include "particles_impl_distmem_access.ipp"
 
 #include "particles_impl_sync.ipp"
 
@@ -81,3 +91,7 @@
 #include "particles_impl_src.ipp"
 #include "particles_impl_kernel_interpolation.ipp"
 
+// MPI copy
+#include "particles_impl_pack.ipp"
+#include "particles_impl_unpack.ipp"
+#include "particles_impl_mpi_exchange.ipp"

@@ -165,6 +165,10 @@ namespace libcloudphxx
 
       //initialising vterm
       if(pimpl->opts_init.coal_switch || pimpl->opts_init.sedi_switch) pimpl->init_vterm();
+
+      // initialising neighbouring node's domain sizes, done sequentially in multi_CUDA
+      if(!pimpl->opts_init.dev_count)
+        pimpl->xchng_domains();
     }
   };
 };

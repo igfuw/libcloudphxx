@@ -6,7 +6,8 @@
   * @brief Thrust-based CPU/GPU particle-tracking logic for Lagrangian microphysics
   */
 
-#include "detail/multi_gpu_utils.hpp"
+#include "detail/gpu_assert.hpp"
+#include "detail/distmem_opts.hpp"
 
 #include "particles_multi_gpu_ctor.ipp"
 #include "particles_multi_gpu_diag.ipp"

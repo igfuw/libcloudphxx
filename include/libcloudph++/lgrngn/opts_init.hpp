@@ -84,7 +84,7 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
-      // no of GPUs to use, 0 for all available
+      // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
       // ctor with defaults (C++03 compliant) ...

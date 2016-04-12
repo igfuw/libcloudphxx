@@ -40,6 +40,28 @@ if (NOT THRUST_FOUND)
 endif()
 
 ############################################################################################
+# MPI - detecting if the C++ compiler is actually an MPI wrapper
+set(msg "Detecting if the compiler is an MPI wrapper...")
+message(STATUS "${msg}")
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-show" RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_QUIET)
+if (status EQUAL 0 AND output MATCHES "mpi")
+  set(USE_MPI TRUE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_MPI")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DUSE_MPI")
+else()
+  set(USE_MPI FALSE)
+endif()
+message(STATUS "${msg} - ${USE_MPI}")
+unset(msg)
+unset(status)
+unset(output)
+
+# if compiled with MPI support, we need Boost.MPI for python tests to work
+if(USE_MPI)
+  find_package(Boost COMPONENTS mpi QUIET)
+endif()
+############################################################################################
+
 # CUDA
 find_package(CUDA QUIET)
 if (NOT CUDA_FOUND)
@@ -54,6 +76,7 @@ if (NOT CUDA_FOUND)
 endif()
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work
+set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # mpic++ will not work
 
 if (CUDA_FOUND)
   # trying to figure out compute capability of the current 
@@ -102,14 +125,18 @@ if (CUDA_FOUND)
   unset(msg)
   unset(status)
 
+  if(USE_MPI)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -DUSE_MPI")
+  endif()
+
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+        -Xcompiler -Ofast,-march=native,-DNDEBUG,-fopenmp")
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")  
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler -fopenmp,-g")  
 
 # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
     if(NOT DEFINED ENV{TRAVIS})
@@ -160,7 +187,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       boost::numeric::odeint::thrust_operations 
     > chem_stepper;
   
-    thrust::cpp::vector<float> v(11);
+    thrust::cpp::vector<float> v(2);
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")

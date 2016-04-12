@@ -15,7 +15,7 @@ namespace libcloudphxx
     // if using more than 1 GPU
     // has to be done after copy 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::step_finalize(const opts_t<real_t> &opts)
+    void particles_t<real_t, device>::impl::post_copy(const opts_t<real_t> &opts)
     {
       // recycling out-of-domain/invalidated particles 
       // (doing it here and not in async reduces the need for a second sort before diagnostics,
@@ -24,7 +24,7 @@ namespace libcloudphxx
       // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
 
       // remove SDs with n = 0
-//      if(opts.sedi || opts.adve || opts.coal) 
+      // if(opts.sedi || opts.adve || opts.coal) 
 //      hskpng_remove_n0();  
 
       // updating particle->cell look-up table

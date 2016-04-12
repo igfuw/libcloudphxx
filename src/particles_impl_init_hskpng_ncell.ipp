@@ -22,6 +22,13 @@ namespace libcloudphxx
       count_num.resize(n_cell);
       count_mom.resize(n_cell);
       count_n = 0;
+
+      // initialising device temporary arrays
+      tmp_device_real_cell.resize(n_cell);
+      tmp_device_real_cell1.resize(n_cell);
+      tmp_device_size_cell.resize(n_cell);
+      tmp_host_size_cell.resize(n_cell);
+      tmp_host_real_cell.resize(n_cell);
     }
   };
 };
