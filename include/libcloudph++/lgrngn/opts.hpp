@@ -27,13 +27,11 @@ namespace libcloudphxx
 
       // process toggling for chemistry
       bool chem_dsl, chem_dsc, chem_rct;
-      // toggling between open and closed chemical system
-      bool chem_sys_cls;
 
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 
         adve(true), sedi(true), cond(true), coal(true), src(false), rcyc(false),
-        chem_dsl(false), chem_dsc(false), chem_rct(false), chem_sys_cls(false),
+        chem_dsl(false), chem_dsc(false), chem_rct(false),
         RH_max(44) // :) (anything greater than 1.1 would be enough
       {
       }

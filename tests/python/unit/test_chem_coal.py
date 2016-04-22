@@ -58,8 +58,8 @@ Opts.chem_dsc = False
 Opts.chem_rct = False
 
 prtcls.diag_all()
-prtcls.diag_chem(lgrngn.chem_species_t.NH4);
-NH4_init = np.frombuffer(prtcls.outbuf())[0]
+prtcls.diag_chem(lgrngn.chem_species_t.NH3);
+NH3_init = np.frombuffer(prtcls.outbuf())[0]
 prtcls.diag_chem(lgrngn.chem_species_t.H);
 H_init = np.frombuffer(prtcls.outbuf())[0]
 prtcls.diag_chem(lgrngn.chem_species_t.S_VI);
@@ -70,8 +70,8 @@ for i in range(300):
   prtcls.step_async(Opts)
 
 prtcls.diag_all()
-prtcls.diag_chem(lgrngn.chem_species_t.NH4);
-NH4_final = np.frombuffer(prtcls.outbuf())[0]
+prtcls.diag_chem(lgrngn.chem_species_t.NH3);
+NH3_final = np.frombuffer(prtcls.outbuf())[0]
 prtcls.diag_chem(lgrngn.chem_species_t.H);
 H_final = np.frombuffer(prtcls.outbuf())[0]
 prtcls.diag_chem(lgrngn.chem_species_t.S_VI);
@@ -79,8 +79,8 @@ S_VI_final = np.frombuffer(prtcls.outbuf())[0]
 
 eps=1e-10
 
-assert np.isclose(NH4_init, NH4_final, atol=0., rtol=eps),\
-  "total amount of NH4 is not conserved during coalescence"
+assert np.isclose(NH3_init, NH3_final, atol=0., rtol=eps),\
+  "total amount of N3 is not conserved during coalescence"
 
 assert np.isclose(H_init, H_final, atol=0., rtol=eps),\
   "total amount of H is not conserved during coalescence"
