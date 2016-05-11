@@ -1,6 +1,7 @@
 #include <iostream>
 #include <exception>
 #include <libcloudph++/lgrngn/factory.hpp>
+#include "detail/multi_gpu_utils.hpp"
 
 namespace libcloudphxx
 {
@@ -24,6 +25,10 @@ namespace libcloudphxx
 #endif
 	case CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
+#if defined(__NVCC__)
+          if(opts_init.dev_id >= 0)
+            gpuErrchk(cudaSetDevice(opts_init.dev_id));
+#endif
 	  return new particles_t<real_t, CUDA>(opts_init);
 #else
           throw std::runtime_error("CUDA backend was not compiled");

@@ -3,7 +3,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # allowing runtime choice between CUDA, CPP and OpenMP backends
 set(files "")
-set(files "${files};lib.cpp")
+set(files "${files};lib.cu")
 
 set(files "${files};lib_cpp.cpp")
 if (OPENMP_FOUND)
