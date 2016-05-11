@@ -341,7 +341,7 @@ namespace libcloudphxx
         detail::collider<real_t, n_t>(dt, p_kernel)
       );
 
-      // add masses of chemicals and V_old
+      // add masses of chemicals
       if(opts_init.chem_switch)
       {
         for(int i=0; i<chem_all; ++i)
@@ -360,22 +360,6 @@ namespace libcloudphxx
             )) + n_part -1,
             detail::summator()
           );
-
-        thrust::for_each(
-          thrust::make_zip_iterator(thrust::make_tuple(
-            V_old.begin(),
-            V_old.begin()+1,
-            col.begin(),
-            col.begin()+1
-          )),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            V_old.begin(),
-            V_old.begin()+1,
-            col.begin(),
-            col.begin()+1
-          )) + n_part -1,
-          detail::summator()
-        );
       }
     }
   };  

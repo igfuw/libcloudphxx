@@ -116,6 +116,12 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta_d
         sstp_tmp_rh, // ditto for rho
+        sstp_tmp_chem_0, // ditto for trace gases
+        sstp_tmp_chem_1, // ditto for trace gases
+        sstp_tmp_chem_2, // ditto for trace gases
+        sstp_tmp_chem_3, // ditto for trace gases
+        sstp_tmp_chem_4, // ditto for trace gases
+        sstp_tmp_chem_5, // ditto for trace gases
         courant_x, 
         courant_y, 
         courant_z;
@@ -163,9 +169,6 @@ namespace libcloudphxx
         boost::numeric::odeint::never_resizer
       > chem_stepper;
 
-      // vector to store volume of SDs, needed by chem Henry
-      thrust_device::vector<real_t>  V_old;
-
       // temporary data
       thrust::host_vector<real_t>
         tmp_host_real_grid,
@@ -175,10 +178,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_part_chem,  // only allocated if chem_switch==1
-        tmp_device_real_part_HNO3,  //TODO - can we do it without those four?
-        tmp_device_real_part_NH3,
-        tmp_device_real_part_SO2,
-        tmp_device_real_part_CO2,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -337,6 +336,7 @@ namespace libcloudphxx
       void init_chem();
       void init_chem_aq();
       void init_sstp();
+      void init_sstp_chem();
       void init_kernel();
       void init_vterm();
 
@@ -402,10 +402,10 @@ namespace libcloudphxx
 
       void chem_vol_ante();
       void chem_flag_ante();
-      void chem_henry(const real_t &dt, const bool &chem_sys_cls);
+      void chem_henry(const real_t &dt);
       void chem_dissoc();
       void chem_react(const real_t &dt);
-      void chem_vol_post();
+      void chem_cleanup();
  
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
@@ -414,6 +414,8 @@ namespace libcloudphxx
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
+      void sstp_step_chem(const int &step, const bool &var_rho);
+      void sstp_save_chem();
 
       void step_finalize(const opts_t<real_t>&);
     };

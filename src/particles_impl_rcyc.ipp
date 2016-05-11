@@ -97,8 +97,6 @@ namespace libcloudphxx
       if (opts_init.chem_switch){
         for (int i = 0; i < chem_all; ++i)
           detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
-        
-        detail::copy_prop<real_t>(V_old.begin(), sorted_id, n_flagged);
       }
 
       {

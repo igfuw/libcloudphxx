@@ -47,17 +47,11 @@ namespace libcloudphxx
 
       if(opts_init.chem_switch)
       {
-        namespace arg = thrust::placeholders;
-        thrust::remove_if(
-          V_old.begin(),
-          V_old.end(),
-          n.begin(),
-          arg::_1 == 0
-        );
-
         // TODO: remove all chem in one remove_if call
         for (int i = chem_all-1; i >= 0; --i)
         {
+          namespace arg = thrust::placeholders;
+
           typename thrust_device::vector<real_t>::iterator new_last = thrust::remove_if(
             chem_bgn[i],
             chem_end[i],
