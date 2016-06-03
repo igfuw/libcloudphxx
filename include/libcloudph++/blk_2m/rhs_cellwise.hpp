@@ -142,11 +142,11 @@ namespace libcloudphxx
             {   // so that we don't evaporate more cloud water than there is
               tmp     = -(rc + (dt * dot_rc)) / (dt * si::seconds);  // evaporate all rc
               dot_nc  = -nc / dt;                                    // and all nc
+            }
+            dot_rc += tmp * si::seconds;
 
-              dot_rc += tmp * si::seconds;
-
-/*              if (rc + dot_rc * dt < 0)
-              {  // (*)
+            if (rc + dot_rc * dt < 0)
+            {  // (*)
                  // if rc is very small due to numerical reasons the above condition 
                  // may result in small negative values 
                  // (for rc = 1e-8 and dot_rc * dt = 1e-8 the new rc was -1e-25)
@@ -156,10 +156,7 @@ namespace libcloudphxx
                 nc = 0;
                 dot_rc = 0;
                 dot_nc = 0;
-              }
-*/
             }
-
             dot_rv -= tmp * si::seconds;
             dot_th -= tmp  * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
           }
@@ -203,13 +200,12 @@ namespace libcloudphxx
             assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
             dot_rc -= tmp * si::seconds;
-/*            if (rc + dot_rc * dt < 0)
-            { //se comment (*) in condensation 
+            if (rc + dot_rc * dt < 0)
+            { //see comment (*) in condensation 
               tmp = 0;
               rc = 0;
               dot_rc = 0;
             }
-*/
             dot_rr += tmp * si::seconds;
 
             // sink of N for cloud droplets is combined with the sink due to accretion
@@ -232,13 +228,12 @@ namespace libcloudphxx
             assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
           
             dot_rc -= tmp * si::seconds;
-/*            if (rc + dot_rc * dt < 0)
-            { //se comment (*) in condensation 
+            if (rc + dot_rc * dt < 0)
+            { //see comment (*) in condensation 
               tmp = 0;
               rc = 0;
               dot_rc = 0;
             }
-*/
             dot_rr += tmp * si::seconds;
 
             // the sink of N for cloud droplets is combined with sink due to autoconversion
@@ -264,12 +259,11 @@ namespace libcloudphxx
             // so that collisions don't take more n_c than there is
             tmp = std::min(tmp, (nc / si::kilograms + dt * dot_nc / si::kilograms) / (dt * si::seconds));
             dot_nc -= tmp * si::kilograms * si::seconds;
-/*            if (nc + dot_nc * dt < 0)
+            if (nc + dot_nc * dt < 0)
             { //see comment (*) in condensation
               nc = 0;
               dot_nc = 0;
             }
-*/
           }
           assert(nc + dot_nc * dt >= 0 && "collisions can't make n_c negative");
         } 
@@ -326,13 +320,12 @@ namespace libcloudphxx
               dot_rv -= tmp * si::seconds;
               dot_th += -tmp  * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
 
-              dot_rr += tmp * si::seconds;
-              dot_nr  = -nr_dim / dt * si::kilograms; // and all n_r
-       /*     dot_rr = 0;
+              //dot_rr += tmp * si::seconds;
+              //dot_nr  = -nr_dim / dt * si::kilograms; // and all n_r
+              dot_rr = 0;
               dot_nr = 0;
               nr = 0;
               rr = 0;
-       */
             }
             else
             {
