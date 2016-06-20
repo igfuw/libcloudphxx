@@ -106,17 +106,22 @@ if (CUDA_FOUND)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
-  if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
-  else()
+  # Release with debug info mode cuda flags
+  if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-fopenmp")
+  # Debug mode cuda flags
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")  
-
-# do not use -G flag on travis since it causes build to fail; probably due to memory shortage
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
+    # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
     if(NOT DEFINED ENV{TRAVIS})
       set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")
     endif()
+  # Release mode cuda flags
+  else()
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   endif()
 
   add_definitions(-DCUDA_FOUND)
