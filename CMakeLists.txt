@@ -14,11 +14,13 @@ set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 # enabling additional warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -DTHRUST_DEBUG")
+else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${libcloudphxx_CXX_FLAGS_RELEASE} -Winline")
   set(CMAKE_CXX_FLAGS_RELEASE "")
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
 endif()
 
 ############################################################################################
