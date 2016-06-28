@@ -31,11 +31,27 @@ namespace libcloudphxx
       
       tmp_device_real_part.reserve(opts_init.n_sd_max);
       tmp_device_n_part.reserve(opts_init.n_sd_max);
+      tmp_device_size_part.reserve(opts_init.n_sd_max);
 
       rd3.reserve(opts_init.n_sd_max);
       rw2.reserve(opts_init.n_sd_max);
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
+
+      // reserve memory for in/out buffers
+      // for courant_x = 0.1 and n_sd_max
+      // overkill?
+      if(opts_init.dev_count > 1)
+      {
+        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
+        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);
+        in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa vt x y z
+        out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);
+      }
+      if(opts_init.chem_switch)
+      {
+        tmp_device_real_part_chem.reserve(opts_init.n_sd_max); 
+      }
     }
   };
 };

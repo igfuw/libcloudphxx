@@ -35,14 +35,19 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
 
+    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy gnuplot; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
 
 script:
     # libcloudph++ 
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - cmake -DCMAKE_BUILD_TYPE=Debug ../ 
-    - VERBOSE=1 make 
+    - cmake -DCMAKE_BUILD_TYPE=Debug ../
+    - VERBOSE=1 make
     - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - VERBOSE=1 make 
@@ -52,7 +57,7 @@ script:
     # libmpdata (needed by icicle, skipping tests)
     - cd ../..
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev libhdf5-serial-dev cmake; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
@@ -90,12 +95,8 @@ script:
 
     ## parcel
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy gnuplot; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
     - git clone --depth=1 git://github.com/igfuw/parcel.git
     - cd parcel
-    - py.test -s -v unit_test
-    - py.test -s -v long_test
+    - mkdir plots/outputs
+    - py.test unit_test
+    - py.test long_test

@@ -1,3 +1,9 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
 
 namespace libcloudphxx
 {
@@ -14,7 +20,7 @@ namespace libcloudphxx
       // probing the spectrum to find rd_min-rd_max range     
       // when analysing distro for source, multiplier takes into account that
       // the distribution is assumed to represent number of particles created per unit of time! 
-      // TODO: document that, use boost units for it
+      // TODO: document that
 
       // values to start the search 
       const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
