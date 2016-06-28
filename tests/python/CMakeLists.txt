@@ -1,7 +1,7 @@
 #TODO: search pytest?
 #TODO: local search path for python modules (to make it work before make install)
 
-find_package(PythonLibs)
+find_package(PythonLibs 2.7)
 
 find_package(PythonInterp REQUIRED)
 

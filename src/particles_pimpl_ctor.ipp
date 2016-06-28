@@ -23,6 +23,7 @@ namespace libcloudphxx
     namespace detail
     {   
       enum { invalid = -1 };
+
     };  
 
     // pimpl stuff 
@@ -36,7 +37,7 @@ namespace libcloudphxx
       bool init_called, should_now_run_async, selected_before_counting;
 
       // member fields
-      const opts_init_t<real_t> opts_init; // a copy
+      opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int n_cell; 
       thrust_size_t n_part,            // total number of SDs
@@ -47,7 +48,7 @@ namespace libcloudphxx
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
  
-      //containters for all kernel types
+      // containters for all kernel types
       thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
       thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
       thrust_device::vector<kernel_long<real_t, n_t> > k_long;
@@ -79,6 +80,12 @@ namespace libcloudphxx
 
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
+      // sea level term velocity according to Beard 1977, compute once
+      thrust_device::vector<real_t> vt_0; 
+      // no of bins for cached velocity
+      const int vt0_n_bin;
+      // ln of min and max radius of cached velocity
+      const real_t vt0_ln_r_min, vt0_ln_r_max;
 
       // grid-cell volumes (per grid cell)
       thrust_device::vector<real_t> dv;
@@ -101,7 +108,7 @@ namespace libcloudphxx
         count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
-      // Eulerian-Lagrangian interface vers
+      // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
         rhod,    // dry air density
         th,      // potential temperature (dry)
@@ -109,9 +116,17 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta_d
         sstp_tmp_rh, // ditto for rho
+        sstp_tmp_chem_0, // ditto for trace gases
+        sstp_tmp_chem_1, // ditto for trace gases
+        sstp_tmp_chem_2, // ditto for trace gases
+        sstp_tmp_chem_3, // ditto for trace gases
+        sstp_tmp_chem_4, // ditto for trace gases
+        sstp_tmp_chem_5, // ditto for trace gases
         courant_x, 
         courant_y, 
         courant_z;
+
+      std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]
@@ -136,7 +151,7 @@ namespace libcloudphxx
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
       std::vector<typename thrust_device::vector<real_t>::iterator >
         chem_bgn, chem_end; // indexed with enum chem_species_t
-      thrust_device::vector<real_t> chem_noneq, chem_equil;
+      thrust_device::vector<real_t> chem_rhs, chem_ante_rhs, chem_post_rhs;
       /* TODO:
         On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
         > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
@@ -162,16 +177,32 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
+        tmp_device_real_part_chem,  // only allocated if chem_switch==1
         tmp_device_real_cell,
+        tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
       thrust_device::vector<thrust_size_t>
-        tmp_device_size_cell;
+        tmp_device_size_cell,
+        tmp_device_size_part;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
+
+      // number of particles to be copied left/right in multi-GPU setup
+      unsigned int lft_count, rgt_count;
+
+      // nx in devices to the left of this one
+      unsigned int n_x_bfr;
+
+      // number of cells in devices to the left of this one
+      unsigned int n_cell_bfr;
+
+      // in/out buffers for SDs copied from other GPUs
+      thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -179,15 +210,15 @@ namespace libcloudphxx
       // fills un[0:n] with random numbers
       void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
-      // compile-time min(1, n) 
+      // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &opts_init) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
-	opts_init(opts_init),
+	opts_init(_opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
@@ -198,14 +229,19 @@ namespace libcloudphxx
           m1(opts_init.ny) *
           m1(opts_init.nz)
         ),
-        zero(0), 
+        zero(0),
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
-        stp_ctr(0)
+        stp_ctr(0),
+        n_x_bfr(n_x_bfr),
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
+        vt0_n_bin(10000),
+        vt0_ln_r_min(log(5e-7)),
+        vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
       {
         // sanity checks
         if (n_dims > 0)
@@ -216,8 +252,9 @@ namespace libcloudphxx
             throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
 	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
             throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
+//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
+//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
 	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
             throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
 	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
@@ -238,6 +275,7 @@ namespace libcloudphxx
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
+        tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 
         // initialising host temporary arrays
@@ -289,15 +327,18 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_count_num(const real_t & = 1);
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
       void init_hskpng_ncell();
       void init_hskpng_npart();
       void init_chem();
+      void init_chem_aq();
       void init_sstp();
+      void init_sstp_chem();
       void init_kernel();
+      void init_vterm();
 
       void fill_outbuf();
 
@@ -331,6 +372,10 @@ namespace libcloudphxx
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power
       );
+      void moms_calc_cond(
+	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const real_t power
+      );
 
       void mass_dens_estim(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
@@ -351,11 +396,17 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
+      void update_th_rv(thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 
-      void chem(const real_t &dt, const std::vector<real_t> &chem_gas, 
-                const bool &chem_dsl, const bool &chem_dsc, const bool &chem_rct);
+      void chem_vol_ante();
+      void chem_flag_ante();
+      void chem_henry(const real_t &dt);
+      void chem_dissoc();
+      void chem_react(const real_t &dt);
+      void chem_cleanup();
+ 
       thrust_size_t rcyc();
       real_t bcnd(); // returns accumulated rainfall
 
@@ -363,13 +414,22 @@ namespace libcloudphxx
 
       void sstp_step(const int &step, const bool &var_rho);
       void sstp_save();
+      void sstp_step_chem(const int &step, const bool &var_rho);
+      void sstp_save_chem();
+
+      void step_finalize(const opts_t<real_t>&);
     };
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init) :
-      pimpl(new impl(opts_init))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr)
     {
+#if defined(__NVCC__)
+      if(opts_init.dev_id >= 0)
+        cudaSetDevice(opts_init.dev_id);
+#endif
+      pimpl.reset(new impl(opts_init, n_x_bfr));
+
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }

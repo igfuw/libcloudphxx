@@ -15,11 +15,16 @@ set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
 set(libcloudphxx_LIBRARIES "cloudphxx_lgrngn")
 set(libcloudphxx_CXX_FLAGS_DEBUG "")
+set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "")
 set(libcloudphxx_CXX_FLAGS_RELEASE "")
 
 ############################################################################################
 # debug mode compiler flags
 set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g") #TODO: -Og if compiler supports it?
+
+############################################################################################
+# release with debug info mode compiler flags
+set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -Ofast -march=native")
 
 ############################################################################################
 # release mode compiler flags

@@ -67,7 +67,7 @@ namespace libcloudphxx
       
       // shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3
       // each log(radius) randomized only on a small subrange to make the distributions more uniform
-      // particles are sorted by cell number (see particles_impl_init_xyz), uniform distribution in each cell
+      // particles are sorted by cell number (see init_ijk), uniform distribution in each cell
       // lnrd is not sorted
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple(

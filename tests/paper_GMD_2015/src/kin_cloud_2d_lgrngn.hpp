@@ -2,7 +2,6 @@
 
 #include "kin_cloud_2d_common.hpp"
 #include "outmom.hpp"
-#include <fstream>
 
 #include <libcloudph++/lgrngn/factory.hpp>
 
@@ -26,8 +25,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
-  real_t prec_vol;
-  std::ofstream f_prec;
 
   // helper methods
   void diag()
@@ -37,10 +34,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     // recording super-droplet concentration per grid cell 
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc", prtcls->outbuf());
-   
-    // recording total precipitation volume through the lower boundary
-    f_prec << this->timestep << " "  << prec_vol << "\n";
-    prec_vol = 0.;
    
     // recording requested statistical moments
     {
@@ -104,12 +97,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
-  bool get_src() { return params.cloudph_opts.src; }
-  void set_src(bool val) 
-  { 
-    params.cloudph_opts.src = val; 
-  };
-
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
@@ -122,7 +109,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       assert(params.dt != 0); 
 
       // async does not make sense without CUDA
-      if (params.backend != libcloudphxx::lgrngn::CUDA) params.async = false;
+      if (params.backend != libcloudphxx::lgrngn::CUDA  && params.backend!= libcloudphxx::lgrngn::multi_CUDA) params.async = false;
 
       params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
       params.cloudph_opts_init.dx = params.dx;
@@ -134,7 +121,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       params.cloudph_opts_init.z0 = params.dz / 2;
       params.cloudph_opts_init.x1 = (this->mem->grid_size[0].length() - .5) * params.dx;
       params.cloudph_opts_init.z1 = (this->mem->grid_size[1].length() - .5) * params.dz;
-      params.cloudph_opts_init.src_z1 = params.dz; // aerosol added only in the lowest cells
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
         (libcloudphxx::lgrngn::backend_t)params.backend, 
@@ -166,12 +152,10 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 	  make_arrinfo(this->mem->advectee(ix::rv)),
 	  make_arrinfo(this->mem->g_factor()),
 	  make_arrinfo(Cx),
+          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
 	  make_arrinfo(Cz)
 	); 
       }
-      // open file for output of precitpitation volume
-      f_prec.open(this->outdir+"/prec_vol.dat");
-      prec_vol = 0.;
 
       // writing diagnostic data for the initial condition
       diag();
@@ -200,7 +184,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         ((this->timestep - 1) % this->outfreq != 0) // ... and not after diag call
       ) {
         assert(ftr.valid());
-        prec_vol += ftr.get();
+        ftr.get();
       } else assert(!ftr.valid());
 #endif
 
@@ -215,21 +199,31 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       {
         using libcloudphxx::lgrngn::particles_t;
         using libcloudphxx::lgrngn::CUDA;
+        using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
         {
           assert(!ftr.valid());
-          ftr = std::async(
-            std::launch::async, 
-            &particles_t<real_t, CUDA>::step_async, 
-            dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
-            params.cloudph_opts
-          );
+
+          if(params.backend == multi_CUDA)
+            ftr = std::async(
+              std::launch::async, 
+              &particles_t<real_t, multi_CUDA>::step_async, 
+              dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
+              params.cloudph_opts
+            );
+          else if(params.backend == CUDA)
+            ftr = std::async(
+              std::launch::async, 
+              &particles_t<real_t, CUDA>::step_async, 
+              dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
+              params.cloudph_opts
+            );
           assert(ftr.valid());
         } else 
 #endif
-          prec_vol += prtcls->step_async(params.cloudph_opts);
+          prtcls->step_async(params.cloudph_opts);
       }
 
       // performing diagnostics
@@ -239,7 +233,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         if (params.async)
         {
           assert(ftr.valid());
-          prec_vol += ftr.get();
+          ftr.get();
         }
 #endif
         diag();

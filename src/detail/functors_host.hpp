@@ -17,7 +17,6 @@ namespace libcloudphxx
   {
     namespace detail
     {
-
       template <typename real_t>
       struct c_arr_get
       {   

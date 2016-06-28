@@ -23,6 +23,7 @@ namespace libcloudphxx
       }
       n.resize(n_part);
       tmp_device_n_part.resize(n_part);
+      tmp_device_size_part.resize(n_part);
 
       if (opts_init.nx != 0) i.resize(n_part); 
       if (opts_init.ny != 0) j.resize(n_part); 
@@ -31,6 +32,11 @@ namespace libcloudphxx
       if (opts_init.nx != 0) x.resize(n_part); 
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
+
+      if(opts_init.chem_switch)
+      {
+        tmp_device_real_part_chem.resize(n_part);  // TODO: reuse outside of chem if needed
+      }
     }
   };
 };

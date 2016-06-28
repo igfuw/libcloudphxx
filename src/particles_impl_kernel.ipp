@@ -208,7 +208,7 @@ namespace libcloudphxx
         real_t onishi_nograv = detail::kernel_onishi_nograv<real_t>           // value of the turbulent onishi kernel that neglects gravitational settling
         (
           rwa, rwb, kernel_base<real_t, n_t>::k_params[1], kernel_base<real_t, n_t>::k_params[0],                              // k_params[0] - epsilon, k_params[1] - Re_lambda
-          thrust::get<eta_ix>(tpl_wrap.get_ro_calc()) / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()),                          // kinetic viscosity, check: divide by density of dry air? 
+          thrust::get<eta_ix>(tpl_wrap.get_ro_calc()) / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()),                          // kinetic viscosity 
           common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()) // ratio of water to air density
         );
 

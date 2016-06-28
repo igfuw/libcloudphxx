@@ -36,7 +36,7 @@ namespace libcloudphxx
       // no. of substeps 
       int sstp_cond, sstp_coal; 
   
-      // superstep frequency
+      // timestep interval at which source will be applied
       int supstp_src;
 
       // Lagrangian domain extents
@@ -46,15 +46,15 @@ namespace libcloudphxx
       unsigned long long sd_conc; 
 
       // max no. of super-droplets in the system
-      // used to init sizes of containers
-      // should fit particles from sources
+      // should be enough to store particles from sources
       unsigned long long n_sd_max; 
 
-      // source parameters
       // source distro per unit time
       dry_distros_t src_dry_distros;
+
       // number of SDs created per cell per source iteration
       unsigned long long src_sd_conc;
+
       // height up to which aerosol will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_z1;
@@ -84,6 +84,12 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
+      // no of GPUs to use, 0 for all available
+      int dev_count; 
+
+      // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
+      int dev_id;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -103,6 +109,8 @@ namespace libcloudphxx
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
+        dev_count(0),
+        dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0)

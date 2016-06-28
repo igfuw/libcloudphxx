@@ -19,7 +19,7 @@ namespace libcloudphxx
     struct opts_t 
     {
       // process toggling
-      bool adve, sedi, cond, coal, src;
+      bool adve, sedi, cond, coal, src, rcyc;
 
       // RH limit for drop growth
       real_t RH_max;       
@@ -28,19 +28,12 @@ namespace libcloudphxx
       // process toggling for chemistry
       bool chem_dsl, chem_dsc, chem_rct;
 
-      std::vector<real_t> chem_gas;
-
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 
-        adve(true), sedi(true), cond(true), coal(true), src(false),
+        adve(true), sedi(true), cond(true), coal(true), src(false), rcyc(false),
         chem_dsl(false), chem_dsc(false), chem_rct(false),
-        RH_max(44), // :) (anything greater than 1.1 would be enough
-        chem_gas(chem_gas_n)
+        RH_max(44) // :) (anything greater than 1.1 would be enough
       {
-        for(int i=0; i<chem_gas_n; ++i)
-        {
-          chem_gas[i] = 0;
-        }
       }
     };
   }
