@@ -138,7 +138,7 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id].diag_all();
+        particles[dev_id].diag_precip_rate();
       }
     }
 
