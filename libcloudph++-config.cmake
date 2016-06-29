@@ -33,7 +33,7 @@ if(
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
 )
-  set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native")
+  set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -O3 -march=native")
 endif()
 
 ############################################################################################
