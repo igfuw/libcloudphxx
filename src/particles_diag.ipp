@@ -180,7 +180,31 @@ namespace libcloudphxx
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
 
-    // compute 1st (non-specific) moment of rw^3 * vt
+    // compute 1st moment of rd^3 * kappa, TODO: very similar to diag_precip_rate
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rd3(const int &n)
+    {   
+      // temporary vector to store kappa
+      thrust::host_vector<real_t> tmp_kpa(pimpl->n_part);
+      thrust::copy(pimpl->kpa.begin(), pimpl->kpa.end(), tmp_kpa.begin());
+    
+      thrust::transform(
+        pimpl->kpa.begin(),
+        pimpl->kpa.end(),
+        pimpl->rd3.begin(),
+        pimpl->kpa.begin(),
+        thrust::multiplies<real_t>()
+      );  
+
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+ 
+      // copy back stored vterm
+      thrust::copy(tmp_kpa.begin(), tmp_kpa.end(), pimpl->kpa.begin());
+      // release the memory
+      tmp_kpa.erase(tmp_kpa.begin(), tmp_kpa.end());
+    }   
+
+    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate()
     {   
