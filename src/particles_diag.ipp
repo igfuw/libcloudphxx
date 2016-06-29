@@ -188,6 +188,7 @@ namespace libcloudphxx
     }   
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // TODO: replace it with simple diag vt?
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate()
     {   
