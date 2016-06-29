@@ -281,6 +281,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_wet_mass_dens", &lgr::particles_proto_t<real_t>::diag_wet_mass_dens)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
+      .def("diag_kappa",    &lgr::particles_proto_t<real_t>::diag_kappa)
+      .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
     // functions
