@@ -251,5 +251,12 @@ namespace libcloudphxx
 
       return ret;
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::step_rc_adjust(const arrinfo_t<real_t> rc_adjust)
+    {
+      // apply the adjustment
+      pimpl->rc_adjust(rc_adjust);
+    }
   };
 };
