@@ -153,11 +153,12 @@ namespace libcloudphxx
       )   
       {   
         assert(kappa > 0); // pure-water case left out
-        return common::detail::toms748_solve(
-	  detail::rw3_cr_minfun<real_t>(rd3, kappa, T), // the above-defined functor
-	  real_t(1e0 * (rd3 / si::cubic_metres)), // min
-	  real_t(1e8 * (rd3 / si::cubic_metres))  // max
-	) * si::cubic_metres;
+
+        return real_t(common::detail::toms748_solve(
+	  detail::rw3_cr_minfun<double>(rd3, kappa, T), // the above-defined functor
+	  double(1e0 * (rd3 / si::cubic_metres)), // min
+	  double(1e8 * (rd3 / si::cubic_metres))  // max
+	)) * si::cubic_metres;
       }
 
       // critical supersaturation, i.e. S(r_cr)
@@ -174,6 +175,7 @@ namespace libcloudphxx
         using std::pow;
 #endif
         quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
+
         return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
           pow(rw3 / si::cubic_metres, real_t(1./3)) * si::metres, 
           T
