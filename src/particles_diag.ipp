@@ -6,6 +6,7 @@
   */
 
 #include <libcloudph++/common/kappa_koehler.hpp> // TODO: not here...
+#include <thrust/sequence.h>
 
 namespace libcloudphxx
 {
@@ -80,6 +81,12 @@ namespace libcloudphxx
         pimpl->RH.end(), 
         pimpl->count_mom.begin()
       );
+
+      // RH defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      // inform that count_n and count_ijk are invalid
+      pimpl->counted = false;
     }
 
     // records super-droplet concentration per grid cell
