@@ -13,10 +13,21 @@ endif()
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
-set(libcloudphxx_LIBRARIES "cloudphxx_lgrngn")
+set(libcloudphxx_LIBRARIES "")
 set(libcloudphxx_CXX_FLAGS_DEBUG "")
 set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "")
 set(libcloudphxx_CXX_FLAGS_RELEASE "")
+
+
+############################################################################################
+# libcloudphxx libs and headers
+find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn)
+
+# for non-default install location (i.e. for make DESTDIR=<dir> install)
+set(libcloudphxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
+if(NOT libcloudphxx_LIBRARIES)
+  set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn.so")
+endif()
 
 ############################################################################################
 # debug mode compiler flags
@@ -38,7 +49,7 @@ endif()
 
 ############################################################################################
 # Boost libraries
-find_package(Boost QUIET)
+find_package(Boost)
 if(Boost_FOUND)
   set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
   set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
