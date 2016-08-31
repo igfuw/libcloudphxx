@@ -20,14 +20,10 @@ set(libcloudphxx_CXX_FLAGS_RELEASE "")
 
 
 ############################################################################################
-# libcloudphxx libs and headers
-find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn)
-
-# for non-default install location (i.e. for make DESTDIR=<dir> install)
+# libcloudphxx libs and headers 
+# also work for non-default install location (i.e. for make DESTDIR=<dir> install)
 set(libcloudphxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
-if(NOT libcloudphxx_LIBRARIES)
-  set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn.so")
-endif()
+set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn.so")
 
 ############################################################################################
 # debug mode compiler flags
