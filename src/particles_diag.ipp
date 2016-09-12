@@ -180,7 +180,15 @@ namespace libcloudphxx
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
 
-    // compute 1st (non-specific) moment of rw^3 * vt
+    // compute n-th moment of kappa
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
+    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // TODO: replace it with simple diag vt?
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate()
     {   
