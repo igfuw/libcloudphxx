@@ -53,11 +53,16 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
+      // TODO: in source match chemical composition
       if (pimpl->opts_init.chem_switch && pimpl->opts_init.src_switch) 
-        throw std::runtime_error("chemistry and source are not compatible");
+        throw std::runtime_error("chemistry and aerosol source are not compatible");
 
       if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.chem_switch)
         throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
+
+      // TODO: in source match kappas 
+      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.src_switch)
+        throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
 
 
       // initialising Eulerian-Lagrangian coupling
