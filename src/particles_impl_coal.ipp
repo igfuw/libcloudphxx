@@ -435,7 +435,6 @@ namespace libcloudphxx
           )) + n_part -1,
           detail::weighted_summator<real_t>()
         );
->>>>>>> kappa_map
       }
     }
   };  

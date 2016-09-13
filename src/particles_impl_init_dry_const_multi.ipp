@@ -17,8 +17,6 @@
 #include <thrust/extrema.h>
 #include <thrust/binary_search.h>
 
-#include <boost/math/tools/minima.hpp>
-
 #include <libcloudph++/common/earth.hpp>
 
 namespace libcloudphxx
@@ -27,6 +25,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
+/*
       // calculate numerical integral with the trapezoidal rule
       // TODO: use thrust
       template<typename real_t>
@@ -40,7 +39,7 @@ namespace libcloudphxx
 
         return integral * bin_size;
       }
-
+*/
       // calculate cumulative distribution function
       template<typename real_t, typename vec_t>
       void calc_CDF(const common::unary_function<real_t> &fun, const real_t &min, const real_t &max, const real_t &bin_size, vec_t &vec)
@@ -66,24 +65,23 @@ namespace libcloudphxx
     // init
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry_const_multi(
-      const real_t kappa,
-      const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
+//      const real_t kappa,
+      const common::unary_function<real_t> *n_of_lnrd_stp 
     )
     {
       // values to start the search 
-      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
-      real_t rd_min = rd_min_init, rd_max = rd_max_init;
+//      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
+  //    real_t rd_min = rd_min_init, rd_max = rd_max_init;
 
-      boost::uintmax_t max_iter = 1e6; // max number of iterations when searching for maxima/roots
-      const real_t precision = 1e-4; // size of bins in ln(radius) when calculating roots, integral, CDF
+//      boost::uintmax_t max_iter = 1e6; // max number of iterations when searching for maxima/roots
 
       // analysing initial distribution
       // has to have only single maximum, no local minima
-      std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
-      init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
+//      std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
+  //    init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min), log(rd_max), 32, max_iter);
   
-      real_t init_dist_bound_value = -init_distr_max.second / 1e4; // value of the distribution at which we bind it
-
+    //  real_t init_dist_bound_value = -init_distr_max.second / 1e4; // value of the distribution at which we bind it
+/*
       rd_min = 
         common::detail::bisect<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>(
           detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), 
@@ -97,13 +95,11 @@ namespace libcloudphxx
           init_distr_max.first, real_t(log(rd_max_init)),
           precision
         );
+*/
 
+
+/*
       const real_t integral = detail::integrate(*n_of_lnrd_stp, rd_min, rd_max, precision);
-
-      // calculate cumulative distribution function
-      thrust::host_vector<real_t> cdf;
-
-      detail::calc_CDF(*n_of_lnrd_stp, rd_min, rd_max, precision, cdf);
 
       // number of SDs per cell under STP conditions
       real_t multiplier = round(integral 
@@ -119,21 +115,27 @@ namespace libcloudphxx
       thrust::transform(rhod.begin(), rhod.end(), dv.begin(), count_num.begin(),
         (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2 / (opts_init.dx * opts_init.dy * opts_init.dz) + real_t(0.5))
       ); 
-
-      n_part = thrust::reduce(count_num.begin(), count_num.end());
+*/
+  //    n_part = thrust::reduce(count_num.begin(), count_num.end());
 
       // memory allocation
-      rd3.resize(n_part);
-      n.resize(n_part);
-      kpa.resize(n_part); 
-      tmp_device_real_part.resize(n_part);
-      tmp_device_n_part.resize(n_part);
+   //   rd3.resize(n_part);
+   //   n.resize(n_part);
+   //   kpa.resize(n_part); 
+   //   tmp_device_real_part.resize(n_part);
+   //   tmp_device_n_part.resize(n_part);
 
       // filling kappas
-      thrust::fill(kpa.begin(), kpa.end(), kappa);
+   //   thrust::fill(kpa.begin(), kpa.end(), kappa);
+
+      const real_t precision = 1e-4; // size of bins in ln(radius) when calculating roots, integral, CDF
+      // calculate cumulative distribution function
+      thrust::host_vector<real_t> cdf;
+
+      detail::calc_CDF(*n_of_lnrd_stp, log_rd_min, log_rd_max, precision, cdf);
  
       // filling multiplicities
-      thrust::fill(n.begin(), n.end(), opts_init.sd_const_multi);
+  //    thrust::fill(n.begin(), n.end(), opts_init.sd_const_multi);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part);
@@ -145,10 +147,11 @@ namespace libcloudphxx
       thrust::copy(u01.begin(), u01.end(), host_u01.begin());
       thrust::host_vector<real_t> host_lnrd(n_part); 
       
+      namespace arg = thrust::placeholders;
       // sample ln(rd) from the distribution with the inverse transform sampling method
       thrust::upper_bound(cdf.begin(), cdf.end(), host_u01.begin(), host_u01.end(), host_lnrd.begin());
       thrust::copy(host_lnrd.begin(), host_lnrd.end(), lnrd.begin());
-      thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), rd_min + arg::_1 * precision);
+      thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), log_rd_min + arg::_1 * precision);
 
       // converting rd back from logarithms to rd3
       thrust::transform(

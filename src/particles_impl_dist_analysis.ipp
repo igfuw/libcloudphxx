@@ -5,14 +5,17 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <boost/math/tools/minima.hpp>
+#include <libcloudph++/common/detail/toms748.hpp>
+
 namespace libcloudphxx
 {
   namespace lgrngn
   {
     // init
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::dist_analysis(
-      const common::unary_function<real_t> *n_of_lnrd_stp, // TODO: kappa-spectrum map
+    void particles_t<real_t, device>::impl::dist_analysis_sd_conc(
+      const common::unary_function<real_t> *n_of_lnrd_stp,
       const impl::n_t sd_conc,
       const real_t dt
     )
@@ -54,5 +57,33 @@ namespace libcloudphxx
         else found_optimal_range = true;
       }
     };
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::dist_analysis_const_multi(
+      const common::unary_function<real_t> *n_of_lnrd_stp
+    )
+    {
+      const real_t threshold = 1e4;
+      boost::uintmax_t max_iter = 1e6; // max number of iterations when searching for maxima/roots
+      // values to start the search 
+      const real_t rd_min_init = 1e-11, rd_max_init = 1e-3;
+
+      // has to have only single maximum, no local minima
+      std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
+      init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -1), log(rd_min_init), log(rd_max_init), 200, max_iter); // bits = 200 to make algorithm choose max precision available
+
+      real_t init_dist_bound_value = -init_distr_max.second / threshold; // value of the distribution at which we bind it
+      log_rd_min = 
+        common::detail::toms748_solve/*<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>*/(
+          detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), 
+          real_t(log(rd_min_init)), init_distr_max.first 
+        );
+
+      log_rd_max = 
+        common::detail::toms748_solve/*<libcloudphxx::lgrngn::detail::eval_and_oper<real_t>, real_t>*/(
+          detail::eval_and_oper<real_t>(*n_of_lnrd_stp, -init_dist_bound_value, 1), 
+          init_distr_max.first, real_t(log(rd_max_init))
+        );
+    }
   };
 };

@@ -118,10 +118,15 @@ namespace libcloudphxx
       real_t tot_lnrd_rng = 0.;
       for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
       {
-        pimpl->dist_analysis(
-          ddi->second,
-          pimpl->opts_init.sd_conc
-        );
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->dist_analysis_sd_conc(
+            ddi->second,
+            pimpl->opts_init.sd_conc
+          );
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->dist_analysis_const_multi(
+            ddi->second
+          );
         tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
       }
 
@@ -131,16 +136,22 @@ namespace libcloudphxx
       for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
       {
         // analyze the distribution, TODO: just did it
-        pimpl->dist_analysis(
-          ddi->second,
-          pimpl->opts_init.sd_conc
-        );
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->dist_analysis_sd_conc(
+            ddi->second,
+            pimpl->opts_init.sd_conc
+          );
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->dist_analysis_const_multi(
+            ddi->second
+          );
 
         // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-        if(opts_init.sd_conc > 0)
-          pimpl->init_count_num_sd_conc( (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng);
-        else if(opts_init.const_multi > 0)
-          pimpl->init_count_num_const_multi( (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng);
+        real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng; // fraction of particles with this kappa
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->init_count_num_sd_conc(fraction);
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->init_count_num_const_multi( ddi->second, fraction);
   
         // update no of particles
         // TODO: move to a separate function
@@ -153,18 +164,18 @@ namespace libcloudphxx
         pimpl->init_ijk();
   
         // initialising dry radii (needs ijk)
-        if(opts_init.sd_conc > 0)
+        if(pimpl->opts_init.sd_conc > 0)
           pimpl->init_dry_sd_conc();
-        else if(opts_init.const_multi > 0)
-          pimpl->init_dry_const_multi();
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->init_dry_const_multi(ddi->second);
 
         // init kappa
         pimpl->init_kappa(ddi->first);
   
         // init multiplicities
-        if(opts_init.sd_conc > 0)
+        if(pimpl->opts_init.sd_conc > 0)
           pimpl->init_n_sd_conc(ddi->second); // TODO: document that n_of_lnrd_stp is expected!
-        else if(opts_init.const_multi > 0)
+        else if(pimpl->opts_init.sd_const_multi > 0)
           pimpl->init_n_const_multi(); 
   
         // initialising wet radii

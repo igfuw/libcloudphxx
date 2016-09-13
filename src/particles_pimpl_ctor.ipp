@@ -327,23 +327,29 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
 
-      void init_dry();
-      void init_n(
-        const real_t kappa, // TODO: map
-        const common::unary_function<real_t> *n_of_lnrd
-      );
+      void init_dry_sd_conc();
       void init_dry_const_multi(
-        const real_t kappa, // TODO: map
         const common::unary_function<real_t> *n_of_lnrd
       );
-      void dist_analysis(
+
+      void init_n_sd_conc(
+        const common::unary_function<real_t> *n_of_lnrd
+      );
+      void init_n_const_multi();
+
+      void dist_analysis_sd_conc(
         const common::unary_function<real_t> *n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
+      void dist_analysis_const_multi(
+        const common::unary_function<real_t> *n_of_lnrd
+      );
       void init_ijk();
       void init_xyz();
-      void init_count_num(const real_t & = 1);
+      void init_kappa(const real_t &);
+      void init_count_num_sd_conc(const real_t & = 1);
+      void init_count_num_const_multi(const common::unary_function<real_t> *, const real_t & = 1);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();

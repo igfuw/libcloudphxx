@@ -135,7 +135,7 @@ namespace libcloudphxx
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
-      dist_analysis(
+      dist_analysis_sd_conc(
         opts_init.src_dry_distros.begin()->second,
         opts_init.src_sd_conc,
         dt
@@ -169,7 +169,7 @@ namespace libcloudphxx
                     
         // init ijk and rd3 of new particles
         init_ijk();
-        init_dry(); 
+        init_dry_sd_conc(); 
 
         // translate these new rd3 into bin no; bin_no just got resized
         thrust::transform(
@@ -254,8 +254,7 @@ namespace libcloudphxx
 
           // init other peoperties of SDs that didnt have a match
           // init n
-          init_n(
-            opts_init.src_dry_distros.begin()->first,
+          init_n_sd_conc(
             opts_init.src_dry_distros.begin()->second
           ); // TODO: document that n_of_lnrd_stp is expected!
 
@@ -402,8 +401,7 @@ namespace libcloudphxx
         );
 
         // init n of the copied SDs, but using the src distribution
-        init_n(
-          opts_init.src_dry_distros.begin()->first,
+        init_n_sd_conc(
           opts_init.src_dry_distros.begin()->second
         ); // TODO: document that n_of_lnrd_stp is expected!
 

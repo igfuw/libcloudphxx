@@ -61,7 +61,6 @@ namespace libcloudphxx
       // height up to which aerosol will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_z1;
->>>>>>> kappa_map
 
       // coalescence Kernel type
       kernel_t::kernel_t kernel;
