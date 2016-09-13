@@ -22,48 +22,7 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-      if (pimpl->init_called) 
-        throw std::runtime_error("init() may be called just once");
-      pimpl->init_called = true;
-
-      // sanity checks
-      if (th.is_null() || rv.is_null() || rhod.is_null())
-        throw std::runtime_error("passing th, rv and rhod is mandatory");
-
-      // --------  init cell characteristics  --------
-      // initialising Eulerian-Lagrandian coupling
-      if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
-      {
-	if (pimpl->n_dims == 0)
-	  throw std::runtime_error("Courant numbers passed in 0D setup");
-
-	if (pimpl->n_dims == 1 && (courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null()))
-	  throw std::runtime_error("Only X Courant number allowed in 1D setup");
-
-	if (pimpl->n_dims == 2 && (courant_x.is_null() || !courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("Only X and Z Courant numbers allowed in 2D setup");
-
-	if (pimpl->n_dims == 3 && (courant_x.is_null() || courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("All XYZ Courant number components required in 3D setup");
-      }
-
-      if (pimpl->opts_init.chem_switch && ambient_chem.size() != chem_gas_n) 
-        throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
-
-      if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
-        throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
-
-      // TODO: in source match chemical composition
-      if (pimpl->opts_init.chem_switch && pimpl->opts_init.src_switch) 
-        throw std::runtime_error("chemistry and aerosol source are not compatible");
-
-      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.chem_switch)
-        throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
-
-      // TODO: in source match kappas 
-      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.src_switch)
-        throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
-
+      pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors

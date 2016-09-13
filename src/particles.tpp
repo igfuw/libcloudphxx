@@ -52,6 +52,7 @@
 #include "particles_impl_init_kernel.ipp"
 #include "particles_impl_step_finalize.ipp"
 #include "particles_impl_init_vterm.ipp"
+#include "particles_impl_init_sanity_check.ipp"
 #include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"

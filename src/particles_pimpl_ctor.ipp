@@ -246,42 +246,12 @@ namespace libcloudphxx
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
       {
-        // sanity checks
-        if (n_dims > 0)
-        {
-	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
-	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
-	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
-//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
-//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
-	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
-        }
-
-        if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc or opts_init.sd_const_multi, not both");
-        if (opts_init.sd_conc == 0 && opts_init.sd_const_multi == 0) throw std::runtime_error("please specify opts_init.sd_conc or opts_init.sd_const_multi");
-        if (opts_init.coal_switch)
-        {
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
-          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
-        }
-        if (opts_init.sedi_switch)
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
-
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
         tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
-
 
         // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
 #if defined(__NVCC__)
@@ -326,6 +296,11 @@ namespace libcloudphxx
 
       // methods
       void sanity_checks();
+      void init_sanity_check(
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> >
+      );
 
       void init_dry_sd_conc();
       void init_dry_const_multi(
