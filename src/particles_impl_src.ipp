@@ -253,6 +253,11 @@ namespace libcloudphxx
           hskpng_resize_npart();
 
           // init other peoperties of SDs that didnt have a match
+          // init kappa
+          init_kappa(
+            opts_init.src_dry_distros.begin()->first
+          ); 
+
           // init n
           init_n_sd_conc(
             opts_init.src_dry_distros.begin()->second

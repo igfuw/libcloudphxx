@@ -52,17 +52,18 @@ prtcls.init(th, rv, rhod)
 
 prtcls.diag_all()
 prtcls.diag_wet_mom(3) # gives specific moment (divided by rhod)
-mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
+mean_water_content_sd_conc = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
 
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
  water_content = np.frombuffer(prtcls.outbuf())[i]
- if(abs(water_content - mean_water_content)/water_content > 0.15):
+ if(abs(water_content - mean_water_content_sd_conc)/water_content > 0.15):
    raise Exception("Not uniform initialization: \
      relative difference between water content in one of the cells and mean value greater than 15%: " \
-     + str(abs(water_content - mean_water_content)/water_content) + " > 0.15")
+     + str(abs(water_content - mean_water_content_sd_conc)/water_content) + " > 0.15")
 
 opts_init.sd_conc = 0
 opts_init.sd_const_multi = 100000
+opts_init.n_sd_max = int(opts_init.nx * opts_init.ny * opts_init.nz * (n_zero / opts_init.sd_const_multi  + 100)); #TODO: why do we need to add this 100? integral not correct?
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
@@ -73,11 +74,18 @@ prtcls.init(th, rv, rhod)
 
 prtcls.diag_all()
 prtcls.diag_wet_mom(3) # gives specific moment (divided by rhod)
-mean_water_content = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
+mean_water_content_const_multi = np.frombuffer(prtcls.outbuf()).mean() # dropping a constant
+
+if(abs(mean_water_content_sd_conc / mean_water_content_const_multi - 1) > 0.10):
+  raise Exception("Not uniform initialization: \
+    ratio of mean water content in both initialization options > 10%:   \
+    sd_conc mean water content: "  + str(mean_water_content_sd_conc) + 
+    "const_multi mean water content: "  + str(mean_water_content_const_multi)  
+)
 
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
  water_content = np.frombuffer(prtcls.outbuf())[i]
- if(abs(water_content - mean_water_content)/water_content > 0.15):
+ if(abs(water_content - mean_water_content_const_multi)/water_content > 0.15):
    raise Exception("Not uniform initialization: \
      relative difference between water content in one of the cells and mean value greater than 15%: " \
-     + str(abs(water_content - mean_water_content)/water_content) + " > 0.15")
+     + str(abs(water_content - mean_water_content_const_multi)/water_content) + " > 0.15")
