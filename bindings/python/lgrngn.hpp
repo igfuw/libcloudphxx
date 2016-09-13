@@ -22,7 +22,7 @@ namespace libcloudphxx
       template <typename real_t>
       lgr::particles_proto_t<real_t> *factory(
 	const lgr::backend_t &backend,
-	const lgr::opts_init_t<real_t> &opts_init
+	lgr::opts_init_t<real_t> opts_init
       ) {
 	return lgr::factory(backend, opts_init);
       }
@@ -51,71 +51,62 @@ namespace libcloudphxx
         });
       }
 
-      // 0D or non-kinematic version
+      // 
       template <typename real_t>
-      void init_3arg(
-	lgr::particles_proto_t<real_t> *arg,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod
-      )
-      {
-	arg->init(
-	  np2ai<real_t>(th,   sz(*arg)),
-	  np2ai<real_t>(rv,   sz(*arg)),
-	  np2ai<real_t>(rhod, sz(*arg))
-	);
-      }
-
-      // 2D kinematic version
-      template <typename real_t>
-      void init_5arg(
+      void init(
 	lgr::particles_proto_t<real_t> *arg,
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
 	const bp::numeric::array &rhod,
         const bp::numeric::array &Cx,
-        const bp::numeric::array &Cz
+        const bp::numeric::array &Cy,
+        const bp::numeric::array &Cz,
+        const bp::dict &ambient_chem
       )
       {
+        typedef std::map<enum lgr::chem_species_t, const lgr::arrinfo_t<real_t> > map_t;
+        map_t map;
+
+        for (int i = 0; i < len(ambient_chem.keys()); ++i)
+          map.insert(typename map_t::value_type(
+            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+          ));
+
 	arg->init(
 	  np2ai<real_t>(th,      sz(*arg)),
 	  np2ai<real_t>(rv,      sz(*arg)),
 	  np2ai<real_t>(rhod,    sz(*arg)),
           np2ai<real_t>(Cx,      sz(*arg)),
-          np2ai<real_t>(Cz,      sz(*arg))
+          np2ai<real_t>(Cy,      sz(*arg)),
+          np2ai<real_t>(Cz,      sz(*arg)),
+          map // ambient_chem
 	);
       }
 
-      // TODO: 1D & 3D kinematic versions
-
+      // 
       template <typename real_t>
-      void step_sync_3arg(
-	lgr::particles_proto_t<real_t> *arg,
-	const lgr::opts_t<real_t> &opts,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv
-      )
-      {
-	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
-	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
-	arg->step_sync(
-	  opts, 
-	  np2ai_th,
-	  np2ai_rv
-	);
-      }
-
-      template <typename real_t>
-      void step_sync_4arg(
+      void step_sync(
 	lgr::particles_proto_t<real_t> *arg,
 	const lgr::opts_t<real_t> &opts,
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod
+	const bp::numeric::array &rhod,
+	const bp::numeric::array &Cx,
+	const bp::numeric::array &Cy,
+	const bp::numeric::array &Cz,
+        bp::dict &ambient_chem
       )
       {
+        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        map_t map;
+
+        for (int i = 0; i < len(ambient_chem.keys()); ++i)
+          map.insert(typename map_t::value_type(
+            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+          ));
+
 	lgr::arrinfo_t<real_t>
 	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
 	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -123,36 +114,13 @@ namespace libcloudphxx
 	  opts, 
 	  np2ai_th,
 	  np2ai_rv,
-	  np2ai<real_t>(rhod, sz(*arg))
+	  np2ai<real_t>(rhod, sz(*arg)),
+	  np2ai<real_t>(Cx, sz(*arg)),
+	  np2ai<real_t>(Cy, sz(*arg)),
+	  np2ai<real_t>(Cz, sz(*arg)),
+          map
 	);
       }
-
-      // 3D dynamic variant
-      template <typename real_t>
-      void step_sync_6arg(
-	lgr::particles_proto_t<real_t> *arg,
-	const lgr::opts_t<real_t> &opts,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod_courant_x,
-	const bp::numeric::array &rhod_courant_y,
-	const bp::numeric::array &rhod_courant_z
-      )
-      {
-	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
-	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
-	arg->step_sync(
-	  opts, 
-	  np2ai_th,
-	  np2ai_rv,
-	  np2ai<real_t>(rhod_courant_x, sz(*arg)),
-	  np2ai<real_t>(rhod_courant_y, sz(*arg)),
-	  np2ai<real_t>(rhod_courant_z, sz(*arg))
-	);
-      }
-
-      // TODO: 2D dynamic variant
 
       template <typename real_t>
       const lgr::opts_init_t<real_t> get_oi(
@@ -163,9 +131,10 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      void set_dd(
+      void set_d_helper(
 	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func
+	const bp::dict &kappa_func,
+        bool src
       )
       {
 	for (int i = 0; i < len(kappa_func.keys()); ++i)
@@ -187,11 +156,33 @@ namespace libcloudphxx
 	    }
 	  };
 
-	  boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
-	    bp::extract<real_t>(kappa_func.keys()[i]), 
-	    pyunary(kappa_func.values()[i])
-	  );
+          if(src)  // set the source distro
+	    boost::assign::ptr_map_insert<pyunary>(arg->src_dry_distros)(
+  	      bp::extract<real_t>(kappa_func.keys()[i]), 
+  	      pyunary(kappa_func.values()[i])
+  	    );
+          else    // set the initial distro
+	    boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
+  	      bp::extract<real_t>(kappa_func.keys()[i]), 
+  	      pyunary(kappa_func.values()[i])
+  	    );
 	}
+      }
+
+      template <typename real_t>
+      void set_dd(
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        set_d_helper(arg, kappa_func, false);
+      }
+
+      template <typename real_t>
+      void set_sdd(
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        set_d_helper(arg, kappa_func, true);
       }
 
       template <typename real_t>
@@ -200,6 +191,14 @@ namespace libcloudphxx
       )
       {
 	throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void get_sdd(
+	lgr::opts_init_t<real_t> *arg
+      )
+      {
+	throw std::runtime_error("source_dry_distros does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
@@ -219,27 +218,6 @@ namespace libcloudphxx
       )
       {
 	throw std::runtime_error("kernel_paramteres does not feature a getter yet - TODO");
-      }
-
-      template <typename real_t>
-      void set_cg(
-	lgr::opts_t<real_t> *arg,
-	const bp::dict &vec
-      )
-      {
-	for (int i = 0; i < len(vec.keys()); ++i)
-	  arg->chem_gas.at(i) = bp::extract<real_t>(vec[i]);
-      }
-
-      template <typename real_t>
-      bp::dict get_cg(
-	lgr::opts_t<real_t> *arg
-      )
-      {
-	bp::dict tmp;
-	for (int i = 0; i < arg->chem_gas.size(); ++i)
-	  tmp[i] = arg->chem_gas.at(i);
-	return tmp;
       }
     };
   };

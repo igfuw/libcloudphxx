@@ -17,14 +17,11 @@ namespace setup = icmw8_case1;
 #include "opts_blk_2m.hpp"
 #include "opts_lgrngn.hpp"
 
-// exception handling
-#include <boost/exception/all.hpp>
-
 #include "panic.hpp"
 
 // model run logic - the same for any microphysics
 template <class solver_t>
-void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial)
+void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv)
 {
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -34,6 +31,7 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   p.outdir = outdir;
   p.outfreq = outfreq;
   p.spinup = spinup;
+  p.relax_th_rv = relax_th_rv;
   setup::setopts(p, nx, nz);
   setopts_micro<solver_t>(p, nx, nz, nt);
 
@@ -96,7 +94,6 @@ int main(int argc, char** argv)
   ac = argc;
   av = argv;
 
-  try
   {
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
@@ -108,6 +105,7 @@ int main(int argc, char** argv)
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
       ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
+      ("relax_th_rv", po::value<bool>()->default_value(true) , "relaxation of th and rv")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -128,8 +126,8 @@ int main(int argc, char** argv)
     int outfreq;
     if (!vm.count("help"))
     {
-      if (!vm.count("outdir")) BOOST_THROW_EXCEPTION(po::required_option("outdir"));
-      if (!vm.count("outfreq")) BOOST_THROW_EXCEPTION(po::required_option("outfreq"));
+      if (!vm.count("outdir")) throw po::required_option("outdir");
+      if (!vm.count("outfreq")) throw po::required_option("outfreq");
       outdir = vm["outdir"].as<std::string>();
       outfreq = vm["outfreq"].as<int>();
     }
@@ -144,19 +142,36 @@ int main(int argc, char** argv)
     // handling serial-advection-forcing flag
     bool adv_serial = vm["adv_serial"].as<bool>();
 
+    // handling relaxation flag
+    bool relax_th_rv = vm["relax_th_rv"].as<bool>();
+
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
+
     if (micro == "blk_1m")
     {
       // libmpdata++'s compile-time parameters
-      struct ct_params_t : ct_params_common
+      if (relax_th_rv)
       {
-	enum { n_eqns = 4 };
-        struct ix { enum {th, rv, rc, rr}; };
-        enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) }; // only through adjustments
-      };
-      run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial);
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 4 };
+          struct ix { enum {th, rv, rc, rr}; };
+        };
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+          enum { n_eqns = 4 };
+          struct ix { enum {th, rv, rc, rr}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
     }
+
     else
     if (micro == "blk_2m")
     {
@@ -165,28 +180,35 @@ int main(int argc, char** argv)
 	enum { n_eqns = 6 };
 	struct ix { enum {th, rv, rc, rr, nc, nr}; }; 
       };
-      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial);
+      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
     }
+
     else 
     if (micro == "lgrngn")
     {
-      struct ct_params_t : ct_params_common
+      if (relax_th_rv)
       {
-	enum { n_eqns = 2 };
-	struct ix { enum {th, rv}; };
-        enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) }; // only through adjustments
-      };
-      run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial);
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 2 };
+  	  struct ix { enum {th, rv}; };
+        };
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 2 };
+  	  struct ix { enum {th, rv}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
     }
-    else BOOST_THROW_EXCEPTION(
+    else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 
-      )
-    );
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << boost::current_exception_diagnostic_information();
-    exit(EXIT_FAILURE);
+      );
   }
 }

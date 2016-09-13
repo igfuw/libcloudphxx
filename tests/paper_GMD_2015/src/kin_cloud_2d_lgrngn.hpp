@@ -109,17 +109,18 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       assert(params.dt != 0); 
 
       // async does not make sense without CUDA
-      if (params.backend != libcloudphxx::lgrngn::CUDA) params.async = false;
+      if (params.backend != libcloudphxx::lgrngn::CUDA  && params.backend!= libcloudphxx::lgrngn::multi_CUDA) params.async = false;
 
       params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
       params.cloudph_opts_init.dx = params.dx;
       params.cloudph_opts_init.dz = params.dz;
 
+
       // libmpdata++'s grid interpretation
       params.cloudph_opts_init.x0 = params.dx / 2;
       params.cloudph_opts_init.z0 = params.dz / 2;
-      params.cloudph_opts_init.x1 = (this->mem->grid_size[0] - .5) * params.dx;
-      params.cloudph_opts_init.z1 = (this->mem->grid_size[1] - .5) * params.dz;
+      params.cloudph_opts_init.x1 = (this->mem->grid_size[0].length() - .5) * params.dx;
+      params.cloudph_opts_init.z1 = (this->mem->grid_size[1].length() - .5) * params.dz;
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
         (libcloudphxx::lgrngn::backend_t)params.backend, 
@@ -131,12 +132,12 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         // temporarily Cx & Cz are multiplied by rhod ...
         auto 
           Cx = this->mem->GC[0](
-            rng_t(0, this->mem->grid_size[0]-1)^h, 
-            rng_t(0, this->mem->grid_size[1]-1)
+            this->mem->grid_size[0]^h, 
+            this->mem->grid_size[1]
           ).reindex({0,0}).copy(),
           Cz = this->mem->GC[1](
-            rng_t(0, this->mem->grid_size[0]-1), 
-            rng_t(0, this->mem->grid_size[1]-1)^h
+            this->mem->grid_size[0], 
+            this->mem->grid_size[1]^h
           ).reindex({0,0}).copy();
 
         // ... and now dividing them by rhod (z=0 is located at j=1/2)
@@ -151,6 +152,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 	  make_arrinfo(this->mem->advectee(ix::rv)),
 	  make_arrinfo(this->mem->g_factor()),
 	  make_arrinfo(Cx),
+          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
 	  make_arrinfo(Cz)
 	); 
       }
@@ -197,17 +199,27 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       {
         using libcloudphxx::lgrngn::particles_t;
         using libcloudphxx::lgrngn::CUDA;
+        using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
         {
           assert(!ftr.valid());
-          ftr = std::async(
-            std::launch::async, 
-            &particles_t<real_t, CUDA>::step_async, 
-            dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
-            params.cloudph_opts
-          );
+
+          if(params.backend == multi_CUDA)
+            ftr = std::async(
+              std::launch::async, 
+              &particles_t<real_t, multi_CUDA>::step_async, 
+              dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
+              params.cloudph_opts
+            );
+          else if(params.backend == CUDA)
+            ftr = std::async(
+              std::launch::async, 
+              &particles_t<real_t, CUDA>::step_async, 
+              dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
+              params.cloudph_opts
+            );
           assert(ftr.valid());
         } else 
 #endif

@@ -9,6 +9,7 @@
 
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
+#include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -34,6 +35,9 @@ namespace libcloudphxx
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
+  
+      // timestep interval at which source will be applied
+      int supstp_src;
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -44,15 +48,37 @@ namespace libcloudphxx
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       int sd_const_multi;
 
+      // max no. of super-droplets in the system
+      // should be enough to store particles from sources
+      unsigned long long n_sd_max; 
+
+      // source distro per unit time
+      dry_distros_t src_dry_distros;
+
+      // number of SDs created per cell per source iteration
+      unsigned long long src_sd_conc;
+
+      // height up to which aerosol will be created
+      // will be rounded to cell number - cells are supposed to be uniform
+      real_t src_z1;
+>>>>>>> kappa_map
+
       // coalescence Kernel type
-      kernel_t kernel;
+      kernel_t::kernel_t kernel;
+
+      // terminal velocity formula
+      vt_t::vt_t terminal_velocity;
 //</listing>
  
       // coalescence kernel parameters
       std::vector<real_t> kernel_parameters;
 
       // chem
-      bool chem_switch;  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+      bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
+           coal_switch,  // if false no coalescence throughout the whole simulation
+           sedi_switch,  // if false no sedimentation throughout the whole simulation
+           src_switch;  // if false no source throughout the whole simulation
+
       int sstp_chem;
       real_t chem_rho;
 
@@ -62,21 +88,41 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
+      // no of GPUs to use, 0 for all available
+      int dev_count; 
+
+      // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
+      int dev_id;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
-        nx(0), ny(0), nz(0), // the defaults are OK for a parcel set-up 
-        dx(1), dy(1), dz(1), // (but are only used to compute n_part -
-        x0(0), y0(0), z0(0), //  dv is computed from rhod assuming 
-        x1(1), y1(1), z1(1), //  that the parcel contains 1kg of dry air)
+        nx(0), ny(0), nz(0),
+        dx(1), dy(1), dz(1),
+        x0(0), y0(0), z0(0),
+        x1(1), y1(1), z1(1),
         sd_conc(0), 
         sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        supstp_src(1),
         chem_switch(false),  // chemical reactions turned off by default
+        sedi_switch(true),  // sedimentation turned on by default
+        coal_switch(true),  // coalescence turned on by default
+        src_switch(false),  // source turned off by default
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
-        rng_seed(44)
+        rng_seed(44),
+        terminal_velocity(vt_t::undefined),
+        kernel(kernel_t::undefined),
+        dev_count(0),
+        dev_id(-1),
+        n_sd_max(0),
+        src_sd_conc(0),
+        src_z1(0)
       {}
+
+      // dtor (just to silence -Winline warnings)
+      ~opts_init_t() {}
     };
   }
 };

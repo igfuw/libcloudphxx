@@ -23,7 +23,7 @@ namespace libcloudphxx
     namespace bp = boost::python;
     using py_ptr_t = long; // TODO: acquire it using some decltype()
 
-    inline void sanity_checks(const bp::numeric::array &arg)
+    void sanity_checks(const bp::numeric::array &arg)
     {
       // assuring double precision
       if (std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) != "float64")
@@ -35,7 +35,7 @@ namespace libcloudphxx
     }
 
     template <class arr_t>
-    inline arr_t np2bz(const bp::numeric::array &arg)
+    arr_t np2bz(const bp::numeric::array &arg)
     {
       sanity_checks(arg);
 
@@ -52,18 +52,31 @@ namespace libcloudphxx
       );
     }
 
+    // This is intended to recognise arrays containing the None object
+    // which are used to mark skipped function parameters
+    bool not_numeric(
+      const bp::numeric::array &arg
+    ) {
+      return std::string(bp::extract<std::string>(arg.attr("dtype").attr("name"))) == "object";
+    }
+
     template <class real_t>
-    inline lgrngn::arrinfo_t<real_t> np2ai(
+    lgrngn::arrinfo_t<real_t> np2ai(
       const bp::numeric::array &arg,
       const std::array<int, 3> &sz
     ) {
+      // handling empty-array case (e.g. unspecified method argument)
+      if (not_numeric(arg))
+        return lgrngn::arrinfo_t<real_t>();
+
       sanity_checks(arg);
 
       // C++ array dimensionality
       const int n_dims = 
-        (sz[0]  > 0 && sz[1]  > 0 && sz[2] > 0) ? 3 :
-        (sz[0]  > 0 && sz[1] == 0 && sz[2] > 0) ? 2 :
-        (sz[0] == 0 && sz[1] == 0 && sz[2] > 0) ? 1 :
+        (sz[0]  > 0 && sz[1]  > 0 && sz[2]  > 0) ? 3 :
+        (sz[0]  > 0 && sz[1] == 0 && sz[2]  > 0) ? 2 :
+        (sz[0] == 0 && sz[1] == 0 && sz[2]  > 0) ? 1 :
+        (sz[0]  > 1 && sz[1] == 0 && sz[2] == 0) ? 1 :
         0;
 
       std::vector<ptrdiff_t> strides(std::max(1, n_dims));
@@ -104,7 +117,7 @@ namespace libcloudphxx
           break;
         case 1: // 1D arrays in C++
           if (bp::len(arg.attr("shape")) != 1)
-            throw std::runtime_error("incompatible array size: 1D set-up accepts only 1D profiles");
+            throw std::runtime_error("incompatible array size: 1D set-up accepts only 1D arrays");
           break;
         case 0: // parcel set-up
           if (bp::len(arg.attr("shape")) != 1)
@@ -117,11 +130,13 @@ namespace libcloudphxx
       }
 
       // checking profile length 
+/* TODO: 1D horizontal slab not taken into account - probably this check will not be possible here
       if (strides[0] == 0 || n_dims == 1)
       {
 	if (bp::extract<int>(arg.attr("shape")[0]) != sz[2])
 	  throw std::runtime_error("incompatible array size: expecting nz-element profile");
       }
+*/
 
       // getting data pointer from NumPy and returning
       return lgrngn::arrinfo_t<real_t>(

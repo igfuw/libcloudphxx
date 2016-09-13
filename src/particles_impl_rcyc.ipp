@@ -36,7 +36,7 @@ namespace libcloudphxx
     {   
 
       // count the numer of paticles to recycle
-      thrust_size_t n_flagged;
+      thrust_size_t n_flagged, n_to_rcyc;
       {
 	namespace arg = thrust::placeholders;
         n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
@@ -44,6 +44,7 @@ namespace libcloudphxx
       assert(n_flagged <= n_part / 2);
 
       if (n_flagged == 0) return 0;
+      n_to_rcyc = n_flagged;
 
       if(opts_init.sd_const_multi > 0) // remove particles if using const_multi
       {
@@ -72,12 +73,22 @@ namespace libcloudphxx
 	  sorted_id.begin()
 	);
        
-        //see if there are any SDs to split, if not - remove SDs with n=0
-        if(tmp.back()==1)
+        // check how many SDs are available to split
+        thrust_size_t n_splittable;
+        n_splittable = 
+          thrust::find(make_reverse_iterator(tmp.end()), make_reverse_iterator(tmp.begin()), 1) - 
+          make_reverse_iterator(tmp.end());
+
+        //if none are splittable remove SDs with n=0
+        if(n_splittable==0)
         {
           hskpng_remove_n0();
-          return n_flagged;
+          return n_to_rcyc;
         }
+
+        // if there are not enough SDs to split, reduce n_flagged
+        if(n_splittable < n_flagged) n_flagged = n_splittable;
+
       }
 
       // for each property... 
@@ -91,7 +102,7 @@ namespace libcloudphxx
 
       // ... chemical properties only if chem enabled
       if (opts_init.chem_switch){
-        for (int i = 0; i < chem_aq_n; ++i)
+        for (int i = 0; i < chem_all; ++i)
           detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
       }
 
@@ -120,7 +131,10 @@ namespace libcloudphxx
           arg::_1 / 2
 	);
       };
-    return n_flagged;
+      
+      // if not all were recycled, remove those with n==0
+      if(n_flagged < n_to_rcyc)  hskpng_remove_n0();
+      return n_to_rcyc;
     }
   };  
 };

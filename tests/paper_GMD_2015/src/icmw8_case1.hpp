@@ -59,6 +59,10 @@ namespace icmw8_case1
   // for blk_2m:
   const quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride
 
+  //th and rv relaxation time and height
+  const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
+  const quantity<si::length, real_t> z_rlx = 200 * si::metres;
+
   // density profile as a function of altitude
   struct rhod
   {
@@ -131,7 +135,7 @@ namespace icmw8_case1
     real_t 
       dx = (X / si::metres) / (nx-1), 
       dz = (Z / si::metres) / (nz-1); 
-    real_t A = (w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>();
+    real_t A = (w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>() / real_t(2);
 
     // constant potential temperature & water vapour mixing ratio profiles
     solver.advectee(ix::th) = (theta_dry::std2dry(th_0, rv_0) / si::kelvins); 

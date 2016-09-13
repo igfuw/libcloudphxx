@@ -40,6 +40,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("common") = nested_module;
     bp::scope parent = nested_module;
 
+    bp::scope().attr("R") = (real_t) (cmn::moist_air::kaBoNA<real_t>() / si::joules * si::kelvins * si::moles);
     bp::scope().attr("R_d") = (real_t) (cmn::moist_air::R_d<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("R_v") = (real_t) (cmn::moist_air::R_v<real_t>() / si::joules * si::kilograms * si::kelvins);
     bp::scope().attr("c_pd") = (real_t) (cmn::moist_air::c_pd<real_t>() / si::joules * si::kilograms * si::kelvins);
@@ -48,6 +49,66 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
     bp::scope().attr("rho_w") = (real_t) (cmn::moist_air::rho_w<real_t>() * si::cubic_metres / si::kilograms);
+    //molar mass of trace gases
+    bp::scope().attr("M_SO2")   = (real_t) (cmn::molar_mass::M_SO2<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_H2O2")  = (real_t) (cmn::molar_mass::M_H2O2<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_O3")    = (real_t) (cmn::molar_mass::M_O3<real_t>()    * si::moles / si::kilograms);
+    bp::scope().attr("M_NH3")   = (real_t) (cmn::molar_mass::M_NH3<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_HNO3")  = (real_t) (cmn::molar_mass::M_HNO3<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_CO2")   = (real_t) (cmn::molar_mass::M_CO2<real_t>()    * si::moles / si::kilograms);
+    //H+ and OH-
+    bp::scope().attr("M_H")     = (real_t) (cmn::molar_mass::M_H<real_t>()     * si::moles / si::kilograms);
+    bp::scope().attr("M_OH")    = (real_t) (cmn::molar_mass::M_OH<real_t>()    * si::moles / si::kilograms);
+    //SO2 * H20
+    bp::scope().attr("M_SO2_H2O")   = (real_t) (cmn::molar_mass::M_SO2_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_HSO3")  = (real_t) (cmn::molar_mass::M_HSO3<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_SO3")   = (real_t) (cmn::molar_mass::M_SO3<real_t>()   * si::moles / si::kilograms);
+    //HSO4
+    bp::scope().attr("M_H2SO4") = (real_t) (cmn::molar_mass::M_H2SO4<real_t>() * si::moles / si::kilograms);
+    bp::scope().attr("M_HSO4")  = (real_t) (cmn::molar_mass::M_HSO4<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_SO4")   = (real_t) (cmn::molar_mass::M_SO4<real_t>()   * si::moles / si::kilograms);
+    //CO2 * H20
+    bp::scope().attr("M_CO2_H2O") = (real_t) (cmn::molar_mass::M_CO2_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_HCO3")    = (real_t) (cmn::molar_mass::M_HCO3<real_t>()  * si::moles / si::kilograms);
+    bp::scope().attr("M_CO3")     = (real_t) (cmn::molar_mass::M_CO3<real_t>()   * si::moles / si::kilograms);
+    //NH3 * H20
+    bp::scope().attr("M_NH3_H2O") = (real_t) (cmn::molar_mass::M_NH3_H2O<real_t>()   * si::moles / si::kilograms);
+    bp::scope().attr("M_NH4")     = (real_t) (cmn::molar_mass::M_NH4<real_t>()  * si::moles / si::kilograms);
+    //HNO3(aq)
+    bp::scope().attr("M_NO3")     = (real_t) (cmn::molar_mass::M_NO3<real_t>()   * si::moles / si::kilograms);
+ 
+    //Henry const
+    bp::scope().attr("H_SO2")  = (real_t) (cmn::henry::H_SO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_H2O2") = (real_t) (cmn::henry::H_H2O2<real_t>() * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_O3")   = (real_t) (cmn::henry::H_O3<real_t>()   * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_HNO3") = (real_t) (cmn::henry::H_HNO3<real_t>() * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_NH3")  = (real_t) (cmn::henry::H_NH3<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    bp::scope().attr("H_CO2")  = (real_t) (cmn::henry::H_CO2<real_t>()  * si::cubic_metres * si::pascals / si::moles);
+    //Henry dep on temperature
+    bp::scope().attr("dHR_SO2")  = (real_t) (cmn::henry::dHR_SO2<real_t>()  / si::kelvins);
+    bp::scope().attr("dHR_H2O2") = (real_t) (cmn::henry::dHR_H2O2<real_t>() / si::kelvins);
+    bp::scope().attr("dHR_O3")   = (real_t) (cmn::henry::dHR_O3<real_t>()   / si::kelvins);
+    bp::scope().attr("dHR_HNO3") = (real_t) (cmn::henry::dHR_HNO3<real_t>() / si::kelvins);
+    bp::scope().attr("dHR_NH3")  = (real_t) (cmn::henry::dHR_NH3<real_t>()  / si::kelvins);
+    bp::scope().attr("dHR_CO2")  = (real_t) (cmn::henry::dHR_CO2<real_t>()  / si::kelvins);
+ 
+    //dissoc const
+    bp::scope().attr("K_H2O")  = (real_t) (cmn::dissoc::K_H2O<real_t>()  / si::moles / si::moles * si::cubic_metres * si::cubic_metres);
+    bp::scope().attr("K_SO2")  = (real_t) (cmn::dissoc::K_SO2<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HSO3") = (real_t) (cmn::dissoc::K_HSO3<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HSO4") = (real_t) (cmn::dissoc::K_HSO4<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_CO2")  = (real_t) (cmn::dissoc::K_CO2<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HCO3") = (real_t) (cmn::dissoc::K_HCO3<real_t>() / si::moles * si::cubic_metres);
+    bp::scope().attr("K_NH3")  = (real_t) (cmn::dissoc::K_NH3<real_t>()  / si::moles * si::cubic_metres);
+    bp::scope().attr("K_HNO3") = (real_t) (cmn::dissoc::K_HNO3<real_t>() / si::moles * si::cubic_metres);
+    //dissoc const dep on temperature
+    bp::scope().attr("dKR_SO2")  = (real_t) (cmn::dissoc::dKR_SO2<real_t>()  / si::kelvins);
+    bp::scope().attr("dKR_HSO3") = (real_t) (cmn::dissoc::dKR_HSO3<real_t>() / si::kelvins);
+    bp::scope().attr("dKR_HSO4") = (real_t) (cmn::dissoc::dKR_HSO4<real_t>() / si::kelvins);
+    bp::scope().attr("dKR_HNO3") = (real_t) (cmn::dissoc::dKR_HNO3<real_t>() / si::kelvins);
+    bp::scope().attr("dKR_NH3")  = (real_t) (cmn::dissoc::dKR_NH3<real_t>()  / si::kelvins);
+    bp::scope().attr("dKR_CO2")  = (real_t) (cmn::dissoc::dKR_CO2<real_t>()  / si::kelvins);
+    bp::scope().attr("dKR_HCO3") = (real_t) (cmn::dissoc::dKR_HCO3<real_t>() / si::kelvins);
     // TODO: how to make the above constant?
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
@@ -112,33 +173,49 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("serial", lgr::serial)
       .value("OpenMP", lgr::OpenMP)
       .value("CUDA",   lgr::CUDA);
-    bp::enum_<lgr::kernel_t>("kernel_t") 
-      .value("geometric", lgr::geometric)
-      .value("golovin", lgr::golovin);
+    bp::enum_<lgr::kernel_t::kernel_t>("kernel_t") 
+      .value("geometric", lgr::kernel_t::geometric)
+      .value("golovin", lgr::kernel_t::golovin)
+      .value("hall", lgr::kernel_t::hall)
+      .value("hall_davis_no_waals", lgr::kernel_t::hall_davis_no_waals)
+      .value("long", lgr::kernel_t::Long)
+      .value("hall_pinsky_1000mb_grav", lgr::kernel_t::hall_pinsky_1000mb_grav)
+      .value("onishi_hall_davis_no_waals", lgr::kernel_t::onishi_hall_davis_no_waals)
+      .value("onishi_hall", lgr::kernel_t::onishi_hall)
+      .value("vohl_davis_no_waals", lgr::kernel_t::vohl_davis_no_waals)
+      .value("hall_pinsky_stratocumulus", lgr::kernel_t::hall_pinsky_stratocumulus)
+      .value("hall_pinsky_cumulonimbus", lgr::kernel_t::hall_pinsky_cumulonimbus);
+    bp::enum_<lgr::vt_t::vt_t>("vt_t") 
+      .value("beard76", lgr::vt_t::beard76)
+      .value("beard77", lgr::vt_t::beard77)
+      .value("beard77fast", lgr::vt_t::beard77fast)
+      .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
+      .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
-      .value("OH",   lgr::OH)
       .value("SO2",  lgr::SO2)
       .value("O3",   lgr::O3)
       .value("H2O2", lgr::H2O2)
-      .value("HSO3", lgr::HSO3)
-      .value("SO3",  lgr::SO3)
-      .value("S_VI", lgr::S_VI)
-      .value("HSO4", lgr::HSO4)
-      .value("SO4",  lgr::SO4);
+      .value("CO2",  lgr::CO2)
+      .value("NH3",  lgr::NH3)
+      .value("HNO3", lgr::HNO3)
+      .value("S_VI", lgr::S_VI);
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)
       .def_readwrite("sedi", &lgr::opts_t<real_t>::sedi)
       .def_readwrite("cond", &lgr::opts_t<real_t>::cond)
       .def_readwrite("coal", &lgr::opts_t<real_t>::coal)
-      .def_readwrite("chem", &lgr::opts_t<real_t>::chem)
+      .def_readwrite("src", &lgr::opts_t<real_t>::src)
+      .def_readwrite("chem_dsl", &lgr::opts_t<real_t>::chem_dsl)
+      .def_readwrite("chem_dsc", &lgr::opts_t<real_t>::chem_dsc)
+      .def_readwrite("chem_rct", &lgr::opts_t<real_t>::chem_rct)
       .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
-      .add_property("chem_gas", &lgrngn::get_cg<real_t>, &lgrngn::set_cg<real_t>)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
+      .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
       .def_readwrite("nx", &lgr::opts_init_t<real_t>::nx)
       .def_readwrite("ny", &lgr::opts_init_t<real_t>::ny)
       .def_readwrite("nz", &lgr::opts_init_t<real_t>::nz)
@@ -151,14 +228,24 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("y1", &lgr::opts_init_t<real_t>::y1)
       .def_readwrite("z0", &lgr::opts_init_t<real_t>::z0)
       .def_readwrite("z1", &lgr::opts_init_t<real_t>::z1)
+      .def_readwrite("dev_id", &lgr::opts_init_t<real_t>::dev_id)
+      .def_readwrite("dev_count", &lgr::opts_init_t<real_t>::dev_count)
+      .def_readwrite("src_z1", &lgr::opts_init_t<real_t>::src_z1)
       .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
       .def_readwrite("chem_switch", &lgr::opts_init_t<real_t>::chem_switch)
+      .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
+      .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)
+      .def_readwrite("src_switch", &lgr::opts_init_t<real_t>::src_switch)
       .def_readwrite("sstp_cond", &lgr::opts_init_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
+      .def_readwrite("supstp_src", &lgr::opts_init_t<real_t>::supstp_src)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
       .def_readwrite("sd_conc", &lgr::opts_init_t<real_t>::sd_conc)
       .def_readwrite("sd_const_multi", &lgr::opts_init_t<real_t>::sd_const_multi)
+      .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)
+      .def_readwrite("n_sd_max", &lgr::opts_init_t<real_t>::n_sd_max)
+      .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
       .def_readwrite("rng_seed", &lgr::opts_init_t<real_t>::rng_seed)
@@ -166,21 +253,37 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
-      .def("init",         &lgrngn::init_3arg<real_t>)
-      .def("init",         &lgrngn::init_5arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_3arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_4arg<real_t>)
-      .def("step_sync",    &lgrngn::step_sync_6arg<real_t>)
+      .def("init",         &lgrngn::init<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
+      .def("step_sync",    &lgrngn::step_sync<real_t>, (
+        bp::arg("th")  = bp::numeric::array(bp::object()),
+        bp::arg("rv")  = bp::numeric::array(bp::object()),
+        bp::arg("rhod")= bp::numeric::array(bp::object()),
+        bp::arg("Cx")  = bp::numeric::array(bp::object()),
+        bp::arg("Cy")  = bp::numeric::array(bp::object()),
+        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("ambient_chem") = bp::dict()
+      ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)
       .def("diag_rw_ge_rc",&lgr::particles_proto_t<real_t>::diag_rw_ge_rc)
+      .def("diag_RH_ge_Sc",&lgr::particles_proto_t<real_t>::diag_RH_ge_Sc)
       .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_wet_mass_dens", &lgr::particles_proto_t<real_t>::diag_wet_mass_dens)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
+      .def("diag_kappa",    &lgr::particles_proto_t<real_t>::diag_kappa)
+      .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
     // functions

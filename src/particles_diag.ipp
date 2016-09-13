@@ -36,7 +36,38 @@ namespace libcloudphxx
           ); 
         }
       };
-    };
+
+      template <typename real_t>
+      struct precip_rate
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &vt, const real_t &rw2)
+        {
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
+          return pow(rw2, real_t(3./2)) * vt;
+        }
+      };
+
+      template <typename real_t>
+      struct RH_minus_Sc
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3, const thrust::tuple<real_t, real_t, real_t> &tpl)
+        {
+          const quantity<si::dimensionless, real_t> kpa = thrust::get<0>(tpl);
+          const quantity<si::temperature, real_t> T = thrust::get<1>(tpl) * si::kelvins;
+          const quantity<si::dimensionless, real_t> RH = thrust::get<2>(tpl);
+
+          return RH - common::kappa_koehler::S_cr(
+	    rd3 * si::cubic_metres, 
+	    kpa,
+	    T
+          );
+        }
+      };
+    }
 
     // records super-droplet concentration per grid cell
     template <typename real_t, backend_t device>
@@ -79,21 +110,28 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_RH_ge_Sc()
     {
       // intentionally using the same tmp vector as inside moms_cmp below
-      thrust_device::vector<real_t> &Sc(pimpl->tmp_device_real_part);
+      thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
 
-      // computing Sc for each particle
-// TODO!
-
-      // selecting those with RH >= Sc
-/*
-      pimpl->moms_cmp(
-	thrust::make_permutation_iterator(
-          pimpl->RH.begin(),    
-          pimpl->ijk.begin()
-        ), 
-        Sc
+      // computing RH_minus_Sc for each particle
+      thrust::transform(
+        pimpl->rd3.begin(), pimpl->rd3.end(), // input - 1st arg
+        thrust::make_zip_iterator(make_tuple(
+          pimpl->kpa.begin(), 
+          thrust::make_permutation_iterator(
+            pimpl->T.begin(),
+            pimpl->ijk.begin()
+          ),
+          thrust::make_permutation_iterator(
+            pimpl->RH.begin(),
+            pimpl->ijk.begin()
+          )
+        )),                                   // input - 2nd arg 
+        RH_minus_Sc.begin(),                  // output
+        detail::RH_minus_Sc<real_t>()         // op
       );
-*/
+
+      // selecting those with RH - Sc >= 0
+      pimpl->moms_ge0(RH_minus_Sc.begin());
     }
 
     // selects particles with rw >= rc   (rc - critical radius)
@@ -141,6 +179,41 @@ namespace libcloudphxx
     {
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
+
+    // compute n-th moment of kappa
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
+    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // TODO: replace it with simple diag vt?
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_precip_rate()
+    {   
+      // updating terminal velocities
+      pimpl->hskpng_vterm_all();
+
+      // temporary vector to store vt
+      thrust::host_vector<real_t> tmp_vt(pimpl->n_part);
+      thrust::copy(pimpl->vt.begin(), pimpl->vt.end(), tmp_vt.begin());
+    
+      thrust::transform(
+        pimpl->vt.begin(),
+        pimpl->vt.end(),
+        pimpl->rw2.begin(),
+        pimpl->vt.begin(),
+        detail::precip_rate<real_t>()
+      );  
+
+      pimpl->moms_calc_cond(pimpl->vt.begin(), 1.);
+ 
+      // copy back stored vterm
+      thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
+      // release the memory
+      tmp_vt.erase(tmp_vt.begin(), tmp_vt.end());
+    }   
 
     // computes mean chemical properties for the selected particles
     template <typename real_t, backend_t device>

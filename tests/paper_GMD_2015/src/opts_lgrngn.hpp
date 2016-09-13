@@ -34,17 +34,20 @@ void setopts_micro(
   opts.add_options()
     ("backend", po::value<std::string>()->required() , "one of: CUDA, OpenMP, serial")
     ("async", po::value<bool>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
-    ("sd_conc_mean", po::value<thrust_real_t>()->required() , "mean super-droplet concentration per grid cell (int)")
+    ("sd_conc", po::value<unsigned long long>()->required() , "super-droplet number per grid cell (unsigned long long)")
     // processes
     ("adve", po::value<bool>()->default_value(rt_params.cloudph_opts.adve) , "particle advection     (1=on, 0=off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "particle sedimentation (1=on, 0=off)")
     ("cond", po::value<bool>()->default_value(rt_params.cloudph_opts.cond) , "condensational growth  (1=on, 0=off)")
     ("coal", po::value<bool>()->default_value(rt_params.cloudph_opts.coal) , "collisional growth     (1=on, 0=off)")
-    ("chem", po::value<bool>()->default_value(rt_params.cloudph_opts.chem) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
+    ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
+    ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
+    ("dev_count", po::value<int>()->default_value(rt_params.cloudph_opts_init.dev_count), "no of GPUs to use")
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
@@ -57,12 +60,15 @@ void setopts_micro(
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
   else if (backend_str == "OpenMP") rt_params.backend = libcloudphxx::lgrngn::OpenMP;
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
+  else if (backend_str == "multi_CUDA") rt_params.backend = libcloudphxx::lgrngn::multi_CUDA;
 
   rt_params.async = vm["async"].as<bool>();
 
-  rt_params.cloudph_opts_init.sd_conc_mean = vm["sd_conc_mean"].as<thrust_real_t>();;
+  rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.nx = nx;
   rt_params.cloudph_opts_init.nz = nz;
+  rt_params.cloudph_opts_init.n_sd_max = nx * nz * rt_params.cloudph_opts_init.sd_conc;;
+ 
   boost::assign::ptr_map_insert<
     setup::log_dry_radii<thrust_real_t> // value type
   >(
@@ -84,18 +90,24 @@ void setopts_micro(
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
+
   //rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
-  rt_params.cloudph_opts.chem = vm["chem"].as<bool>();
+  rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
+  rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
+  rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
+  rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
 
   // coalescence kernel choice
   rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
   // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
   rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
+  // terminal velocity choice
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."

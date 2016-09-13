@@ -13,6 +13,17 @@
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 #include "detail/eval_and_oper.hpp"
+#include "detail/kernel_utils.hpp"
+#include "detail/wang_collision_enhancement.hpp"
+#include "detail/kernel_onishi_nograv.hpp"
+
+//kernel definitions
+#include "detail/kernel_definitions/hall_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions/vohl_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #include "particles_impl_kernel.ipp"
 
@@ -23,10 +34,15 @@
 #include "particles_diag.ipp"
 
 // details
-#include "particles_impl_init_dry.ipp"
+#include "particles_impl_dist_analysis.ipp"
+#include "particles_impl_init_dry_sd_conc.ipp"
 #include "particles_impl_init_dry_const_multi.ipp"
+#include "particles_impl_init_kappa.ipp"
+#include "particles_impl_init_n.ipp"
 #include "particles_impl_init_wet.ipp"
 #include "particles_impl_init_xyz.ipp"
+#include "particles_impl_init_ijk.ipp"
+#include "particles_impl_init_count_num.ipp"
 #include "particles_impl_init_e2l.ipp"
 #include "particles_impl_init_grid.ipp"
 #include "particles_impl_init_sync.ipp"
@@ -34,6 +50,9 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
+#include "particles_impl_step_finalize.ipp"
+#include "particles_impl_init_vterm.ipp"
+#include "particles_impl_update_th_rv.ipp"
 
 #include "particles_impl_hskpng_ijk.ipp"
 #include "particles_impl_hskpng_Tpr.ipp"
@@ -41,6 +60,7 @@
 #include "particles_impl_hskpng_sort.ipp"
 #include "particles_impl_hskpng_count.ipp"
 #include "particles_impl_hskpng_remove.ipp"
+#include "particles_impl_hskpng_resize.ipp"
 
 #include "particles_impl_moms.ipp"
 #include "particles_impl_mass_dens.ipp"
@@ -53,8 +73,14 @@
 #include "particles_impl_cond.ipp"
 #include "particles_impl_sedi.ipp"
 #include "particles_impl_coal.ipp"
-#include "particles_impl_chem.ipp"
+#include "particles_impl_chem_ante.ipp"
+#include "particles_impl_chem_henry.ipp"
+#include "particles_impl_chem_dissoc.ipp"
+#include "particles_impl_chem_react.ipp"
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+#include "particles_impl_sstp_chem.ipp"
+#include "particles_impl_src.ipp"
+#include "particles_impl_kernel_interpolation.ipp"
 

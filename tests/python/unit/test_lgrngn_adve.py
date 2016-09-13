@@ -19,7 +19,8 @@ def lognormal(lnr):
 Opts_init = lgrngn.opts_init_t()
 kappa = .61
 Opts_init.dry_distros = {kappa:lognormal}
-Opts_init.kernel = lgrngn.kernel_t.geometric
+Opts_init.coal_switch = False
+Opts_init.sedi_switch = False
 
 Opts_init.dt = 1
 
@@ -31,6 +32,7 @@ Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
 Opts_init.sd_conc = 50 / (Opts_init.nx * Opts_init.nz)
+Opts_init.n_sd_max = 50
 
 Backend = lgrngn.backend_t.serial
 
@@ -64,7 +66,7 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   prtcls = lgrngn.factory(backend, opts_init)
   Cx = Cx_arg * np.ones((opts_init.nx + 1, opts_init.nz))
   Cz = Cz_arg * np.ones((opts_init.nx, opts_init.nz + 1))
-  prtcls.init(th, rv, rhod, Cx, Cz)
+  prtcls.init(th, rv, rhod, Cx, Cz=Cz)
 
   prtcls.step_sync(opts, th, rv, rhod)
 
