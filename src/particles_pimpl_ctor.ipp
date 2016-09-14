@@ -137,6 +137,9 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
+      // are count_num and count_ijk up to date
+      bool counted;
+
       // timestep counter
       n_t stp_ctr;
 
@@ -232,6 +235,7 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
+        counted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
@@ -439,6 +443,8 @@ namespace libcloudphxx
     real_t *particles_t<real_t, device>::outbuf() 
     {
       pimpl->fill_outbuf();
+      // restore the count_num and count_ijk arrays
+      pimpl->hskpng_count();
       return &(*(pimpl->tmp_host_real_cell.begin()));
     }
   };
