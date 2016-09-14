@@ -26,6 +26,9 @@ namespace libcloudphxx
 
       // updating particle->cell look-up table
       hskpng_ijk();
+
+      // updating count_ijk and count_num
+      hskpng_count();
     }
   };
 };
