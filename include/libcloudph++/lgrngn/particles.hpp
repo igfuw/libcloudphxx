@@ -52,6 +52,7 @@ namespace libcloudphxx
 
       // method for accessing super-droplet statistics
       virtual void diag_sd_conc()                                   { assert(false); }
+      virtual void diag_RH()                                   { assert(false); }
       virtual void diag_all()                                       { assert(false); }
       virtual void diag_rw_ge_rc()                                  { assert(false); }
       virtual void diag_RH_ge_Sc()                                  { assert(false); }
@@ -104,6 +105,7 @@ namespace libcloudphxx
 
       // diagnostic methods
       void diag_sd_conc();
+      void diag_RH();
       void diag_dry_rng(
         const real_t &r_mi, const real_t &r_mx
       );
@@ -177,6 +179,7 @@ namespace libcloudphxx
 
       // diagnostic methods
       void diag_sd_conc();
+      void diag_RH();
       void diag_dry_rng(
         const real_t &r_mi, const real_t &r_mx
       );
