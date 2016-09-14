@@ -39,8 +39,7 @@ namespace libcloudphxx
       const common::unary_function<real_t> *n_of_lnrd_stp, 
       const real_t &ratio)
     {
-      const real_t precision = 1e-4; // size of bins in ln(radius) when calculating roots, integral, CDF
-      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, precision);
+      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
 
       // number of SDs per cell under STP conditions
       real_t multiplier = round(integral

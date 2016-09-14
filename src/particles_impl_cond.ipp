@@ -117,6 +117,7 @@ namespace libcloudphxx
       struct advance_rw2
       {
         const real_t dt, RH_max;
+        detail::config<real_t> config;
 
         advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
 
@@ -165,7 +166,8 @@ namespace libcloudphxx
 	  if (fa * fb > 0) return rw2_old + drw2;
 
           // otherwise implicit Euler
-	  return common::detail::toms748_solve(f, a, b, fa, fb); 
+          uintmax_t n_iter = config.n_iter;
+	  return common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter); 
         }
       };
     };

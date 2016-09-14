@@ -80,7 +80,7 @@ if(abs(mean_water_content_sd_conc / mean_water_content_const_multi - 1) > 0.10):
   raise Exception("Not uniform initialization: \
     ratio of mean water content in both initialization options > 10%:   \
     sd_conc mean water content: "  + str(mean_water_content_sd_conc) + 
-    "const_multi mean water content: "  + str(mean_water_content_const_multi)  
+    " const_multi mean water content: "  + str(mean_water_content_const_multi)  
 )
 
 for i in range(opts_init.nx * opts_init.ny * opts_init.nz):

@@ -10,6 +10,7 @@
 
 #include <libcloudph++/lgrngn/particles.hpp>
 
+#include "detail/config.hpp"
 #include "detail/thrust.hpp"
 #include "detail/urand.hpp"
 #include "detail/eval_and_oper.hpp"
