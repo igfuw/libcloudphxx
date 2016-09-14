@@ -58,7 +58,7 @@ namespace libcloudphxx
           // It can only happen when ambient air concentrations are approaching zero, 
           // so the error introduced here is small. 
           // TODO - still it would be good to have some check build in Henrys law, instead of just an assert.
-          assert(new_c >= 0)       
+          assert(new_c >= 0);
           return new_c > 0 ? new_c : new_c * real_t(0);
         }
       };
