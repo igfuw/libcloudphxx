@@ -194,6 +194,7 @@ namespace libcloudphxx
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
+      hskpng_count();            // no. of particles per cell
       
       // placing scale_factors in count_mom (of size count_n!)
       thrust::transform(
