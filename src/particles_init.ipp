@@ -136,8 +136,12 @@ namespace libcloudphxx
           pimpl->opts_init.sd_conc
         );
 
+        real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng;
+        // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
+        pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
+
         // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-        pimpl->init_count_num( (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng);
+        pimpl->init_count_num(fraction);
   
         // update no of particles
         // TODO: move to a separate function
