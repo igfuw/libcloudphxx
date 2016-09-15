@@ -41,7 +41,6 @@ namespace libcloudphxx
 	namespace arg = thrust::placeholders;
         n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
       }
-      assert(n_flagged <= n_part / 2);
 
       if (n_flagged == 0) return 0;
       n_to_rcyc = n_flagged;

@@ -125,6 +125,13 @@ namespace libcloudphxx
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
     }
 
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin());
+    }
+
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_RH_ge_Sc()
@@ -193,19 +200,19 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
 
+    // compute n-th moment of kappa for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
     {
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
-
-    // compute n-th moment of kappa
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::diag_kappa(const int &n)
-    {   
-      pimpl->moms_calc(pimpl->kpa.begin(), n);
-    }   
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs
     // TODO: replace it with simple diag vt?

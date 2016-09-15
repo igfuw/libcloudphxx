@@ -70,7 +70,7 @@ def kappa_rd3_sum():
   ret=0
   for i in range(bins.size - 1) :
     prtcls.diag_dry_rng(bins[i], bins[i+1])
-    prtcls.diag_kappa(1)
+    prtcls.diag_kappa_mom(1)
     ret += np.frombuffer(prtcls.outbuf())[0] * pow((bins[i+1] + bins[i]) / 2, 3)
   return ret
 
