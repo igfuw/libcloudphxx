@@ -62,7 +62,8 @@ namespace libcloudphxx
       virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
       virtual void diag_chem(const enum chem_species_t&)            { assert(false); }
       virtual void diag_precip_rate()                               { assert(false); }
-      virtual void diag_kappa(const int&)                           { assert(false); }
+      virtual void diag_kappa_mom(const int&)                       { assert(false); }
+      virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -110,8 +111,12 @@ namespace libcloudphxx
       void diag_wet_rng(
         const real_t &r_mi, const real_t &r_mx
       );
+      void diag_kappa_rng(
+        const real_t &r_mi, const real_t &r_mx
+      );
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_kappa_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 
