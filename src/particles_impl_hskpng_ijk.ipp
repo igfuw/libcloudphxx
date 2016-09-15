@@ -88,8 +88,9 @@ namespace libcloudphxx
           assert(false);
       }
       
-      // flagging that particles are no longer sorted 
+      // flagging that particles are no longer sorted nor counted
       sorted = false;
+      counted = false;
     }   
   };  
 };

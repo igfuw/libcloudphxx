@@ -6,6 +6,7 @@
   */
 
 #include <libcloudph++/common/kappa_koehler.hpp> // TODO: not here...
+#include <thrust/sequence.h>
 
 namespace libcloudphxx
 {
@@ -67,6 +68,25 @@ namespace libcloudphxx
           );
         }
       };
+    }
+
+    // records relative humidity
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_RH()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->RH.begin(), 
+        pimpl->RH.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // RH defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      // inform that count_n and count_ijk are invalid
+      pimpl->counted = false;
     }
 
     // records super-droplet concentration per grid cell
