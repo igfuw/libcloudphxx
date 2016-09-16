@@ -232,7 +232,6 @@ Cy = 0.5 * ones((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
 Cz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
 
 for it in range(2):
-  print it
   prtcls = lgrngn.factory(backend, opts_init)
   if(it==0):
     prtcls.init(th, rv, rhod)
@@ -267,3 +266,46 @@ for it in range(2):
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
 #TODO: test profile vs. 3D array
+
+# 3D const multi - number of SDs and number of particles
+print "3D const multi"
+opts_init.sd_conc = 0
+cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
+prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1
+opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+n_cell = opts_init.nz * opts_init.nx * opts_init.ny
+opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi) # 2* because of two distributions
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.diag_sd_conc()
+
+eps = 5e-3
+prtcls.diag_kappa_rng(0.,1.)
+prtcls.diag_wet_mom(0)
+res_n = frombuffer(prtcls.outbuf()).mean()
+print res_n * rho_stp
+assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
+  "initialized number of particles of type kappa1 differs from the distribution"
+
+prtcls.diag_kappa_rng(1.,2.)
+prtcls.diag_wet_mom(0)
+res_n = frombuffer(prtcls.outbuf()).mean()
+print res_n * rho_stp
+assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
+  "initialized number of particles of type kappa2 differs from the distribution"
+
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod)
+prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv, rhod, Cx=Cx, Cy=Cy, Cz=Cz)
+prtcls.diag_sd_conc()
+
+assert len(frombuffer(prtcls.outbuf())) == n_cell
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+sd_tot = frombuffer(prtcls.outbuf()).sum()
+prtcls.diag_all()
+prtcls.diag_wet_mom(0)
+prtcls_tot = frombuffer(prtcls.outbuf()).sum()
+assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
