@@ -115,7 +115,7 @@ namespace libcloudphxx
         if(pimpl->opts_init.sd_conc > 0)
           pimpl->init_count_num_sd_conc(fraction);
         else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->init_count_num_const_multi( ddi->second, fraction);
+          pimpl->init_count_num_const_multi( ddi->second);
   
         // update no of particles
         // TODO: move to a separate function

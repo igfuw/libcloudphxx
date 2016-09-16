@@ -36,14 +36,13 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const common::unary_function<real_t> *n_of_lnrd_stp, 
-      const real_t &ratio)
+      const common::unary_function<real_t> *n_of_lnrd_stp
+    )
     {
       const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
 
       // number of SDs per cell under STP conditions
       real_t multiplier = round(integral
-        * ratio
         / real_t(opts_init.sd_const_multi)
         * opts_init.dx
         * opts_init.dy
