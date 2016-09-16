@@ -27,6 +27,45 @@ namespace libcloudphxx
         }
       };
 
+      template<class real_t>
+      struct weighted_summator
+      {
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+          if(thrust::get<4>(tpl) <= 0) return; // do nothing if no collisions or first one passed was a SD with an uneven number in the cell
+
+          // previous value of dry radius of the one with smaller multiplicity, it was allready updated in collide
+          real_t rd3_old = 
+            thrust::get<5>(tpl) == na_ge_nb ?    // does the first SD of the pair have greater multiplicity?
+              thrust::get<3>(tpl) - thrust::get<4>(tpl) * thrust::get<2>(tpl) : // rd3_old = rd3_new - col_no * rd3_old_a
+              thrust::get<2>(tpl) - thrust::get<4>(tpl) * thrust::get<3>(tpl);  // rd3_old = rd3_new - col_no * rd3_old_b
+
+          for(int ci=0; ci<thrust::get<4>(tpl); ++ci) // loop over collisions between the pair
+          {
+            if(thrust::get<5>(tpl) == na_ge_nb)    // first SD of the pair has greater multiplicity
+            {
+              // update kappa_b
+              thrust::get<1>(tpl) =  (thrust::get<0>(tpl) * thrust::get<2>(tpl) + // kappa_a * rd3_a
+                                     thrust::get<1>(tpl) * rd3_old) /             // kappa_b * rd3_b_previous
+                                     (thrust::get<2>(tpl) + rd3_old);             // rd3_a + rd3_b_previous
+              // update rd3_old after collision
+              rd3_old += thrust::get<2>(tpl); // add rd3_a
+            }
+            else    // second SD of the pair has greater multiplicity
+            {
+              // update kappa_a
+              thrust::get<0>(tpl) =  (thrust::get<1>(tpl) * thrust::get<3>(tpl) + // kappa_b * rd3_b
+                                     thrust::get<0>(tpl) * rd3_old) /             // kappa_a * rd3_a_previous
+                                     (thrust::get<3>(tpl) + rd3_old);             // rd3_b + rd3_b_previous
+              // update rd3_old after collision
+              rd3_old += thrust::get<3>(tpl); // add rd3_b
+            }
+          }
+        }
+      };
+
       template <typename real_t, typename n_t>
       struct scale_factor
       {
@@ -194,7 +233,7 @@ namespace libcloudphxx
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
-      hskpng_count();            // no. of particles per cell
+      hskpng_count();            // no. of super-droplets per cell 
       
       // placing scale_factors in count_mom (of size count_n!)
       thrust::transform(
@@ -360,6 +399,29 @@ namespace libcloudphxx
             )) + n_part -1,
             detail::summator()
           );
+      }
+      // add kappas
+      if(opts_init.dry_distros.size() > 1)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin()),    // values to be added
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin())+1,
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()),    // weighting factors
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+            col.begin(),                                                          // collision information
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin())+1,
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::weighted_summator<real_t>()
+        );
       }
     }
   };  
