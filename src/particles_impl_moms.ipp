@@ -227,7 +227,11 @@ namespace libcloudphxx
       );
     }
 
-    // similar to above, but used to calc moms diff during condensation
+    // compute non-specific moment for all SDs
+    // a separate function since it is needed by condensation
+    // TODO: make it a non-specific moment counter for selected SDs,
+    // then reuse it in moms_calc (selecting all SDs during condensation
+    // doesn't change performance much)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc_cond(
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
