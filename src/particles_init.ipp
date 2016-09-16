@@ -53,8 +53,17 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
+      // TODO: in source match chemical composition
       if (pimpl->opts_init.chem_switch && pimpl->opts_init.src_switch) 
-        throw std::runtime_error("chemistry and source are not compatible");
+        throw std::runtime_error("chemistry and aerosol source are not compatible");
+
+      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.chem_switch)
+        throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
+
+      // TODO: in source match kappas 
+      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.src_switch)
+        throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
+
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
@@ -105,60 +114,80 @@ namespace libcloudphxx
       // reserve memory for data of the size of the max number of SDs
       pimpl->init_hskpng_npart(); 
 
-      // init number of SDs in cells
-      pimpl->init_count_num();
+      // calc sum of ln(rd) ranges of all distributions
+      real_t tot_lnrd_rng = 0.;
+      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+      {
+        pimpl->dist_analysis(
+          ddi->second,
+          pimpl->opts_init.sd_conc
+        );
+        tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
+      }
 
-      // update no of particles
-      // TODO: move to a separate function
       pimpl->n_part_old = 0;
-      pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
-      pimpl->n_part += pimpl->n_part_to_init;
-      pimpl->hskpng_resize_npart(); 
 
-      // init ijk vector, also n_part and resize n_part vectors
-      pimpl->init_ijk();
+      // initialize SDs of each kappa-type
+      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+      {
+        // analyze the distribution, TODO: just did it
+        pimpl->dist_analysis(
+          ddi->second,
+          pimpl->opts_init.sd_conc
+        );
 
-      // initialising dry radii (needs ijk and rhod)
-      assert(pimpl->opts_init.dry_distros.size() == 1); // TODO: handle multiple spectra/kappas
-      // analyze the distribution;
-      pimpl->dist_analysis(
-        pimpl->opts_init.dry_distros.begin()->second,
-        pimpl->opts_init.sd_conc
-      );
-      pimpl->init_dry();
+        real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng;
+        // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
+        pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
 
-      // init multiplicities
-      pimpl->init_n(
-        pimpl->opts_init.dry_distros.begin()->first,
-        pimpl->opts_init.dry_distros.begin()->second
-      ); // TODO: document that n_of_lnrd_stp is expected!
+        // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
+        pimpl->init_count_num(fraction);
+  
+        // update no of particles
+        // TODO: move to a separate function
+        pimpl->n_part_old = pimpl->n_part;
+        pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+        pimpl->n_part += pimpl->n_part_to_init;
+        pimpl->hskpng_resize_npart(); 
+  
+        // init ijk vector, also n_part and resize n_part vectors
+        pimpl->init_ijk();
+  
+        // initialising dry radii (needs ijk and rhod)
+        pimpl->init_dry();
+  
+        // init multiplicities
+        pimpl->init_n(
+          ddi->first,
+          ddi->second
+        ); // TODO: document that n_of_lnrd_stp is expected!
+  
+        // initialising wet radii
+        pimpl->init_wet();
 
-      // initialising wet radii
-      pimpl->init_wet();
+        // memory allocation for chemical reactions, done after init.grid to have npart defined
+        if(pimpl->opts_init.chem_switch){
+          pimpl->init_chem();
+        }
 
-      // memory allocation for chemical reactions, done after init.grid to have npart defined
-      if(pimpl->opts_init.chem_switch){
-        pimpl->init_chem();
+        // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
+        if(pimpl->opts_init.chem_switch){
+          pimpl->init_chem_aq();
+        }
+       
+        // init for substepping for chem reactions
+        if(pimpl->opts_init.chem_switch){
+         pimpl->init_sstp_chem();
+        }
+
+        // calculate initail volume (helper for Henry in chem)
+        if (pimpl->opts_init.chem_switch){
+          pimpl->chem_vol_ante();
+        }
+  
+        // initialising particle positions
+        pimpl->init_xyz();
       }
-
-      // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
-      if(pimpl->opts_init.chem_switch){
-        pimpl->init_chem_aq();
-      }
-     
-      // init for substepping for chem reactions
-      if(pimpl->opts_init.chem_switch){
-       pimpl->init_sstp_chem();
-      }
-
-      // calculate initail volume (helper for Henry in chem)
-      if (pimpl->opts_init.chem_switch){
-        pimpl->chem_vol_ante();
-      }
-
-      // initialising particle positions
-      pimpl->init_xyz();
-
       // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
