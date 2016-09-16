@@ -121,7 +121,7 @@ if (CUDA_FOUND)
   # Release mode cuda flags
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp,-D_FORCE_INLINES")
+        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   endif()
 
   add_definitions(-DCUDA_FOUND)
