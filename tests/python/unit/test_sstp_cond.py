@@ -3,7 +3,7 @@ sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, roll, pi
+from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, roll, pi, allclose
 
 from math import exp, log, sqrt, pi
 
@@ -24,7 +24,7 @@ opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
-spinup = 100
+spinup = 20
 
 backend = lgrngn.backend_t.serial
 
@@ -41,10 +41,7 @@ opts_init.nx = 2
 opts_init.dx = 1
 opts_init.x1 = opts_init.nx * opts_init.dx
 
-print 'spinup: ' + str(spinup)
-
-for sstp_cond in [1,2,20]:
-  print ''
+for sstp_cond in [1,2,5]:
   print 'sstp_cond = ' + str(sstp_cond)
   opts.adve=0
   opts_init.sstp_cond = sstp_cond
@@ -57,36 +54,20 @@ for sstp_cond in [1,2,20]:
   prtcls.diag_all()
   prtcls.diag_wet_mom(3);
   wet_post_init = frombuffer(prtcls.outbuf()).copy()
-  print 'wet post init: ' + str(wet_post_init)
-  print 'water post init: ' + str(1000. * 4./3. * pi * wet_post_init + rv)
+  water_post_init = 1000. * 4./3. * pi * wet_post_init + rv
   
   #spinup to get equilibrium
-#  opts.RH_max = 1.1
+  prtcls.step_sync(opts, th, rv)
   for it in range(spinup):
-    prtcls.step_sync(opts, th, rv)
     prtcls.step_async(opts)
+    prtcls.step_sync(opts, th, rv)
   
-#  opts.RH_max = 44
   #equilibrium wet moment post spinup
   prtcls.diag_all()
   prtcls.diag_wet_mom(3);
   wet_post_spin = frombuffer(prtcls.outbuf()).copy()
-  print 'wet post spin: ' + str(wet_post_spin)
-  print 'water post spin: ' + str(1000. * 4./3. * pi * wet_post_spin + rv)
-  
-  #one more cond to make sure we reached equilibrium
-  print th
-  print rv
-  prtcls.step_sync(opts, th, rv)
-  print th
-  print rv
-  
-  #equilibrium wet moment post spinup + one cond
-  prtcls.diag_all()
-  prtcls.diag_wet_mom(3);
-  wet_post_spinpp = frombuffer(prtcls.outbuf()).copy()
-  print 'wet post spin and one cond: ' + str(wet_post_spinpp) 
-  print 'prcntg chagne: ' + str((wet_post_spinpp - wet_post_spin) / wet_post_spin)
+  water_post_spin = 1000. * 4./3. * pi * wet_post_spin + rv
+  assert allclose(water_post_spin, water_post_init, atol=0, rtol=1e-10) #some discrepancy due to water density
   
   #advect SDs
   opts.adve=1
@@ -96,10 +77,8 @@ for sstp_cond in [1,2,20]:
   prtcls.diag_all()
   prtcls.diag_wet_mom(3);
   wet_post_adve = frombuffer(prtcls.outbuf()).copy()
-  print 'wet post adve: ' + str(wet_post_adve) 
   wet_post_adve_roll = roll(wet_post_adve,1).copy()
-  print 'wet post adve: ' + str(wet_post_adve_roll)
-  print 'prcntg chagne (rolled): ' + str((wet_post_adve_roll - wet_post_spinpp) / wet_post_spinpp)
+  assert all(wet_post_adve_roll == wet_post_spin)
   
   #advect rv
   tmp = rv.copy()
@@ -111,12 +90,11 @@ for sstp_cond in [1,2,20]:
   th[1] = tmp[0]
 
   #condensation with advected SDs and rv
-  print rv
   prtcls.step_sync(opts, th, rv)
   
-  #equilibrium wet mom post adve and cond
+  #wet mom post adve and cond
   prtcls.diag_all()
   prtcls.diag_wet_mom(3);
   wet_post_adve_cond = frombuffer(prtcls.outbuf()).copy()
-  print 'wet post adve and cond: ' + str(wet_post_adve_cond) 
-  print 'prcntg chagne: ' + str((wet_post_adve_cond - wet_post_adve) / wet_post_adve)
+  assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=1e-5)
+
