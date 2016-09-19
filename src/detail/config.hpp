@@ -23,6 +23,7 @@ namespace libcloudphxx
         const real_t rd_min_init = 1e-11, 
                      rd_max_init = 1e-3;   // bounding values for the initial dry radius distro
         const int bfr_fraction = 2;      // in/out buffers size = ny * nz * n_sd_max / bfr_fraction
+        const real_t cond_mlt = 2.;      // arbitrary multiplier that defines range over which equilibrium radius is searched during condensation
         config():
           eps_tolerance(sizeof(real_t) * 8 / 4)
           {}

@@ -167,12 +167,10 @@ namespace libcloudphxx
           if (drw2 == 0) return rw2_old;
 
           const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
-          
-          const int mlt = 2; // arbitrary!
  
           const real_t 
-            a = max(rd2, rw2_old + min(real_t(0), mlt * drw2)),
-            b =          rw2_old + max(real_t(0), mlt * drw2);
+            a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
+            b =          rw2_old + max(real_t(0), config.cond_mlt * drw2);
 
           // numerics (drw2 != 0 but a==b)
           if (a == b) return rw2_old;
