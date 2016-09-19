@@ -1,4 +1,5 @@
 // vim:filetype=cpp
+
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -56,10 +57,14 @@ namespace libcloudphxx
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
+        // TODO: many max or m1 used, unify it
+#if !defined(__NVCC__)
+        using std::max;
+#endif
         // TODO: copy-pasted from init
-	if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0); 
-	if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0); 
-	if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1);
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
       }
 
       // syncing in Eulerian fields (if not null)
@@ -78,10 +83,6 @@ namespace libcloudphxx
           );
         }
       }
-
-      // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      pimpl->hskpng_ijk();
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -103,6 +104,42 @@ namespace libcloudphxx
         {
           pimpl->hskpng_Tpr();
           pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+        }
+      }
+
+      // chemistry
+      // TODO: chemistry substepping still done the old way, i.e. per cell not per particle
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      {
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
+        {   
+          // set flag for those SD that are big enough to have chemical reactions
+          pimpl->chem_flag_ante();
+
+          // calculate new volume of droplets (needed for chemistry)
+          pimpl->chem_vol_ante();
+
+          if (opts.chem_dsl)
+          {
+            //adjust trace gases to substepping
+            pimpl->sstp_step_chem(step, !rhod.is_null());
+
+            //dissolving trace gases (Henrys law)
+            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+
+            //cleanup - TODO think of something better
+            pimpl->chem_cleanup();
+          }
+              
+          if (opts.chem_dsc)
+          { //dissociation
+            pimpl->chem_dissoc();
+          }
+            
+          if (opts.chem_rct)
+          { //oxidation 
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+          }
         }
       }
 
@@ -131,33 +168,9 @@ namespace libcloudphxx
         pimpl->stp_ctr = 0; //reset the counter
       }
 
-      // chemistry
-      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      if (opts.chem_dsl == true)
       {
-        // calculate new volume of droplets (needed for Henrys law)
-        pimpl->chem_vol_ante();
-        // set flag for those SD that are big enough to have chemical reactions
-        pimpl->chem_flag_ante();
-
-        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
-        {
-          //dissolving trace gases (Henrys law)
-          if (opts.chem_dsl == true)
-            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
-
-          //dissociation
-          if (opts.chem_dsc == true)
-            pimpl->chem_dissoc();
-
-          //oxidation 
-          if (opts.chem_rct == true)
-          pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
-        }
-
-        //save the current drop volume in V_old (to be used in the next step for Henrys law)
-        pimpl->chem_vol_post();
-
-        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
+        // syncing out trace gases // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         for (int i = 0; i < chem_gas_n; ++i)
           pimpl->sync(
             pimpl->ambient_chem[(chem_species_t)i],
@@ -179,6 +192,10 @@ namespace libcloudphxx
 
       pimpl->should_now_run_async = false;
 
+      //sanity checks
+      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
         throw std::runtime_error("all chemistry was switched off in opts_init");
 
@@ -192,6 +209,12 @@ namespace libcloudphxx
       { 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
+      }
+
+      if (opts.chem_dsl) 
+      { 
+        // saving rv to be used as rv_old
+        pimpl->sstp_save_chem();
       }
 
       // updating Tpr look-up table (includes RH update)
@@ -210,9 +233,6 @@ namespace libcloudphxx
         pimpl->sedi();
       }
 
-      // boundary condition + accumulated rainfall to be returned
-      real_t ret = pimpl->bcnd();
-
       // coalescence
       if (opts.coal) 
       {
@@ -227,8 +247,18 @@ namespace libcloudphxx
         }
       }
 
-      // recycling out-of-domain/invalidated particles 
-      pimpl->rcyc();
+      // boundary condition + accumulated rainfall to be returned
+      // multi_GPU version invalidates i and k;
+      // this has to be done last since i and k will be used by multi_gpu copy to other devices
+      // TODO: instead of using i and k define new vectors ?
+      // TODO: do this only if we advect/sediment?
+      real_t ret = pimpl->bcnd();
+
+      // some stuff to be done at the end of the step.
+      // if using more than 1 GPU
+      // has to be done after copy 
+      if (pimpl->opts_init.dev_count < 2)
+        pimpl->step_finalize(opts);
 
       pimpl->selected_before_counting = false;
 

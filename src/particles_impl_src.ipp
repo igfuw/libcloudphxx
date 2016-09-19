@@ -82,21 +82,16 @@ namespace libcloudphxx
       // set number of SDs to init; use count_num as storage
       {
         namespace arg = thrust::placeholders;
-        thrust::fill(count_num.begin(), count_num.end(), 0);
-      
         thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5; // k index of the heighest cell we create SDs in
         // some cells may be used only partially in thr super-droplet method
         // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
         // Eulerian domain (0, nx*dx, etc...)
         // sd_conc defines number of SDs per Eulerian cell
-        thrust::transform_if(
-          dv.begin(), dv.end(), 
+        thrust::transform(
           thrust::make_counting_iterator(0),
+          thrust::make_counting_iterator(n_cell),
           count_num.begin(), 
-          real_t(opts_init.src_sd_conc) *                           // no of SDs to create
-          arg::_1 / (opts_init.dx * opts_init.dy * opts_init.dz) +  // ratio of volumes
-          real_t(0.5),             
-          (arg::_1 % opts_init.nz) < k1
+          real_t(opts_init.src_sd_conc) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
         ); 
       }
 
@@ -436,8 +431,9 @@ namespace libcloudphxx
         hskpng_resize_npart();   
       }
  
-      // --- after source particles are no longer sorted ---
+      // --- after source particles are no longer sorted nor counted ---
       sorted = false;
+      counted = false;
 
       // --- calc liquid water content after src ---
       hskpng_sort(); 
@@ -465,6 +461,9 @@ namespace libcloudphxx
 
       // update th and rv
       update_th_rv(drv);
+
+      // update count_ijk and count_num
+      hskpng_count();
     }
   };  
 };

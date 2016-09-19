@@ -6,6 +6,7 @@
   */
 
 #include <libcloudph++/common/kappa_koehler.hpp> // TODO: not here...
+#include <thrust/sequence.h>
 
 namespace libcloudphxx
 {
@@ -38,6 +39,19 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct precip_rate
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &vt, const real_t &rw2)
+        {
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
+          return pow(rw2, real_t(3./2)) * vt;
+        }
+      };
+
+      template <typename real_t>
       struct RH_minus_Sc
       {
         BOOST_GPU_ENABLED
@@ -54,6 +68,25 @@ namespace libcloudphxx
           );
         }
       };
+    }
+
+    // records relative humidity
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_RH()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->RH.begin(), 
+        pimpl->RH.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // RH defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      // inform that count_n and count_ijk are invalid
+      pimpl->counted = false;
     }
 
     // records super-droplet concentration per grid cell
@@ -90,6 +123,13 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
+    }
+
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin());
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -160,12 +200,47 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
 
+    // compute n-th moment of kappa for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
     {
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
+
+    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // TODO: replace it with simple diag vt?
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_precip_rate()
+    {   
+      // updating terminal velocities
+      pimpl->hskpng_vterm_all();
+
+      // temporary vector to store vt
+      thrust::host_vector<real_t> tmp_vt(pimpl->n_part);
+      thrust::copy(pimpl->vt.begin(), pimpl->vt.end(), tmp_vt.begin());
+    
+      thrust::transform(
+        pimpl->vt.begin(),
+        pimpl->vt.end(),
+        pimpl->rw2.begin(),
+        pimpl->vt.begin(),
+        detail::precip_rate<real_t>()
+      );  
+
+      pimpl->moms_calc_cond(pimpl->vt.begin(), 1.);
+ 
+      // copy back stored vterm
+      thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
+      // release the memory
+      tmp_vt.erase(tmp_vt.begin(), tmp_vt.end());
+    }   
 
     // computes mean chemical properties for the selected particles
     template <typename real_t, backend_t device>

@@ -54,15 +54,23 @@ Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
 Opts.chem_dsl = True
-Opts.chem_dsc = True
+Opts.chem_dsc = False
 Opts.chem_rct = False
+Opts.rcyc = True
 
 for i in range(900):
   prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
   prtcls.step_async(Opts)
 
 prtcls.diag_sd_conc()
-tmp = np.frombuffer(prtcls.outbuf())[0]
-print 'final no of SDs: ', tmp
-if(tmp >= 10 or tmp == 0):
+sd_conc = np.frombuffer(prtcls.outbuf())[0]
+print 'final no of SDs: ', sd_conc
+if(sd_conc >= 10 or sd_conc == 0):
   raise Exception("wrong amount of SDs were removed")
+
+prtcls.diag_all()
+prtcls.diag_wet_mom(0)
+prtcls_no = np.frombuffer(prtcls.outbuf())[0]
+print 'final no of particles: ', prtcls_no
+if(sd_conc != prtcls_no):
+  raise Exception("with rcyc on, droplets were removed while some others had multiplicity > 1")

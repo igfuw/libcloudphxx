@@ -54,7 +54,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_NH4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
+            * (M_NH3_H2O<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
 	}
       };
 /*
@@ -103,7 +103,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
+            * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
 	}
       };
 
@@ -127,7 +127,7 @@ namespace libcloudphxx
             CUDART_PI
 #endif
             * chem_rho * rd3
-            * (M_H<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
+            * (M_H<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
 	}
       };
     };
@@ -184,7 +184,7 @@ namespace libcloudphxx
         switch (i)
         {
 
-          case NH4:
+          case NH3:
           {
 	    thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input

@@ -47,6 +47,7 @@
 #include "particles_impl_init_hskpng_ncell.ipp"
 #include "particles_impl_init_chem.ipp"
 #include "particles_impl_init_kernel.ipp"
+#include "particles_impl_step_finalize.ipp"
 #include "particles_impl_init_vterm.ipp"
 #include "particles_impl_update_th_rv.ipp"
 
@@ -78,6 +79,7 @@
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
+#include "particles_impl_sstp_chem.ipp"
 #include "particles_impl_src.ipp"
 #include "particles_impl_kernel_interpolation.ipp"
 

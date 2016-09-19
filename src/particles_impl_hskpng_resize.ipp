@@ -46,12 +46,6 @@ namespace libcloudphxx
         sstp_tmp_th.resize(n_part);
         sstp_tmp_rh.resize(n_part);
       }
-
-      if(opts_init.chem_switch)
-      {
-        V_old.resize(n_part);
-        tmp_device_real_part5.resize(n_part); 
-      }
     }
   };
 };

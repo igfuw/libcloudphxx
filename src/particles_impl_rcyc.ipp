@@ -40,7 +40,6 @@ namespace libcloudphxx
 	namespace arg = thrust::placeholders;
         n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
       }
-      assert(n_flagged <= n_part / 2);
 
       if (n_flagged == 0) return 0;
       n_to_rcyc = n_flagged;
@@ -97,8 +96,6 @@ namespace libcloudphxx
       if (opts_init.chem_switch){
         for (int i = 0; i < chem_all; ++i)
           detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
-        
-        detail::copy_prop<real_t>(V_old.begin(), sorted_id, n_flagged);
       }
 
       {

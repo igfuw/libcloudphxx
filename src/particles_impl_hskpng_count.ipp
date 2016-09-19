@@ -15,6 +15,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_count()
     {   
+      if(counted) return;
+
       hskpng_sort();
 
       // computing count_* - number of particles per grid cell
@@ -30,7 +32,7 @@ namespace libcloudphxx
       count_n = n.first - count_ijk.begin();
       assert(count_n > 0);
       assert(count_n <= n_cell);
+      counted = true;
     }   
-
   };  
 };

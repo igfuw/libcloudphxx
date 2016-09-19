@@ -84,6 +84,12 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
+      // no of GPUs to use, 0 for all available
+      int dev_count; 
+
+      // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
+      int dev_id;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -103,6 +109,8 @@ namespace libcloudphxx
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
+        dev_count(0),
+        dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0)
