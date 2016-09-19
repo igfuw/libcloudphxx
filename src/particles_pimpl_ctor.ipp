@@ -184,7 +184,10 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_chem,  // only allocated if chem_switch==1
+        tmp_device_real_part1,  
+        tmp_device_real_part2,  
+        tmp_device_real_part3,
+        tmp_device_real_part4,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -373,11 +376,8 @@ namespace libcloudphxx
       ); 
       void moms_calc(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-        const real_t power
-      );
-      void moms_calc_cond(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-        const real_t power
+        const real_t power,
+        const bool specific = true
       );
 
       void mass_dens_estim(
@@ -399,7 +399,10 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
+      void cond_sstp(const real_t &dt, const real_t &RH_max);
       void update_th_rv(thrust_device::vector<real_t> &);
+      void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 

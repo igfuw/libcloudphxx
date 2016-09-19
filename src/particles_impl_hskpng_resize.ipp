@@ -33,9 +33,18 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
 
-      if(opts_init.chem_switch)
+      if(opts_init.chem_switch || opts_init.sstp_cond > 1)
       {
-        tmp_device_real_part_chem.resize(n_part);  // TODO: reuse outside of chem if needed
+        tmp_device_real_part1.resize(n_part);
+        tmp_device_real_part2.resize(n_part);
+        tmp_device_real_part3.resize(n_part);
+        tmp_device_real_part4.resize(n_part);  
+      }
+      if(opts_init.sstp_cond>1)
+      {
+        sstp_tmp_rv.resize(n_part);
+        sstp_tmp_th.resize(n_part);
+        sstp_tmp_rh.resize(n_part);
       }
     }
   };

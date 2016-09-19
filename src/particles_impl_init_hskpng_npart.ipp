@@ -38,19 +38,30 @@ namespace libcloudphxx
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
 
+      if(opts_init.chem_switch || opts_init.sstp_cond > 1)
+      {
+        tmp_device_real_part1.reserve(opts_init.n_sd_max); 
+        tmp_device_real_part2.reserve(opts_init.n_sd_max); 
+        tmp_device_real_part3.reserve(opts_init.n_sd_max); 
+        tmp_device_real_part4.reserve(opts_init.n_sd_max);  
+      }
+
+      if(opts_init.sstp_cond>1)
+      {
+        sstp_tmp_rv.resize(opts_init.n_sd_max);
+        sstp_tmp_th.resize(opts_init.n_sd_max);
+        sstp_tmp_rh.resize(opts_init.n_sd_max);
+      }
       // reserve memory for in/out buffers
-      // for courant_x = 0.1 and n_sd_max
-      // overkill?
+      // too much?
       if(opts_init.dev_count > 1)
       {
-        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);     // for n
-        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / 10);
-        in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);     // for rd3 rw2 kpa vt x y z
-        out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / 10);
-      }
-      if(opts_init.chem_switch)
-      {
-        tmp_device_real_part_chem.reserve(opts_init.n_sd_max); 
+        // TODO: better condition (2D, 3D) or resize dynamically
+        const int fraction = 2;
+        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);     // for n
+        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);
+        in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z
+        out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);
       }
     }
   };

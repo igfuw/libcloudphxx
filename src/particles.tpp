@@ -72,7 +72,9 @@
 #include "particles_impl_sync.ipp"
 
 #include "particles_impl_adve.ipp"
+#include "particles_impl_cond_common.ipp"
 #include "particles_impl_cond.ipp"
+#include "particles_impl_cond_sstp.ipp"
 #include "particles_impl_sedi.ipp"
 #include "particles_impl_coal.ipp"
 #include "particles_impl_chem_ante.ipp"
