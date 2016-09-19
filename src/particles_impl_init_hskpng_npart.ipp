@@ -38,7 +38,7 @@ namespace libcloudphxx
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
 
-      if(opts_init.chem_switch || opts_init.sstp_cond > 1)
+      if(MoreTmpRealPart)
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
@@ -53,15 +53,19 @@ namespace libcloudphxx
         sstp_tmp_rh.resize(opts_init.n_sd_max);
       }
       // reserve memory for in/out buffers
-      // too much?
       if(opts_init.dev_count > 1)
       {
         // TODO: better condition (2D, 3D) or resize dynamically
         const int fraction = 2;
         in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);     // for n
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);
-        in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z
-        out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);
+
+        // if part[1-4] are initialized, they will be used instead
+        if(!MoreTmpRealPart)
+        {
+          in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z
+          out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);
+        }
       }
     }
   };
