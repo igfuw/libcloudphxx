@@ -50,7 +50,16 @@ namespace libcloudphxx
           const quantity<si::volume, real_t>        dv     = thrust::get<2>(tpl) * si::cubic_metres;
           const quantity<si::dimensionless, real_t> c      = thrust::get<3>(tpl); 
 
-          return c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
+          quantity<si::dimensionless, real_t> new_c  = c - (m_new * si::kilograms - m_old) / M_aq * M_gas / dv / rhod;
+
+          // As of now the aq. chemistry module computes Henrys law from the point of view of each super droplet.
+          // It never checks if the sum of decrements of the ambient air trace gas concentarions
+          // (the sum over all super droplets in each grid-box) does not exceede the total concentration in each drid-box.
+          // It can only happen when ambient air concentrations are approaching zero, 
+          // so the error introduced here is small. 
+          // TODO - still it would be good to have some check build in Henrys law, instead of just an assert.
+          assert(new_c >= 0);
+          return new_c > 0 ? new_c : new_c * real_t(0);
         }
       };
 
