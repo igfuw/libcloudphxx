@@ -150,7 +150,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc(
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-      const real_t power
+      const real_t power,
+      const bool specific
     )
     {
       assert(selected_before_counting);
@@ -186,76 +187,30 @@ namespace libcloudphxx
 
       count_n = n.first - count_ijk.begin();
       assert(count_n > 0 && count_n <= n_cell);
-
-      // dividing by dv
-      thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-        thrust::make_permutation_iterator(                  // input - second arg
-          dv.begin(),
-          count_ijk.begin()
-        ),
-        count_mom.begin(),                                  // output (in place)
-        thrust::divides<real_t>()
-      );
-
-      // dividing by rhod to get specific moments
-      // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
-      thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-        thrust::make_permutation_iterator(                  // input - second arg
-          rhod.begin(),
-          count_ijk.begin()
-        ),
-        count_mom.begin(),                                  // output (in place)
-        thrust::divides<real_t>()
-      );
-    }
-
-    // compute non-specific moment for all SDs
-    // a separate function since it is needed by condensation
-    // TODO: make it a non-specific moment counter for selected SDs,
-    // then reuse it in moms_calc (selecting all SDs during condensation
-    // doesn't change performance much)
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::moms_calc_cond(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-      const real_t power
-    )
-    {
-      assert(sorted);
-
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::const_iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_t;
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<n_t>::const_iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_n_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_t> > zip_it_t;
-
-      thrust::pair<
-        thrust_device::vector<thrust_size_t>::iterator,
-        typename thrust_device::vector<real_t>::iterator
-      > n = thrust::reduce_by_key(
-        // input - keys
-        sorted_ijk.begin(), sorted_ijk.end(),  
-        // input - values
-        thrust::make_transform_iterator(
-	  zip_it_t(thrust::make_tuple(
-            pi_n_t(this->n.begin(),   sorted_id.begin()),
-            pi_t(vec_bgn,              sorted_id.begin())
-          )),
-          detail::moment_counter_cond<real_t, n_t>(power)
-        ),
-        // output - keys
-        count_ijk.begin(),
-        // output - values
-        count_mom.begin()
-      );  
-
-      count_n = n.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
+      if(specific)
+      {
+        // dividing by dv
+        thrust::transform(
+          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+          thrust::make_permutation_iterator(                  // input - second arg
+            dv.begin(),
+            count_ijk.begin()
+          ),
+          count_mom.begin(),                                  // output (in place)
+          thrust::divides<real_t>()
+        );
+        // dividing by rhod to get specific moments
+        // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
+        thrust::transform(
+          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+          thrust::make_permutation_iterator(                  // input - second arg
+            rhod.begin(),
+            count_ijk.begin()
+          ),
+          count_mom.begin(),                                  // output (in place)
+          thrust::divides<real_t>()
+        );
+      }
     }
   };  
 };
