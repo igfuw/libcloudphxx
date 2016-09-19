@@ -146,11 +146,15 @@ namespace libcloudphxx
           );
 
           // prepare the real_t buffer for copy left
-          thrust_device::vector<real_t> * real_t_vctrs[] = 
-            glob_opts_init.sstp_cond == 1 ? 
-              {&rd3, &rw2, &kpa, &vt, &x, &z, &y} :
-              {&rd3, &rw2, &kpa, &vt, &x, &z, &y, &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh};
-          const int real_vctrs_count = glob_opts_init.ny == 0 ? lengthof(real_t_vctrs) - 1 : lengthof(real_t_vctrs);
+          std::vector<thrust_device::vector<real_t>*> real_t_vctrs({&rd3, &rw2, &kpa, &vt, &x, &z});
+          if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
+          if(glob_opts_init.sstp_cond > 1)
+          {
+            real_t_vctrs.push_back(&sstp_tmp_rv);
+            real_t_vctrs.push_back(&sstp_tmp_th);
+            real_t_vctrs.push_back(&sstp_tmp_rh);
+          }
+          const int real_vctrs_count = real_t_vctrs.size(); 
           assert(out_real_bfr.size() >= lft_count * real_vctrs_count);
           assert(in_real_bfr.size() >= lft_count * real_vctrs_count);
           for(int i = 0; i < real_vctrs_count; ++i)
