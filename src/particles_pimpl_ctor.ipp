@@ -44,8 +44,6 @@ namespace libcloudphxx
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
-      // helper flag telling us if tmp_device_real_part[1-4] are initialized
-      const bool MoreTmpRealPart;      
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -248,7 +246,6 @@ namespace libcloudphxx
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
-        MoreTmpRealPart(opts_init.chem_switch || opts_init.sstp_cond > 1),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
         vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range

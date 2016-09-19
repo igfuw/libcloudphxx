@@ -91,12 +91,12 @@ namespace libcloudphxx
           thrust_device::vector<real_t> &kpa(particles[dev_id].pimpl->kpa);
           thrust_device::vector<real_t> &vt(particles[dev_id].pimpl->vt);
           thrust_device::vector<real_t> &out_real_bfr(
-            particles[dev_id].pimpl->MoreTmpRealPart ? 
+            glob_opts_init.sstp_cond > 1 ? 
               particles[dev_id].pimpl->tmp_device_real_part1 :  
               particles[dev_id].pimpl->out_real_bfr
           );
           thrust_device::vector<real_t> &in_real_bfr(
-            particles[dev_id].pimpl->MoreTmpRealPart ? 
+            glob_opts_init.sstp_cond > 1 ? 
               particles[dev_id].pimpl->tmp_device_real_part2 :  
               particles[dev_id].pimpl->in_real_bfr
           );
