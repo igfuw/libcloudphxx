@@ -147,7 +147,7 @@ namespace libcloudphxx
           rw2.begin(), rw2.end(),
           vt.begin(),
           vt0_bin.begin(),
-          detail::get_vt0_bin<real_t>(vt0_ln_r_min, vt0_ln_r_max, vt0_n_bin),
+          detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin),
           arg::_1 == real_t(detail::invalid)
         );
         // calc the vt
@@ -198,7 +198,7 @@ namespace libcloudphxx
         thrust::transform(
           rw2.begin(), rw2.end(),
           vt0_bin.begin(),
-          detail::get_vt0_bin<real_t>(vt0_ln_r_min, vt0_ln_r_max, vt0_n_bin)
+          detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin)
         );
         // calc the vt
         thrust::transform(

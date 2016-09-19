@@ -37,15 +37,15 @@ namespace libcloudphxx
     {
       if(opts_init.terminal_velocity != vt_t::beard77fast) return; // it's the only term velocity formula using cached velocities
 
-      vt_0.resize(vt0_n_bin);
+      vt_0.resize(config.vt0_n_bin);
       
       // calc mid r of each bin
       thrust::transform
       (
         thrust::make_counting_iterator<int>(0),
-        thrust::make_counting_iterator<int>(0) + vt0_n_bin,
+        thrust::make_counting_iterator<int>(0) + config.vt0_n_bin,
         vt_0.begin(),
-        detail::bin_mid<real_t>(vt0_ln_r_min, vt0_ln_r_max, vt0_n_bin)
+        detail::bin_mid<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin)
       );
 
       // calc vt_0

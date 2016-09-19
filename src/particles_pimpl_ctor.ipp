@@ -83,10 +83,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
       thrust_device::vector<real_t> vt_0; 
-      // no of bins for cached velocity
-      const int vt0_n_bin;
-      // ln of min and max radius of cached velocity
-      const real_t vt0_ln_r_min, vt0_ln_r_max;
 
       // grid-cell volumes (per grid cell)
       thrust_device::vector<real_t> dv;
@@ -249,10 +245,7 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
-        vt0_n_bin(10000),
-        vt0_ln_r_min(log(5e-7)),
-        vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
       {
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
