@@ -277,8 +277,15 @@ namespace libcloudphxx
       zip_it_t 
         arg_begin(thrust::make_tuple(old_S_VI.begin(), chem_bgn[S_VI], rd3.begin())),
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
-       
-      thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
+      
+      // do oxidation reaction only for droplets that are "big enough" (marked by chem_flag) 
+      thrust::transform_if(
+        arg_begin, arg_end,                                //input first arg 
+        chem_flag.begin(),                                 //stencil
+        rd3.begin(),                                       //output
+        detail::chem_new_rd3<real_t>(opts_init.chem_rho),  //op
+        thrust::identity<unsigned int>()                   //condition
+      );
 
 #if !defined(__NVCC__)
       using boost::math::isfinite;

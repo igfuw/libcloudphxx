@@ -118,9 +118,9 @@ namespace libcloudphxx
           
           // limits for search in toms748
           real_t m_H_rht = ((real_t(1e1  * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
-          real_t m_H_lft = ((real_t(1e-9 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
+          real_t m_H_lft = ((real_t(1e-8 * 1e3) * si::moles / si::cubic_metres) * V * M_H<real_t>()) / si::kilograms;
 
-          uintmax_t max_iter = 44;
+          uintmax_t max_iter = 100;
 
           real_t m_H = common::detail::toms748_solve(
 	    detail::chem_minfun<real_t>(m_S_IV, m_C_IV, m_N_V, m_N_III, m_S_VI, V, T),
