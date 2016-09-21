@@ -63,8 +63,8 @@ namespace libcloudphxx
         // if part[1-4] are initialized (i.e. sstp_cond>1), they will be used instead
         if(opts_init.sstp_cond == 1)
         {
-          in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z
-          out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / fraction);
+          in_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z sstp_tmp_th/rv/rh
+          out_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / fraction);
         }
       }
     }
