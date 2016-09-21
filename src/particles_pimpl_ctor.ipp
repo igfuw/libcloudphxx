@@ -208,6 +208,7 @@ namespace libcloudphxx
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // fills u01[0:n] with random numbers
