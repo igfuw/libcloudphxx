@@ -9,6 +9,7 @@
 
 #include "opts_common.hpp"
 #include "kin_cloud_2d_lgrngn.hpp"
+#include "icmw8_case1.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -21,7 +22,7 @@
 template <class solver_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
-  int nx, int nz, int nt,
+  int nx, int nz, int nt, icmw8_case1::setup_t &setup,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
@@ -51,10 +52,13 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("th_0", po::value<setup::real_t>()->default_value(289),  "th_0")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
+
+  setup.th_0 = vm["th_0"].as<setup::real_t>() * si::kelvins;
       
   std::string backend_str = vm["backend"].as<std::string>();
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
@@ -73,11 +77,12 @@ void setopts_micro(
     rt_params.cloudph_opts_init.n_sd_max = nx *  nz * rt_params.cloudph_opts_init.sd_conc;
  
   boost::assign::ptr_map_insert<
-    setup::log_dry_radii<thrust_real_t> // value type
+    icmw8_case1::log_dry_radii<thrust_real_t> // value type
   >(
     rt_params.cloudph_opts_init.dry_distros // map
   )(
-    setup::kappa // key
+    setup.kappa, // key
+    setup
   );
 
   // output variables

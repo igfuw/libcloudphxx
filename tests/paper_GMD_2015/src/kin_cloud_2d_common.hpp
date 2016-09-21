@@ -78,32 +78,32 @@ class kin_cloud_2d_common : public
     using ix = typename ct_params_t::ix;
 
     // relaxation terms; added only after spinup, when get_rain returns true
-    if(relax_th_rv && get_rain())
-    {
-      // computed level-wise
-      for (int j = this->j.first(); j <= this->j.last(); ++j)
-      {  
-        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * dz / icmw8_case1::z_rlx * si::metres);
+   // if(relax_th_rv && get_rain())
+   // {
+   //   // computed level-wise
+   //   for (int j = this->j.first(); j <= this->j.last(); ++j)
+   //   {  
+   //     const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * dz / icmw8_case1::z_rlx * si::metres);
 
-        for(auto a: std::list<int>({ix::th, ix::rv}))
-        {
-          const auto &psi = this->state(a);
-          // relax horizontal mean
-          /*
-          const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
-          if(a == ix::th)
-            rhs.at(a)(this->i, j) =  (th_eq(j) - psi_mean) / tau;
-          else
-            rhs.at(a)(this->i, j) =  (rv_eq(j) - psi_mean) / tau;
-          */
-          // relax each cell 
-          if(a == ix::th)
-            rhs.at(a)(this->i, j) =  (th_eq(j) - psi(this->i, j)) / tau;
-          else
-            rhs.at(a)(this->i, j) =  (rv_eq(j) - psi(this->i, j)) / tau;
-        }
-      }
-    }
+   //     for(auto a: std::list<int>({ix::th, ix::rv}))
+   //     {
+   //       const auto &psi = this->state(a);
+   //       // relax horizontal mean
+   //       /*
+   //       const auto psi_mean = this->mem->sum(psi, this->i, rng_t(j, j), false)  /  (this->mem->grid_size[0].length());
+   //       if(a == ix::th)
+   //         rhs.at(a)(this->i, j) =  (th_eq(j) - psi_mean) / tau;
+   //       else
+   //         rhs.at(a)(this->i, j) =  (rv_eq(j) - psi_mean) / tau;
+   //       */
+   //       // relax each cell 
+   //       if(a == ix::th)
+   //         rhs.at(a)(this->i, j) =  (th_eq(j) - psi(this->i, j)) / tau;
+   //       else
+   //         rhs.at(a)(this->i, j) =  (rv_eq(j) - psi(this->i, j)) / tau;
+   //     }
+   //   }
+   // }
   }
 
   public:
@@ -113,6 +113,7 @@ class kin_cloud_2d_common : public
     typename ct_params_t::real_t dx = 0, dz = 0;
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
     bool relax_th_rv = true;
+    icmw8_case1::setup_t setup;
   };
 
   // ctor

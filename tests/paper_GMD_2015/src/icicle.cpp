@@ -14,7 +14,7 @@
 namespace setup = icmw8_case1;
 
 #include "opts_blk_1m.hpp"
-#include "opts_blk_2m.hpp"
+//#include "opts_blk_2m.hpp"
 #include "opts_lgrngn.hpp"
 
 #include "panic.hpp"
@@ -23,6 +23,8 @@ namespace setup = icmw8_case1;
 template <class solver_t>
 void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv)
 {
+  // instantiation of structure containing setup
+  icmw8_case1::setup_t setup;
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
 
@@ -32,8 +34,8 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   p.outfreq = outfreq;
   p.spinup = spinup;
   p.relax_th_rv = relax_th_rv;
-  setup::setopts(p, nx, nz);
-  setopts_micro<solver_t>(p, nx, nz, nt);
+  setup::setopts(p, nx, nz, setup);
+  setopts_micro<solver_t>(p, nx, nz, nt, setup);
 
   // solver instantiation
   std::unique_ptr<
@@ -52,7 +54,7 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()));
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), setup);
   }
   else
   {
@@ -64,7 +66,7 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()));
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), setup);
   }
 
 
@@ -158,7 +160,7 @@ int main(int argc, char** argv)
   	  enum { n_eqns = 4 };
           struct ix { enum {th, rv, rc, rr}; };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+//        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
       else
       {
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
           struct ix { enum {th, rv, rc, rr}; };
           enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+  //      run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
     }
 
@@ -180,7 +182,7 @@ int main(int argc, char** argv)
 	enum { n_eqns = 6 };
 	struct ix { enum {th, rv, rc, rr, nc, nr}; }; 
       };
-      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+//      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
     }
 
     else 

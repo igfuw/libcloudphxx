@@ -143,8 +143,8 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         // ... and now dividing them by rhod (z=0 is located at j=1/2)
         {
           blitz::secondIndex j;
-          Cx /= icmw8_case1::rhod()(   j     * this->dj);
-          Cz /= icmw8_case1::rhod()((j - .5) * this->dj);
+          Cx /= icmw8_case1::rhod(params.setup)(   j     * this->dj);
+          Cz /= icmw8_case1::rhod(params.setup)((j - .5) * this->dj);
         }
 
 	prtcls->init(
