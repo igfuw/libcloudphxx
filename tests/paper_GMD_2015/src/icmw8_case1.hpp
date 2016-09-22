@@ -16,7 +16,7 @@
 // TODO: relaxation terms still missing
 
 // 8th ICMW case 1 by Wojciech Grabowski)
-namespace icmw8_case1
+namespace config
 {
   using real_t = float;
 
@@ -31,10 +31,8 @@ namespace icmw8_case1
   class setup_t
   {
     public:
-    quantity<si::temperature, real_t> 
-      th_0 = 289 * si::kelvins;
-    quantity<si::dimensionless, real_t> 
-      rv_0 = 7.5e-3;
+    quantity<si::temperature, real_t> th_0;
+    quantity<si::dimensionless, real_t> rv_0 = 7.5e-3;
     quantity<si::pressure, real_t> 
       p_0 = 101500 * si::pascals;
     quantity<si::velocity, real_t> 

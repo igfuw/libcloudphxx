@@ -11,6 +11,7 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
+#include "icmw8_case1.hpp"
 namespace po = boost::program_options;
 
 // some globals for option handling
@@ -34,4 +35,24 @@ void handle_opts(
   }
   po::notify(vm); // includes checks for required options
 }
+
+template<class real_t, class setup_t>
+void setopts_common(
+  setup_t &setup
+)
+{
+  po::options_description opts("setup options");
+  opts.add_options()
+    ("th_0", po::value<float>()->default_value(289),  "th_0")
+  ;
+  po::variables_map vm;
+
+  opts_main.add(opts);
+  po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
+
+  setup.th_0 = vm["th_0"].as<float>() * si::kelvins;
+}
+
+
+
 
