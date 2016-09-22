@@ -33,8 +33,8 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   p.outfreq = outfreq;
   p.spinup = spinup;
   p.relax_th_rv = relax_th_rv;
-  config::setopts(p, nx, nz, setup);
   setopts_common<config::real_t>(setup);
+  config::setopts(p, nx, nz, setup);
   setopts_micro<solver_t>(p, nx, nz, nt, setup);
 
   // solver instantiation

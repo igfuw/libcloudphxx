@@ -33,37 +33,25 @@ namespace config
     public:
     quantity<si::temperature, real_t> th_0;
     quantity<si::dimensionless, real_t> rv_0 = 7.5e-3;
-    quantity<si::pressure, real_t> 
-      p_0 = 101500 * si::pascals;
-    quantity<si::velocity, real_t> 
-      w_max = real_t(.6) * si::metres_per_second;
-    quantity<si::length, real_t> 
-      z_0  = 0    * si::metres,
-      Z    = 1500 * si::metres, 
-      X    = 1500 * si::metres;
-    quantity<si::time, real_t>
-      dt = real_t(1) * si::seconds;
+    quantity<si::pressure, real_t> p_0;
+    quantity<si::velocity, real_t> w_max;
+    quantity<si::length, real_t>  z_0, Z, X;
+    quantity<si::time, real_t> dt;
 
     //aerosol bimodal lognormal dist. 
-    quantity<si::length, real_t>
-      mean_rd1 = real_t(.04e-6 / 2) * si::metres,
-      mean_rd2 = real_t(.15e-6 / 2) * si::metres;
-    quantity<si::dimensionless, real_t>
-      sdev_rd1 = real_t(1.4),
-      sdev_rd2 = real_t(1.6);
-    quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-      n1_stp = real_t(60e6) / si::cubic_metres,
-      n2_stp = real_t(40e6) / si::cubic_metres;
+    quantity<si::length, real_t> mean_rd1, mean_rd2;
+    quantity<si::dimensionless, real_t> sdev_rd1, sdev_rd2;
+    quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n1_stp, n2_stp;
 
     //aerosol chemical composition parameters (needed for activation)
     // for lgrngn:
-    quantity<si::dimensionless, real_t> kappa = .61; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
+    quantity<si::dimensionless, real_t> kappa; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
     // for blk_2m:
-    quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride
+    quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
 
     //th and rv relaxation time and height
-    quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
-    quantity<si::length, real_t> z_rlx = 200 * si::metres;
+    quantity<si::time, real_t> tau_rlx;
+    quantity<si::length, real_t> z_rlx;
   };
 
 
