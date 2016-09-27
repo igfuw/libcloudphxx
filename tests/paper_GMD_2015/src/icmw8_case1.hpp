@@ -15,7 +15,7 @@
 
 // TODO: relaxation terms still missing
 
-// 8th ICMW case 1 by Wojciech Grabowski)
+// setup taken from 8th ICMW case 1 by Wojciech Grabowski
 namespace config
 {
   using real_t = float;
@@ -27,12 +27,11 @@ namespace config
 
   enum {x, z}; // dimensions
 
-
   class setup_t
   {
     public:
     quantity<si::temperature, real_t> th_0;
-    quantity<si::dimensionless, real_t> rv_0 = 7.5e-3;
+    quantity<si::dimensionless, real_t> rv_0;
     quantity<si::pressure, real_t> p_0;
     quantity<si::velocity, real_t> w_max;
     quantity<si::length, real_t>  z_0, Z, X;
@@ -53,7 +52,6 @@ namespace config
     quantity<si::time, real_t> tau_rlx;
     quantity<si::length, real_t> z_rlx;
   };
-
 
   // lognormal aerosol distribution
   template <typename T>
@@ -76,14 +74,15 @@ namespace config
     { return new log_dry_radii( *this ); }
   };
 
-
+  /// (similar to eq. 2 in @copydetails Rasinski_et_al_2011, Atmos. Res. 102)
+  /// @arg xX = x / X
+  /// @arg zZ = z / Z
   real_t psi(real_t xX, real_t zZ) // for computing a numerical derivative
   {
     using namespace boost::math;
     return - sin_pi(zZ) * cos_pi(2 * xX);
   }
   BZ_DECLARE_FUNCTION2_RET(psi, real_t)
-
 /*
   struct dpsi_dz
   {
@@ -98,7 +97,6 @@ namespace config
     }
     BZ_DECLARE_FUNCTOR(dpsi_dz)
   }
-
   struct dpsi_dx
   {
     setup_t setup;
@@ -138,24 +136,6 @@ namespace config
     BZ_DECLARE_FUNCTOR(rhod);
   };
 
-
-
-  /// (similar to eq. 2 in @copydetails Rasinski_et_al_2011, Atmos. Res. 102)
-  /// @arg xX = x / X
-  /// @arg zZ = z / Z
-
-/*
-  void opts_setup(setup_t &setup)
-  {
-    po::options_description opts("setup options");
-    opts.add_options()
-      ("th_0", po::value<real_t>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
-    // TODO: MAC, HAC, vent_coef
-  ;
-  po::variables_map vm;
-  handle_opts(opts, vm);
-  }
-*/
   // function expecting a libmpdata solver parameters struct as argument
   template <class T>
   void setopts(T &params, int nx, int nz, setup_t &setup)
@@ -213,5 +193,4 @@ namespace config
     //dpsi_dx(i/real_t(nx-1), (j+.5)/real_t(nz-1))
     * (setup.dt / si::seconds) / dz; // converting to Courant number
   }
-
 };

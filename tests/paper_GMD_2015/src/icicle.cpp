@@ -10,7 +10,7 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 
-#include "icmw8_case1.hpp" // 8th ICMW case 1 by Wojciech Grabowski)
+#include "icmw8_case1.hpp" // setup from 8th ICMW case 1 by Wojciech Grabowski
 
 #include "opts_blk_1m.hpp"
 #include "opts_blk_2m.hpp"
@@ -69,7 +69,6 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
     config::intcond(*static_cast<concurr_t*>(slv.get()), setup);
   }
 
-
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
   set_sigaction();
@@ -77,7 +76,6 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   // timestepping
   slv->advance(nt);
 }
-
 
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
@@ -87,7 +85,6 @@ struct ct_params_common : ct_params_default_t
   enum { opts = opts::nug | opts::fct }; 
   enum { rhs_scheme = solvers::euler_b };
 };
-
 
 // all starts here with handling general options 
 int main(int argc, char** argv)
