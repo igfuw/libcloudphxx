@@ -96,5 +96,7 @@ for sstp_cond in [1,2,5]:
   prtcls.diag_all()
   prtcls.diag_wet_mom(3);
   wet_post_adve_cond = frombuffer(prtcls.outbuf()).copy()
+  print wet_post_adve
+  print wet_post_adve_cond
   assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=1e-5)
 
