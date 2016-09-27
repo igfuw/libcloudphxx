@@ -208,6 +208,28 @@ int main(int argc, char** argv)
         run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
     }
+    else if (micro == "lgrngn_chem")
+    {
+      if (relax_th_rv)
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 8 };
+  	  struct ix { enum {th, rv, SO2g, O3g, H2O2g, CO2g, NH3g, HNO3g}; };
+        };
+        run<kin_cloud_2d_lgrngn_chem<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 8 };
+  	  struct ix { enum {th, rv, SO2g, O3g, H2O2g, CO2g, NH3g, HNO3g}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_lgrngn_chem<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+    }
     else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 

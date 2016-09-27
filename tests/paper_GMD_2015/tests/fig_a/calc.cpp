@@ -35,8 +35,8 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=1 --nt=2 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=false";
   set<string> opts_micro({
-//    "--micro=blk_1m --outdir=out_blk_1m",
-  //  "--micro=blk_2m --outdir=out_blk_2m",
+    "--micro=blk_1m --outdir=out_blk_1m",
+    "--micro=blk_2m --outdir=out_blk_2m",
     "--micro=lgrngn --outdir=out_lgrngn --backend=OpenMP --sd_conc=64 --sstp_cond=10 --sstp_coal=10"  
     " --th_0=310"
       " --out_wet=\""
