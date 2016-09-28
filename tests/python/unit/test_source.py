@@ -99,5 +99,5 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(1)
 tmp = frombuffer(prtcls.outbuf())
 print 'wet mom1', tmp
-if (abs( (7.84 / 2.12) - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
+if (abs( (7.24 / 2.07) - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
   raise Exception("incorrect radius after source")
