@@ -22,6 +22,13 @@ namespace libcloudphxx
       count_num.resize(n_cell);
       count_mom.resize(n_cell);
       count_n = 0;
+
+      if(opts_init.sstp_cond > 1)
+      {
+        sstp_tmp_rv.resize(n_cell);
+        sstp_tmp_th.resize(n_cell);
+        sstp_tmp_rh.resize(n_cell);
+      }
     }
   };
 };

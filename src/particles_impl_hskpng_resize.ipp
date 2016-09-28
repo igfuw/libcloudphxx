@@ -37,7 +37,7 @@ namespace libcloudphxx
       {
         tmp_device_real_part1.resize(n_part);
       }
-      if(opts_init.sstp_cond>1)
+      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
       {
         tmp_device_real_part2.resize(n_part);
         tmp_device_real_part3.resize(n_part);

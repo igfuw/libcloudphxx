@@ -43,7 +43,7 @@ namespace libcloudphxx
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
 
-      if(opts_init.sstp_cond>1)
+      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
       {
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
         tmp_device_real_part3.reserve(opts_init.n_sd_max); 

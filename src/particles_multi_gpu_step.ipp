@@ -144,7 +144,7 @@ namespace libcloudphxx
           thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
           std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
           if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
-          if(glob_opts_init.sstp_cond > 1)
+          if(glob_opts_init.sstp_cond > 1 && glob_opts_init.exact_sstp_cond)
           {
             real_t_vctrs.push_back(&sstp_tmp_rv);
             real_t_vctrs.push_back(&sstp_tmp_th);

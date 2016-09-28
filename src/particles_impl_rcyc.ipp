@@ -91,7 +91,7 @@ namespace libcloudphxx
       detail::copy_prop<real_t>(rd3.begin(), sorted_id, n_flagged);
       detail::copy_prop<real_t>(rw2.begin(), sorted_id, n_flagged);
       detail::copy_prop<real_t>(kpa.begin(), sorted_id, n_flagged);
-      if(opts_init.sstp_cond > 1)
+      if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
       {
         detail::copy_prop<real_t>(sstp_tmp_rv.begin(), sorted_id, n_flagged);
         detail::copy_prop<real_t>(sstp_tmp_th.begin(), sorted_id, n_flagged);
