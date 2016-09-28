@@ -57,6 +57,7 @@ print "coal_switch = ", opts_init.coal_switch
 print "sedi_switch = ", opts_init.sedi_switch
 print "src_switch = ", opts_init.src_switch
 
+print "exact_sstp_cond = ", opts_init.exact_sstp_cond
 print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
