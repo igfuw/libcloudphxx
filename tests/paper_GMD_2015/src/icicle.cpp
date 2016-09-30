@@ -10,7 +10,7 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 
-#include "icmw8_case1.hpp" // 8th ICMW case 1 by Wojciech Grabowski)
+#include "icmw8_case1.hpp" // 8th ICMW case 1 by Wojciech Grabowski
 
 #include "opts_blk_1m.hpp"
 #include "opts_blk_2m.hpp"

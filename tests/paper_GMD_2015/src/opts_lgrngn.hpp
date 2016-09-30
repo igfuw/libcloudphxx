@@ -9,6 +9,7 @@
 
 #include "opts_common.hpp"
 #include "kin_cloud_2d_lgrngn.hpp"
+#include "kin_cloud_2d_lgrngn_chem.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -43,14 +44,18 @@ void setopts_micro(
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
     // free parameters
+    ("chem_rho", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.chem_rho) , "assumed dry aerosol density ")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     ("dev_count", po::value<int>()->default_value(rt_params.cloudph_opts_init.dev_count), "no of GPUs to use")
-    // 
+    // output
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_wet_pH", po::value<std::string>()->default_value("0:1|0"), "wet radius ranges for output of H+ and S_VI)")
+    ("out_chem", po::value<std::string>()->default_value("0:1|0"),   "dry radius ranges for which chem mass is outputted")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -82,14 +87,6 @@ void setopts_micro(
     setup
   );
 
-  // output variables
-  rt_params.outvars = {
-    // <TODO>: make it common among all three micro?
-    {solver_t::ix::th, {"th", "[K]"}},
-    {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
-    // </TODO>
-  };
-
   // process toggling
   rt_params.cloudph_opts.adve = vm["adve"].as<bool>();
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
@@ -100,6 +97,8 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
+  rt_params.cloudph_opts_init.chem_switch = vm["chem_switch"].as<bool>();
+  rt_params.cloudph_opts_init.chem_rho    = vm["chem_rho"].as<setup::real_t>();
 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
@@ -114,9 +113,34 @@ void setopts_micro(
   // terminal velocity choice
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
+  // output variables
+  if (rt_params.cloudph_opts_init.chem_switch == false)
+    rt_params.outvars = {
+      // <TODO>: make it common among all three micro?
+      {solver_t::ix::th, {"th", "[K]"}},
+      {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
+      // </TODO>
+    };
+  else
+    rt_params.outvars = {
+      {solver_t::ix::th, {"th", "[K]"}},
+      {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
+      {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
+      {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
+      {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
+      {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
+      {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
+      {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
+    };
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  std::set<std::string> out_set;
+  if (rt_params.cloudph_opts_init.chem_switch == true)
+    out_set = {"out_dry", "out_wet", "out_chem", "out_wet_pH"};
+  else
+    out_set = {"out_dry", "out_wet"};
+  for (auto &opt : out_set)
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;

@@ -24,6 +24,8 @@ namespace config
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
+  namespace molar_mass  = libcloudphxx::common::molar_mass;
+  namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions
 
@@ -32,7 +34,7 @@ namespace config
   {
     public:
     quantity<si::temperature, real_t> th_0;
-    quantity<si::dimensionless, real_t> rv_0 = 7.5e-3;
+    quantity<si::dimensionless, real_t> rv_0;
     quantity<si::pressure, real_t> p_0;
     quantity<si::velocity, real_t> w_max;
     quantity<si::length, real_t>  z_0, Z, X;
@@ -48,6 +50,8 @@ namespace config
     quantity<si::dimensionless, real_t> kappa; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
     // for blk_2m:
     quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
+    // for lagrangian simulations with aq. chemistry
+    quantity<si::dimensionless, real_t> SO2_g_0, O3_g_0, H2O2_g_0, CO2_g_0, NH3_g_0, HNO3_g_0;
 
     //th and rv relaxation time and height
     quantity<si::time, real_t> tau_rlx;
@@ -76,14 +80,15 @@ namespace config
     { return new log_dry_radii( *this ); }
   };
 
-
+  /// (similar to eq. 2 in @copydetails Rasinski_et_al_2011, Atmos. Res. 102)
+  /// @arg xX = x / X
+  /// @arg zZ = z / Z
   real_t psi(real_t xX, real_t zZ) // for computing a numerical derivative
   {
     using namespace boost::math;
     return - sin_pi(zZ) * cos_pi(2 * xX);
   }
   BZ_DECLARE_FUNCTION2_RET(psi, real_t)
-
 /*
   struct dpsi_dz
   {
@@ -123,13 +128,8 @@ namespace config
 
     real_t operator()(real_t z) const
     {
-      quantity<si::pressure, real_t> p = hydrostatic::p(
-	z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0
-      );
-      
-      quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-	p, setup.th_0, setup.rv_0
-      );
+      quantity<si::pressure, real_t> p = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
 
       return rhod / si::kilograms * si::cubic_metres;
     }
@@ -138,24 +138,31 @@ namespace config
     BZ_DECLARE_FUNCTOR(rhod);
   };
 
-
-
-  /// (similar to eq. 2 in @copydetails Rasinski_et_al_2011, Atmos. Res. 102)
-  /// @arg xX = x / X
-  /// @arg zZ = z / Z
-
-/*
-  void opts_setup(setup_t &setup)
+  // mixing ratio helper profile as a function of altitude
+  struct mixr_helper
   {
-    po::options_description opts("setup options");
-    opts.add_options()
-      ("th_0", po::value<real_t>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
-    // TODO: MAC, HAC, vent_coef
-  ;
-  po::variables_map vm;
-  handle_opts(opts, vm);
-  }
-*/
+    setup_t setup;
+    mixr_helper(const setup_t &setup):
+      setup(setup) 
+      {}
+
+    real_t operator()(real_t z) const
+    {
+      quantity<si::pressure, real_t>     p    = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  thd  = theta_dry::std2dry(setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  T    = theta_dry::T(thd, rhod);
+
+      typedef divide_typeof_helper<si::amount, si::mass>::type moles_over_mass;
+
+      quantity<moles_over_mass, real_t> mixr_helper = p / moist_air::kaBoNA<real_t>() / T / rhod;
+
+      return mixr_helper * si::kilograms / si::moles;
+    }
+    // to make the mixr_g() functor accept Blitz arrays as arguments
+    BZ_DECLARE_FUNCTOR(mixr_helper);
+  };
+
   // function expecting a libmpdata solver parameters struct as argument
   template <class T>
   void setopts(T &params, int nx, int nz, setup_t &setup)
@@ -188,6 +195,17 @@ namespace config
     // constant potential temperature & water vapour mixing ratio profiles
     solver.advectee(ix::th) = (theta_dry::std2dry(setup.th_0, setup.rv_0) / si::kelvins); 
     solver.advectee(ix::rv) = real_t(setup.rv_0);
+
+    if (setup.SO2_g_0 != 0) //TODO
+    {
+      // trace gases profiles
+      solver.advectee(ix::SO2g)  = mixr_helper()(j * dz) * (setup.SO2_g_0  * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
+      solver.advectee(ix::O3g)   = mixr_helper()(j * dz) * (setup.O3_g_0   * molar_mass::M_O3<real_t>()   * si::moles / si::kilograms);
+      solver.advectee(ix::H2O2g) = mixr_helper()(j * dz) * (setup.H2O2_g_0 * molar_mass::M_H2O2<real_t>() * si::moles / si::kilograms);
+      solver.advectee(ix::CO2g)  = mixr_helper()(j * dz) * (setup.CO2_g_0  * molar_mass::M_CO2<real_t>()  * si::moles / si::kilograms);
+      solver.advectee(ix::NH3g)  = mixr_helper()(j * dz) * (setup.NH3_g_0  * molar_mass::M_NH3<real_t>()  * si::moles / si::kilograms);
+      solver.advectee(ix::HNO3g) = mixr_helper()(j * dz) * (setup.HNO3_g_0 * molar_mass::M_HNO3<real_t>() * si::moles / si::kilograms);
+    }
 
     // density profile
     solver.g_factor() = rhod(setup)(j * dz);
