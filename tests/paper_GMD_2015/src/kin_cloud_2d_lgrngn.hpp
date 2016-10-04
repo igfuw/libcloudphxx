@@ -112,6 +112,23 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     // TODO: barrier?
     if (this->rank == 0) 
     {
+      //save all setup parameters as attributes of setup dataset in 'const.h5' file
+      this->record_aux_const("th_0",     this->setup.th_0 / si::kelvins);
+      this->record_aux_const("rv_0",     this->setup.rv_0);
+      this->record_aux_const("p_0",      this->setup.p_0 / si::pascals);
+      this->record_aux_const("w_max",    this->setup.w_max * si::seconds / si::metres);
+      this->record_aux_const("z_0",      this->setup.z_0 / si::metres);
+      this->record_aux_const("X",        this->setup.X / si::metres);
+      this->record_aux_const("Z",        this->setup.Z / si::metres);
+      this->record_aux_const("dt",       this->setup.dt / si::seconds);
+      this->record_aux_const("mean_rd1", this->setup.mean_rd1 / si::metres);
+      this->record_aux_const("mean_rd2", this->setup.mean_rd2 / si::metres);
+      this->record_aux_const("sdev_rd1", this->setup.sdev_rd1);
+      this->record_aux_const("sdev_rd2", this->setup.sdev_rd2);
+      this->record_aux_const("n1_stp",   this->setup.n1_stp * si::cubic_metres);
+      this->record_aux_const("n2_stp",   this->setup.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa",    this->setup.kappa);
+
       assert(params.backend != -1);
       assert(params.dt != 0); 
 
