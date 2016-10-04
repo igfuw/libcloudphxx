@@ -18,8 +18,77 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 
+/*
+// a riddle for tired mind :) - how to make it work without passing ct_params
+
+template <class solver_tp>
+struct setopts_micro_chem_f;
+
+template <template<class> class solver_tp, class ct_params_t>
+struct setopts_micro_chem_f<solver_tp<ct_params_t>>
+{
+   void operator()(typename solver_tp<ct_params_t>::rt_params_t &rt_params,
+                   typename std::enable_if<std::is_same<solver_tp<ct_params_t>, kin_cloud_2d_lgrngn<ct_params_t>>::value>::type* = 0                  )
+   {
+     using solver_t = solver_tp<ct_params_t>;
+     rt_params.outvars = {
+       {solver_t::ix::th, {"th", "[K]"}},
+       {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
+     };
+   }
+   
+   void operator()(typename solver_tp<ct_params_t>::rt_params_t &rt_params,
+                   typename std::enable_if<std::is_same<solver_tp<ct_params_t>, kin_cloud_2d_lgrngn_chem<ct_params_t>>::value>::type* = 0                  )
+   {
+     using solver_t = solver_tp<ct_params_t>;
+     rt_params.outvars = {
+       {solver_t::ix::th, {"th", "[K]"}},
+       {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
+       {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
+       {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
+       {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
+       {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
+       {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
+       {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
+     };
+   }
+};
+
+//and then to call it ...
+  setopts_micro_chem_f<solver_t> chem_f{};
+  chem_f(rt_params);
+
+//increment the number of hours you have spent on it: 1
+*/
+
+template <class solver_t, class ct_params_t>
+void setopts_micro_chem(typename solver_t::rt_params_t &rt_params, 
+	                typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn<ct_params_t>>::value>::type* = 0)
+{
+    rt_params.outvars = {
+      {solver_t::ix::th, {"th", "[K]"}},
+      {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
+    };
+}
+
+template <class solver_t, class ct_params_t>
+void setopts_micro_chem(typename solver_t::rt_params_t &rt_params, 
+	                typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn_chem<ct_params_t>>::value>::type* = 0)
+{
+    rt_params.outvars = {
+      {solver_t::ix::th, {"th", "[K]"}},
+      {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
+      {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
+      {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
+      {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
+      {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
+      {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
+      {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
+    };
+}
+
 // simulation and output parameters for micro=lgrngn
-template <class solver_t>
+template <class solver_t, class ct_params_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   int nx, int nz, int nt, config::setup_t &setup,
@@ -46,7 +115,6 @@ void setopts_micro(
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
     // free parameters
-    ("chem_rho", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.chem_rho) , "assumed dry aerosol density ")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
@@ -60,7 +128,6 @@ void setopts_micro(
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
-
       
   std::string backend_str = vm["backend"].as<std::string>();
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
@@ -98,7 +165,7 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
   rt_params.cloudph_opts_init.chem_switch = vm["chem_switch"].as<bool>();
-  rt_params.cloudph_opts_init.chem_rho    = vm["chem_rho"].as<setup::real_t>();
+  rt_params.cloudph_opts_init.chem_rho    = setup.chem_rho * si::cubic_metres / si::kilograms;
 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
@@ -113,25 +180,7 @@ void setopts_micro(
   // terminal velocity choice
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
-  // output variables
-  if (rt_params.cloudph_opts_init.chem_switch == false)
-    rt_params.outvars = {
-      // <TODO>: make it common among all three micro?
-      {solver_t::ix::th, {"th", "[K]"}},
-      {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
-      // </TODO>
-    };
-  else
-    rt_params.outvars = {
-      {solver_t::ix::th, {"th", "[K]"}},
-      {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
-      {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
-      {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
-      {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
-      {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
-      {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
-      {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
-    };
+  setopts_micro_chem<solver_t, ct_params_t>(rt_params);
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."

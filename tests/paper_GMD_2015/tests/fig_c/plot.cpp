@@ -9,7 +9,7 @@ int main(int ac, char** av)
   Gnuplot gp;
   init(gp, "./plot.svg", 1, 1, n);
 
-  using namespace icmw8_case1;
+  using namespace config;
 
   float dx = (X / si::metres) / (n["x"]-1), dz = (Z / si::metres) / (n["z"]-1);
 

@@ -15,7 +15,7 @@
 
 // TODO: relaxation terms still missing
 
-// 8th ICMW case 1 by Wojciech Grabowski)
+// setup taken from 8th ICMW case 1 by Wojciech Grabowski
 namespace config
 {
   using real_t = float;
@@ -24,11 +24,9 @@ namespace config
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
-  namespace molar_mass  = libcloudphxx::common::molar_mass;
   namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions
-
 
   class setup_t
   {
@@ -52,12 +50,12 @@ namespace config
     quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
     // for lagrangian simulations with aq. chemistry
     quantity<si::dimensionless, real_t> SO2_g_0, O3_g_0, H2O2_g_0, CO2_g_0, NH3_g_0, HNO3_g_0;
+    quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> chem_rho;
 
     //th and rv relaxation time and height
     quantity<si::time, real_t> tau_rlx;
     quantity<si::length, real_t> z_rlx;
   };
-
 
   // lognormal aerosol distribution
   template <typename T>
@@ -103,7 +101,6 @@ namespace config
     }
     BZ_DECLARE_FUNCTOR(dpsi_dz)
   }
-
   struct dpsi_dx
   {
     setup_t setup;
@@ -196,17 +193,6 @@ namespace config
     solver.advectee(ix::th) = (theta_dry::std2dry(setup.th_0, setup.rv_0) / si::kelvins); 
     solver.advectee(ix::rv) = real_t(setup.rv_0);
 
-    if (setup.SO2_g_0 != 0) //TODO
-    {
-      // trace gases profiles
-      solver.advectee(ix::SO2g)  = mixr_helper()(j * dz) * (setup.SO2_g_0  * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
-      solver.advectee(ix::O3g)   = mixr_helper()(j * dz) * (setup.O3_g_0   * molar_mass::M_O3<real_t>()   * si::moles / si::kilograms);
-      solver.advectee(ix::H2O2g) = mixr_helper()(j * dz) * (setup.H2O2_g_0 * molar_mass::M_H2O2<real_t>() * si::moles / si::kilograms);
-      solver.advectee(ix::CO2g)  = mixr_helper()(j * dz) * (setup.CO2_g_0  * molar_mass::M_CO2<real_t>()  * si::moles / si::kilograms);
-      solver.advectee(ix::NH3g)  = mixr_helper()(j * dz) * (setup.NH3_g_0  * molar_mass::M_NH3<real_t>()  * si::moles / si::kilograms);
-      solver.advectee(ix::HNO3g) = mixr_helper()(j * dz) * (setup.HNO3_g_0 * molar_mass::M_HNO3<real_t>() * si::moles / si::kilograms);
-    }
-
     // density profile
     solver.g_factor() = rhod(setup)(j * dz);
 
@@ -231,5 +217,4 @@ namespace config
     //dpsi_dx(i/real_t(nx-1), (j+.5)/real_t(nz-1))
     * (setup.dt / si::seconds) / dz; // converting to Courant number
   }
-
 };
