@@ -2,28 +2,33 @@
 #include "bins.hpp"
 #include "gnuplot.hpp"
 #include "hdf5.hpp"
+#include <libcloudph++/common/molar_mass.hpp>
+#include <libcloudph++/common/moist_air.hpp>
+
+using namespace libcloudphxx::common::molar_mass;
+using namespace libcloudphxx::common::moist_air;
 
 int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
   std::string
-    dir = string(av[1]) + "/tests/fig_a/",
-    h5  = dir + "out_lgrngn";
+    dir = string(av[1]) + "/tests/chem_sandbox/",
+    h5  = dir + "out_lgrngn_chem";
 
   auto n = h5n(h5);
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
-    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "sd_conc", "th", "rv"}))
+    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-      if (n["x"] == 76 && n["z"] == 76)
+      if (n["x"] == 75 && n["z"] == 75) //76
       {
 	{
-	  char lbl = 'i';
+	  char lbl = 'c';
 	  for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
 	  {
 	    for (auto &pr : fcs) 
@@ -44,13 +49,13 @@ int main(int ac, char** av)
 
 	      lbl -= 2;
 	    }
-	    lbl = 'j';
+	    lbl = 'd';
 	  }
 	}
 
 	// labels
 	{
-	  char lbl = 'i';
+	  char lbl = 'c';
 	  for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
 	  {
 	    for (auto &pr : fcs) 
@@ -63,7 +68,7 @@ int main(int ac, char** av)
 
 	      lbl -= 2;
 	    }
-	    lbl = 'j';
+	    lbl = 'd';
 	  }
 	}
       }
@@ -114,6 +119,7 @@ int main(int ac, char** av)
 	gp << "set cbrange [1:20]\n";
 	plot(gp, r_eff);
       }
+
       else if (plt == "na")
       {
 	// aerosol concentration
@@ -131,6 +137,14 @@ int main(int ac, char** av)
 	tmp /= 1e6;
 	plot(gp, tmp);
       }
+      else if (plt == "rd")
+      {
+	auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
+	gp << "set title 'dry radius [μm]'\n"; 
+ 	gp << "set cbrange [0.02:0.14]\n";
+	plot(gp, r_d);
+      }
+
       else if (plt == "sd_conc")
       {
         // super-droplet concentration
@@ -153,7 +167,9 @@ int main(int ac, char** av)
         gp << "set cbrange [6.5:7.7]\n";
         plot(gp, rv);
       }
+
       else assert(false);
     } // var loop
   } // time loop
 } // main
+

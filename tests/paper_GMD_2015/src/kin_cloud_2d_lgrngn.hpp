@@ -42,6 +42,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     {
       // dry
       int rng_num = 0;
+
       for (auto &rng_moms : params.out_dry)
       {
         auto &rng(rng_moms.first);
@@ -278,7 +279,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     outmom_t<real_t> out_dry, out_wet;
   };
 
-  private:
+  protected:
 
   // per-thread copy of params
   rt_params_t params;
