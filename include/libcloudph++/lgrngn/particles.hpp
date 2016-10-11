@@ -132,7 +132,7 @@ namespace libcloudphxx
       void diag_kappa(const int&);
 
       struct impl;
-      std::auto_ptr<impl> pimpl;
+      std::unique_ptr<impl> pimpl;
 
       // constructor
       particles_t(const opts_init_t<real_t> &opts_init, const int &n_cell_bfr = 0); // only opts_init specified by user
