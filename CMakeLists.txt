@@ -139,6 +139,11 @@ file(WRITE "${tmpdir}/test.cpp" "
   #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
   
   #include <thrust/system/cpp/vector.h>
+
+  #include <boost/numeric/odeint.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
   
   struct rhs 
   {
@@ -153,11 +158,20 @@ file(WRITE "${tmpdir}/test.cpp" "
   
   int main() 
   { 
-    thrust::cpp::vector<float> v1(11);
-    thrust::cpp::vector<float> v2(22);
-    rhs()(v1, v2, 0);
+    boost::numeric::odeint::euler<
+      thrust::cpp::vector<float>, // state_type
+      float,                      // value_type
+      thrust::cpp::vector<float>, // deriv_type
+      float,                      // time_type
+      boost::numeric::odeint::thrust_algebra,
+      boost::numeric::odeint::thrust_operations 
+    > chem_stepper;
+  
+    thrust::cpp::vector<float> v(11);
+    chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
+
 execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
 if (NOT status EQUAL 0) 
   message(FATAL_ERROR "${pfx}: c++ compiler failed\n ${msg}")
