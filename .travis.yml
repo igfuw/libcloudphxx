@@ -30,19 +30,31 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
- #   - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd thrust; fi
- #   - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git checkout 2f9ae5762cc05c8421887a5318b2f4ecc8652044; fi
- #   - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd ../; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then chmod +x miniconda.sh; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then bash miniconda.sh -b -p $HOME/miniconda; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PATH="$HOME/miniconda/bin:$PATH"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then hash -r; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda config --set always_yes yes --set changeps1 no; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda update -q conda; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda create -q -n test-environment python="2.7"; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then source activate test-environment; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda install numpy scipy matplotlib pip gnuplot pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd thrust; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git checkout 2f9ae5762cc05c8421887a5318b2f4ecc8652044; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd ../; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python setup.py install; fi
+
+#    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy; fi
 
 script:
