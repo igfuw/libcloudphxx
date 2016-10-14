@@ -1,6 +1,6 @@
 language: cpp
 os: 
-    - linux
+#    - linux
     - osx
 compiler:
     - gcc
@@ -41,7 +41,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda create -q -n test-environment python="2.7"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then source activate test-environment; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda install numpy scipy matplotlib pip gnuplot pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda install numpy scipy matplotlib pip pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
@@ -49,11 +49,11 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git checkout 2f9ae5762cc05c8421887a5318b2f4ecc8652044; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd ../; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then python setup.py install; fi
 
-#    - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy; fi
