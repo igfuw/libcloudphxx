@@ -30,6 +30,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install md5sha1sum; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then chmod +x miniconda.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then bash miniconda.sh -b -p $HOME/miniconda; fi
