@@ -1,6 +1,6 @@
 language: cpp
 python:
-    - "2.7"
+    - "2.7.10"
 os: 
 #    - linux
     - osx
