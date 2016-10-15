@@ -43,7 +43,7 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then conda install numpy scipy matplotlib pip pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink boost; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install homebrew/versions/boost159 --with-python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install homebrew/versions/boost162 --with-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
