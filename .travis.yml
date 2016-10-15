@@ -45,8 +45,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink boost; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install homebrew/versions/boost159 --with-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install homebrew/versions/boost-python159; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link boost159; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link boost-python159; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link --force boost159; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link --force boost-python159; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
