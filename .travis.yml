@@ -60,6 +60,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install pyenv; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pyenv install 2.7.10; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pyenv global 2.7.10; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo $PYTHONPATH; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHONPATH=/Users/travis/.pyenv/versions/2.7.10:$PYTHONPATH; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo $PYTHONPATH; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
