@@ -15,8 +15,8 @@
 
 // TODO: relaxation terms still missing
 
-// 8th ICMW case 1 by Wojciech Grabowski)
-namespace icmw8_case1
+// setup taken from 8th ICMW case 1 by Wojciech Grabowski
+namespace config
 {
   using real_t = float;
 
@@ -24,66 +24,59 @@ namespace icmw8_case1
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
+  namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions
 
-  const quantity<si::temperature, real_t> 
-    th_0 = 289 * si::kelvins;
-  const quantity<si::dimensionless, real_t> 
-    rv_0 = 7.5e-3;
-  const quantity<si::pressure, real_t> 
-    p_0 = 101500 * si::pascals;
-  const quantity<si::velocity, real_t> 
-    w_max = real_t(.6) * si::metres_per_second;
-  const quantity<si::length, real_t> 
-    z_0  = 0    * si::metres,
-    Z    = 1500 * si::metres, 
-    X    = 1500 * si::metres;
-  const quantity<si::time, real_t>
-    dt = real_t(1) * si::seconds;
-
-  //aerosol bimodal lognormal dist. 
-  const quantity<si::length, real_t>
-    mean_rd1 = real_t(.04e-6 / 2) * si::metres,
-    mean_rd2 = real_t(.15e-6 / 2) * si::metres;
-  const quantity<si::dimensionless, real_t>
-    sdev_rd1 = real_t(1.4),
-    sdev_rd2 = real_t(1.6);
-  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp = real_t(60e6) / si::cubic_metres,
-    n2_stp = real_t(40e6) / si::cubic_metres;
-
-  //aerosol chemical composition parameters (needed for activation)
-  // for lgrngn:
-  const quantity<si::dimensionless, real_t> kappa = .61; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
-  // for blk_2m:
-  const quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride
-
-  //th and rv relaxation time and height
-  const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
-  const quantity<si::length, real_t> z_rlx = 200 * si::metres;
-
-  // density profile as a function of altitude
-  struct rhod
+  class setup_t
   {
-    real_t operator()(real_t z) const
-    {
-      quantity<si::pressure, real_t> p = hydrostatic::p(
-	z * si::metres, th_0, rv_0, z_0, p_0
-      );
-      
-      quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-	p, th_0, rv_0
-      );
+    public:
+    quantity<si::temperature, real_t> th_0;
+    quantity<si::dimensionless, real_t> rv_0;
+    quantity<si::pressure, real_t> p_0;
+    quantity<si::velocity, real_t> w_max;
+    quantity<si::length, real_t>  z_0, Z, X;
+    quantity<si::time, real_t> dt;
 
-      return rhod / si::kilograms * si::cubic_metres;
-    }
+    //aerosol bimodal lognormal dist. 
+    quantity<si::length, real_t> mean_rd1, mean_rd2;
+    quantity<si::dimensionless, real_t> sdev_rd1, sdev_rd2;
+    quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n1_stp, n2_stp;
 
-    // to make the rhod() functor accept Blitz arrays as arguments
-    BZ_DECLARE_FUNCTOR(rhod);
+    //aerosol chemical composition parameters (needed for activation)
+    // for lgrngn:
+    quantity<si::dimensionless, real_t> kappa; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
+    // for blk_2m:
+    quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
+    // for lagrangian simulations with aq. chemistry
+    quantity<si::dimensionless, real_t> SO2_g_0, O3_g_0, H2O2_g_0, CO2_g_0, NH3_g_0, HNO3_g_0;
+    quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> chem_rho;
+
+    //th and rv relaxation time and height
+    quantity<si::time, real_t> tau_rlx;
+    quantity<si::length, real_t> z_rlx;
   };
 
+  // lognormal aerosol distribution
+  template <typename T>
+  struct log_dry_radii : public libcloudphxx::common::unary_function<T>
+  {
+    setup_t setup;
+    log_dry_radii(const setup_t &setup):
+      setup(setup) {}
 
+    T funval(const T lnrd) const
+    {
+      return T((
+          lognormal::n_e(setup.mean_rd1, setup.sdev_rd1, setup.n1_stp, quantity<si::dimensionless, real_t>(lnrd)) +
+          lognormal::n_e(setup.mean_rd2, setup.sdev_rd2, setup.n2_stp, quantity<si::dimensionless, real_t>(lnrd)) 
+        ) * si::cubic_metres
+      );
+    }
+
+    log_dry_radii *do_clone() const 
+    { return new log_dry_radii( *this ); }
+  };
 
   /// (similar to eq. 2 in @copydetails Rasinski_et_al_2011, Atmos. Res. 102)
   /// @arg xX = x / X
@@ -94,33 +87,92 @@ namespace icmw8_case1
     return - sin_pi(zZ) * cos_pi(2 * xX);
   }
   BZ_DECLARE_FUNCTION2_RET(psi, real_t)
-
-  real_t dpsi_dz(real_t xX, real_t zZ)
+/*
+  struct dpsi_dz
   {
-    using namespace boost::math;
-    return - pi<real_t>() / (Z / si::metres) * cos_pi(2 * xX) * cos_pi(zZ);
-  }
-  BZ_DECLARE_FUNCTION2_RET(dpsi_dz, real_t)
+    setup_t setup;
+    dpsi_dz(const setup_t &setup):
+      setup(setup) {}
 
-  real_t dpsi_dx(real_t xX, real_t zZ)
-  {
-    using namespace boost::math;
-    return 2 * pi<real_t>() / (X / si::metres) * sin_pi(2 * xX) * sin_pi(zZ);
+    real_t operator()(real_t xX, real_t zZ) // for computing a numerical derivative
+    {
+      using namespace boost::math;
+      return - pi<real_t>() / (setup.Z / si::metres) * cos_pi(2 * xX) * cos_pi(zZ);
+    }
+    BZ_DECLARE_FUNCTOR(dpsi_dz)
   }
-  BZ_DECLARE_FUNCTION2_RET(dpsi_dx, real_t)
+  struct dpsi_dx
+  {
+    setup_t setup;
+    dpsi_dx(const setup_t &setup):
+      setup(setup) {}
+
+    real_t operator()(real_t xX, real_t zZ) // for computing a numerical derivative
+    {
+      using namespace boost::math;
+      return 2 * pi<real_t>() / (setup.X / si::metres) * sin_pi(2 * xX) * sin_pi(zZ);
+    }
+    BZ_DECLARE_FUNCTOR(dpsi_dx)
+  }
+*/
+  // density profile as a function of altitude
+  struct rhod
+  {
+    setup_t setup;
+    rhod(const setup_t &setup):
+      setup(setup)
+      {}
+
+    real_t operator()(real_t z) const
+    {
+      quantity<si::pressure, real_t> p = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
+
+      return rhod / si::kilograms * si::cubic_metres;
+    }
+
+    // to make the rhod() functor accept Blitz arrays as arguments
+    BZ_DECLARE_FUNCTOR(rhod);
+  };
+
+  // mixing ratio helper profile as a function of altitude
+  struct mixr_helper
+  {
+    setup_t setup;
+    mixr_helper(const setup_t &setup):
+      setup(setup) 
+      {}
+
+    real_t operator()(real_t z) const
+    {
+      quantity<si::pressure, real_t>     p    = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  thd  = theta_dry::std2dry(setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  T    = theta_dry::T(thd, rhod);
+
+      typedef divide_typeof_helper<si::amount, si::mass>::type moles_over_mass;
+
+      quantity<moles_over_mass, real_t> mixr_helper = p / moist_air::kaBoNA<real_t>() / T / rhod;
+
+      return mixr_helper * si::kilograms / si::moles;
+    }
+    // to make the mixr_g() functor accept Blitz arrays as arguments
+    BZ_DECLARE_FUNCTOR(mixr_helper);
+  };
 
   // function expecting a libmpdata solver parameters struct as argument
   template <class T>
-  void setopts(T &params, int nx, int nz)
+  void setopts(T &params, int nx, int nz, setup_t &setup)
   {
-    params.dt = dt / si::seconds;
-    params.dx = (X / si::metres) / (nx-1); 
-    params.dz = (Z / si::metres) / (nz-1);
+    params.dt = setup.dt / si::seconds;
+    params.dx = (setup.X / si::metres) / (nx-1); 
+    params.dz = (setup.Z / si::metres) / (nz-1);
+    params.setup = setup;
   }
 
   // function expecting a libmpdata++ solver as argument
   template <class concurr_t>
-  void intcond(concurr_t &solver)
+  void intcond(concurr_t &solver, const setup_t &setup)
   {
     using ix = typename concurr_t::solver_t::ix;
 
@@ -133,16 +185,16 @@ namespace icmw8_case1
       nx = solver.advectee().extent(x), 
       nz = solver.advectee().extent(z); 
     real_t 
-      dx = (X / si::metres) / (nx-1), 
-      dz = (Z / si::metres) / (nz-1); 
-    real_t A = (w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>() / real_t(2);
+      dx = (setup.X / si::metres) / (nx-1), 
+      dz = (setup.Z / si::metres) / (nz-1); 
+    real_t A = (setup.w_max / si::metres_per_second) * (nx-1) * dx / pi<real_t>() / real_t(2);
 
     // constant potential temperature & water vapour mixing ratio profiles
-    solver.advectee(ix::th) = (theta_dry::std2dry(th_0, rv_0) / si::kelvins); 
-    solver.advectee(ix::rv) = real_t(rv_0);
+    solver.advectee(ix::th) = (theta_dry::std2dry(setup.th_0, setup.rv_0) / si::kelvins); 
+    solver.advectee(ix::rv) = real_t(setup.rv_0);
 
     // density profile
-    solver.g_factor() = rhod()(j * dz);
+    solver.g_factor() = rhod(setup)(j * dz);
 
     // momentum field obtained by numerically differentiating a stream function
     solver.advector(x) = - A * 
@@ -153,7 +205,7 @@ namespace icmw8_case1
     ) / dz                       
     // analytical derivative (ditto)
     //dpsi_dz((i+.5)/real_t(nx-1), j/real_t(nz-1))
-    * (dt / si::seconds) / dx;  // converting to Courant number
+    * (setup.dt / si::seconds) / dx;  // converting to Courant number
 
     solver.advector(z) = A * 
     // numerical derivative (max(abs(div)) ~ 5e-10)
@@ -163,23 +215,6 @@ namespace icmw8_case1
     ) / dx 
     // analytical derivative (max(abs(div)) ~ 3e-5)
     //dpsi_dx(i/real_t(nx-1), (j+.5)/real_t(nz-1))
-    * (dt / si::seconds) / dz; // converting to Courant number
+    * (setup.dt / si::seconds) / dz; // converting to Courant number
   }
-
-  // lognormal aerosol distribution
-  template <typename T>
-  struct log_dry_radii : public libcloudphxx::common::unary_function<T>
-  {
-    T funval(const T lnrd) const
-    {
-      return T((
-          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp, quantity<si::dimensionless, real_t>(lnrd)) +
-          lognormal::n_e(mean_rd2, sdev_rd2, n2_stp, quantity<si::dimensionless, real_t>(lnrd)) 
-        ) * si::cubic_metres
-      );
-    }
-
-    log_dry_radii *do_clone() const 
-    { return new log_dry_radii( *this ); }
-  };
 };

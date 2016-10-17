@@ -10,8 +10,7 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 
-#include "icmw8_case1.hpp" // 8th ICMW case 1 by Wojciech Grabowski)
-namespace setup = icmw8_case1;
+#include "icmw8_case1.hpp" // setup from 8th ICMW case 1 by Wojciech Grabowski
 
 #include "opts_blk_1m.hpp"
 #include "opts_blk_2m.hpp"
@@ -20,9 +19,11 @@ namespace setup = icmw8_case1;
 #include "panic.hpp"
 
 // model run logic - the same for any microphysics
-template <class solver_t>
+template <class solver_t, class ct_params_t>
 void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv)
 {
+  // instantiation of structure containing setup
+  config::setup_t setup;
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
 
@@ -32,8 +33,9 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   p.outfreq = outfreq;
   p.spinup = spinup;
   p.relax_th_rv = relax_th_rv;
-  setup::setopts(p, nx, nz);
-  setopts_micro<solver_t>(p, nx, nz, nt);
+  setopts_common<config::real_t>(setup);
+  config::setopts(p, nx, nz, setup);
+  setopts_micro<solver_t, ct_params_t>(p, nx, nz, nt, setup);
 
   // solver instantiation
   std::unique_ptr<
@@ -52,7 +54,7 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()));
+    config::intcond(*static_cast<concurr_t*>(slv.get()), setup);
   }
   else
   {
@@ -64,9 +66,8 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()));
+    config::intcond(*static_cast<concurr_t*>(slv.get()), setup);
   }
-
 
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
@@ -76,16 +77,14 @@ void run(int nx, int nz, int nt, const std::string &outdir, const int &outfreq, 
   slv->advance(nt);
 }
 
-
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
 {
-  using real_t = setup::real_t;
+  using real_t = config::real_t;
   enum { n_dims = 2 };
   enum { opts = opts::nug | opts::fct }; 
   enum { rhs_scheme = solvers::euler_b };
 };
-
 
 // all starts here with handling general options 
 int main(int argc, char** argv)
@@ -158,7 +157,7 @@ int main(int argc, char** argv)
   	  enum { n_eqns = 4 };
           struct ix { enum {th, rv, rc, rr}; };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_blk_1m<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
       else
       {
@@ -168,7 +167,7 @@ int main(int argc, char** argv)
           struct ix { enum {th, rv, rc, rr}; };
           enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
         };
-        run<kin_cloud_2d_blk_1m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_blk_1m<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
     }
 
@@ -180,7 +179,7 @@ int main(int argc, char** argv)
 	enum { n_eqns = 6 };
 	struct ix { enum {th, rv, rc, rr, nc, nr}; }; 
       };
-      run<kin_cloud_2d_blk_2m<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      run<kin_cloud_2d_blk_2m<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
     }
 
     else 
@@ -193,7 +192,7 @@ int main(int argc, char** argv)
   	  enum { n_eqns = 2 };
   	  struct ix { enum {th, rv}; };
         };
-        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_lgrngn<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
       else
       {
@@ -203,7 +202,29 @@ int main(int argc, char** argv)
   	  struct ix { enum {th, rv}; };
           enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
         };
-        run<kin_cloud_2d_lgrngn<ct_params_t>>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+        run<kin_cloud_2d_lgrngn<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+    }
+    else if (micro == "lgrngn_chem")
+    {
+      if (relax_th_rv)
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 8 };
+  	  struct ix { enum {th, rv, SO2g, O3g, H2O2g, CO2g, NH3g, HNO3g}; };
+        };
+        run<kin_cloud_2d_lgrngn_chem<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
+      }
+      else
+      {
+        struct ct_params_t : ct_params_common
+        {
+  	  enum { n_eqns = 8 };
+  	  struct ix { enum {th, rv, SO2g, O3g, H2O2g, CO2g, NH3g, HNO3g}; };
+          enum { hint_norhs = opts::bit(ix::th) | opts::bit(ix::rv) };
+        };
+        run<kin_cloud_2d_lgrngn_chem<ct_params_t>, ct_params_t>(nx, nz, nt, outdir, outfreq, spinup, adv_serial, relax_th_rv);
       }
     }
     else throw

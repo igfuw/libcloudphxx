@@ -11,10 +11,11 @@
 #include "kin_cloud_2d_blk_1m.hpp"
 
 // simulation and output parameters for micro=blk_1m
-template <class solver_t>
+template <class solver_t, class ct_params_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   int nx, int nz, int nt,
+  config::setup_t &setup,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::blk_1m::opts_t<typename solver_t::real_t>

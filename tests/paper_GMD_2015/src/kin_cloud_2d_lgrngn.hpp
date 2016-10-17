@@ -16,15 +16,18 @@ template <class ct_params_t>
 class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 {
   // note: lgrngn has no rhs terms - just adjustments (but there might be extrinsic rhs terms)
-  using parent_t = kin_cloud_2d_common<ct_params_t>; 
 
   public:
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
-  private:
+
+  protected:
+  using parent_t = kin_cloud_2d_common<ct_params_t>; 
 
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
+
+  bool coal, sedi;
 
   // helper methods
   void diag()
@@ -39,6 +42,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     {
       // dry
       int rng_num = 0;
+
       for (auto &rng_moms : params.out_dry)
       {
         auto &rng(rng_moms.first);
@@ -93,18 +97,39 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
   bool get_rain() { return params.cloudph_opts.coal && params.cloudph_opts.sedi; }
   void set_rain(bool val) 
   { 
-    params.cloudph_opts.coal = params.cloudph_opts.sedi = val; 
-    params.cloudph_opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
+      params.cloudph_opts.coal = val ? coal : false;
+      params.cloudph_opts.sedi = val ? sedi : false;
+      params.cloudph_opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
+    coal = params.cloudph_opts.coal;
+    sedi = params.cloudph_opts.sedi;
+
     parent_t::hook_ante_loop(nt); 
 
     // TODO: barrier?
     if (this->rank == 0) 
     {
+      //save all setup parameters as attributes of setup dataset in 'const.h5' file
+      this->record_aux_const("th_0",     this->setup.th_0 / si::kelvins);
+      this->record_aux_const("rv_0",     this->setup.rv_0);
+      this->record_aux_const("p_0",      this->setup.p_0 / si::pascals);
+      this->record_aux_const("w_max",    this->setup.w_max * si::seconds / si::metres);
+      this->record_aux_const("z_0",      this->setup.z_0 / si::metres);
+      this->record_aux_const("X",        this->setup.X / si::metres);
+      this->record_aux_const("Z",        this->setup.Z / si::metres);
+      this->record_aux_const("dt",       this->setup.dt / si::seconds);
+      this->record_aux_const("mean_rd1", this->setup.mean_rd1 / si::metres);
+      this->record_aux_const("mean_rd2", this->setup.mean_rd2 / si::metres);
+      this->record_aux_const("sdev_rd1", this->setup.sdev_rd1);
+      this->record_aux_const("sdev_rd2", this->setup.sdev_rd2);
+      this->record_aux_const("n1_stp",   this->setup.n1_stp * si::cubic_metres);
+      this->record_aux_const("n2_stp",   this->setup.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa",    this->setup.kappa);
+
       assert(params.backend != -1);
       assert(params.dt != 0); 
 
@@ -143,8 +168,8 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         // ... and now dividing them by rhod (z=0 is located at j=1/2)
         {
           blitz::secondIndex j;
-          Cx /= icmw8_case1::rhod()(   j     * this->dj);
-          Cz /= icmw8_case1::rhod()((j - .5) * this->dj);
+          Cx /= config::rhod(this->setup)(   j     * this->dj);
+          Cz /= config::rhod(this->setup)((j - .5) * this->dj);
         }
 
 	prtcls->init(
@@ -254,7 +279,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     outmom_t<real_t> out_dry, out_wet;
   };
 
-  private:
+  protected:
 
   // per-thread copy of params
   rt_params_t params;

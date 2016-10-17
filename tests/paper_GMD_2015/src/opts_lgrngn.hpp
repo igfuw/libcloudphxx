@@ -9,6 +9,7 @@
 
 #include "opts_common.hpp"
 #include "kin_cloud_2d_lgrngn.hpp"
+#include "kin_cloud_2d_lgrngn_chem.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -17,19 +18,220 @@
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 
+/*
+// a riddle for tired mind :) - how to make it work without passing ct_params
+
+template <class solver_tp>
+struct setopts_micro_chem_f;
+
+template <template<class> class solver_tp, class ct_params_t>
+struct setopts_micro_chem_f<solver_tp<ct_params_t>>
+{
+   void operator()(typename solver_tp<ct_params_t>::rt_params_t &rt_params,
+                   typename std::enable_if<std::is_same<solver_tp<ct_params_t>, kin_cloud_2d_lgrngn<ct_params_t>>::value>::type* = 0                  )
+   {
+     using solver_t = solver_tp<ct_params_t>;
+     rt_params.outvars = {
+       {solver_t::ix::th, {"th", "[K]"}},
+       {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
+     };
+   }
+   
+   void operator()(typename solver_tp<ct_params_t>::rt_params_t &rt_params,
+                   typename std::enable_if<std::is_same<solver_tp<ct_params_t>, kin_cloud_2d_lgrngn_chem<ct_params_t>>::value>::type* = 0                  )
+   {
+     using solver_t = solver_tp<ct_params_t>;
+     rt_params.outvars = {
+       {solver_t::ix::th, {"th", "[K]"}},
+       {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
+       {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
+       {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
+       {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
+       {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
+       {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
+       {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
+     };
+   }
+};
+
+//and then to call it ...
+  setopts_micro_chem_f<solver_t> chem_f{};
+  chem_f(rt_params);
+
+//increment the number of hours you have spent on it: 1
+*/
+template <class solver_t, class ct_params_t>
+void parse_moms(
+  std::string opt, 
+  po::variables_map vm, 
+  typename solver_t::rt_params_t &rt_params,
+  typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn<ct_params_t>>::value>::type* = 0
+) {
+  namespace qi = boost::spirit::qi;
+  namespace phoenix = boost::phoenix;
+
+  std::string val = vm[opt].as<std::string>();
+  auto first = val.begin();
+  auto last  = val.end();
+
+  std::vector<std::pair<std::string, std::string>> min_maxnum;
+  outmom_t<config::real_t> &moms =
+    opt == "out_dry" ? rt_params.out_dry :
+      rt_params.out_wet;
+
+  const bool result = qi::phrase_parse(first, last, 
+    *(
+      *(qi::char_-":")  >>  qi::lit(":") >>  
+      *(qi::char_-";")  >> -qi::lit(";") 
+    ),
+    boost::spirit::ascii::space, min_maxnum
+  );    
+  if (!result || first != last) BOOST_THROW_EXCEPTION(po::validation_error(
+      po::validation_error::invalid_option_value, opt, val 
+  ));  
+
+  for (auto &ss : min_maxnum)
+  {
+    int sep = ss.second.find('|'); 
+
+    moms.push_back(outmom_t<config::real_t>::value_type({
+      outmom_t<config::real_t>::value_type::first_type(
+        boost::lexical_cast<config::real_t>(ss.first) * si::metres,
+        boost::lexical_cast<config::real_t>(ss.second.substr(0, sep)) * si::metres
+      ), 
+      outmom_t<config::real_t>::value_type::second_type()
+    }));
+
+    // TODO catch (boost::bad_lexical_cast &)
+
+    std::string nums = ss.second.substr(sep+1);;
+    auto nums_first = nums.begin();
+    auto nums_last  = nums.end();
+
+    const bool result = qi::phrase_parse(
+      nums_first, 
+      nums_last, 
+      (
+        qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)]
+            >> *(',' >> qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)])
+      ),
+      boost::spirit::ascii::space
+    );    
+    if (!result || nums_first != nums_last) BOOST_THROW_EXCEPTION(po::validation_error(
+        po::validation_error::invalid_option_value, opt, val // TODO: report only the relevant part?
+    ));  
+  }
+}
+template <class solver_t, class ct_params_t>
+void parse_moms(
+  std::string opt, 
+  po::variables_map vm, 
+  typename solver_t::rt_params_t &rt_params,
+  typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn_chem<ct_params_t>>::value>::type* = 0
+) {
+  namespace qi = boost::spirit::qi;
+  namespace phoenix = boost::phoenix;
+
+  std::string val = vm[opt].as<std::string>();
+
+  auto first = val.begin();
+  auto last  = val.end();
+
+  std::vector<std::pair<std::string, std::string>> min_maxnum;
+
+  outmom_t<config::real_t> &moms =
+    opt == "out_dry" ? rt_params.out_dry :
+      opt == "out_wet" ? rt_params.out_wet : 
+         opt == "out_chem" ? rt_params.out_chem :
+           rt_params.out_wet_pH;
+
+  const bool result = qi::phrase_parse(first, last, 
+    *(
+      *(qi::char_-":")  >>  qi::lit(":") >>  
+      *(qi::char_-";")  >> -qi::lit(";") 
+    ),
+    boost::spirit::ascii::space, min_maxnum
+  );    
+  if (!result || first != last) BOOST_THROW_EXCEPTION(po::validation_error(
+      po::validation_error::invalid_option_value, opt, val 
+  ));  
+
+  for (auto &ss : min_maxnum)
+  {
+    int sep = ss.second.find('|'); 
+
+    moms.push_back(outmom_t<config::real_t>::value_type({
+      outmom_t<config::real_t>::value_type::first_type(
+        boost::lexical_cast<config::real_t>(ss.first) * si::metres,
+        boost::lexical_cast<config::real_t>(ss.second.substr(0, sep)) * si::metres
+      ), 
+      outmom_t<config::real_t>::value_type::second_type()
+    }));
+
+    // TODO catch (boost::bad_lexical_cast &)
+
+    std::string nums = ss.second.substr(sep+1);;
+    auto nums_first = nums.begin();
+    auto nums_last  = nums.end();
+
+    const bool result = qi::phrase_parse(
+      nums_first, 
+      nums_last, 
+      (
+        qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)]
+            >> *(',' >> qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)])
+      ),
+      boost::spirit::ascii::space
+    );    
+    if (!result || nums_first != nums_last) BOOST_THROW_EXCEPTION(po::validation_error(
+        po::validation_error::invalid_option_value, opt, val // TODO: report only the relevant part?
+    ));  
+  }
+}
+
+template <class solver_t, class ct_params_t>
+void setopts_micro_chem(
+  typename solver_t::rt_params_t &rt_params, 
+  std::set<std::string> &out_set,
+  typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn<ct_params_t>>::value>::type* = 0
+) {//TODO - add out_wet and others here
+  rt_params.outvars = {
+    {solver_t::ix::th, {"th", "[K]"}},
+    {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
+  };
+  out_set = {"out_dry", "out_wet"};
+}
+
+template <class solver_t, class ct_params_t>
+void setopts_micro_chem(
+  typename solver_t::rt_params_t &rt_params, 
+  std::set<std::string> &out_set,
+  typename std::enable_if<std::is_same<solver_t, kin_cloud_2d_lgrngn_chem<ct_params_t>>::value>::type* = 0
+) {
+  rt_params.outvars = {
+    {solver_t::ix::th, {"th", "[K]"}},
+    {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
+    {solver_t::ix::SO2g,  {"SO2g", "[dimensionless]"}},
+    {solver_t::ix::O3g,   {"O3g",  "[dimensionless]"}},
+    {solver_t::ix::H2O2g, {"H2O2g","[dimensionless]"}},
+    {solver_t::ix::CO2g,  {"CO2g", "[dimensionless]"}},
+    {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
+    {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
+  };
+  out_set = {"out_dry", "out_wet", "out_chem", "out_wet_pH"};
+}
+
 // simulation and output parameters for micro=lgrngn
-template <class solver_t>
+template <class solver_t, class ct_params_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
-  int nx, int nz, int nt,
+  int nx, int nz, int nt, config::setup_t &setup,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
   >::value>::type* = 0
 )
 {
-  using thrust_real_t = setup::real_t; // TODO: make it a choice?
-
   po::options_description opts("Lagrangian microphysics options"); 
   opts.add_options()
     ("backend", po::value<std::string>()->required() , "one of: CUDA, OpenMP, serial")
@@ -43,14 +245,17 @@ void setopts_micro(
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     ("dev_count", po::value<int>()->default_value(rt_params.cloudph_opts_init.dev_count), "no of GPUs to use")
-    // 
+    // output
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_wet_pH", po::value<std::string>()->default_value("0:1|0"), "wet radius ranges for output of H+ and S_VI)")
+    ("out_chem", po::value<std::string>()->default_value("0:1|0"),   "dry radius ranges for which chem mass is outputted")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -73,20 +278,13 @@ void setopts_micro(
     rt_params.cloudph_opts_init.n_sd_max = nx *  nz * rt_params.cloudph_opts_init.sd_conc;
  
   boost::assign::ptr_map_insert<
-    setup::log_dry_radii<thrust_real_t> // value type
+    config::log_dry_radii<config::real_t> // value type
   >(
     rt_params.cloudph_opts_init.dry_distros // map
   )(
-    setup::kappa // key
+    setup.kappa, // key
+    setup
   );
-
-  // output variables
-  rt_params.outvars = {
-    // <TODO>: make it common among all three micro?
-    {solver_t::ix::th, {"th", "[K]"}},
-    {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
-    // </TODO>
-  };
 
   // process toggling
   rt_params.cloudph_opts.adve = vm["adve"].as<bool>();
@@ -98,6 +296,8 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
+  rt_params.cloudph_opts_init.chem_switch = vm["chem_switch"].as<bool>();
+  rt_params.cloudph_opts_init.chem_rho    = setup.chem_rho * si::cubic_metres / si::kilograms;
 
   // free parameters
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
@@ -112,64 +312,13 @@ void setopts_micro(
   // terminal velocity choice
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
 
+  std::set<std::string> out_set;
+  setopts_micro_chem<solver_t, ct_params_t>(rt_params, out_set);
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : out_set)
   {
-    namespace qi = boost::spirit::qi;
-    namespace phoenix = boost::phoenix;
-
-    std::string val = vm[opt].as<std::string>();
-    auto first = val.begin();
-    auto last  = val.end();
-
-    std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
-
-    const bool result = qi::phrase_parse(first, last, 
-      *(
-	*(qi::char_-":")  >>  qi::lit(":") >>  
-	*(qi::char_-";")  >> -qi::lit(";") 
-      ),
-      boost::spirit::ascii::space, min_maxnum
-    );    
-    if (!result || first != last) BOOST_THROW_EXCEPTION(po::validation_error(
-        po::validation_error::invalid_option_value, opt, val 
-    ));  
-
-    for (auto &ss : min_maxnum)
-    {
-      int sep = ss.second.find('|'); 
-
-      moms.push_back(outmom_t<thrust_real_t>::value_type({
-        outmom_t<thrust_real_t>::value_type::first_type(
-          boost::lexical_cast<setup::real_t>(ss.first) * si::metres,
-          boost::lexical_cast<setup::real_t>(ss.second.substr(0, sep)) * si::metres
-        ), 
-        outmom_t<setup::real_t>::value_type::second_type()
-      }));
-
-      // TODO catch (boost::bad_lexical_cast &)
-
-      std::string nums = ss.second.substr(sep+1);;
-      auto nums_first = nums.begin();
-      auto nums_last  = nums.end();
-
-      const bool result = qi::phrase_parse(
-        nums_first, 
-        nums_last, 
-	(
-	  qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)]
-	      >> *(',' >> qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)])
-	),
-	boost::spirit::ascii::space
-      );    
-      if (!result || nums_first != nums_last) BOOST_THROW_EXCEPTION(po::validation_error(
-	  po::validation_error::invalid_option_value, opt, val // TODO: report only the relevant part?
-      ));  
-    }
-  } 
+    parse_moms<solver_t, ct_params_t>(opt, vm, rt_params);
+  }
 }
