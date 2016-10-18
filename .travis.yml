@@ -1,5 +1,8 @@
 language: cpp
 
+python: 
+    - "2.7"
+
 os: 
 #    - linux
     - osx
@@ -41,22 +44,19 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot scipy; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link --overwrite numpy; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew link --overwrite scipy; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
 
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake -DPYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python ../; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_INCLUDE_DIR=#{`python-config --prefix`.split}/Headers; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_LIBRARY=#{`python-config --prefix`.split}/Python; fi
 
 script:
     # libcloudph++ 
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake -DPYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python ../; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_INCLUDE_DIR=/Users/travis/.pyenv/versions/2.7.10/include/python2.7.10; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_LIBRARY=/Users/travis/.pyenv/versions/2.7.10/lib/libpython2.7.10.a; fi
     - cmake -DCMAKE_BUILD_TYPE=Debug ../
     - VERBOSE=1 make
     - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
