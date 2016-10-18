@@ -1,8 +1,25 @@
+# tests for when libcloud can run on CUDA
 add_executable(calc calc.cpp)
 add_test(calc calc ${CMAKE_BINARY_DIR})
 
 find_package(HDF5 COMPONENTS CXX REQUIRED QUIET)
 find_package(Boost COMPONENTS iostreams system filesystem REQUIRED)
+
+add_test(2D_kinematic_cloud_diff bash -c "
+  for dir in out_blk_1m out_blk_2m out_lgrngn; do
+    echo 'comparing const.h5'
+    h5diff -v $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                                &&
+    if h5diff $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5 | grep 'not comparable'; then
+      exit 1      # If h5diff encounters files that cannot be compared (for example with different dimesions)
+    else          # it does not return exit 1. Instead it prints out a warning that 'Some files are not comparable'.
+      exit 0
+    fi                                                                                                                      &&
+    echo 'comparing timestep0000000000.h5'                                                                                  &&
+    h5diff  -v $dir/timestep0000000000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5                   &&
+    echo 'comparing timestep0000009000.h5'                                                                                  &&
+    h5diff  -v $dir/timestep0000009000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5                   || exit 1;
+  done  
+")
 
 foreach(micro blk_1m blk_2m lgrngn)
   add_executable(plot_${micro} plot_${micro}.cpp)
@@ -19,3 +36,42 @@ target_link_libraries(plot_lgrngn_spec ${HDF5_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(plot_lgrngn_spec ${Boost_LIBRARIES})
 target_include_directories(plot_lgrngn_spec PUBLIC ${Boost_INCLUDE_DIRS})
+
+# tests for travis (or any other case where libcloud can't use CUDA)
+add_executable(travis_calc_blk travis_calc_blk.cpp)
+add_test(travis_calc_blk travis_calc_blk ${CMAKE_BINARY_DIR})
+
+add_executable(travis_calc_lgrngn travis_calc_lgrngn.cpp)
+add_test(travis_calc_lgrngn travis_calc_lgrngn ${CMAKE_BINARY_DIR})
+
+add_test(travis_2D_kinematic_cloud_diff_blk bash -c "
+  for dir in out_blk_1m out_blk_2m; do
+    echo 'comparing const.h5'
+    h5diff -v $dir/const.h5                 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                &&
+    if h5diff $dir/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5 | grep 'not comparable'; then
+      exit 1      # If h5diff encounters files that cannot be compared (for example with different dimesions)
+    else          # it does not return exit 1. Instead it prints out a warning that 'Some files are not comparable'.
+      exit 0
+    fi                                                                                                       &&
+    echo 'comparing timestep0000000000.h5'                                                                   &&
+    h5diff  -v $dir/timestep0000000000.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5   &&
+    echo 'comparing timestep0000009000.h5'                                                                   &&
+    h5diff  -v $dir/timestep0000009000.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5   || exit 1;
+  done  
+")
+
+add_test(travis_2D_kinematic_cloud_diff_lgrngn bash -c "
+  for dir in out_lgrngn; do
+    echo 'comparing const.h5'
+    h5diff -v $dir/const.h5                 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5              &&
+    if h5diff $dir/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_const.h5 | grep 'not comparable'; then
+      exit 1      # If h5diff encounters files that cannot be compared (for example with different dimesions)
+    else          # it does not return exit 1. Instead it prints out a warning that 'Some files are not comparable'.
+      exit 0
+    fi                                                                                                       &&
+    echo 'comparing timestep0000000000.h5'                                                                        &&
+    h5diff  -v $dir/timestep0000000000.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000000.h5 &&
+    echo 'comparing timestep0000000020.h5'                                                                        &&
+    h5diff  -v $dir/timestep0000000020.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000020.h5 || exit 1;
+  done  
+")
