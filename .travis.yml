@@ -76,7 +76,7 @@ script:
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake -DPYTHON_LIBRARY=/Users/travis/.pyenv/versions/2.7.10/lib/libpython2.7.10.so -DPYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python -DPYTHON_INCLUDE_DIR=/Users/travis/.pyenv/versions/2.7.10/include/python2.7.10 ../; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake -DPYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python -DPYTHON_INCLUDE_DIR=/Users/travis/.pyenv/versions/2.7.10/include/python2.7.10 ../; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_EXECUTABLE=/Users/travis/.pyenv/versions/2.7.10/bin/python; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_INCLUDE_DIR=/Users/travis/.pyenv/versions/2.7.10/include/python2.7.10; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PYTHON_LIBRARY=/Users/travis/.pyenv/versions/2.7.10/lib/libpython2.7.10.a; fi
