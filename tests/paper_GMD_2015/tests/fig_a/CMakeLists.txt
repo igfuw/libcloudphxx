@@ -63,8 +63,8 @@ add_test(travis_2D_kin_cloud_dims_blk bash -c "
   done
 ")
 
-add_test(travis_2D_kin_cloud_diff_blk_common bash -c "
-  for dir in out_blk_1m out_blk_2m; do
+add_test(travis_2D_kin_cloud_diff_blk_1m bash -c "
+  for dir in out_blk_1m; do
     echo 'comparing const.h5'
     h5diff --delta=2e-7 -v    $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                   &&
     echo 'comparing timestep0000000000.h5'                                                                                     &&
@@ -73,19 +73,27 @@ add_test(travis_2D_kin_cloud_diff_blk_common bash -c "
     h5diff --relative=0.002 -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rv  &&
     h5diff --relative=1e-4  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  &&
     echo 'comparing timestep0000009000.h5'                                                                                     &&
-    h5diff --relative=0.04  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rc  &&
-    h5diff --relative=1e-5  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rr  &&
-    h5diff --relative=0.002 -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rv  &&
-    h5diff --relative=1e-4  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  || exit 1;
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rc  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rv  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /th  || exit 1;
   done  
 ")
 
 add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
   for dir in out_blk_2m; do
     echo 'comparing timestep0000000000.h5'                                                                                     &&
+    h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rc  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rr  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /rv  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  &&
     h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /nc  &&
     h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /nr  &&
     echo 'comparing timestep0000009000.h5'                                                                                     &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rc  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rv  &&
+    h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /th  &&
     h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /nc  &&
     h5diff --relative=1e-9  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /nr  || exit 1;
   done  
@@ -93,7 +101,7 @@ add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
 
 add_test(travis_2D_kin_cloud_dims_lgrngn bash -c "
     echo 'comparing dimensions in const.h5'
-    if h5diff out_lgrngn/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/out_blk_1m/const.h5 | grep 'not comparable'; then
+    if h5diff out_lgrngn/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/out_lgrngn/travis_const.h5 | grep 'not comparable'; then
       echo 'the subsequent diff test will not detect differences -- Fail'
       exit 1      
     else          # If h5diff encounters files that cannot be compared (for example with different dimesions)
