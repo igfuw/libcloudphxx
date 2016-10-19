@@ -19,10 +19,6 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
-    - python-config --prefix
-    - python-config --includes
-    - python-config --exec-prefix
-    - python-config --ldflags
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo $apt_get_install clang; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo $apt_get_install g++  ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
@@ -49,21 +45,11 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
 
 script:
-    - python-config --prefix
-    - python-config --includes
-    - python-config --exec-prefix
-    - python-config --ldflags
-    - ls /usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/include/python2.7
-    - ls /usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config
-    - ls /usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/lib/python2.7/
     # libcloudph++ 
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; cmake
-      -DPYTHON_LIBRARY=/usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config/libpython2.7.dylib
-      -DPYTHON_INCLUDE_DIR=/usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/include/
-      ; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; cmake -DPYTHON_LIBRARY=/usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config/libpython2.7.dylib -DPYTHON_INCLUDE_DIR=/usr/local/Cellar/python/2.7.12_1/Frameworks/Python.framework/Versions/2.7/include/python2.7; fi
     - cmake -DCMAKE_BUILD_TYPE=Debug ../
     - VERBOSE=1 make
     - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
