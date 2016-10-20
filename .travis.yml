@@ -95,8 +95,9 @@ script:
     ## drops.py (it is written in Python so no compilation, just unit tests)
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
-    - git clone --depth=1 git://github.com/igfuw/drops.py.git
+    - git clone --depth=1 git://github.com/mwarusz/drops.py.git
     - cd drops.py
+    - git checkout osx_python
     - mkdir build
     - cd build
     - cmake ..
