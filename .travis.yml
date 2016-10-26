@@ -87,7 +87,7 @@ script:
     - cd libcloudphxx/tests/paper_GMD_2015
     - mkdir build 
     - cd build
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_DEBUG=ON -DBOOST_ROOT=/usr/local; fi 
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
@@ -95,8 +95,8 @@ script:
     
     ## drops.py (it is written in Python so no compilation, just unit tests)
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then otool -L /Library/Python/2.7/site-packages/libcloudphxx.so; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LCD_PATH=`/Library/Python/2.7/site-packages/libcloudphxx.so`; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LLG_PATH=`/usr/local/lib/libcloudphxx_lgrngn.so`; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LCD_PATH='/Library/Python/2.7/site-packages/libcloudphxx.so'; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LLG_PATH='/usr/local/lib/libcloudphxx_lgrngn.dylib'; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then install_name_tool -change libcloudphxx_lgrngn.dylib ${LLG_PATH} ${LCD_PATH}; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
