@@ -45,6 +45,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install cmake; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.6.2/share/cmake/Modules/; fi
 
 script:
     # libcloudph++ 
@@ -88,7 +90,7 @@ script:
     - cd libcloudphxx/tests/paper_GMD_2015
     - mkdir build 
     - cd build
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_ADDITIONAL_VERSIONS=1.62 -DBoost_DEBUG=ON -DBOOST_ROOT=/usr/local; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_DEBUG=ON -DBOOST_ROOT=/usr/local; fi 
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
@@ -103,7 +105,7 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
     - git clone git://github.com/mwarusz/drops.py.git
     - cd drops.py
-    - git checkout osx_python_2
+    #- git checkout osx_python_2
     - mkdir build
     - cd build
     - cmake ..
