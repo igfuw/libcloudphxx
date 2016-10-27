@@ -10,8 +10,6 @@ matrix:
         - os: osx
           compiler: gcc
 
-osx_image: xcode8
-
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
@@ -94,7 +92,9 @@ script:
     - cd build
     - ls /usr/local
     - ls /usr/local/lib
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_DEBUG=ON -DBoost_DETAILED_FAILURE_MSG=ON -DBOOST_ROOT=/usr/local; fi 
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_DEBUG=ON -DBoost_DETAILED_FAILURE_MSG=ON -DBOOST_ROOT=/usr/local; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeOutput.log; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeError.log; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
