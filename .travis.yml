@@ -10,7 +10,7 @@ matrix:
         - os: osx
           compiler: gcc
 
-osx_image: xcode611
+          #osx_image: xcode611
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
