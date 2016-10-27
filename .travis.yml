@@ -77,7 +77,6 @@ script:
     #- git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
     - git clone git://github.com/mwarusz/libmpdataxx.git
     - cd libmpdataxx/libmpdata++
-    - git checkout osx_python
     - mkdir build
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
@@ -90,11 +89,9 @@ script:
     - cd libcloudphxx/tests/paper_GMD_2015
     - mkdir build 
     - cd build
-    - ls /usr/local
-    - ls /usr/local/lib
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBoost_DEBUG=ON -DBoost_DETAILED_FAILURE_MSG=ON -DBOOST_ROOT=/usr/local; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeOutput.log; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeError.log; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
+     #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeOutput.log; fi
+     #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeError.log; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
@@ -109,7 +106,7 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
     - git clone git://github.com/mwarusz/drops.py.git
     - cd drops.py
-    #- git checkout osx_python_2
+    - git checkout osx_python_2
     - mkdir build
     - cd build
     - cmake ..
