@@ -77,6 +77,7 @@ script:
     #- git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
     - git clone git://github.com/mwarusz/libmpdataxx.git
     - cd libmpdataxx/libmpdata++
+    - git checkout osx_python
     - mkdir build
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
