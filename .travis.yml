@@ -109,6 +109,7 @@ script:
     - git checkout osx_python_2
     - mkdir build
     - cd build
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
     - cmake ..
     - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
