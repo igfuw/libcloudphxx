@@ -1,6 +1,6 @@
 language: cpp
 os: 
-    - linux
+#    - linux
     - osx
 compiler:
     - gcc
@@ -9,8 +9,6 @@ matrix:
     exclude:
         - os: osx
           compiler: gcc
-
-osx_image: xcode611
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
@@ -32,20 +30,32 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=10 git://github.com/thrust/thrust.git; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd thrust; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git checkout 2f9ae5762cc05c8421887a5318b2f4ecc8652044; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cd ../; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
 
     - if [[ $TRAVIS_OS_NAME == 'osx'   ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install scipy gnuplot; fi
+      #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U matplotlib; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
+      #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install cmake; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.6.2/share/cmake/Modules/; fi
 
 script:
     # libcloudph++ 
     - mkdir build 
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+    # find python paths, taken from 
+    # https://github.com/breannansmith/scisim/blob/master/.travis.yml
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
     - cmake -DCMAKE_BUILD_TYPE=Debug ../
     - VERBOSE=1 make
     - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
@@ -64,8 +74,10 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
-    - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+    #- git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+    - git clone git://github.com/mwarusz/libmpdataxx.git
     - cd libmpdataxx/libmpdata++
+    - git checkout osx_python
     - mkdir build
     - cd build
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
@@ -78,18 +90,27 @@ script:
     - cd libcloudphxx/tests/paper_GMD_2015
     - mkdir build 
     - cd build
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
+     #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeOutput.log; fi
+     #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cat CMakeFiles/CMakeError.log; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
     - cmake -DCMAKE_BUILD_TYPE=Release ../ 
     - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
     - cd ../../../..
-
+    
     ## drops.py (it is written in Python so no compilation, just unit tests)
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then otool -L /Library/Python/2.7/site-packages/libcloudphxx.so; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LCD_PATH='/Library/Python/2.7/site-packages/libcloudphxx.so'; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then LLG_PATH='/usr/local/lib/libcloudphxx_lgrngn.dylib'; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo install_name_tool -change libcloudphxx_lgrngn.dylib ${LLG_PATH} ${LCD_PATH}; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install h5py; fi 
-    - git clone --depth=1 git://github.com/igfuw/drops.py.git
+    - git clone git://github.com/mwarusz/drops.py.git
     - cd drops.py
+    - git checkout osx_python_2
     - mkdir build
     - cd build
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
     - cmake ..
     - make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 

@@ -21,14 +21,14 @@
 template <class solver_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
-  int nx, int nz, int nt,
+  int nx, int nz, int nt, config::setup_t &setup,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
   >::value>::type* = 0
 )
 {
-  using thrust_real_t = setup::real_t; // TODO: make it a choice?
+  using thrust_real_t = config::real_t; // TODO: make it a choice?
 
   po::options_description opts("Lagrangian microphysics options"); 
   opts.add_options()
@@ -55,6 +55,7 @@ void setopts_micro(
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
+
       
   std::string backend_str = vm["backend"].as<std::string>();
   if (backend_str == "CUDA") rt_params.backend = libcloudphxx::lgrngn::CUDA;
@@ -73,11 +74,12 @@ void setopts_micro(
     rt_params.cloudph_opts_init.n_sd_max = nx *  nz * rt_params.cloudph_opts_init.sd_conc;
  
   boost::assign::ptr_map_insert<
-    setup::log_dry_radii<thrust_real_t> // value type
+    config::log_dry_radii<thrust_real_t> // value type
   >(
     rt_params.cloudph_opts_init.dry_distros // map
   )(
-    setup::kappa // key
+    setup.kappa, // key
+    setup
   );
 
   // output variables
@@ -146,10 +148,10 @@ void setopts_micro(
 
       moms.push_back(outmom_t<thrust_real_t>::value_type({
         outmom_t<thrust_real_t>::value_type::first_type(
-          boost::lexical_cast<setup::real_t>(ss.first) * si::metres,
-          boost::lexical_cast<setup::real_t>(ss.second.substr(0, sep)) * si::metres
+          boost::lexical_cast<config::real_t>(ss.first) * si::metres,
+          boost::lexical_cast<config::real_t>(ss.second.substr(0, sep)) * si::metres
         ), 
-        outmom_t<setup::real_t>::value_type::second_type()
+        outmom_t<config::real_t>::value_type::second_type()
       }));
 
       // TODO catch (boost::bad_lexical_cast &)
