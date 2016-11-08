@@ -114,10 +114,6 @@ if (CUDA_FOUND)
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
         \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
-    # do not use -G flag on travis since it causes build to fail; probably due to memory shortage
-    if(NOT DEFINED ENV{TRAVIS})
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")
-    endif()
   # Release mode cuda flags
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
