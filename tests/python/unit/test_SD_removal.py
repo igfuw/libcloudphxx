@@ -37,7 +37,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
-opts_init.chem_switch = False
+opts_init.chem_switch = True
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
@@ -46,21 +46,21 @@ try:
 except:
   prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
-prtcls.init(th, rv, rhod)#, ambient_chem = ambient_chem)
+prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
 
 Opts = lgrngn.opts_t()
 Opts.adve = False
 Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
-Opts.chem_dsl = False
+Opts.chem_dsl = True
 Opts.chem_dsc = False
 Opts.chem_rct = False
 Opts.rcyc = True
 
 for i in range(900):
   print i, ' step_sync'
-  prtcls.step_sync(Opts,th,rv,rhod)#, ambient_chem=ambient_chem)
+  prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
   print i, ' step_async'
   prtcls.step_async(Opts)
   print i, ' finished'
