@@ -46,7 +46,7 @@ try:
 except:
   prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
-prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
+prtcls.init(th, rv, rhod)#, ambient_chem = ambient_chem)
 
 Opts = lgrngn.opts_t()
 Opts.adve = False
@@ -60,7 +60,7 @@ Opts.rcyc = True
 
 for i in range(900):
   print i, ' step_sync'
-  prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
+  prtcls.step_sync(Opts,th,rv,rhod)#, ambient_chem=ambient_chem)
   print i, ' step_async'
   prtcls.step_async(Opts)
   print i, ' finished'
