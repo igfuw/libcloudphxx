@@ -9,7 +9,6 @@
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
 
-#include <stdio.h>
 
 namespace libcloudphxx
 {
@@ -103,8 +102,6 @@ namespace libcloudphxx
           const quantity<si::area, real_t>          rw2    = thrust::get<4>(tpl) * si::metres * si::metres; 
           const quantity<si::mass_density, real_t>  rhod   = thrust::get<5>(tpl) * si::kilograms / si::cubic_metres; 
           const quantity<si::mass, real_t>          m_H    = thrust::get<6>(tpl) * si::kilograms;     
-
-//printf("In operator \n");
 
           using namespace common::henry;      // H-prefixed
           using namespace common::molar_mass; // M-prefixed
@@ -249,7 +246,6 @@ namespace libcloudphxx
         H_O3<real_t>()   / si::moles * si::pascals * si::cubic_metres
       } ;
       // correction to Henry const due to temperature
-      // const quantity<si::temperature, real_t>
       const real_t dHR_[chem_gas_n] = {
         dHR_HNO3<real_t>() / si::kelvins, 
         dHR_NH3<real_t>()  / si::kelvins,  
@@ -259,7 +255,6 @@ namespace libcloudphxx
         dHR_O3<real_t>()   / si::kelvins
       };
       //molar mass of gases
-      // const quantity<common::mass_over_amount, real_t>
       const real_t M_gas_[chem_gas_n] = {
         M_HNO3<real_t>() * si::moles / si::kilograms, 
         M_NH3<real_t>()  * si::moles / si::kilograms,  
@@ -269,7 +264,6 @@ namespace libcloudphxx
         M_O3<real_t>()   * si::moles / si::kilograms
       };
       //molar mass of dissolved chem species
-      // const quantity<common::mass_over_amount, real_t> 
       const real_t M_aq_[chem_gas_n] = {
         M_HNO3<real_t>()    * si::moles / si::kilograms,    
         M_NH3_H2O<real_t>() * si::moles / si::kilograms, 
@@ -279,7 +273,6 @@ namespace libcloudphxx
         M_O3<real_t>()      * si::moles / si::kilograms
       };
       //gas phase diffusivity
-      // const quantity<common::diffusivity, real_t>
       const real_t D_[chem_gas_n] = {
         D_HNO3<real_t>() * si::seconds / si::metres / si::metres, 
         D_NH3<real_t>()  * si::seconds / si::metres / si::metres,  
@@ -289,7 +282,6 @@ namespace libcloudphxx
         D_O3<real_t>()   * si::seconds / si::metres / si::metres
       };
       // accomodation coefficient
-      // const quantity<si::dimensionless, real_t>
       const real_t ac_[chem_gas_n] = {
         ac_HNO3<real_t>(), 
         ac_NH3<real_t>(),  
@@ -389,9 +381,6 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), count_ijk.begin()), // output 
           detail::ambient_chem_calculator<real_t>(M_aq_[i], M_gas_[i])                                   // op
         );
-
-//std::cerr<<"ambient_chem[i] = "<<std::endl;
-//debug::print(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end());
 
         assert(*thrust::min_element(
           ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
