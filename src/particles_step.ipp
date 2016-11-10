@@ -111,12 +111,8 @@ namespace libcloudphxx
             //adjust trace gases to substepping
             pimpl->sstp_step_chem(step, !rhod.is_null());
 
-std::cerr<<"aqq"<<std::endl;
-
             //dissolving trace gases (Henrys law)
-
             pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
-std::cerr<<"qqa"<<std::endl;
 
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
