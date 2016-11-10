@@ -202,7 +202,6 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_new_rd3
       { // recalculation of dry radii basing on created H2SO4
-        //const quantity<si::mass_density, real_t> chem_rho;
         const real_t chem_rho;
 
         // ctor
