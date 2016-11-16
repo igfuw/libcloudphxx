@@ -135,7 +135,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
   
   #include <thrust/system/cpp/vector.h>
-  
+
   #include <boost/numeric/odeint.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
@@ -167,6 +167,7 @@ file(WRITE "${tmpdir}/test.cpp" "
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
+
 execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
 if (NOT status EQUAL 0) 
   message(FATAL_ERROR "${pfx}: c++ compiler failed\n ${msg}")
