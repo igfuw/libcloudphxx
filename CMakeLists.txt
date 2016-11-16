@@ -14,11 +14,13 @@ set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 # enabling additional warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO}")
+else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${libcloudphxx_CXX_FLAGS_RELEASE} -Winline")
   set(CMAKE_CXX_FLAGS_RELEASE "")
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
 endif()
 
 ############################################################################################
@@ -104,17 +106,18 @@ if (CUDA_FOUND)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
-  if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  # Release with debug info mode cuda flags
+  if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-fopenmp")
+  # Debug mode cuda flags
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
+  # Release mode cuda flags
+  else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
         -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
-  else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g")  
-
-# do not use -G flag on travis since it causes build to fail; probably due to memory shortage
-    if(NOT DEFINED ENV{TRAVIS})
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")
-    endif()
   endif()
 
   add_definitions(-DCUDA_FOUND)

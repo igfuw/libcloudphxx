@@ -57,6 +57,10 @@ namespace libcloudphxx
       const opts_t<real_t> &opts
     )
     {
+      // sanity checks
+      if(opts.rcyc)
+        throw std::runtime_error("Particle recycling can't be used in the multi_CUDA backend (it would consume whole memory quickly");
+
       // cuda streams and events to control asynchronous copies
       // note: storing them in particles_multi_t caused errors
       // on program exit
@@ -108,6 +112,8 @@ namespace libcloudphxx
           gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
 
           // prepare buffer with n_t to be copied left
+          assert(out_n_bfr.size() >= lft_count);
+          assert(in_n_bfr.size() >= lft_count); // assume all devices have same size of in bfr!
           // TODO: serialize n_t and real_t with boost serialize
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
@@ -138,6 +144,8 @@ namespace libcloudphxx
           // prepare the real_t buffer for copy left
           thrust_device::vector<real_t> * real_t_vctrs[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
           const int real_vctrs_count = glob_opts_init.ny == 0 ? 6 : 7;
+          assert(out_real_bfr.size() >= lft_count * real_vctrs_count);
+          assert(in_real_bfr.size() >= lft_count * real_vctrs_count);
           for(int i = 0; i < real_vctrs_count; ++i)
             thrust::copy(
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), lft_id.begin()),
@@ -151,6 +159,7 @@ namespace libcloudphxx
           int n_copied = particles[rgt_dev].pimpl->lft_count;
           n_part_old = n_part;
           n_part += n_copied;
+          assert(glob_opts_init.n_sd_max >= n_part);
           n.resize(n_part);
           thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 
@@ -167,6 +176,8 @@ namespace libcloudphxx
           #pragma omp barrier
 
           // prepare buffer with n_t to be copied right
+          assert(out_n_bfr.size() >= rgt_count);
+          assert(in_n_bfr.size() >= rgt_count);
           thrust::copy(
             thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
             thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
@@ -204,6 +215,8 @@ namespace libcloudphxx
           #pragma omp barrier
 
           // prepare the real_t buffer for copy to the right
+          assert(out_real_bfr.size() >= rgt_count * real_vctrs_count);
+          assert(in_real_bfr.size() >= rgt_count * real_vctrs_count);
           for(int i = 0; i < real_vctrs_count; ++i)
             thrust::copy(
               thrust::make_permutation_iterator(real_t_vctrs[i]->begin(), rgt_id.begin()),
@@ -217,6 +230,7 @@ namespace libcloudphxx
           n_copied = particles[lft_dev].pimpl->rgt_count;
           n_part_old = n_part;
           n_part += n_copied;
+          assert(glob_opts_init.n_sd_max >= n_part);
           n.resize(n_part);
           thrust::copy( in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
 

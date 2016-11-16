@@ -125,7 +125,7 @@ namespace libcloudphxx
             
           if (opts.chem_rct)
           { //oxidation 
-            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
           }
         }
       }

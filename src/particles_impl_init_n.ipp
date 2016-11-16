@@ -82,11 +82,11 @@ namespace libcloudphxx
         detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
       );
 
-      // correcting STP -> actual ambient conditions
       {
         namespace arg = thrust::placeholders;
         using common::earth::rho_stp;
 
+        // correcting STP -> actual ambient conditions
         thrust::transform(
           tmp_real.begin(), tmp_real.end(),            // input - 1st arg
           thrust::make_permutation_iterator( // input - 2nd arg
@@ -95,7 +95,28 @@ namespace libcloudphxx
           ),
           tmp_real.begin(),                       // output
           arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
-        ); 
+        );
+
+       
+        // adjust to cell volume
+        if(n_dims > 0)
+        {
+          // rhod not needed anymore, reuse it to store dv on host
+          thrust::copy(
+            dv.begin(), dv.end(), // from
+            tmp_rhod.begin()          // to
+          );
+
+          thrust::transform(
+            tmp_real.begin(), tmp_real.end(), 
+            thrust::make_permutation_iterator( // input - 2nd arg
+              tmp_rhod.begin(), 
+              tmp_ijk.begin()
+            ),
+            tmp_real.begin(),                       // output
+            arg::_1 * arg::_2 / real_t(opts_init.dx * opts_init.dy * opts_init.dz)
+          );
+        }
 
 	// host -> device (includes casting from real_t to uint! and rounding)
 	thrust::copy(

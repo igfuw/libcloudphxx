@@ -430,8 +430,9 @@ namespace libcloudphxx
         hskpng_resize_npart();   
       }
  
-      // --- after source particles are no longer sorted ---
+      // --- after source particles are no longer sorted nor counted ---
       sorted = false;
+      counted = false;
 
       // --- calc liquid water content after src ---
       hskpng_sort(); 
@@ -458,6 +459,9 @@ namespace libcloudphxx
 
       // update th and rv according to change in total liquid water volume
       update_th_rv(drv);
+
+      // update count_ijk and count_num
+      hskpng_count();
     }
   };  
 };

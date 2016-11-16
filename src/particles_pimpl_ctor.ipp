@@ -1,4 +1,4 @@
-// vim:filetype=cpp
+/// vim:filetype=cpp
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE
@@ -137,6 +137,9 @@ namespace libcloudphxx
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
+      // are count_num and count_ijk up to date
+      bool counted;
+
       // timestep counter
       n_t stp_ctr;
 
@@ -232,6 +235,7 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
+        counted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
@@ -326,7 +330,7 @@ namespace libcloudphxx
       );
       void init_ijk();
       void init_xyz();
-      void init_count_num();
+      void init_count_num(const real_t & = 1);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
@@ -422,9 +426,14 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr):
-      pimpl(new impl(opts_init, n_x_bfr))
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr)
     {
+#if defined(__NVCC__)
+      if(opts_init.dev_id >= 0)
+        cudaSetDevice(opts_init.dev_id);
+#endif
+      pimpl.reset(new impl(opts_init, n_x_bfr));
+
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
     }
@@ -434,6 +443,8 @@ namespace libcloudphxx
     real_t *particles_t<real_t, device>::outbuf() 
     {
       pimpl->fill_outbuf();
+      // restore the count_num and count_ijk arrays
+      pimpl->hskpng_count();
       return &(*(pimpl->tmp_host_real_cell.begin()));
     }
   };
