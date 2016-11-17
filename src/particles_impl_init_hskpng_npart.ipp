@@ -58,12 +58,8 @@ namespace libcloudphxx
         in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
 
-        // if part[1-4] are initialized (i.e. sstp_cond>1), they will be used instead
-        if(opts_init.sstp_cond == 1)
-        {
-          in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z
-          out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
-        }
+        in_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z
+        out_real_bfr.resize(7 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
     }
   };
