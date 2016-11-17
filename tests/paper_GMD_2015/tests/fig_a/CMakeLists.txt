@@ -93,7 +93,7 @@ add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
     h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  &&
     echo 'comparing timestep0000009000.h5'                                                                                     &&
     h5diff --relative=0.02  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rv  &&
-    h5diff --delta=7e-6     -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
+    h5diff --delta=8e-6     -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
     h5diff --delta=4e-6     -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rc  &&
     h5diff --delta=0.4      -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /th  || exit 1;
   done  
@@ -113,7 +113,7 @@ add_test(travis_2D_kin_cloud_dims_lgrngn bash -c "
 add_test(travis_2D_kin_cloud_diff_lgrngn bash -c "
   for dir in out_lgrngn; do
     echo 'comparing const.h5'
-    h5diff --delta=2e-7 -v    $dir/const.h5                 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_const.h5                       &&
+    h5diff --delta=1e-6 -v    $dir/const.h5                 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_const.h5                       &&
     echo 'comparing timestep0000000000.h5'                                                                                                 &&
     h5diff --relative=1e-9 -v $dir/timestep0000000000.h5    ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000000.h5 /th      &&
     h5diff --relative=1e-9 -v $dir/timestep0000000000.h5    ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000000.h5 /rv      &&
