@@ -9,6 +9,7 @@
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
 
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -29,13 +30,13 @@ namespace libcloudphxx
       template <typename real_t>
       struct ambient_chem_calculator
       { // calculate the change in trace gases due to Henrys law
-        const quantity<common::mass_over_amount, real_t> M_gas;
-        const quantity<common::mass_over_amount, real_t> M_aq;
+        const real_t M_gas; //quantity<common::mass_over_amount, real_t>
+        const real_t M_aq;  //quantity<common::mass_over_amount, real_t> 
  
         // ctor
         ambient_chem_calculator(
-          const quantity<common::mass_over_amount, real_t> &M_aq,
-          const quantity<common::mass_over_amount, real_t> &M_gas
+          const real_t &M_aq,
+          const real_t &M_gas
         ) : 
           M_gas(M_gas), M_aq(M_aq)
         {}
@@ -58,7 +59,6 @@ namespace libcloudphxx
           // It can only happen when ambient air concentrations are approaching zero, 
           // so the error introduced here is small. 
           // TODO - still it would be good to have some check build in Henrys law, instead of just an assert.
-          assert(new_c >= 0);
           return new_c > 0 ? new_c : new_c * real_t(0);
         }
       };
@@ -67,31 +67,32 @@ namespace libcloudphxx
       struct chem_Henry_fun
       { // gas absorption into cloud droplets (Henrys law)
         const int chem_iter;
-        const quantity<common::amount_over_volume_over_pressure, real_t> H;
-        const quantity<si::temperature, real_t> dHR;
-        const quantity<common::mass_over_amount, real_t> M_gas;
-        const quantity<common::mass_over_amount, real_t> M_aq;
-        const quantity<common::diffusivity, real_t> D;
-        const quantity<si::dimensionless, real_t> acc_coeff;
-        const quantity<si::time, real_t> dt;
+        const real_t H;         // quantity<common::amount_over_volume_over_pressure, real_t>
+        const real_t dHR;       // quantity<si::temperature, real_t>
+        const real_t M_gas;     // quantity<common::mass_over_amount, real_t>
+        const real_t M_aq;      // quantity<common::mass_over_amount, real_t>
+        const real_t D;         // quantity<common::diffusivity, real_t>
+        const real_t acc_coeff; // quantity<si::dimensionless, real_t>
+        const real_t dt;        // quantity<si::time, real_t>
 
         // ctor
+        BOOST_GPU_ENABLED
         chem_Henry_fun(
           const int chem_iter,
-          const quantity<common::amount_over_volume_over_pressure, real_t> &H,
-          const quantity<si::temperature, real_t> &dHR,
-          const quantity<common::mass_over_amount, real_t> &M_gas,
-          const quantity<common::mass_over_amount, real_t> &M_aq,
-          const quantity<common::diffusivity, real_t> &D,
-          const quantity<si::dimensionless, real_t> &acc_coeff,
-          const quantity<si::time, real_t> &dt
+          const real_t &H,
+          const real_t &dHR,
+          const real_t &M_gas,
+          const real_t &M_aq,
+          const real_t &D,
+          const real_t &acc_coeff,
+          const real_t &dt
         ) : 
           chem_iter(chem_iter), H(H), dHR(dHR), M_gas(M_gas), M_aq(M_aq), D(D), acc_coeff(acc_coeff), dt(dt)
         {}
 
         BOOST_GPU_ENABLED
         real_t operator()(
-          const real_t &V, 
+          const real_t &V,
           const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const
         {
           const quantity<si::pressure, real_t>      p      = thrust::get<0>(tpl) * si::pascals; 
@@ -135,7 +136,7 @@ namespace libcloudphxx
           
               hlp = (real_t(1) + Kt_SO2/conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
 
-              Henry = common::henry::H_temp(T, H, dHR) * hlp;
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins) * hlp;
             }
             break;
 
@@ -148,7 +149,7 @@ namespace libcloudphxx
 
               hlp = (real_t(1) + Kt_CO2/conc_H + Kt_CO2 * Kt_HCO3 / conc_H / conc_H);
 
-              Henry = common::henry::H_temp(T, H, dHR) * hlp;
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins) * hlp;
             }
             break;
 
@@ -159,7 +160,7 @@ namespace libcloudphxx
 
               hlp = (real_t(1) + Kt_HNO3 / conc_H);
 
-              Henry = common::henry::H_temp(T, H, dHR) * hlp;
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins) * hlp;
             }
             break;
 
@@ -170,38 +171,48 @@ namespace libcloudphxx
 
               hlp = (real_t(1.) + Kt_NH3 / K_H2O<real_t>() * conc_H);
 
-              Henry = common::henry::H_temp(T, H, dHR) * hlp;
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins) * hlp;
             }
             break;
 
             case O3:
             {
-              Henry = common::henry::H_temp(T, H, dHR);
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins);
             }
             break;
 
             case H2O2:
             {
-              Henry = common::henry::H_temp(T, H, dHR);
+              Henry = common::henry::H_temp(T, H * si::moles / si::cubic_metres / si::pascals, dHR * si::kelvins);
             }
             break;
 
             default:
               assert(false);
           }
-
+        
           // implicit solution to the eq. 8.22 from chapter 8.4.2 
           // in Peter Warneck Chemistry of the Natural Atmosphere  
-          return 
+          return
             (
               ( m_old 
                 + 
-                dt * (V * si::cubic_metres) * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) * c * rhod * M_aq / M_gas
+                (dt * si::seconds) * (V * si::cubic_metres) 
+                * common::henry::mass_trans(
+                                              rw2, 
+                                              (D * si::metres * si::metres / si::seconds), 
+                                              (acc_coeff * si::seconds/si::seconds), 
+                                              T, 
+                                              (M_gas * si::kilograms / si::moles)
+                                            ) 
+                * c * rhod * (M_aq / M_gas)
               )
               /
-              (real_t(1.) + dt * common::henry::mass_trans(rw2, D, acc_coeff, T, M_gas) 
-                             / Henry / common::moist_air::kaBoNA<real_t>() / T)
-            ) / si::kilograms;
+              (real_t(1.) + (dt * si::seconds) 
+                 * common::henry::mass_trans(rw2, (D * si::metres * si::metres / si::seconds), 
+                                            acc_coeff * si::seconds / si::seconds, T, (M_gas * si::kilograms / si::moles)) 
+                 / Henry / common::moist_air::kaBoNA<real_t>() / T)
+              ) / si::kilograms;
         }
       };
     };
@@ -224,35 +235,60 @@ namespace libcloudphxx
         HNO3 == 0 && NH3  == 1 && CO2 == 2 &&
         SO2  == 3 && H2O2 == 4 && O3  == 5 
       );
-      //Henry constant
-      const quantity<common::amount_over_volume_over_pressure, real_t> H_[chem_gas_n] = {
-        H_HNO3<real_t>(), H_NH3<real_t>(),  H_CO2<real_t>(),
-        H_SO2<real_t>(),  H_H2O2<real_t>(), H_O3<real_t>()
-      };
-      //correction to Henry const due to temperature
-      const quantity<si::temperature, real_t> dHR_[chem_gas_n] = {
-        dHR_HNO3<real_t>(), dHR_NH3<real_t>(),  dHR_CO2<real_t>(),
-        dHR_SO2<real_t>(),  dHR_H2O2<real_t>(), dHR_O3<real_t>()
+      // Henry constant 
+      // if Boost.units would work for Thrust: const quantity<common::amount_over_volume_over_pressure, real_t>
+      const real_t H_[chem_gas_n] = {
+        H_HNO3<real_t>() / si::moles * si::pascals * si::cubic_metres, 
+        H_NH3<real_t>()  / si::moles * si::pascals * si::cubic_metres,  
+        H_CO2<real_t>()  / si::moles * si::pascals * si::cubic_metres,
+        H_SO2<real_t>()  / si::moles * si::pascals * si::cubic_metres,  
+        H_H2O2<real_t>() / si::moles * si::pascals * si::cubic_metres, 
+        H_O3<real_t>()   / si::moles * si::pascals * si::cubic_metres
+      } ;
+      // correction to Henry const due to temperature
+      const real_t dHR_[chem_gas_n] = {
+        dHR_HNO3<real_t>() / si::kelvins, 
+        dHR_NH3<real_t>()  / si::kelvins,  
+        dHR_CO2<real_t>()  / si::kelvins,
+        dHR_SO2<real_t>()  / si::kelvins,  
+        dHR_H2O2<real_t>() / si::kelvins, 
+        dHR_O3<real_t>()   / si::kelvins
       };
       //molar mass of gases
-      const quantity<common::mass_over_amount, real_t> M_gas_[chem_gas_n] = {
-        M_HNO3<real_t>(), M_NH3<real_t>(),  M_CO2<real_t>(),
-        M_SO2<real_t>(),  M_H2O2<real_t>(), M_O3<real_t>()
+      const real_t M_gas_[chem_gas_n] = {
+        M_HNO3<real_t>() * si::moles / si::kilograms, 
+        M_NH3<real_t>()  * si::moles / si::kilograms,  
+        M_CO2<real_t>()  * si::moles / si::kilograms,
+        M_SO2<real_t>()  * si::moles / si::kilograms,  
+        M_H2O2<real_t>() * si::moles / si::kilograms, 
+        M_O3<real_t>()   * si::moles / si::kilograms
       };
       //molar mass of dissolved chem species
-      const quantity<common::mass_over_amount, real_t> M_aq_[chem_gas_n] = {
-        M_HNO3<real_t>(),    M_NH3_H2O<real_t>(), M_CO2_H2O<real_t>(),
-        M_SO2_H2O<real_t>(), M_H2O2<real_t>(), M_O3<real_t>()
+      const real_t M_aq_[chem_gas_n] = {
+        M_HNO3<real_t>()    * si::moles / si::kilograms,    
+        M_NH3_H2O<real_t>() * si::moles / si::kilograms, 
+        M_CO2_H2O<real_t>() * si::moles / si::kilograms,
+        M_SO2_H2O<real_t>() * si::moles / si::kilograms, 
+        M_H2O2<real_t>()    * si::moles / si::kilograms, 
+        M_O3<real_t>()      * si::moles / si::kilograms
       };
       //gas phase diffusivity
-      const quantity<common::diffusivity, real_t> D_[chem_gas_n] = {
-        D_HNO3<real_t>(), D_NH3<real_t>(),  D_CO2<real_t>(),
-        D_SO2<real_t>(),  D_H2O2<real_t>(), D_O3<real_t>()
+      const real_t D_[chem_gas_n] = {
+        D_HNO3<real_t>() * si::seconds / si::metres / si::metres, 
+        D_NH3<real_t>()  * si::seconds / si::metres / si::metres,  
+        D_CO2<real_t>()  * si::seconds / si::metres / si::metres,
+        D_SO2<real_t>()  * si::seconds / si::metres / si::metres,  
+        D_H2O2<real_t>() * si::seconds / si::metres / si::metres, 
+        D_O3<real_t>()   * si::seconds / si::metres / si::metres
       };
-      //accomodation coefficient
-      const quantity<si::dimensionless, real_t> ac_[chem_gas_n] = {
-        ac_HNO3<real_t>(), ac_NH3<real_t>(),  ac_CO2<real_t>(),
-        ac_SO2<real_t>(),  ac_H2O2<real_t>(), ac_O3<real_t>()
+      // accomodation coefficient
+      const real_t ac_[chem_gas_n] = {
+        ac_HNO3<real_t>(), 
+        ac_NH3<real_t>(),  
+        ac_CO2<real_t>(),
+        ac_SO2<real_t>(),  
+        ac_H2O2<real_t>(), 
+        ac_O3<real_t>()
       };
 
       // helpers for sorting out droplets
@@ -267,7 +303,6 @@ namespace libcloudphxx
       typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_chem_t> > zip_it_t;
 
       //closed chemical system - reduce mixing ratio due to Henrys law
-
       hskpng_sort();
 
       // temporarily needed to store old mass per cell 
@@ -306,8 +341,8 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             chem_bgn[H]
           )),
-          chem_bgn[i],                                                                                            // output
-          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt * si::seconds) // op
+          chem_bgn[i],                                                                              // output
+          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt) // op
         );
 
         // store the total mass of chem species in cloud droplets per cell after Henry
