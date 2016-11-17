@@ -5,27 +5,27 @@ add_test(calc calc ${CMAKE_BINARY_DIR})
 find_package(HDF5 COMPONENTS CXX REQUIRED QUIET)
 find_package(Boost COMPONENTS iostreams system filesystem REQUIRED)
 
-add_test(2D_kin_cloud_dims bash -c "
-  for dir in out_blk_1m out_blk_2m out_lgrngn; do
-    echo 'comparing const.h5'
-    if h5diff $dir/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5 | grep 'not comparable'; then
-      exit 1    
-    else          # If h5diff encounters files that cannot be compared (for example with different dimesions)
-      exit 0      # it does not return exit 1. Instead it prints out a warning that 'Some files are not comparable'.
-    fi
-  done  
-")
-
-add_test(2D_kin_cloud_diff bash -c "
-  for dir in out_blk_1m out_blk_2m out_lgrngn; do
-    echo 'comparing const.h5'
-    h5diff -v $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                                &&
-    echo 'comparing timestep0000000000.h5'                                                                                  &&
-    h5diff  -v $dir/timestep0000000000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5                   &&
-    echo 'comparing timestep0000009000.h5'                                                                                  &&
-    h5diff  -v $dir/timestep0000009000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5                   || exit 1;
-  done  
-")
+# TODO  - test and find correct epsilons (especially for lagrangian sims as they cannot be run on travis)
+#add_test(2D_kin_cloud_dims bash -c "
+#  for dir in out_blk_1m out_blk_2m out_lgrngn; do
+#    echo 'comparing const.h5'
+#    if h5diff $dir/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5 | grep 'not comparable'; then
+#      exit 1    
+#    else          # If h5diff encounters files that cannot be compared (for example with different dimesions)
+#      exit 0      # it does not return exit 1. Instead it prints out a warning that 'Some files are not comparable'.
+#    fi
+#  done  
+#")
+#add_test(2D_kin_cloud_diff bash -c "
+#  for dir in out_blk_1m out_blk_2m out_lgrngn; do
+#    echo 'comparing const.h5'
+#    h5diff -v $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                                &&
+#    echo 'comparing timestep0000000000.h5'                                                                                  &&
+#    h5diff  -v $dir/timestep0000000000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5                   &&
+#    echo 'comparing timestep0000009000.h5'                                                                                  &&
+#    h5diff  -v $dir/timestep0000009000.h5  ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5                   || exit 1;
+#  done  
+#")
 
 foreach(micro blk_1m blk_2m lgrngn)
   add_executable(plot_${micro} plot_${micro}.cpp)
@@ -93,8 +93,8 @@ add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
     h5diff --relative=1e-9  -v $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  &&
     echo 'comparing timestep0000009000.h5'                                                                                     &&
     h5diff --relative=0.02  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rv  &&
-    h5diff --relative=0.02  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
-    h5diff --relative=0.02  -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /nr  &&
+    h5diff --delta=7e-6     -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
+    h5diff --delta=4e-6     -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rc  &&
     h5diff --delta=0.4      -v $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /th  || exit 1;
   done  
 ")
