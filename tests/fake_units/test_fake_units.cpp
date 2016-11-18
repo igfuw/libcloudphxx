@@ -11,11 +11,11 @@ template <typename real_t>
 void test()
 {
   // empty constructor
-  quantity<si::pressure, double> p0;
+  quantity<si::pressure, real_t> p0;
 
   // ctor with assignment 
-  quantity<si::pressure, double> p1 = double(200) * si::pascals;
-  if (p1.value != double(200)) assert(false),throw;
+  quantity<si::pressure, real_t> p1 = real_t(200) * si::pascals;
+  if (p1.value != real_t(200)) assert(false),throw;
 
   // assignment
   p0 = p1;

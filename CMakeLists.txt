@@ -167,8 +167,7 @@ file(WRITE "${tmpdir}/test.cpp" "
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
-
-execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
+execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" "-I${Boost_INCLUDE_DIR}" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
 if (NOT status EQUAL 0) 
   message(FATAL_ERROR "${pfx}: c++ compiler failed\n ${msg}")
 endif()
