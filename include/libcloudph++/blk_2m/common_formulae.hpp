@@ -113,12 +113,14 @@ namespace libcloudphxx
       // cloud droplet radius based on rc, N (mean of gamma size distribution)
       template<typename real_t>
       inline quantity<si::length, real_t> r_drop_c(
-        const quantity<si::dimensionless, real_t> &rc,
-        const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nc,
+        real_t &rc,
+        real_t &nc,
         const quantity<si::mass_density, real_t> &rhod
       ) {
-        if (rc > 0 && nc * si::kilograms > 0) 
-          return (miu_c(nc*rhod) + real_t(1)) / lambda_c(nc, rc, rhod) / real_t(2);
+        quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_c = nc / si::kilograms;
+        quantity<si::dimensionless, real_t> r_c = rc * si::dimensionless();
+        if (rc > 0 && nc > 0) 
+          return (miu_c(nc / si::kilograms * rhod) + real_t(1)) / lambda_c(n_c, r_c, rhod) / real_t(2);
         else 
           return 0 * si::metres;
       } 

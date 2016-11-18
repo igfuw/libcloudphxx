@@ -30,10 +30,10 @@ namespace libcloudphxx
 	const bp::numeric::array &rhod,
 	const bp::numeric::array &th,
 	const bp::numeric::array &rv,
-	const bp::numeric::array &rc,
-	const bp::numeric::array &nc,
-	const bp::numeric::array &rr,
-	const bp::numeric::array &nr,
+	bp::numeric::array &rc,
+	bp::numeric::array &nc,
+	bp::numeric::array &rr,
+	bp::numeric::array &nr,
 	const typename arr_t::T_numtype &dt
       ) 
       {
@@ -43,7 +43,11 @@ namespace libcloudphxx
 	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
 	  np2bz_dot_nc(np2bz<arr_t>(dot_nc)), 
 	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)), 
-	  np2bz_dot_nr(np2bz<arr_t>(dot_nr));
+	  np2bz_dot_nr(np2bz<arr_t>(dot_nr)),
+	  np2bz_nc(np2bz<arr_t>(nc)), 
+	  np2bz_rc(np2bz<arr_t>(rc)),
+	  np2bz_nr(np2bz<arr_t>(nr)), 
+	  np2bz_rr(np2bz<arr_t>(rr));
 	b2m::rhs_cellwise(
 	  opts,
 	  np2bz_dot_th,
@@ -55,10 +59,10 @@ namespace libcloudphxx
 	  np2bz<arr_t>(rhod),
 	  np2bz<arr_t>(th),
 	  np2bz<arr_t>(rv),
-	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(nc),
-	  np2bz<arr_t>(rr),
-	  np2bz<arr_t>(nr),
+	  np2bz_rc,
+	  np2bz_nc,
+	  np2bz_rr,
+	  np2bz_nr,
 	  dt
 	);
       } 

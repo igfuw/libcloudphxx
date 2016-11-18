@@ -24,14 +24,18 @@ namespace libcloudphxx
 
       template<typename real_t>
       inline quantity<si::frequency, real_t> autoconv_rate(
-        const quantity<si::dimensionless, real_t> &rc,
-        const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &N_c
+        real_t &rc,
+        real_t &nc,
+        const quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> &rhod
       ) {
+
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_c = rhod * nc / si::kilograms;
+
         return real_t(1350) / si::seconds
           * std::pow(rc, real_t(2.47)) 
           * std::pow(N_c * real_t(1e-6) * si::cubic_metres, real_t(-1.79));
         //                        ^^^^
-        //                          \__  m-3  -->  cm-3 
+        //                        \__  m-3  -->  cm-3 
       }
 
     };
