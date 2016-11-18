@@ -33,12 +33,14 @@ int main(int ac, char** av)
   }
 
   string opts_common = 
-    "--outfreq=100  --nt=400 --spinup=200  --nx=60 --nz=60 --relax_th_rv=false";
+    "--outfreq=200  --nt=9000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=false";
   set<string> opts_micro({
-    "--micro=lgrngn_chem --outdir=out_lgrngn_chem --backend=serial --adv_serial=False --sd_conc=64 "
+    "--micro=lgrngn_chem --outdir=out_lgrngn_chem --backend=CUDA --adv_serial=False --sd_conc=128 "
                     "--sstp_cond=10 --sstp_chem=10 --coal=True --sedi=True " 
                     "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 "  
                     //chem_rct switched on afetr spinup in set_chem  
+                    "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=50e6 "
+                    "--mean_rd2=0.1e-6  --sdev_rd2=1.4 --n2_stp=0 "
                     "--SO2_g_0=.2e-9 --O3_g_0=50e-9 --H2O2_g_0=.5e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=0 "
       " --out_wet=\""                                                                                //TODO 100e-12
         ".5e-6:25e-6|0,1,2,3;" // FSSP
