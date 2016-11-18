@@ -71,7 +71,10 @@ namespace libcloudphxx
         kpa, // kappa
 	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 2D and 3D)
+	z,   // z spatial coordinate (for 2D and 3D)
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_th, // ditto for theta_d
+        sstp_tmp_rh; // ditto for rho
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -113,9 +116,6 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta_d
-        sstp_tmp_rh, // ditto for rho
         sstp_tmp_chem_0, // ditto for trace gases
         sstp_tmp_chem_1, // ditto for trace gases
         sstp_tmp_chem_2, // ditto for trace gases
@@ -180,7 +180,10 @@ namespace libcloudphxx
         tmp_host_size_cell;
       thrust_device::vector<real_t>
         tmp_device_real_part,
-        tmp_device_real_part_chem,  // only allocated if chem_switch==1
+        tmp_device_real_part1,  
+        tmp_device_real_part2,  
+        tmp_device_real_part3,
+        tmp_device_real_part4,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -205,6 +208,7 @@ namespace libcloudphxx
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // fills u01[0:n] with random numbers
@@ -374,11 +378,8 @@ namespace libcloudphxx
       ); 
       void moms_calc(
 	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-        const real_t power
-      );
-      void moms_calc_cond(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
-        const real_t power
+        const real_t power,
+        const bool specific = true
       );
 
       void mass_dens_estim(
@@ -400,7 +401,10 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
+      void cond_sstp(const real_t &dt, const real_t &RH_max);
       void update_th_rv(thrust_device::vector<real_t> &);
+      void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void coal(const real_t &dt);
 
@@ -417,6 +421,7 @@ namespace libcloudphxx
       void src(const real_t &dt);
 
       void sstp_step(const int &step, const bool &var_rho);
+      void sstp_step_exact(const int &step, const bool &var_rho);
       void sstp_save();
       void sstp_step_chem(const int &step, const bool &var_rho);
       void sstp_save_chem();
@@ -426,7 +431,7 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr)
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr) 
     {
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
