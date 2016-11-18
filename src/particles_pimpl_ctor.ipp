@@ -72,7 +72,10 @@ namespace libcloudphxx
         kpa, // kappa
 	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
-	z;   // z spatial coordinate (for 2D and 3D)
+	z,   // z spatial coordinate (for 2D and 3D)
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_th, // ditto for theta_d
+        sstp_tmp_rh; // ditto for rho
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -110,9 +113,6 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta_d
-        sstp_tmp_rh, // ditto for rho
         sstp_tmp_chem_0, // ditto for trace gases
         sstp_tmp_chem_1, // ditto for trace gases
         sstp_tmp_chem_2, // ditto for trace gases
@@ -208,6 +208,7 @@ namespace libcloudphxx
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // fills u01[0:n] with random numbers
@@ -412,6 +413,7 @@ namespace libcloudphxx
       void src(const real_t &dt);
 
       void sstp_step(const int &step, const bool &var_rho);
+      void sstp_step_exact(const int &step, const bool &var_rho);
       void sstp_save();
       void sstp_step_chem(const int &step, const bool &var_rho);
       void sstp_save_chem();

@@ -467,6 +467,9 @@ namespace libcloudphxx
 
       // update count_ijk and count_num
       hskpng_count();
+
+      // store sstp_old
+      sstp_save();
     }
   };  
 };

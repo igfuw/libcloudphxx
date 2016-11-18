@@ -41,8 +41,12 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::pow;
 #endif
-          return pow(rw2, real_t(3./2.)) > 1000. * rd3 ? 1 : 0;
-        }                                //1000
+          return (
+                   pow(rw2, real_t(3./2.)) > (1000. * rd3) 
+                   && 
+                   rw2 > 1e-12
+                 ) ? 1 : 0;
+        }
       };
 
       template <class real_t>

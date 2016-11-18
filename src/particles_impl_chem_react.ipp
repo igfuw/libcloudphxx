@@ -202,13 +202,13 @@ namespace libcloudphxx
       template <typename real_t>
       struct chem_new_rd3
       { // recalculation of dry radii basing on created H2SO4
-        const quantity<si::mass_density, real_t> chem_rho;
+        const real_t chem_rho;
 
         // ctor
         chem_new_rd3(
           const real_t &chem_rho
         ) : 
-          chem_rho(chem_rho * si::kilograms / si::cubic_metres)
+          chem_rho(chem_rho)
         {}
 
         BOOST_GPU_ENABLED
@@ -216,21 +216,22 @@ namespace libcloudphxx
           const thrust::tuple<real_t, real_t, real_t> &tpl
         ) 
         { 
-          const quantity<si::mass, real_t>
-            m_S6_old  = thrust::get<0>(tpl) * si::kilograms,     // old H2SO4
-            m_S6_new  = thrust::get<1>(tpl) * si::kilograms;     // new H2SO4
-          const quantity<si::volume, real_t> 
-            rd3       = thrust::get<2>(tpl) * si::cubic_metres;  // old dry radii^3
+          //const quantity<si::mass, real_t>
+          const real_t 
+            m_S6_old  = thrust::get<0>(tpl),// * si::kilograms,     // old H2SO4
+            m_S6_new  = thrust::get<1>(tpl);// * si::kilograms;     // new H2SO4
+          //const quantity<si::volume, real_t>
+          const real_t  
+            rd3       = thrust::get<2>(tpl);// * si::cubic_metres;  // old dry radii^3
 
-          return (
+          return 
             rd3 + (real_t(3./4) /
 #if !defined(__NVCC__)
             pi<real_t>()
 #else
             CUDART_PI
 #endif
-            / chem_rho) * (m_S6_new - m_S6_old)
-          ) / si::cubic_metres;
+            / chem_rho) * (m_S6_new - m_S6_old);
         }
       };
     };
@@ -277,8 +278,15 @@ namespace libcloudphxx
       zip_it_t 
         arg_begin(thrust::make_tuple(old_S_VI.begin(), chem_bgn[S_VI], rd3.begin())),
         arg_end(  thrust::make_tuple(old_S_VI.end(),   chem_end[S_VI], rd3.end()));
-       
-      thrust::transform(arg_begin, arg_end, rd3.begin(), detail::chem_new_rd3<real_t>(opts_init.chem_rho));
+ 
+      // do oxidation reaction only for droplets that are "big enough" (marked by chem_flag) 
+      thrust::transform_if(
+        arg_begin, arg_end,                                //input first arg 
+        chem_flag.begin(),                                 //stencil
+        rd3.begin(),                                       //output
+        detail::chem_new_rd3<real_t>(opts_init.chem_rho),  //op
+        thrust::identity<unsigned int>()                   //condition
+      );
 
 #if !defined(__NVCC__)
       using boost::math::isfinite;

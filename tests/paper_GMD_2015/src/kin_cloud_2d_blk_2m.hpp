@@ -37,15 +37,16 @@ class kin_cloud_2d_blk_2m : public kin_cloud_2d_common<ct_params_t>
 	dot_rc = rhs.at(ix::rc)(this->ijk),
 	dot_rr = rhs.at(ix::rr)(this->ijk),
 	dot_nc = rhs.at(ix::nc)(this->ijk),
-	dot_nr = rhs.at(ix::nr)(this->ijk);
-      const auto
-        rhod   = (*this->mem->G)(this->ijk),
-        th     = this->state(ix::th)(this->ijk),
-        rv     = this->state(ix::rv)(this->ijk),
+	dot_nr = rhs.at(ix::nr)(this->ijk),
         rc     = this->state(ix::rc)(this->ijk),
         rr     = this->state(ix::rr)(this->ijk),
         nc     = this->state(ix::nc)(this->ijk),
         nr     = this->state(ix::nr)(this->ijk);
+
+      const auto
+        rhod   = (*this->mem->G)(this->ijk),
+        th     = this->state(ix::th)(this->ijk),
+        rv     = this->state(ix::rv)(this->ijk);
 
       libcloudphxx::blk_2m::rhs_cellwise<real_t>(
         opts, dot_th, dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
