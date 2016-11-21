@@ -41,6 +41,7 @@ int main(int ac, char** av)
                     //chem_rct switched on afetr spinup in set_chem  
                     "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=50e6 "
                     "--mean_rd2=0.1e-6  --sdev_rd2=1.4 --n2_stp=0 "
+                    "--kernel=hall_davis_no_waals --terminal_velocity=beard77fast "
                     "--SO2_g_0=.2e-9 --O3_g_0=50e-9 --H2O2_g_0=.5e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=0 "
       " --out_wet=\""                                                                                //TODO 100e-12
         ".5e-6:25e-6|0,1,2,3;" // FSSP

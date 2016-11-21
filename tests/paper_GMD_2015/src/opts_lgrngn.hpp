@@ -4,7 +4,6 @@
  * @section LICENSE
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
-
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include "opts_common.hpp"
@@ -256,6 +255,9 @@ void setopts_micro(
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet_pH", po::value<std::string>()->default_value("0:1|0"), "wet radius ranges for output of H+ and S_VI)")
     ("out_chem", po::value<std::string>()->default_value("0:1|0"),   "dry radius ranges for which chem mass is outputted")
+    // collision and sedimentation
+    ("kernel", po::value<std::string>()->default_value("geometric"), "collision kernel (geometric, long, hall, hall_davis_no_waals, golovin, onishi_hall, onishi_hall_davis_no_waals, vohl_davis_no_waals, hall_pinsky_cumulonimbus, hall_pinsky_stratocumulus)")
+    ("terminal_velocity", po::value<std::string>()->default_value("khvorostyanov_spherical"), "sedimentation velocity (khvorostyanov_spherical, khvorostyanov_nonspherical, beard76, beard77, beard77fast)")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -306,11 +308,83 @@ void setopts_micro(
   rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
 
   // coalescence kernel choice
-  rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
-  // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
-  rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
+  if (vm["kernel"].as<std::string>() == "geometric") {
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::geometric;
+    // halving the collection efficiency to match the timing of precipitation onset in the blk_2m scheme
+    rt_params.cloudph_opts_init.kernel_parameters = {.5}; 
+  }
+  else if (vm["kernel"].as<std::string>() == "long") {
+    // akin to geometric but a bit more sophisticated  (not realistic)
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::Long;
+  }
+  else if (vm["kernel"].as<std::string>() == "hall") {
+    // geometric kernel + collision efficiencies taken from lookup table (bad lookups for droplets smaller than 10 microns)
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall;
+  }
+  else if (vm["kernel"].as<std::string>() == "hall_davis_no_waals") { 
+    // geometric kernel + collision efficiencies taken from lookup table (like hall but collision efficiencies for small droplets are taken from Davis)
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
+  }
+  else if (vm["kernel"].as<std::string>() == "golovin") {
+    // a kernel that allows for analictic solution for collisons (good for testing, not for cloud simulations)
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::golovin;
+    rt_params.cloudph_opts_init.kernel_parameters = {1.}; // efficiency parameter 
+  }
+  else if (vm["kernel"].as<std::string>() == "onishi_hall") {
+    // like hall but also taking into acount turbulent effects (modifying kernel and collision efficiencies) 
+    // it's not geometric kernel anymore
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall;
+    rt_params.cloudph_opts_init.kernel_parameters = {0.04, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
+                                                  // 0.04 - cumulus
+                                                  // 0.01 - stratocumulus
+  }
+  else if (vm["kernel"].as<std::string>() == "onishi_hall_davis_no_waals") {
+    // like onisi_hall but collision efficiencies taken from Davis
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
+    rt_params.cloudph_opts_init.kernel_parameters = {0.04, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
+  }
+  else if (vm["kernel"].as<std::string>() == "vohl_davis_no_waals") {
+    // geometric kernel collision efficiencies for big droplets are taken from Vohl and for small from Davis
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::vohl_davis_no_waals;
+  }
+  else if (vm["kernel"].as<std::string>() == "hall_pinsky_cumulonimbus") {
+    // like geometric, collision efficiencies for big droplets from Hall for small droplets from Pinski (taking into account turbulence in cumulonimbus) 
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_pinsky_cumulonimbus;
+  }
+  else if (vm["kernel"].as<std::string>() == "hall_pinsky_stratocumulus") {
+    // like geometric, collision efficiencies for big droplets from Hall for small droplets from Pinski (taking into account turbulence in cumulonimbus) 
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_pinsky_stratocumulus;
+  }
+  else {
+    std::cerr<<"Invalid kernel choice"<<std::endl;
+    assert(false); 
+  }
+
   // terminal velocity choice
-  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
+  if (vm["terminal_velocity"].as<std::string>() == "khvorostyanov_spherical") {
+    // took results for Beard and provided different fit (this is good only for small droplets)
+    rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_spherical;
+  }
+  else if (vm["terminal_velocity"].as<std::string>() == "khvorostyanov_nonspherical") {
+    // took results for Beard and provided different fit (good only for big droplets)
+    rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
+  }
+  else if (vm["terminal_velocity"].as<std::string>() == "beard76") {
+    // fit to measurements (complicated equation)
+    rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard76;
+  } 
+  else if (vm["terminal_velocity"].as<std::string>() == "beard77") {
+    // simplified fit to Beard76
+    rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77;
+  } 
+  else if (vm["terminal_velocity"].as<std::string>() == "beard77fast") {
+    // creates a lookup table for p=1000hPa and scales the results for other values of pressure with some simple equation
+    rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77fast;
+  } 
+  else {
+    std::cerr<<"Invalid terminal velocity choice"<<std::endl;
+    assert(false);
+  }
 
   std::set<std::string> out_set;
   setopts_micro_chem<solver_t, ct_params_t>(rt_params, out_set);
