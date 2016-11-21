@@ -17,6 +17,7 @@ class kin_cloud_2d_common : public
 
   typename ct_params_t::real_t dx, dz; // 0->dx, 1->dy ! TODO
   int spinup; // number of timesteps
+  config::setup_t setup;
 
   // relaxation stuff
   bool relax_th_rv;
@@ -67,11 +68,10 @@ class kin_cloud_2d_common : public
     parent_t::hook_ante_step(); 
   }
 
-
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
-    const int &at 
+    const int &at
   )   
   {   
     parent_t::update_rhs(rhs, dt, at);
@@ -83,7 +83,7 @@ class kin_cloud_2d_common : public
       // computed level-wise
       for (int j = this->j.first(); j <= this->j.last(); ++j)
       {  
-        const auto tau = icmw8_case1::tau_rlx / si::seconds * exp(j * dz / icmw8_case1::z_rlx * si::metres);
+        const auto tau = setup.tau_rlx / si::seconds * exp(j * dz / setup.z_rlx * si::metres);
 
         for(auto a: std::list<int>({ix::th, ix::rv}))
         {
@@ -113,6 +113,7 @@ class kin_cloud_2d_common : public
     typename ct_params_t::real_t dx = 0, dz = 0;
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
     bool relax_th_rv = true;
+    config::setup_t setup;
   };
 
   // ctor
@@ -125,6 +126,7 @@ class kin_cloud_2d_common : public
     dz(p.dz),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv),
+    setup(p.setup),
     th_eq(this->mem->grid_size[1].length()),
     rv_eq(this->mem->grid_size[1].length())
   {

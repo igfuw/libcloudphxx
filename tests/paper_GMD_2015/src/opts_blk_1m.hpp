@@ -15,6 +15,7 @@ template <class solver_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   int nx, int nz, int nt,
+  config::setup_t &setup,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::blk_1m::opts_t<typename solver_t::real_t>

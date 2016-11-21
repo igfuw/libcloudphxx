@@ -42,12 +42,21 @@ std::map<std::string, int> h5n(
 auto h5load(
   const string &file, 
   const string &dataset,
-  int at
+  int at,
+  bool flag = true //choose between reading from timestep files and const file
 ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
  {
   notice_macro("about to open file: " << file)
-  H5::H5File h5f(file + "/timestep" + zeropad(at, 10) + ".h5", H5F_ACC_RDONLY);
 
+  string tmp_filename;
+  if (flag)
+    tmp_filename = file + "/timestep" + zeropad(at, 10) + ".h5";
+  else
+    tmp_filename = file;
+
+//    H5::H5File h5f(file + "/timestep" + zeropad(at, 10) + ".h5", H5F_ACC_RDONLY);
+  H5::H5File h5f(tmp_filename, H5F_ACC_RDONLY);
+ 
   notice_macro("about to read dataset: " << dataset)
   H5::DataSet h5d = h5f.openDataSet(dataset);
   H5::DataSpace h5s = h5d.getSpace();
