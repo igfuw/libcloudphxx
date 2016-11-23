@@ -24,6 +24,7 @@ opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
+opts_init.exact_sstp_cond = True # test would fail with per-cell sstp logic
 spinup = 20
 
 backend = lgrngn.backend_t.serial
