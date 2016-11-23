@@ -230,7 +230,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
       if (
         parent_t::params.async && 
         this->timestep != 0 && // ... but not in first timestep ...
-        ((this->timestep - 1) % this->outfreq != 0) // ... and not after diag call
+        ((this->timestep - 1) % this->outfreq != 0 /*&& (this->timestep -1) >= parent_t::params.spinup*/) // ... and not after diag call
       ) {
         assert(ftr.valid());
         ftr.get();
@@ -292,7 +292,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
       }
 
       // performing diagnostics
-      if (this->timestep % this->outfreq == 0) 
+      if (this->timestep % this->outfreq == 0 /*&& this->timestep >= parent_t::params.spinup*/) 
       { 
 #if defined(STD_FUTURE_WORKS)
         if (parent_t::params.async)

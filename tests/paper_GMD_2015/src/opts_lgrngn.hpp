@@ -334,14 +334,14 @@ void setopts_micro(
     // like hall but also taking into acount turbulent effects (modifying kernel and collision efficiencies) 
     // it's not geometric kernel anymore
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall;
-    rt_params.cloudph_opts_init.kernel_parameters = {0.04, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
+    rt_params.cloudph_opts_init.kernel_parameters = {0.01, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
                                                   // 0.04 - cumulus
                                                   // 0.01 - stratocumulus
   }
   else if (vm["kernel"].as<std::string>() == "onishi_hall_davis_no_waals") {
     // like onisi_hall but collision efficiencies taken from Davis
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
-    rt_params.cloudph_opts_init.kernel_parameters = {0.04, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
+    rt_params.cloudph_opts_init.kernel_parameters = {0.01, 100}; // (rate of dissipation epsilon [m^2/s^3], Taylor microscale Reynolds number)
   }
   else if (vm["kernel"].as<std::string>() == "vohl_davis_no_waals") {
     // geometric kernel collision efficiencies for big droplets are taken from Vohl and for small from Davis
