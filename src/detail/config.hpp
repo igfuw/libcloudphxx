@@ -26,11 +26,12 @@ namespace libcloudphxx
         const real_t cond_mlt = 2.;      // arbitrary multiplier that defines range over which equilibrium radius is searched during condensation
         const int vt0_n_bin = 10000;     // number of bins to cache terminal velocity in beard77fast case
         // range of beard77fast bins:
-        const real_t vt0_ln_r_min = log(5e-7),
-                     vt0_ln_r_max = log(3e-3);  // Beard 1977 is defined on 1um - 6mm diameter range
+        const real_t vt0_ln_r_min, vt0_ln_r_max;
 
         // ctor
         config():
+          vt0_ln_r_min(log(5e-7)),
+          vt0_ln_r_max(log(3e-3)),  // Beard 1977 is defined on 1um - 6mm diameter range
           eps_tolerance(sizeof(real_t) * 8 / 4)
           {}
       };
