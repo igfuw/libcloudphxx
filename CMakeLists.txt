@@ -135,7 +135,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
   
   #include <thrust/system/cpp/vector.h>
-  
+
   #include <boost/numeric/odeint.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
