@@ -82,8 +82,8 @@ namespace libcloudphxx
           if (n_dims > 2)
           {
             const pi_real_size
-              C_fre(courant_x.begin(), pi_size_size(fre.begin(), ijk.begin())),
-              C_hnd(courant_x.begin(), pi_size_size(hnd.begin(), ijk.begin()));
+              C_fre(courant_y.begin(), pi_size_size(fre.begin(), ijk.begin())),
+              C_hnd(courant_y.begin(), pi_size_size(hnd.begin(), ijk.begin()));
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
               thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
