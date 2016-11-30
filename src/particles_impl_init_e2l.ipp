@@ -9,6 +9,24 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      struct periodic_cellno
+      {
+        int n_x_tot; 
+        periodic_cellno(const int &n_x_tot): n_x_tot(n_x_tot) {}
+        BOOST_GPU_ENABLED
+        int operator()(int x_cell)
+        {
+          if(x_cell <= n_x_tot && x_cell >= 0) // what if courant_x > 1 and halo of 1 is not enough?
+            return x_cell;
+          else if (x_cell > n_x_tot)
+            return 0;
+          else 
+            return n_x_tot;
+        }
+      };
+    };
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
@@ -26,11 +44,12 @@ namespace libcloudphxx
 	  l2e[key][0] = 0;  
 	  break;
 	case 1:
+        {
           assert(arr.strides[0] == 1);
           int shift =    // index of element of arr copied to 0-th position in key
             - 1          // left halo
             + n_cell_bfr // cells in other memory
-            + offset,    // additional cells in other memory for arrays bigger than nx*ny*nz
+            + offset;    // additional cells in other memory for arrays bigger than nx*ny*nz
                          // like courant numbers
 	  thrust::transform(
             // input
@@ -39,13 +58,10 @@ namespace libcloudphxx
             // output
             l2e[key].begin(), 
             // op
-            arg::_1
+            detail::periodic_cellno(n_x_tot) // apply periodic bcnd (if = -1 then = glob_nx; if = glob_nx+1 then = 0)
 	  );
-          // apply periodic bcnd (if = -1 then = glob_nx; if = glob_nx+1 then = 0)
-
-
-
 	  break;
+        }
 	case 2:
           // assumes z veries fastest
           assert(arr.strides[1] == 1);
