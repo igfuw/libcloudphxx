@@ -47,6 +47,7 @@ namespace libcloudphxx
 	  throw std::runtime_error("All XYZ Courant number components required in 3D setup");
       }
 
+
       if (pimpl->opts_init.chem_switch && ambient_chem.size() != chem_gas_n) 
         throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
 
@@ -90,6 +91,15 @@ namespace libcloudphxx
       if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
+
+      // check if courants arent greater than 1 since it would break the predictor-corrector (halo of size 1 only) 
+      // in fact we only have halo in x, so we should only check the x courant, but probably y and z courants > 1 arent good :)
+      assert(courant_x.is_null() || ((*(thrust::min_element(courant_x.begin(), courant_x.end()))) >= real_t(-1.) ) );
+      assert(courant_x.is_null() || ((*(thrust::max_element(courant_x.begin(), courant_x.end()))) <= real_t(1.) ) );
+      assert(courant_y.is_null() || ((*(thrust::min_element(courant_y.begin(), courant_y.end()))) >= real_t(-1.) ) );
+      assert(courant_y.is_null() || ((*(thrust::max_element(courant_y.begin(), courant_y.end()))) <= real_t(1.) ) );
+      assert(courant_z.is_null() || ((*(thrust::min_element(courant_z.begin(), courant_z.end()))) >= real_t(-1.) ) );
+      assert(courant_z.is_null() || ((*(thrust::max_element(courant_z.begin(), courant_z.end()))) <= real_t(1.) ) );
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
