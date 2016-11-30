@@ -13,17 +13,22 @@ namespace libcloudphxx
     {
       struct periodic_cellno
       {
-        int n_x_tot; 
-        periodic_cellno(const int &n_x_tot): n_x_tot(n_x_tot) {}
+        int n_x_tot, n_y_tot, n_z_tot, // total number of courant number points in the whole domain in each direction
+            n_tot;                     // total number of courant number points
+        periodic_cellno(const int &n_x_tot, const int &n_y_tot, const int &n_z_tot):
+          n_x_tot(n_x_tot),
+          n_y_tot(n_y_tot),
+          n_z_tot(n_z_tot) 
+          { n_tot = n_x_tot * n_y_tot * n_z_tot; }
         BOOST_GPU_ENABLED
-        int operator()(int x_cell)
+        int operator()(int cell_idx)
         {
-          if(x_cell <= n_x_tot && x_cell >= 0) // what if courant_x > 1 and halo of 1 is not enough?
-            return x_cell;
-          else if (x_cell > n_x_tot)
-            return 0;
-          else 
-            return n_x_tot;
+          if (cell_idx > n_tot)
+            cell_idx -= n_tot;
+          else if (cell_idx < 0)
+            cell_idx += n_tot;
+
+          return cell_idx;
         }
       };
     };
@@ -37,6 +42,12 @@ namespace libcloudphxx
     {
       // allocating and filling in l2e with values
       l2e[key].resize(key->size());
+
+      int shift =    // index of element of arr copied to 0-th position in key
+        + n_cell_bfr // cells in other memory
+        + offset;    // additional cells in other memory for arrays bigger than nx*ny*nz (like courant numbers),
+                     // or halo
+
       switch (n_dims)
       {
 	namespace arg = thrust::placeholders;
@@ -44,12 +55,7 @@ namespace libcloudphxx
 	  l2e[key][0] = 0;  
 	  break;
 	case 1:
-        {
           assert(arr.strides[0] == 1);
-          int shift =    // index of element of arr copied to 0-th position in key
-            + n_cell_bfr // cells in other memory
-            + offset;    // additional cells in other memory for arrays bigger than nx*ny*nz like courant numbers
-                         // or halo
 	  thrust::transform(
             // input
             zero + shift,
@@ -57,28 +63,43 @@ namespace libcloudphxx
             // output
             l2e[key].begin(), 
             // op
-            detail::periodic_cellno(n_x_tot) // apply periodic bcnd (if = -1 then = glob_nx; if = glob_nx+1 then = 0)
+            arg::_1
 	  );
+
+          // apply bcnd for halo
+          thrust::transform(
+            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
+            l2e[key].begin(), // in place 
+            detail::periodic_cellno(n_x_tot + ext_x, 1, 1)
+          );
 	  break;
-        }
 	case 2:
           // assumes z veries fastest
           assert(arr.strides[1] == 1);
 	  thrust::transform(
             // input
-            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(), 
+            zero + shift,
+            zero + shift + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
 	    arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
-	    arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))  
+	    arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
 	  );
+
+          // apply bcnd for halo
+          thrust::transform(
+            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
+            l2e[key].begin(), // in place 
+            detail::periodic_cellno(n_x_tot + ext_x, 1, opts_init.nz + ext_z)
+          );
 	  break;
         case 3:
           assert(arr.strides[2] == 1);
           thrust::transform(
             // input
-            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(),
+            zero + shift,
+            zero + shift + l2e[key].size(), 
             // output
             l2e[key].begin(),
             // op
