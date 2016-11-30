@@ -145,9 +145,9 @@ namespace libcloudphxx
       struct advance_rw2
       {
         const real_t dt, RH_max;
-        detail::config<real_t> config;
+        const detail::config<real_t> *config;
 
-        advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
+        advance_rw2(const real_t &dt, const real_t &RH_max, const detail::config<real_t> *config) : dt(dt), RH_max(RH_max), config(config) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(
@@ -169,8 +169,8 @@ namespace libcloudphxx
           const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
  
           const real_t 
-            a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
-            b =          rw2_old + max(real_t(0), config.cond_mlt * drw2);
+            a = max(rd2, rw2_old + min(real_t(0), config->cond_mlt * drw2)),
+            b =          rw2_old + max(real_t(0), config->cond_mlt * drw2);
 
           // numerics (drw2 != 0 but a==b)
           if (a == b) return rw2_old;
@@ -192,8 +192,8 @@ namespace libcloudphxx
           if (fa * fb > 0) return rw2_old + drw2;
 
           // otherwise implicit Euler
-          uintmax_t n_iter = config.n_iter;
-          return common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
+          uintmax_t n_iter = config->n_iter;
+          return common::detail::toms748_solve(f, a, b, fa, fb, config->eps_tolerance, n_iter);
         }
       };
     };
