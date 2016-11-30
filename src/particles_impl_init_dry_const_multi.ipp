@@ -37,7 +37,7 @@ namespace libcloudphxx
         thrust::transform(
           thrust::make_transform_iterator(thrust::make_counting_iterator(0), min + bin_size * arg::_1),
           thrust::make_transform_iterator(thrust::make_counting_iterator(n), min + bin_size * arg::_1),
-          vec.begin(), eval_and_oper<real_t>(fun, 1));
+          vec.begin(), eval_and_mul<real_t>(fun, 1));
 
         // calculate CDF
         thrust::inclusive_scan(vec.begin(), vec.end(), vec.begin());
