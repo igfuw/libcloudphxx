@@ -111,7 +111,7 @@ namespace libcloudphxx
           // adjust max numer of SDs on each card
           opts_init_tmp.n_sd_max = opts_init_tmp.n_sd_max / dev_count + 1;
         }
-        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr)); // impl stores a copy of opts_init
+        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
       }
     }
 

@@ -203,7 +203,7 @@ namespace libcloudphxx
       void diag_precip_rate();
 
       // constructors
-      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0); // only opts_init specified by user
+      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0, int n_x_tot = 0); // only opts_init specified by user
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

@@ -27,14 +27,24 @@ namespace libcloudphxx
 	  break;
 	case 1:
           assert(arr.strides[0] == 1);
+          int shift =    // index of element of arr copied to 0-th position in key
+            - 1          // left halo
+            + n_cell_bfr // cells in other memory
+            + offset,    // additional cells in other memory for arrays bigger than nx*ny*nz
+                         // like courant numbers
 	  thrust::transform(
             // input
-            zero + n_cell_bfr + offset, zero + n_cell_bfr + offset + l2e[key].size(), 
+            zero + shift,
+            zero + shift + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
             arg::_1
 	  );
+          // apply periodic bcnd (if = -1 then = glob_nx; if = glob_nx+1 then = 0)
+
+
+
 	  break;
 	case 2:
           // assumes z veries fastest

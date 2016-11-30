@@ -201,7 +201,8 @@ namespace libcloudphxx
       unsigned int lft_count, rgt_count;
 
       // nx in devices to the left of this one
-      unsigned int n_x_bfr;
+      unsigned int n_x_bfr,
+                   n_x_tot; // total number of cells in x in all devices
 
       // number of cells in devices to the left of this one
       unsigned int n_cell_bfr;
@@ -221,7 +222,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const int &n_x_tot) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -246,6 +247,7 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
+        n_x_tot(n_x_tot),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
@@ -431,13 +433,16 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr) 
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot) 
     {
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
         cudaSetDevice(opts_init.dev_id);
 #endif
-      pimpl.reset(new impl(opts_init, n_x_bfr));
+      if(opts_init.dev_count < 2) // no distmem
+        n_x_tot = opts_init.nx;
+
+      pimpl.reset(new impl(opts_init, n_x_bfr, n_x_tot));
 
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();

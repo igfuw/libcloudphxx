@@ -224,9 +224,6 @@ namespace libcloudphxx
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
-      // advection 
-      if (opts.adve) pimpl->adve(); 
-
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
@@ -250,6 +247,9 @@ namespace libcloudphxx
             pimpl->hskpng_vterm_invalid(); 
         }
       }
+
+      // advection 
+      if (opts.adve) pimpl->adve(); 
 
       // boundary condition + accumulated rainfall to be returned
       // multi_GPU version invalidates i and k;
