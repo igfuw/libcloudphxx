@@ -135,7 +135,7 @@ namespace libcloudphxx
       std::auto_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0, int n_x_tot = 0); // only opts_init specified by user
+      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot = 0); // n_x_bfr should have default=0, but python bindings fail if more than one default value...
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
@@ -203,7 +203,7 @@ namespace libcloudphxx
       void diag_precip_rate();
 
       // constructors
-      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0, int n_x_tot = 0); // only opts_init specified by user
+      particles_t(const opts_init_t<real_t> &opts_init);
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;

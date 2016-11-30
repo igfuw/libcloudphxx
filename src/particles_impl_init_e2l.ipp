@@ -47,10 +47,9 @@ namespace libcloudphxx
         {
           assert(arr.strides[0] == 1);
           int shift =    // index of element of arr copied to 0-th position in key
-            - 1          // left halo
             + n_cell_bfr // cells in other memory
-            + offset;    // additional cells in other memory for arrays bigger than nx*ny*nz
-                         // like courant numbers
+            + offset;    // additional cells in other memory for arrays bigger than nx*ny*nz like courant numbers
+                         // or halo
 	  thrust::transform(
             // input
             zero + shift,

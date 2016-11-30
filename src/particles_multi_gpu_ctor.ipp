@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &__n_x_bfr, int __n_x_tot) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
