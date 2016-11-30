@@ -74,25 +74,9 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
       using std::max;
 #endif
-      int halo; // number of cell in the halo before first "real" cell, halo only in x
-
-      if (!courant_x.is_null()) {
-        halo = 
-          pimpl->n_dims == 1 ? 1:                       // 1D
-            pimpl->n_dims == 2 ? pimpl->opts_init.nz:   // 2D
-              pimpl->opts_init.nz * pimpl->opts_init.ny // 3D
-        pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, -halo );
-      }
-      if (!courant_y.is_null()) {
-        halo = (pimpl->opts_init.ny + 1) * pimpl->opts_init.nz // 3D
-        pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - halo);
-      }
-      if (!courant_z.is_null()) {
-        halo = 
-          pimpl->n_dims == 2 ? pimpl->opts_init.nz + 1:     // 2D
-            (pimpl->opts_init.nz + 1) * pimpl->opts_init.ny // 3D
-        pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - halo);
-      }
+      if (!courant_x.is_null())  pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x );
+      if (!courant_y.is_null())  pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
+      if (!courant_z.is_null())  pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)

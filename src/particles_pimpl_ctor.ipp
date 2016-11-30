@@ -207,6 +207,11 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       unsigned int n_cell_bfr;
 
+      int halo_x; // number of cells in the halo for courant_x before first "real" cell, halo only in x
+      int halo_y; // number of cells in the halo for courant_y before first "real" cell, halo only in x
+      int halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
+
+
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
@@ -319,6 +324,18 @@ namespace libcloudphxx
         }
         tmp_host_size_cell.resize(n_cell);
         tmp_host_real_cell.resize(n_cell);
+
+        // init halo sizes
+        halo_x = 
+          n_dims == 1 ? 1:                 // 1D
+            n_dims == 2 ? opts_init.nz:    // 2D
+              opts_init.nz * opts_init.ny; // 3D
+
+        halo_y = (opts_init.ny + 1) * opts_init.nz; // 3D
+
+        halo_z = 
+          n_dims == 2 ? opts_init.nz + 1:     // 2D
+            (opts_init.nz + 1) * opts_init.ny; // 3D
       }
 
       // methods

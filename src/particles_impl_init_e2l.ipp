@@ -74,7 +74,7 @@ namespace libcloudphxx
           );
 	  break;
 	case 2:
-          // assumes z veries fastest
+          // assume z changes first
           assert(arr.strides[1] == 1);
 	  thrust::transform(
             // input
@@ -106,6 +106,13 @@ namespace libcloudphxx
 	    arr.strides[0] * /* i = */ (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) +  
             arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
 	    arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
+          );
+
+          // apply bcnd for halo
+          thrust::transform(
+            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
+            l2e[key].begin(), // in place 
+            detail::periodic_cellno(n_x_tot + ext_x, opts_init.ny + ext_y, opts_init.nz + ext_z)
           );
           break;
 	default: assert(false);
