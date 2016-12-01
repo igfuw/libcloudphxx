@@ -11,6 +11,7 @@ namespace libcloudphxx
   {
     namespace detail
     {
+/*
       template <typename real_t>
       struct adve_helper
       {
@@ -46,6 +47,36 @@ namespace libcloudphxx
           );
         }
       };
+*/
+      template <typename real_t>
+      struct adve_helper
+      {
+        const real_t dx;
+        const bool halo; // should the position be shifted to coordinate system starting at the left halo end
+
+        adve_helper(const real_t dx, const bool halo = 0) : dx(dx), halo(halo) {} 
+
+        BOOST_GPU_ENABLED
+        real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
+        {
+          real_t x = thrust::get<0>(tpl);
+          const thrust_size_t floor_x_over_dx = thrust::get<1>(tpl);
+          real_t C_l = thrust::get<2>(tpl);
+          real_t C_r = thrust::get<3>(tpl);
+
+          // integrating using forward Euler scheme + interpolation/extrapolation
+          // 
+          // x_new = x_old + v(x_old) * dt = x_old + C(x_old) * dx
+          //    
+          //     C(x_old) = (1-w) * C_l + w * C_r 
+          //     w = x_old/dx - floor(x_old/dx) 
+          //
+          // x_new = x_old + C_l * dx + w * dx * (C_r - C_l)
+          //       = x_old + C_l * dx + x_old * (C_r - C_l) - dx * floor(x_old/dx) * (C_r - C_l)
+
+          return x + (C_r - C_l) * (x - dx * floor_x_over_dx) + dx * (C_l + halo); // additional shift by halo size - 1 cell
+        }
+      };
     };
 
     template <typename real_t, backend_t device>
@@ -75,7 +106,7 @@ namespace libcloudphxx
               thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
               thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
               x.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dx)
+              detail::adve_helper<real_t>(opts_init.dx, true)
             );
           }
 
