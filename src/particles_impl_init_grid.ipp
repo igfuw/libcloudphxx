@@ -61,6 +61,8 @@ namespace libcloudphxx
       // filling in sample volume data
       dv.resize(n_cell);
 
+      int n_cell_halo(2 * halo_x); // number of halo cells
+
       if (n_dims > 0)
       {
         // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
@@ -70,22 +72,22 @@ namespace libcloudphxx
 	  detail::dv_eval<real_t>(opts_init)
 	);
 	// memory allocation
-	lft.resize(n_cell);
-	rgt.resize(n_cell);
+	lft.resize(n_cell + n_cell_halo);
+	rgt.resize(n_cell + n_cell_halo);
       }
 
       if (n_dims > 1)
       {
 	// memory allocation
-	abv.resize(n_cell);
-	blw.resize(n_cell);
+	abv.resize(n_cell + n_cell_halo);
+	blw.resize(n_cell + n_cell_halo);
       }
       
       if (n_dims == 3)
       {
         // memory allocation
-        fre.resize(n_cell);
-        hnd.resize(n_cell);
+        fre.resize(n_cell + n_cell_halo);
+        hnd.resize(n_cell + n_cell_halo);
       }
 
       // filling in neighbour info data
