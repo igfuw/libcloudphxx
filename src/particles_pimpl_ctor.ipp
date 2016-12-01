@@ -207,9 +207,9 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       unsigned int n_cell_bfr;
 
-      int halo_x; // number of cells in the halo for courant_x before first "real" cell, halo only in x
-      int halo_y; // number of cells in the halo for courant_y before first "real" cell, halo only in x
-      int halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
+      const int halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
+                halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
+                halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
 
 
       // in/out buffers for SDs copied from other GPUs
@@ -256,7 +256,16 @@ namespace libcloudphxx
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         vt0_n_bin(10000),
         vt0_ln_r_min(log(5e-7)),
-        vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
+        vt0_ln_r_max(log(3e-3)),  // Beard 1977 is defined on 1um - 6mm diameter range
+        halo_x( 
+          n_dims == 1 ? 1:                 // 1D
+            n_dims == 2 ? opts_init.nz:    // 2D
+              opts_init.nz * opts_init.ny // 3D
+        ),
+        halo_y((opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_z( 
+          n_dims == 2 ? opts_init.nz + 1:      // 2D
+            (opts_init.nz + 1) * opts_init.ny) // 3D
       {
         // sanity checks
         if (n_dims > 0)
@@ -324,18 +333,6 @@ namespace libcloudphxx
         }
         tmp_host_size_cell.resize(n_cell);
         tmp_host_real_cell.resize(n_cell);
-
-        // init halo sizes
-        halo_x = 
-          n_dims == 1 ? 1:                 // 1D
-            n_dims == 2 ? opts_init.nz:    // 2D
-              opts_init.nz * opts_init.ny; // 3D
-
-        halo_y = (opts_init.ny + 1) * opts_init.nz; // 3D
-
-        halo_z = 
-          n_dims == 2 ? opts_init.nz + 1:     // 2D
-            (opts_init.nz + 1) * opts_init.ny; // 3D
       }
 
       // methods
