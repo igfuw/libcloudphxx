@@ -38,14 +38,16 @@ namespace libcloudphxx
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
 
-      if(opts_init.chem_switch || opts_init.sstp_cond > 1)
+      if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
-
-      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3)
       {
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
+      }
+      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+      {
         tmp_device_real_part3.reserve(opts_init.n_sd_max); 
         tmp_device_real_part4.reserve(opts_init.n_sd_max);  
         sstp_tmp_rv.resize(opts_init.n_sd_max);
