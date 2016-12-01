@@ -236,12 +236,6 @@ namespace libcloudphxx
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
 
-      if (opts.sedi) 
-      {
-        // advection with terminal velocity
-        pimpl->sedi();
-      }
-
       // coalescence
       if (opts.coal) 
       {
@@ -256,8 +250,15 @@ namespace libcloudphxx
         }
       }
 
-      // advection 
+      // advection, it invalidates i,j,k and ijk!
       if (opts.adve) pimpl->adve(); 
+
+      // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
+      if (opts.sedi) 
+      {
+        // advection with terminal velocity
+        pimpl->sedi();
+      }
 
       // boundary condition + accumulated rainfall to be returned
       // multi_GPU version invalidates i and k;

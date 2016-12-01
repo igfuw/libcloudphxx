@@ -413,6 +413,7 @@ namespace libcloudphxx
       );
 
       void adve();
+      void adve_calc(bool);
       void sedi();
 
       void cond_dm3_helper();
