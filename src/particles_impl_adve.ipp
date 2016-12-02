@@ -79,7 +79,6 @@ namespace libcloudphxx
         }
       };
     };
-
     // calculate change of position due to advection
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::adve_calc(bool apply) // true - save new position, false - save change in position
@@ -197,7 +196,6 @@ namespace libcloudphxx
 
       // ---- predictor step ----
       adve_calc(true);   // change x,y,z to mid-step values
-
       // due to numerics we could end up out of domain in z direction - move them back into domain since it would break next ijk
       if (n_dims > 1)
       {
@@ -213,9 +211,26 @@ namespace libcloudphxx
         );
       }
 
-      // apply periodic boundary condition in y, copied from bcnd...
+      // apply periodic boundary condition in y 
       if (n_dims == 3)
       {
+        // adjust y_old to preserve y_old_post + y_1/2_bcnd = y_old_pre + y_1/2
+        // TODO: do it in one call
+        thrust::transform_if(
+          y_old.begin(), y_old.end(), // input
+          y.begin(), // strencil
+          y_old.begin(), //out
+          arg::_1 + (opts_init.y1 - opts_init.y0), // operation
+          arg::_1 >= opts_init.y1 // condition
+        );
+        thrust::transform_if(
+          y_old.begin(), y_old.end(), // input
+          y.begin(), // strencil
+          y_old.begin(), //out
+          arg::_1 - (opts_init.y1 - opts_init.y0), // operation
+          arg::_1 < opts_init.y0 // condition
+        );
+        //change y, copied from bcnd...
         thrust::transform(
           y.begin(), y.end(),
           y.begin(),
@@ -272,7 +287,6 @@ namespace libcloudphxx
           z.begin(),       // out
           (arg::_1 + arg::_2) / real_t(2.)       // oper
         );
-
       // shift back to regular coordiante system
       thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 - opts_init.dx);
     }
