@@ -23,7 +23,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         int operator()(int cell_idx)
         {
-          if (cell_idx > n_tot)
+          if (cell_idx >= n_tot)
             cell_idx -= n_tot;
           else if (cell_idx < 0)
             cell_idx += n_tot;
