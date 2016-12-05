@@ -254,9 +254,6 @@ namespace libcloudphxx
         n_x_bfr(n_x_bfr),
         n_x_tot(n_x_tot),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
-        vt0_n_bin(10000),
-        vt0_ln_r_min(log(5e-7)),
-        vt0_ln_r_max(log(3e-3)),  // Beard 1977 is defined on 1um - 6mm diameter range
         halo_x( 
           n_dims == 1 ? 1:                 // 1D
             n_dims == 2 ? opts_init.nz:    // 2D
