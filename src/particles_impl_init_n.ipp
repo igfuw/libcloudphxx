@@ -48,14 +48,10 @@ namespace libcloudphxx
 
     // init
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_n(
-      const real_t kappa,
-      const common::unary_function<real_t> *n_of_lnrd_stp // TODO: kappa-spectrum map
+    void particles_t<real_t, device>::impl::init_n_sd_conc(
+      const common::unary_function<real_t> *n_of_lnrd_stp 
     )
     {
-      // filling kappas
-      thrust::fill(kpa.begin() + n_part_old, kpa.end(), kappa);
-
       // temporary space on the host 
       thrust::host_vector<real_t> tmp_real(n_part_to_init);
       thrust::host_vector<thrust_size_t> tmp_ijk(n_part_to_init);
@@ -129,7 +125,12 @@ namespace libcloudphxx
       // detecting possible overflows of n type
       thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
       assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+    }
 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_n_const_multi()
+    {
+      thrust::fill(n.begin() + n_part_old, n.end(), opts_init.sd_const_multi);
     }
   };
 };

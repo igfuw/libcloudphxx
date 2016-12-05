@@ -22,48 +22,7 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-      if (pimpl->init_called) 
-        throw std::runtime_error("init() may be called just once");
-      pimpl->init_called = true;
-
-      // sanity checks
-      if (th.is_null() || rv.is_null() || rhod.is_null())
-        throw std::runtime_error("passing th, rv and rhod is mandatory");
-
-      // --------  init cells --------
-      // initialising Eulerian-Lagrandian coupling
-      if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
-      {
-	if (pimpl->n_dims == 0)
-	  throw std::runtime_error("Courant numbers passed in 0D setup");
-
-	if (pimpl->n_dims == 1 && (courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null()))
-	  throw std::runtime_error("Only X Courant number allowed in 1D setup");
-
-	if (pimpl->n_dims == 2 && (courant_x.is_null() || !courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("Only X and Z Courant numbers allowed in 2D setup");
-
-	if (pimpl->n_dims == 3 && (courant_x.is_null() || courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("All XYZ Courant number components required in 3D setup");
-      }
-
-      if (pimpl->opts_init.chem_switch && ambient_chem.size() != chem_gas_n) 
-        throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
-
-      if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0) 
-        throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
-
-      // TODO: in source match chemical composition
-      if (pimpl->opts_init.chem_switch && pimpl->opts_init.src_switch) 
-        throw std::runtime_error("chemistry and aerosol source are not compatible");
-
-      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.chem_switch)
-        throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
-
-      // TODO: in source match kappas 
-      if(pimpl->opts_init.dry_distros.size() > 1 && pimpl->opts_init.src_switch)
-        throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
-
+      pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
@@ -102,7 +61,7 @@ namespace libcloudphxx
       pimpl->init_hskpng_ncell(); 
 
       // initialising helper data for advection (Arakawa-C grid neighbours' indices)
-      // done before init_xyz, cause it uses dv initialized here
+      // and cell volumes
       pimpl->init_grid();
 
       // initialising Tpr
@@ -116,10 +75,15 @@ namespace libcloudphxx
       real_t tot_lnrd_rng = 0.;
       for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
       {
-        pimpl->dist_analysis(
-          ddi->second,
-          pimpl->opts_init.sd_conc
-        );
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->dist_analysis_sd_conc(
+            ddi->second,
+            pimpl->opts_init.sd_conc
+          );
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->dist_analysis_const_multi(
+            ddi->second
+          );
         tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
       }
 
@@ -129,17 +93,27 @@ namespace libcloudphxx
       for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
       {
         // analyze the distribution, TODO: just did it
-        pimpl->dist_analysis(
-          ddi->second,
-          pimpl->opts_init.sd_conc
-        );
-
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->dist_analysis_sd_conc(
+            ddi->second,
+            pimpl->opts_init.sd_conc
+          );
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->dist_analysis_const_multi(
+            ddi->second
+          );
+        
+        // fraction of particles with this kappa
         real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng;
         // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
-        pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
 
         // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-        pimpl->init_count_num(fraction);
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->init_count_num_sd_conc(fraction);
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->init_count_num_const_multi( ddi->second);
   
         // update no of particles
         // TODO: move to a separate function
@@ -153,14 +127,20 @@ namespace libcloudphxx
         // init ijk vector, also n_part and resize n_part vectors
         pimpl->init_ijk();
   
-        // initialising dry radii (needs ijk and rhod)
-        pimpl->init_dry();
+        // initialising dry radii (needs ijk)
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->init_dry_sd_conc();
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->init_dry_const_multi(ddi->second);
+
+        // init kappa
+        pimpl->init_kappa(ddi->first);
   
         // init multiplicities
-        pimpl->init_n(
-          ddi->first,
-          ddi->second
-        ); // TODO: document that n_of_lnrd_stp is expected!
+        if(pimpl->opts_init.sd_conc > 0)
+          pimpl->init_n_sd_conc(ddi->second); // TODO: document that n_of_lnrd_stp is expected!
+        else if(pimpl->opts_init.sd_const_multi > 0)
+          pimpl->init_n_const_multi(); 
   
         // initialising wet radii
         pimpl->init_wet();

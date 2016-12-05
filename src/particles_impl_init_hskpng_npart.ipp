@@ -55,12 +55,11 @@ namespace libcloudphxx
       // reserve memory for in/out buffers
       if(opts_init.dev_count > 1)
       {
-        // TODO: better condition (2D, 3D) or resize dynamically
-        const int fraction = 2;
-        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);     // for n
-        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / fraction);
-        in_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / fraction);     // for rd3 rw2 kpa vt x y z sstp_tmp_th/rv/rh
-        out_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / fraction);
+        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
+        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+
+        in_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh
+        out_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
     }
   };
