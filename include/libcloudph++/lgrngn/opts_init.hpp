@@ -45,6 +45,9 @@ namespace libcloudphxx
       // no. of super-droplets per cell
       unsigned long long sd_conc; 
 
+      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
+      int sd_const_multi;
+
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
       unsigned long long n_sd_max; 
@@ -98,6 +101,7 @@ namespace libcloudphxx
         x0(0), y0(0), z0(0),
         x1(1), y1(1), z1(1),
         sd_conc(0), 
+        sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         supstp_src(1),

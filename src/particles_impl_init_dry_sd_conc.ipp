@@ -24,17 +24,6 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      /// @brief returns real_t(exp(3*x))
-      template <typename real_t>
-      struct exp3x
-      { 
-	BOOST_GPU_ENABLED 
-	real_t operator()(real_t x) 
-	{ 
-	  return exp(3*x); 
-	} 
-      };
-    
       template<typename real_t>
       struct calc_lnrd
       {
@@ -54,7 +43,7 @@ namespace libcloudphxx
 
     // init
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_dry()
+    void particles_t<real_t, device>::impl::init_dry_sd_conc()
     {
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part_to_init);
