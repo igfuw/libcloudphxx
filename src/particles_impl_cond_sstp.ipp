@@ -76,7 +76,7 @@ namespace libcloudphxx
           )
         ), 
         rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max)
+        detail::advance_rw2<real_t>(dt, RH_max, &config)
       );
 
       // calc rw3_new - rw3_old

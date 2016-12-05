@@ -6,30 +6,47 @@ namespace libcloudphxx
   {
     namespace detail
     {   
-      // evaluate a unary function and multiply it/add to it
+      // evaluate a unary function and multiply it
       template <typename real_t>
-      struct eval_and_oper
+      struct eval_and_mul
       {   
         const common::unary_function<real_t> &fun;
         const real_t &mul;
-        const bool operation; // 0 - multiply, 1 - add
 
         // ctor
-        eval_and_oper(
+        eval_and_mul(
           const common::unary_function<real_t> &fun, 
-          const real_t &mul,
-          bool operation = 0 
+          const real_t &mul
         )
-          : fun(fun), mul(mul), operation(operation)
+          : fun(fun), mul(mul)
         {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x) const
         {
-          if(operation == 0)
             return mul * fun(x);
-          else
-            return mul + fun(x);
+        }
+      }; 
+
+      // evaluate a unary function and add to it
+      template <typename real_t>
+      struct eval_and_add
+      {   
+        const common::unary_function<real_t> &fun;
+        const real_t &add;
+
+        // ctor
+        eval_and_add(
+          const common::unary_function<real_t> &fun, 
+          const real_t &add
+        )
+          : fun(fun), add(add)
+        {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x) const
+        {
+            return add + fun(x);
         }
       }; 
  
