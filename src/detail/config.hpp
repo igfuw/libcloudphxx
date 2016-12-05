@@ -7,6 +7,8 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      // TODO: replace it with a namespace?
+      //       this struct is instantiated twice
       template<class real_t>
       struct config
       {

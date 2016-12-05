@@ -49,7 +49,7 @@ namespace libcloudphxx
           )
         ), 
         rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max, &config)
+        detail::advance_rw2<real_t>(dt, RH_max)
       );
 
       // calculating the 3rd wet moment after condensation
