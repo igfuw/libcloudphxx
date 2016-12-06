@@ -39,7 +39,7 @@ namespace libcloudphxx
       // member fields
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
-      const int n_cell; 
+      const thrust_size_t n_cell; 
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -147,7 +147,7 @@ namespace libcloudphxx
       // the map key is the address of the Thrust vector
       std::map<
         const thrust_device::vector<real_t>*, 
-        thrust::host_vector<thrust_size_t> 
+        thrust::host_vector<int> 
       > l2e; 
 
       // chem stuff
@@ -198,14 +198,14 @@ namespace libcloudphxx
       const thrust::counting_iterator<thrust_size_t> zero;
 
       // number of particles to be copied left/right in multi-GPU setup
-      unsigned int lft_count, rgt_count;
+      thrust_size_t lft_count, rgt_count;
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
                    n_x_tot; // total number of cells in x in all devices
 
       // number of cells in devices to the left of this one
-      unsigned int n_cell_bfr;
+      thrust_size_t n_cell_bfr;
 
       const int halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
@@ -281,24 +281,24 @@ namespace libcloudphxx
 
         // initialising host temporary arrays
         {
-          int n_grid;
+          thrust_size_t n_grid;
           switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is x
           {
             case 3:
               n_grid = std::max(std::max(
-                (opts_init.nx+1) * (opts_init.ny+0) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.ny+1) * (opts_init.nz+0)),
-                (opts_init.nx+0) * (opts_init.ny+0) * (opts_init.nz+1)
+                (opts_init.nx+2+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                (opts_init.nx+2) * (opts_init.ny+1) * (opts_init.nz+0)),
+                (opts_init.nx+2) * (opts_init.ny+0) * (opts_init.nz+1)
               );
               break;
             case 2:
               n_grid = std::max(
-                (opts_init.nx+1) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.nz+1)
+                (opts_init.nx+2+1) * (opts_init.nz+0), 
+                (opts_init.nx+2) * (opts_init.nz+1)
               );
               break;
             case 1:
-              n_grid = opts_init.nx+1;
+              n_grid = opts_init.nx+2+1;
               break;
             case 0:
               n_grid = 1;
@@ -343,7 +343,7 @@ namespace libcloudphxx
       void init_kappa(const real_t &);
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> *);
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();
       void init_grid();

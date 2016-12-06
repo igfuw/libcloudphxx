@@ -83,8 +83,8 @@ namespace libcloudphxx
           typedef unsigned long long n_t; // TODO: same typedef is in impl struct !! particles::impl::n_t ? 
 
           // helper aliases
-          const unsigned int &lft_count(particles[dev_id].pimpl->lft_count);
-          const unsigned int &rgt_count(particles[dev_id].pimpl->rgt_count);
+          const thrust_size_t &lft_count(particles[dev_id].pimpl->lft_count);
+          const thrust_size_t &rgt_count(particles[dev_id].pimpl->rgt_count);
           thrust_size_t &n_part(particles[dev_id].pimpl->n_part);
           thrust_size_t &n_part_old(particles[dev_id].pimpl->n_part_old);
           thrust_device::vector<real_t> &x(particles[dev_id].pimpl->x);
@@ -167,7 +167,7 @@ namespace libcloudphxx
           // wait for the copy of n from right into current device to finish
           gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
           // unpack the n buffer sent to this device from right
-          int n_copied = particles[rgt_dev].pimpl->lft_count;
+          thrust_size_t n_copied = particles[rgt_dev].pimpl->lft_count;
           n_part_old = n_part;
           n_part += n_copied;
           assert(glob_opts_init.n_sd_max >= n_part);

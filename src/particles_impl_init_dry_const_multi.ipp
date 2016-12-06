@@ -29,13 +29,13 @@ namespace libcloudphxx
       template<typename real_t, typename vec_t>
       void calc_CDF(const common::unary_function<real_t> &fun, const real_t &min, const real_t &max, const real_t &bin_size, vec_t &vec)
       {
-        const int n = (max - min) / bin_size + 1; //no of points at which cdf will be calculated
+        const thrust_size_t n = (max - min) / bin_size + 1; //no of points at which cdf will be calculated
         vec.resize(n);
 
         namespace arg = thrust::placeholders;
         // fill vec with fun values at n points
         thrust::transform(
-          thrust::make_transform_iterator(thrust::make_counting_iterator(0), min + bin_size * arg::_1),
+          thrust::make_transform_iterator(thrust::make_counting_iterator<thrust_size_t>(0), min + bin_size * arg::_1),
           thrust::make_transform_iterator(thrust::make_counting_iterator(n), min + bin_size * arg::_1),
           vec.begin(), eval_and_mul<real_t>(fun, 1));
 

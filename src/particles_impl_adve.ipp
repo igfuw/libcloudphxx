@@ -73,6 +73,7 @@ namespace libcloudphxx
           //
           // x_new = x_old + C_l * dx + w * dx * (C_r - C_l)
           //       = x_old + C_l * dx + x_old * (C_r - C_l) - dx * floor(x_old/dx) * (C_r - C_l)
+          //       = x_old + (C_r - C_l) * (x_old - dx * floor(x_old/dx)) + C_l * dx
 
           // return new position or change in position
           return apply * x + (C_r - C_l) * (x - dx * floor_x_over_dx) + dx * C_l; 
