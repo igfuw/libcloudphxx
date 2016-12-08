@@ -101,6 +101,7 @@ script:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd build; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cmake ..; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cd ../..; fi
 
     ## parcel
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
@@ -109,3 +110,14 @@ script:
     - mkdir plots/outputs
     - py.test unit_test
     - py.test long_test
+    - cd ..
+
+    ## bicycles
+    - git clone --depth=1 git://github.com/igfuw/bicycles.git
+    - cd bicycles
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+    - make test
+    - cd ../..
