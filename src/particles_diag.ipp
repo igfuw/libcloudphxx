@@ -227,9 +227,9 @@ namespace libcloudphxx
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
 
-    // to diagnose if courant field is nondivergent
+    // to diagnose if velocity field is nondivergent
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::diag_courant_divergence()
+    void particles_t<real_t, device>::diag_vel_div()
     {   
       if(pimpl->n_dims==0) return;
 
@@ -257,7 +257,7 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
-            detail::add_div<real_t>(pimpl->opts_init.dy)
+            detail::add_div<real_t>(pimpl->opts_init.dt)
           );
         case 2:
           thrust::transform(
@@ -268,7 +268,7 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
-            detail::add_div<real_t>(pimpl->opts_init.dz)
+            detail::add_div<real_t>(pimpl->opts_init.dt)
           );
         case 1:
           thrust::transform(
@@ -279,7 +279,7 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
-            detail::add_div<real_t>(pimpl->opts_init.dx)
+            detail::add_div<real_t>(pimpl->opts_init.dt)
           );
       }
       // divergence defined in all cells
