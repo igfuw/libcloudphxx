@@ -15,6 +15,19 @@ namespace libcloudphxx
     namespace detail 
     {
       template <typename real_t>
+      struct add_div
+      {
+        const real_t dx;
+        add_div(const real_t &dx) : dx(dx) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &div, const thrust::tuple<real_t, real_t> &tpl)
+        {
+          return div + (thrust::get<1>(tpl) - thrust::get<0>(tpl)) / dx;
+        }
+      };
+
+      template <typename real_t>
       struct rw3_cr
       {
         BOOST_GPU_ENABLED
@@ -212,6 +225,68 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
     {
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
+    }
+
+    // to diagnose if courant field is nondivergent
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_courant_divergence()
+    {   
+      if(pimpl->n_dims==0) return;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi;
+
+      namespace arg = thrust::placeholders;
+
+      thrust::fill(
+        pimpl->count_mom.begin(),
+        pimpl->count_mom.end(),
+        real_t(0.)
+      );
+
+      switch (pimpl->n_dims)
+      {
+        case 3:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), pimpl->ijk.begin())),
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), pimpl->ijk.begin()))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dy)
+          );
+        case 2:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), pimpl->ijk.begin())),
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), pimpl->ijk.begin()))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dz)
+          );
+        case 1:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), pimpl->ijk.begin())),
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), pimpl->ijk.begin()))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dx)
+          );
+      }
+      // divergence defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      // inform that count_n and count_ijk are invalid
+      pimpl->counted = false;
     }
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs

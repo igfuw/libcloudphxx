@@ -65,6 +65,7 @@ namespace libcloudphxx
       virtual void diag_precip_rate()                               { assert(false); }
       virtual void diag_kappa_mom(const int&)                       { assert(false); }
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
+      virtual void diag_courant_divergence()                        { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -120,9 +121,7 @@ namespace libcloudphxx
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
-      real_t *outbuf();
-
-      // ...
+      void diag_courant_divergence();
 
       void diag_chem(const enum chem_species_t&);
       void diag_rw_ge_rc();
@@ -130,6 +129,10 @@ namespace libcloudphxx
       void diag_all();
       void diag_precip_rate();
       void diag_kappa(const int&);
+      real_t *outbuf();
+
+
+      // ...
 
       struct impl;
       std::auto_ptr<impl> pimpl;
@@ -201,6 +204,7 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
+      void diag_courant_divergence();
 
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init);
