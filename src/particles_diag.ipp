@@ -253,8 +253,8 @@ namespace libcloudphxx
             pimpl->count_mom.begin(), //arg1
             pimpl->count_mom.begin() + pimpl->n_cell,
             thrust::make_zip_iterator(thrust::make_tuple(
-              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), pimpl->ijk.begin())),
-              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), pimpl->ijk.begin()))
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), pimpl->ijk.begin() + pimpl->halo_x)),   // fre counts from the start of halo, but here we need only real cells
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
             detail::add_div<real_t>(pimpl->opts_init.dy)
@@ -264,8 +264,8 @@ namespace libcloudphxx
             pimpl->count_mom.begin(), //arg1
             pimpl->count_mom.begin() + pimpl->n_cell,
             thrust::make_zip_iterator(thrust::make_tuple(
-              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), pimpl->ijk.begin())),
-              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), pimpl->ijk.begin()))
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), pimpl->ijk.begin() + pimpl->halo_x)),
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
             detail::add_div<real_t>(pimpl->opts_init.dz)
@@ -275,8 +275,8 @@ namespace libcloudphxx
             pimpl->count_mom.begin(), //arg1
             pimpl->count_mom.begin() + pimpl->n_cell,
             thrust::make_zip_iterator(thrust::make_tuple(
-              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), pimpl->ijk.begin())),
-              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), pimpl->ijk.begin()))
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), pimpl->ijk.begin() + pimpl->halo_x)),
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), pimpl->ijk.begin() + pimpl->halo_x))
             )), // arg2
             pimpl->count_mom.begin(), //out
             detail::add_div<real_t>(pimpl->opts_init.dx)
