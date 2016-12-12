@@ -52,13 +52,8 @@ namespace libcloudphxx
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
       // check if courants arent greater than 1 since it would break the predictor-corrector (halo of size 1 only) 
-      // in fact we only have halo in x, so we should only check the x courant, but probably y and z courants > 1 arent good :)
-      assert(courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) ) );
-      assert(courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(1.) ) );
-      assert(courant_y.is_null() || ((*(thrust::min_element(pimpl->courant_y.begin(), pimpl->courant_y.end()))) >= real_t(-1.) ) );
-      assert(courant_y.is_null() || ((*(thrust::max_element(pimpl->courant_y.begin(), pimpl->courant_y.end()))) <= real_t(1.) ) );
-      assert(courant_z.is_null() || ((*(thrust::min_element(pimpl->courant_z.begin(), pimpl->courant_z.end()))) >= real_t(-1.) ) );
-      assert(courant_z.is_null() || ((*(thrust::max_element(pimpl->courant_z.begin(), pimpl->courant_z.end()))) <= real_t(1.) ) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(-1.) )) );
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
