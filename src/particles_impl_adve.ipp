@@ -11,6 +11,19 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      template<class T>
+      struct add_val : public thrust::unary_function<T, T>
+      {
+        T val;
+        add_val(T val): val(val) {}
+ 
+        BOOST_GPU_ENABLED
+        T operator()(T x) const
+        {
+          return x + val;
+        }
+      };
+
       template <typename real_t>
       struct adve_helper_impl
       {
@@ -82,8 +95,10 @@ namespace libcloudphxx
     // calculate change of position due to advection
     template <typename real_t, backend_t device>
     template <class adve_t>
-    void particles_t<real_t, device>::impl::adve_calc(bool apply, thrust_size_t offset) // true - save new position, false - save change in position
+    void particles_t<real_t, device>::impl::adve_calc(bool apply, // true - save new position, false - save change in position
+                                                      thrust_size_t offset) // shift particle's ijk if their position is in coord system of "real" cells and not in halo's coord system
     {   
+      namespace arg = thrust::placeholders;
       switch (n_dims)
       {
         case 3:
@@ -91,9 +106,10 @@ namespace libcloudphxx
         case 1:
         {
           // advection
+          typedef thrust_device::vector<thrust_size_t>::iterator th_s_i; 
           typedef thrust::permutation_iterator<
-            typename thrust_device::vector<thrust_size_t>::iterator, 
-            typename thrust_device::vector<thrust_size_t>::iterator
+            th_s_i,
+            typename thrust::transform_iterator<detail::add_val<thrust_size_t>, th_s_i>
           > pi_size_size;
           typedef thrust::permutation_iterator<
             typename thrust_device::vector<real_t>::iterator, 
@@ -101,9 +117,8 @@ namespace libcloudphxx
           > pi_real_size;
 
           {
-            const pi_real_size
-              C_lft(courant_x.begin(), pi_size_size(lft.begin(), ijk.begin())),
-              C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), ijk.begin()));
+            const pi_real_size C_lft(courant_x.begin(), pi_size_size(lft.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
+                               C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
               thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
@@ -114,9 +129,8 @@ namespace libcloudphxx
 
           if (n_dims > 2)
           {
-            const pi_real_size
-              C_fre(courant_y.begin(), pi_size_size(fre.begin(), ijk.begin())),
-              C_hnd(courant_y.begin(), pi_size_size(hnd.begin(), ijk.begin()));
+            const pi_real_size C_fre(courant_y.begin(), pi_size_size(fre.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
+                               C_hnd(courant_y.begin(), pi_size_size(hnd.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
               thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
@@ -127,9 +141,8 @@ namespace libcloudphxx
 
           if (n_dims > 1) 
           {
-            const pi_real_size
-              C_abv(courant_z.begin(), pi_size_size(abv.begin(), ijk.begin())),
-              C_blw(courant_z.begin(), pi_size_size(blw.begin(), ijk.begin()));
+            const pi_real_size C_abv(courant_z.begin(), pi_size_size(abv.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
+                               C_blw(courant_z.begin(), pi_size_size(blw.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       )), // input - begin
               thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
@@ -153,17 +166,16 @@ namespace libcloudphxx
 
       if(opts_init.adve_scheme == as_t::euler)
       {
-        adve_calc<detail::adve_helper_expl<real_t> >(true);
+        adve_calc<detail::adve_helper_expl<real_t> >(true, halo_x);
         return;
       }
       else if(opts_init.adve_scheme == as_t::implicit)
       {
-        adve_calc<detail::adve_helper_impl<real_t> >(true);
+        adve_calc<detail::adve_helper_impl<real_t> >(true, halo_x);
         return;
       }
 
       // else predictor-corrector
-
       namespace arg = thrust::placeholders;
 
       // old positions storage
