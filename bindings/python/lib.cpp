@@ -191,6 +191,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("beard77fast", lgr::vt_t::beard77fast)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
       .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
+    bp::enum_<lgr::as_t::as_t>("as_t") 
+      .value("implicit", lgr::as_t::implicit)
+      .value("euler", lgr::as_t::euler)
+      .value("pred_corr", lgr::as_t::pred_corr);
 
     bp::enum_<lgr::chem_species_t>("chem_species_t")
       .value("H",    lgr::H)
@@ -243,6 +247,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sstp_chem", &lgr::opts_init_t<real_t>::sstp_chem)
       .def_readwrite("supstp_src", &lgr::opts_init_t<real_t>::supstp_src)
       .def_readwrite("kernel", &lgr::opts_init_t<real_t>::kernel)
+      .def_readwrite("adve_scheme", &lgr::opts_init_t<real_t>::adve_scheme)
       .def_readwrite("sd_conc", &lgr::opts_init_t<real_t>::sd_conc)
       .def_readwrite("sd_const_multi", &lgr::opts_init_t<real_t>::sd_const_multi)
       .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)

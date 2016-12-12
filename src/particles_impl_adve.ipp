@@ -11,13 +11,12 @@ namespace libcloudphxx
   {
     namespace detail
     {
-/*
       template <typename real_t>
-      struct adve_helper
+      struct adve_helper_impl
       {
         const real_t dx;
 
-        adve_helper(const real_t dx) : dx(dx) {} 
+        adve_helper_impl(const real_t dx, bool apply) : dx(dx) {} 
 
         BOOST_GPU_ENABLED
         real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
@@ -47,14 +46,14 @@ namespace libcloudphxx
           );
         }
       };
-*/
+
       template <typename real_t>
-      struct adve_helper
+      struct adve_helper_expl
       {
         const real_t dx;
         bool apply;
 
-        adve_helper(const real_t &dx, bool apply) : dx(dx), apply(apply) {} 
+        adve_helper_expl(const real_t &dx, bool apply) : dx(dx), apply(apply) {} 
 
         BOOST_GPU_ENABLED
         real_t operator()(thrust::tuple<real_t, const thrust_size_t, const real_t, const real_t> tpl)
@@ -82,7 +81,8 @@ namespace libcloudphxx
     };
     // calculate change of position due to advection
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::adve_calc(bool apply) // true - save new position, false - save change in position
+    template <class adve_t>
+    void particles_t<real_t, device>::impl::adve_calc(bool apply, thrust_size_t offset) // true - save new position, false - save change in position
     {   
       switch (n_dims)
       {
@@ -108,7 +108,7 @@ namespace libcloudphxx
               thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
               thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
               x.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dx, apply)
+              adve_t(opts_init.dx, apply)
             );
           }
 
@@ -121,7 +121,7 @@ namespace libcloudphxx
               thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
               thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
               y.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dy, apply)
+              adve_t(opts_init.dy, apply)
             );
           }
 
@@ -134,7 +134,7 @@ namespace libcloudphxx
               thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       )), // input - begin
               thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end
               z.begin(), // output
-              detail::adve_helper<real_t>(opts_init.dz, apply)
+              adve_t(opts_init.dz, apply)
             );
           }
 
@@ -145,36 +145,25 @@ namespace libcloudphxx
       }
     }
 
-/*
-    // apply change of position due to advection
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::adve_shift_apply()
-    {   
-      namespace arg = thrust::placeholders;
-      switch (n_dims)
-      {
-        case 3:
-        case 2:
-        case 1:
-        {
-          thrust::transform( x.begin(), x.end(), dx.begin(), x.begin(), arg::_1 + arg::_2);
-          if (n_dims > 2)
-            thrust::transform( y.begin(), y.end(), dy.begin(), y.begin(), arg::_1 + arg::_2);
-          if (n_dims > 1) 
-            thrust::transform( z.begin(), z.end(), dz.begin(), z.begin(), arg::_1 + arg::_2);
-          break; 
-        }
-        case 0: break;
-        default: assert(false);
-      }
-    }
-*/
-
     // calculate new positions using the predictor-corrector method with nearest-neighbour interpolation
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::adve()
     {   
       if(n_dims==0) return;
+
+      if(opts_init.adve_scheme == as_t::euler)
+      {
+        adve_calc<detail::adve_helper_expl<real_t> >(true);
+        return;
+      }
+      else if(opts_init.adve_scheme == as_t::implicit)
+      {
+        adve_calc<detail::adve_helper_impl<real_t> >(true);
+        return;
+      }
+
+      // else predictor-corrector
+
       namespace arg = thrust::placeholders;
 
       // old positions storage
@@ -196,7 +185,8 @@ namespace libcloudphxx
         thrust::copy(z.begin(), z.end(), z_old.begin());
 
       // ---- predictor step ----
-      adve_calc(true);   // change x,y,z to mid-step values
+      adve_calc<detail::adve_helper_expl<real_t> >(true);
+
       // due to numerics we could end up out of domain in z direction - move them back into domain since it would break next ijk
       if (n_dims > 1)
       {
@@ -265,7 +255,7 @@ namespace libcloudphxx
         );
 
       // calculate rhs at midpoint position
-      adve_calc(false);
+      adve_calc<detail::adve_helper_expl<real_t> >(false);
 
       // calculate final position x(t+1) = (x(t+1/2) + x(t)) / 2 + 1/2 dx(x(t+1/2))
       thrust::transform(

@@ -22,6 +22,7 @@ rho_stp = 1.2248
 opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
+opts_init.adve_scheme = lgrngn.as_t.euler
 opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
@@ -49,6 +50,7 @@ print "rng_seed = ", opts_init.rng_seed
 print "kernel =", opts_init.kernel 
 print "sd_conc =", opts_init.sd_conc
 print "terminal_velocity =", opts_init.terminal_velocity
+print "adve_scheme =", opts_init.adve_scheme
 print "chem_rho =", opts_init.chem_rho
 print "dt =", opts_init.dt
 

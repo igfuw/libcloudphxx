@@ -405,7 +405,8 @@ namespace libcloudphxx
       );
 
       void adve();
-      void adve_calc(bool);
+      template<class adve_t>
+      void adve_calc(bool, thrust_size_t = 0);
       void sedi();
 
       void cond_dm3_helper();
