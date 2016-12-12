@@ -5,6 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   * @brief initialisation routine for super droplets
   */
+#include<thrust/extrema.h>
 
 namespace libcloudphxx
 {
