@@ -13,13 +13,9 @@ namespace libcloudphxx
     {
       struct periodic_cellno
       {
-        int n_x_tot, n_y_tot, n_z_tot; // total number of courant number points in the whole domain in each direction
-        const long int n_tot;                     // total number of courant number points
-        periodic_cellno(const int &n_x_tot, const int &n_y_tot, const int &n_z_tot):
-          n_x_tot(n_x_tot),
-          n_y_tot(n_y_tot),
-          n_z_tot(n_z_tot),
-          n_tot(n_x_tot * n_y_tot * n_z_tot) {}
+        const long int n_tot;                     // size of the input array
+        periodic_cellno(const long int &n_tot):
+          n_tot(n_tot) {}
         BOOST_GPU_ENABLED
         long int operator()(long int cell_idx)
         {
@@ -65,13 +61,6 @@ namespace libcloudphxx
             // op
             arg::_1
 	  );
-
-          // apply bcnd for halo
-          thrust::transform(
-            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
-            l2e[key].begin(), // in place 
-            detail::periodic_cellno(n_x_tot + ext_x, 1, 1)
-          );
 	  break;
 	case 2:
           // assume z changes first
@@ -86,13 +75,6 @@ namespace libcloudphxx
 	    arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
 	    arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
 	  );
-
-          // apply bcnd for halo
-          thrust::transform(
-            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
-            l2e[key].begin(), // in place 
-            detail::periodic_cellno(n_x_tot + ext_x, 1, opts_init.nz + ext_z)
-          );
 	  break;
         case 3:
           assert(arr.strides[2] == 1);
@@ -107,16 +89,16 @@ namespace libcloudphxx
             arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
 	    arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
           );
-
-          // apply bcnd for halo
-          thrust::transform(
-            l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
-            l2e[key].begin(), // in place 
-            detail::periodic_cellno(n_x_tot + ext_x, opts_init.ny + ext_y, opts_init.nz + ext_z)
-          );
           break;
 	default: assert(false);
       }
+
+      // apply bcnd for halo
+      thrust::transform(
+        l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
+        l2e[key].begin(), // in place 
+        detail::periodic_cellno((n_x_tot + ext_x) * arr.strides[0])
+      );
     }
   };
 };
