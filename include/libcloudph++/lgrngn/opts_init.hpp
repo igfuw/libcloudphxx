@@ -119,7 +119,7 @@ namespace libcloudphxx
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
-        adve_scheme(as_t::euler), // euler by default, different than previous default (implicit) !
+        adve_scheme(as_t::implicit),
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),
