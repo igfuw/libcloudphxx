@@ -52,7 +52,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.6.2/share/cmake/Modules/; fi
 
 before_script:
-    - chmod +x ./travis_scripts/*
+    - chmod +x ./.travis_scripts/*
 
 script:
     - if [[ $TEST_SUITE == 'cuda' ]]; then ./.travis_scripts/cuda.sh; fi
