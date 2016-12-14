@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 set -e
-script:
 # libcloudph++ 
 mkdir build 
 cd build
