@@ -36,8 +36,8 @@ sudo make install
 cd ../../..
 
 ## bicycles
-sudo $apt_get_install libboost-program-options-dev
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
+#sudo $apt_get_install libboost-program-options-dev
+if [ $TRAVIS_OS_NAME == 'linux' ]; then sudo $apt_get_install libboost-program-options-dev; fi
 git clone --depth=1 git://github.com/igfuw/bicycles.git
 cd bicycles
 mkdir build
