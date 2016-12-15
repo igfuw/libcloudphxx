@@ -59,7 +59,7 @@ script:
     - if [[ $TEST_SUITE == 'tests' ]]; then ./.travis_scripts/tests.sh; fi
     - if [[ $TEST_SUITE == 'parcel' ]]; then ./.travis_scripts/parcel.sh; fi
     - if [[ $TEST_SUITE == 'icicle' ]]; then ./.travis_scripts/icicle.sh; fi
-    - if [[ $TEST_SUITE == 'bicycles' ]]; then ./.travis_scripts/bicycles.sh; fi
+    - if [[ $TEST_SUITE == 'bicycles' ]]; then . ./.travis_scripts/bicycles.sh; fi
 
 
 #    # libcloudph++ 

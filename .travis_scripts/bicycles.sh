@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 set -e
 # libcloudph++ 
+printenv
 mkdir build 
 cd build
 if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
@@ -37,7 +38,7 @@ cd ../../..
 
 ## bicycles
 #sudo $apt_get_install libboost-program-options-dev
-if [ $TRAVIS_OS_NAME == 'linux' ]; then sudo $apt_get_install libboost-program-options-dev; fi
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
 git clone --depth=1 git://github.com/igfuw/bicycles.git
 cd bicycles
 mkdir build
