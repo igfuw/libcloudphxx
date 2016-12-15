@@ -22,3 +22,4 @@ mkdir plots/outputs
 py.test unit_test
 py.test long_test
 cd ..
+set +e # see https://github.com/travis-ci/travis-ci/issues/6522

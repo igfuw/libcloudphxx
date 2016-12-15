@@ -44,3 +44,4 @@ if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA mach
 if [[ $CXX == 'clang++' ]]; then ctest -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
 cd ../../../..                                       
+set +e # see https://github.com/travis-ci/travis-ci/issues/6522

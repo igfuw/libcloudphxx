@@ -42,3 +42,4 @@ cmake ..
 make
 make test
 cd ../..
+set +e # see https://github.com/travis-ci/travis-ci/issues/6522

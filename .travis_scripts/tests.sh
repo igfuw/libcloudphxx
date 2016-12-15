@@ -29,3 +29,4 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd build; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cmake ..; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cd ../..; fi
+set +e # see https://github.com/travis-ci/travis-ci/issues/6522
