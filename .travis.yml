@@ -55,10 +55,15 @@ before_script:
     - chmod +x ./.travis_scripts/*
 
 script:
+    # compile with nvcc
     - if [[ $TEST_SUITE == 'cuda' ]]; then . ./.travis_scripts/cuda.sh; fi # called like that to pass env vars
+    # unit tests and drops.py
     - if [[ $TEST_SUITE == 'tests' ]]; then . ./.travis_scripts/tests.sh; fi
+    # parcel
     - if [[ $TEST_SUITE == 'parcel' ]]; then . ./.travis_scripts/parcel.sh; fi
+    # icicle
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
+    # bicycles
     - if [[ $TEST_SUITE == 'bicycles' ]]; then . ./.travis_scripts/bicycles.sh; fi
 
 
