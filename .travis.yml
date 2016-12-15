@@ -19,6 +19,9 @@ matrix:
         - compiler: clang
           env: TEST_SUITE=cuda
 
+        - compiler: clang
+          env: TEST_SUITE=bicycles # bicycles is not tested on clang yet
+
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
