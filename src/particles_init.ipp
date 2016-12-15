@@ -85,6 +85,8 @@ namespace libcloudphxx
             ddi->second
           );
         tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
+	if(pimpl->log_rd_min >= pimpl->log_rd_max)
+	  throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
       }
 
       pimpl->n_part_old = 0;
