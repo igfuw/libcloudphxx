@@ -20,6 +20,7 @@ cd ../..
 
 ## drops.py (it is written in Python so no compilation, just unit tests)
 # only on linux
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 git://github.com/igfuw/drops.py.git; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd drops.py; fi
