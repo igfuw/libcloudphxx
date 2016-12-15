@@ -40,6 +40,6 @@ mkdir build
 cd build
 cmake ..
 make
-make test
+make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../..
 set +e # see https://github.com/travis-ci/travis-ci/issues/6522
