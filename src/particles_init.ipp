@@ -170,6 +170,68 @@ namespace libcloudphxx
         // initialising particle positions
         pimpl->init_xyz();
       }
+
+      // initialize SDs with dry_sizes
+      // TODO: almost the same as above!!!
+      // loop over size-number map for first kappa (as of now, there cant be more than 1 kappa in this case)
+      const auto &size_number_map(pimpl->opts_init.dry_sizes.begin()->second);
+      for (auto sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
+      {
+        // check if number of prtcles to be initialized can be represented with SDs of required multiplicity
+        if(sni->second % pimpl->opts_init.sd_const_multi != 0)
+          throw std::runtime_error("dry_sizes number_of_prtcls % constant_multiplicity != 0");
+
+        // init number of SDs of this kappa in cells
+        pimpl->init_count_num_dry_sizes(sni->second / pimpl->opts_init.sd_const_multi);
+  
+        // update no of particles
+        // TODO: move to a separate function
+        pimpl->n_part_old = pimpl->n_part;
+        pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+        pimpl->n_part += pimpl->n_part_to_init;
+        pimpl->hskpng_resize_npart(); 
+
+        pimpl->init_sstp();
+  
+        // init ijk vector, also n_part and resize n_part vectors
+        pimpl->init_ijk();
+  
+        // initialising dry radii (needs ijk)
+        pimpl->init_dry_dry_sizes(sni->first);
+
+        // init kappa
+        pimpl->init_kappa(pimpl->opts_init.dry_sizes.begin()->first);
+  
+        // init multiplicities
+        pimpl->init_n_const_multi(); 
+  
+        // initialising wet radii
+        pimpl->init_wet();
+
+        // memory allocation for chemical reactions, done after init.grid to have npart defined
+        if(pimpl->opts_init.chem_switch){
+          pimpl->init_chem();
+        }
+
+        // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
+        if(pimpl->opts_init.chem_switch){
+          pimpl->init_chem_aq();
+        }
+       
+        // init for substepping for chem reactions
+        if(pimpl->opts_init.chem_switch){
+         pimpl->init_sstp_chem();
+        }
+
+        // calculate initail volume (helper for Henry in chem)
+        if (pimpl->opts_init.chem_switch){
+          pimpl->chem_vol_ante();
+        }
+  
+        // initialising particle positions
+        pimpl->init_xyz();
+      }
+
       // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
