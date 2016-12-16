@@ -71,165 +71,171 @@ namespace libcloudphxx
       // reserve memory for data of the size of the max number of SDs
       pimpl->init_hskpng_npart(); 
 
-      // calc sum of ln(rd) ranges of all distributions
-      real_t tot_lnrd_rng = 0.;
-      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+      if(pimpl->opts_init.dry_distros.size() > 0)
       {
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->dist_analysis_sd_conc(
-            ddi->second,
-            pimpl->opts_init.sd_conc
-          );
-        else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->dist_analysis_const_multi(
-            ddi->second
-          );
-        tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
-	if(pimpl->log_rd_min >= pimpl->log_rd_max)
-	  throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
-      }
-
-      pimpl->n_part_old = 0;
-
-      // initialize SDs of each kappa-type
-      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
-      {
-        // analyze the distribution, TODO: just did it
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->dist_analysis_sd_conc(
-            ddi->second,
-            pimpl->opts_init.sd_conc
-          );
-        else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->dist_analysis_const_multi(
-            ddi->second
-          );
-        
-        // fraction of particles with this kappa
-        real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng;
-        // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
-
-        // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->init_count_num_sd_conc(fraction);
-        else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->init_count_num_const_multi( ddi->second);
-  
-        // update no of particles
-        // TODO: move to a separate function
-        pimpl->n_part_old = pimpl->n_part;
-        pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
-        pimpl->n_part += pimpl->n_part_to_init;
-        pimpl->hskpng_resize_npart(); 
-
-        pimpl->init_sstp();
-  
-        // init ijk vector, also n_part and resize n_part vectors
-        pimpl->init_ijk();
-  
-        // initialising dry radii (needs ijk)
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->init_dry_sd_conc();
-        else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->init_dry_const_multi(ddi->second);
-
-        // init kappa
-        pimpl->init_kappa(ddi->first);
-  
-        // init multiplicities
-        if(pimpl->opts_init.sd_conc > 0)
-          pimpl->init_n_sd_conc(ddi->second); // TODO: document that n_of_lnrd_stp is expected!
-        else if(pimpl->opts_init.sd_const_multi > 0)
-          pimpl->init_n_const_multi(); 
-  
-        // initialising wet radii
-        pimpl->init_wet();
-
-        // memory allocation for chemical reactions, done after init.grid to have npart defined
-        if(pimpl->opts_init.chem_switch){
-          pimpl->init_chem();
+        // calc sum of ln(rd) ranges of all distributions
+        real_t tot_lnrd_rng = 0.;
+        for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+        {
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->dist_analysis_sd_conc(
+              ddi->second,
+              pimpl->opts_init.sd_conc
+            );
+          else if(pimpl->opts_init.sd_const_multi > 0)
+            pimpl->dist_analysis_const_multi(
+              ddi->second
+            );
+          tot_lnrd_rng += pimpl->log_rd_max - pimpl->log_rd_min;
+          if(pimpl->log_rd_min >= pimpl->log_rd_max)
+            throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
         }
 
-        // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
-        if(pimpl->opts_init.chem_switch){
-          pimpl->init_chem_aq();
-        }
-       
-        // init for substepping for chem reactions
-        if(pimpl->opts_init.chem_switch){
-         pimpl->init_sstp_chem();
-        }
+        pimpl->n_part_old = 0;
 
-        // calculate initail volume (helper for Henry in chem)
-        if (pimpl->opts_init.chem_switch){
-          pimpl->chem_vol_ante();
-        }
+        // initialize SDs of each kappa-type
+        for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
+        {
+          // analyze the distribution, TODO: just did it
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->dist_analysis_sd_conc(
+              ddi->second,
+              pimpl->opts_init.sd_conc
+            );
+          else if(pimpl->opts_init.sd_const_multi > 0)
+            pimpl->dist_analysis_const_multi(
+              ddi->second
+            );
+          
+          // fraction of particles with this kappa
+          real_t fraction = (pimpl->log_rd_max - pimpl->log_rd_min) / tot_lnrd_rng;
+          // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->multiplier *= pimpl->opts_init.sd_conc / int(fraction * pimpl->opts_init.sd_conc + 0.5);
+
+          // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->init_count_num_sd_conc(fraction);
+          else if(pimpl->opts_init.sd_const_multi > 0)
+            pimpl->init_count_num_const_multi( ddi->second);
   
-        // initialising particle positions
-        pimpl->init_xyz();
+          // update no of particles
+          // TODO: move to a separate function
+          pimpl->n_part_old = pimpl->n_part;
+          pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+          pimpl->n_part += pimpl->n_part_to_init;
+          pimpl->hskpng_resize_npart(); 
+
+          pimpl->init_sstp();
+  
+          // init ijk vector, also n_part and resize n_part vectors
+          pimpl->init_ijk();
+  
+          // initialising dry radii (needs ijk)
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->init_dry_sd_conc();
+          else if(pimpl->opts_init.sd_const_multi > 0)
+            pimpl->init_dry_const_multi(ddi->second);
+
+          // init kappa
+          pimpl->init_kappa(ddi->first);
+  
+          // init multiplicities
+          if(pimpl->opts_init.sd_conc > 0)
+            pimpl->init_n_sd_conc(ddi->second); // TODO: document that n_of_lnrd_stp is expected!
+          else if(pimpl->opts_init.sd_const_multi > 0)
+            pimpl->init_n_const_multi(); 
+  
+          // initialising wet radii
+          pimpl->init_wet();
+
+          // memory allocation for chemical reactions, done after init.grid to have npart defined
+          if(pimpl->opts_init.chem_switch){
+            pimpl->init_chem();
+          }
+
+          // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
+          if(pimpl->opts_init.chem_switch){
+            pimpl->init_chem_aq();
+          }
+         
+          // init for substepping for chem reactions
+          if(pimpl->opts_init.chem_switch){
+           pimpl->init_sstp_chem();
+          }
+
+          // calculate initail volume (helper for Henry in chem)
+          if (pimpl->opts_init.chem_switch){
+            pimpl->chem_vol_ante();
+          }
+  
+          // initialising particle positions
+          pimpl->init_xyz();
+        }
       }
 
       // initialize SDs with dry_sizes
       // TODO: almost the same as above!!!
       // loop over size-number map for first kappa (as of now, there cant be more than 1 kappa in this case)
-      const auto &size_number_map(pimpl->opts_init.dry_sizes.begin()->second);
-      for (auto sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
+      if(pimpl->opts_init.dry_sizes.size() > 0)
       {
-        // check if number of prtcles to be initialized can be represented with SDs of required multiplicity
-        if(sni->second % pimpl->opts_init.sd_const_multi != 0)
-          throw std::runtime_error("dry_sizes number_of_prtcls % constant_multiplicity != 0");
+        const auto &size_number_map(pimpl->opts_init.dry_sizes.begin()->second);
+        for (auto sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
+        {
+          // check if number of prtcles to be initialized can be represented with SDs of required multiplicity
+          if(sni->second % pimpl->opts_init.sd_const_multi != 0)
+            throw std::runtime_error("dry_sizes number_of_prtcls % constant_multiplicity != 0");
 
-        // init number of SDs of this kappa in cells
-        pimpl->init_count_num_dry_sizes(sni->second / pimpl->opts_init.sd_const_multi);
+          // init number of SDs of this kappa in cells
+          pimpl->init_count_num_dry_sizes(sni->second / pimpl->opts_init.sd_const_multi);
   
-        // update no of particles
-        // TODO: move to a separate function
-        pimpl->n_part_old = pimpl->n_part;
-        pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
-        pimpl->n_part += pimpl->n_part_to_init;
-        pimpl->hskpng_resize_npart(); 
+          // update no of particles
+          // TODO: move to a separate function
+          pimpl->n_part_old = pimpl->n_part;
+          pimpl->n_part_to_init = thrust::reduce(pimpl->count_num.begin(), pimpl->count_num.end());
+          pimpl->n_part += pimpl->n_part_to_init;
+          pimpl->hskpng_resize_npart(); 
 
-        pimpl->init_sstp();
+          pimpl->init_sstp();
   
-        // init ijk vector, also n_part and resize n_part vectors
-        pimpl->init_ijk();
+          // init ijk vector, also n_part and resize n_part vectors
+          pimpl->init_ijk();
   
-        // initialising dry radii (needs ijk)
-        pimpl->init_dry_dry_sizes(sni->first);
+          // initialising dry radii (needs ijk)
+          pimpl->init_dry_dry_sizes(sni->first);
 
-        // init kappa
-        pimpl->init_kappa(pimpl->opts_init.dry_sizes.begin()->first);
+          // init kappa
+          pimpl->init_kappa(pimpl->opts_init.dry_sizes.begin()->first);
   
-        // init multiplicities
-        pimpl->init_n_const_multi(); 
+          // init multiplicities
+          pimpl->init_n_const_multi(); 
   
-        // initialising wet radii
-        pimpl->init_wet();
+          // initialising wet radii
+          pimpl->init_wet();
 
-        // memory allocation for chemical reactions, done after init.grid to have npart defined
-        if(pimpl->opts_init.chem_switch){
-          pimpl->init_chem();
+          // memory allocation for chemical reactions, done after init.grid to have npart defined
+          if(pimpl->opts_init.chem_switch){
+            pimpl->init_chem();
+          }
+
+          // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
+          if(pimpl->opts_init.chem_switch){
+            pimpl->init_chem_aq();
+          }
+         
+          // init for substepping for chem reactions
+          if(pimpl->opts_init.chem_switch){
+           pimpl->init_sstp_chem();
+          }
+
+          // calculate initail volume (helper for Henry in chem)
+          if (pimpl->opts_init.chem_switch){
+            pimpl->chem_vol_ante();
+          }
+  
+          // initialising particle positions
+          pimpl->init_xyz();
         }
-
-        // initialising mass of chemical compounds in droplets (needs to be done after dry radius)
-        if(pimpl->opts_init.chem_switch){
-          pimpl->init_chem_aq();
-        }
-       
-        // init for substepping for chem reactions
-        if(pimpl->opts_init.chem_switch){
-         pimpl->init_sstp_chem();
-        }
-
-        // calculate initail volume (helper for Henry in chem)
-        if (pimpl->opts_init.chem_switch){
-          pimpl->chem_vol_ante();
-        }
-  
-        // initialising particle positions
-        pimpl->init_xyz();
       }
 
       // --------  other inits  --------
