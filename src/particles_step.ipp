@@ -100,11 +100,11 @@ namespace libcloudphxx
       {
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
         {   
-          // set flag for those SD that are big enough to have chemical reactions
-          pimpl->chem_flag_ante();
-
           // calculate new volume of droplets (needed for chemistry)
           pimpl->chem_vol_ante();
+
+          // set flag for those SD that are big enough to have chemical reactions
+          pimpl->chem_flag_ante();
 
           if (opts.chem_dsl)
           {
