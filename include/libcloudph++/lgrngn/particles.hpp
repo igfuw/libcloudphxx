@@ -65,6 +65,7 @@ namespace libcloudphxx
       virtual void diag_precip_rate()                               { assert(false); }
       virtual void diag_kappa_mom(const int&)                       { assert(false); }
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
+      virtual void diag_max_rw()                                    { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -130,6 +131,7 @@ namespace libcloudphxx
       void diag_all();
       void diag_precip_rate();
       void diag_kappa(const int&);
+      void diag_max_rw();
 
       struct impl;
       std::auto_ptr<impl> pimpl;
@@ -201,6 +203,7 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
+      void diag_max_rw();
 
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr = 0); // only opts_init specified by user
