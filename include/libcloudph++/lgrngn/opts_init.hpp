@@ -33,7 +33,7 @@ namespace libcloudphxx
       // defined with a size-number pair
       typedef std::unordered_map<
         real_t,                // kappa
-        std::unordered_map<real_t, unsigned long long> // radius-number of particles pair (independent of density and cell volume)
+        std::unordered_map<real_t, real_t> // radius-STP_concentration pair
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
 

@@ -182,12 +182,8 @@ namespace libcloudphxx
         const auto &size_number_map(pimpl->opts_init.dry_sizes.begin()->second);
         for (auto sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
         {
-          // check if number of prtcles to be initialized can be represented with SDs of required multiplicity
-          if(sni->second % pimpl->opts_init.sd_const_multi != 0)
-            throw std::runtime_error("dry_sizes number_of_prtcls % constant_multiplicity != 0");
-
           // init number of SDs of this kappa in cells
-          pimpl->init_count_num_dry_sizes(sni->second / pimpl->opts_init.sd_const_multi);
+          pimpl->init_count_num_dry_sizes(sni->second);
   
           // update no of particles
           // TODO: move to a separate function

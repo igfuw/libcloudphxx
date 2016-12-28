@@ -328,7 +328,8 @@ namespace libcloudphxx
       void init_kappa(const real_t &);
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> *);
-      void init_count_num_dry_sizes(thrust_size_t);
+      void init_count_num_dry_sizes(const real_t &);
+      void init_count_num_hlpr(const real_t &);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();

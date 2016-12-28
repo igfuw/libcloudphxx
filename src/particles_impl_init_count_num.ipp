@@ -35,20 +35,10 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(thrust_size_t num)
+    void particles_t<real_t, device>::impl::init_count_num_hlpr(const real_t &conc)
     {
-      thrust::fill(count_num.begin(), count_num.end(), num);
-    }
-
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const common::unary_function<real_t> *n_of_lnrd_stp
-    )
-    {
-      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
-
       // number of SDs per cell under STP conditions
-      real_t multiplier = round(integral
+      real_t multiplier = round(conc
         / real_t(opts_init.sd_const_multi)
         * opts_init.dx
         * opts_init.dy
@@ -61,6 +51,22 @@ namespace libcloudphxx
       thrust::transform(rhod.begin(), rhod.end(), dv.begin(), count_num.begin(),
         (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2 / (opts_init.dx * opts_init.dy * opts_init.dz) + real_t(0.5))
       );
+    }
+
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const real_t &conc)
+    {
+      init_count_num_hlpr(conc);
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_count_num_const_multi(
+      const common::unary_function<real_t> *n_of_lnrd_stp
+    )
+    {
+      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
+      init_count_num_hlpr(integral);
     }
   };
 };
