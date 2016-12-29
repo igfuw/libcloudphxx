@@ -19,7 +19,7 @@ namespace libcloudphxx
       // but taken from Wood 2005 (table 1) - (all hail to si units!)
       template<typename real_t>
       inline quantity<si::frequency, real_t> accretion_rate(
-        const quantity<si::dimensionless, real_t> &rc,
+        real_t &rc,
         const quantity<si::dimensionless, real_t> &rr
       ) {
         return real_t(67) / si::seconds * std::pow(rc * rr, real_t(1.15));

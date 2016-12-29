@@ -45,6 +45,9 @@ namespace libcloudphxx
       // no. of super-droplets per cell
       unsigned long long sd_conc; 
 
+      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
+      int sd_const_multi;
+
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
       unsigned long long n_sd_max; 
@@ -73,7 +76,8 @@ namespace libcloudphxx
       bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
-           src_switch;  // if false no source throughout the whole simulation
+           src_switch,   // if false no source throughout the whole simulation
+           exact_sstp_cond; // if true, use per-particle sstp_cond logic, if false, use per-cell
 
       int sstp_chem;
       real_t chem_rho;
@@ -97,6 +101,7 @@ namespace libcloudphxx
         x0(0), y0(0), z0(0),
         x1(1), y1(1), z1(1),
         sd_conc(0), 
+        sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         supstp_src(1),
@@ -104,6 +109,7 @@ namespace libcloudphxx
         sedi_switch(true),  // sedimentation turned on by default
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
+        exact_sstp_cond(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),

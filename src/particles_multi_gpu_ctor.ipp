@@ -45,6 +45,10 @@ namespace libcloudphxx
         else 
           dev_count = glob_opts_init.dev_count;
       }
+
+      if(dev_count > glob_opts_init.nx)
+        throw std::runtime_error("Number of CUDA devices used is greater than nx.");
+
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
    

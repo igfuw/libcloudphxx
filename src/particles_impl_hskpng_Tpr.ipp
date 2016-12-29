@@ -28,7 +28,7 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__p 
+      struct common__theta_dry__p : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
        BOOST_GPU_ENABLED
        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)
@@ -46,7 +46,7 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct RH
+      struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
         BOOST_GPU_ENABLED 
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
@@ -56,16 +56,16 @@ namespace libcloudphxx
           const real_t T = thrust::get<2>(tpl);
 
           return 
-	    (rhod * rv * si::kilograms / si::cubic_metres)
-	    * common::moist_air::R_v<real_t>()
-	    * (T * si::kelvins)
-	    / common::const_cp::p_vs(T * si::kelvins);
+      (rhod * rv * si::kilograms / si::cubic_metres)
+      * common::moist_air::R_v<real_t>()
+      * (T * si::kelvins)
+      / common::const_cp::p_vs(T * si::kelvins);
         }
       }; 
 
       
       template <typename real_t>
-      struct common__vterm__visc // TODO: rename it! (vterm) visc_eta?
+      struct common__vterm__visc : thrust::unary_function<const real_t&, real_t>// TODO: rename it! (vterm) visc_eta?
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &T)
@@ -104,12 +104,12 @@ namespace libcloudphxx
         );
 
         // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
-	thrust::transform(
-	  zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
-	  zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
-	  RH.begin(),                                                         // output
-	  detail::RH<real_t>()
-	);
+        thrust::transform(
+          zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
+          zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
+          RH.begin(),                                                         // output
+          detail::RH<real_t>()
+        );
       }
  
       // dynamic viscosity

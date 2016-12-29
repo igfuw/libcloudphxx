@@ -42,6 +42,7 @@ namespace libcloudphxx
       typedef thrust::detail::normal_iterator<thrust_device::pointer<n_t> > it_n_t;
       typedef thrust::detail::normal_iterator<thrust_device::pointer<thrust_size_t> > it_thrust_size_t;
       typedef thrust::tuple<it_n_t, it_real_t, it_real_t, it_real_t, it_real_t, it_thrust_size_t> tup_params_t;
+      typedef thrust::tuple<it_real_t, it_real_t, it_real_t> tup_sstp_tmp_t;
  
       tup_params_t tup_params = thrust::make_tuple(n.begin(), rw2.begin(), rd3.begin(), kpa.begin(), vt.begin(), ijk.begin());
 
@@ -69,6 +70,20 @@ namespace libcloudphxx
  
           vec.erase(new_last, chem_end[i]);
         }
+      }
+
+      // remove per-particle old th,rv,rhod
+      // TODO: all removals in one go, through function template?
+      if(opts_init.exact_sstp_cond && opts_init.sstp_cond > 1)
+      {
+        namespace arg = thrust::placeholders;
+        tup_sstp_tmp_t tup_sstp_tmp = thrust::make_tuple(sstp_tmp_rv.begin(), sstp_tmp_rh.begin(), sstp_tmp_th.begin());
+        thrust::remove_if(
+          thrust::make_zip_iterator(tup_sstp_tmp),
+          thrust::make_zip_iterator(tup_sstp_tmp) + n_part,
+          n.begin(),
+          arg::_1 == 0
+        );
       }
 
       if(n_dims == 3)

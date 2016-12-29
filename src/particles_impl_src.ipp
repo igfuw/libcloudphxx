@@ -58,7 +58,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
       thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.));
 
       // drv = - tot_vol_bfr
       thrust::transform(
@@ -69,7 +70,7 @@ namespace libcloudphxx
 
       // drv = -tot_vol_bfr + dry_vol_bfr
 /*
-      moms_calc_cond(rd3.begin(), 1);
+      moms_calc(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
@@ -135,7 +136,7 @@ namespace libcloudphxx
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
-      dist_analysis(
+      dist_analysis_sd_conc(
         opts_init.src_dry_distros.begin()->second,
         opts_init.src_sd_conc,
         dt
@@ -169,7 +170,7 @@ namespace libcloudphxx
                     
         // init ijk and rd3 of new particles
         init_ijk();
-        init_dry(); 
+        init_dry_sd_conc(); 
 
         // translate these new rd3 into bin no; bin_no just got resized
         thrust::transform(
@@ -253,9 +254,13 @@ namespace libcloudphxx
           hskpng_resize_npart();
 
           // init other peoperties of SDs that didnt have a match
+          // init kappa
+          init_kappa(
+            opts_init.src_dry_distros.begin()->first
+          ); 
+
           // init n
-          init_n(
-            opts_init.src_dry_distros.begin()->first,
+          init_n_sd_conc(
             opts_init.src_dry_distros.begin()->second
           ); // TODO: document that n_of_lnrd_stp is expected!
 
@@ -402,8 +407,7 @@ namespace libcloudphxx
         );
 
         // init n of the copied SDs, but using the src distribution
-        init_n(
-          opts_init.src_dry_distros.begin()->first,
+        init_n_sd_conc(
           opts_init.src_dry_distros.begin()->second
         ); // TODO: document that n_of_lnrd_stp is expected!
 
@@ -436,7 +440,8 @@ namespace libcloudphxx
 
       // --- calc liquid water content after src ---
       hskpng_sort(); 
-      moms_calc_cond(rw2.begin(), real_t(3./2.));
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.));
 
       // drv = tot_vol_after -tot_vol_bfr + dry_vol_bfr
       thrust::transform(
@@ -448,7 +453,7 @@ namespace libcloudphxx
 
       // drv = tot_vol_after - dry_vol_after - tot_vol_bfr + dry_vol_bfr
 /*
-      moms_calc_cond(rd3.begin(), 1);
+      moms_calc(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
@@ -457,11 +462,14 @@ namespace libcloudphxx
       );
 */
 
-      // update th and rv according to change in total liquid water volume
+      // update th and rv
       update_th_rv(drv);
 
       // update count_ijk and count_num
       hskpng_count();
+
+      // store sstp_old
+      sstp_save();
     }
   };  
 };
