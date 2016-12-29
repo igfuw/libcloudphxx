@@ -213,7 +213,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
   }
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<real_t> ftr;
+//  std::future<real_t> this->ftr;
 #endif
 
   // 
@@ -230,11 +230,11 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
       if (
         parent_t::params.async && 
         this->timestep != 0 && // ... but not in first timestep ...
-        ((this->timestep - 1) % this->outfreq != 0 /*&& (this->timestep -1) >= this->spinup*/) // ... and not after diag call
+        !((this->timestep-1) == 0 || ((this->timestep-1) % this->outfreq == 0 && (this->timestep-1) >= this->spinup)) 
       ) {
-        assert(ftr.valid());
-        ftr.get();
-      } else assert(!ftr.valid());
+        assert(this->ftr.valid());
+        this->ftr.get();
+      } else assert(!this->ftr.valid());
 #endif
 
       assert(parent_t::params.cloudph_opts_init.chem_switch == true);
@@ -269,36 +269,36 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
 #if defined(STD_FUTURE_WORKS)
         if (parent_t::params.async)
         {
-          assert(!ftr.valid());
+          assert(!this->ftr.valid());
 
           if(parent_t::params.backend == multi_CUDA)
-            ftr = std::async(
+            this->ftr = std::async(
               std::launch::async, 
               &particles_t<real_t, multi_CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, multi_CUDA>*>(parent_t::prtcls.get()),
               parent_t::params.cloudph_opts
             );
           else if(parent_t::params.backend == CUDA)
-            ftr = std::async(
+            this->ftr = std::async(
               std::launch::async, 
               &particles_t<real_t, CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, CUDA>*>(parent_t::prtcls.get()),
               parent_t::params.cloudph_opts
             );
-          assert(ftr.valid());
+          assert(this->ftr.valid());
         } else 
 #endif
           parent_t::prtcls->step_async(parent_t::params.cloudph_opts);
       }
 
       // performing diagnostics
-      if (this->timestep % this->outfreq == 0 /*&& this->timestep >= this->spinup*/) 
+      if (this->timestep == 0 || (this->timestep % this->outfreq == 0 && this->timestep >= this->spinup)) 
       { 
 #if defined(STD_FUTURE_WORKS)
         if (parent_t::params.async)
         {
-          assert(ftr.valid());
-          ftr.get();
+          assert(this->ftr.valid());
+          this->ftr.get();
         }
 #endif
         parent_t::diag();
