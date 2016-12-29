@@ -26,6 +26,17 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_vel_div()
+    {
+      #pragma omp parallel num_threads(glob_opts_init.dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
+        particles[dev_id].diag_vel_div();
+      }
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_sd_conc()
     {
       #pragma omp parallel num_threads(glob_opts_init.dev_count)

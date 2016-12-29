@@ -40,10 +40,10 @@ namespace libcloudphxx
       // fill ijk with cell number of each SD
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(
-          count_num.begin(), ptr.begin(), thrust::make_counting_iterator(0)
+          count_num.begin(), ptr.begin(), zero
         )), 
         thrust::make_zip_iterator(thrust::make_tuple(
-          count_num.end(), ptr.end(), thrust::make_counting_iterator(n_cell)
+          count_num.end(), ptr.end(), zero + n_cell
         )), 
         detail::arbitrary_sequence(&(ijk[n_part_old]))
       );

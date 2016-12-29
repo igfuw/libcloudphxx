@@ -88,8 +88,8 @@ namespace libcloudphxx
         // Eulerian domain (0, nx*dx, etc...)
         // sd_conc defines number of SDs per Eulerian cell
         thrust::transform(
-          thrust::make_counting_iterator(0),
-          thrust::make_counting_iterator(n_cell),
+          zero,
+          zero + n_cell,
           count_num.begin(), 
           real_t(opts_init.src_sd_conc) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
         ); 

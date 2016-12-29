@@ -13,7 +13,7 @@ namespace libcloudphxx
   {
     // constructor
     template <typename real_t>
-    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init, const int &__n_x_bfr) :
+    particles_t<real_t, multi_CUDA>::particles_t(const opts_init_t<real_t> &_opts_init) :
       glob_opts_init(_opts_init),
       n_cell_tot(
         detail::m1(glob_opts_init.nx) *
@@ -115,7 +115,7 @@ namespace libcloudphxx
           // adjust max numer of SDs on each card
           opts_init_tmp.n_sd_max = opts_init_tmp.n_sd_max / dev_count + 1;
         }
-        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr)); // impl stores a copy of opts_init
+        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
       }
     }
 

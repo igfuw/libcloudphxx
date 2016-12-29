@@ -39,7 +39,7 @@ namespace libcloudphxx
       // member fields
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
-      const int n_cell; 
+      const thrust_size_t n_cell; 
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -147,7 +147,7 @@ namespace libcloudphxx
       // the map key is the address of the Thrust vector
       std::map<
         const thrust_device::vector<real_t>*, 
-        thrust::host_vector<thrust_size_t> 
+        thrust::host_vector<int> 
       > l2e; 
 
       // chem stuff
@@ -198,13 +198,19 @@ namespace libcloudphxx
       const thrust::counting_iterator<thrust_size_t> zero;
 
       // number of particles to be copied left/right in multi-GPU setup
-      unsigned int lft_count, rgt_count;
+      thrust_size_t lft_count, rgt_count;
 
       // nx in devices to the left of this one
-      unsigned int n_x_bfr;
+      unsigned int n_x_bfr,
+                   n_x_tot; // total number of cells in x in all devices
 
       // number of cells in devices to the left of this one
-      unsigned int n_cell_bfr;
+      thrust_size_t n_cell_bfr;
+
+      const int halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
+                halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
+                halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
+
 
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
@@ -221,7 +227,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr) : 
+      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const int &n_x_tot) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -246,7 +252,17 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
+        n_x_tot(n_x_tot),
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
+        halo_x( 
+          n_dims == 1 ? 1:                 // 1D
+            n_dims == 2 ? opts_init.nz:    // 2D
+              opts_init.nz * opts_init.ny // 3D
+        ),
+        halo_y((opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_z( 
+          n_dims == 2 ? opts_init.nz + 1:      // 2D
+            (opts_init.nz + 1) * opts_init.ny) // 3D
       {
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -265,24 +281,24 @@ namespace libcloudphxx
 
         // initialising host temporary arrays
         {
-          int n_grid;
+          thrust_size_t n_grid;
           switch (n_dims) // TODO: document that 3D is xyz, 2D is xz, 1D is x
           {
             case 3:
               n_grid = std::max(std::max(
-                (opts_init.nx+1) * (opts_init.ny+0) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.ny+1) * (opts_init.nz+0)),
-                (opts_init.nx+0) * (opts_init.ny+0) * (opts_init.nz+1)
+                (opts_init.nx+2+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                (opts_init.nx+2) * (opts_init.ny+1) * (opts_init.nz+0)),
+                (opts_init.nx+2) * (opts_init.ny+0) * (opts_init.nz+1)
               );
               break;
             case 2:
               n_grid = std::max(
-                (opts_init.nx+1) * (opts_init.nz+0), 
-                (opts_init.nx+0) * (opts_init.nz+1)
+                (opts_init.nx+2+1) * (opts_init.nz+0), 
+                (opts_init.nx+2) * (opts_init.nz+1)
               );
               break;
             case 1:
-              n_grid = opts_init.nx+1;
+              n_grid = opts_init.nx+2+1;
               break;
             case 0:
               n_grid = 1;
@@ -327,7 +343,7 @@ namespace libcloudphxx
       void init_kappa(const real_t &);
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> *);
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
@@ -389,6 +405,8 @@ namespace libcloudphxx
       );
 
       void adve();
+      template<class adve_t>
+      void adve_calc(bool, thrust_size_t = 0);
       void sedi();
 
       void cond_dm3_helper();
@@ -423,13 +441,16 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr) 
+    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot) 
     {
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
         cudaSetDevice(opts_init.dev_id);
 #endif
-      pimpl.reset(new impl(opts_init, n_x_bfr));
+      if(opts_init.dev_count < 2) // no distmem
+        n_x_tot = opts_init.nx;
+
+      pimpl.reset(new impl(opts_init, n_x_bfr, n_x_tot));
 
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
