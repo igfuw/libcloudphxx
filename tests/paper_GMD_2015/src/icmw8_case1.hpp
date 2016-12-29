@@ -24,6 +24,7 @@ namespace config
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
+  namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions
 
@@ -47,6 +48,9 @@ namespace config
     quantity<si::dimensionless, real_t> kappa; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
     // for blk_2m:
     quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
+    // for lagrangian simulations with aq. chemistry
+    quantity<si::dimensionless, real_t> SO2_g_0, O3_g_0, H2O2_g_0, CO2_g_0, NH3_g_0, HNO3_g_0;
+    quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> chem_rho;
 
     //th and rv relaxation time and height
     quantity<si::time, real_t> tau_rlx;
@@ -121,19 +125,39 @@ namespace config
 
     real_t operator()(real_t z) const
     {
-      quantity<si::pressure, real_t> p = hydrostatic::p(
-	z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0
-      );
-      
-      quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-	p, setup.th_0, setup.rv_0
-      );
+      quantity<si::pressure, real_t> p = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
 
       return rhod / si::kilograms * si::cubic_metres;
     }
 
     // to make the rhod() functor accept Blitz arrays as arguments
     BZ_DECLARE_FUNCTOR(rhod);
+  };
+
+  // mixing ratio helper profile as a function of altitude
+  struct mixr_helper
+  {
+    setup_t setup;
+    mixr_helper(const setup_t &setup):
+      setup(setup) 
+      {}
+
+    real_t operator()(real_t z) const
+    {
+      quantity<si::pressure, real_t>     p    = hydrostatic::p(z * si::metres, setup.th_0, setup.rv_0, setup.z_0, setup.p_0);
+      quantity<si::mass_density, real_t> rhod = theta_std::rhod(p, setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  thd  = theta_dry::std2dry(setup.th_0, setup.rv_0);
+      quantity<si::temperature, real_t>  T    = theta_dry::T(thd, rhod);
+
+      typedef divide_typeof_helper<si::amount, si::mass>::type moles_over_mass;
+
+      quantity<moles_over_mass, real_t> mixr_helper = p / moist_air::kaBoNA<real_t>() / T / rhod;
+
+      return mixr_helper * si::kilograms / si::moles;
+    }
+    // to make the mixr_g() functor accept Blitz arrays as arguments
+    BZ_DECLARE_FUNCTOR(mixr_helper);
   };
 
   // function expecting a libmpdata solver parameters struct as argument
