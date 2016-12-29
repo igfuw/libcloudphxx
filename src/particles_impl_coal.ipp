@@ -141,9 +141,11 @@ namespace libcloudphxx
 
         const real_t dt;
         const kernel_base<real_t, n_t> *p_kernel;
+        const n_t sd_const_multi;
+        bool *increase_sstp_coal;
 
         //ctor
-        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel) : dt(dt), p_kernel(p_kernel) {}
+        collider(const real_t &dt, kernel_base<real_t, n_t> *p_kernel, const n_t &sd_const_multi, bool *increase_sstp_coal) : dt(dt), p_kernel(p_kernel), sd_const_multi(sd_const_multi), increase_sstp_coal(increase_sstp_coal) {}
 
         template <class tup_ro_rw_t>
         BOOST_GPU_ENABLED
@@ -184,6 +186,11 @@ namespace libcloudphxx
             * p_kernel->calc(tpl_wrap);
   
           n_t col_no = n_t(prob); //number of collisions between the pair; rint?
+
+          if(sd_const_multi > 0 && col_no >= 1) //TODO: do sth similar for sd_conc_mean version?
+          {
+            *increase_sstp_coal = true;
+          }
 
           // comparing the upscaled probability with a random number and returning if unlucky
           if (thrust::get<u01_ix>(tpl_ro) < prob - col_no) ++col_no;
@@ -377,8 +384,14 @@ namespace libcloudphxx
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
-        detail::collider<real_t, n_t>(dt, p_kernel)
+        detail::collider<real_t, n_t>(dt, p_kernel, opts_init.sd_const_multi, increase_sstp_coal)
       );
+
+      if(*increase_sstp_coal)
+      {
+        ++opts_init.sstp_coal;
+        *increase_sstp_coal = false;
+      }
 
       // add masses of chemicals
       if(opts_init.chem_switch)

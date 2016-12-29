@@ -34,6 +34,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     thrust_size_t particles_t<real_t, device>::impl::rcyc()
     {   
+
       // count the numer of paticles to recycle
       thrust_size_t n_flagged, n_to_rcyc;
       {
@@ -43,6 +44,12 @@ namespace libcloudphxx
 
       if (n_flagged == 0) return 0;
       n_to_rcyc = n_flagged;
+
+      if(opts_init.sd_const_multi > 0) // remove particles if using const_multi
+      {
+        hskpng_remove_n0();
+        return n_flagged;
+      }
 
       // sort according to multiplicity 
       // -> on one end: those flagged for recycling 

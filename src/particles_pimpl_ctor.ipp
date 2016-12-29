@@ -44,6 +44,7 @@ namespace libcloudphxx
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
+      detail::config<real_t> config;
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -85,10 +86,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
       thrust_device::vector<real_t> vt_0; 
-      // no of bins for cached velocity
-      const int vt0_n_bin;
-      // ln of min and max radius of cached velocity
-      const real_t vt0_ln_r_min, vt0_ln_r_max;
 
       // grid-cell volumes (per grid cell)
       thrust_device::vector<real_t> dv;
@@ -136,6 +133,9 @@ namespace libcloudphxx
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
+
+      // true if coalescence timestep has to be reduced, accesible from both device and host code
+      bool *increase_sstp_coal;
 
       // are count_num and count_ijk up to date
       bool counted;
@@ -246,45 +246,22 @@ namespace libcloudphxx
         rng(opts_init.rng_seed),
         stp_ctr(0),
         n_x_bfr(n_x_bfr),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
-        vt0_n_bin(10000),
-        vt0_ln_r_min(log(5e-7)),
-        vt0_ln_r_max(log(3e-3))  // Beard 1977 is defined on 1um - 6mm diameter range
+        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz))
       {
-        // sanity checks
-        if (n_dims > 0)
-        {
-	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
-	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
-	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
-//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
-//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
-	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
-        }
-
-        if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
-        if (opts_init.coal_switch)
-        {
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
-          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
-        }
-        if (opts_init.sedi_switch)
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
-
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
         tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
+
+        // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
+#if defined(__NVCC__)
+        cudaMallocHost(&increase_sstp_coal, sizeof(bool));
+#else
+        increase_sstp_coal = new bool();
+#endif
+        *increase_sstp_coal = false;
 
         // initialising host temporary arrays
         {
@@ -321,20 +298,35 @@ namespace libcloudphxx
 
       // methods
       void sanity_checks();
+      void init_sanity_check(
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> >
+      );
 
-      void init_dry();
-      void init_n(
-        const real_t kappa, // TODO: map
+      void init_dry_sd_conc();
+      void init_dry_const_multi(
         const common::unary_function<real_t> *n_of_lnrd
       );
-      void dist_analysis(
+
+      void init_n_sd_conc(
+        const common::unary_function<real_t> *n_of_lnrd
+      );
+      void init_n_const_multi();
+
+      void dist_analysis_sd_conc(
         const common::unary_function<real_t> *n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
+      void dist_analysis_const_multi(
+        const common::unary_function<real_t> *n_of_lnrd
+      );
       void init_ijk();
       void init_xyz();
-      void init_count_num(const real_t & = 1);
+      void init_kappa(const real_t &);
+      void init_count_num_sd_conc(const real_t & = 1);
+      void init_count_num_const_multi(const common::unary_function<real_t> *);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const int = 0);
       void init_wet();
       void init_sync();
