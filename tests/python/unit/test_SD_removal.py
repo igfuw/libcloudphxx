@@ -53,14 +53,17 @@ Opts.adve = False
 Opts.sedi = False
 Opts.cond = False
 Opts.coal = True
-Opts.chem_dsl = True
+Opts.chem_dsl = False
 Opts.chem_dsc = False
 Opts.chem_rct = False
 Opts.rcyc = True
 
 for i in range(900):
+  print i, ' step_sync'
   prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
+  print i, ' step_async'
   prtcls.step_async(Opts)
+  print i, ' finished'
 
 prtcls.diag_sd_conc()
 sd_conc = np.frombuffer(prtcls.outbuf())[0]

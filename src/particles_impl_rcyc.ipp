@@ -41,6 +41,7 @@ namespace libcloudphxx
 	namespace arg = thrust::placeholders;
         n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
       }
+      printf("n_flagged for recycle %d\n", n_flagged);
 
       if (n_flagged == 0) return 0;
       n_to_rcyc = n_flagged;
@@ -77,11 +78,14 @@ namespace libcloudphxx
         n_splittable = 
           thrust::find(make_reverse_iterator(tmp.end()), make_reverse_iterator(tmp.begin()), 1) - 
           make_reverse_iterator(tmp.end());
+      printf("n_splittable %d\n", n_splittable);
 
         //if none are splittable remove SDs with n=0
         if(n_splittable==0)
         {
+          printf("before remove all\n");
           hskpng_remove_n0();
+          printf("after remove all\n");
           return n_to_rcyc;
         }
 
@@ -138,7 +142,9 @@ namespace libcloudphxx
       };
       
       // if not all were recycled, remove those with n==0
+          printf("before remove part\n");
       if(n_flagged < n_to_rcyc)  hskpng_remove_n0();
+          printf("after remove part\n");
       return n_to_rcyc;
     }
   };  
