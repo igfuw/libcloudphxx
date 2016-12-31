@@ -16,15 +16,18 @@ template <class ct_params_t>
 class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 {
   // note: lgrngn has no rhs terms - just adjustments (but there might be extrinsic rhs terms)
-  using parent_t = kin_cloud_2d_common<ct_params_t>; 
 
   public:
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
-  private:
+
+  protected:
+  using parent_t = kin_cloud_2d_common<ct_params_t>; 
 
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
+
+  bool coal, sedi;
 
   // helper methods
   void diag()
@@ -39,6 +42,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     {
       // dry
       int rng_num = 0;
+
       for (auto &rng_moms : params.out_dry)
       {
         auto &rng(rng_moms.first);
@@ -92,14 +96,18 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 
   bool get_rain() { return params.cloudph_opts.coal && params.cloudph_opts.sedi; }
   void set_rain(bool val) 
-  { 
-    params.cloudph_opts.coal = params.cloudph_opts.sedi = val; 
-    params.cloudph_opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
+  {
+      params.cloudph_opts.coal = val ? coal : false;
+      params.cloudph_opts.sedi = val ? sedi : false;
+      params.cloudph_opts.RH_max = val ? 44 : 1.01; // 1% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
+    coal = params.cloudph_opts.coal;
+    sedi = params.cloudph_opts.sedi;
+
     parent_t::hook_ante_loop(nt); 
 
     // TODO: barrier?
@@ -198,7 +206,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       if (
         params.async && 
         this->timestep != 0 && // ... but not in first timestep ...
-        ((this->timestep - 1) % this->outfreq != 0) // ... and not after diag call
+        ((this->timestep - 1) % this->outfreq != 0 /*&& (this->timestep -1) >= params.spinup*/) // ... and not after diag call
       ) {
         assert(ftr.valid());
         ftr.get();
@@ -244,7 +252,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       }
 
       // performing diagnostics
-      if (this->timestep % this->outfreq == 0) 
+      if (this->timestep % this->outfreq == 0 /*&& this->timestep >= params.spinup*/) 
       { 
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
@@ -271,7 +279,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     outmom_t<real_t> out_dry, out_wet;
   };
 
-  private:
+  protected:
 
   // per-thread copy of params
   rt_params_t params;
