@@ -24,7 +24,7 @@ int main(int ac, char** av)
   
     auto n = h5n(h5);
   
-    for (const int at : {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 92, 94, 96, 98, 100})
+    for (const int at : {0, 20, 70, 72, 74})
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
