@@ -12,18 +12,20 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
-  std::string dir = string(av[1]) + "/tests/chem_sandbox/3_chem/";
+  std::string dir = string(av[1]) + "/tests/chem_sandbox/";
 
-  for (const std::string sim_run : {"out_hall", "out_hall_davis_no_waals", 
+  for (const std::string sim_run : { "out_hall_pinsky_stratocumulus"})
+    /*                               {"out_hall", "out_hall_davis_no_waals", 
                                     "out_hall_pinsky_stratocumulus", 
                                     "out_onishi_hall", "out_onishi_hall_davis_no_waals", 
-                                    "out_vohl_davis_no_waals"
-                                    })
+                                    "out_vohl_davis_no_waals" 
+                                    })*/
   {
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
-    for (int at = 50; at < n["t"]; ++at) 
+    for (int at = 36; at < n["t"]; ++at) 
+    //int at = 1;
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {

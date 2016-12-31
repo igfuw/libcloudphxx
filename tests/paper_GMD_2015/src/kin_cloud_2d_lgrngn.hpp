@@ -206,7 +206,8 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       if (
         params.async && 
         this->timestep != 0 && // ... but not in first timestep ...
-        ((this->timestep - 1) % this->outfreq != 0 /*&& (this->timestep -1) >= this->spinup*/) // ... and not after diag call
+        ((this->timestep - 1) % this->outfreq != 0) // ... and not after diag call
+        //!((this->timestep-1) == 0 || ((this->timestep-1) % this->outfreq == 0 && (this->timestep-1) >= this->spinup)) // .. and not after diag
       ) {
         assert(ftr.valid());
         ftr.get();
@@ -252,7 +253,8 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       }
 
       // performing diagnostics
-      if (this->timestep % this->outfreq == 0 /*&& this->timestep >= this->spinup*/) 
+      //if (this->timestep == 0 || (this->timestep % this->outfreq == 0 && this->timestep >= this->spinup))
+      if (this->timestep % this->outfreq == 0) 
       { 
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
