@@ -117,21 +117,6 @@ prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
 
-eps = 2e-2
-prtcls.diag_kappa_rng(0.,1.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf())
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa1 differs from the distribution"
-
-prtcls.diag_kappa_rng(1.,2.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf())
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa2 differs from the distribution"
-
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
@@ -239,21 +224,6 @@ for it in range(2):
   else:  
     prtcls.init(th, rv, rhod, Cx=Cx, Cy=Cy, Cz=Cz)
 
-  eps = 5e-3
-  prtcls.diag_kappa_rng(0.,1.)
-  prtcls.diag_wet_mom(0)
-  res_n = frombuffer(prtcls.outbuf()).mean()
-  print res_n * rho_stp
-  assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-    "initialized number of particles of type kappa1 differs from the distribution"
-  
-  prtcls.diag_kappa_rng(1.,2.)
-  prtcls.diag_wet_mom(0)
-  res_n = frombuffer(prtcls.outbuf()).mean()
-  print res_n * rho_stp
-  assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-    "initialized number of particles of type kappa2 differs from the distribution"
-
   prtcls.step_sync(opts, th, rv)
   prtcls.step_async(opts)
   prtcls.step_sync(opts, th, rv, rhod)
@@ -279,21 +249,6 @@ opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi) # 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
-
-eps = 5e-3
-prtcls.diag_kappa_rng(0.,1.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa1 differs from the distribution"
-
-prtcls.diag_kappa_rng(1.,2.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa2 differs from the distribution"
 
 prtcls.step_sync(opts, th, rv)
 prtcls.step_async(opts)
