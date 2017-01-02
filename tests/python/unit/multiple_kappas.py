@@ -3,7 +3,7 @@ sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose
+from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose, mean
 
 from math import exp, log, sqrt, pi
 
@@ -14,6 +14,21 @@ def lognormal(lnr):
   return n_tot * exp(
     -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
   ) / log(stdev) / sqrt(2*pi);
+
+def check_kappa_conc(prtcls, eps):
+  prtcls.diag_kappa_rng(0.,1.)
+  prtcls.diag_wet_mom(0)
+  res_n = mean(frombuffer(prtcls.outbuf()))
+  print res_n * rho_stp
+  assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
+    "initialized number of particles of type kappa1 differs from the distribution"
+  
+  prtcls.diag_kappa_rng(1.,2.)
+  prtcls.diag_wet_mom(0)
+  res_n = mean(frombuffer(prtcls.outbuf()))
+  print res_n * rho_stp
+  assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
+    "initialized number of particles of type kappa2 differs from the distribution"
 
 opts_init = lgrngn.opts_init_t()
 kappa1 = .61
@@ -41,48 +56,29 @@ rv   = arr_t([  0.01])
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
-eps = 2e-2
-prtcls.diag_kappa_rng(0.,1.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf())
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa1 differs from the distribution"
-
-prtcls.diag_kappa_rng(1.,2.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf())
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa2 differs from the distribution"
+check_kappa_conc(prtcls, 2e-2)
 
 # 3D
-rhod = arr_t([rhod, rhod])
-th   = arr_t([th,   th  ])
-rv   = arr_t([rv,   rv  ])
-
 opts_init.ny = 2
 opts_init.dy = 10
 opts_init.y1 = opts_init.ny * opts_init.dy
 
+opts_init.nx = 2
+opts_init.dx = 10
+opts_init.x1 = opts_init.nx * opts_init.dx
+
+opts_init.nz = 2
+opts_init.dz = 10
+opts_init.z1 = opts_init.nz * opts_init.dz
+
+rhod = 1. * ones((opts_init.nx, opts_init.ny, opts_init.nz), dtype=float64)
+th = 300. * ones((opts_init.nx, opts_init.ny, opts_init.nz), dtype=float64)
+rv = 0.01 * ones((opts_init.nx, opts_init.ny, opts_init.nz), dtype=float64)
+
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
-eps = 5e-3
-prtcls.diag_kappa_rng(0.,1.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa1 differs from the distribution"
-
-prtcls.diag_kappa_rng(1.,2.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa2 differs from the distribution"
-
+check_kappa_conc(prtcls, 5e-3)
 
 # 3D const multi - number of SDs and number of particles
 opts_init.sd_conc = 0
@@ -94,17 +90,4 @@ opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi) # 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
-eps = 5e-3
-prtcls.diag_kappa_rng(0.,1.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa1 differs from the distribution"
-
-prtcls.diag_kappa_rng(1.,2.)
-prtcls.diag_wet_mom(0)
-res_n = frombuffer(prtcls.outbuf()).mean()
-print res_n * rho_stp
-assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
-  "initialized number of particles of type kappa2 differs from the distribution"
+check_kappa_conc(prtcls, 5e-3)
