@@ -23,13 +23,13 @@ int main(int ac, char** av)
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
-  
-    for (const int at : {0, 118})
+
+    for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
         Gnuplot gp;
-        init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * 100) + ".svg", 1, 1, n); 
+        init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
   
         if (plt == "rl")
         {

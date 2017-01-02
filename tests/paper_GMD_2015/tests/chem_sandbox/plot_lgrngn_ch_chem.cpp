@@ -12,9 +12,8 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
-  std::string
-    dir = string(av[1]) + "/tests/chem_sandbox/",
-    h5  = dir + "out_lgrngn_chem";
+  std::string dir = string(av[1]) + "/tests/chem_sandbox/";//1_no_chem_results/";
+  std::string h5  = dir + "out_hall_pinsky_stratocumulus";
 
   auto n = h5n(h5);
 
