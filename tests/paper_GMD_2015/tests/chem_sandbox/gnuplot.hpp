@@ -19,7 +19,15 @@ void init(
   gp << "set size square\n";
   gp << "set encoding utf8\n";
   // progressive-rock connoisseur palette ;)
-  gp << "set palette defined (0 '#FFFFFF', 1 '#993399', 2 '#00CCFF', 3 '#66CC00', 4 '#FFFF00', 5 '#FC8727', 6 '#FD0000')\n";
+  // gp << "set palette defined (0 '#FFFFFF', 1 '#993399', 2 '#00CCFF', 3 '#66CC00', 4 '#FFFF00', 5 '#FC8727', 6 '#FD0000')\n";
+  //
+  // Python matplotlib viridis palette 
+  //   see https://github.com/BIDS/colormap/blob/master/colormaps.py for discussion
+  //   and thank Nathaniel J. Smith, Stefan van der Walt and Eric Firing for the best palette ever.
+  // Values for gnuplot were taken from https://github.com/Gnuplotting/gnuplot-palettes
+  //   thanks are due to Hagen Wierstorf.
+  // Palette was modified to start with white and not yellow
+  gp << "set palette defined (0 '#ffffff', 1 '#aadc32', 2 '#5cc863', 3 '#27ad81', 4 '#21908d', 5 '#2c718e', 6 '#3b518b', 7 '#472c7a', 8 '#440154')\n";
   gp << "set view map\n";
   gp << "dx = 1500./" << n["x"]-1 << "\n"; 
   gp << "dy = 1500./" << n["z"]-1 << "\n"; 
