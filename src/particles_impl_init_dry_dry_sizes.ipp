@@ -17,7 +17,7 @@ namespace libcloudphxx
     )
     {
       real_t rad3 = radius * radius * radius;
-      thrust::fill(rd3.begin(), rd3.end(), rad3);
+      thrust::fill(rd3.begin() + n_part_old, rd3.end(), rad3);
     }
   };
 };

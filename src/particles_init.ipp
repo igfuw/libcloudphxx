@@ -91,8 +91,6 @@ namespace libcloudphxx
             throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
         }
 
-        pimpl->n_part_old = 0;
-
         // initialize SDs of each kappa-type
         for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = pimpl->opts_init.dry_distros.begin(); ddi != pimpl->opts_init.dry_distros.end(); ++ddi)
         {
