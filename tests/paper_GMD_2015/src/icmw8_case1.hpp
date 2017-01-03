@@ -21,9 +21,9 @@ namespace config
   using real_t = float;
 
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
-  namespace theta_std = libcloudphxx::common::theta_std;
-  namespace theta_dry = libcloudphxx::common::theta_dry;
-  namespace lognormal = libcloudphxx::common::lognormal;
+  namespace theta_std   = libcloudphxx::common::theta_std;
+  namespace theta_dry   = libcloudphxx::common::theta_dry;
+  namespace lognormal   = libcloudphxx::common::lognormal;
   namespace moist_air   = libcloudphxx::common::moist_air;
 
   enum {x, z}; // dimensions

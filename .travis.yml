@@ -42,8 +42,9 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+
+    - git clone --depth=1 git://github.com/thrust/thrust.git;
+    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U matplotlib; fi

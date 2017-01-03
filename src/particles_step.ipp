@@ -62,9 +62,9 @@ namespace libcloudphxx
         using std::max;
 #endif
         // TODO: copy-pasted from init
-        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
       // syncing in Eulerian fields (if not null)
@@ -74,6 +74,10 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
+
+      // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 only) 
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(-1.) )) );
 
       if (pimpl->opts_init.chem_switch){
         for (int i = 0; i < chem_gas_n; ++i){
@@ -224,18 +228,9 @@ namespace libcloudphxx
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
 
-      // advection 
-      if (opts.adve) pimpl->adve(); 
-
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
-
-      if (opts.sedi) 
-      {
-        // advection with terminal velocity
-        pimpl->sedi();
-      }
 
       // coalescence
       if (opts.coal) 
@@ -249,6 +244,16 @@ namespace libcloudphxx
           if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
+      }
+
+      // advection, it invalidates i,j,k and ijk!
+      if (opts.adve) pimpl->adve(); 
+
+      // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
+      if (opts.sedi) 
+      {
+        // advection with terminal velocity
+        pimpl->sedi();
       }
 
       // boundary condition + accumulated rainfall to be returned

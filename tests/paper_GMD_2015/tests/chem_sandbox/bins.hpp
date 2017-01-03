@@ -13,9 +13,9 @@ vector<quantity<si::length>> bins_dry()
 vector<quantity<si::length>> bins_wet()
 {
   vector<quantity<si::length>> ret;
-  // wet radius bins: .001 ... .01 ... .1 mm (25 bins in total)
-  for (int i = 0; i < 25; ++i)
-    ret.push_back(1e-6 * pow(10, -3 + i * .2) * si::metres); 
+  // wet radius bins: .001um ... .01 ... .1 mm + 5 more bins (55 bins in total)
+  for (int i = 0; i < 55; ++i)
+    ret.push_back(1e-6 * pow(10, -3 + i * .1) * si::metres); 
   return ret;
 }
 

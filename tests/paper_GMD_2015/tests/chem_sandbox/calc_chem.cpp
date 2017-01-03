@@ -32,20 +32,21 @@ int main(int ac, char** av)
     bins_wet_str = tmp.str();
   }
 
-  for (const string &kernel : {//"hall", "hall_davis_no_waals", 
-                               //"onishi_hall", "onishi_hall_davis_no_waals", 
-                               //"vohl_davis_no_waals", 
+  for (const string &kernel : {"hall_pinsky_stratocumulus"})
+                           /*   {"hall", "hall_davis_no_waals", 
+                               "onishi_hall", "onishi_hall_davis_no_waals", 
+                               "vohl_davis_no_waals", 
                                "hall_pinsky_stratocumulus"
-                              })
+                              }) */
   {
 
     string opts_common = 
-      "--outfreq=200 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false ";
+      "--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
     set<string> opts_micro({
       "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=256 "
                       "--sstp_cond=10 --coal=True --sedi=True " 
                       "--w_max=.6 "
-                      "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 sstp_chem=10 "  
+                      "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 "  
                       //chem_rct switched on afetr spinup in set_chem  
                       "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=50e6 "
                       "--mean_rd2=0.1e-6  --sdev_rd2=1.5 --n2_stp=0 "
