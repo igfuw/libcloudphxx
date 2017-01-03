@@ -41,9 +41,10 @@ int main(int ac, char** av)
   {
 
     string opts_common = 
-      "--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
+      //"--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
+      "--outfreq=200  --nt=9000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
     set<string> opts_micro({
-      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=256 "
+      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=100 "
                       "--sstp_cond=10 --coal=True --sedi=True " 
                       "--w_max=.6 "
                       "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 "  
@@ -61,12 +62,12 @@ int main(int ac, char** av)
           "0.:1.|0,1;"
           + bins_dry_str +       // aerosol spectrum (dry)
         "\""
-        " --out_chem=\""
+   /*     " --out_chem=\""
           "0:1|0;"               // chem spectrum (dry)
         "\""
         " --out_wet_pH=\""
           + bins_wet_str +       // spectrum for S_VI and H+ (wet)
-        "\""
+        "\"" */
     });
   
     for (auto &opts_m : opts_micro)

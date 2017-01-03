@@ -329,7 +329,8 @@ namespace libcloudphxx
         );
 
         // apply Henrys law to the in-drop chemical compounds 
-        thrust::transform_if(
+        //thrust::transform_if(
+        thrust::transform(
           V.begin(), V.end(),                             // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
             thrust::make_permutation_iterator(p.begin(), ijk.begin()),
@@ -340,10 +341,10 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             chem_bgn[H]
           )),
-          chem_flag.begin(),                                                                         // stencil
+          //chem_flag.begin(),                                                                         // stencil
           chem_bgn[i],                                                                               // output
-          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt), // op
-          thrust::identity<unsigned int>()                                                           // condition
+          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt)//, // op
+          //thrust::identity<unsigned int>()                                                           // condition
         );
 
         // store the total mass of chem species in cloud droplets per cell after Henry
