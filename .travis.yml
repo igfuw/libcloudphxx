@@ -5,10 +5,22 @@ os:
 compiler:
     - gcc
     - clang
+env:
+    - TEST_SUITE=cuda
+    - TEST_SUITE=tests
+    - TEST_SUITE=parcel
+    - TEST_SUITE=icicle
+    - TEST_SUITE=bicycles
 matrix:
     exclude:
         - os: osx
           compiler: gcc
+
+        - compiler: clang
+          env: TEST_SUITE=cuda
+
+        - compiler: clang
+          env: TEST_SUITE=bicycles # bicycles is not tested on clang yet
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
@@ -20,7 +32,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo $apt_get_install clang; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo $apt_get_install g++  ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo $apt_get_install nvidia-cuda-toolkit; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo $apt_get_install nvidia-cuda-toolkit; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi # get boost odeint > 1.58
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi
@@ -30,8 +42,9 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 git://github.com/thrust/thrust.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust; fi
+
+    - git clone --depth=1 git://github.com/thrust/thrust.git;
+    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U matplotlib; fi
@@ -42,70 +55,97 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.6.2/share/cmake/Modules/; fi
 
+before_script:
+    - chmod +x ./.travis_scripts/*
+
 script:
-    # libcloudph++ 
-    - mkdir build 
-    - cd build
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    # find python paths, taken from 
-    # https://github.com/breannansmith/scisim/blob/master/.travis.yml
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
-    - cmake -DCMAKE_BUILD_TYPE=Debug ../
-    - VERBOSE=1 make
-    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
-    - VERBOSE=1 make 
-    - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-    - sudo make install
+    # compile with nvcc
+    - if [[ $TEST_SUITE == 'cuda' ]]; then . ./.travis_scripts/cuda.sh; fi # called like that to pass env vars
+    # unit tests and drops.py
+    - if [[ $TEST_SUITE == 'tests' ]]; then . ./.travis_scripts/tests.sh; fi
+    # parcel
+    - if [[ $TEST_SUITE == 'parcel' ]]; then . ./.travis_scripts/parcel.sh; fi
+    # icicle
+    - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
+    # bicycles
+    - if [[ $TEST_SUITE == 'bicycles' ]]; then . ./.travis_scripts/bicycles.sh; fi
 
-    # libmpdata (needed by icicle, skipping tests)
-    - cd ../..
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev libhdf5-serial-dev hdf5-tools cmake; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
-    - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
-    - cd libmpdataxx/libmpdata++
-    - mkdir build
-    - cd build
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
-    - cmake ..
-    - sudo make install
-    - cd ../../..
-
-    ## icicle
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
-    - cd libcloudphxx/tests/paper_GMD_2015
-    - mkdir build 
-    - cd build
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
-    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
-    - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
-    - if [[ $CXX == 'clang++' ]]; then ctest -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-    - if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
-    - cd ../../../..                                       
-
-    ## drops.py (it is written in Python so no compilation, just unit tests)
-    # only on linux
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 git://github.com/igfuw/drops.py.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd drops.py; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then mkdir build; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd build; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cmake ..; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
-
-    ## parcel
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
-    - git clone --depth=1 git://github.com/igfuw/parcel.git
-    - cd parcel
-    - mkdir plots/outputs
-    - py.test unit_test
-    - py.test long_test
+#    # libcloudph++ 
+#    - mkdir build 
+#    - cd build
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+#    # find python paths, taken from 
+#    # https://github.com/breannansmith/scisim/blob/master/.travis.yml
+#    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
+#    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
+#    - cmake -DCMAKE_BUILD_TYPE=Debug ../
+#    - VERBOSE=1 make
+#    - if [[ $TEST_SUITE != 'cuda' ]]; then OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+#    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
+#    - VERBOSE=1 make 
+#    - if [[ $TEST_SUITE != 'cuda' ]]; then OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+#    - sudo make install
+#
+#    # libmpdata (needed by icicle, skipping tests)
+#    - cd ../..
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev libhdf5-serial-dev hdf5-tools cmake; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
+#
+#    - git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+#    - cd libmpdataxx/libmpdata++
+#    - mkdir build
+#    - cd build
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
+#    - cmake ..
+#    - sudo make install
+#    - cd ../../..
+#
+#    ## icicle
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
+#    - cd libcloudphxx/tests/paper_GMD_2015
+#    - mkdir build 
+#    - cd build
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+#    - cmake -DCMAKE_BUILD_TYPE=Release ../ 
+#    - if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
+#    - if [[ $CXX == 'clang++' ]]; then ctest -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+#    - if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
+#    - cd ../../../..                                       
+#
+#    ## drops.py (it is written in Python so no compilation, just unit tests)
+#    # only on linux
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 git://github.com/igfuw/drops.py.git; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd drops.py; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then mkdir build; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd build; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cmake ..; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then  cd ../..; fi
+#
+#    ## parcel
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox; fi
+#    - git clone --depth=1 git://github.com/igfuw/parcel.git
+#    - cd parcel
+#    - mkdir plots/outputs
+#    - py.test unit_test
+#    - py.test long_test
+#    - cd ..
+#
+#    ## bicycles
+#    - git clone --depth=1 git://github.com/igfuw/bicycles.git
+#    - cd bicycles
+#    - mkdir build
+#    - cd build
+#    - cmake ..
+#    - make
+#    - make test
+#    - cd ../..

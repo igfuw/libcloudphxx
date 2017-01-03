@@ -15,6 +15,19 @@ namespace libcloudphxx
     namespace detail 
     {
       template <typename real_t>
+      struct add_div
+      {
+        const real_t dx;
+        add_div(const real_t &dx) : dx(dx) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &div, const thrust::tuple<real_t, real_t> &tpl)
+        {
+          return div + (thrust::get<1>(tpl) - thrust::get<0>(tpl)) / dx;
+        }
+      };
+
+      template <typename real_t>
       struct rw3_cr
       {
         BOOST_GPU_ENABLED
@@ -225,6 +238,68 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
     {
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
+    }
+
+    // to diagnose if velocity field is nondivergent
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_vel_div()
+    {   
+      if(pimpl->n_dims==0) return;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust::counting_iterator<thrust_size_t>
+      > pi;
+
+      namespace arg = thrust::placeholders;
+
+      thrust::fill(
+        pimpl->count_mom.begin(),
+        pimpl->count_mom.end(),
+        real_t(0.)
+      );
+
+      switch (pimpl->n_dims)
+      {
+        case 3:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),   // fre counts from the start of halo, but here we need only real cells
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+        case 2:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+        case 1:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+      }
+      // divergence defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      // inform that count_n and count_ijk are invalid
+      pimpl->counted = false;
     }
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs

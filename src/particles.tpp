@@ -74,6 +74,7 @@
 
 #include "particles_impl_sync.ipp"
 
+#include "particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 #include "particles_impl_adve.ipp"
 #include "particles_impl_cond_common.ipp"
 #include "particles_impl_cond.ipp"
@@ -85,7 +86,6 @@
 #include "particles_impl_chem_dissoc.ipp"
 #include "particles_impl_chem_react.ipp"
 #include "particles_impl_rcyc.ipp"
-#include "particles_impl_bcnd.ipp"
 #include "particles_impl_sstp.ipp"
 #include "particles_impl_sstp_chem.ipp"
 #include "particles_impl_src.ipp"

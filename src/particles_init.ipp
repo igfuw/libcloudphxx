@@ -5,6 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   * @brief initialisation routine for super droplets
   */
+#include<thrust/extrema.h>
 
 namespace libcloudphxx
 {
@@ -22,6 +23,7 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
+
       pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
 
       // initialising Eulerian-Lagrangian coupling
@@ -33,9 +35,9 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
       using std::max;
 #endif
-      if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-      if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
-      if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
+      if (!courant_x.is_null())  pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x );
+      if (!courant_y.is_null())  pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
+      if (!courant_z.is_null())  pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
@@ -49,6 +51,10 @@ namespace libcloudphxx
       if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
+
+      // check if courants arent greater than 1 since it would break the predictor-corrector (halo of size 1 only) 
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(-1.) )) );
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
