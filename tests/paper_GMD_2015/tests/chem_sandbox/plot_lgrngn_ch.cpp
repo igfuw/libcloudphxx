@@ -115,7 +115,7 @@ int main(int ac, char** av)
           // super-droplet concentration
           auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
           gp << "set title 'super-droplet concentration [dv-1]'\n";
-          gp << "set cbrange [0:256]\n";
+          //gp << "set cbrange [0:256]\n";
           plot(gp, sd_conc);
         }
   
