@@ -298,6 +298,8 @@ namespace libcloudphxx
 
       // methods
       void sanity_checks();
+      void init_SD_with_distros();
+      void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,

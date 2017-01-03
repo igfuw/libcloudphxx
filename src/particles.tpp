@@ -36,6 +36,8 @@
 
 // details
 #include "particles_impl_dist_analysis.ipp"
+#include "particles_impl_init_SD_with_distros.ipp"
+#include "particles_impl_init_SD_with_sizes.ipp"
 #include "particles_impl_init_dry_sd_conc.ipp"
 #include "particles_impl_init_dry_const_multi.ipp"
 #include "particles_impl_init_dry_dry_sizes.ipp"
