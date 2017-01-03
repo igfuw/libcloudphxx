@@ -24,7 +24,8 @@ int main(int ac, char** av)
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
-    for (int at = 36; at < n["t"]; ++at) 
+    for (int at = 0; at < n["t"]; ++at) 
+
     //int at = 1;
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
@@ -114,7 +115,7 @@ int main(int ac, char** av)
           // super-droplet concentration
           auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
           gp << "set title 'super-droplet concentration [dv-1]'\n";
-          gp << "set cbrange [0:128]\n";
+          gp << "set cbrange [0:256]\n";
           plot(gp, sd_conc);
         }
   
