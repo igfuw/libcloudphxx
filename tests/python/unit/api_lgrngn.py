@@ -242,10 +242,10 @@ for it in range(2):
 print "3D const multi"
 opts_init.sd_conc = 0
 cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
-prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1
+prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
 n_cell = opts_init.nz * opts_init.nx * opts_init.ny
-opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi) # 2* because of two distributions
+opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
@@ -265,3 +265,34 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
+
+# 3D dry_sizes init
+print "3D dry sizes"
+opts_init.dry_distros = dict()
+opts_init.dry_sizes = {kappa1 : {1.e-6 : 30./ cell_vol * rho_stp, 15.e-6 : 10. / cell_vol * rho_stp}}
+
+opts_init.sd_const_multi = 1
+opts_init.n_sd_max = int(1e10)
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+
+sd_tot = frombuffer(prtcls.outbuf()).sum()
+prtcls.diag_all()
+prtcls.diag_wet_mom(0)
+prtcls_tot = frombuffer(prtcls.outbuf()).sum()
+print frombuffer(prtcls.outbuf())
+assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
+
+prtcls.diag_dry_rng(1e-6, 1.1e-6);
+prtcls.diag_wet_mom(0)
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) == 30 / cell_vol).all()
+
+prtcls.diag_dry_rng(15e-6, 15.1e-6);
+prtcls.diag_wet_mom(0)
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) == 10 / cell_vol).all()
