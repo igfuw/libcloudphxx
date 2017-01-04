@@ -83,7 +83,7 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct get_sqrt
+      struct get_sqrt : public thrust::unary_function<real_t, real_t>
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)
