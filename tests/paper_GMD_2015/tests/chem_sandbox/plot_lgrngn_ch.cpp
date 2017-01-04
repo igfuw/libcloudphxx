@@ -25,7 +25,7 @@ int main(int ac, char** av)
   
     auto n = h5n(h5);
 
-    for (int at = 36; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
+    for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
