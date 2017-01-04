@@ -42,9 +42,9 @@ int main(int ac, char** av)
 
     string opts_common = 
       //"--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      "--outfreq=200  --nt=3200 --spinup=7200 --nx=60 --nz=60 --relax_th_rv=false --rng_seed=44 ";
+      "--outfreq=200  --nt=9000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
     set<string> opts_micro({
-      "--micro=lgrngn --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=256 "
+      "--micro=lgrngn --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=100 "
                       "--sstp_cond=10 --coal=False --sedi=True " 
                       "--w_max=.6 "
                       //"--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 "  
