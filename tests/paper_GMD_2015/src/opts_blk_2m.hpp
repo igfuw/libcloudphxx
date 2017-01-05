@@ -11,7 +11,7 @@
 #include "kin_cloud_2d_blk_2m.hpp"
 
 // simulation and output parameters for micro=blk_2m
-template <class solver_t>
+template <class solver_t, class ct_params_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   int nx, int nz, int nt,

@@ -15,7 +15,7 @@ int main(int ac, char** av)
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
-    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na"}))
+    for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "sd_conc", "th", "rv"}))
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
@@ -130,6 +130,28 @@ int main(int ac, char** av)
 	gp << "set title 'aerosol concentration [mg^{-1}]'\n";
 	tmp /= 1e6;
 	plot(gp, tmp);
+      }
+      else if (plt == "sd_conc")
+      {
+        // super-droplet concentration
+        auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
+        gp << "set title 'super-droplet concentration [dv-1]'\n";
+        gp << "set cbrange [0:128]\n";
+        plot(gp, sd_conc);
+      }
+      else if (plt == "th")
+      {
+        auto th = h5load(h5, "th", at * n["outfreq"]);
+        gp << "set title 'potential temperature [K]'\n";
+        gp << "set cbrange [289.5:292]\n";
+        plot(gp, th);
+      }
+      else if (plt == "rv")
+      {
+        auto rv = h5load(h5, "rv", at * n["outfreq"]) * 1000;
+        gp << "set title 'water vapour mixing ratio [g/kg]'\n";
+        gp << "set cbrange [6.5:7.7]\n";
+        plot(gp, rv);
       }
       else assert(false);
     } // var loop
