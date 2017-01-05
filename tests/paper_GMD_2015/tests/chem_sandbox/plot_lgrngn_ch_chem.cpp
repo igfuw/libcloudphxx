@@ -80,42 +80,42 @@ int main(int ac, char** av)
       {                                                      // TODO this is lazy (assumes pd = p), do it better
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-//        gp << "set cbrange [0.05:0.2]\n";
+        gp << "set cbrange [0.08:0.22]\n";
         plot(gp, chem);
       }
       else if (plt == "O3g") //50e-9
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_O3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [50.46:50.62]\n";
+        gp << "set cbrange [50.53:50.61]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") //500e-12 ; 0
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_H2O2<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        //gp << "set cbrange [0:0.7]\n";
+        gp << "set cbrange [0:1]\n";
         plot(gp, chem);
       }
       else if (plt == "CO2g") //360e-6
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_CO2<float>()) * 1e6;
         gp << "set title 'gas vol conc [ppm]'\n";
-        //gp << "set cbrange [360:361.2]\n";
+        gp << "set cbrange [360:361.2]\n";
         plot(gp, chem);
       }
       else if (plt == "NH3g") // 100e-12
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_NH3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-  //      gp << "set cbrange [0:0.1]\n";
+        gp << "set cbrange [0:0.11]\n";
         plot(gp, chem);
       }
       else if (plt == "HNO3g") // 100e-12
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_HNO3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-    //    gp << "set cbrange [0:0.1]\n";
+        gp << "set cbrange [0:0.12]\n";
         plot(gp, chem);
       }
 
@@ -131,7 +131,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'S_VI_aq [ug/kg]'\n";
-      //  gp << "set cbrange [0:1]\n";
+        gp << "set cbrange [0:1.2]\n";
         plot(gp, chem);
       }
 
@@ -139,14 +139,14 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'O3_aq [ug/kg]'\n";
-        //gp << "set cbrange [-1e-5:2.8e-5]\n";
+        gp << "set cbrange [0:6e-5]\n";
         plot(gp, chem);
       }
        else if (plt == "H2O2_aq")
       {
         auto chem = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'H2O2_aq [ug/kg]'\n";
-        //gp << "set cbrange [0:1]\n";
+        gp << "set cbrange [0:1]\n";
         plot(gp, chem);
       }
 
@@ -154,7 +154,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_H_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'H_aq [ug/kg]'\n";
-  //      gp << "set cbrange [0:0.016]\n";
+        gp << "set cbrange [0:0.025]\n";
         plot(gp, chem);
       }
 
@@ -162,7 +162,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_C_IV_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'C_IV_aq [ug/kg]'\n";
-        //gp << "set cbrange [0:2.5]\n";
+        gp << "set cbrange [0:1.6]\n";
         plot(gp, chem);
       }
 
@@ -170,7 +170,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_N_III_aq", at * n["outfreq"]) * 1e9; //TODO
         gp << "set title 'N_III_aq [ug/kg]'\n";
-        //gp << "set cbrange [0:7e-5]\n";
+        gp << "set cbrange [0:0.45]\n";
         plot(gp, chem);
       }
 
@@ -178,7 +178,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_N_V_aq", at * n["outfreq"]) * 1e9; 
         gp << "set title 'N_V_aq [ug/kg]'\n";
-  //      gp << "set cbrange [0:128]\n";
+        gp << "set cbrange [0:0.6]\n";
         plot(gp, chem);
       }
  
