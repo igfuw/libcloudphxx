@@ -50,7 +50,7 @@ auto h5load(
 
   if (flag)
     tmp_filename = file + "/timestep" + zeropad(at, 10) + ".h5";
-  else 
+  else
     tmp_filename = file;
 
   notice_macro("about to open file: " << tmp_filename)
