@@ -27,7 +27,7 @@ int main(int ac, char** av)
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
-
+/*
       if (n["x"] == 50 && n["z"] == 50) //76
       {
 	{
@@ -75,7 +75,7 @@ int main(int ac, char** av)
 	  }
 	}
       }
-
+*/
       if (plt == "SO2g") //200e-12
       {                                                      // TODO this is lazy (assumes pd = p), do it better
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;

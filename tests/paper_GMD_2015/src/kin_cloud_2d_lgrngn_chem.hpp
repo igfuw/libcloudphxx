@@ -230,8 +230,8 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
       if (
         parent_t::params.async && 
         this->timestep != 0 && // ... but not in first timestep ...
-        ((this->timestep - 1) % this->outfreq != 0)
         //!((this->timestep-1) == 0 || ((this->timestep-1) % this->outfreq == 0 && (this->timestep-1) >= this->spinup)) 
+        ((this->timestep - 1) % this->outfreq != 0)
       ) {
         assert(this->ftr.valid());
         this->ftr.get();

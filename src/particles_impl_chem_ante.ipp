@@ -44,7 +44,7 @@ namespace libcloudphxx
           return (
                    pow(rw2, real_t(3./2.)) > (1000. * rd3) 
                    && 
-                   rw2 > 16e-12
+                   rw2 > 1e-12
                  ) ? 1 : 0;
         }
       };

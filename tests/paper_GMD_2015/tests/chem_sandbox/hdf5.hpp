@@ -47,14 +47,13 @@ auto h5load(
 ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
  {
   string tmp_filename;
-  if (flag){
+
+  if (flag)
     tmp_filename = file + "/timestep" + zeropad(at, 10) + ".h5";
-    notice_macro("about to open file: " << tmp_filename)
-  }
-  else {
+  else 
     tmp_filename = file;
-    notice_macro("about to open file: " << tmp_filename)
-  }
+
+  notice_macro("about to open file: " << tmp_filename)
 
 //    H5::H5File h5f(file + "/timestep" + zeropad(at, 10) + ".h5", H5F_ACC_RDONLY);
   H5::H5File h5f(tmp_filename, H5F_ACC_RDONLY);
