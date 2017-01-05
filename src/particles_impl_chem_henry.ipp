@@ -9,7 +9,6 @@
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
 
-
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -226,7 +225,8 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
       using namespace common::dissoc;     // K-prefixed
 
-      thrust_device::vector<real_t> &V(tmp_device_real_part);
+      const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
+      const thrust_device::vector<real_t> &V(tmp_device_real_part);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
@@ -330,7 +330,7 @@ namespace libcloudphxx
         );
 
         // apply Henrys law to the in-drop chemical compounds 
-        thrust::transform(
+        thrust::transform_if(
           V.begin(), V.end(),                             // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
             thrust::make_permutation_iterator(p.begin(), ijk.begin()),
@@ -341,8 +341,10 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             chem_bgn[H]
           )),
-          chem_bgn[i],                                                                              // output
-          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt) // op
+          chem_flag.begin(),                                                                         //stencil
+          chem_bgn[i],                                                                               // output
+          detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt), // op
+          thrust::identity<unsigned int>()
         );
 
         // store the total mass of chem species in cloud droplets per cell after Henry

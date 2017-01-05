@@ -62,12 +62,12 @@ int main(int ac, char** av)
           "0.:1.|0,1;"
           + bins_dry_str +       // aerosol spectrum (dry)
         "\""
-   /*     " --out_chem=\""
+        " --out_chem=\""
           "0:1|0;"               // chem spectrum (dry)
         "\""
         " --out_wet_pH=\""
           + bins_wet_str +       // spectrum for S_VI and H+ (wet)
-        "\"" */
+        "\"" 
     });
   
     for (auto &opts_m : opts_micro)

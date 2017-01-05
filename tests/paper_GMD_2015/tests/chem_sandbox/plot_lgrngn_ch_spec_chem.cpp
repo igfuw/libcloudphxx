@@ -12,12 +12,12 @@ int main(int ac, char** av)
   std::string
     dir = string(av[1]) + "/tests/chem_sandbox/",
     h5  = dir + "out_hall_pinsky_stratocumulus",
-    svg = dir + "out_hall_pinsky_stratocumulus.svg";
+    svg = dir + "out_hall_pinsky_stratocumulus_chem.svg";
 
   Gnuplot gp;
 
-  int off = 2; // TODO!!!
-  float ymin = .4 * .01, ymax = .9 * 10000;
+  int off = 1; // TODO!!!
+  float ymin = 1e-11, ymax = 1e-2;
   const int at = 9000;//11800;
 
   gp << "set term svg dynamic enhanced fsize 15 size 900, 1500 \n";
@@ -28,10 +28,6 @@ int main(int ac, char** av)
   gp << "set ylabel '[mg^{-1} μm^{-1}]'\n"; // TODO: add textual description (PDF?)
   gp << "set grid\n";
   gp << "set nokey\n";
-
-  // FSSP range
-  gp << "set arrow from .5," << ymin << " to .5," << ymax << " nohead\n";
-  gp << "set arrow from 25," << ymin << " to 25," << ymax << " nohead\n";
 
   gp << "set xlabel offset 0,1.5 'particle radius [μm]'\n";
   gp << "set key samplen 1.2\n";
@@ -53,34 +49,18 @@ int main(int ac, char** av)
       gp << "set label 1 '(" << lbl << ")' at graph -.15, 1.02 font ',20'\n";
       //gp << "set title 'x=" << x << " y=" << y << "'\n";
 
-      std::map<float, float> focus_d;
-      std::map<float, float> focus_w;
+      std::map<float, float> focus_S6;
 
       //info on the number and location of histogram edges
-      vector<quantity<si::length>> left_edges_rd = bins_dry();
-      int nsd = left_edges_rd.size() - 1;
       vector<quantity<si::length>> left_edges_rw = bins_wet();
       int nsw = left_edges_rw.size() - 1;
 
-      for (int i = 0; i < nsd; ++i)
+      for (int i = 0; i < nsw - off; ++i)
       {
-	const string name = "rd_rng" + zeropad(i) + "_mom0";
-	blitz::Array<float, 2> tmp_d(1e-6 * h5load(h5, name, at));
+	const string name = "chem_S_VI_rw_rng" + zeropad(i + off) + "_mom0";
+	blitz::Array<float, 2> tmp_w(1e6 * h5load(h5, name, at));
 
-	focus_d[left_edges_rd[i] / 1e-6 / si::metres] = sum(tmp_d(
-	  blitz::Range(x-1, x+1),
-	  blitz::Range(y-1, y+1)
-	)) 
-	/ 9  // mean over 9 gridpoints
-	/ ((left_edges_rd[i+1] - left_edges_rd[i]) / 1e-6 / si::metres); // per micrometre
-      }
-
-      for (int i = 0; i < nsw; ++i)
-      {
-	const string name = "rw_rng" + zeropad(i + off) + "_mom0";
-	blitz::Array<float, 2> tmp_w(1e-6 * h5load(h5, name, at));
-
-	focus_w[left_edges_rw[i] / 1e-6 / si::metres] = sum(tmp_w(
+	focus_S6[left_edges_rw[i] / 1e-6 / si::metres] = sum(tmp_w(
 	  blitz::Range(x-1, x+1),
 	  blitz::Range(y-1, y+1)
 	)) 
@@ -90,10 +70,8 @@ int main(int ac, char** av)
 
       notice_macro("setting-up plot parameters");
       gp << "plot"
-	 << "'-' with histeps title 'wet radius' lw 3 lc rgb 'blue'," 
-	 << "'-' with histeps title 'dry radius' lw 3 lc rgb 'red' " << endl;
-      gp.send(focus_w);
-      gp.send(focus_d);
+	 << "'-' with histeps title 'S6 mass' lw 3 lc rgb 'red' " << endl;
+      gp.send(focus_S6);
 
       lbl -= 2;
     }
