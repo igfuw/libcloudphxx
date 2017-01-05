@@ -72,6 +72,9 @@ namespace libcloudphxx
       // dimensions in Python bindings)
       opts_init_t<real_t> *opts_init;
 
+      // virtual destructor
+      virtual ~particles_proto_t() {};
+
     };  
 
     // prototype of what's implemented in the .tpp file
