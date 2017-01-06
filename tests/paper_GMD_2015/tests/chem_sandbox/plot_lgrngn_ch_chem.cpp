@@ -18,7 +18,8 @@ int main(int ac, char** av)
 
   auto n = h5n(h5);
 
-  for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
+  //for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
+  int at = 11800 / n["outfreq"];
   {
     for (auto &plt : std::set<std::string>({"SO2g",  "O3g",    "H2O2g",  "CO2g",   "NH3g",  "HNO3g", 
                                            "S_IV_aq", "S_VI_aq", "O3_aq",  "H2O2_aq", "H_aq",  
@@ -27,8 +28,8 @@ int main(int ac, char** av)
     {
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
-/*
-      if (n["x"] == 50 && n["z"] == 50) //76
+
+      if (at * n["outfreq"] == 11800)
       {
 	{
 	  char lbl = 'i';
@@ -75,7 +76,7 @@ int main(int ac, char** av)
 	  }
 	}
       }
-*/
+
       if (plt == "SO2g") //200e-12
       {                                                      // TODO this is lazy (assumes pd = p), do it better
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
