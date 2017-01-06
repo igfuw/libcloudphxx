@@ -168,8 +168,7 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-        //thrust::transform_if(
-        thrust::transform(
+        thrust::transform_if(
           zip_it_t(thrust::make_tuple(
             chem_bgn[SO2], chem_bgn[CO2], chem_bgn[HNO3], chem_bgn[NH3], chem_bgn[S_VI], 
             V.begin(),
@@ -178,10 +177,10 @@ namespace libcloudphxx
             chem_end[SO2], chem_end[CO2], chem_end[HNO3], chem_end[NH3], chem_end[S_VI], 
             V.end(),
             thrust::make_permutation_iterator(T.end(), ijk.end()))),                       // input - end
-         //chem_flag.begin(),                                                                // stencil
+         chem_flag.begin(),                                                                // stencil
          chem_bgn[H],                                                                      // output
-         detail::chem_electroneutral<real_t>()//,                                            // op
-         //thrust::identity<unsigned int>()                                                  // condition
+         detail::chem_electroneutral<real_t>(),                                            // op
+         thrust::identity<unsigned int>()
         );
       }
 

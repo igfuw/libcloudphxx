@@ -48,8 +48,8 @@ namespace libcloudphxx
           quantity<common::amount_over_volume, real_t> Kt_HSO4 = K_temp(T, K_HSO4<real_t>(), dKR_HSO4<real_t>());
  
           return 
-            (rw2 / si::square_metres > 4e-12 
-              && 
+            //(rw2 / si::square_metres > 4e-12 
+            //  && 
               ((real_t(0.5) * (
                 conc_H * conc_S_VI / (conc_H + Kt_HSO4) +
                 real_t(4) * Kt_HSO4 * conc_S_VI / (conc_H + Kt_HSO4) +
@@ -59,8 +59,8 @@ namespace libcloudphxx
                 real_t(4) * Kt_SO2 * Kt_HSO3 * conc_S_IV / (conc_H * conc_H + Kt_SO2 * conc_H + Kt_SO2 * Kt_HSO3) +
                 Kt_HNO3 * conc_N_V / (conc_H + Kt_HNO3) + 
                 Kt_NH3 * conc_H * conc_N_III / (K_H2O<real_t>() + Kt_NH3 * conc_H)
-              ) * si::cubic_metres / si::moles) < 0.02 * 1000)) 
-            ? 1 : 0;                                // ^^^^ convert from moles/litr to moles/m3
+              ) * si::cubic_metres / si::moles) < 0.02 * 1000)//) 
+            ? 1 : 0;                                  // ^^^^ convert from moles/litr to moles/m3
         }                                            
       };
     };
