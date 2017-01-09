@@ -146,6 +146,7 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
 
       thrust_device::vector<real_t> &V(tmp_device_real_part);
+      const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
@@ -167,7 +168,7 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-        thrust::transform(
+        thrust::transform_if(
           zip_it_t(thrust::make_tuple(
             chem_bgn[SO2], chem_bgn[CO2], chem_bgn[HNO3], chem_bgn[NH3], chem_bgn[S_VI], 
             V.begin(),
@@ -176,8 +177,10 @@ namespace libcloudphxx
             chem_end[SO2], chem_end[CO2], chem_end[HNO3], chem_end[NH3], chem_end[S_VI], 
             V.end(),
             thrust::make_permutation_iterator(T.end(), ijk.end()))),                       // input - end
+         chem_flag.begin(),                                                                // stencil
          chem_bgn[H],                                                                      // output
-         detail::chem_electroneutral<real_t>()                                             // op
+         detail::chem_electroneutral<real_t>(),                                            // op
+         thrust::identity<unsigned int>()
         );
       }
 

@@ -67,7 +67,7 @@ namespace libcloudphxx
             O3_react = V * m_O3 / M_O3<real_t>() / V * m_S_IV / M_SO2_H2O<real_t>() / V
                        / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
                        * (R_O3_k0 + R_O3_k1 * Kt_SO2 / conc_H + R_O3_k2 * Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
-
+       
 	  // helper for H2O2 reaction
 	  quantity<divide_typeof_helper<si::amount, si::time>::type, real_t>
             H2O2_react = V * R_H2O2_k * Kt_SO2 
@@ -133,6 +133,7 @@ namespace libcloudphxx
           const real_t /* t */
         )
         {
+          thrust::fill(dot_psi.begin(), dot_psi.end(), real_t(0));
           assert(dot_psi.size() == psi.size());
 
           typedef thrust::zip_iterator<
@@ -257,7 +258,12 @@ namespace libcloudphxx
 
       // do chemical reactions
       chem_stepper.do_step(
-        detail::chem_rhs<real_t>(V, thrust::make_permutation_iterator(T.begin(), ijk.begin()), chem_bgn[H], chem_flag), // TODO: make it an impl member field
+        detail::chem_rhs<real_t>(
+          V,
+          thrust::make_permutation_iterator(T.begin(), ijk.begin()), 
+          chem_bgn[H], 
+          chem_flag
+        ), // TODO: make it an impl member field
         chem_rhs, 
         real_t(0),
         dt
