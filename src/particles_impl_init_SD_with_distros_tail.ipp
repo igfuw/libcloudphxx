@@ -11,11 +11,9 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_tail(const common::unary_function<real_t> *fun, const real_t & log_rd_min_init)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_tail(const common::unary_function<real_t> *fun, const real_t log_rd_min_init)
     {
-      dist_analysis_const_multi(
-        fun
-      );
+      dist_analysis_const_multi(fun);
  
       // overwrite calculated log_rd_min with external one (equal to log_rd_max of sd_conc init)
       log_rd_min=log_rd_min_init;
