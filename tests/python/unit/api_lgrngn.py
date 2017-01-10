@@ -274,7 +274,7 @@ opts_init.dry_distros = dict()
 opts_init.dry_sizes = {kappa1 : {1.e-6 : 30./ cell_vol * rho_stp, 15.e-6 : 10. / cell_vol * rho_stp}}
 
 opts_init.sd_const_multi = 1
-opts_init.n_sd_max = int(1e10)
+opts_init.n_sd_max = int(n_cell * 40)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
