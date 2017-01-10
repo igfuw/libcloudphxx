@@ -186,7 +186,7 @@ namespace libcloudphxx
         // TODO: loop over kappas (right now only one possible)
         //const bp::dict size_conc = kappa_func.values()[0];
         const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[0]);
-        std::unordered_map<real_t, real_t> size_conc_map;
+        std::map<real_t, real_t> size_conc_map;
 
         // turn the size-conc dict into a size-conc map
 	for (int i = 0; i < len(size_conc.keys()); ++i)
