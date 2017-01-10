@@ -16,8 +16,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_SD_with_sizes()
     {
       // TODO: loop over size-number map for first kappa (as of now, there cant be more than 1 kappa in this case)
-      const auto &size_number_map(opts_init.dry_sizes.begin()->second);
-      for (auto sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
+      typename opts_init_t<real_t>::dry_sizes_t::mapped_type &size_number_map(opts_init.dry_sizes.begin()->second);
+      for (typename opts_init_t<real_t>::dry_sizes_t::mapped_type::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
       {
         // init number of SDs of this kappa in cells
         init_count_num_dry_sizes(sni->second);

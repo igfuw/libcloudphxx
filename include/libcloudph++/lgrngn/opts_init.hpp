@@ -32,9 +32,9 @@ namespace libcloudphxx
       dry_distros_t dry_distros;
 
       // defined with a size-number pair
-      typedef std::unordered_map<
+      typedef std::map<
         real_t,                // kappa
-        std::unordered_map<real_t, real_t> // radius-STP_concentration pair
+        std::map<real_t, real_t> // radius-STP_concentration pair
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
 

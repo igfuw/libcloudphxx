@@ -5,7 +5,6 @@
 #include <cassert>
 #include <memory>
 #include <map>
-#include <unordered_map>
 
 #include <boost/ptr_container/ptr_unordered_map.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
