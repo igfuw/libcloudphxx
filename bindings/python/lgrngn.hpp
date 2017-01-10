@@ -191,9 +191,8 @@ namespace libcloudphxx
 	for (int i = 0; i < len(size_conc.keys()); ++i)
         {
           size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = bp::extract<real_t>(size_conc.values()[i]);
-          printf("bindings map:%lf %lf\n",
-            bp::extract<real_t>(size_conc.keys()[i]), 
-            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])]);
+          std::cout << "bindings map: " << bp::extract<real_t>(size_conc.keys()[i]) << " " <<
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] << std::endl;;
         }
         const real_t kappa = bp::extract<real_t>(kappa_func.keys()[0]);
         arg->dry_sizes.clear();
