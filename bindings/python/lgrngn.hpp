@@ -191,7 +191,7 @@ namespace libcloudphxx
 	for (int i = 0; i < len(size_conc.keys()); ++i)
         {
           size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = bp::extract<real_t>(size_conc.values()[i]);
-          printf("bindings map:%lf %lf\n"
+          printf("bindings map:%lf %lf\n",
             bp::extract<real_t>(size_conc.keys()[i]), 
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])]);
         }
