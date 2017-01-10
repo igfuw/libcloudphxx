@@ -1,7 +1,6 @@
 #pragma once
 
 // macro to check for cuda errors, taken from 
-// move it to utils...
 // http://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans) { detail::gpuAssert((ans), __FILE__, __LINE__); }
 
