@@ -15,7 +15,6 @@ namespace libcloudphxx
     {
       dist_analysis_const_multi(fun);
  
-printf("tail rd_min %lf rd_max %lf rd_min_init %lf\n", exp(log_rd_min), exp(log_rd_max), exp(log_rd_min_init));
       // overwrite calculated log_rd_min with external one (equal to log_rd_max of sd_conc init)
       log_rd_min=log_rd_min_init;
       if(log_rd_min >= log_rd_max)
