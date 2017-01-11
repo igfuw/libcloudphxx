@@ -43,7 +43,7 @@ endif()
 
 ############################################################################################
 # CUDA
-find_package(CUDA QUIET)
+#find_package(CUDA QUIET)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 
@@ -194,10 +194,10 @@ endif()
 add_subdirectory(src) 
 
 enable_testing()
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 add_subdirectory(include) 
-add_subdirectory(bindings) 
+#add_subdirectory(bindings) 
 
 install(
   FILES
