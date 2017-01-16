@@ -82,7 +82,7 @@ prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())
 print 'diag_sd_conc', tmp
 
-if not(tmp[0] == 1158 and tmp[2] == 1158):
+if not(tmp[0] == 1164 and tmp[2] == 1164):
   raise Exception("wrong amount of SDs were added")
 
 if not(tmp[1] == 1024 and tmp[3] == 1024):

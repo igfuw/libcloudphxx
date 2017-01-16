@@ -41,7 +41,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
 if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
 cmake -DCMAKE_BUILD_TYPE=Release ../ 
 if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
-if [[ $CXX == 'clang++' ]]; then ctest -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+if [[ $CXX == 'clang++' ]]; then ctest -VV -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
 cd ../../../..                                       
 set +e # see https://github.com/travis-ci/travis-ci/issues/6522

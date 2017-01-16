@@ -51,8 +51,8 @@ namespace libcloudphxx
         if (rd_max == config.rd_max_init && n_max != 0)
           throw std::runtime_error("Initial dry radii distribution is non-zero for rd_max_init");
 
-        if      (n_min == 0) rd_min *= 1.1;
-        else if (n_max == 0) rd_max /= 1.1;
+        if      (n_min == 0) rd_min *= 1.01;
+        else if (n_max == 0) rd_max /= 1.01;
         else found_optimal_range = true;
       }
     };

@@ -24,11 +24,19 @@ namespace libcloudphxx
     struct opts_init_t 
     {
       // initial dry sizes of aerosol
+      // defined with a distribution
       typedef boost::ptr_unordered_map<
         real_t,                // kappa
         unary_function<real_t> // n(ln(rd)) @ STP 
       > dry_distros_t;
       dry_distros_t dry_distros;
+
+      // defined with a size-number pair
+      typedef std::map<
+        real_t,                // kappa
+        std::map<real_t, real_t> // radius-STP_concentration pair
+      > dry_sizes_t;
+      dry_sizes_t dry_sizes;
 
       // Eulerian component parameters
       int nx, ny, nz;
