@@ -23,7 +23,6 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-matplotli
 git clone --depth=1 git://github.com/igfuw/parcel.git
 cd parcel
 mkdir plots/outputs
-py.test -v unit_test
 py.test -v long_test
 cd ..
 
