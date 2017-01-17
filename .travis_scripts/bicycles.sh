@@ -23,9 +23,8 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
-git clone --depth=100 git://github.com/igfuw/libmpdataxx.git
+git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
-git reset --hard 1a08be9830d94e6b0474742189b9b42bee3c5f34
 mkdir build
 cd build
 if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
