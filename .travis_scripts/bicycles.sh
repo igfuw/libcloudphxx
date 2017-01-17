@@ -23,8 +23,9 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
-git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+git clone --depth=100 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
+git revert --no-edit 0c15290fc
 mkdir build
 cd build
 if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
@@ -34,8 +35,9 @@ cd ../../..
 
 ## bicycles
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
-git clone --depth=1 git://github.com/igfuw/bicycles.git
+git clone --depth=10 git://github.com/igfuw/bicycles.git
 cd bicycles
+git reset --hard d57739
 mkdir build
 cd build
 cmake ..

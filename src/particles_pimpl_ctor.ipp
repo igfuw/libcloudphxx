@@ -456,6 +456,10 @@ namespace libcloudphxx
       pimpl->sanity_checks();
     }
 
+    // dtor
+    template <typename real_t, backend_t device>
+    particles_t<real_t, device>::~particles_t() {};
+
     // outbuf
     template <typename real_t, backend_t device>
     real_t *particles_t<real_t, device>::outbuf() 

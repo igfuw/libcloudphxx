@@ -81,7 +81,7 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   
   #prtcls.diag_wet_rng(0,1)
   prtcls.diag_sd_conc()
-  tab_out = np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz)
+  tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
   print "tab_out \n", tab_out, np.roll(tab_out, -1, 0)
   return tab_in, tab_out
 
