@@ -81,6 +81,7 @@
 #include "particles_impl_chem_ante.ipp"
 #include "particles_impl_chem_henry.ipp"
 #include "particles_impl_chem_dissoc.ipp"
+#include "particles_impl_chem_strength.ipp"
 #include "particles_impl_chem_react.ipp"
 #include "particles_impl_rcyc.ipp"
 #include "particles_impl_sstp.ipp"
