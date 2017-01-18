@@ -24,14 +24,59 @@ int main(int ac, char** av)
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
-    for (int at = 0; at < n["t"]; ++at) 
-
-    //int at = 1;
+    //for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
+    int at = 11800 / n["outfreq"];
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
         Gnuplot gp;
         init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
+
+        if (at * n["outfreq"] == 11800)
+        {
+          {
+            char lbl = 'i';
+            for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
+            {
+              for (auto &pr : fcs)
+              {
+                auto &x = pr.first;
+                auto &y = pr.second;
+  
+                // black square
+                gp << "set arrow from " << x-1 << "," << y-1 << " to " << x+2 << "," << y-1 << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+                gp << "set arrow from " << x-1 << "," << y+2 << " to " << x+2 << "," << y+2 << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+                gp << "set arrow from " << x-1 << "," << y-1 << " to " << x-1 << "," << y+2 << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+                gp << "set arrow from " << x+2 << "," << y-1 << " to " << x+2 << "," << y+2 << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+                // white square
+                gp << "set arrow from " << x-1 << "," << y-1 << " to " << x+2 << "," << y-1 << " nohead lw 2 front\n";
+                gp << "set arrow from " << x-1 << "," << y+2 << " to " << x+2 << "," << y+2 << " nohead lw 2 front\n";
+                gp << "set arrow from " << x-1 << "," << y-1 << " to " << x-1 << "," << y+2 << " nohead lw 2 front\n";
+                gp << "set arrow from " << x+2 << "," << y-1 << " to " << x+2 << "," << y+2 << " nohead lw 2 front\n";
+                
+                lbl -= 2;
+              }
+              lbl = 'j';
+            }
+          }
+  
+          // labels
+          {
+            char lbl = 'i';
+            for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
+            {
+              for (auto &pr : fcs)
+              {
+                auto &x = pr.first;
+                auto &y = pr.second;
+                // labels
+                gp << "set label " << int(lbl) << " '" << lbl << "' at " << x+(((lbl+1)/2)%2?-6:+4) << "," << y+.5 << " front font \",20\"\n";
+                lbl -= 2;
+              }
+              lbl = 'j';
+            }
+          }
+        }
 
         if (plt == "rl")
         {

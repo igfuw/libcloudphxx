@@ -32,24 +32,6 @@ namespace libcloudphxx
       };
 
       template <class real_t>
-      struct set_chem_flag
-      { // set flag for those droplets that are big enough to have chemical reactions
-
-        BOOST_GPU_ENABLED        
-        unsigned int operator()(const real_t &rw2, const real_t &rd3)
-        {
-#if !defined(__NVCC__)
-          using std::pow;
-#endif
-          return (
-                   pow(rw2, real_t(3./2.)) > (1000. * rd3) 
-                   && 
-                   rw2 > 1e-12
-                 ) ? 1 : 0;
-        }
-      };
-
-      template <class real_t>
       struct cleanup
       { // remove small negatice values //TODO!!!
 
@@ -92,20 +74,6 @@ namespace libcloudphxx
       using boost::math::isfinite;
 #endif
       assert(isfinite(*thrust::min_element(V.begin(), V.end())));
-    }
-
-    template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::chem_flag_ante()
-    { 
-      thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
-
-      // set flag to those SDs that take part in chemical reactions
-      thrust::transform(
-        rw2.begin(), rw2.end(),          // input 1st arg
-        rd3.begin(),                     // input 2nd arg
-        chem_flag.begin(),               // output
-        detail::set_chem_flag<real_t>()  // op
-      );
     }
   };  
 };
