@@ -73,6 +73,9 @@ namespace libcloudphxx
       // dimensions in Python bindings)
       opts_init_t<real_t> *opts_init;
 
+      // virtual destructor
+      virtual ~particles_proto_t() {};
+
     };  
 
     // prototype of what's implemented in the .tpp file
@@ -138,6 +141,9 @@ namespace libcloudphxx
 
       // constructor
       particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot = 0); // n_x_bfr should have default=0, but python bindings fail if more than one default value...
+
+      // declare destructor to delay it's definition until impl is defined
+      ~particles_t();
 
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
