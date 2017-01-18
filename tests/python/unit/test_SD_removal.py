@@ -41,10 +41,11 @@ opts_init.chem_switch = True
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
-try:
-  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-except:
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+#try:
+#  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+#except:
+#  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
 prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
 
@@ -58,9 +59,16 @@ Opts.chem_dsc = False
 Opts.chem_rct = False
 Opts.rcyc = True
 
+print 'before loop'
 for i in range(900):
+  print 'start of step no ', i
+  prtcls.diag_sd_conc()
+  sd_conc = np.frombuffer(prtcls.outbuf())[0]
+  print 'sd conc pre ', sd_conc
   prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
+  print 'post step sync ', i
   prtcls.step_async(Opts)
+  print 'post step async ', i
 
 prtcls.diag_sd_conc()
 sd_conc = np.frombuffer(prtcls.outbuf())[0]
