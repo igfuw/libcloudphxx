@@ -51,6 +51,8 @@ namespace libcloudphxx
             //(rw2 / si::square_metres > 4e-12 
             //  && 
               ((real_t(0.5) * (
+                conc_H +
+                K_H2O<real_t> () / conc_H +
                 conc_H * conc_S_VI / (conc_H + Kt_HSO4) +
                 real_t(4) * Kt_HSO4 * conc_S_VI / (conc_H + Kt_HSO4) +
                 Kt_CO2 * conc_H  * conc_C_IV / (conc_H * conc_H + Kt_CO2 * conc_H + Kt_CO2 * Kt_HCO3) + 
