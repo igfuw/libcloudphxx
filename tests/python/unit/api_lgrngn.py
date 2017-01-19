@@ -239,31 +239,20 @@ for it in range(2):
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
 # 3D with large_tail option
-  opts_init.sd_conc_large_tail = 1
-  prtcls = lgrngn.factory(backend, opts_init)
-  prtcls.init(th, rv, rhod)
-
-  prtcls.step_sync(opts, th, rv)
-  prtcls.step_async(opts)
-  opts_init.sd_conc_large_tail = 0
-
-#TODO: test profile vs. 3D array
-
-# 3D const multi - number of SDs and number of particles
-print "3D const multi"
-opts_init.sd_conc = 0
-cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
-prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
-n_cell = opts_init.nz * opts_init.nx * opts_init.ny
-opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi)
+print "3D large tail"
+opts_init.sd_conc_large_tail = 1
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
-prtcls.diag_sd_conc()
 
 prtcls.step_sync(opts, th, rv)
 prtcls.step_async(opts)
-#TODO: test profile vs. 3D array
+opts_init.sd_conc_large_tail = 0
+prtcls.diag_sd_conc()
+
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) >= opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
 # 3D const multi - number of SDs and number of particles
 print "3D const multi"
