@@ -55,6 +55,7 @@ namespace libcloudphxx
         else if (n_max == 0) rd_max /= 1.01;
         else found_optimal_range = true;
       }
+printf("sd_conc rd_min %g rd_max %g\n", exp(log_rd_min), exp(log_rd_max));
     };
 
     template <typename real_t, backend_t device>
@@ -67,6 +68,8 @@ namespace libcloudphxx
       std::pair<real_t, real_t> init_distr_max; // [ln(position of distribution's maximum), -function value at maximum]
       boost::uintmax_t n_iter = config.n_iter;
       init_distr_max = boost::math::tools::brent_find_minima(detail::eval_and_mul<real_t>(*n_of_lnrd_stp, -1), log(config.rd_min_init), log(config.rd_max_init), 200, n_iter); // bits = 200 to make algorithm choose max precision available
+
+printf("radius with max n(lnr) =  %g max n(lnr) = %g\n", exp(init_distr_max.first), -init_distr_max.second);
 
       real_t init_dist_bound_value = -init_distr_max.second / config.threshold; // value of the distribution at which we bind it
       n_iter = config.n_iter;
@@ -89,6 +92,7 @@ namespace libcloudphxx
           detail::eval_and_add<real_t>(*n_of_lnrd_stp, -init_dist_bound_value)(real_t(log(config.rd_max_init))),
           config.eps_tolerance, n_iter
         );
+printf("const multi rd_min %g rd_max %g\n", exp(log_rd_min), exp(log_rd_max));
     }
   };
 };
