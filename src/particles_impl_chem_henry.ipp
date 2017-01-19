@@ -4,7 +4,6 @@
   * @section LICENSE
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
-
 #include <libcloudph++/common/molar_mass.hpp>
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>

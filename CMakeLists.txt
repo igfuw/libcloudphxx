@@ -43,7 +43,7 @@ endif()
 
 ############################################################################################
 # CUDA
-find_package(CUDA QUIET)
+find_package(CUDA)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 
@@ -105,9 +105,6 @@ if (CUDA_FOUND)
   unset(status)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
-  if((CUDA_VERSION_MAJOR EQUAL 8) OR (CUDA_VERSION_MAJOR GREATER 8))
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
-  endif()
   
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
