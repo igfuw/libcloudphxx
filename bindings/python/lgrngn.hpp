@@ -19,6 +19,27 @@ namespace libcloudphxx
 
     namespace lgrngn
     {
+      namespace detail
+      {
+        template<class real_t>
+        struct pyunary : cmn::unary_function<real_t> 
+        {
+          bp::object fun;
+      
+          pyunary(const bp::object &fun) : fun(fun) {}
+      
+          real_t funval(const real_t x) const
+          {
+            return bp::extract<real_t>(fun(x)); 
+          }
+          
+          pyunary *do_clone() const
+          { 
+            return new pyunary(*this); 
+          }
+        };
+      };
+
       template <typename real_t>
       lgr::particles_proto_t<real_t> *factory(
 	const lgr::backend_t &backend,
@@ -131,58 +152,59 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      void set_d_helper(
+      void set_dd( // dry_distro
 	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func,
-        bool src
+	const bp::dict &kappa_func)
+      {
+        arg->dry_distros.clear();
+        for (int i = 0; i < len(kappa_func.keys()); ++i)
+          boost::assign::ptr_map_insert<detail::pyunary<real_t>>(arg->dry_distros)(
+            bp::extract<real_t>(kappa_func.keys()[i]), 
+            detail::pyunary<real_t>(kappa_func.values()[i])
+          );
+      }
+
+      template <typename real_t>
+      void set_sdd( // src_dry_distro
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        arg->src_dry_distros.clear();
+        for (int i = 0; i < len(kappa_func.keys()); ++i)
+          boost::assign::ptr_map_insert<detail::pyunary<real_t>>(arg->src_dry_distros)(
+            bp::extract<real_t>(kappa_func.keys()[i]), 
+            detail::pyunary<real_t>(kappa_func.values()[i])
+          );
+      }
+
+      template <typename real_t>
+      void set_ds( // dry_sizes
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func
       )
       {
-	for (int i = 0; i < len(kappa_func.keys()); ++i)
-	{
-	  struct pyunary : cmn::unary_function<real_t> 
-	  {
-	    bp::object fun;
+        // TODO: loop over kappas (right now only one possible)
+        const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[0]);
+        std::map<real_t, real_t> size_conc_map;
 
-	    pyunary(const bp::object &fun) : fun(fun) {}
-
-	    real_t funval(const real_t x) const
-	    {
-	      return bp::extract<real_t>(fun(x)); 
-	    }
-	    
-	    pyunary *do_clone() const
-	    { 
-	      return new pyunary(*this); 
-	    }
-	  };
-
-          if(src)  // set the source distro
-	    boost::assign::ptr_map_insert<pyunary>(arg->src_dry_distros)(
-  	      bp::extract<real_t>(kappa_func.keys()[i]), 
-  	      pyunary(kappa_func.values()[i])
-  	    );
-          else    // set the initial distro
-	    boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
-  	      bp::extract<real_t>(kappa_func.keys()[i]), 
-  	      pyunary(kappa_func.values()[i])
-  	    );
-	}
+        // turn the size-conc dict into a size-conc map
+	for (int i = 0; i < len(size_conc.keys()); ++i)
+        {
+          size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = bp::extract<real_t>(size_conc.values()[i]);
+          std::cout << "bindings map: " << bp::extract<real_t>(size_conc.keys()[i]) << " " <<
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] << std::endl;;
+        }
+        const real_t kappa = bp::extract<real_t>(kappa_func.keys()[0]);
+        arg->dry_sizes.clear();
+        arg->dry_sizes[kappa] = size_conc_map;
       }
 
       template <typename real_t>
-      void set_dd(
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
+      void get_ds(
+	lgr::opts_init_t<real_t> *arg
+      )
       {
-        set_d_helper(arg, kappa_func, false);
-      }
-
-      template <typename real_t>
-      void set_sdd(
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
-      {
-        set_d_helper(arg, kappa_func, true);
+	throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
       }
 
       template <typename real_t>

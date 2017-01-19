@@ -120,7 +120,7 @@ add_test(travis_2D_kin_cloud_diff_lgrngn bash -c "
     h5diff --relative=1e-9  -v2 $dir/timestep0000000000.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000000.h5 /sd_conc &&
     echo 'comparing timestep0000000020.h5'                                                                                                  &&
     h5diff --relative=0.001 -v2 $dir/timestep0000000020.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000020.h5 /th      &&
-    h5diff --relative=0.001 -v2 $dir/timestep0000000020.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000020.h5 /rv      &&
+    h5diff --relative=0.002 -v2 $dir/timestep0000000020.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000020.h5 /rv      &&
     h5diff --delta=1        -v2 $dir/timestep0000000020.h5   ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_timestep0000000020.h5 /sd_conc || exit 1;
   done  
 ")

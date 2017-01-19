@@ -81,6 +81,19 @@ namespace libcloudphxx
           );
         }
       };
+
+      template <typename real_t>
+      struct get_sqrt : public thrust::unary_function<real_t, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2)
+        {
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
+          return sqrt(rw2);
+        }
+      };
     }
 
     // records relative humidity
@@ -317,6 +330,42 @@ namespace libcloudphxx
       // release the memory
       tmp_vt.erase(tmp_vt.begin(), tmp_vt.end());
     }   
+
+    // get max rw in each cell
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_max_rw()
+    {   
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::const_iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_t;
+
+      pimpl->hskpng_sort();
+
+      thrust::pair<
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
+      > n = thrust::reduce_by_key(
+        // input - keys
+        pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+        // input - values
+        thrust::make_transform_iterator(
+          pi_t(pimpl->rw2.begin(),   pimpl->sorted_id.begin()),
+          detail::get_sqrt<real_t>()
+        ),
+        // output - keys
+        pimpl->count_ijk.begin(),
+        // output - values
+        pimpl->count_mom.begin(),
+        // key comparison
+        thrust::equal_to<real_t>(),
+        // reduction type
+        thrust::maximum<real_t>()
+      );  
+
+      pimpl->count_n = n.first - pimpl->count_ijk.begin();
+      assert(pimpl->count_n > 0 && pimpl->count_n <= pimpl->n_cell);
+    }
 
     // computes mean chemical properties for the selected particles
     template <typename real_t, backend_t device>
