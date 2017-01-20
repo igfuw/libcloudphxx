@@ -18,9 +18,9 @@ namespace libcloudphxx
         const common::detail::eps_tolerance<real_t> eps_tolerance;
 
         const real_t bin_precision = 1e-4; // size of bins in ln(radius) when calculating roots, integral, CDF
-        const real_t threshold = 1e8;      // in constant multiplicity mode, min and max initial radii are
+        const real_t threshold = 1e20;      // in constant multiplicity mode, min and max initial radii are
                                           // defined by n_lnrd(r_min/max) = (maximum of n_lnrd) / threshold
-        const real_t rd_min_init = 1e-11, 
+        const real_t rd_min_init = 1e-14, 
                      rd_max_init = 1e-3;   // bounding values for the initial dry radius distro
         const int bfr_fraction = 2;      // in/out buffers size = ny * nz * n_sd_max / bfr_fraction
         const real_t cond_mlt = 2.;      // arbitrary multiplier that defines range over which equilibrium radius is searched during condensation
