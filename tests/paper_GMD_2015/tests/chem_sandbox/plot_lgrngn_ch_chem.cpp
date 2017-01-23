@@ -130,7 +130,7 @@ int main(int ac, char** av)
       else if (plt == "S_VI_aq")
       {
         auto chem = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) * 1e9;
-        gp << "set title 'created H_{2}SO_{4} [μg/kg of liquid water]'\n";
+        gp << "set title 'S^{VI} [μg/kg of liquid water]'\n";
         //gp << "set cbrange [0:1.2]\n";
         plot(gp, chem);
       }
