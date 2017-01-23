@@ -29,7 +29,7 @@ int main(int ac, char** av)
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-      if (at * n["outfreq"] == 11800)
+      if (at * n["outfreq"] == 118)//00)
       {
 	{
 	  char lbl = 'i';
@@ -78,48 +78,47 @@ int main(int ac, char** av)
       }
 
       if (plt == "SO2g") //200e-12
-      {                                                      // TODO this is lazy (assumes pd = p), do it better
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
-        gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [0.08:0.22]\n";
+      {
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e9;
+        gp << "set title 'SO_{2} mixing ratio [μg/kg of dry air]'\n";
+        //gp << "set cbrange [0.15:0.5]\n";
         plot(gp, chem);
       }
       else if (plt == "O3g") //50e-9
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_O3<float>()) * 1e9;
-        gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [50.53:50.61]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e9;
+        gp << "set title 'O_{3} mixing ratio [μg/kg of dry air]'\n";
+        //gp << "set cbrange [41.85:41.95]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") //500e-12 ; 0
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_H2O2<float>()) * 1e9;
-        gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [0:1]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e9;
+        gp << "set title 'H_{2}O_{2} mixing ratio [μg/kg of dry air]'\n";
+        //gp << "set cbrange [0.05:0.55]\n";
         plot(gp, chem);
       }
       else if (plt == "CO2g") //360e-6
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_CO2<float>()) * 1e6;
-        gp << "set title 'gas vol conc [ppm]'\n";
-        gp << "set cbrange [360:361.2]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e6;
+        gp << "set title 'CO2 mixing ratio [mg/kg]'\n";
+        //gp << "set cbrange [360:361.2]\n";
         plot(gp, chem);
       }
       else if (plt == "NH3g") // 100e-12
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_NH3<float>()) * 1e9;
-        gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [0:0.11]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e9;
+        gp << "set title 'NH3 mixing ratio [ug/kg]'\n";
+        //gp << "set cbrange [0:0.11]\n";
         plot(gp, chem);
       }
       else if (plt == "HNO3g") // 100e-12
       {
-        auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_HNO3<float>()) * 1e9;
-        gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [0:0.12]\n";
+        auto chem = h5load(h5, plt, at * n["outfreq"]) * 1e9;
+        gp << "set title 'HNO3 mixing ratio [ug/kg]'\n";
+        //gp << "set cbrange [0:0.12]\n";
         plot(gp, chem);
       }
-
 
       else if (plt == "S_IV_aq")
       {
@@ -131,23 +130,23 @@ int main(int ac, char** av)
       else if (plt == "S_VI_aq")
       {
         auto chem = h5load(h5, "chem_S_VI_aq", at * n["outfreq"]) * 1e9;
-        gp << "set title 'S_VI_aq [ug/kg]'\n";
-        gp << "set cbrange [0:1.2]\n";
+        gp << "set title 'created H_{2}SO_{4} [μg/kg of liquid water]'\n";
+        //gp << "set cbrange [0:1.2]\n";
         plot(gp, chem);
       }
 
       else if (plt == "O3_aq")
       {
         auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) * 1e9;
-        gp << "set title 'O3_aq [ug/kg]'\n";
-        gp << "set cbrange [0:6e-5]\n";
+        gp << "set title 'dissolved O_{3} [μg/kg of liquid water]'\n";
+        //gp << "set cbrange [0:6e-5]\n";
         plot(gp, chem);
       }
        else if (plt == "H2O2_aq")
       {
         auto chem = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) * 1e9;
-        gp << "set title 'H2O2_aq [ug/kg]'\n";
-        gp << "set cbrange [0:1]\n";
+        gp << "set title 'dissolved H_{2}O_{2} [μg/kg of liquid water]'\n";
+        //gp << "set cbrange [0:1]\n";
         plot(gp, chem);
       }
 
