@@ -29,7 +29,7 @@ int main(int ac, char** av)
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-      if (at * n["outfreq"] == 11800)
+      if (at * n["outfreq"] == 118/*00*/)
       {
 	{
 	  char lbl = 'i';
@@ -81,14 +81,14 @@ int main(int ac, char** av)
       {                                                      // TODO this is lazy (assumes pd = p), do it better
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_SO2<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [0.08:0.22]\n";
+        //gp << "set cbrange [0.08:0.22]\n";
         plot(gp, chem);
       }
       else if (plt == "O3g") //50e-9
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) * (M_d<float>() / M_O3<float>()) * 1e9;
         gp << "set title 'gas vol conc [ppb]'\n";
-        gp << "set cbrange [50.53:50.61]\n";
+        //gp << "set cbrange [50.53:50.61]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") //500e-12 ; 0
@@ -140,14 +140,14 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'O3_aq [ug/kg]'\n";
-        gp << "set cbrange [0:6e-5]\n";
+        gp << "set cbrange [0:3e-5]\n";
         plot(gp, chem);
       }
        else if (plt == "H2O2_aq")
       {
         auto chem = h5load(h5, "chem_H2O2_aq", at * n["outfreq"]) * 1e9;
         gp << "set title 'H2O2_aq [ug/kg]'\n";
-        gp << "set cbrange [0:1]\n";
+        gp << "set cbrange [0:0.8]\n";
         plot(gp, chem);
       }
 

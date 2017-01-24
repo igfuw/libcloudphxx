@@ -33,7 +33,7 @@ int main(int ac, char** av)
   }
 
   for (const string &kernel : {"hall_pinsky_stratocumulus"})
-                           /*   {"hall", "hall_davis_no_waals", 
+      /*                        {"hall", "hall_davis_no_waals", 
                                "onishi_hall", "onishi_hall_davis_no_waals", 
                                "vohl_davis_no_waals", 
                                "hall_pinsky_stratocumulus"
@@ -41,18 +41,18 @@ int main(int ac, char** av)
   {
 
     string opts_common = 
-      //"--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      "--outfreq=200  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
+      "--outfreq=11800  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
+      //"--outfreq=200  --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
     set<string> opts_micro({
-      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=100 "
+      "--micro=lgrngn_chem --outdir=out_"+kernel+" --backend=CUDA --adv_serial=False --sd_conc=256 "
                       "--sstp_cond=10 --coal=True --sedi=True " 
                       "--w_max=.6 "
                       "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 "  
                       //chem_rct switched on afetr spinup in set_chem  
-                      "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=50e6 "
+                      "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=150e6 "
                       "--mean_rd2=0.1e-6  --sdev_rd2=1.5 --n2_stp=0 "
                       "--kernel="+kernel+" --terminal_velocity=beard77fast "
-                      "--SO2_g_0=.2e-9 --O3_g_0=50e-9 --H2O2_g_0=.5e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 "
+                      "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 "
         " --out_wet=\""
           ".5e-6:25e-6|0,1,2,3;" // FSSP
           "25e-6:1|0,3;"         // "rain"
@@ -67,7 +67,7 @@ int main(int ac, char** av)
         "\""
         " --out_wet_pH=\""
           + bins_wet_str +       // spectrum for S_VI and H+ (wet)
-        "\""
+        "\""   
     });
   
     for (auto &opts_m : opts_micro)

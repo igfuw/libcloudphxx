@@ -15,11 +15,11 @@ int main(int ac, char** av)
   std::string dir = string(av[1]) + "/tests/chem_sandbox/";
 
   for (const std::string sim_run : { "out_hall_pinsky_stratocumulus"})
-    /*                               {"out_hall", "out_hall_davis_no_waals", 
+                                /*   {"out_hall", "out_hall_davis_no_waals", 
                                     "out_hall_pinsky_stratocumulus", 
                                     "out_onishi_hall", "out_onishi_hall_davis_no_waals", 
                                     "out_vohl_davis_no_waals" 
-                                    })*/
+                                    }) */
   {
     std::string h5  = dir + sim_run;
   
@@ -32,7 +32,7 @@ int main(int ac, char** av)
         Gnuplot gp;
         init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-        if (at * n["outfreq"] == 11800)
+        if (at * n["outfreq"] == 118/*00*/)
         {
           {
             char lbl = 'i';
@@ -151,7 +151,7 @@ int main(int ac, char** av)
         {
   	auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
   	gp << "set title 'dry radius [μm]'\n"; 
-   	gp << "set cbrange [0:0.14]\n";
+   	//gp << "set cbrange [0:0.14]\n";
   	plot(gp, r_d);
         }
   
