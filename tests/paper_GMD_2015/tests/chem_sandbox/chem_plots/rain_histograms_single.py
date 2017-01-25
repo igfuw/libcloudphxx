@@ -19,7 +19,7 @@ rin_cover = {"out_hall_pinsky_stratocumulus" : 0}
 #              "out_onishi_hall" : 0, "out_onishi_hall_davis_no_waals" : 0}
 
 # only grid-cells with rain water mixing ratio greater than cutoff will be shown
-cutoff_cld = 0.00001
+cutoff_cld = 0.01
 cutoff_rin = 0.01 #g/kg
 
 # left and right edges of bins for dry and wet radius
@@ -159,7 +159,7 @@ for kernel in kernels:
 
     plot_rw_all  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_all,  with_="steps lw 4 lc rgb 'purple'")
     plot_rw_dry  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_dry,  with_="steps lw 4 lc rgb 'brown'")
-    plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'violet'")
+    plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'turquoise'")
     plot_rw_rin  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_rin,  with_="steps lw 4 lc rgb 'blue'")
     
     g.plot(plot_rw_cld, plot_rw_rin)
