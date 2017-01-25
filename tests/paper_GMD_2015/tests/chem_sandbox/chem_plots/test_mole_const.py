@@ -5,13 +5,13 @@ import math    as mt
 import pprint  as pp
 
 import sys
-sys.path.insert(0, "../../../../build/bindings/python/")
+sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 # open hdf5 files with data
-h5f_ini = h5.File('../../build/tests/chem_sandbox/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
-h5f_spn = h5.File('../../build/tests/chem_sandbox/out_hall_pinsky_stratocumulus/timestep0000010000.h5', 'r')
-h5f_end = h5.File('../../build/tests/chem_sandbox/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
+h5f_ini = h5.File('case_base/timestep0000000000.h5', 'r')
+h5f_spn = h5.File('case_base/timestep0000010000.h5', 'r')
+h5f_end = h5.File('case_base/timestep0000011800.h5', 'r')
 
 # helper dict for chem names and molar mass
              #name   gas molar mass   aqueous molar mass    label in hdf5     ini    spn   end
