@@ -31,7 +31,7 @@ int main(int ac, char** av)
       Gnuplot gp;
       init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-      if (at * n["outfreq"] == 118)//00)
+      if (at * n["outfreq"] == 118)//00)  TODO
       {
 	{
 	  char lbl = 'i';
