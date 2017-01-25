@@ -8,13 +8,6 @@ import sys
 sys.path.insert(0, "../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-# TODO
-# this should all be done as a sum of bins and not an average value
-# there is no guarantee that for average value it will be ok
-# for parcel model it is checked for sd_conc=1 and it works
-# but for here to have it more accurate it should be summed over all bins
-# and multiplying b the water mass in each bin and dividing by total mass
-
 # open hdf5 files with data
 h5f_ini = h5.File('../../build/tests/chem_sandbox/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
 h5f_spn = h5.File('../../build/tests/chem_sandbox/out_hall_pinsky_stratocumulus/timestep0000010000.h5', 'r')
@@ -56,7 +49,7 @@ for key, val in help_dict.iteritems():
     val[4] = spn
     val[5] = end
 
-
+print " "
 print "-------------- init vs end of spin-up ----------------------"
 
 for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
@@ -64,6 +57,7 @@ for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
     relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
     print key , " relative error ", relative_error * 100, " %"
 
+print " "
 print "-------------- init vs end  --------------------------------"
 
 for key in ['CO2', 'NH3', 'HNO3']:
@@ -71,12 +65,27 @@ for key in ['CO2', 'NH3', 'HNO3']:
     relative_error = abs(help_dict[key][5] - help_dict[key][3]) / help_dict[key][3]
     print key , " relative error ", relative_error * 100, " %"
 
+print " "
 print "-------------- test react  --------------------------------"
 
 depleted_O3   = help_dict['O3'][3]    - help_dict['O3'][5] 
 depleted_H2O2 = help_dict['H2O2'][3]  - help_dict['H2O2'][5] 
+depleted_SO2  = help_dict['SO2'][3]   - help_dict['SO2'][5] 
 gained_S6     = help_dict['H2SO4'][5] - help_dict['H2SO4'][3] 
 
-relative_error = (depleted_O3 + depleted_H2O2 - gained_S6) / gained_S6 
+relative_error_1 = (depleted_O3 + depleted_H2O2 - gained_S6) / gained_S6 
+relative_error_2 = (depleted_SO2 - gained_S6) / gained_S6 
 
-print "created H2SO4 relative error ", relative_error * 100, " %"
+
+print " "
+print "created H2SO4 relative error_1 ", relative_error_1 * 100, " %"
+print "depleted = ", depleted_O3 + depleted_H2O2
+print "gained   = ", gained_S6
+print " "
+print "created H2SO4 relative error_2 ", relative_error_2 * 100, " %"
+print "depleted = ", depleted_SO2
+print "gained   = ", gained_S6
+print " "
+print "ini S6   = ",  help_dict['H2SO4'][3]
+print "spn S6   = ",  help_dict['H2SO4'][4]
+print "end S6  = ",   help_dict['H2SO4'][5]
