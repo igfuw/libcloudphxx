@@ -1,31 +1,32 @@
+"""
+Plot liquid water weighted average pH (2D plot of the whole cloudy field)
+
+"""
 # This Python file uses the following encoding: utf-8
 import sys
+import subprocess
 
-from scipy.io import netcdf
 import numpy as np
 import math
-import subprocess
-import colormaps as cmaps
-
-
+#import colormaps as cmaps
 import h5py as h5
 
+# libcloud bindings to python (to have access to library constants) 
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-sys.path.insert(0, "../../../../../../parcel/")
-import functions as fn
+#sys.path.insert(0, "../../../../../../parcel/")
+#import functions as fn
 
 import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
-import seaborn as sns; sns.set()
 import matplotlib.pyplot as plt
 
+for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
 
-for case in ('case_base', 'case3'):
-
-    data = h5.File(case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
-    mesh = h5.File(case + '/out_hall_pinsky_stratocumulus/const.h5', 'r')
+    # read in the data
+    data = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
+    mesh = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/const.h5', 'r')
 
     # left and right edges of bins for dry and wet radius
     wet_edges = np.fromiter( (1e-6 * 10**(-3 + i * .1) for i in xrange(56)), dtype="float")
@@ -56,42 +57,36 @@ for case in ('case_base', 'case3'):
     idx = np.where(den > 0)
     pH[idx]  = -1 * np.log10(nom[idx] / den[idx])
 
-    fig = plt.figure()
-    ax=fig.add_subplot(111)
-
-    cmap = plt.get_cmap('coolwarm')
-    cmap.set_under('LightGray')
-
-    #vmin = 1
-    #vmax = 5
-
     print case
     print pH.max()
     print pH.min()
 
-    cplt = ax.pcolormesh(x_grid, y_grid, pH, cmap = cmap, vmin=3.8, vmax=5)#cmap=cmaps.viridis)
+    #plot settings
+    fig = plt.figure(figsize=(17,14))
+    plt.rcParams.update({'font.size': 30})
+
+    ax=fig.add_subplot(111)
+
+    cmap = plt.get_cmap('BrBG')
+    cmap.set_under('White')
+
+    #vmin = 1
+    #vmax = 5
+                                             #cmap=cmaps.viridis
+    cplt = ax.pcolormesh(x_grid, y_grid, pH, cmap = cmap, vmin=3.6, vmax=5)     
     cbar = fig.colorbar(cplt)
 
-    ax.set_xlabel('x'); 
-    ax.set_ylabel('y'); 
+    ax.set_xlabel('X [km]'); 
+    ax.set_ylabel('Z [km]'); 
     ax.set_title('water weighted average pH')
+
     ax.set_xlim([0, 75])
     ax.set_ylim([0, 75])
 
-    plt.savefig(case + "_ph_profile.pdf")
+    ax.set_xticks([0, 15, 30, 45, 60, 75])
+    ax.set_yticks([0, 15, 30, 45, 60, 75])
+    ax.set_xticklabels(["0", "0.3", "0.6", "0.9", "1.2", "1.5"])
+    ax.set_yticklabels(["0", "0.3", "0.6", "0.9", "1.2", "1.5"])
 
-#plot settings
-#fig = plt.figure(figsize=(28,13))
-#plt.rcParams.update({'font.size': 30})
-
-#ax.set_yticks([200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600])
-#ax.set_yticklabels(y_labels2)
-#ax.yaxis.tick_right()
-#ax.yaxis.set_label_position("right")
-#ax.set_xlim([3.6, 5])
-#ax.set_xticks([3.8, 4.0, 4.2, 4.4, 4.6, 4.8, 5])
-
-#plt.grid()
-#ax.set_xlabel('average pH')
-#ax.set_ylabel('height above the ground [km]')
-#plt.plot(pH, t, "b", lw=4.)
+    plt.grid()
+    plt.savefig('plots/' + case + "_ph_profile.eps")

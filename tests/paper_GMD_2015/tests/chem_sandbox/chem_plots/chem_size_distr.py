@@ -1,3 +1,7 @@
+"""
+Plots size distributions from updraft and downdraft 
+    from above cloud base and from below cloud base
+"""
 import numpy   as np
 import h5py    as h5
 import Gnuplot as gp
@@ -32,9 +36,9 @@ for kernel in kernels:
 
     for run in {"seed_44"}:
         # open hdf5 files with data
-        h5f_cst   = h5.File('case_base/const.h5', 'r')
-        h5f_ini   = h5.File('case_base/timestep0000000000.h5', 'r')
-        h5f_fin   = h5.File('case_base/timestep0000011800.h5', 'r')
+        h5f_cst   = h5.File('data/case_base/' + kernel + '/const.h5', 'r')
+        h5f_ini   = h5.File('data/case_base/' + kernel + '/timestep0000000000.h5', 'r')
+        h5f_fin   = h5.File('data/case_base/' + kernel + '/timestep0000011800.h5', 'r')
 
         x_grid = h5f_cst['X'][:-1][:-1]
         y_grid = h5f_cst['Y'][:-1][:-1]
@@ -44,17 +48,12 @@ for kernel in kernels:
         idx_db = np.where((x_grid > 39) & (x_grid < 76) & (y_grid > 15) & (y_grid < 45))
         idx_da = np.where((x_grid > 39) & (x_grid < 76) & (y_grid > 45) & (y_grid < 70))
 
-        print idx_ub
-        #print idx_ub.shape
-
         # count dry cloudy and rainy grid cells
         ub_cover[kernel] += idx_ub[0].size
         ua_cover[kernel] += idx_ua[0].size
         db_cover[kernel] += idx_db[0].size
         da_cover[kernel] += idx_da[0].size
 
-        #print "for " + kernel + " the % of grid-cells with rain water mixing ratio > " + str(cutoff) + " is " +  str(idx[0].size/76./76.*100)
-   
         for i in range(num_dry-1): # first bin id for total conc
             name = "rd_rng" + str(i+1).zfill(3) + "_mom0"
             tmp_ini  = 1e-6 * h5f_ini[name][:]
@@ -97,7 +96,7 @@ for kernel in kernels:
     g = gp.Gnuplot()
     g('reset')
     g('set term svg dynamic enhanced font "Verdana, 14"')
-    g('set output "' + kernel + '_aerosol_ud.svg" ')
+    g('set output "plots/' + kernel + '_aerosol_ud.svg" ')
     g('set logscale xy')
     g('set key samplen 1.2')
     g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
@@ -125,7 +124,7 @@ for kernel in kernels:
     g = gp.Gnuplot()
     g('reset')
     g('set term svg dynamic enhanced font "Verdana, 14"')
-    g('set output "' + kernel + '_rain_ud.svg" ')
+    g('set output "plots/' + kernel + '_rain_ud.svg" ')
     g('set logscale xy')
     g('set key samplen 1.2')
     g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
