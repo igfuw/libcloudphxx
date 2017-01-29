@@ -8,7 +8,7 @@ import subprocess
 
 import numpy as np
 import math
-#import colormaps as cmaps
+import colormaps as cmaps
 import h5py as h5
 
 # libcloud bindings to python (to have access to library constants) 
@@ -66,14 +66,22 @@ for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
     plt.rcParams.update({'font.size': 30})
 
     ax=fig.add_subplot(111)
-
-    cmap = plt.get_cmap('BrBG')
+   
+    #cmap=cmaps.magma  #magma inferno plasma
+    #cmap = plt.get_cmap('BrBG')
+    cmap = plt.get_cmap('Set1')
     cmap.set_under('White')
 
-    #vmin = 1
-    #vmax = 5
-                                             #cmap=cmaps.viridis
-    cplt = ax.pcolormesh(x_grid, y_grid, pH, cmap = cmap, vmin=3.6, vmax=5)     
+    vmin = 3
+    vmax = 5.8#5
+
+    #if case == 'case5' or case == 'case1':
+    #    vmin = 3.8
+    #    vmax = 5.8
+    #    cmap = plt.get_cmap('gnuplot')
+    #    cmap.set_under('White')
+                                           
+    cplt = ax.pcolormesh(x_grid, y_grid, pH, cmap = cmap, vmin=vmin, vmax=vmax)     
     cbar = fig.colorbar(cplt)
 
     ax.set_xlabel('X [km]'); 

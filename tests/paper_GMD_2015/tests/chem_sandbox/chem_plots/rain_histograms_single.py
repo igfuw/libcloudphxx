@@ -27,7 +27,7 @@ num_dry   = dry_edges.size - 1
 num_wet   = wet_edges.size - 1
 
 # loop for case with and without aqueous chemistry
-for is_chem in ('nope', 'yep'):
+for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
 
     for kernel in kernels:
     
@@ -42,15 +42,13 @@ for is_chem in ('nope', 'yep'):
         n_wet_cld = np.zeros(num_wet)
         n_wet_rin = np.zeros(num_wet)
  
-        if is_chem == 'yep':
-            # open hdf5 files with data
-            h5f_ini  = h5.File('data/case_base/' + kernel + '/timestep0000000000.h5', 'r')
-            h5f_fin  = h5.File('data/case_base/' + kernel + '/timestep0000011800.h5', 'r')
-        elif is_chem == 'nope':
-            h5f_ini  = h5.File('data/data_for_rain_histograms/seed_44/' + kernel + '/timestep0000000000.h5', 'r')
-            h5f_fin  = h5.File('data/data_for_rain_histograms/seed_44/' + kernel + '/timestep0000011800.h5', 'r')
+        if case == 'case1':
+            h5f_ini  = h5.File('data/data_for_rain_histograms/seed_44/' + kernel   + '/timestep0000000000.h5', 'r')
+            h5f_fin  = h5.File('data/data_for_rain_histograms/seed_44/' + kernel   + '/timestep0000011800.h5', 'r')
         else:
-            assert(False)
+            # open hdf5 files with data
+            h5f_ini  = h5.File('data/' + case + '/' + kernel   + '/timestep0000000000.h5', 'r')
+            h5f_fin  = h5.File('data/' + case + '/' + kernel   + '/timestep0000011800.h5', 'r')
 
         # choose indexes of grid-cell with r_c and r_r > cutoff
         cld_mixr_fin = h5f_fin['rw_rng000_mom3'][:] * 4./3 * 3.14 * 1e3 * 1e3 #g/kg
@@ -91,7 +89,7 @@ for is_chem in ('nope', 'yep'):
         h5f_ini.close()
         h5f_fin.close()
    
-        print "is chem: ", is_chem 
+        print case
         dry_cover[kernel] = dry_cover[kernel] / 76. / 76 * 100 
         cld_cover[kernel] = cld_cover[kernel] / 76. / 76 * 100 
         rin_cover[kernel] = rin_cover[kernel] / 76. / 76 * 100 
@@ -109,7 +107,7 @@ for is_chem in ('nope', 'yep'):
         g = gp.Gnuplot()
         g('reset')
         g('set term svg dynamic enhanced font "Verdana, 14"')
-        g('set output "plots/chem_'+ is_chem + '_' + kernel + '_aerosol_distr.svg" ')
+        g('set output "plots/chem_'+ case + '_' + kernel + '_aerosol_distr.svg" ')
         g('set logscale xy')
         g('set key samplen 1.2')
         g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
@@ -137,7 +135,7 @@ for is_chem in ('nope', 'yep'):
         g = gp.Gnuplot()
         g('reset')
         g('set term svg dynamic enhanced font "Verdana, 14"')
-        g('set output "plots/chem_' + is_chem + '_' + kernel + '_rain_distr.svg" ')
+        g('set output "plots/chem_' + case + '_' + kernel + '_rain_distr.svg" ')
         g('set logscale xy')
         g('set key samplen 1.2')
         g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
