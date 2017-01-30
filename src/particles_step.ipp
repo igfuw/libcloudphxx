@@ -138,7 +138,7 @@ namespace libcloudphxx
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
           }
-              
+ 
           if (opts.chem_dsc)
           { //dissociation
             pimpl->chem_dissoc();
@@ -146,7 +146,7 @@ namespace libcloudphxx
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
           }
-            
+           
           if (opts.chem_rct)
           { //oxidation 
             pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);

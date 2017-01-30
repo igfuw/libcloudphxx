@@ -9,9 +9,9 @@ sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 # open hdf5 files with data
-h5f_ini = h5.File('case_base/timestep0000000000.h5', 'r')
-h5f_spn = h5.File('case_base/timestep0000010000.h5', 'r')
-h5f_end = h5.File('case_base/timestep0000011800.h5', 'r')
+h5f_ini = h5.File('case_base_dt_01_no_sstp/timestep0000000000.h5', 'r')
+#h5f_spn = h5.File('case_base_dt_01/timestep0000010000.h5', 'r')
+h5f_end = h5.File('case_base_dt_01_no_sstp/timestep0000118000.h5', 'r')
 
 # helper dict for chem names and molar mass
              #name   gas molar mass   aqueous molar mass    label in hdf5     ini    spn   end
@@ -34,7 +34,7 @@ for key, val in help_dict.iteritems():
 
         # moles/ug of dry air
         ini = (h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-        spn = (h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+        #spn = (h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
         end = (h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
 
     else:
@@ -42,21 +42,21 @@ for key, val in help_dict.iteritems():
 
         # moles/ug of dry air
         ini = (h5f_ini[name1][:] / val[0] + h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-        spn = (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+        #spn = (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
         end = (h5f_end[name1][:] / val[0] + h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
 
     val[3] = ini
-    val[4] = spn
+    #val[4] = spn
     val[5] = end
 
-print " "
-print "-------------- init vs end of spin-up ----------------------"
-
-for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
-    
-    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
-    print key , " relative error ", relative_error * 100, " %"
-
+#print " "
+#print "-------------- init vs end of spin-up ----------------------"
+#
+#for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
+#    
+#    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
+#    print key , " relative error ", relative_error * 100, " %"
+#
 print " "
 print "-------------- init vs end  --------------------------------"
 
