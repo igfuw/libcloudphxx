@@ -19,9 +19,9 @@ int main(int ac, char** av)
   auto n = h5n(h5);
 
   // int at = 11800 / n["outfreq"];
-  // for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
-  std::vector<int> at_vec = {0, 10000 / n["outfreq"], 11800 / n["outfreq"]};
-  for (auto at : at_vec)
+  for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
+  //std::vector<int> at_vec = {0, 10000 / n["outfreq"], 11800 / n["outfreq"]};
+  //for (auto at : at_vec)
   {
     for (auto &plt : std::set<std::string>({"SO2g",  "O3g",    "H2O2g",  "CO2g",   "NH3g",  "HNO3g", 
                                            "S_IV_aq", "S_VI_aq", "O3_aq",  "H2O2_aq", "H_aq",  
@@ -83,21 +83,21 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_SO2<float>() * si::moles / si::kilograms) * 1e9;
         gp << "set title 'SO_{2} conc. [mol/μg of dry air]'\n";
-        gp << "set cbrange [2.5 : 7.5]\n";
+        //gp << "set cbrange [2.5 : 7.5]\n";
         plot(gp, chem);
       }
       else if (plt == "O3g")
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_O3<float>() * si::moles / si::kilograms) * 1e9;
         gp << "set title 'trace gas O_{3} conc. [mol/μg of dry air]'\n";
-        gp << "set cbrange [871.8 : 873.4]\n";
+        //gp << "set cbrange [872.1 : 873.4]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") 
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_H2O2<float>() * si::moles / si::kilograms) * 1e9;
         gp << "set title 'trace gas H_{2}O_{2} conc. [mol/μg of dry air]'\n";
-        gp << "set cbrange [0 : 18]\n";
+        //gp << "set cbrange [0 : 18]\n";
         plot(gp, chem);
       }
       else if (plt == "CO2g")
@@ -141,7 +141,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, "chem_O3_aq", at * n["outfreq"]) / (M_O3<float>() * si::moles / si::kilograms) * 1e9;
         gp << "set title 'dissolved O_{3} conc. [mol/μg of dry air]'\n";
-        gp << "set cbrange [0 : 0.0007]\n";
+        gp << "set cbrange [0 : 0.0006]\n";
         plot(gp, chem);
       }
        else if (plt == "H2O2_aq")
