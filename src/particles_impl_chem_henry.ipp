@@ -191,9 +191,9 @@ namespace libcloudphxx
         
           // implicit solution to the eq. 8.22 from chapter 8.4.2 
           // in Peter Warneck Chemistry of the Natural Atmosphere  
-          return
-            (
-              ( m_old 
+          real_t mass_helper =     
+          (
+            ( m_old 
                 + 
                 (dt * si::seconds) * (V * si::cubic_metres) 
                 * common::henry::mass_trans(
@@ -210,7 +210,9 @@ namespace libcloudphxx
                  * common::henry::mass_trans(rw2, (D * si::metres * si::metres / si::seconds), 
                                             acc_coeff * si::seconds / si::seconds, T, (M_gas * si::kilograms / si::moles)) 
                  / Henry / common::moist_air::kaBoNA<real_t>() / T)
-              ) / si::kilograms;
+          ) / si::kilograms ;
+
+          return mass_helper;// > 0 ? mass_helper : 0;
         }
       };
     };

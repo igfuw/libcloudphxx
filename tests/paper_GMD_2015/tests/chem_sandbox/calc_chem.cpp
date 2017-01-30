@@ -61,8 +61,8 @@ int main(int ac, char** av)
                       "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=50e6 "
                       "--mean_rd2=0.1e-6  --sdev_rd2=1.5 --n2_stp=0 "
                       "--kernel="+kernel+" --terminal_velocity=beard77fast "
-                      "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.4e-9 --HNO3_g_0=.1e-9 "
-                      //"--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 "
+                      //"--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.4e-9 --HNO3_g_0=.1e-9 "
+                      "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 "
         " --out_wet=\""
           ".5e-6:25e-6|0,1,2,3;" // FSSP
           "25e-6:1|0,3;"         // "rain"
