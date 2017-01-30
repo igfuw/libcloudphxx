@@ -18,7 +18,7 @@ cover = {"out_hall_pinsky_stratocumulus" :   [0.,   0., 0.],
          "out_onishi_hall_davis_no_waals" :  [0.,   0., 0.]}
 
 # only grid-cells with rain water mixing ratio greater than cutoff will be shown
-cutoff_cld = 0.00001
+cutoff_cld = 0.01
 cutoff_rin = 0.01 #g/kg
 
 # left and right edges of bins for dry and wet radius
@@ -44,8 +44,8 @@ for kernel in kernels:
 
     for run in {"seed_44", "seed_9", "seed_13", "seed_30", "seed_42"}:
         # open hdf5 files with data
-        h5f_ini       = h5.File('data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000000000.h5', 'r')
-        h5f_fin       = h5.File('data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000011800.h5', 'r')
+        h5f_ini       = h5.File('data/data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000000000.h5', 'r')
+        h5f_fin       = h5.File('data/data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000011800.h5', 'r')
 
         # choose indexes of grid-cell with r_c and r_r > cutoff
         cld_mixr_fin = h5f_fin['rw_rng000_mom3'][:] * 4./3 * 3.14 * 1e3 * 1e3 #g/kg
@@ -61,7 +61,6 @@ for kernel in kernels:
         cover[kernel][2] += idx_rin[0].size
 
         n_run += 1.
-        #print "for " + kernel + " the % of grid-cells with rain water mixing ratio > " + str(cutoff) + " is " +  str(idx[0].size/76./76.*100)
    
         for i in range(num_dry-1): # first bin id for total conc
             name = "rd_rng" + str(i+1).zfill(3) + "_mom0"
@@ -116,7 +115,7 @@ for kernel in kernels:
     g = gp.Gnuplot()
     g('reset')
     g('set term svg dynamic enhanced font "Verdana, 14"')
-    g('set output "' + kernel + '_rain_distr.svg" ')
+    g('set output "plots/' + kernel + '_size_distr.svg" ')
     g('set logscale xy')
     g('set key samplen 1.2')
     g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
@@ -128,14 +127,14 @@ for kernel in kernels:
     g('set grid')
     g('set nokey')
  
-    plot_rd_ini  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_ini,  with_="steps lw 4 lc rgb 'coral'")
-    plot_rd_dry  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_dry,  with_="steps lw 4 lc rgb 'green'")
-    plot_rd_cld  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_cld,  with_="steps lw 4 lc rgb 'red'")
-    plot_rd_rin  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_rin,  with_="steps lw 4 lc rgb 'brown'")
+    plot_rd_ini  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_ini,  with_="steps lw 4 lc rgb 'black'")
+    #plot_rd_dry  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_dry,  with_="steps lw 4 lc rgb 'green'")
+    plot_rd_cld  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_cld,  with_="steps lw 4 lc rgb 'green'")
+    plot_rd_rin  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_rin,  with_="steps lw 4 lc rgb 'red'")
 
-    plot_rw_all  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_all,  with_="steps lw 4 lc rgb 'purple'")
-    plot_rw_dry  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_dry,  with_="steps lw 4 lc rgb 'brown'")
-    plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'violet'")
+    #plot_rw_all  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_all,  with_="steps lw 4 lc rgb 'purple'")
+    #plot_rw_dry  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_dry,  with_="steps lw 4 lc rgb 'brown'")
+    plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'magenta'")
     plot_rw_rin  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_rin,  with_="steps lw 4 lc rgb 'blue'")
     
     g.plot(plot_rd_ini, plot_rd_cld, plot_rd_rin, plot_rw_cld, plot_rw_rin)
