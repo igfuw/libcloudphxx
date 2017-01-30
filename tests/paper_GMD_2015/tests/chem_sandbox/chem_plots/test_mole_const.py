@@ -55,15 +55,19 @@ for case in ('case_base','base_case_fix', 'case3', 'case4', 'case5','case5_fix',
         #val[4] = spn
         val[5] = end
  
-    #print " "
-    #print "-------------- init vs end of spin-up ----------------------"
-    #
-    #for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
-    #    
-    #    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
-    #    print key , " relative error ", relative_error * 100, " %"
-    #
+#print " "
+#print "-------------- init vs end of spin-up ----------------------"
+#
+#for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
+#    
+#    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
+#    print key , " relative error ", relative_error * 100, " %"
+#
 
+print " "
+print "-------------- init vs end  --------------------------------"
+
+for key in ['CO2', 'NH3', 'HNO3']:
     print " "
     print case
 

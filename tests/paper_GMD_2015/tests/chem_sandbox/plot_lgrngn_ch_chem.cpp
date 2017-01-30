@@ -90,7 +90,7 @@ int main(int ac, char** av)
       {
         auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_O3<float>() * si::moles / si::kilograms) * 1e9;
         gp << "set title 'trace gas O_{3} conc. [mol/μg of dry air]'\n";
-        //gp << "set cbrange [872.1 : 873.4]\n";
+        //gp << "set cbrange [871.8 : 873.4]\n";
         plot(gp, chem);
       }
       else if (plt == "H2O2g") 
