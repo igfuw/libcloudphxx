@@ -9,7 +9,8 @@ import sys
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case5', 'case5_fix']:
+#for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5']:
+for case in ['case5', 'case5_no_coll']:
 
     # open hdf5 files with data
     h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
@@ -86,15 +87,14 @@ for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case5', 'case5_fix'
     relative_error_2 = (depleted_SO2 - gained_S6) / gained_S6 
     
     print " "
-    print "created H2SO4 relative error_1 ", relative_error_1 * 100, " %"
-    print "depleted = ", depleted_O3 + depleted_H2O2
-    print "gained   = ", gained_S6
+    print "error in realtion to delta S6 = ", relative_error_1 * 100, " %"
+    print "depleted O3 and H2O2          = ", depleted_O3 + depleted_H2O2
+    print "gained S6                     = ", gained_S6
     print " "
-    print "created H2SO4 relative error_2 ", relative_error_2 * 100, " %"
-    print "depleted = ", depleted_SO2
-    print "gained   = ", gained_S6
+    print "error in relation to delta S6 =  ", relative_error_2 * 100, " %"
+    print "depleted S4                   = ", depleted_SO2
+    print "gained S6                     = ", gained_S6
     print " "
     print "ini S6   = ",  help_dict['H2SO4'][3]
-    #print "spn S6   = ",  help_dict['H2SO4'][4]
-    print "end S6  = ",   help_dict['H2SO4'][5]
+    print "end S6   = ",   help_dict['H2SO4'][5]
 

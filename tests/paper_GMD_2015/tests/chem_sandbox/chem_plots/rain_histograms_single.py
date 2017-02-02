@@ -27,7 +27,9 @@ num_dry   = dry_edges.size - 1
 num_wet   = wet_edges.size - 1
 
 # loop for case with and without aqueous chemistry
-for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
+#for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
+for case in ('case5', 'case5_no_coll'):
+
 
     for kernel in kernels:
     
@@ -123,8 +125,11 @@ for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
         #plot_rd_dry  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_dry,  with_="steps lw 4 lc rgb 'green'")
         plot_rd_cld  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_cld,  with_="steps lw 4 lc rgb 'green'")
         plot_rd_rin  = gp.PlotItems.Data(dry_edges[:-1] * 1e6 , n_dry_rin,  with_="steps lw 4 lc rgb 'red'")
-    
-        g.plot(plot_rd_ini, plot_rd_cld, plot_rd_rin)
+
+        if case == 'case3' or case == 'case6':    
+            g.plot(plot_rd_ini, plot_rd_cld)
+        else:
+            g.plot(plot_rd_ini, plot_rd_cld, plot_rd_rin)
     
         # plotting
         ymin = 0.001
@@ -151,5 +156,8 @@ for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
         #plot_rw_dry  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_dry,  with_="steps lw 4 lc rgb 'brown'")
         plot_rw_cld  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_cld,  with_="steps lw 4 lc rgb 'magenta'")
         plot_rw_rin  = gp.PlotItems.Data(wet_edges[:-1] * 1e6 , n_wet_rin,  with_="steps lw 4 lc rgb 'blue'")
-        
-        g.plot(plot_rw_cld, plot_rw_rin)
+
+        if case == 'case3' or case == 'case6':    
+            g.plot(plot_rw_cld)
+        else:       
+            g.plot(plot_rw_cld, plot_rw_rin)

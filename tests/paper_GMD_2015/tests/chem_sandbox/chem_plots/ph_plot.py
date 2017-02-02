@@ -22,7 +22,7 @@ import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
-for case in ('case_base', 'case1', 'case3', 'case4', 'case5', 'case6'):
+for case in ('case_base', 'case1', 'case3', 'case4_50', 'case4_150', 'case5'):
 
     # read in the data
     data = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')

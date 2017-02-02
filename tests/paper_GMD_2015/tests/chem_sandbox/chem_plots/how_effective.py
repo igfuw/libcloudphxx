@@ -12,7 +12,11 @@ import sys
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-for case in ('case_base', 'case_base_rk', 'case3', 'case4', 'case5','case5_fix'):
+#for case in ('case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5'):
+for case in ('case4', 'case4_no_O3', 'case4_no_H2O2'):
+    print " "
+    print case
+ 
 
     # open hdf5 files with data
     h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
@@ -47,7 +51,11 @@ for case in ('case_base', 'case_base_rk', 'case3', 'case4', 'case5','case5_fix')
 
             # total concentration [moles/ug of dry air]
             ini = (h5f_ini[name1][:].sum() / val[0] + h5f_ini[name2][:].sum() / val[1]) / size_all * 1e9
+            print " "
+            print "ini ", val[2], ini
             end = (h5f_end[name1][:].sum() / val[0] + h5f_end[name2][:].sum() / val[1]) / size_all * 1e9
+            print "end", val[2], end
+            print " "
     
         # calculate average over all
         #ini = (total_ini_conc[:]).sum() / size_all * 1e9 
@@ -56,20 +64,18 @@ for case in ('case_base', 'case_base_rk', 'case3', 'case4', 'case5','case5_fix')
         val[3] = ini
         val[5] = end
  
-    print " "
-    print case
     print "-------------- % difference % --------------------------------"
     
-    print "dO3   / init O3   ", (help_dict['O3'][3] - help_dict['O3'][5]) / help_dict['O3'][3] * 100
-    print "dH2O2 / init H2O2 ", (help_dict['H2O2'][3] - help_dict['H2O2'][5]) / help_dict['H2O2'][3] * 100
-    print "dSO2  / init SO2  ", (help_dict['SO2'][3] - help_dict['SO2'][5]) / help_dict['SO2'][3] * 100
+    print "iniO3   - endO3   / init O3   ", (help_dict['O3'][3] - help_dict['O3'][5]) / help_dict['O3'][3] * 100
+    print "iniH2O2 - endH2O2 / init H2O2 ", (help_dict['H2O2'][3] - help_dict['H2O2'][5]) / help_dict['H2O2'][3] * 100
+    print "iniS4   - endS4   / init S4   ", (help_dict['SO2'][3] - help_dict['SO2'][5]) / help_dict['SO2'][3] * 100
 
-    print "dO3   / dSO2      ", (help_dict['O3'][3]   - help_dict['O3'][5]) / (help_dict['SO2'][3]  - help_dict['SO2'][5])
-    print "dH2O2 / dSO2      ", (help_dict['H2O2'][3] - help_dict['H2O2'][5]) / (help_dict['SO2'][3]  - help_dict['SO2'][5])
+    #print "dO3   / dSO2      ", (help_dict['O3'][3]   - help_dict['O3'][5]) / (help_dict['SO2'][3]  - help_dict['SO2'][5])
+    #print "dH2O2 / dSO2      ", (help_dict['H2O2'][3] - help_dict['H2O2'][5]) / (help_dict['SO2'][3]  - help_dict['SO2'][5])
 
     print " "
-    print "ini S6", help_dict['H2SO4'][3]
-    print "fin S6", help_dict['H2SO4'][5]
-    print "dS6  / final S6  ", (help_dict['H2SO4'][5] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][5] * 100
+    print "ini S6", help_dict['H2SO4'][3] * val[1] , "ug/kg of dry air"
+    print "fin S6", help_dict['H2SO4'][5] * val[1] , "ug/kg of dry air"
+    print "finS6   - iniS6   / final S6  ", (help_dict['H2SO4'][5] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][5] * 100
 
 
