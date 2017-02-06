@@ -244,6 +244,14 @@ namespace libcloudphxx
           if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
+
+        // decrease coalescence timestep
+        // done if number of collisions > 1 in const_multi mode
+        if(*(pimpl->increase_sstp_coal))
+        {
+          ++(pimpl->opts_init.sstp_coal);
+          *(pimpl->increase_sstp_coal) = false;
+        }
       }
 
       // advection, it invalidates i,j,k and ijk!
