@@ -10,7 +10,7 @@ sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 #for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5']:
-for case in ['case5', 'case5_no_coll']:
+for case in ['case5', 'case5_no_coll', 'case5_no_O3', 'case5_no_H2O2', 'case5_no_O3H2O2']:
 
     # open hdf5 files with data
     h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')

@@ -13,7 +13,7 @@ sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 #for case in ('case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5'):
-for case in ('case4', 'case4_no_O3', 'case4_no_H2O2'):
+for case in ('case4', 'case5', 'case6'):
     print " "
     print case
  
@@ -76,6 +76,7 @@ for case in ('case4', 'case4_no_O3', 'case4_no_H2O2'):
     print " "
     print "ini S6", help_dict['H2SO4'][3] * val[1] , "ug/kg of dry air"
     print "fin S6", help_dict['H2SO4'][5] * val[1] , "ug/kg of dry air"
+    print "delta S6", help_dict['H2SO4'][5] * val[1] - help_dict['H2SO4'][3] * val[1], "ug/kg of dry air"
     print "finS6   - iniS6   / final S6  ", (help_dict['H2SO4'][5] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][5] * 100
 
 
