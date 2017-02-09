@@ -9,7 +9,8 @@ import sys
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-for case in ('case_base','base_case_fix', 'case3', 'case4', 'case5','case5_fix', 'case5_fix2'):
+#for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5']:
+for case in ['case5', 'case5_no_coll', 'case5_no_O3', 'case5_no_H2O2', 'case5_no_O3H2O2']:
 
     # open hdf5 files with data
     h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
@@ -63,14 +64,9 @@ for case in ('case_base','base_case_fix', 'case3', 'case4', 'case5','case5_fix',
 #    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
 #    print key , " relative error ", relative_error * 100, " %"
 #
-
-print " "
-print "-------------- init vs end  --------------------------------"
-
-for key in ['CO2', 'NH3', 'HNO3']:
     print " "
     print case
-
+ 
     print " "
     print "-------------- init vs end  --------------------------------"
     
@@ -78,10 +74,10 @@ for key in ['CO2', 'NH3', 'HNO3']:
         
         relative_error = abs(help_dict[key][5] - help_dict[key][3]) / help_dict[key][3]
         print key , " relative error ", relative_error * 100, " %"
-    
+        
     print " "
     print "-------------- test react  --------------------------------"
-    
+        
     depleted_O3   = help_dict['O3'][3]    - help_dict['O3'][5] 
     depleted_H2O2 = help_dict['H2O2'][3]  - help_dict['H2O2'][5] 
     depleted_SO2  = help_dict['SO2'][3]   - help_dict['SO2'][5] 
@@ -91,15 +87,14 @@ for key in ['CO2', 'NH3', 'HNO3']:
     relative_error_2 = (depleted_SO2 - gained_S6) / gained_S6 
     
     print " "
-    print "created H2SO4 relative error_1 ", relative_error_1 * 100, " %"
-    print "depleted = ", depleted_O3 + depleted_H2O2
-    print "gained   = ", gained_S6
+    print "error in realtion to delta S6 = ", relative_error_1 * 100, " %"
+    print "depleted O3 and H2O2          = ", depleted_O3 + depleted_H2O2
+    print "gained S6                     = ", gained_S6
     print " "
-    print "created H2SO4 relative error_2 ", relative_error_2 * 100, " %"
-    print "depleted = ", depleted_SO2
-    print "gained   = ", gained_S6
+    print "error in relation to delta S6 =  ", relative_error_2 * 100, " %"
+    print "depleted S4                   = ", depleted_SO2
+    print "gained S6                     = ", gained_S6
     print " "
     print "ini S6   = ",  help_dict['H2SO4'][3]
-    #print "spn S6   = ",  help_dict['H2SO4'][4]
-    print "end S6  = ",   help_dict['H2SO4'][5]
+    print "end S6   = ",   help_dict['H2SO4'][5]
 
