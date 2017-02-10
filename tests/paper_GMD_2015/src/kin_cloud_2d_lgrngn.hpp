@@ -70,6 +70,18 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         rng_num++;
       }
     }
+    {
+      // rw3(rd)
+      int rng_num = 0;
+      for (auto &rng_moms : params.out_dry)
+      {
+        auto &rng(rng_moms.first);
+        prtcls->diag_dry_rng(rng.first / si::metres, rng.second / si::metres);
+        prtcls->diag_wet_mom(3);
+        this->record_aux(aux_name("rw3ofrd", rng_num, 3), prtcls->outbuf());
+        rng_num++;
+      }
+    }
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(

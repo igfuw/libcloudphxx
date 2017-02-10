@@ -162,7 +162,7 @@ namespace libcloudphxx
         > runge_kutta_fehlberg78 or the bulirsch_stoer with a very high order. But
         > should benchmark both steppers and choose the faster one.
       */
-      boost::numeric::odeint::euler<
+      boost::numeric::odeint::runge_kutta4<
         thrust_device::vector<real_t>, // state_type
         real_t,                        // value_type
         thrust_device::vector<real_t>, // deriv_type

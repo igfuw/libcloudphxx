@@ -15,24 +15,26 @@ int main(int ac, char** av)
   std::string dir = string(av[1]) + "/tests/chem_sandbox/";
 
   for (const std::string sim_run : { "out_hall_pinsky_stratocumulus"})
-    /*                               {"out_hall", "out_hall_davis_no_waals", 
+                                /*   {"out_hall", "out_hall_davis_no_waals", 
                                     "out_hall_pinsky_stratocumulus", 
                                     "out_onishi_hall", "out_onishi_hall_davis_no_waals", 
                                     "out_vohl_davis_no_waals" 
-                                    })*/
+                                    }) */
   {
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
     //for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
-    int at = 11800 / n["outfreq"];
+    //int at = 11800 / n["outfreq"];
+    std::vector<int> at_vec = {10000 / n["outfreq"], 11800 / n["outfreq"]};
+    for (auto at : at_vec)
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
         Gnuplot gp;
         init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
-        if (at * n["outfreq"] == 11800)
+        if (at * n["outfreq"] == 118)//00) TODO
         {
           {
             char lbl = 'i';
@@ -105,7 +107,7 @@ int main(int ac, char** av)
   	// cloud particle concentration
   	auto tmp = 1e-6 * h5load(h5, "rw_rng000_mom0", at * n["outfreq"]);
   	gp << "set title 'cloud droplet spec. conc. [mg^{-1}]'\n";
-  	gp << "set cbrange [0:60]\n";
+  	gp << "set cbrange [0:160]\n";
   	plot(gp, tmp);
         }
   
@@ -125,7 +127,7 @@ int main(int ac, char** av)
   	// effective radius
   	auto r_eff = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) / h5load(h5, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
   	gp << "set title 'cloud droplet effective radius [μm]'\n"; 
-  	gp << "set cbrange [1:20]\n";
+  	gp << "set cbrange [1:14]\n";
   	plot(gp, r_eff);
         }
   
@@ -141,7 +143,7 @@ int main(int ac, char** av)
   	  str << "rw_rng" << std::setw(3) << std::setfill('0') << i + 2  << "_mom0";
   	  tmp = tmp + h5load(h5, str.str(), at * n["outfreq"]);
   	}
-  	gp << "set cbrange [" << 0 << ":" << 60 << "]\n";
+  	gp << "set cbrange [" << 0 << ":" << 160 << "]\n";
   	gp << "set title 'aerosol concentration [mg^{-1}]'\n";
   	tmp /= 1e6;
   	plot(gp, tmp);
@@ -152,6 +154,7 @@ int main(int ac, char** av)
   	auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
   	gp << "set title 'dry radius [μm]'\n"; 
    	gp << "set cbrange [0:0.14]\n";
+   	//gp << "set cbrange [0:0.1]\n";
   	plot(gp, r_d);
         }
   

@@ -19,10 +19,11 @@ namespace libcloudphxx
       { // returns the change in mass per second of each chemical compounds
         // due to oxidation reaction
         const int chem_iter;
+        const real_t dt;
         
         // ctor
-        chem_rhs_helper(const int &chem_iter) : 
-          chem_iter(chem_iter)
+        chem_rhs_helper(const int &chem_iter, const real_t dt) : 
+          chem_iter(chem_iter), dt(dt)
         {}
 
         BOOST_GPU_ENABLED
@@ -67,7 +68,14 @@ namespace libcloudphxx
             O3_react = V * m_O3 / M_O3<real_t>() / V * m_S_IV / M_SO2_H2O<real_t>() / V
                        / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
                        * (R_O3_k0 + R_O3_k1 * Kt_SO2 / conc_H + R_O3_k2 * Kt_SO2 * Kt_HSO3 / conc_H / conc_H);
-       
+            
+            // check if reaction rate won't take more O3 than there is
+            O3_react = (O3_react * dt * si::seconds < m_O3 / M_O3<real_t>()) ? O3_react : 
+                         m_O3 / M_O3<real_t>() / (dt * si::seconds);
+            // check if reaction rate won't take more S_IV than there is
+            O3_react = (O3_react * dt * si::seconds < m_S_IV / M_SO2_H2O<real_t>()) ? O3_react : 
+                         m_S_IV / M_SO2_H2O<real_t>() / (dt * si::seconds);
+ 
 	  // helper for H2O2 reaction
 	  quantity<divide_typeof_helper<si::amount, si::time>::type, real_t>
             H2O2_react = V * R_H2O2_k * Kt_SO2 
@@ -75,6 +83,13 @@ namespace libcloudphxx
                          * m_S_IV / M_SO2_H2O<real_t>() / V
                          / (real_t(1) + Kt_SO2 / conc_H + Kt_SO2 * Kt_HSO3 / conc_H / conc_H)
                          / (real_t(1) + R_S_H2O2_K<real_t>() * conc_H);
+
+            // check if reaction rate won't take more H2O2 than there is
+            H2O2_react = (H2O2_react * dt * si::seconds < m_H2O2 / M_H2O2<real_t>()) ? H2O2_react : 
+                           m_H2O2 / M_H2O2<real_t>() / (dt * si::seconds);
+            // check if reaction rate won't take more S_IV than there is (this silently gives precedence to O3 reaction)
+            H2O2_react = (H2O2_react * dt * si::seconds < m_S_IV / M_SO2_H2O<real_t>() - O3_react * dt * si::seconds) ? 
+                          H2O2_react : m_S_IV / M_SO2_H2O<real_t>() / (dt * si::seconds) - O3_react;
 
           switch (chem_iter)
           {
@@ -104,7 +119,8 @@ namespace libcloudphxx
       // functor called by odeint
       template <typename real_t>
       struct chem_rhs
-      {
+      { 
+        const real_t dt;
         const thrust_device::vector<real_t> &V;
         const thrust_device::vector<unsigned int> &chem_flag;
  
@@ -119,12 +135,13 @@ namespace libcloudphxx
 
         // ctor
         chem_rhs(
+          const real_t dt,
           const thrust_device::vector<real_t> &V,
           const pi_t &T,
           const typename thrust_device::vector<real_t>::const_iterator &m_H,
           const thrust_device::vector<unsigned int> &chem_flag
         ) :
-          V(V), T(T), m_H(m_H), n_part(V.size()), chem_flag(chem_flag)
+          dt(dt), V(V), T(T), m_H(m_H), n_part(V.size()), chem_flag(chem_flag)
         {}
 
         void operator()(
@@ -179,7 +196,7 @@ namespace libcloudphxx
                   // output
                   dot_psi.begin() + (chem_iter - chem_rhs_beg) * n_part, 
                   // op
-                  chem_rhs_helper<real_t>(chem_iter),
+                  chem_rhs_helper<real_t>(chem_iter, dt),
                   // condition
                   thrust::identity<unsigned int>()
                 );
@@ -259,6 +276,7 @@ namespace libcloudphxx
       // do chemical reactions
       chem_stepper.do_step(
         detail::chem_rhs<real_t>(
+          dt,
           V,
           thrust::make_permutation_iterator(T.begin(), ijk.begin()), 
           chem_bgn[H], 
