@@ -387,12 +387,6 @@ namespace libcloudphxx
         detail::collider<real_t, n_t>(dt, p_kernel, opts_init.sd_const_multi, increase_sstp_coal)
       );
 
-      if(*increase_sstp_coal)
-      {
-        ++opts_init.sstp_coal;
-        *increase_sstp_coal = false;
-      }
-
       // add masses of chemicals
       if(opts_init.chem_switch)
       {
