@@ -119,6 +119,32 @@ namespace libcloudphxx
       }
     }
 
+    // dtor
+    template <typename real_t>
+    particles_t<real_t, multi_CUDA>::~particles_t()
+    {
+      // disable direct memory access between nieghbouring devices (making another instance of prtcls after destruction of first one caused errors due to granting access twice)
+      if(glob_opts_init.dev_count>1)
+      {
+        for(int dev_id = 0; dev_id < glob_opts_init.dev_count; ++dev_id)
+        {
+          gpuErrchk(cudaSetDevice(dev_id));
+          // IDs of devices to the left/right, periodic boundary in x
+          const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
+                    rgt_dev = dev_id < glob_opts_init.dev_count-1 ? dev_id + 1 : 0;
+
+          // if available, allow direct memory access; otherwise copy through host memory will be done
+          int can_access_peer;
+          gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, lft_dev));
+          if(can_access_peer)
+            {gpuErrchk(cudaDeviceDisablePeerAccess(lft_dev));}
+          gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, rgt_dev));
+          if(can_access_peer && glob_opts_init.dev_count > 2)
+            {gpuErrchk(cudaDeviceDisablePeerAccess(rgt_dev));}
+        }
+      }
+    }
+
     // initialisation 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::init(

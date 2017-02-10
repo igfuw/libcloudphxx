@@ -75,6 +75,9 @@ namespace libcloudphxx
       if(opts_init.dry_sizes.size() > 0 && opts_init.sd_conc > 0)
         throw std::runtime_error("Dry_sizes init is not compatible with sd_conc (works only with const_multi)");
 
+      if(opts_init.sd_conc_large_tail && opts_init.sd_conc == 0)
+        throw std::runtime_error("Sd_conc_large_tail make sense only with sd_conc init (i.e. sd_conc>0)");
+
       if(opts_init.sd_const_multi > 0 && opts_init.src_switch)
         throw std::runtime_error("aerosol source and constant multiplicity option are not compatible");
 

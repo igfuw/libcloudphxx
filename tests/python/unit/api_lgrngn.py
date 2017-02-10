@@ -25,7 +25,7 @@ opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.adve_scheme = lgrngn.as_t.euler
 opts_init.dt = 1
 opts_init.sd_conc = 64
-opts_init.n_sd_max = 512
+opts_init.n_sd_max = 512 + 124 # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
@@ -238,7 +238,21 @@ for it in range(2):
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
-#TODO: test profile vs. 3D array
+# 3D with large_tail option
+print "3D large tail"
+opts_init.sd_conc_large_tail = 1
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+opts_init.sd_conc_large_tail = 0
+prtcls.diag_sd_conc()
+
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) >= opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
 # 3D const multi - number of SDs and number of particles
 print "3D const multi"

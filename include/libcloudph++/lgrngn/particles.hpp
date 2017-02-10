@@ -215,6 +215,9 @@ namespace libcloudphxx
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init);
 
+      // dtor
+      ~particles_t();
+
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
     };

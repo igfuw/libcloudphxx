@@ -132,5 +132,11 @@ namespace libcloudphxx
     {
       thrust::fill(n.begin() + n_part_old, n.end(), opts_init.sd_const_multi);
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_n_const_multi(const thrust_size_t &const_multi)
+    {
+      thrust::fill(n.begin() + n_part_old, n.end(), const_multi);
+    }
   };
 };
