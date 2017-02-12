@@ -14,20 +14,30 @@ int main(int ac, char** av)
 
   std::string dir = string(av[1]) + "/tests/chem_sandbox/";
 
-  for (const std::string sim_run : { "out_hall_pinsky_stratocumulus"})
-                                /*   {"out_hall", "out_hall_davis_no_waals", 
-                                    "out_hall_pinsky_stratocumulus", 
-                                    "out_onishi_hall", "out_onishi_hall_davis_no_waals", 
-                                    "out_vohl_davis_no_waals" 
-                                    }) */
+  for (const std::string sim_run :
+           {
+            "out_case1",
+            "out_case2_hall", 
+            "out_case2_hall_davis_no_waals",
+            "out_case2_hall_pinsky_stratocumulus", 
+            "out_case2_onishi_hall", 
+            "out_case2_onishi_hall_davis_no_waals", 
+            "out_case2_vohl_davis_no_waals" 
+            "out_case_base",
+            "out_case_1a",
+            "out_case_3",
+            "out_case_4",
+            "out_case_5",
+            "out_case_6" 
+           })
   {
     std::string h5  = dir + sim_run;
   
     auto n = h5n(h5);
-    //for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
+    for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean! 
     //int at = 11800 / n["outfreq"];
-    std::vector<int> at_vec = {10000 / n["outfreq"], 11800 / n["outfreq"]};
-    for (auto at : at_vec)
+    //std::vector<int> at_vec = {10000 / n["outfreq"], 11800 / n["outfreq"]};
+    //for (auto at : at_vec)
     {
       for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "rd", "sd_conc", "th", "rv"})) 
       {
