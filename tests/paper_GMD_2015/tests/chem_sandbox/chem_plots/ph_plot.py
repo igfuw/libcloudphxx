@@ -5,28 +5,27 @@ Plot liquid water weighted average pH (2D plot of the whole cloudy field)
 # This Python file uses the following encoding: utf-8
 import sys
 import subprocess
+import os
 
 import numpy as np
 import math
-import colormaps as cmaps
 import h5py as h5
 
 # libcloud bindings to python (to have access to library constants) 
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-#sys.path.insert(0, "../../../../../../parcel/")
-#import functions as fn
-
 import matplotlib
 matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
-for case in ('case_base', 'case1', 'case3', 'case4_50', 'case4_150', 'case5'):
+for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
+    # path to build directory with data and plots
+    dir_path = '../../../build/tests/chem_sandbox/'
 
     # read in the data
-    data = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
-    mesh = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/const.h5', 'r')
+    data = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')
+    mesh = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')
 
     # left and right edges of bins for dry and wet radius
     wet_edges = np.fromiter( (1e-6 * 10**(-3 + i * .1) for i in xrange(56)), dtype="float")
@@ -67,20 +66,10 @@ for case in ('case_base', 'case1', 'case3', 'case4_50', 'case4_150', 'case5'):
 
     ax=fig.add_subplot(111)
    
-    #cmap=cmaps.magma  #magma inferno plasma
-    #cmap = plt.get_cmap('BrBG')
     cmap = plt.get_cmap('Set1')
     cmap.set_under('White')
-
     vmin = 3
-    vmax = 5.8#5
-
-    #if case == 'case5' or case == 'case1':
-    #    vmin = 3.8
-    #    vmax = 5.8
-    #    cmap = plt.get_cmap('gnuplot')
-    #    cmap.set_under('White')
-                                           
+    vmax = 5.8
     cplt = ax.pcolormesh(x_grid, y_grid, pH, cmap = cmap, vmin=vmin, vmax=vmax)     
     cbar = fig.colorbar(cplt)
 
@@ -97,4 +86,11 @@ for case in ('case_base', 'case1', 'case3', 'case4_50', 'case4_150', 'case5'):
     ax.set_yticklabels(["0", "0.3", "0.6", "0.9", "1.2", "1.5"])
 
     plt.grid()
-    plt.savefig('plots/' + case + "_ph_profile.eps")
+
+    # save fig to eps
+    # I'm not sure why, but Python tends to produce very heavy figures
+    # saving them as eps and then converting to pdf solves this problem...
+    output_dir = dir_path + '/plots_of_pH/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    plt.savefig(output_dir + case + "_ph_profile.eps")

@@ -9,14 +9,15 @@ import sys
 sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
-#for case in ['case_base', 'case_base_rk', 'case3', 'case4', 'case4_no_O3', 'case5']:
-for case in ['moles']:
+# path to directory with data
+dir_path = '../../../build/tests/chem_sandbox/'
+
+for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
 
     # open hdf5 files with data
-    h5f_ini = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000000000.h5', 'r')
-    #h5f_spn = h5.File(case'/out_hall_pinsky_stratocumulus/timestep0000010000.h5', 'r')
-    h5f_end = h5.File('data/' + case + '/out_hall_pinsky_stratocumulus/timestep0000011800.h5', 'r')
-    
+    h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000000000.h5', 'r')
+    h5f_end = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')
+
     # helper dict for chem names and molar mass
                  #name   gas molar mass   aqueous molar mass    label in hdf5     ini    spn   end
     help_dict = {
@@ -41,7 +42,7 @@ for case in ['moles']:
     
             # moles/ug of dry air
             ini = (h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-            #spn = (h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+            #spn= (h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
             end = (h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
     
         else:
@@ -49,34 +50,23 @@ for case in ['moles']:
     
             # moles/ug of dry air
             ini = (h5f_ini[name1][:] / val[0] + h5f_ini[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
-            #spn = (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
+            #spn= (h5f_spn[name1][:] / val[0] + h5f_spn[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
             end = (h5f_end[name1][:] / val[0] + h5f_end[name2][:] / val[1]).sum() / 76. / 76. * 1e9 
     
         val[3] = ini
         #val[4] = spn
         val[5] = end
  
-#print " "
-#print "-------------- init vs end of spin-up ----------------------"
-#
-#for key in ['CO2', 'NH3', 'HNO3', 'SO2', 'O3', 'H2O2', 'H2SO4']:
-#    
-#    relative_error = abs(help_dict[key][4] - help_dict[key][3]) / help_dict[key][3]
-#    print key , " relative error ", relative_error * 100, " %"
-#
+    #print " "
+    #print "-------------- init vs end  --------------------------------"
+    #
+    #for key in ['CO2', 'NH3', 'HNO3']:
+    #    
+    #    relative_error = abs(help_dict[key][5] - help_dict[key][3]) / help_dict[key][3]
+    #    print key , " relative error ", relative_error * 100, " %"
+    #    
     print " "
-    print case
- 
-    print " "
-    print "-------------- init vs end  --------------------------------"
-    
-    for key in ['CO2', 'NH3', 'HNO3']:
-        
-        relative_error = abs(help_dict[key][5] - help_dict[key][3]) / help_dict[key][3]
-        print key , " relative error ", relative_error * 100, " %"
-        
-    print " "
-    print "-------------- test react  --------------------------------"
+    print "----------------- " + case +  " --------------------------"
         
     depleted_O3   = help_dict['O3'][3]    - help_dict['O3'][5] 
     depleted_H2O2 = help_dict['H2O2'][3]  - help_dict['H2O2'][5] 
@@ -86,15 +76,14 @@ for case in ['moles']:
     relative_error_1 = (depleted_O3 + depleted_H2O2 - gained_S6) / gained_S6 
     relative_error_2 = (depleted_SO2 - gained_S6) / gained_S6 
     
-    print " "
     print "error in realtion to delta S6 = ", relative_error_1 * 100, " %"
     print "depleted O3 and H2O2          = ", depleted_O3 + depleted_H2O2
     print "gained S6                     = ", gained_S6
     print " "
-    print "error in relation to delta S6 =  ", relative_error_2 * 100, " %"
+    print "error in relation to delta S6 = ", relative_error_2 * 100, " %"
     print "depleted S4                   = ", depleted_SO2
     print "gained S6                     = ", gained_S6
     print " "
     print "ini S6   = ",  help_dict['H2SO4'][3]
-    print "end S6   = ",   help_dict['H2SO4'][5]
+    print "end S6   = ",  help_dict['H2SO4'][5]
 

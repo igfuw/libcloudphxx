@@ -2,20 +2,26 @@ import numpy   as np
 import h5py    as h5
 import Gnuplot as gp
 import math    as mt
+import sys
+import os
+
+# path to build directory with data
+dir_path = '../../../build/tests/chem_sandbox/'
 
 # all the collision kernels
-kernels = {"out_hall_pinsky_stratocumulus",
-            "out_hall", "out_hall_davis_no_waals", 
-            "out_vohl_davis_no_waals", 
-            "out_onishi_hall", 
-            "out_onishi_hall_davis_no_waals"}
+kernels = { "hall_pinsky_stratocumulus",
+            "hall", 
+            "hall_davis_no_waals", 
+            "vohl_davis_no_waals", 
+            "onishi_hall", 
+            "onishi_hall_davis_no_waals"}
                                          #   dry, cld,  rin
-cover = {"out_hall_pinsky_stratocumulus" :   [0.,   0., 0.],
-         "out_hall":                         [0.,   0., 0.], 
-         "out_hall_davis_no_waals":          [0.,   0., 0.],  
-         "out_vohl_davis_no_waals" :         [0.,   0., 0.], 
-         "out_onishi_hall" :                 [0.,   0., 0.], 
-         "out_onishi_hall_davis_no_waals" :  [0.,   0., 0.]}
+cover = {"hall_pinsky_stratocumulus" :   [0.,   0., 0.],
+         "hall":                         [0.,   0., 0.], 
+         "hall_davis_no_waals":          [0.,   0., 0.],  
+         "vohl_davis_no_waals" :         [0.,   0., 0.], 
+         "onishi_hall" :                 [0.,   0., 0.], 
+         "onishi_hall_davis_no_waals" :  [0.,   0., 0.]}
 
 # only grid-cells with rain water mixing ratio greater than cutoff will be shown
 cutoff_cld = 0.01
@@ -42,10 +48,10 @@ for kernel in kernels:
 
     n_run = 0.
 
-    for run in {"seed_44", "seed_9", "seed_13", "seed_30", "seed_42"}:
+    for run in {"44", "9", "13", "6", "42"}:
         # open hdf5 files with data
-        h5f_ini       = h5.File('data/data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000000000.h5', 'r')
-        h5f_fin       = h5.File('data/data_for_rain_histograms/' + run + '/' + kernel + '/timestep0000011800.h5', 'r')
+        h5f_ini       = h5.File(dir_path + 'out_case2_' + kernel + '_' + run + '/timestep0000000000.h5', 'r')
+        h5f_fin       = h5.File(dir_path + 'out_case2_' + kernel + '_' + run + '/timestep0000011800.h5', 'r')
 
         # choose indexes of grid-cell with r_c and r_r > cutoff
         cld_mixr_fin = h5f_fin['rw_rng000_mom3'][:] * 4./3 * 3.14 * 1e3 * 1e3 #g/kg
@@ -106,6 +112,11 @@ for kernel in kernels:
     print kernel, "  ", cover[kernel][1]
     print kernel, "  ", cover[kernel][2]
 
+    # create directory for output (if it doesn't exist)
+    output_dir = dir_path + 'plots_of_size_distr/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     # plotting
     ymin = 0.001
     ymax = 1000
@@ -115,7 +126,7 @@ for kernel in kernels:
     g = gp.Gnuplot()
     g('reset')
     g('set term svg dynamic enhanced font "Verdana, 14"')
-    g('set output "plots/' + kernel + '_size_distr.svg" ')
+    g('set output "' + output_dir + 'case2_' + kernel + '_size_distr.svg" ')
     g('set logscale xy')
     g('set key samplen 1.2')
     g('set xtics rotate by 65 right (.01, .1, 1, 10, 100)')
