@@ -75,7 +75,7 @@ int main(int ac, char** av)
     string size4 = "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=0     --mean_rd2=0.1e-6 --sdev_rd2=1.5 --n2_stp=150e6 ";
 
     //chem_rct switched on afetr spinup in set_chem 
-    string chem_cmn = "--micro=lgrngn_chem --kernel=hall_pinsky_stratocumulus --rng_seed-13 "
+    string chem_cmn = "--micro=lgrngn_chem --kernel=hall_pinsky_stratocumulus --rng_seed=13 "
                       "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 ";
 
     string ch_ini_base   = "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 ";
