@@ -99,7 +99,7 @@ int main(int ac, char** av)
         cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size3 + " " + ch_ini_base   + " " + case5,   // case5
         cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6    // case6
     });
-/*
+
     // run the above simulation cases
     for (auto &opts_m : opts_micro)
     {
@@ -115,7 +115,7 @@ int main(int ac, char** av)
       if (EXIT_SUCCESS != system(cmd.str().c_str()))
         error_macro("model run failed: " << cmd.str())
     }
-*/
+
     // run case2 sumulations (all collision kernels and 5 different random seeds)
     for (const std::string kernel : {"hall", "hall_davis_no_waals", "hall_pinsky_stratocumulus", 
                                      "onishi_hall", "onishi_hall_davis_no_waals", "vohl_davis_no_waals"})
