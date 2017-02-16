@@ -124,6 +124,9 @@ namespace libcloudphxx
         courant_z;
 
       std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
+
+      // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
+      std::map<enum output_t, real_t> output_puddle;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]
@@ -437,7 +440,7 @@ namespace libcloudphxx
       void chem_cleanup();
  
       thrust_size_t rcyc();
-      real_t bcnd(); // returns accumulated rainfall
+      void bcnd();
 
       void src(const real_t &dt);
 
@@ -465,6 +468,10 @@ namespace libcloudphxx
 
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
+
+      // init output map to 0
+      for(int i=0; i<= chem_all+2; ++i)
+        pimpl->output_puddle[static_cast<output_t>(i)] = 0.;
     }
 
     // dtor

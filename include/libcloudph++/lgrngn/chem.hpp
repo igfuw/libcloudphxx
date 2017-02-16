@@ -4,7 +4,7 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    enum chem_species_t
+    enum chem_species_t 
     {
       HNO3, NH3, CO2, SO2, H2O2, O3,  // both gas and total dissolved chem species
                                       //    (must be first as gas species vectors use only these!)

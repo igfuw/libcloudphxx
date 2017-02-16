@@ -197,7 +197,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    real_t particles_t<real_t, device>::step_async(
+    void particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {
       //sanity checks
@@ -275,7 +275,7 @@ namespace libcloudphxx
       // this has to be done last since i and k will be used by multi_gpu copy to other devices
       // TODO: instead of using i and k define new vectors ?
       // TODO: do this only if we advect/sediment?
-      real_t ret = pimpl->bcnd();
+      pimpl->bcnd();
 
       // some stuff to be done at the end of the step.
       // if using more than 1 GPU
@@ -284,8 +284,6 @@ namespace libcloudphxx
         pimpl->step_finalize(opts);
 
       pimpl->selected_before_counting = false;
-
-      return ret;
     }
   };
 };
