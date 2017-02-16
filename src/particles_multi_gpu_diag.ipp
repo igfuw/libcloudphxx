@@ -192,9 +192,14 @@ namespace libcloudphxx
       return &(*(real_n_cell_tot.begin()));
     }
 
+    // TODO diag puddle should also work also for multi GPU 
     template <typename real_t>
     std::map<output_t, real_t> particles_t<real_t, multi_CUDA>::diag_puddle()
     {
+      assert(false);
+
+      std::map<output_t, real_t> todo_map;
+    /*  template <typename real_t>
       std::map<output_t, real_t> res;
       #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
       {
@@ -202,7 +207,8 @@ namespace libcloudphxx
         gpuErrchk(cudaSetDevice(dev_id));
         res = particles[dev_id].diag_puddle();
       }
-      return res;
+    */
+      return todo_map;
     }
   };
 };

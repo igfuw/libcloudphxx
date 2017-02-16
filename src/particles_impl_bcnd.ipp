@@ -50,8 +50,8 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const tuple &tup)
         {
-          return thrust::get<0>(tup) *  // n
-                 thrust::get<1>(tup);   // radius at some power
+          return thrust::get<0>(tup)  *  // n
+                 thrust::get<1>(tup) * real_t(1e9) ;   // chem_mass in ug
         }
       };  
   
@@ -157,7 +157,7 @@ namespace libcloudphxx
                 n.begin(), n.end(),               // input 1
                 z.begin(),                        // stencil
                 n_filtered.begin(),               // output
-                thrust::identity<n_t>(),               // operation
+                thrust::identity<n_t>(),          // operation
                 arg::_1 < opts_init.z0            // condition
               );
 
@@ -193,7 +193,7 @@ namespace libcloudphxx
                       thrust::make_zip_iterator(thrust::make_tuple(
                         n_filtered.begin(), chem_bgn[i])),           // input start
                       thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.begin(), chem_end[i])) + n_part,  // input end
+                        n_filtered.end(),   chem_end[i])),           // input end
                       detail::count_mass<real_t>(),                  // operation
                       0,                                             // init val
                       thrust::plus<real_t>()

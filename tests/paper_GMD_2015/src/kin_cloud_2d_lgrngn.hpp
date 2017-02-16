@@ -41,8 +41,10 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     // recording what fell out
     auto puddle = prtcls->diag_puddle();
     for(auto elem : puddle)
-    {
-       std::cout << elem.first << " " << elem.second << "\n";
+    { 
+      printf ("%u", elem.first);
+      printf ("%s",  "   ");    
+      printf ("%.17g\n", elem.second);
     }
    
     // recording requested statistical moments
