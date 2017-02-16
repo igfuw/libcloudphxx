@@ -374,5 +374,11 @@ namespace libcloudphxx
       if(pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
       pimpl->moms_calc(pimpl->chem_bgn[c], 1);
     }
+
+    template <typename real_t, backend_t device>
+    std::map<output_t, real_t> particles_t<real_t, device>::diag_puddle()
+    {
+      return pimpl->output_puddle;
+    }
   };
 };

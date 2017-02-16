@@ -191,5 +191,18 @@ namespace libcloudphxx
       }
       return &(*(real_n_cell_tot.begin()));
     }
+
+    template <typename real_t>
+    std::map<output_t, real_t> particles_t<real_t, multi_CUDA>::diag_puddle()
+    {
+      std::map<output_t, real_t> res;
+      #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
+      {
+        const int dev_id = omp_get_thread_num();
+        gpuErrchk(cudaSetDevice(dev_id));
+        res = particles[dev_id].diag_puddle();
+      }
+      return res;
+    }
   };
 };

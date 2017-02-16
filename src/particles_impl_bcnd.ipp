@@ -21,13 +21,37 @@ namespace libcloudphxx
         }
       };
 
+      template<class real_t>
       struct count_vol
       {   
-        template <typename n_t, typename real_t>
+        real_t exponent;
+        count_vol(real_t exponent) : exponent(exponent){};
+        template <typename tuple>
         BOOST_GPU_ENABLED
-        real_t operator()(const n_t &n, const real_t &rw2)
+        real_t operator()(const tuple &tup)
         {
-          return n * pow(rw2, real_t(3./2.));
+          return 4./3. 
+#if !defined(__NVCC__)
+            * pi<real_t>()
+#else
+            * CUDART_PI
+#endif
+            * thrust::get<0>(tup)    // n
+            * pow(
+                thrust::get<1>(tup),  // radius at some power
+                exponent);
+        }
+      };  
+
+      template<class real_t>
+      struct count_mass
+      {   
+        template <typename tuple>
+        BOOST_GPU_ENABLED
+        real_t operator()(const tuple &tup)
+        {
+          return thrust::get<0>(tup) *  // n
+                 thrust::get<1>(tup);   // radius at some power
         }
       };  
   
@@ -47,10 +71,8 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    real_t particles_t<real_t, device>::impl::bcnd()
+    void particles_t<real_t, device>::impl::bcnd()
     {   
-      real_t ret = 0;
-
       switch (n_dims)
       {
         case 3:
@@ -130,21 +152,53 @@ namespace libcloudphxx
 
               thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
 
+              // copy n of SDs that are out of the domain (otherwise remains n_filtered=0)
               thrust::transform_if(
                 n.begin(), n.end(),               // input 1
-                rw2.begin(),                      // input 2
                 z.begin(),                        // stencil
                 n_filtered.begin(),               // output
-                detail::count_vol(),              // operation
+                thrust::identity<n_t>(),               // operation
                 arg::_1 < opts_init.z0            // condition
               );
-  
-              ret = 4./3. * thrust::reduce(n_filtered.begin(), n_filtered.end())
-#if !defined(__NVCC__)
-              * pi<real_t>();
-#else
-              * CUDART_PI;
-#endif
+
+              // add total liquid water volume that fell out in this step
+              output_puddle[outliq_vol] += 
+                thrust::transform_reduce(
+                  thrust::make_zip_iterator(thrust::make_tuple(
+                    n_filtered.begin(), rw2.begin())),           // input start
+                  thrust::make_zip_iterator(thrust::make_tuple(
+                    n_filtered.begin(), rw2.begin())) + n_part,  // input end
+                  detail::count_vol<real_t>(3./2.),              // operation
+                  0,                                             // init val
+                  thrust::plus<real_t>()
+                );
+
+              // add total dry volume that fell out in this step
+              output_puddle[outdry_vol] += 
+                thrust::transform_reduce(
+                  thrust::make_zip_iterator(thrust::make_tuple(
+                    n_filtered.begin(), rd3.begin())),           // input start
+                  thrust::make_zip_iterator(thrust::make_tuple(
+                    n_filtered.begin(), rd3.begin())) + n_part,  // input end
+                  detail::count_vol<real_t>(1.),                 // operation
+                  0,                                             // init val
+                  thrust::plus<real_t>()
+                );
+
+              if(opts_init.chem_switch)
+              {
+                for (int i = 0; i < chem_all; ++i)
+                  output_puddle[static_cast<output_t>(i)] += 
+                    thrust::transform_reduce(
+                      thrust::make_zip_iterator(thrust::make_tuple(
+                        n_filtered.begin(), chem_bgn[i])),           // input start
+                      thrust::make_zip_iterator(thrust::make_tuple(
+                        n_filtered.begin(), chem_end[i])) + n_part,  // input end
+                      detail::count_mass<real_t>(),                  // operation
+                      0,                                             // init val
+                      thrust::plus<real_t>()
+                    );
+              }
 
               // zero-out multiplicities
 	      thrust::transform_if(   
@@ -160,8 +214,6 @@ namespace libcloudphxx
         case 0: break;
         default: assert(false);
       }
-
-      return ret;
     }
   };  
 };
