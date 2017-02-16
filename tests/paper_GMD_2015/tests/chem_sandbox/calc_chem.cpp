@@ -46,7 +46,7 @@ int main(int ac, char** av)
   {
     string cmn = 
       //"--outfreq=11800  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      "--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false  "
+      "--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false "
       "--backend=CUDA --adv_serial=False --sd_conc=256 --sstp_cond=10 --coal=True --sedi=True "
       "--w_max=.6 --terminal_velocity=beard77fast ";
 
@@ -88,7 +88,7 @@ int main(int ac, char** av)
     string case3   = "--outdir=out_case3 ";
     string case4   = "--outdir=out_case4 ";
     string case5   = "--outdir=out_case5 ";
-    string case6   = "--outdir=out_case6_no_coll_no_sedi ";
+    string case6   = "--outdir=out_case6_puddle ";
 
     set<string> opts_micro({
         //cmn + " " + case1  + " " + stats + " " + size1,                                                           // case1
@@ -97,6 +97,7 @@ int main(int ac, char** av)
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_case3  + " " + case3,  // case3
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size2 + " " + ch_ini_base   + " " + case4,  // case4
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size3 + " " + ch_ini_base   + " " + case5,  // case5
+        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6   // case6
         cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6   // case6
     });
 

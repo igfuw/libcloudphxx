@@ -12,7 +12,10 @@ from libcloudphxx import common as cm
 # path to directory with data
 dir_path = '../../../build/tests/chem_sandbox/'
 
-for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
+#for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
+for case in ['case6', 'case6_no_coll_no_sedi', 'case6_no_sedi', 'case6_no_coll',\
+             'case6_yes_coll_yes_sedi_no_react', 'case6_yes_coll_no_sedi_no_react',\
+             'case6_yes_coll_yes_sedi_yes_react_no_cloud']:
 
     # open hdf5 files with data
     h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000000000.h5', 'r')
