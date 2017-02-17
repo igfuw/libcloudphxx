@@ -303,6 +303,8 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
           this->ftr.get();
         }
 #endif
+printf("%s", "timestep  = ");
+printf("%u\n", this->timestep);
         parent_t::diag();
         diag_chem();
         diag_pH();

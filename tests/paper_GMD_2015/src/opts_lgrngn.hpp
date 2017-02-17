@@ -259,6 +259,7 @@ void setopts_micro(
     // collision and sedimentation
     ("kernel", po::value<std::string>()->default_value("geometric"), "collision kernel (geometric, long, hall, hall_davis_no_waals, golovin, onishi_hall, onishi_hall_davis_no_waals, vohl_davis_no_waals, hall_pinsky_cumulonimbus, hall_pinsky_stratocumulus)")
     ("terminal_velocity", po::value<std::string>()->default_value("khvorostyanov_spherical"), "sedimentation velocity (khvorostyanov_spherical, khvorostyanov_nonspherical, beard76, beard77, beard77fast)")
+    ("adve_scheme", po::value<std::string>()->default_value("implicit"), "advection for super-droplets (implicit, euler, pred_corr)")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -308,6 +309,21 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
   rt_params.cloudph_opts_init.rng_seed  = vm["rng_seed"].as<int>();
+
+  // advection of super droplets choice
+  if (vm["adve_scheme"].as<std::string>() == "implicit") {
+    rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
+  }
+  if (vm["adve_scheme"].as<std::string>() == "euler") {
+    rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
+  }
+  if (vm["adve_scheme"].as<std::string>() == "pred_corr") {
+    rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
+  }
+   else {
+    std::cerr<<"Invalid advection choice"<<std::endl;
+    assert(false); 
+  }
 
   // coalescence kernel choice
   if (vm["kernel"].as<std::string>() == "geometric") {

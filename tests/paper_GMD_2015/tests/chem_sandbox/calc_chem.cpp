@@ -46,9 +46,10 @@ int main(int ac, char** av)
   {
     string cmn = 
       //"--outfreq=11800  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      "--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false "
-      //"--outfreq=200  --dt=1 --nt=2000 --spinup=200 --nx=76 --nz=76 --relax_th_rv=false "
-      "--backend=CUDA --adv_serial=False --sd_conc=256 --sstp_cond=10 --coal=True --sedi=True "
+      //"--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false "
+      "--outfreq=200 --dt=1 --nt=1000 --spinup=200 --nx=76 --nz=76 --relax_th_rv=false "
+      //"--backend=CUDA --adv_serial=False --sd_conc=256 --sstp_cond=10 --coal=True --sedi=True "
+      "--backend=serial --adv_serial=False --sd_conc=128 --sstp_cond=10 --coal=True --sedi=True "
       "--w_max=.6 --terminal_velocity=beard77fast ";
 
     string stats =         
@@ -58,7 +59,7 @@ int main(int ac, char** av)
           + bins_wet_str_2 +       // aerosol spectrum (wet)
         "\""
         " --out_dry=\""
-          "0.:1.|0,1;"
+          "0.:1.|0,1,3;"
           + bins_dry_str +         // aerosol spectrum (dry)
         "\"";
 
@@ -89,7 +90,7 @@ int main(int ac, char** av)
     string case3   = "--outdir=out_case3 ";
     string case4   = "--outdir=out_case4 ";
     string case5   = "--outdir=out_case5 ";
-    string case6   = "--outdir=out_case6_puddle ";
+    string case6   = "--outdir=out_test6_no_coll_yes_sedi_no_chem_pred_corr_serial ";
 
     set<string> opts_micro({
         //cmn + " " + case1  + " " + stats + " " + size1,                                                           // case1
@@ -99,7 +100,8 @@ int main(int ac, char** av)
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size2 + " " + ch_ini_base   + " " + case4,  // case4
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size3 + " " + ch_ini_base   + " " + case5,  // case5
         //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6   // case6
-        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6   // case6
+        //cmn +   " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_case1a   + " " + case6   // case6
+        cmn + " " + "--micro=lgrngn --adve_scheme=pred_corr " + stats + " " + size4 + case6 + "--kernel=hall_pinsky_stratocumulus --rng_seed=13 "
     });
 
     // run the above simulation cases

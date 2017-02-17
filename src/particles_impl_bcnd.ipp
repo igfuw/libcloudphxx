@@ -51,7 +51,7 @@ namespace libcloudphxx
         real_t operator()(const tuple &tup)
         {
           return thrust::get<0>(tup)  *  // n
-                 thrust::get<1>(tup) * real_t(1e9) ;   // chem_mass in ug
+                 thrust::get<1>(tup);    // chem_mass
         }
       };  
   
@@ -169,7 +169,7 @@ namespace libcloudphxx
                   thrust::make_zip_iterator(thrust::make_tuple(
                     n_filtered.begin(), rw2.begin())) + n_part,  // input end
                   detail::count_vol<real_t>(3./2.),              // operation
-                  0,                                             // init val
+                  real_t(0.),                                             // init val
                   thrust::plus<real_t>()
                 );
 
@@ -181,7 +181,7 @@ namespace libcloudphxx
                   thrust::make_zip_iterator(thrust::make_tuple(
                     n_filtered.begin(), rd3.begin())) + n_part,  // input end
                   detail::count_vol<real_t>(1.),                 // operation
-                  0,                                             // init val
+                  real_t(0.),                                             // init val
                   thrust::plus<real_t>()
                 );
 
@@ -195,7 +195,7 @@ namespace libcloudphxx
                       thrust::make_zip_iterator(thrust::make_tuple(
                         n_filtered.end(),   chem_end[i])),           // input end
                       detail::count_mass<real_t>(),                  // operation
-                      0,                                             // init val
+                      real_t(0.),                                             // init val
                       thrust::plus<real_t>()
                     );
               }
