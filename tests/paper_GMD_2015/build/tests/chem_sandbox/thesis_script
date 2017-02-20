@@ -1,4 +1,4 @@
-export OMPNUM_THREADS=1
+export OMP_NUM_THREADS=1
 nohup ./calc_chem ../../ &
 
 ./plot_lgrngn_ch ../../
