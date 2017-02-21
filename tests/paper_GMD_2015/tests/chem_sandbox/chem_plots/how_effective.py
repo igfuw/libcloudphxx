@@ -77,18 +77,27 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
     dn_O3   = (help_dict['O3'][3]    - help_dict['O3'][4]) 
     dn_H2O2 = (help_dict['H2O2'][3]  - help_dict['H2O2'][4]) 
  
+    ini_dry_mass = 4./3 * math.pi * (h5f_ini["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9 # ug/m3 dry air
+    fin_dry_mass = 4./3 * math.pi * (h5f_end["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9 # ug/m3 dry air
+    ini_dry_mass_chem = help_dict['H2SO4'][3] * (cm.M_NH3 + cm.M_H2SO4) / total_vol * 1e9                      # ug/m3 dry air
+
+
     print " "
     print "---------------------- " + case + " ------------------------------"
     print "init. SO2 is depleted by ", (help_dict['SO2'][3] - help_dict['SO2'][4])   / help_dict['SO2'][3]  * 100, "%"
     print "oxidation by O3          ", dn_O3   / dn_S6 * 100, "%"
     print "oxidation by H2O2        ", dn_H2O2 / dn_S6 * 100, "%"
     print " "
-    print "initial mass of S6       ", help_dict['H2SO4'][3] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
-    print "final mass of S6         ", help_dict['H2SO4'][4] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
+    #print "initial mass of S6       ", help_dict['H2SO4'][3] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
+    #print "final mass of S6         ", help_dict['H2SO4'][4] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
+    #print " "
+    #print "increase of mass of S6   ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) * val[1] / total_vol * 1e9, "ug/m3 of dry air"
+    #print "final S6 is increased by ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][4] * 100, "%"
+    print "ini particulate mass (r dry)  ", ini_dry_mass, "ug/m3 dry air"
+    print "ini particulate mass (chem)   ", ini_dry_mass_chem, "ug/m3 dry air"
+    print "fin particulate mass (r_dry)  ", fin_dry_mass, "ug/m3 dry air"
+    print "delta particulate mass        ", fin_dry_mass - ini_dry_mass, "ug/m3 dry air"
     print " "
-    print "increase of mass of S6   ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) * val[1] / total_vol * 1e9, "ug/m3 of dry air"
-    print "final S6 is increased by ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][4] * 100, "%"
-    print " "
-    print "ini particulate mass (r dry) ", 4./3 * math.pi * (h5f_ini["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9, "ug/m3 dry air"
-    print "ini particulate mass (chem)  ", help_dict['H2SO4'][3] * (cm.M_NH3 + cm.M_H2SO4) / total_vol * 1e9, "ug/m3 dry air"
-    print "fin particulate mass (r_dry) ", 4./3 * math.pi * (h5f_end["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9, "ug/m3 dry air"
+    print "init mass [% final mass]      ", ini_dry_mass / fin_dry_mass * 100, "%"
+    print "created mass [% final mass]   ", (fin_dry_mass - ini_dry_mass) / fin_dry_mass * 100, "%"
+
