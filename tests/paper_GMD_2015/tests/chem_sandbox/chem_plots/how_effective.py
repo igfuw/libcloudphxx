@@ -1,8 +1,9 @@
 """
-Prints how effective (in terms of the depleted moles / ug of dry air) was:
-    oxidation in total (looking at the depletes S_IV)
+Prints how effective (in terms of the total depleted moles in the domain) was:
+    oxidation in total (looking at the depleted S_IV and gained S_VI)
     oxidation by H2O2  (looking at the depleted H2O2)
     oxidation by O3    (looking at the depleted O3)
+Prints the initial and final dry particulate mass (total value and in % of the final mass)
 """
 import numpy   as np
 import h5py    as h5
@@ -19,24 +20,23 @@ dir_path = '../../../build/tests/chem_sandbox/'
 for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
 
     # open hdf5 files with data
-    h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000010000.h5', 'r')
-    h5f_end = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')
-    h5f_cst = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')
+    h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000010000.h5', 'r') # model state afer spinup
+    h5f_end = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r') # model state at the end of simulation
+    h5f_cst = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')              # constant dry air density profile
     
     # dry air density
-    rho_d   = h5f_cst["G"][:]
-    # volume of grid cells
-    dv = np.ones(shape=(76,76))
-    dv[0,:]   = 0.5
-    dv[-1,:]  = 0.5
-    dv[:,0]   = 0.5
-    dv[:,-1]  = 0.5
-    dv[0,0]   = 0.25
+    rho_d   = h5f_cst["G"][:]          # Apparently it's important to multiply
+    # volume of grid cells             # by both in order to properly compare the initial 
+    dv = np.ones(shape=(76,76))        # and final mass in the domain.
+    dv[0,:]   = 0.5                    # (The sedimentation process displaces super droplets.
+    dv[-1,:]  = 0.5                    #  The size distribution moments reported from the libcloud
+    dv[:,0]   = 0.5                    #  are divided by grid-cell volume and density.
+    dv[:,-1]  = 0.5                    #  Without taking into account dv and rhod one gets errors ~ 1-10% of the
+    dv[0,0]   = 0.25                   #  total created S_VI)
     dv[-1,-1] = 0.25
     dv[0,-1]  = 0.25
     dv[-1,0]  = 0.25
     dv *= 20.
-   
     # total domain volume 
     total_vol = dv.sum()
 
@@ -53,7 +53,7 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
     # (additionally one could also check state after spinup)
     for key, val in help_dict.iteritems():
      
-        name1 = key + "g"                   # gas phase chem species
+        name1 = key + "g" # gas phase chem species
 
         if key == 'H2SO4':
             name2 = 'chem_S_VI_aq'
@@ -63,7 +63,7 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
             end = (h5f_end[name2][:] * rho_d * dv).sum() / val[1]
 
         else:
-            name2 = "chem_" + val[2] + "_aq"    # aq  phase chem species
+            name2 = "chem_" + val[2] + "_aq" # aq  phase chem species
 
             # total moles 
             ini = (h5f_ini[name1][:] * dv * rho_d).sum() / val[0] + (h5f_ini[name2][:] * dv * rho_d).sum() / val[1]
@@ -72,15 +72,16 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
         val[3] = ini
         val[4] = end
 
+    # changes in moles due to oxidation
     dn_S6   = (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) 
     dn_S4   = (help_dict['SO2'][3]   - help_dict['SO2'][4]) 
     dn_O3   = (help_dict['O3'][3]    - help_dict['O3'][4]) 
     dn_H2O2 = (help_dict['H2O2'][3]  - help_dict['H2O2'][4]) 
  
+    # change in dry particulate matter 
     ini_dry_mass = 4./3 * math.pi * (h5f_ini["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9 # ug/m3 dry air
     fin_dry_mass = 4./3 * math.pi * (h5f_end["rd_rng000_mom3"][:] * dv * rho_d).sum() * 1800 / total_vol * 1e9 # ug/m3 dry air
     ini_dry_mass_chem = help_dict['H2SO4'][3] * (cm.M_NH3 + cm.M_H2SO4) / total_vol * 1e9                      # ug/m3 dry air
-
 
     print " "
     print "---------------------- " + case + " ------------------------------"
@@ -88,11 +89,6 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
     print "oxidation by O3          ", dn_O3   / dn_S6 * 100, "%"
     print "oxidation by H2O2        ", dn_H2O2 / dn_S6 * 100, "%"
     print " "
-    #print "initial mass of S6       ", help_dict['H2SO4'][3] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
-    #print "final mass of S6         ", help_dict['H2SO4'][4] * val[1] / total_vol * 1e9, "ug/m3 of dry air"
-    #print " "
-    #print "increase of mass of S6   ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) * val[1] / total_vol * 1e9, "ug/m3 of dry air"
-    #print "final S6 is increased by ", (help_dict['H2SO4'][4] - help_dict['H2SO4'][3]) / help_dict['H2SO4'][4] * 100, "%"
     print "ini particulate mass (r dry)  ", ini_dry_mass, "ug/m3 dry air"
     print "ini particulate mass (chem)   ", ini_dry_mass_chem, "ug/m3 dry air"
     print "fin particulate mass (r_dry)  ", fin_dry_mass, "ug/m3 dry air"
@@ -100,4 +96,3 @@ for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
     print " "
     print "init mass [% final mass]      ", ini_dry_mass / fin_dry_mass * 100, "%"
     print "created mass [% final mass]   ", (fin_dry_mass - ini_dry_mass) / fin_dry_mass * 100, "%"
-

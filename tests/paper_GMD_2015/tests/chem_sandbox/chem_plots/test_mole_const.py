@@ -16,11 +16,11 @@ dir_path = '../../../build/tests/chem_sandbox/'
 for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
 
     # open hdf5 files with data
-    h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000010000.h5', 'r')
-    h5f_end = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')
-    h5f_cst = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')
+    h5f_ini = h5.File(dir_path + 'out_' + case + '/timestep0000010000.h5', 'r') # model after spinup
+    h5f_end = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r') # model at the end of simulation
+    h5f_cst = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')              # constant rhod 
 
-    # dry air density
+    # dry air density                ... see the comment in "how_effective.py" test
     rho_d   = h5f_cst["G"][:]
     # volume of grid cells
     dv = np.ones(shape=(76,76))
