@@ -45,8 +45,6 @@ int main(int ac, char** av)
 
   {
     string cmn = 
-      //"--outfreq=11800  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      //"--outfreq=200  --dt=1 --nt=200 --spinup=200 --nx=76 --nz=76 --relax_th_rv=false "
       "--outfreq=200 --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false "
       "--backend=CUDA --adv_serial=false --sd_conc=256 --sstp_cond=10 --coal=true --sedi=true "
       "--adve=true --adve_scheme=pred_corr --async=true --rcyc=true "
@@ -65,7 +63,7 @@ int main(int ac, char** av)
 
     string chem_stats =         
         " --out_chem=\""
-          "0.:1.|0;"                 // chem spectrum (dry)
+          "0.:1.|0;"               // chem spectrum (dry)
         "\""
         " --out_wet_pH=\""
           + bins_wet_str +         // spectrum for S_VI and H+ (wet)
@@ -117,7 +115,7 @@ int main(int ac, char** av)
       if (EXIT_SUCCESS != system(cmd.str().c_str()))
         error_macro("model run failed: " << cmd.str())
     }
-/*
+
     // run case2 sumulations (all collision kernels and 5 different random seeds)
     for (const std::string kernel : {"hall", "hall_davis_no_waals", "hall_pinsky_stratocumulus", 
                                      "onishi_hall", "onishi_hall_davis_no_waals", "vohl_davis_no_waals"})
@@ -138,6 +136,6 @@ int main(int ac, char** av)
         if (EXIT_SUCCESS != system(cmd.str().c_str()))
           error_macro("model run failed: " << cmd.str())
       }
-    }*/
+    }
   }
 }
