@@ -9,4 +9,4 @@ python ../../../tests/chem_sandbox/chem_plots/rain_histograms_single.py
 python ../../../tests/chem_sandbox/chem_plots/rain_histograms_all.py
 
 python ../../../tests/chem_sandbox/chem_plots/how_effective.py 
-python ../../../tests/chem_sandbox/chem_plots/test_moles_const.py 
+python ../../../tests/chem_sandbox/chem_plots/test_mole_const.py 
