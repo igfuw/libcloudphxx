@@ -17,12 +17,12 @@ int main(int ac, char** av)
   for (const std::string sim_run :
            {
             "out_case1",
-            "out_case2_hall",
-            "out_case2_hall_davis_no_waals",
-            "out_case2_hall_pinsky_stratocumulus",
-            "out_case2_onishi_hall",
-            "out_case2_onishi_hall_davis_no_waals",
-            "out_case2_vohl_davis_no_waals",
+            "out_case2_hall_42",
+            "out_case2_hall_davis_no_waals_42",
+            "out_case2_hall_pinsky_stratocumulus_42",
+            "out_case2_onishi_hall_42",
+            "out_case2_onishi_hall_davis_no_waals_42",
+            "out_case2_vohl_davis_no_waals_42",
             "out_case_base",
             "out_case1a",
             "out_case3",

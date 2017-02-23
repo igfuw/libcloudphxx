@@ -43,21 +43,21 @@ int main(int ac, char** av)
           {
             auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_SO2<float>() * si::moles / si::kilograms) * 1e9;
             gp << "set title 'SO_{2} conc. [mol/μg of dry air]'\n";
-            //gp << "set cbrange [2.5 : 7.5]\n";
+            gp << "set cbrange [2.5 : 7.5]\n";
             plot(gp, chem);
           }
           else if (plt == "O3g")
           {
             auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_O3<float>() * si::moles / si::kilograms) * 1e9;
             gp << "set title 'trace gas O_{3} conc. [mol/μg of dry air]'\n";
-            //gp << "set cbrange [871.8 : 873.4]\n";
+            gp << "set cbrange [871.8 : 873.4]\n";
             plot(gp, chem);
           }
           else if (plt == "H2O2g") 
           {
             auto chem = h5load(h5, plt, at * n["outfreq"]) / (M_H2O2<float>() * si::moles / si::kilograms) * 1e9;
             gp << "set title 'trace gas H_{2}O_{2} conc. [mol/μg of dry air]'\n";
-            //gp << "set cbrange [0 : 18]\n";
+            gp << "set cbrange [0 : 18]\n";
             plot(gp, chem);
           }
           else if (plt == "CO2g")
