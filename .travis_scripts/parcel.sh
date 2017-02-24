@@ -24,6 +24,7 @@ git clone --depth=1 git://github.com/igfuw/parcel.git
 cd parcel
 mkdir plots/outputs
 py.test -v long_test
+py.test -v unit_test
 cd ..
 
 # make libcloudph++ in Debug mode
@@ -35,7 +36,6 @@ cd ../../
 
 # parcel tests for Debug mode of libcloudph++
 cd parcel
-py.test -v unit_test
 py.test -v unit_test_debug
 
 set +e # see https://github.com/travis-ci/travis-ci/issues/6522
