@@ -12,17 +12,17 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
-  std::string dir = string(av[1]) + "/tests/chem_sandbox/";
+  std::string dir = string(av[1]) + "/thesis_2017/thesis_chap_6/";
 
   for (const std::string sim_run :
            {
             "out_case1",
-            "out_case2_hall",
-            "out_case2_hall_davis_no_waals",
-            "out_case2_hall_pinsky_stratocumulus",
-            "out_case2_onishi_hall",
-            "out_case2_onishi_hall_davis_no_waals",
-            "out_case2_vohl_davis_no_waals",
+            "out_case2_hall_42",
+            "out_case2_hall_davis_no_waals_42",
+            "out_case2_hall_pinsky_stratocumulus_42",
+            "out_case2_onishi_hall_42",
+            "out_case2_onishi_hall_davis_no_waals_42",
+            "out_case2_vohl_davis_no_waals_42",
             "out_case_base",
             "out_case1a",
             "out_case3",
@@ -71,7 +71,10 @@ int main(int ac, char** av)
   	    // cloud particle concentration
   	    auto tmp = 1e-6 * h5load(h5, "rw_rng000_mom0", at * n["outfreq"]);
   	    gp << "set title 'cloud droplet spec. conc. [mg^{-1}]'\n";
-  	    gp << "set cbrange [0:160]\n";
+            if (sim_run == "out_case4" or sim_run == "out_case6")
+  	      gp << "set cbrange [0:160]\n";
+            else
+  	      gp << "set cbrange [0:60]\n";
   	    plot(gp, tmp);
           }
   
@@ -91,7 +94,10 @@ int main(int ac, char** av)
   	    // effective radius
   	    auto r_eff = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) / h5load(h5, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
   	    gp << "set title 'cloud droplet effective radius [μm]'\n"; 
-  	    gp << "set cbrange [1:14]\n";
+            if (sim_run == "out_case4")
+  	      gp << "set cbrange [1:14]\n";
+            else
+              gp << "set cbrange [1:20]\n";
   	    plot(gp, r_eff);
           }
   
@@ -107,7 +113,10 @@ int main(int ac, char** av)
     	      str << "rw_rng" << std::setw(3) << std::setfill('0') << i + 2  << "_mom0";
     	      tmp = tmp + h5load(h5, str.str(), at * n["outfreq"]);
     	    }
-    	    gp << "set cbrange [" << 0 << ":" << 160 << "]\n";
+            if (sim_run == "out_case4" or sim_run == "out_case6")
+    	      gp << "set cbrange [" << 0 << ":" << 160 << "]\n";
+            else
+    	      gp << "set cbrange [" << 0 << ":" << 60 << "]\n";
     	    gp << "set title 'aerosol concentration [mg^{-1}]'\n";
     	    tmp /= 1e6;
     	    plot(gp, tmp);
@@ -117,8 +126,10 @@ int main(int ac, char** av)
           {
             auto r_d = h5load(h5, "rd_rng000_mom1", at * n["outfreq"])/h5load(h5, "rd_rng000_mom0", at * n["outfreq"]) * 1e6;
     	    gp << "set title 'dry radius [μm]'\n"; 
-     	    gp << "set cbrange [0:0.14]\n";
-     	    //gp << "set cbrange [0:0.1]\n";
+            if (sim_run == "out_case4")
+     	      gp << "set cbrange [0:0.1]\n";
+            else
+     	      gp << "set cbrange [0:0.14]\n";
     	    plot(gp, r_d);
           }
   

@@ -20,4 +20,5 @@ if (NOT libcloudphxx_LIBRARIES)
 endif()
 
 add_subdirectory(src) 
-add_subdirectory(tests)
+add_subdirectory(paper_GMD_2015)
+add_subdirectory(thesis_2017)

@@ -45,9 +45,9 @@ int main(int ac, char** av)
 
   {
     string cmn = 
-      //"--outfreq=11800  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false --rng_seed=44 ";
-      "--outfreq=200  --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false  "
-      "--backend=CUDA --adv_serial=False --sd_conc=256 --sstp_cond=10 --coal=True --sedi=True "
+      "--outfreq=200 --dt=1 --nt=11800 --spinup=10000 --nx=76 --nz=76 --relax_th_rv=false "
+      "--backend=CUDA --adv_serial=false --sd_conc=256 --sstp_cond=10 --coal=true --sedi=true "
+      "--adve=true --adve_scheme=pred_corr --async=true --rcyc=true "
       "--w_max=.6 --terminal_velocity=beard77fast ";
 
     string stats =         
@@ -57,13 +57,13 @@ int main(int ac, char** av)
           + bins_wet_str_2 +       // aerosol spectrum (wet)
         "\""
         " --out_dry=\""
-          "0.:1.|0,1;"
+          "0.:1.|0,1,3;"
           + bins_dry_str +         // aerosol spectrum (dry)
         "\"";
 
     string chem_stats =         
         " --out_chem=\""
-          "0:1|0;"                 // chem spectrum (dry)
+          "0.:1.|0;"               // chem spectrum (dry)
         "\""
         " --out_wet_pH=\""
           + bins_wet_str +         // spectrum for S_VI and H+ (wet)
@@ -75,14 +75,14 @@ int main(int ac, char** av)
     string size4 = "--mean_rd1=0.05e-6 --sdev_rd1=1.8 --n1_stp=0     --mean_rd2=0.1e-6 --sdev_rd2=1.5 --n2_stp=150e6 ";
 
     //chem_rct switched on afetr spinup in set_chem 
-    string chem_cmn = "--micro=lgrngn_chem --kernel=hall_pinsky_stratocumulus --rng_seed=13 "
-                      "--chem_switch=True --chem_dsl=True --chem_dsc=True --chem_rho=1.8e3 --sstp_chem=10 ";
+    string chem_cmn = "--micro=lgrngn_chem --kernel=hall_pinsky_stratocumulus --rng_seed=42 "
+                      "--chem_switch=true --chem_dsl=true --chem_dsc=true --chem_rho=1.8e3 --sstp_chem=10 ";
 
     string ch_ini_base   = "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 ";
     string ch_ini_case3  = "--SO2_g_0=.2e-9 --O3_g_0=25e-9 --H2O2_g_0=.4e-9 --CO2_g_0=360e-6 --NH3_g_0=.4e-9 --HNO3_g_0=.1e-9 ";
     string ch_ini_case1a = "--SO2_g_0=.2e-9 --O3_g_0=0     --H2O2_g_0=0     --CO2_g_0=360e-6 --NH3_g_0=.1e-9 --HNO3_g_0=.1e-9 ";
 
-    string case1   = "--micro=lgrngn --outdir=out_case1 --kernel=hall_pinsky_stratocumulus --rng_seed=13 ";
+    string case1   = "--micro=lgrngn --outdir=out_case1 --kernel=hall_pinsky_stratocumulus --rng_seed=42 ";
     string case1a  = "--outdir=out_case1a ";
     string caseb   = "--outdir=out_case_base ";
     string case3   = "--outdir=out_case3 ";
@@ -91,12 +91,12 @@ int main(int ac, char** av)
     string case6   = "--outdir=out_case6_no_coll_no_sedi ";
 
     set<string> opts_micro({
-        //cmn + " " + case1  + " " + stats + " " + size1,                                                           // case1
-        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_base   + " " + caseb,  // case base
-        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_case1a + " " + case1a, // case1a
-        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_case3  + " " + case3,  // case3
-        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size2 + " " + ch_ini_base   + " " + case4,  // case4
-        //cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size3 + " " + ch_ini_base   + " " + case5,  // case5
+        cmn + " " + case1  + " " + stats + " " + size1,                                                           // case1
+        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_base   + " " + caseb,  // case base
+        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_case1a + " " + case1a, // case1a
+        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size1 + " " + ch_ini_case3  + " " + case3,  // case3
+        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size2 + " " + ch_ini_base   + " " + case4,  // case4
+        cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size3 + " " + ch_ini_base   + " " + case5,  // case5
         cmn + " " + chem_cmn + " " + stats + " " + chem_stats + " " + size4 + " " + ch_ini_base   + " " + case6   // case6
     });
 
