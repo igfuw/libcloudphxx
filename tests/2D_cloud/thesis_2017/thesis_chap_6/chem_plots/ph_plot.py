@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
     # path to build directory with data and plots
-    dir_path = '../../../build/tests/chem_sandbox/'
+    dir_path = '../../../build/thesis_2017/thesis_chap_6/'
 
     # read in the data
     data = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')

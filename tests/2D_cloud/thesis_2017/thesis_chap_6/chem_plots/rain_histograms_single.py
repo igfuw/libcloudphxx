@@ -26,7 +26,7 @@ num_dry   = dry_edges.size - 1
 num_wet   = wet_edges.size - 1
 
 # path to directory with data
-dir_path = '../../../build/tests/chem_sandbox/'
+dir_path = '../../../build/thesis_2017/thesis_chap_6/'
 
 # loop for case with and without aqueous chemistry
 for case in ['case1', 'case_base', 'case3', 'case4', 'case5', 'case6']:
