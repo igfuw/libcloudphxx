@@ -21,6 +21,7 @@ int main(int ac, char** av)
   }
   //read rhod
   blitz::Array<float, 2> rhod(h5load(filename, "G", 0, false));
+
   std::map<std::string, int> n({{"x", 15},{"z", 15}});
 
   Gnuplot gp;
