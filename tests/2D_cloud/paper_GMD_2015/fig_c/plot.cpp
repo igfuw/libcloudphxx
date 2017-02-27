@@ -6,7 +6,7 @@
 int main(int ac, char** av)
 {
   //read w_max, X and Z
-  std::string filename = string(av[1]) + "/tests/fig_a/out_lgrngn/const.h5";
+  std::string filename = string(av[1]) + "/paper_GMD_2015/fig_a/out_lgrngn/const.h5";
   H5::H5File h5f(filename, H5F_ACC_RDONLY);
   auto h5_group = h5f.openGroup("/");
   auto h5_data  = h5f.openDataSet("G");
@@ -21,11 +21,13 @@ int main(int ac, char** av)
   }
   //read rhod
   blitz::Array<float, 2> rhod(h5load(filename, "G", 0, false));
-
+ 
   std::map<std::string, int> n({{"x", 15},{"z", 15}});
 
   Gnuplot gp;
-  init(gp, "./plot.svg", 1, 1, n);
+  std::cerr<<"AQQ"<<std::endl;
+  init(gp, string(av[1]) + "/paper_GMD_2015/fig_c/plot.svg", 1, 1, n);
+  std::cerr<<"BQQ"<<std::endl;
 
   float dx = X / (n["x"]-1), dz = Z / (n["z"]-1);
 

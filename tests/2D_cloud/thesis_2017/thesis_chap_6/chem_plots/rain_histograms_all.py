@@ -6,7 +6,7 @@ import sys
 import os
 
 # path to build directory with data
-dir_path = '../../../build/tests/chem_sandbox/'
+dir_path = '../../../build/thesis_2017/thesis_chap_6/'
 
 # all the collision kernels
 kernels = { "hall_pinsky_stratocumulus",

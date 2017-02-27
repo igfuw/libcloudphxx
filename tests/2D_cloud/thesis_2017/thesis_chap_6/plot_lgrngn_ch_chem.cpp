@@ -12,7 +12,7 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
-  std::string dir = string(av[1]) + "/tests/chem_sandbox/";
+  std::string dir = string(av[1]) + "/thesis_2017/thesis_chap_6/";
 
   for (const std::string sim_run :
            {
