@@ -27,6 +27,9 @@ class kin_cloud_2d_common : public
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
 
+  // file to store puddle TODO: save it in hdf5
+  std::ofstream f_puddle;
+
   void hook_ante_loop(int nt) 
   {
     if (get_rain() == false) 
@@ -37,6 +40,10 @@ class kin_cloud_2d_common : public
     if (spinup > 0){
        set_rain(false);
     }
+
+    // open file for output of puddle
+    if(this->rank==0)
+      f_puddle.open(this->outdir+"/puddle.dat");
 
     parent_t::hook_ante_loop(nt); 
   }
