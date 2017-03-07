@@ -2,6 +2,7 @@
 
 #include <libmpdata++/solvers/mpdata_rhs.hpp>
 #include <libmpdata++/output/hdf5.hpp>
+#include <fstream>
 
 using namespace libmpdataxx; // TODO: get rid of it?
 

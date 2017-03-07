@@ -42,9 +42,9 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     auto puddle = prtcls->diag_puddle();
     for(auto elem : puddle)
     {   
-       f_puddle << elem.first << " " << elem.second << "\n";
+       this->f_puddle << elem.first << " " << elem.second << "\n";
     }   
-    f_puddle << "\n";
+    this->f_puddle << "\n";
 
    
     // recording requested statistical moments
