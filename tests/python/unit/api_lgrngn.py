@@ -111,14 +111,15 @@ try:
   raise Exception("sync/async order mismatch not reported!")
 except:
   pass
-rain = prtcls.step_async(opts)
+prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
-
+puddle = diag_puddle()
+print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
