@@ -118,7 +118,7 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
-puddle = diag_puddle()
+puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
 prtcls.diag_sd_conc()
