@@ -115,6 +115,7 @@ int main(int ac, char** av)
       if (EXIT_SUCCESS != system(cmd.str().c_str()))
         error_macro("model run failed: " << cmd.str())
     }
+
     // run case2 sumulations (all collision kernels and 5 different random seeds)
     for (const std::string kernel : {"hall", "hall_davis_no_waals", "hall_pinsky_stratocumulus", 
                                      "onishi_hall", "onishi_hall_davis_no_waals", "vohl_davis_no_waals"})

@@ -217,8 +217,6 @@ namespace libcloudphxx
       #pragma omp declare reduction(PuddleAdd: std::map<output_t, real_t>: \
       omp_out=add_puddle(omp_out, omp_in)) initializer( \
       omp_priv= detail::empty_out_map<real_t>() )
-// { {outHNO3, 0.}, {outNH3, 0.}, {outCO2, 0.}, {outSO2, 0.}, {outH2O2, 0.}, {outO3, 0.}, \
-//        {outS_VI, 0.}, {outH, 0.}, {outliq_vol, 0.}, {outdry_vol, 0.} } )
 
       std::map<output_t, real_t> res = detail::empty_out_map<real_t>();
 

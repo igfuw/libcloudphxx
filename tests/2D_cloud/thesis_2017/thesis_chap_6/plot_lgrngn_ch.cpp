@@ -27,8 +27,12 @@ int main(int ac, char** av)
             "out_case1a",
             "out_case3",
             "out_case4",
-            "out_case5",
-            "out_case6"
+            "out_case5", 
+            //"out_case6_no_coll_no_sedi",
+            //"out_case6_no_sedi",
+            //"out_case6_no_coll_no_sedi_rcyc",
+            //"out_case6"
+            "out_case6_yes_coll_yes_sedi_yes_react_no_cloud"
            })
 
   {
@@ -50,7 +54,7 @@ int main(int ac, char** av)
   	    //                                                         rho_w  kg2g
   	    auto tmp = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
   	    gp << "set title 'cloud water mixing ratio [g/kg]'\n";
-  	    gp << "set cbrange [0:1.6]\n";
+  	    //gp << "set cbrange [0:1.6]\n";
   	    plot(gp, tmp);
           }
   
@@ -61,7 +65,7 @@ int main(int ac, char** av)
   	    auto tmp = h5load(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
   	    gp << "set logscale cb\n";
   	    gp << "set title 'rain water mixing ratio [g/kg]'\n";
-  	    gp << "set cbrange [1e-2:1]\n";
+  	    //gp << "set cbrange [1e-2:1]\n";
   	    plot(gp, tmp);
   	    gp << "unset logscale cb\n";
           }
@@ -83,7 +87,7 @@ int main(int ac, char** av)
   	    // rain particle concentration
   	    auto tmp = 1e-6 * h5load(h5, "rw_rng001_mom0", at * n["outfreq"]);
   	    gp << "set title 'rain drop spec. conc. [mg^{-1}]'\n";
-  	    gp << "set cbrange [.01:10]\n";
+  	    //gp << "set cbrange [.01:10]\n";
   	    gp << "set logscale cb\n";
   	    plot(gp, tmp);
   	    gp << "unset logscale cb\n";
@@ -138,7 +142,7 @@ int main(int ac, char** av)
             // super-droplet concentration
             auto sd_conc = h5load(h5, "sd_conc", at * n["outfreq"]);
             gp << "set title 'super-droplet concentration [dv-1]'\n";
-            gp << "set cbrange [0:256]\n";
+            //gp << "set cbrange [0:256]\n";
             plot(gp, sd_conc);
           }
     
@@ -146,7 +150,7 @@ int main(int ac, char** av)
           {
             auto th = h5load(h5, "th", at * n["outfreq"]);
             gp << "set title 'potential temperature [K]'\n";
-            gp << "set cbrange [289.5:292.5]\n";
+            //gp << "set cbrange [289.5:292.5]\n";
             plot(gp, th);
           }
   
@@ -154,7 +158,7 @@ int main(int ac, char** av)
           {
             auto rv = h5load(h5, "rv", at * n["outfreq"]) * 1000;
             gp << "set title 'water vapour mixing ratio [g/kg]'\n";
-            gp << "set cbrange [6.5:7.5]\n";
+            //gp << "set cbrange [6.5:7.5]\n";
             plot(gp, rv);
           }
   

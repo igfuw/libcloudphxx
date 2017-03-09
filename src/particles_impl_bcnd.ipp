@@ -50,8 +50,8 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const tuple &tup)
         {
-          return thrust::get<0>(tup) *  // n
-                 thrust::get<1>(tup);   // radius at some power
+          return thrust::get<0>(tup)  *  // n
+                 thrust::get<1>(tup);    // chem_mass
         }
       };  
   
@@ -157,7 +157,7 @@ namespace libcloudphxx
                 n.begin(), n.end(),               // input 1
                 z.begin(),                        // stencil
                 n_filtered.begin(),               // output
-                thrust::identity<n_t>(),               // operation
+                thrust::identity<n_t>(),          // operation
                 arg::_1 < opts_init.z0            // condition
               );
 
