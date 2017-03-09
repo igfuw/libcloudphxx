@@ -193,7 +193,7 @@ namespace libcloudphxx
                       thrust::make_zip_iterator(thrust::make_tuple(
                         n_filtered.begin(), chem_bgn[i])),           // input start
                       thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.begin(), chem_end[i])) + n_part,  // input end
+                        n_filtered.end(), chem_end[i])),             // input end
                       detail::count_mass<real_t>(),                  // operation
                       real_t(0),                                     // init val
                       thrust::plus<real_t>()

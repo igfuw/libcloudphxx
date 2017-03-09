@@ -470,7 +470,7 @@ namespace libcloudphxx
       pimpl->sanity_checks();
 
       // init output map to 0
-      for(int i=0; i<= chem_all+2; ++i)
+      for(int i=0; i < chem_all+2; ++i)
         pimpl->output_puddle[static_cast<output_t>(i)] = 0.;
     }
 
