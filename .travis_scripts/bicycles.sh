@@ -34,7 +34,7 @@ cd ../../..
 
 ## bicycles
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
-git clone --depth=1 git://github.com/igfuw/bicycles.git
+git clone --depth=1 --branch=updated_api git://github.com/igfuw/bicycles.git
 cd bicycles
 mkdir build
 cd build
