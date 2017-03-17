@@ -30,7 +30,7 @@ matrix:
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
 # cuda 8 installation from https://github.com/tmcdonell/cuda/
     - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
