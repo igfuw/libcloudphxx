@@ -48,10 +48,12 @@ target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    from distutils import sysconfig as sc
-    print(sc.get_python_lib(prefix='', plat_specific=True))"
+    import sysconfig as sc
+    print(sc.get_path('platlib'))"
   OUTPUT_VARIABLE PYTHON_SITE_DIR
   OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+message(${PYTHON_SITE_DIR})
 
 install ( TARGETS cloudphxx
    LIBRARY
