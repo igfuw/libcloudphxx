@@ -41,11 +41,13 @@ else()
   endif()
 endif()
 
-# ... where to find libclouph++
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-# installation (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
+#to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
     import sysconfig as sc
@@ -53,7 +55,6 @@ execute_process(
   OUTPUT_VARIABLE PYTHON_SITE_DIR
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-message(${PYTHON_SITE_DIR})
 
 install ( TARGETS cloudphxx
    LIBRARY

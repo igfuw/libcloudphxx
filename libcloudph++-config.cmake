@@ -47,7 +47,8 @@ endif()
 # Boost libraries
 find_package(Boost)
 if(Boost_FOUND)
-  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
+#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
+#  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
   set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
 else()
 #TODO: check separately for optional and mandatory components
