@@ -17,10 +17,10 @@ namespace libcloudphxx
     {
       // TODO: loop over size-number map for first kappa (as of now, there cant be more than 1 kappa in this case)
       typename opts_init_t<real_t>::dry_sizes_t::mapped_type &size_number_map(opts_init.dry_sizes.begin()->second);
-printf("dry_sizes kappa: %g\n", opts_init.dry_sizes.begin()->first);
+printf("dry_sizes kappa: %lf\n", opts_init.dry_sizes.begin()->first);
       for (typename opts_init_t<real_t>::dry_sizes_t::mapped_type::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
       {
-printf("dry_sizes: %g %g\n", sni->first, sni->second);
+printf("dry_sizes: %lf %lf\n", sni->first, sni->second);
         // init number of SDs of this kappa in cells
         init_count_num_dry_sizes(sni->second);
   

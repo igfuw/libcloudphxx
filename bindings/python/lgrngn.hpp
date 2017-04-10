@@ -183,9 +183,6 @@ namespace libcloudphxx
 	const bp::dict &kappa_func
       )
       {
-        arg->dry_sizes.clear();
-        if(len(kappa_func.keys()) == 0)
-          return;
         // TODO: loop over kappas (right now only one possible)
         const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[0]);
         std::map<real_t, real_t> size_conc_map;
@@ -198,6 +195,7 @@ namespace libcloudphxx
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] << std::endl;;
         }
         const real_t kappa = bp::extract<real_t>(kappa_func.keys()[0]);
+        arg->dry_sizes.clear();
         arg->dry_sizes[kappa] = size_conc_map;
       }
 
