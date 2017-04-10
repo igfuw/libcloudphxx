@@ -41,13 +41,13 @@ namespace libcloudphxx
       if(glob_opts_init.dev_count > 0)
       {
         if(dev_count < glob_opts_init.dev_count)
-          throw std::runtime_error("number of available GPUs smaller than number of GPUs defined in opts_init");
+          throw std::runtime_error(detail::formatter() << "number of available GPUs (" << dev_count << ") smaller than number of GPUs defined in opts_init ("<< glob_opts_init.dev_count << ")");
         else 
           dev_count = glob_opts_init.dev_count;
       }
 
       if(dev_count > glob_opts_init.nx)
-        throw std::runtime_error("Number of CUDA devices used is greater than nx.");
+        throw std::runtime_error("Number of CUDA devices (" << dev_count << ") used is greater than nx (" << glob_opts_init.nx <<")");
 
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
