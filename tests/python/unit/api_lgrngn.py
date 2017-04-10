@@ -25,7 +25,7 @@ opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.adve_scheme = lgrngn.as_t.euler
 opts_init.dt = 1
 opts_init.sd_conc = 64
-opts_init.n_sd_max = 512 + 124 # some space for tail SDs
+opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
@@ -141,10 +141,10 @@ assert sum(frombuffer(prtcls.outbuf())) >= opts_init.sd_conc
 
 # 0D const multi - number of SDs and number of particles
 print "0D const multi"
+sd_conc_old = opts_init.sd_conc
 opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
-opts_init.n_sd_max = int(prtcls_per_cell / opts_init.sd_const_multi)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
@@ -163,14 +163,17 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi)
+opts_init.sd_const_multi = 0
+opts_init.sd_conc = sd_conc_old
 
 # 0D dry_sizes init
 print "0D dry sizes"
 opts_init.dry_distros = dict()
 opts_init.dry_sizes = {kappa1 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
 
+sd_conc_old = opts_init.sd_conc
+opts_init.sd_conc = 0
 opts_init.sd_const_multi = 1
-opts_init.n_sd_max = int(40)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
@@ -195,7 +198,9 @@ prtcls.diag_wet_mom(0)
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) == 10 ).all()
 
-# go back got distros init
+# go back to distros init
+opts_init.sd_const_multi = 0
+opts_init.sd_conc = sd_conc_old
 opts_init.dry_sizes = dict()
 opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 
@@ -364,7 +369,6 @@ opts_init.dry_distros = dict()
 opts_init.dry_sizes = {kappa1 : {1.e-6 : 30./ cell_vol * rho_stp, 15.e-6 : 10. / cell_vol * rho_stp}}
 
 opts_init.sd_const_multi = 1
-opts_init.n_sd_max = int(n_cell * 40)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
