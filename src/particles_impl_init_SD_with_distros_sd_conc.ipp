@@ -19,7 +19,7 @@ namespace libcloudphxx
           opts_init.sd_conc
         );
       if(log_rd_min >= log_rd_max)
-        throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
+        throw std::runtime_error(detail::formatter() << "Distribution analysis error: rd_min(" << exp(log_rd_min) << ") >= rd_max(" << exp(log_rd_max) << ")");
       
       // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
         // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
