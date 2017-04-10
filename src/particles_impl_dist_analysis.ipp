@@ -47,9 +47,9 @@ namespace libcloudphxx
           n_max = (*n_of_lnrd_stp)(log_rd_max) * multiplier;
 
         if (rd_min == config.rd_min_init && n_min != 0)
-          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_min_init");
+          throw std::runtime_error(detail::formatter() << "Initial dry radii distribution is non-zero (" << n_min << ") for rd_min_init (" << config.rd_min_init <<")");
         if (rd_max == config.rd_max_init && n_max != 0)
-          throw std::runtime_error("Initial dry radii distribution is non-zero for rd_max_init");
+          throw std::runtime_error(detail::formatter() << "Initial dry radii distribution is non-zero (" << n_max << ") for rd_max_init (" << config.rd_max_init <<")");
 
         if      (n_min == 0) rd_min *= 1.01;
         else if (n_max == 0) rd_max /= 1.01;
