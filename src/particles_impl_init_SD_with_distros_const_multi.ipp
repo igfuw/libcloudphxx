@@ -35,7 +35,7 @@ namespace libcloudphxx
       init_dry_const_multi(fun);
   
       // init multiplicities
-      init_n_const_multi(); 
+      init_n_const_multi(opts_init.sd_const_multi); 
     }
   };
 };

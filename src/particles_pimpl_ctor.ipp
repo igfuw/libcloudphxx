@@ -136,6 +136,8 @@ namespace libcloudphxx
 
       // true if coalescence timestep has to be reduced, accesible from both device and host code
       bool *increase_sstp_coal;
+      // is it a pure const_multi run, i.e. no sd_conc
+      bool pure_const_multi;
 
       // are count_num and count_ijk up to date
       bool counted;
@@ -262,7 +264,8 @@ namespace libcloudphxx
         halo_y((opts_init.ny + 1) * opts_init.nz), // 3D
         halo_z( 
           n_dims == 2 ? opts_init.nz + 1:      // 2D
-            (opts_init.nz + 1) * opts_init.ny) // 3D
+            (opts_init.nz + 1) * opts_init.ny),// 3D
+        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -335,7 +338,6 @@ namespace libcloudphxx
       void init_n_sd_conc(
         const common::unary_function<real_t> *n_of_lnrd
       );
-      void init_n_const_multi();
       void init_n_const_multi(const thrust_size_t &);
 
       void dist_analysis_sd_conc(

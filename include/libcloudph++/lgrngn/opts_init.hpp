@@ -60,6 +60,9 @@ namespace libcloudphxx
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       int sd_const_multi;
 
+      // const multiplicity of SDs initialized from a dry_sizes map
+      int sd_const_multi_dry_sizes;
+
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
       unsigned long long n_sd_max; 
@@ -118,6 +121,7 @@ namespace libcloudphxx
         sd_conc(0), 
         sd_conc_large_tail(false), 
         sd_const_multi(0),
+        sd_const_multi_dry_sizes(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         supstp_src(1),

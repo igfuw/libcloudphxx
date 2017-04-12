@@ -45,7 +45,7 @@ namespace libcloudphxx
       if (n_flagged == 0) return 0;
       n_to_rcyc = n_flagged;
 
-      if(opts_init.sd_const_multi > 0) // remove particles if using const_multi
+      if(pure_const_multi) // remove particles if using const_multi, TODO: what if a mixed run, but const_multi prtcls have higher multiplicity? - they will be split
       {
         hskpng_remove_n0();
         return n_flagged;

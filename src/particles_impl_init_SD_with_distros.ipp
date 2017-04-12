@@ -40,7 +40,7 @@ namespace libcloudphxx
             init_SD_with_distros_finalize(ddi->first);
           }
         }
-        else if(opts_init.sd_const_multi > 0)
+        if(opts_init.sd_const_multi > 0)
         {
           init_SD_with_distros_const_multi(ddi->second);
           init_SD_with_distros_finalize(ddi->first);

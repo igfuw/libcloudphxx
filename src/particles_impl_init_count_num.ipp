@@ -61,7 +61,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const real_t &conc)
     {
-      init_count_num_hlpr(conc, opts_init.sd_const_multi);
+      init_count_num_hlpr(conc, opts_init.sd_const_multi_dry_sizes);
     }
 
     template <typename real_t, backend_t device>
