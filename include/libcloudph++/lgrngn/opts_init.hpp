@@ -34,7 +34,7 @@ namespace libcloudphxx
       // defined with a size-number pair
       typedef std::map<
         real_t,                // kappa
-        std::map<real_t, real_t> // radius-STP_concentration pair
+        std::map<real_t, real_t> // radius-STP_concentration pair (1/m^3)
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
 
