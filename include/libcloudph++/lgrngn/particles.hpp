@@ -137,7 +137,7 @@ namespace libcloudphxx
       real_t *outbuf();
 
       struct impl;
-      std::auto_ptr<impl> pimpl;
+      std::unique_ptr<impl> pimpl;
 
       // constructor
       particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot = 0); // n_x_bfr should have default=0, but python bindings fail if more than one default value...
