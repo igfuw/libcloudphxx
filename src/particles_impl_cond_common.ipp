@@ -164,6 +164,26 @@ namespace libcloudphxx
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
+#if !defined(NDEBUG)
+          if(isnan(drw2) || isinf(drw2))
+          {
+            printf("nan/inf drw2 in cond: %g",drw2);
+            printf("rw2_old: %g",rw2_old);
+            printf("dt: %g",dt);
+            printf("RH_max: %g",RH_max);
+            printf("rhod: %g",thrust::get<0>(tpl));
+            printf("rv: %g",thrust::get<1>(tpl));
+            printf("T: %g",thrust::get<2>(tpl));
+            printf("p: %g",thrust::get<3>(tpl));
+            printf("RH: %g",thrust::get<4>(tpl));
+            printf("eta: %g",thrust::get<5>(tpl));
+            printf("rd3: %g",thrust::get<6>(tpl));
+            printf("kpa: %g",thrust::get<7>(tpl));
+            printf("vt: %g",thrust::get<8>(tpl));
+            assert(0);
+          }
+#endif
+
           if (drw2 == 0) return rw2_old;
 
           const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
@@ -188,12 +208,27 @@ namespace libcloudphxx
             fb = drw2; // for implicit Euler its equal to min_fun(x_old) 
           }
 
+
           // root-finding ill posed => explicit Euler 
           if (fa * fb > 0) return rw2_old + drw2;
 
           // otherwise implicit Euler
           uintmax_t n_iter = config.n_iter;
+#if defined(NDEBUG)
           return common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
+#else
+          real_t root = common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
+          if(isnan(root) || isinf(root))
+          {
+            printf("nan/inf root in cond: %g",root);
+            printf("a: %g",a);
+            printf("b: %g",b);
+            printf("fa: %g",fa);
+            printf("fb: %g",fb);
+            assert(0);
+          }
+          
+#endif
         }
       };
     };

@@ -39,6 +39,7 @@ namespace libcloudphxx
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
+      nancheck(drv, "update_th_rv: input drv");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
       thrust::transform(
@@ -60,6 +61,7 @@ namespace libcloudphxx
         thrust::plus<real_t>() 
       );
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+      nancheck(rv, "update_th_rv: rv after update");
 
       // updating th
       {
@@ -84,6 +86,7 @@ namespace libcloudphxx
           thrust::plus<real_t>()
         );
       }
+      nancheck(th, "update_th_rv: th after update");
     }
 
     // update particle-specific cell state
