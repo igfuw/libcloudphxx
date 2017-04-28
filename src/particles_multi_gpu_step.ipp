@@ -53,7 +53,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
-    real_t particles_t<real_t, multi_CUDA>::step_async(
+    void particles_t<real_t, multi_CUDA>::step_async(
       const opts_t<real_t> &opts
     )
     {
@@ -67,14 +67,13 @@ namespace libcloudphxx
       cudaStream_t streams[glob_opts_init.dev_count];
       cudaEvent_t events[glob_opts_init.dev_count];
 
-      real_t res = 0.;
-      #pragma omp parallel reduction(+:res) num_threads(glob_opts_init.dev_count)
+      #pragma omp parallel num_threads(glob_opts_init.dev_count)
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
 
         // do step async on each device
-        res = particles[dev_id].step_async(opts);
+        particles[dev_id].step_async(opts);
 
         // --- copy advected SDs to other devices ---
         if(opts.adve && glob_opts_init.dev_count>1)
@@ -295,7 +294,6 @@ namespace libcloudphxx
         if(glob_opts_init.dev_count>1)
           particles[dev_id].pimpl->step_finalize(opts);
       }
-      return res;
     }
   };
 };

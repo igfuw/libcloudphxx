@@ -93,7 +93,7 @@ add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
     h5diff --relative=1e-9  -v2 $dir/timestep0000000000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000000000.h5  /th  &&
     echo 'comparing timestep0000009000.h5'                                                                                     &&
     h5diff --relative=0.02  -v2 $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rv  &&
-    h5diff --delta=8e-6     -v2 $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
+    h5diff --delta=12e-6     -v2 $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rr  &&
     h5diff --delta=4e-6     -v2 $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /rc  &&
     h5diff --delta=0.4      -v2 $dir/timestep0000009000.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/timestep0000009000.h5  /th  || exit 1;
   done  

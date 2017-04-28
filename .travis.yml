@@ -1,4 +1,10 @@
+#TODO: container based build
+#      getting g++-4.9 in container build: http://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler/32127147#32127147
+
 language: cpp
+dist: trusty
+sudo: required
+
 os: 
     - linux
     - osx
@@ -23,16 +29,30 @@ matrix:
           env: TEST_SUITE=bicycles # bicycles is not tested on clang yet
 
 before_install:
+# to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
+# cuda 8 installation from https://github.com/tmcdonell/cuda/
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo $apt_get_install clang; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo $apt_get_install g++  ; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -y  g++-4.9  ; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
-    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo $apt_get_install nvidia-cuda-toolkit; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
+#TODO: install only required parts of the toolkit to save time
+#    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda-8.0; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
+
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi # get boost odeint > 1.58
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi

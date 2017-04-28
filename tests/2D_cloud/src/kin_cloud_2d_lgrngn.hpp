@@ -37,6 +37,15 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     // recording super-droplet concentration per grid cell 
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc", prtcls->outbuf());
+
+    // recording what fell out
+    auto puddle = prtcls->diag_puddle();
+    for(auto elem : puddle)
+    {   
+       this->f_puddle << elem.first << " " << elem.second << "\n";
+    }   
+    this->f_puddle << "\n";
+
    
     // recording requested statistical moments
     {
@@ -201,7 +210,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
   }
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<real_t> ftr;
+  std::future<void> ftr;
 #endif
 
   // 
