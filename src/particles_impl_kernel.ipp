@@ -146,7 +146,7 @@ namespace libcloudphxx
         real_t res = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
 
         real_t r_L = max(sqrt(thrust::get<rw2_a_ix>(tpl_wrap.get_rw())), sqrt(thrust::get<rw2_b_ix>(tpl_wrap.get_rw())));
-        if(r_L < 5.e-6)
+        if(r_L < 50.e-6)
         {
           real_t r_s = min(sqrt(thrust::get<rw2_a_ix>(tpl_wrap.get_rw())), sqrt(thrust::get<rw2_b_ix>(tpl_wrap.get_rw())));
           if(r_s <= 3e-6)
