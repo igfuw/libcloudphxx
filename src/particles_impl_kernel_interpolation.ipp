@@ -6,7 +6,7 @@ namespace libcloudphxx
   {
     template <typename real_t, typename n_t>
     BOOST_GPU_ENABLED
-    real_t kernel_geometric<real_t, n_t>::interpolated_efficiency(real_t r1, real_t r2) const //radii in meters
+    real_t kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency(real_t r1, real_t r2) const //radii in meters
     {
       r1*=1e6; r2*=1e6; // to work on micrometers
 
@@ -44,10 +44,10 @@ namespace libcloudphxx
 
       thrust_size_t iv[4];     // kernel_parameters vector indices of the four neighbouring efficiencies
 
-      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
-      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]), kernel_base<real_t, n_t>::n_user_params);
-      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
-      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]), kernel_base<real_t, n_t>::n_user_params);
+      iv[0] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[2]));
+      iv[1] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[2]));
+      iv[2] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[0]), detail::kernel_index<n_t>(x[3]));
+      iv[3] = detail::kernel_vector_index<n_t>(detail::kernel_index<n_t>(x[1]), detail::kernel_index<n_t>(x[3]));
 
       real_t w[4];   //  weighting factors
       w[0] = r1 - x[0];
