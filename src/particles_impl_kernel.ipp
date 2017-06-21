@@ -18,7 +18,7 @@ namespace libcloudphxx
       thrust_device::pointer<real_t> k_params;
    
       //ctor
-      kernel_base(thrust_device::pointer<real_t> k_params) : 
+      kernel_base(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>()) : 
         k_params(k_params) {}
 
       BOOST_GPU_ENABLED
@@ -47,14 +47,14 @@ namespace libcloudphxx
         thrust_device::pointer<real_t> k_coll_eff,
         real_t r_max,
         thrust_device::pointer<real_t> k_coll_eff_rad = thrust_device::pointer<real_t>(),
-        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>(),
+        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>()
       ) : 
         k_coll_eff(k_coll_eff), r_max(r_max), k_coll_eff_rad(k_coll_eff_rad), k_coll_eff_rat(k_coll_eff_rat){}
 
       //bilinear interpolation of collision efficiencies
       BOOST_GPU_ENABLED
       real_t interpolated_efficiency(real_t, real_t) const;
-    }
+    };
 
 
     //Golovin kernel
@@ -99,8 +99,7 @@ namespace libcloudphxx
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>()) : 
-        kernel_base<real_t, n_t>(k_params) {}
+      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>()) : kernel_base<real_t, n_t>(k_params) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -185,10 +184,9 @@ namespace libcloudphxx
     {
       //ctor
       kernel_geometric_with_efficiencies(
-        thrust_device::pointer<real_t> k_params, 
         thrust_device::pointer<real_t> k_coll_eff, 
-        thrust real_t r_max
-      ) : kernel_geometric<real_t, n_t>(k_params), kernel_with_efficiencies(k_coll_eff, r_max) {}
+        real_t r_max
+      ) : kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -220,8 +218,8 @@ namespace libcloudphxx
       kernel_onishi(
         thrust_device::pointer<real_t> k_params, 
         thrust_device::pointer<real_t> k_coll_eff, 
-        thrust real_t r_max
-      ) : kernel_geometric<real_t, n_t>(k_params), kernel_with_efficiencies(k_coll_eff, r_max) {}
+        real_t r_max
+      ) : kernel_geometric<real_t, n_t>(k_params), kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const

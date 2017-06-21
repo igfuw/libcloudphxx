@@ -10,10 +10,10 @@ namespace libcloudphxx
     {
       r1*=1e6; r2*=1e6; // to work on micrometers
 
-      if(r1 >= kernel_base<real_t, n_t>::r_max) 
-        r1 = kernel_base<real_t, n_t>::r_max - 1e-6;
-      if(r2 >= kernel_base<real_t, n_t>::r_max) 
-        r2 = kernel_base<real_t, n_t>::r_max - 1e-6; 
+      if(r1 >= r_max) 
+        r1 = r_max - 1e-6;
+      if(r2 >= r_max) 
+        r2 = r_max - 1e-6; 
 
       n_t dx, dy, // distance between efficiencies in the matrix
           x[4];   // positions in the (R,r) space of the defined efficiencies. x1, x2, y1, y2
@@ -57,10 +57,10 @@ namespace libcloudphxx
 
       return
       (
-        kernel_base<real_t, n_t>::k_params[iv[0]] * w[1] * w[3] +
-        kernel_base<real_t, n_t>::k_params[iv[1]] * w[0] * w[3] +
-        kernel_base<real_t, n_t>::k_params[iv[2]] * w[1] * w[2] +
-        kernel_base<real_t, n_t>::k_params[iv[3]] * w[0] * w[2]
+        k_coll_eff[iv[0]] * w[1] * w[3] +
+        k_coll_eff[iv[1]] * w[0] * w[3] +
+        k_coll_eff[iv[2]] * w[1] * w[2] +
+        k_coll_eff[iv[3]] * w[0] * w[2]
       ) / dx / dy;
     }
   }

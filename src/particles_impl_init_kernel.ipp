@@ -75,7 +75,7 @@ namespace libcloudphxx
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff.begin());
 
           // init kernel
-          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_parameters.data(), detail::hall_r_max<real_t>()));
+          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_coll_eff.data(), detail::hall_r_max<real_t>()));
           p_kernel = (&(k_geometric_with_efficiencies[0])).get();
           break;
 
