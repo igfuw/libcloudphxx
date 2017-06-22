@@ -75,12 +75,10 @@ namespace libcloudphxx
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff.begin());
 
           // same for collision efficiency radii definitions
-std::cout << "halll_radii" << std::endl;
           detail::hall_radii<real_t> (tmp_kernel_eff);
           kernel_coll_eff_rad.resize(tmp_kernel_eff.size());
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff_rad.begin());
           // and for collision efficiency ratios definitions
-std::cout << "halll_ratios" << std::endl;
           detail::hall_ratios<real_t> (tmp_kernel_eff);
           kernel_coll_eff_rat.resize(tmp_kernel_eff.size());
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff_rat.begin());
@@ -115,8 +113,26 @@ std::cout << "halll_ratios" << std::endl;
           //copy efficiencies to device vector
           thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff.begin());
 
+          // same for collision efficiency radii definitions
+          detail::hall_davis_no_waals_radii<real_t> (tmp_kernel_eff);
+          kernel_coll_eff_rad.resize(tmp_kernel_eff.size());
+          thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff_rad.begin());
+          // and for collision efficiency ratios definitions
+          detail::hall_davis_no_waals_ratios<real_t> (tmp_kernel_eff);
+          kernel_coll_eff_rat.resize(tmp_kernel_eff.size());
+          thrust::copy(tmp_kernel_eff.begin(), tmp_kernel_eff.end(), kernel_coll_eff_rat.begin());
+
           // init kernel
-          k_geometric_with_efficiencies.resize(1, kernel_geometric_with_efficiencies<real_t, n_t> (kernel_coll_eff.data(), detail::hall_davis_no_waals_r_max<real_t>()));
+          k_geometric_with_efficiencies.resize(1, 
+            kernel_geometric_with_efficiencies<real_t, n_t> (
+              kernel_coll_eff.data(), 
+              detail::hall_davis_no_waals_r_max<real_t>(), 
+              kernel_coll_eff_rad.data(), 
+              detail::hall_davis_no_waals_n_rad, 
+              kernel_coll_eff_rat.data(), 
+              detail::hall_davis_no_waals_n_rat
+            )
+          );
           p_kernel = (&(k_geometric_with_efficiencies[0])).get();
           break;
 

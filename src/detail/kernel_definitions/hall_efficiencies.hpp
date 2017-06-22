@@ -8,7 +8,7 @@ namespace libcloudphxx
       template<class real_t>
       real_t hall_r_max()
       {
-        return 1100.;
+        return 300.e-6; // not used?
       }
 
       const int hall_n_rad = 15;
