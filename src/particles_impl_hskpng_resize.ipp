@@ -6,7 +6,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_resize_npart()
     {
-      if(n_part > opts_init.n_sd_max) throw std::runtime_error("n_sd_max < n_part");
+      if(n_part > opts_init.n_sd_max) throw std::runtime_error(detail::formatter() << "n_sd_max (" << opts_init.n_sd_max << ") < n_part (" << n_part << ")");
       {
         thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &vt, &tmp_device_real_part};
         for(int i=0; i<5; ++i)
