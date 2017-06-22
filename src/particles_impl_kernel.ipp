@@ -35,9 +35,13 @@ namespace libcloudphxx
 
       // pointer to kernel collision efficiencies radii device vector
       thrust_device::pointer<real_t> k_coll_eff_rad;
+      // number of radii for which efficiencies are defined
+      int n_rad;
 
       // pointer to kernel collision efficiencies radii ratio device vector
       thrust_device::pointer<real_t> k_coll_eff_rat;
+      // number of ratios for which efficiencies are defined
+      int n_rat;
 
       // largest radius for which efficiency is defined, 0 - n/a
       real_t r_max;
@@ -47,13 +51,25 @@ namespace libcloudphxx
         thrust_device::pointer<real_t> k_coll_eff,
         real_t r_max,
         thrust_device::pointer<real_t> k_coll_eff_rad = thrust_device::pointer<real_t>(),
-        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>()
+        int n_rad = 0,
+        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>(),
+        int n_rat = 0
       ) : 
-        k_coll_eff(k_coll_eff), r_max(r_max), k_coll_eff_rad(k_coll_eff_rad), k_coll_eff_rat(k_coll_eff_rat){}
+        k_coll_eff(k_coll_eff), r_max(r_max), k_coll_eff_rad(k_coll_eff_rad), n_rad(n_rad), k_coll_eff_rat(k_coll_eff_rat), n_rat(n_rat)
+      {
+        // ratio has to be defined for the whole range [0,1]
+        if(n_rat > 0)
+        {
+          assert(k_coll_eff_rat[0] == 0.);
+          assert(k_coll_eff_rat[n_rat-1] == 1.);
+        }
+      }
 
       //bilinear interpolation of collision efficiencies
       BOOST_GPU_ENABLED
       real_t interpolated_efficiency(real_t, real_t) const;
+      BOOST_GPU_ENABLED
+      real_t interpolated_efficiency_radrat(real_t, real_t) const;
     };
 
 
@@ -185,8 +201,12 @@ namespace libcloudphxx
       //ctor
       kernel_geometric_with_efficiencies(
         thrust_device::pointer<real_t> k_coll_eff, 
-        real_t r_max
-      ) : kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max) {}
+        real_t r_max,
+        thrust_device::pointer<real_t> k_coll_eff_rad = thrust_device::pointer<real_t>(),
+        int n_rad = 0,
+        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>(),
+        int n_rat = 0
+      ) : kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max, k_coll_eff_rad, n_rad, k_coll_eff_rat, n_rat) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -197,7 +217,7 @@ namespace libcloudphxx
         using std::sqrt;
 #endif
 
-        return  kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency(
+        return  kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency_radrat(
                   sqrt( thrust::get<rw2_a_ix>(tpl_wrap.get_rw())),
                   sqrt( thrust::get<rw2_b_ix>(tpl_wrap.get_rw()))
                 ) * kernel_geometric<real_t, n_t>::calc(tpl_wrap);
