@@ -18,6 +18,7 @@ def lognormal(lnr):
 opts_init = lgrngn.opts_init_t()
 kappa1 = .61
 kappa2 = 1.28
+kappa3 = 0.8
 rho_stp = 1.2248
 opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
@@ -92,6 +93,9 @@ opts.chem_gas = {
 print "chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2]
 print "chem_gas = ", opts.chem_gas
 
+# --------- test runs -----------
+
+# ----------
 # 0D (parcel)
 print "0D"
 rhod = arr_t([  1.])
@@ -124,6 +128,9 @@ print 'puddle: ', puddle
 prtcls.diag_sd_conc()
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
+
+
+# ----------
 # 0D with large_tail option
 print "0D large tail"
 opts_init.sd_conc_large_tail = 1
@@ -140,6 +147,9 @@ print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) >= opts_init.sd_conc
 
+
+
+# ----------
 # 0D const multi - number of SDs and number of particles
 print "0D const multi"
 sd_conc_old = opts_init.sd_conc
@@ -167,6 +177,9 @@ assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi)
 opts_init.sd_const_multi = 0
 opts_init.sd_conc = sd_conc_old
 
+
+
+# ----------
 # 0D dry_sizes init
 print "0D dry sizes"
 opts_init.dry_distros = dict()
@@ -174,7 +187,7 @@ opts_init.dry_sizes = {kappa1 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
 
 sd_conc_old = opts_init.sd_conc
 opts_init.sd_conc = 0
-opts_init.sd_const_multi = 1
+opts_init.sd_const_multi_dry_sizes = 1
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
@@ -187,7 +200,7 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 print frombuffer(prtcls.outbuf())
-assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi)
+assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi_dry_sizes)
 
 prtcls.diag_dry_rng(1e-6, 1.1e-6);
 prtcls.diag_wet_mom(0)
@@ -200,11 +213,78 @@ print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) == 10 ).all()
 
 # go back to distros init
-opts_init.sd_const_multi = 0
+opts_init.sd_const_multi_dry_sizes = 0
 opts_init.sd_conc = sd_conc_old
 opts_init.dry_sizes = dict()
 opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 
+
+
+# ----------
+# 0D dry_sizes + sd_conc init
+print "0D dry_sizes + sd_conc"
+opts_init.dry_sizes = {kappa3 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
+
+opts_init.sd_const_multi_dry_sizes = 2
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
+
+# go back to distros init
+opts_init.sd_const_multi_dry_sizes = 0
+opts_init.dry_sizes = dict()
+
+
+
+# ----------
+# 0D dry_sizes + sd_conc + tail
+print "0D dry_sizes + sd_conc + tail"
+opts_init.dry_sizes = {kappa3 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
+opts_init.sd_conc_large_tail = 1
+
+opts_init.sd_const_multi_dry_sizes = 2
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert frombuffer(prtcls.outbuf())[0] > 84 # 64 from dry_distro and 20 from sizes + tail
+
+# go back to distros init
+opts_init.sd_conc_large_tail = 0
+opts_init.sd_const_multi_dry_sizes = 0
+opts_init.dry_sizes = dict()
+
+
+
+# ----------
+# 0D dry_sizes + const_multi init
+print "0D dry_sizes + const_multi"
+opts_init.dry_sizes = {kappa3 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
+opts_init.sd_conc = 0
+prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
+opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+
+opts_init.sd_const_multi_dry_sizes = 2
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
+
+# go back to distros init
+opts_init.sd_conc = sd_conc_old
+opts_init.sd_const_multi_dry_sizes = 0
+opts_init.sd_const_multi = 0
+opts_init.dry_sizes = dict()
+
+
+
+# ----------
 # 1D (periodic horizontal domain)
 print "1D"
 rhod = arr_t([  1.,   1.,   1.])
@@ -241,6 +321,9 @@ for it in range(2):
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
 
+
+
+# ----------
 # 2D (periodic horizontal domain)
 print "2D"
 rhod = arr_t([[  1.,    1.   ],     [   1.,     1.  ]])
@@ -287,6 +370,9 @@ for it in range(2):
 
 #TODO: test profile vs. 2D array
 
+
+
+# ----------
 # 3D
 print "3D"
 rhod = arr_t([rhod, rhod])
@@ -336,6 +422,9 @@ print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) >= opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
 
+
+
+# ----------
 # 3D const multi - number of SDs and number of particles
 print "3D const multi"
 opts_init.sd_conc = 0
@@ -343,7 +432,6 @@ cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
 n_cell = opts_init.nz * opts_init.nx * opts_init.ny
-opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.diag_sd_conc()
@@ -364,12 +452,15 @@ prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
 
+
+
+# ----------
 # 3D dry_sizes init
 print "3D dry sizes"
 opts_init.dry_distros = dict()
 opts_init.dry_sizes = {kappa1 : {1.e-6 : 30./ cell_vol * rho_stp, 15.e-6 : 10. / cell_vol * rho_stp}}
 
-opts_init.sd_const_multi = 1
+opts_init.sd_const_multi_dry_sizes = 1
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
@@ -382,7 +473,7 @@ prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 print frombuffer(prtcls.outbuf())
-assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
+assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi_dry_sizes)
 
 prtcls.diag_dry_rng(1e-6, 1.1e-6);
 prtcls.diag_wet_mom(0)
@@ -393,3 +484,65 @@ prtcls.diag_dry_rng(15e-6, 15.1e-6);
 prtcls.diag_wet_mom(0)
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) == 10 / cell_vol).all()
+
+
+
+# ----------
+# 3D dry_sizes + sd_conc init
+print "3D dry_sizes + sd_conc"
+opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
+opts_init.sd_const_multi_dry_sizes = 2
+opts_init.sd_conc = sd_conc_old
+opts_init.sd_const_multi = 0
+
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 from sizes
+
+
+
+# ----------
+# 3D dry_sizes + sd_conc + tail
+print "3D dry_sizes + sd_conc + tail"
+opts_init.sd_conc_large_tail = 1
+
+opts_init.sd_const_multi_dry_sizes = 2
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf())[0] > 64 + 20).all() # 64 from dry_distro and 20 from sizes + tail
+
+# go back to distros init
+opts_init.sd_conc_large_tail = 0
+opts_init.sd_const_multi_dry_sizes = 0
+opts_init.dry_sizes = dict()
+
+
+
+# ----------
+# 3D dry_sizes + const_multi init
+print "3D dry_sizes + const_multi"
+opts_init.dry_sizes = {kappa1 : {1.e-6 : 30./ cell_vol * rho_stp, 15.e-6 : 10. / cell_vol * rho_stp}}
+opts_init.sd_conc = 0
+prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
+opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+
+opts_init.sd_const_multi_dry_sizes = 2
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf())[0] == 84).all() # 64 from dry_distro and 20 from sizes
+
+# go back to distros init
+opts_init.sd_conc = sd_conc_old
+opts_init.sd_const_multi_dry_sizes = 0
+opts_init.sd_const_multi = 0
+opts_init.dry_sizes = dict()

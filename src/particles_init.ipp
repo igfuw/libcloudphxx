@@ -80,7 +80,7 @@ namespace libcloudphxx
       // initial parameters (from dry distribution or dry radius-concentration pairs)
       if(pimpl->opts_init.dry_distros.size() > 0)
         pimpl->init_SD_with_distros();
-      else if(pimpl->opts_init.dry_sizes.size() > 0)
+      if(pimpl->opts_init.dry_sizes.size() > 0)
         pimpl->init_SD_with_sizes();
 
       // --------  other inits  --------
