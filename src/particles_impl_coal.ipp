@@ -73,7 +73,7 @@ namespace libcloudphxx
         real_t operator()(const n_t &n)
         {
           // see section 5.1.3 in Shima et al. 2009
-          return real_t((n*(n-1))/2) / (n/2); 
+          return real_t(n*(n-1))/2. / (n/2); 
         }
       };
 
