@@ -235,6 +235,9 @@ namespace libcloudphxx
       };
     };
 
+
+    // coalescence code with all pairs considered;
+    // works only if all cells have the same number of SDs!!! (i.e. for box model coal tests)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::coal(const real_t &dt)
     {   
@@ -431,5 +434,205 @@ namespace libcloudphxx
         );
       }
     }
+
+
+/*
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::coal(const real_t &dt)
+    {   
+      // prerequisites
+      hskpng_shuffle_and_sort(); // to get random neighbours by default
+      hskpng_count();            // no. of super-droplets per cell 
+      
+      // placing scale_factors in count_mom (of size count_n!)
+      thrust::transform(
+        count_num.begin(), count_num.begin() + count_n, // input - 1st arg
+        count_mom.begin(),                              // output
+        detail::scale_factor<real_t, n_t>()
+      );
+
+      // references to tmp data
+      thrust_device::vector<real_t> 
+        &scl(tmp_device_real_cell), // scale factor for probablility
+        &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
+                                    // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
+      thrust_device::vector<thrust_size_t> 
+        &off(tmp_device_size_cell); // offset for getting index of particle within a cell
+
+      // laying out scale factor onto ijk grid
+      // fill with 0s if not all cells will be updated in the following copy
+      if(count_n!=n_cell)  thrust::fill(scl.begin(), scl.end(), real_t(0.));
+      
+      thrust::copy(
+        count_mom.begin(),                    // input - begin
+        count_mom.begin() + count_n,          // input - end
+        thrust::make_permutation_iterator(    // output
+          scl.begin(),                        // data
+          count_ijk.begin()                   // permutation
+        )
+      );  
+
+      // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
+      // fill with 0s if not all cells will be updated in the following copy
+      if(count_n!=n_cell)  thrust::fill(off.begin(), off.end(), real_t(0.));
+      thrust::copy(
+        count_num.begin(), 
+        count_num.begin() + count_n, 
+        thrust::make_permutation_iterator(    // output
+          off.begin(),                        // data
+          count_ijk.begin()                   // permutation
+        )
+      );
+      thrust::exclusive_scan( 
+        off.begin(), off.end(),
+        off.begin()
+      );
+
+      // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
+      rand_u01(n_part);
+
+      // colliding
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_size_t;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_real_t;
+
+      typedef  typename thrust_device::vector<real_t>::iterator i_real_t;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<n_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_n_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple< 
+          i_real_t,                                                // u01
+          pi_real_t,                                               // scl
+          thrust::counting_iterator<thrust_size_t>,                // ix_a
+          thrust::counting_iterator<thrust_size_t>,                // ix_b
+          pi_size_t, pi_size_t,                                    // off_a & off_b
+          pi_real_t                                                // dv
+        >
+      > zip_ro_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple< 
+          pi_n_t,    pi_n_t,    // n_a,   n_b
+          pi_real_t, pi_real_t, // rw2_a, rw2_b
+          pi_real_t, pi_real_t, // vt_a,  vt_b
+          pi_real_t, pi_real_t, // vt_a,  vt_b
+          i_real_t, i_real_t    // col_a, col_b 
+        >
+      > zip_rw_t;
+
+      typedef thrust::zip_iterator<
+        thrust::tuple<
+          pi_real_t,  // rhod
+          pi_real_t   // eta
+        >
+      > zip_ro_calc_t;    //read-only parameters passed to the calc() function, later also epsilon and Re_lambda
+
+      zip_ro_t zip_ro_it(
+        thrust::make_tuple(
+          // u01
+          u01.begin(),
+          // scl
+          thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
+          // ix
+          zero,
+          zero+1,
+          // cid
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
+          // dv
+          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+        )
+      );
+
+      zip_ro_calc_t zip_ro_calc_it(
+        thrust::make_tuple(
+          // rhod
+          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+          // eta
+          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin())
+        )
+      );
+
+      zip_rw_t zip_rw_it(
+        thrust::make_tuple(
+          // multiplicity
+          thrust::make_permutation_iterator(n.begin(),   sorted_id.begin()),  
+          thrust::make_permutation_iterator(n.begin(),   sorted_id.begin())+1,
+          // wet radius squared
+          thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin()), 
+          thrust::make_permutation_iterator(rw2.begin(), sorted_id.begin())+1,  
+          // terminal velocity
+          thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin()), 
+          thrust::make_permutation_iterator(vt.begin(),  sorted_id.begin())+1,  
+          // dry radius cubed
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()), 
+          thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+          // output
+          col.begin(),  // number of collisions
+          col.begin()+1 // which one has greater multiplicity
+        )
+      );
+
+      thrust::for_each(
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
+        detail::collider<real_t, n_t>(dt, p_kernel, opts_init.sd_const_multi, increase_sstp_coal)
+      );
+
+      // add masses of chemicals
+      if(opts_init.chem_switch)
+      {
+        for(int i=0; i<chem_all; ++i)
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
+              thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1
+            )) + n_part -1,
+            detail::summator()
+          );
+      }
+      // add kappas
+      if(opts_init.dry_distros.size() > 1)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin()),    // values to be added
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin())+1,
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()),    // weighting factors
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+            col.begin(),                                                          // collision information
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(kpa.begin(), sorted_id.begin())+1,
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(rd3.begin(), sorted_id.begin())+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::weighted_summator<real_t>()
+        );
+      }
+    }
+*/
   };  
 };
