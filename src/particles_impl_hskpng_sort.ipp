@@ -126,11 +126,11 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(sorted_id.begin(), d_perm.begin()) + 2*n_tot_col_pairs,
         col_pairs.begin()
       );
-      sorted_ijk.resize(2*n_tot_col_pairs);
+      sorted_ijk_col.resize(2*n_tot_col_pairs);
       thrust::copy(
         thrust::make_permutation_iterator(ijk.begin(), col_pairs.begin()),
         thrust::make_permutation_iterator(ijk.begin(), col_pairs.begin()) + 2*n_tot_col_pairs,
-        sorted_ijk.begin()
+        sorted_ijk_col.begin()
       );
 //debug::print(col_pairs);
 

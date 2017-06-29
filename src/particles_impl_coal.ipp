@@ -349,24 +349,24 @@ thrust::fill(scl.begin(), scl.begin() + count_n, 1);
           // u01
           u01.begin(),
           // scl
-          thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
+          thrust::make_permutation_iterator(scl.begin(), sorted_ijk_col.begin()), 
           // ix
           zero,
           zero+1,
           // cid
-          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
-          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk_col.begin()), 
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk_col.begin())+1,
           // dv
-          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+          thrust::make_permutation_iterator(dv.begin(), sorted_ijk_col.begin())
         )
       );
 
       zip_ro_calc_t zip_ro_calc_it(
         thrust::make_tuple(
           // rhod
-          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk_col.begin()),
           // eta
-          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin())
+          thrust::make_permutation_iterator(eta.begin(), sorted_ijk_col.begin())
         )
       );
 

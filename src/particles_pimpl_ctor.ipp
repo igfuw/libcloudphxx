@@ -99,7 +99,7 @@ namespace libcloudphxx
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
-        sorted_id, sorted_ijk;
+        sorted_id, sorted_ijk, sorted_ijk_col;
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
