@@ -162,6 +162,9 @@ namespace libcloudphxx
  
           // checking if valid candidates for collision
           {
+            // only with multiplicities > 0 (0 can happen if linear sampling is not used)
+            if(thrust::get<n_a_ix>(tpl_rw) == 0 || thrust::get<n_b_ix>(tpl_rw) == 0) return;
+
             const thrust_size_t &cix_a = thrust::get<ix_a_ix>(tpl_ro) - thrust::get<off_a_ix>(tpl_ro);
 
             // only every second droplet within a cell
