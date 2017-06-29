@@ -15,6 +15,7 @@ namespace libcloudphxx
     namespace{
     void comb(int N, int K, thrust::host_vector<int> &vec, int off)
     {
+        if(K > N) return;
         std::string bitmask(K, 1); // K leading 1's
         bitmask.resize(N, 0); // N-K trailing 0's
     
@@ -132,14 +133,25 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(ijk.begin(), col_pairs.begin()) + 2*n_tot_col_pairs,
         sorted_ijk_col.begin()
       );
-//debug::print(col_pairs);
-
-
-
-
-
-      // resize the sorted_id, that will store indices of colliding SDs
-      //sorted_id.resize(2*n_tot_col_pairs);
+/*
+std::cout << "ijk" << std::endl;
+debug::print(ijk);
+std::cout << "count_num" << std::endl;
+debug::print(count_num);
+std::cout << "sorted_id" << std::endl;
+debug::print(sorted_id);
+std::cout << "sorted_ijk" << std::endl;
+debug::print(sorted_ijk);
+std::cout << "perm" << std::endl;
+debug::print(perm);
+std::cout << "d_perm" << std::endl;
+debug::print(d_perm);
+std::cout << "col_pairs" << std::endl;
+debug::print(col_pairs);
+std::cout << "sorted_ijk_col" << std::endl;
+debug::print(sorted_ijk_col);
+std::cout << std::endl;
+*/
     }
   };  
 };
