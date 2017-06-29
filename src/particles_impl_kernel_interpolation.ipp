@@ -70,7 +70,6 @@ namespace libcloudphxx
     BOOST_GPU_ENABLED
     real_t kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency_radrat(real_t r1, real_t r2) const //radii in meters
     {
-      if(r1==r2) return 0.;
 #if !defined(__NVCC__)
       using std::max;
       using std::min;
@@ -82,7 +81,7 @@ namespace libcloudphxx
       // find indexes of first not less value of radius and ratio
       int rad_pos = n_rad, rat_pos; 
       for(int i = 0; i < n_rad; ++i) if(k_coll_eff_rad[i] > radius) {rad_pos = i; break;} // within [0, n_rad]
-      for(int i = 1; i < n_rat; ++i) if(k_coll_eff_rat[i] > ratio)  {rat_pos = i; break;} // within [1, n_rat], since k_coll_eff_rat should encompass the whole [0,1] range
+      for(int i = 1; i < n_rat; ++i) if(k_coll_eff_rat[i] >= ratio)  {rat_pos = i; break;} // within [1, n_rat), since k_coll_eff_rat should encompass the whole [0,1] range
 
       if(rad_pos < n_rad)
       {
