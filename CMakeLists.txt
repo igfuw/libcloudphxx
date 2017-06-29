@@ -81,7 +81,7 @@ if (CUDA_FOUND)
       }
     }
   ")
-  execute_process(COMMAND "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc" "test.cu" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
+  execute_process(COMMAND "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc -ccbin " ${CMAKE_CXX_COMPILER} "test.cu" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
   if (NOT status EQUAL 0) 
     message(FATAL_ERROR "${pfx}: nvcc failed\n ${msg}")
   endif()
