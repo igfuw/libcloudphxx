@@ -70,6 +70,7 @@ namespace libcloudphxx
     BOOST_GPU_ENABLED
     real_t kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency_radrat(real_t r1, real_t r2) const //radii in meters
     {
+      if(r1==r2) return 0.;
 #if !defined(__NVCC__)
       using std::max;
       using std::min;
