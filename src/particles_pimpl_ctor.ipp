@@ -85,6 +85,9 @@ namespace libcloudphxx
              log_rd_max, // logarithm of the upper bound of the distr
              multiplier; // multiplier calculated for the above values
 
+      thrust_device::vector<thrust_size_t> col_pairs;
+      thrust_size_t n_tot_col_pairs;
+
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
@@ -378,6 +381,7 @@ namespace libcloudphxx
       void hskpng_sort_helper(bool);
       void hskpng_sort();
       void hskpng_shuffle_and_sort();
+      void hskpng_shuffle_allperm_and_sort();
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
