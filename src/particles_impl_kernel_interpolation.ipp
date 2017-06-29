@@ -82,7 +82,7 @@ namespace libcloudphxx
       // find indexes of first not less value of radius and ratio
       int rad_pos = n_rad, rat_pos; 
       for(int i = 0; i < n_rad; ++i) if(k_coll_eff_rad[i] > radius) {rad_pos = i; break;} // within [0, n_rad]
-      for(int i = 1; i < n_rat; ++i) if(k_coll_eff_rat[i] > ratio)  {rat_pos = i; break;} // within [1, n_rat], since k_coll_eff_rat should encompass the whole [0,1] range
+      for(int i = 1; i < n_rat; ++i) if(k_coll_eff_rat[i] >= ratio)  {rat_pos = i; break;} // within [1, n_rat), since k_coll_eff_rat should encompass the whole [0,1] range
 
       if(rad_pos < n_rad)
       {
