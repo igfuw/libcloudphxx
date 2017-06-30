@@ -298,8 +298,8 @@ thrust::fill(scl.begin(), scl.begin() + count_n, 1);
       );
 
       // tossing n_tot_col_pairs random numbers for comparing with probability of collisions in a pair of droplets
-      u01.resize(n_tot_col_pairs);
-      rand_u01(n_tot_col_pairs);
+      u01.resize(2*n_tot_col_pairs);
+      rand_u01(2*n_tot_col_pairs);
 
       // colliding
       typedef thrust::permutation_iterator<
@@ -395,7 +395,7 @@ thrust::fill(scl.begin(), scl.begin() + count_n, 1);
 
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_tot_col_pairs - 1,
+        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + 2*n_tot_col_pairs - 1,
         detail::collider<real_t, n_t>(dt, p_kernel, opts_init.sd_const_multi, increase_sstp_coal)
       );
 /* this wont work

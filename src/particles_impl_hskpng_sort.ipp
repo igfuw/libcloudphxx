@@ -102,6 +102,7 @@ namespace libcloudphxx
         count_num.begin(),
         arg::_1 * (arg::_1 - 1) / 2
       );
+      counted=false; //count_num has been changed
       // get total number of pairs
       n_tot_col_pairs = thrust::reduce(count_num.begin(), count_num.end(), 0);
 
@@ -138,6 +139,8 @@ std::cout << "ijk" << std::endl;
 debug::print(ijk);
 std::cout << "count_num" << std::endl;
 debug::print(count_num);
+std::cout << "h_count_num" << std::endl;
+debug::print(h_count_num);
 std::cout << "sorted_id" << std::endl;
 debug::print(sorted_id);
 std::cout << "sorted_ijk" << std::endl;
