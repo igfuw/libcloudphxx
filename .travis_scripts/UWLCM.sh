@@ -33,10 +33,10 @@ cmake ..
 sudo make install
 cd ../../..
 
-## bicycles
+## UWLCM
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options-dev; fi
-git clone --depth=1 git://github.com/igfuw/bicycles.git
-cd bicycles
+git clone --depth=1 git://github.com/igfuw/UWLCM.git
+cd UWLCM
 mkdir build
 cd build
 cmake ..
