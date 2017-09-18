@@ -12,8 +12,8 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | gre
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
 
-# make libcloudph++ in Release mode
-cmake -DCMAKE_BUILD_TYPE=Release ../ 
+# make with RelWithDebInfo to have high optimization with asserts on
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make
 sudo make install
 cd ../..
