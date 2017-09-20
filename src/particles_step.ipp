@@ -75,9 +75,9 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
-      // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 only) 
+      // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(-1.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
 
       if (pimpl->opts_init.chem_switch){
         for (int i = 0; i < chem_gas_n; ++i){
