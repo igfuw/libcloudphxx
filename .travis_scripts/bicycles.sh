@@ -3,7 +3,7 @@ set -e
 # libcloudph++ 
 mkdir build 
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ../; fi # Travis default is not the packaged one
+if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi
 # find python paths, taken from 
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
@@ -27,7 +27,7 @@ git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ..; fi # Travis default is not the packaged one
+if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ..; fi
 cmake ..
 sudo make install
 cd ../../..
