@@ -22,7 +22,7 @@ if (NOT Boost_FOUND)
   ")
 endif()
 # boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy, hence we require version < 1.65.0
-if(${Boost_MINOR_VERSION} GREATER_EQUAL 65)
+if(NOT(${Boost_MINOR_VERSION} LESS 65))
   message(FATAL_ERROR "
     Found incompatible Boost.Python version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}
     Version older than 1.65.0 is required.
