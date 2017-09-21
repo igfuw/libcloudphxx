@@ -15,7 +15,9 @@ sudo make install
 cd ../..
 
 # libmpdata (needed by icicle, skipping tests)
-. ./.travis_scripts/get_libmpdata_dependencies.sh
+pwd
+echo $TRAVIS_BUILD_DIR
+. $TRAVIS_BUILD_DIR/libcloudphxx/.travis_scripts/get_libmpdata_dependencies.sh
 #if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
 #if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
 #if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libgnuplot-iostream-dev libhdf5-serial-dev hdf5-tools cmake; fi
