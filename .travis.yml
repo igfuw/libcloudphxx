@@ -59,9 +59,9 @@ before_install:
 
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost1.55-all-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake python-numpy python-scipy libthrust-dev python-pytest; fi
@@ -85,8 +85,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
 
 # thrust
-#    - git clone --depth=1 git://github.com/thrust/thrust.git;
-#    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
+    - git clone --depth=1 git://github.com/thrust/thrust.git;
+    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U matplotlib; fi
