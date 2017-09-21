@@ -80,8 +80,10 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CPATH=/usr/local/opt/boost@1.59/include:$CPATH ; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export LIBRARY_PATH=/usr/local/opt/boost@1.59/lib:$LIBRARY_PATH ; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/include/* /usr/local/include/; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/lib/* /usr/local/lib/; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CPATH=/usr/local/opt/boost@1.59/include:$CPATH ; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export LIBRARY_PATH=/usr/local/opt/boost@1.59/lib:$LIBRARY_PATH ; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
 
 # thrust
