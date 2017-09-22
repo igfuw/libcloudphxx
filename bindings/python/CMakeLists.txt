@@ -25,9 +25,9 @@ target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 message(${Boost_LIBRARIES})
 # boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
 if(${Boost_MINOR_VERSION} LESS 63)
-  set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBPNUMERIC)
+  target_compile_options(cloudphxx PRIVATE -DBPNUMERIC)
 else()
-  set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBPNUMPY)
+  target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
 endif()
 
 # requireing Blitz++
@@ -44,7 +44,7 @@ if (NOT BLITZ_FOUND)
 else()
   target_link_libraries(cloudphxx blitz)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBZDEBUG)
+    target_compile_options(cloudphxx PRIVATE -DBZDEBUG)
   endif()
 endif()
 
