@@ -4,7 +4,7 @@ set -e
 # libcloudph++ 
 mkdir build 
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi 
+#if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi 
 
 # find python paths, taken from 
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml

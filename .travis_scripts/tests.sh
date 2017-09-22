@@ -3,7 +3,7 @@ set -e
 # libcloudph++ 
 mkdir build 
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi 
+# if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi 
 # find python paths, taken from 
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml
 #if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
