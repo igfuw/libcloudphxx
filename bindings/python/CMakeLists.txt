@@ -22,11 +22,13 @@ if (NOT Boost_FOUND)
   ")
 endif()
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
-message(${Boost_LIBRARIES})
+
 # boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
-if(${Boost_MINOR_VERSION} LESS 63)
+if(${Boost_MINOR_VERSION} LESS 65)
   target_compile_options(cloudphxx PRIVATE -DBPNUMERIC)
 else()
+  find_package(Boost COMPONENTS numpy REQUIRED)
+  target_link_libraries(cloudphxx ${Boost_LIBRARIES})
   target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
 endif()
 
