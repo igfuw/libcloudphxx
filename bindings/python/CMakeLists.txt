@@ -21,14 +21,14 @@ if (NOT Boost_FOUND)
     Please install it (e.g. sudo apt-get install libboost-python-dev).
   ")
 endif()
-# boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy, hence we require version < 1.65.0
-if(NOT(${Boost_MINOR_VERSION} LESS 65))
-  message(FATAL_ERROR "
-    Found incompatible Boost.Python version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}
-    Version older than 1.65.0 is required.
-  ")
-endif()
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+message(${Boost_LIBRARIES})
+# boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
+if(${Boost_MINOR_VERSION} LESS 63)
+  set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBPNUMERIC)
+else()
+  set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBPNUMPY)
+endif()
 
 # requireing Blitz++
 include(CheckCXXSourceCompiles)
