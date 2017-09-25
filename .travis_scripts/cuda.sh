@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-set -e
+set -ex
 # libcloudph++ 
 mkdir build 
 cd build
@@ -14,4 +14,4 @@ VERBOSE=1 make
 cmake -DCMAKE_BUILD_TYPE=Release ../ 
 VERBOSE=1 make 
 cd ../..
-set +e # see https://github.com/travis-ci/travis-ci/issues/6522
+set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
