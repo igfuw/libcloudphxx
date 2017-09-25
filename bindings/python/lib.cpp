@@ -16,6 +16,13 @@
 #include "lgrngn.hpp"
 #include "common.hpp"
 
+
+#ifdef BPNUMERIC
+  #define BP_ARR_FROM_BP_OBJ  bp_array(bp::object())
+#elif defined BPNUMPY
+  #define BP_ARR_FROM_BP_OBJ  bp_array(bp::numpy::array(bp::object()))
+#endif
+
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   namespace bp = boost::python;
@@ -24,7 +31,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   using real_t = double;
   using arr_t = blitz::Array<real_t, 1>;
 
-  bp::numeric::array::set_module_and_type("numpy", "ndarray");
+#ifdef BPNUMERIC
+  bp_array::set_module_and_type("numpy", "ndarray");
+#elif defined BPNUMPY
+  Py_Initialize();
+  bp::numpy::initialize();
+#endif
 
   // specify that this module is actually a package
   bp::object package = bp::scope();
@@ -267,21 +279,21 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
       .def("init",         &lgrngn::init<real_t>, (
-        bp::arg("th")  = bp::numeric::array(bp::object()),
-        bp::arg("rv")  = bp::numeric::array(bp::object()),
-        bp::arg("rhod")= bp::numeric::array(bp::object()),
-        bp::arg("Cx")  = bp::numeric::array(bp::object()),
-        bp::arg("Cy")  = bp::numeric::array(bp::object()),
-        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rhod")= BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_sync",    &lgrngn::step_sync<real_t>, (
-        bp::arg("th")  = bp::numeric::array(bp::object()),
-        bp::arg("rv")  = bp::numeric::array(bp::object()),
-        bp::arg("rhod")= bp::numeric::array(bp::object()),
-        bp::arg("Cx")  = bp::numeric::array(bp::object()),
-        bp::arg("Cy")  = bp::numeric::array(bp::object()),
-        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rhod")= BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)

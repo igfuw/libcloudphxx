@@ -76,12 +76,12 @@ namespace libcloudphxx
       template <typename real_t>
       void init(
 	lgr::particles_proto_t<real_t> *arg,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod,
-        const bp::numeric::array &Cx,
-        const bp::numeric::array &Cy,
-        const bp::numeric::array &Cz,
+	const bp_array &th,
+	const bp_array &rv,
+	const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
         const bp::dict &ambient_chem
       )
       {
@@ -91,7 +91,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
-            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+            np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
 	arg->init(
@@ -110,12 +110,12 @@ namespace libcloudphxx
       void step_sync(
 	lgr::particles_proto_t<real_t> *arg,
 	const lgr::opts_t<real_t> &opts,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &Cx,
-	const bp::numeric::array &Cy,
-	const bp::numeric::array &Cz,
+	const bp_array &th,
+	const bp_array &rv,
+	const bp_array &rhod,
+	const bp_array &Cx,
+	const bp_array &Cy,
+	const bp_array &Cz,
         bp::dict &ambient_chem
       )
       {
@@ -125,7 +125,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
-            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+            np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
 	lgr::arrinfo_t<real_t>
@@ -238,7 +238,7 @@ namespace libcloudphxx
       template <typename real_t>
       void set_kp(
 	lgr::opts_init_t<real_t> *arg,
-	const bp::numeric::array &vec
+	const bp_array &vec
       )
       {
         sanity_checks(vec);
@@ -247,7 +247,7 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      bp::numeric::array get_kp(
+      bp_array get_kp(
 	lgr::opts_init_t<real_t> *arg
       )
       {
