@@ -14,7 +14,7 @@ target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-find_package(Boost COMPONENTS python QUIET)
+find_package(Boost COMPONENTS python)
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "
     Boost.Python not found. 
@@ -22,6 +22,15 @@ if (NOT Boost_FOUND)
   ")
 endif()
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+
+# boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
+if(${Boost_MINOR_VERSION} LESS 65)
+  target_compile_options(cloudphxx PRIVATE -DBPNUMERIC)
+else()
+  find_package(Boost COMPONENTS numpy REQUIRED)
+  target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+  target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
+endif()
 
 # requireing Blitz++
 include(CheckCXXSourceCompiles)
@@ -37,7 +46,7 @@ if (NOT BLITZ_FOUND)
 else()
   target_link_libraries(cloudphxx blitz)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBZDEBUG)
+    target_compile_options(cloudphxx PRIVATE -DBZDEBUG)
   endif()
 endif()
 
