@@ -24,11 +24,11 @@ namespace libcloudphxx
       template <class arr_t>
       void adj_cellwise(
 	const b1m::opts_t<typename arr_t::T_numtype>& opts,
-	const bp::numeric::array &rhod,
-	bp::numeric::array &th,
-	bp::numeric::array &rv,
-	bp::numeric::array &rc,
-	bp::numeric::array &rr,
+	const bp_array &rhod,
+	bp_array &th,
+	bp_array &rv,
+	bp_array &rc,
+	bp_array &rr,
 	const typename arr_t::T_numtype &dt
       )
       {
@@ -51,10 +51,10 @@ namespace libcloudphxx
       template <class arr_t>
       void rhs_cellwise(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_rc,
-	bp::numeric::array &dot_rr,
-	const bp::numeric::array &rc,
-	const bp::numeric::array &rr
+	bp_array &dot_rc,
+	bp_array &dot_rr,
+	const bp_array &rc,
+	const bp_array &rr
       ) 
       {
 	arr_t
@@ -72,9 +72,9 @@ namespace libcloudphxx
       template <class arr_t>
       typename arr_t::T_numtype rhs_columnwise(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_rr,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &rr,
+	bp_array &dot_rr,
+	const bp_array &rhod,
+	const bp_array &rr,
 	const typename arr_t::T_numtype &dz
       ) {
 	arr_t

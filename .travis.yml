@@ -16,7 +16,7 @@ env:
     - TEST_SUITE=tests
     - TEST_SUITE=parcel
     - TEST_SUITE=icicle
-    - TEST_SUITE=bicycles
+    - TEST_SUITE=UWLCM
 matrix:
     exclude:
         - os: osx
@@ -26,26 +26,45 @@ matrix:
           env: TEST_SUITE=cuda
 
         - compiler: clang
-          env: TEST_SUITE=bicycles # bicycles is not tested on clang yet
+          env: TEST_SUITE=UWLCM # UWLCM is not tested on clang yet
+addons:
+  apt:
+    packages:
+      - g++-5
+      - gcc-5
+      - clang-4.0
+    sources: &sources
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-4.0
+
 
 before_install:
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
+# find python paths, taken from 
+# https://github.com/breannansmith/scisim/blob/master/.travis.yml
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
+
+
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
 # cuda 8 installation from https://github.com/tmcdonell/cuda/
     - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
     - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
+
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
 
 install:
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo $apt_get_install clang; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo apt-get install --no-install-recommends -y  g++-4.9  ; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python-dev python-numpy python-scipy libthrust-dev python-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
+# the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-5; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-5; fi
+
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost1.55-all-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake python-numpy python-scipy libthrust-dev python-pytest; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
@@ -53,16 +72,22 @@ install:
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
-
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi # get boost odeint > 1.58
+# get boost odeint > 1.58
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -rf /usr/include/boost/numeric/odeint; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
+##    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/include/* /usr/local/include/; fi
+##    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/lib/* /usr/local/lib/; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BOOST_INCLUDEDIR=/usr/local/opt/boost@1.59/include ; fi
+#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BOOST_LIBRARYDIR=/usr/local/opt/boost@1.59/lib ; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install -U pytest; fi
 
+# thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
@@ -71,7 +96,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
-    # get latest FindBoost.cmake
+# get latest FindBoost.cmake
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.6.2/share/cmake/Modules/; fi
 
@@ -87,5 +112,5 @@ script:
     - if [[ $TEST_SUITE == 'parcel' ]]; then . ./.travis_scripts/parcel.sh; fi
     # icicle
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
-    # bicycles
-    - if [[ $TEST_SUITE == 'bicycles' ]]; then . ./.travis_scripts/bicycles.sh; fi
+    # UWLCM
+    - if [[ $TEST_SUITE == 'UWLCM' ]]; then . ./.travis_scripts/UWLCM.sh; fi
