@@ -16,6 +16,13 @@
 #include "lgrngn.hpp"
 #include "common.hpp"
 
+
+#ifdef BPNUMERIC
+  #define BP_ARR_FROM_BP_OBJ  bp_array(bp::object())
+#elif defined BPNUMPY
+  #define BP_ARR_FROM_BP_OBJ  bp_array(bp::numpy::array(bp::object()))
+#endif
+
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   namespace bp = boost::python;
@@ -24,7 +31,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   using real_t = double;
   using arr_t = blitz::Array<real_t, 1>;
 
-  bp::numeric::array::set_module_and_type("numpy", "ndarray");
+#ifdef BPNUMERIC
+  bp_array::set_module_and_type("numpy", "ndarray");
+#elif defined BPNUMPY
+  Py_Initialize();
+  bp::numpy::initialize();
+#endif
 
   // specify that this module is actually a package
   bp::object package = bp::scope();
@@ -49,6 +61,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::scope().attr("g") = (real_t) (cmn::earth::g<real_t>() / si::metres * si::seconds * si::seconds);
     bp::scope().attr("p_1000") = (real_t) (cmn::theta_std::p_1000<real_t>() / si::pascals);
     bp::scope().attr("eps") = (real_t) (cmn::moist_air::eps<real_t>());
+    bp::scope().attr("rho_stp") = (real_t) (cmn::earth::rho_stp<real_t>() * si::cubic_metres / si::kilograms);
     bp::scope().attr("rho_w") = (real_t) (cmn::moist_air::rho_w<real_t>() * si::cubic_metres / si::kilograms);
     //molar mass of trace gases
     bp::scope().attr("M_SO2")   = (real_t) (cmn::molar_mass::M_SO2<real_t>()   * si::moles / si::kilograms);
@@ -254,6 +267,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sd_conc", &lgr::opts_init_t<real_t>::sd_conc)
       .def_readwrite("sd_conc_large_tail", &lgr::opts_init_t<real_t>::sd_conc_large_tail)
       .def_readwrite("sd_const_multi", &lgr::opts_init_t<real_t>::sd_const_multi)
+      .def_readwrite("sd_const_multi_dry_sizes", &lgr::opts_init_t<real_t>::sd_const_multi_dry_sizes)
       .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)
       .def_readwrite("n_sd_max", &lgr::opts_init_t<real_t>::n_sd_max)
       .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
@@ -265,21 +279,21 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
       .def("init",         &lgrngn::init<real_t>, (
-        bp::arg("th")  = bp::numeric::array(bp::object()),
-        bp::arg("rv")  = bp::numeric::array(bp::object()),
-        bp::arg("rhod")= bp::numeric::array(bp::object()),
-        bp::arg("Cx")  = bp::numeric::array(bp::object()),
-        bp::arg("Cy")  = bp::numeric::array(bp::object()),
-        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rhod")= BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_sync",    &lgrngn::step_sync<real_t>, (
-        bp::arg("th")  = bp::numeric::array(bp::object()),
-        bp::arg("rv")  = bp::numeric::array(bp::object()),
-        bp::arg("rhod")= bp::numeric::array(bp::object()),
-        bp::arg("Cx")  = bp::numeric::array(bp::object()),
-        bp::arg("Cy")  = bp::numeric::array(bp::object()),
-        bp::arg("Cz")  = bp::numeric::array(bp::object()),
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rhod")= BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)

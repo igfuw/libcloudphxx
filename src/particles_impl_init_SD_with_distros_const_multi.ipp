@@ -16,7 +16,7 @@ namespace libcloudphxx
       // analyze the distribution, TODO: just did it
       dist_analysis_const_multi(fun);
       if(log_rd_min >= log_rd_max)
-        throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
+        throw std::runtime_error(detail::formatter() << "Distribution analysis error: rd_min(" << exp(log_rd_min) << ") >= rd_max(" << exp(log_rd_max) << ")");
       
       // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
       init_count_num_const_multi(fun);
@@ -35,7 +35,7 @@ namespace libcloudphxx
       init_dry_const_multi(fun);
   
       // init multiplicities
-      init_n_const_multi(); 
+      init_n_const_multi(opts_init.sd_const_multi); 
     }
   };
 };

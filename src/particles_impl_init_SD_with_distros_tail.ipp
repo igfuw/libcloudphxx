@@ -18,7 +18,7 @@ namespace libcloudphxx
       // overwrite calculated log_rd_min with external one (equal to log_rd_max of sd_conc init)
       log_rd_min=log_rd_min_init;
       if(log_rd_min >= log_rd_max)
-        throw std::runtime_error("Distribution analysis error: rd_min >= rd_max");
+        throw std::runtime_error(detail::formatter() << "Distribution analysis error: rd_min(" << exp(log_rd_min) << ") >= rd_max(" << exp(log_rd_max) << ")");
       
       // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
       init_count_num_const_multi(fun, 1); // const_multi=1 for tail prtcls

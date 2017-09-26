@@ -58,26 +58,26 @@ namespace libcloudphxx
       detail::calc_CDF(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
 
       // tossing random numbers [0,1] for dry radii
-      rand_u01(n_part);
+      rand_u01(n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
 
-      thrust::host_vector<real_t> host_u01(n_part); 
-      thrust::copy(u01.begin(), u01.end(), host_u01.begin());
-      thrust::host_vector<real_t> host_lnrd(n_part); 
+      thrust::host_vector<real_t> host_u01(n_part_to_init); 
+      thrust::copy(u01.begin(), u01.begin()+n_part_to_init, host_u01.begin());
+      thrust::host_vector<real_t> host_lnrd(n_part_to_init); 
       
       namespace arg = thrust::placeholders;
       // sample ln(rd) from the distribution with the inverse transform sampling method
-      thrust::upper_bound(cdf.begin(), cdf.end(), host_u01.begin(), host_u01.end(), host_lnrd.begin());
-      thrust::copy(host_lnrd.begin(), host_lnrd.end(), lnrd.begin());
-      thrust::transform(lnrd.begin(), lnrd.end(), lnrd.begin(), log_rd_min + arg::_1 * config.bin_precision);
+      thrust::upper_bound(cdf.begin(), cdf.end(), host_u01.begin(), host_u01.begin()+n_part_to_init, host_lnrd.begin());
+      thrust::copy(host_lnrd.begin(), host_lnrd.end(), lnrd.begin()+n_part_old);
+      thrust::transform(lnrd.begin()+n_part_old, lnrd.end(), lnrd.begin()+n_part_old, log_rd_min + arg::_1 * config.bin_precision);
 
       // converting rd back from logarithms to rd3
       thrust::transform(
-        lnrd.begin(),
+        lnrd.begin()+n_part_old,
         lnrd.end(),
-        rd3.begin(),
+        rd3.begin()+n_part_old,
         detail::exp3x<real_t>()
       );
     }

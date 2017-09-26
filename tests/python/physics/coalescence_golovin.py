@@ -61,7 +61,7 @@ rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
 
-kappa = 0
+kappa = 1e-10
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
