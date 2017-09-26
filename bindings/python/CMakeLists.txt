@@ -50,25 +50,20 @@ else()
   endif()
 endif()
 
-# ... where to find libclouph++
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-# installation (see http://www.cmake.org/pipermail/cmake/2013-March/054138.html)
-execute_process (
-   COMMAND ${PYTHON_EXECUTABLE} -c
-   	"import site, sys; sys.stdout.write(site.PREFIXES[-1])"
-   OUTPUT_VARIABLE PYTHON_PREFIX
-)
-file ( TO_CMAKE_PATH "${PYTHON_PREFIX}" PYTHON_PREFIX )
-execute_process (
-   COMMAND ${PYTHON_EXECUTABLE} -c
-   	"import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
-   OUTPUT_VARIABLE PYTHON_SITE_DIR
-)
-file ( TO_CMAKE_PATH "${PYTHON_SITE_DIR}" PYTHON_SITE_DIR )
-string ( REGEX REPLACE "^${PYTHON_PREFIX}/" ""
-   PYTHON_SITE_DIR "${PYTHON_SITE_DIR}"
-)
+#to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
+    import sysconfig as sc
+    print(sc.get_path('platlib'))"
+  OUTPUT_VARIABLE PYTHON_SITE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 
 install ( TARGETS cloudphxx
    LIBRARY
