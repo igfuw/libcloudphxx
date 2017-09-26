@@ -7,8 +7,9 @@ cd build
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml
 #if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_INC=`python-config --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
 #if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then PY_LIB=`python-config --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=$PY_LIB -DPYTHON_INCLUDE_DIR=$PY_INC; fi
-cmake -DCMAKE_BUILD_TYPE=Release ../ 
+if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
+# make with RelWithDebInfo to have high optimization with asserts on
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make 
 sudo make install
 cd ../..
@@ -32,12 +33,12 @@ cmake ..
 sudo make install
 cd ../../..
 
-## bicycles
-git clone --depth=1 git://github.com/igfuw/bicycles.git
-cd bicycles
+## UWLCM
+git clone --depth=1 git://github.com/igfuw/UWLCM.git
+cd UWLCM
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 make
 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../..

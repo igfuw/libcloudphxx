@@ -16,7 +16,7 @@ env:
     - TEST_SUITE=tests
     - TEST_SUITE=parcel
     - TEST_SUITE=icicle
-    - TEST_SUITE=bicycles
+    - TEST_SUITE=UWLCM
 matrix:
     exclude:
         - os: osx
@@ -26,7 +26,7 @@ matrix:
           env: TEST_SUITE=cuda
 
         - compiler: clang
-          env: TEST_SUITE=bicycles # bicycles is not tested on clang yet
+          env: TEST_SUITE=UWLCM # UWLCM is not tested on clang yet
 addons:
   apt:
     packages:
@@ -112,5 +112,5 @@ script:
     - if [[ $TEST_SUITE == 'parcel' ]]; then . ./.travis_scripts/parcel.sh; fi
     # icicle
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
-    # bicycles
-    - if [[ $TEST_SUITE == 'bicycles' ]]; then . ./.travis_scripts/bicycles.sh; fi
+    # UWLCM
+    - if [[ $TEST_SUITE == 'UWLCM' ]]; then . ./.travis_scripts/UWLCM.sh; fi

@@ -24,6 +24,6 @@ if (NUMPY_FOUND GREATER 0)
 endif()
 
 add_subdirectory(unit)
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
   add_subdirectory(physics)
 endif()
