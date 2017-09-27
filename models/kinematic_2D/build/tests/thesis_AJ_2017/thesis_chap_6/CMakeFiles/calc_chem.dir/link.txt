@@ -1,0 +1,1 @@
+/usr/bin/mpic++   -O3 -DNDEBUG   CMakeFiles/calc_chem.dir/calc_chem.cpp.o  -o calc_chem -rdynamic 

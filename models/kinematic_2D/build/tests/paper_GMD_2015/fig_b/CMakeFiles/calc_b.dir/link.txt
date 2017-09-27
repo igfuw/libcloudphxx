@@ -1,0 +1,1 @@
+/usr/bin/mpic++   -O3 -DNDEBUG   CMakeFiles/calc_b.dir/calc.cpp.o  -o calc_b -rdynamic -lblitz -lboost_thread -lboost_date_time -lboost_system -lboost_iostreams -lboost_timer -lboost_filesystem -lboost_chrono -lboost_atomic -lboost_regex -lpthread -lhdf5_cpp -lhdf5 -lpthread -ldl -lm -lhdf5_cpp -lhdf5 -ldl -lm 

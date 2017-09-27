@@ -44,7 +44,7 @@ endif()
 
 ############################################################################################
 # CUDA
-find_package(CUDA)
+#find_package(CUDA)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 
@@ -211,10 +211,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(src) 
-
 enable_testing()
 add_subdirectory(tests)
-
 add_subdirectory(include) 
 add_subdirectory(bindings) 
 
