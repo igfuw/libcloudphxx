@@ -1,1 +1,0 @@
-/usr/bin/mpic++   -O3 -DNDEBUG   CMakeFiles/calc.dir/calc.cpp.o  -o calc -rdynamic 

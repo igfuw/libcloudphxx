@@ -1,1 +1,0 @@
-/usr/bin/mpic++   -O3 -DNDEBUG   CMakeFiles/travis_calc_blk.dir/travis_calc_blk.cpp.o  -o travis_calc_blk -rdynamic 
