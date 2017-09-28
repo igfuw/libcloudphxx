@@ -57,14 +57,17 @@ and install the library right away.
   
 2. To perform unit and some other quick tests, please try:
 
+```bash
     $ cd build/tests
     $ make test
     $ cd ../..
+```
 
 These tests should complete in a few minutes.
 
 3. To reproduce all results from the GMD paper, please try:
 
+```bash
     $ cd models/kinematic_2D
     $ mkdir build 
     $ cd build
@@ -72,14 +75,17 @@ These tests should complete in a few minutes.
     $ make
     $ make test     
     $ cd ../../..
+```
 
 This can take over an hour if a GPU is available or longer if using
 CPU only. 
 
 4. To install the library system-wide, please try:
 
+```bash
     $ cd build
     $ sudo make install
+```
 
 This will copy the libcloudph++ headers into the system include path
 (e.g. /usr/include/libcloudph++), copy the libcloudph++-config.cmake 
