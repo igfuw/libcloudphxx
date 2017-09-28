@@ -1,8 +1,3 @@
-find_package(libmpdata++)
-
-if (NOT libmpdataxx_FOUND)
-  message(FATAL_ERROR "libmpdata++ not found")
-endif()
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   # make the Release flags the default
@@ -24,10 +19,8 @@ add_executable(icicle icicle.cpp)
 
 target_link_libraries(icicle ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
-
-find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
-target_link_libraries(icicle ${Boost_LIBRARIES})
-
 target_link_libraries(icicle ${libcloudphxx_LIBRARIES})
+find_package(Boost COMPONENTS program_options REQUIRED)
+target_link_libraries(icicle ${Boost_LIBRARIES})
 
 install(TARGETS icicle DESTINATION bin)

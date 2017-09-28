@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.6) # for CMakePushCheckState
 project(icicle CXX C)
-
 enable_testing()
 
 # search for a local version of libcloudphxx
@@ -19,6 +18,6 @@ if (NOT libcloudphxx_LIBRARIES)
   message(FATAL_ERROR "libclouphxx++ not found")
 endif()
 
-add_subdirectory(src) 
-add_subdirectory(paper_GMD_2015)
-add_subdirectory(thesis_2017)
+find_package(libmpdata++)
+add_subdirectory(src)
+add_subdirectory(tests)
