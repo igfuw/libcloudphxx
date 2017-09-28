@@ -1,4 +1,3 @@
-
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   # make the Release flags the default
   set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
@@ -19,7 +18,9 @@ add_executable(icicle icicle.cpp)
 
 target_link_libraries(icicle ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
+
 target_link_libraries(icicle ${libcloudphxx_LIBRARIES})
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 target_link_libraries(icicle ${Boost_LIBRARIES})
 
