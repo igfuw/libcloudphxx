@@ -42,12 +42,14 @@ it may contain useful information on obtaining the dependencies.
 
 1. To check the dependencies and compile the library, please try:
 
+```bash
     $ mkdir build
     $ cd build
     $ cmake ..
     $ make
     $ cd ..
-  
+```
+
 The next two steps are optional test. Running the tests is highly
 recommended to verify if the library works correctly in your 
 environment. Nevertheless, in principle you can skip to step four
