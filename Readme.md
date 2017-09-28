@@ -42,15 +42,11 @@ it may contain useful information on obtaining the dependencies.
 
 1. To check the dependencies and compile the library, please try:
 
-  $ mkdir build
-
-  $ cd build
-
-  $ cmake ..
-
-  $ make
-
-  $ cd ..
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    $ cd ..
   
 The next two steps are optional test. Running the tests is highly
 recommended to verify if the library works correctly in your 
@@ -59,38 +55,29 @@ and install the library right away.
   
 2. To perform unit and some other quick tests, please try:
 
-  $ cd build/tests
-
-  $ make test
-
-  $ cd ../..
+    $ cd build/tests
+    $ make test
+    $ cd ../..
 
 These tests should complete in a few minutes.
 
 3. To reproduce all results from the GMD paper, please try:
 
-  $ cd models/kinematic_2D
-
-  $ mkdir build 
-
-  $ cd build
-
-  $ cmake ..
-
-  $ make
-
-  $ make test     
-
-  $ cd ../../..
+    $ cd models/kinematic_2D
+    $ mkdir build 
+    $ cd build
+    $ cmake ..
+    $ make
+    $ make test     
+    $ cd ../../..
 
 This can take over an hour if a GPU is available or longer if using
 CPU only. 
 
 4. To install the library system-wide, please try:
 
-  $ cd build
-
-  $ sudo make install
+    $ cd build
+    $ sudo make install
 
 This will copy the libcloudph++ headers into the system include path
 (e.g. /usr/include/libcloudph++), copy the libcloudph++-config.cmake 
