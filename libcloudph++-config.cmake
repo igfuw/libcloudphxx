@@ -5,9 +5,12 @@ cmake_minimum_required(VERSION 2.8.8)
 # the policies we care about:
 # - CMP0025 - make CMake distinguis between Apple and LLVM clang
 # - CMP0042 - make CMake use RPATHs on OSX
+# - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
 if(CMAKE_VERSION VERSION_GREATER 2.9)
   cmake_policy(VERSION 3.0)
 endif()
+
+set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
 
 ############################################################################################
 # the following variables will be set:
@@ -47,7 +50,8 @@ endif()
 # Boost libraries
 find_package(Boost)
 if(Boost_FOUND)
-  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
+#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
+#  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
   set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
 else()
 #TODO: check separately for optional and mandatory components
