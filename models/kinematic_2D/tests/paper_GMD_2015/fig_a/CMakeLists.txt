@@ -2,9 +2,6 @@
 add_executable(calc calc.cpp)
 add_test(calc calc ${CMAKE_BINARY_DIR})
 
-find_package(HDF5 COMPONENTS CXX REQUIRED QUIET)
-find_package(Boost COMPONENTS iostreams system filesystem REQUIRED)
-
 # TODO  - test and find correct epsilons (especially for lagrangian sims as they cannot be run on travis)
 #add_test(2D_kin_cloud_dims bash -c "
 #  for dir in out_blk_1m out_blk_2m out_lgrngn; do
@@ -30,18 +27,14 @@ find_package(Boost COMPONENTS iostreams system filesystem REQUIRED)
 foreach(micro blk_1m blk_2m lgrngn)
   add_executable(plot_${micro} plot_${micro}.cpp)
   add_test(plot_${micro} plot_${micro} ${CMAKE_BINARY_DIR})
-  target_link_libraries(plot_${micro} ${HDF5_LIBRARIES})
-  target_include_directories(plot_${micro} PUBLIC ${HDF5_INCLUDE_DIRS})
-  target_link_libraries(plot_${micro} ${Boost_LIBRARIES})
-  target_include_directories(plot_${micro} PUBLIC ${Boost_INCLUDE_DIRS})
+  target_link_libraries(plot_${micro} ${libmpdataxx_LIBRARIES})
+  target_include_directories(plot_${micro} PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 endforeach()
 
 add_executable(plot_lgrngn_spec plot_lgrngn_spec.cpp)
 add_test(plot_lgrngn_spec plot_lgrngn_spec ${CMAKE_BINARY_DIR})
-target_link_libraries(plot_lgrngn_spec ${HDF5_LIBRARIES})
-target_include_directories(plot_lgrngn_spec PUBLIC ${HDF5_INCLUDE_DIRS})
-target_link_libraries(plot_lgrngn_spec ${Boost_LIBRARIES})
-target_include_directories(plot_lgrngn_spec PUBLIC ${Boost_INCLUDE_DIRS})
+target_link_libraries(plot_lgrngn_spec ${libmpdataxx_LIBRARIES})
+target_include_directories(plot_lgrngn_spec PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
 # tests for travis (or any other case where libcloud can't use CUDA)
 add_executable(travis_calc_blk travis_calc_blk.cpp)

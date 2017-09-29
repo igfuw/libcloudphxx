@@ -15,7 +15,7 @@ void init(
     boost::filesystem::path(file).parent_path()
   );
 
-  gp << "set term svg dynamic enhanced fsize 13 size " << nx * 500 << "," << ny * 500 << "\n";
+  gp << "set term svg size " << nx * 500 << "," << ny * 500 << "\n";
   gp << "set size square\n";
   gp << "set encoding utf8\n";
   // progressive-rock connoisseur palette ;)
