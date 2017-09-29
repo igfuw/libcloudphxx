@@ -12,7 +12,7 @@
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
 
-#include "icmw8_case1.hpp"
+#include "../cases/icmw8_case1.hpp"
 
 namespace po = boost::program_options;
 

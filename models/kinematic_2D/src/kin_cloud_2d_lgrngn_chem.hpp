@@ -1,6 +1,6 @@
 #pragma once
 
-#include "icmw8_case1.hpp"
+#include "../cases/icmw8_case1.hpp"
 #include "kin_cloud_2d_lgrngn.hpp"
 #include "outmom.hpp"
 

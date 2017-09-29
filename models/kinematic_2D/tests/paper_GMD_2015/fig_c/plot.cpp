@@ -1,7 +1,7 @@
 #include "../common.hpp"
 #include "../fig_a/gnuplot.hpp"
 #include "../fig_a/hdf5.hpp"
-#include "../../src/icmw8_case1.hpp"
+#include "../../../cases/icmw8_case1.hpp"
 
 int main(int ac, char** av)
 {

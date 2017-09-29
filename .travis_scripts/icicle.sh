@@ -37,7 +37,7 @@ sudo make install
 cd ../../..
 
 ## icicle
-cd libcloudphxx/tests/2D_cloud
+cd libcloudphxx/models/kinematic_2D
 mkdir -p build 
 cd build
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
