@@ -17,10 +17,11 @@ std::map<std::string, int> h5n(
 
   {
     auto h5d = h5f.openDataSet("T");
+    auto h5g = h5f.openGroup("advection");
 
     float dt;
     {
-      auto attr = h5d.openAttribute("dt");
+      auto attr = h5g.openAttribute("dt");
       attr.read(attr.getDataType(), &dt);
     }
 
