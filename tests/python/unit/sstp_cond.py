@@ -48,7 +48,7 @@ for sstp_cond in [1,2,5]:
   opts_init.sstp_cond = sstp_cond
   prtcls = lgrngn.factory(backend, opts_init)
   th   = arr_t([300., 300.])
-  rv   = arr_t([   .009,  .1]) # first cell subsaturated, second cell supersaturated
+  rv   = arr_t([   .0025,  .0095]) # first cell subsaturated, second cell supersaturated
   prtcls.init(th, rv, rhod, C)
 
   #equilibrium wet moment post spinup
@@ -99,5 +99,5 @@ for sstp_cond in [1,2,5]:
   wet_post_adve_cond = frombuffer(prtcls.outbuf()).copy()
   print wet_post_adve
   print wet_post_adve_cond
-  assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=1e-5)
+  assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=3e-2)
 

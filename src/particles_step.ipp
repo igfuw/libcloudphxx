@@ -75,6 +75,13 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
 
+      nancheck(pimpl->th, " th after sync-in");
+      nancheck(pimpl->rv, " rv after sync-in");
+      nancheck(pimpl->courant_x, " courant_x after sync-in");
+      nancheck(pimpl->courant_y, " courant_y after sync-in");
+      nancheck(pimpl->courant_z, " courant_z after sync-in");
+      nancheck(pimpl->rhod, " rhod after sync-in");
+
       // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
@@ -113,6 +120,8 @@ namespace libcloudphxx
             pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
           }
         }
+        nancheck(pimpl->th, " th after cond");
+        nancheck(pimpl->rv, " rv after cond");
       }
 
       // chemistry

@@ -34,7 +34,7 @@ set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g 
 
 ############################################################################################
 # release with debug info mode compiler flags
-set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -O3 -march=native")
+set(libcloudphxx_CXX_FLAGS_RELWITHDEBINFO "${libcloudphxx_CXX_FLAGS_RELWITHDEBINFO} -std=c++11 -Ofast -march=native")
 
 ############################################################################################
 # release mode compiler flags

@@ -51,9 +51,11 @@ namespace libcloudphxx
         rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)
       );
+      nancheck(rw2, "rw2 after condensation (no sub-steps");
 
       // calculating the 3rd wet moment after condensation
       moms_calc(rw2.begin(), real_t(3./2.));
+      nancheck(count_mom, "count_mom (3rd wet moment) after condensation");
 
       // adding the third moment after condensation to dm_3
       thrust::transform(
