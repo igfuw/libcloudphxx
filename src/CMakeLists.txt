@@ -18,4 +18,5 @@ else()
   add_library(cloudphxx_lgrngn SHARED ${files})
 endif()
 
+set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg)
 install(TARGETS cloudphxx_lgrngn LIBRARY DESTINATION lib)
