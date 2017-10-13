@@ -50,7 +50,13 @@ else()
   endif()
 endif()
 
-target_link_libraries(cloudphxx cloudphxx_lgrngn)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  target_link_libraries(cloudphxx cloudphxx_lgrngn)
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  target_link_libraries(cloudphxx cloudphxx_lgrngn_relwithdbg)
+elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_link_libraries(cloudphxx cloudphxx_lgrngn_dbg)
+endif()
 
 #to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
