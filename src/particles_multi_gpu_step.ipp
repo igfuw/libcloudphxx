@@ -16,6 +16,18 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
+      struct nextafter_fctr
+      {
+        real_t goal;
+        nextafter_fctr(real_t goal): goal(goal) {}
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return nextafter(x, goal);
+        }
+      };
+
+      template <typename real_t>
       struct remote
       {
         real_t lcl, rmt;
@@ -25,9 +37,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          real_t res = rmt + x - lcl;
-          if(res == rmt) res = nextafter(res, real_t(0.)); // in single precision, we used to get x=x1
-          return res;
+          return rmt + x - lcl;
         }
       };
     };
@@ -211,6 +221,8 @@ namespace libcloudphxx
             real_t_vctrs[i]->resize(n_part);
             thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, real_t_vctrs[i]->begin() + n_part_old);
           }
+          // sanitize x==x1 that could happen due to errors in copying?
+          thrust::transform_if(x.begin() + n_part_old, x.begin() + n_part, x.begin() + n_part_old, detail::nextafter_fctr<real_t>(0.), arg::_1 == particles[dev_id].opts_init->x1);
 
           // start async copy of n buffer to the right
           gpuErrchk(cudaMemcpyPeerAsync(
@@ -289,7 +301,6 @@ namespace libcloudphxx
           gpuErrchk(cudaStreamDestroy(streams[dev_id]));
           gpuErrchk(cudaEventDestroy(events[dev_id]));
         }
-
         // finalize async
         if(glob_opts_init.dev_count>1)
           particles[dev_id].pimpl->step_finalize(opts);

@@ -41,11 +41,11 @@ namespace libcloudphxx
 	  thrust::transform(
 	    vx.begin(), vx.end(),                                // input
 	    vi.begin(),                                          // output
-	    detail::divide_by_constant_and_cast<real_t, int>(vd) // operation
+	    detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math
 	  );
         }
       } helper;
-      
+
       if (opts_init.nx != 0) helper(x, i, opts_init.dx);
       if (opts_init.ny != 0) helper(y, j, opts_init.dy);
       if (opts_init.nz != 0) helper(z, k, opts_init.dz);
