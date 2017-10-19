@@ -18,7 +18,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
-if(NOT EXISTS libcloudphxx_LIBRARIES)
+if(NOT EXISTS ${libcloudphxx_LIBRARIES})
   message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARIES}") 
 endif() 
 
