@@ -295,9 +295,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.dry_distros.emplace(
     setup.kappa, // key
-    std::shared_ptr<config::log_dry_radii<config::real_t>> (
-      new config::log_dry_radii<config::real_t>(setup)
-    )   
+    std::make_shared<config::log_dry_radii<config::real_t>> (setup)
   );
 
   // process toggling

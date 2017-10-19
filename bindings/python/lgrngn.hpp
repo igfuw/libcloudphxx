@@ -166,7 +166,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(kappa_func.keys()); ++i)
           arg->dry_distros.emplace(
             bp::extract<real_t>(kappa_func.keys()[i]), 
-            std::shared_ptr<detail::pyunary<real_t>>(new detail::pyunary<real_t>(kappa_func.values()[i]))
+            std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
       }
 
@@ -179,7 +179,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(kappa_func.keys()); ++i)
           arg->src_dry_distros.emplace(
             bp::extract<real_t>(kappa_func.keys()[i]), 
-            std::shared_ptr<detail::pyunary<real_t>>(new detail::pyunary<real_t>(kappa_func.values()[i]))
+            std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
       }
 
