@@ -19,5 +19,15 @@ if (NOT libcloudphxx_LIBRARIES)
 endif()
 
 find_package(libmpdata++)
+
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  # make the Release flags the default
+  set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
+  # ignore CMake defaults
+  set(CMAKE_CXX_FLAGS_RELEASE "")
+else()
+  set(CMAKE_CXX_FLAGS_DEBUG ${libmpdataxx_CXX_FLAGS_DEBUG})
+endif()
+
 add_subdirectory(src)
 add_subdirectory(tests)

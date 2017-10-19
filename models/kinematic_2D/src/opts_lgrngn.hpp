@@ -282,6 +282,7 @@ void setopts_micro(
   else
     rt_params.cloudph_opts_init.n_sd_max = nx *  nz * rt_params.cloudph_opts_init.sd_conc;
  
+/*
   boost::assign::ptr_map_insert<
     config::log_dry_radii<config::real_t> // value type
   >(
@@ -289,6 +290,14 @@ void setopts_micro(
   )(
     setup.kappa, // key
     setup
+  );
+*/
+
+  rt_params.cloudph_opts_init.dry_distros.emplace(
+    setup.kappa, // key
+    std::shared_ptr<config::log_dry_radii<config::real_t>> (
+      new config::log_dry_radii<config::real_t>(setup)
+    )   
   );
 
   // process toggling
