@@ -11,7 +11,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_sd_conc(const common::unary_function<real_t> *fun, const real_t &tot_lnrd_rng)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_sd_conc(const std::shared_ptr<common::unary_function<real_t>> &fun, const real_t &tot_lnrd_rng)
     {
       // analyze the distribution, TODO: just did it in init_SD_with_distros
       dist_analysis_sd_conc(

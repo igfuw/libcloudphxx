@@ -27,7 +27,7 @@ namespace libcloudphxx
     {
       // calculate cumulative distribution function
       template<typename real_t, typename vec_t>
-      void calc_CDF(const common::unary_function<real_t> &fun, const real_t &min, const real_t &max, const real_t &bin_size, vec_t &vec)
+      void calc_CDF(const std::shared_ptr<common::unary_function<real_t>> &fun, const real_t &min, const real_t &max, const real_t &bin_size, vec_t &vec)
       {
         const thrust_size_t n = (max - min) / bin_size + 1; //no of points at which cdf will be calculated
         vec.resize(n);
@@ -37,7 +37,7 @@ namespace libcloudphxx
         thrust::transform(
           thrust::make_transform_iterator(thrust::make_counting_iterator<thrust_size_t>(0), min + bin_size * arg::_1),
           thrust::make_transform_iterator(thrust::make_counting_iterator(n), min + bin_size * arg::_1),
-          vec.begin(), eval_and_mul<real_t>(fun, 1));
+          vec.begin(), eval_and_mul<real_t>(*fun, 1));
 
         // calculate CDF
         thrust::inclusive_scan(vec.begin(), vec.end(), vec.begin());
@@ -49,13 +49,13 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry_const_multi(
-      const common::unary_function<real_t> *n_of_lnrd_stp 
+      const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd_stp 
     )
     {
       // calculate cumulative distribution function
       thrust::host_vector<real_t> cdf;
 
-      detail::calc_CDF(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
+      detail::calc_CDF(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part_to_init);
