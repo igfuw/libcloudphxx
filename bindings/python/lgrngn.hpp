@@ -32,11 +32,6 @@ namespace libcloudphxx
           {
             return bp::extract<real_t>(fun(x)); 
           }
-          
-          pyunary *do_clone() const
-          { 
-            return new pyunary(*this); 
-          }
         };
       };
 
@@ -169,9 +164,9 @@ namespace libcloudphxx
       {
         arg->dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
-          boost::assign::ptr_map_insert<detail::pyunary<real_t>>(arg->dry_distros)(
+          arg->dry_distros.emplace(
             bp::extract<real_t>(kappa_func.keys()[i]), 
-            detail::pyunary<real_t>(kappa_func.values()[i])
+            std::shared_ptr<detail::pyunary<real_t>>(new detail::pyunary<real_t>(kappa_func.values()[i]))
           );
       }
 
@@ -182,9 +177,9 @@ namespace libcloudphxx
       {
         arg->src_dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
-          boost::assign::ptr_map_insert<detail::pyunary<real_t>>(arg->src_dry_distros)(
+          arg->src_dry_distros.emplace(
             bp::extract<real_t>(kappa_func.keys()[i]), 
-            detail::pyunary<real_t>(kappa_func.values()[i])
+            std::shared_ptr<detail::pyunary<real_t>>(new detail::pyunary<real_t>(kappa_func.values()[i]))
           );
       }
 
