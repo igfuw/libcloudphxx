@@ -66,20 +66,20 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd_stp
+      const common::unary_function<real_t> &n_of_lnrd_stp
     )
     {
-      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
+      const real_t integral = detail::integrate(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
       init_count_num_hlpr(integral, opts_init.sd_const_multi);
     }
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd_stp,
+      const common::unary_function<real_t> &n_of_lnrd_stp,
       const thrust_size_t &const_multi
     )
     {
-      const real_t integral = detail::integrate(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
+      const real_t integral = detail::integrate(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
       init_count_num_hlpr(integral, const_multi);
     }
   };

@@ -49,7 +49,7 @@ namespace libcloudphxx
     // init
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_n_sd_conc(
-      const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd_stp 
+      const common::unary_function<real_t> &n_of_lnrd_stp 
     )
     {
       // temporary space on the host 
@@ -75,7 +75,7 @@ namespace libcloudphxx
       thrust::transform(
         tmp_real.begin(), tmp_real.end(), // input 
         tmp_real.begin(),                 // output
-        detail::eval_and_multiply<real_t>(*n_of_lnrd_stp, multiplier)
+        detail::eval_and_multiply<real_t>(n_of_lnrd_stp, multiplier)
       );
 
       {

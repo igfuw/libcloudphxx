@@ -321,9 +321,9 @@ namespace libcloudphxx
       // methods
       void sanity_checks();
       void init_SD_with_distros();
-      void init_SD_with_distros_sd_conc(const std::shared_ptr<common::unary_function<real_t>> &, const real_t &);
-      void init_SD_with_distros_tail(const std::shared_ptr<common::unary_function<real_t>> &, const real_t);
-      void init_SD_with_distros_const_multi(const std::shared_ptr<common::unary_function<real_t>> &);
+      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
+      void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
+      void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
       void init_SD_with_distros_finalize(const real_t &);
       void init_SD_with_sizes();
       void init_sanity_check(
@@ -334,29 +334,29 @@ namespace libcloudphxx
 
       void init_dry_sd_conc();
       void init_dry_const_multi(
-        const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd
+        const common::unary_function<real_t> &n_of_lnrd
       );
       void init_dry_dry_sizes(real_t);
 
       void init_n_sd_conc(
-        const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd
+        const common::unary_function<real_t> &n_of_lnrd
       );
       void init_n_const_multi(const thrust_size_t &);
 
       void dist_analysis_sd_conc(
-        const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd,
+        const common::unary_function<real_t> &n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
       void dist_analysis_const_multi(
-        const std::shared_ptr<common::unary_function<real_t>> &n_of_lnrd 
+        const common::unary_function<real_t> &n_of_lnrd 
       );
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
       void init_count_num_sd_conc(const real_t & = 1);
-      void init_count_num_const_multi(const std::shared_ptr<common::unary_function<real_t>> &);
-      void init_count_num_const_multi(const std::shared_ptr<common::unary_function<real_t>> &, const thrust_size_t &);
+      void init_count_num_const_multi(const common::unary_function<real_t> &);
+      void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const real_t &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);

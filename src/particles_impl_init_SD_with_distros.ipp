@@ -20,7 +20,7 @@ namespace libcloudphxx
         for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = opts_init.dry_distros.begin(); ddi != opts_init.dry_distros.end(); ++ddi)
         {
             dist_analysis_sd_conc(
-              ddi->second,
+              *(ddi->second),
               opts_init.sd_conc
             );
           tot_lnrd_rng += log_rd_max - log_rd_min;
@@ -31,18 +31,18 @@ namespace libcloudphxx
       {
         if(opts_init.sd_conc > 0)
         {
-          init_SD_with_distros_sd_conc(ddi->second, tot_lnrd_rng);
+          init_SD_with_distros_sd_conc(*(ddi->second), tot_lnrd_rng);
           init_SD_with_distros_finalize(ddi->first);
           
           if(opts_init.sd_conc_large_tail)
           {
-            init_SD_with_distros_tail(ddi->second, log_rd_max);
+            init_SD_with_distros_tail(*(ddi->second), log_rd_max);
             init_SD_with_distros_finalize(ddi->first);
           }
         }
         if(opts_init.sd_const_multi > 0)
         {
-          init_SD_with_distros_const_multi(ddi->second);
+          init_SD_with_distros_const_multi(*(ddi->second));
           init_SD_with_distros_finalize(ddi->first);
         }
       }
