@@ -25,6 +25,7 @@ namespace libcloudphxx
     {
       // initial dry sizes of aerosol
       // defined with a distribution
+      // uses shared_ptr to make opts_init copyable
       typedef std::unordered_map<
         real_t,                // kappa
         std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP 
