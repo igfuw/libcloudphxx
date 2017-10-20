@@ -215,6 +215,10 @@ namespace libcloudphxx
       void diag_vel_div();
       std::map<output_t, real_t> diag_puddle();
 
+      // cxx threads helper method
+      template<typename F, typename ... Args>
+      void mcuda_run(F&& fun, Args&& ... args);
+
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init);
 

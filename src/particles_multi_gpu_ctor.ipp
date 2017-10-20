@@ -7,8 +7,6 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
-#include <functional>
-#include <thread>
 
 namespace libcloudphxx
 {
@@ -148,11 +146,25 @@ namespace libcloudphxx
       }
     }
 
-    void set_device_and_run(int id, std::function<void()> fun)
+    // run a function concurently on gpus
+    template <typename real_t>
+    template<typename F, typename ... Args>
+    void particles_t<real_t, multi_CUDA>::mcuda_run(F&& fun, Args&& ... args)
     {
-      gpuErrchk(cudaSetDevice(id));
-      fun();
-    }
+      std::vector<std::thread> threads;
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
+      {
+        threads.emplace_back(
+          detail::set_device_and_run, i, 
+          std::bind(
+            fun,
+            &particles[i],
+            std::forward<Args>(args)...
+          )
+        );
+      }
+      for (auto &th : threads) th.join();
+    };
 
     // initialisation 
     template <typename real_t>
@@ -166,19 +178,10 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-      std::vector<std::thread> threads;
-      for (int i = 0; i < glob_opts_init.dev_count; ++i)
-      {
-        threads.emplace_back(
-          set_device_and_run, i, 
-          std::function<void()> (std::bind(
-            &particles_t<real_t, CUDA>::init,
-            &particles[i],
-            th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem
-          ))
-        );
-      }
-      for (auto &th : threads) th.join();
+      mcuda_run(
+        &particles_t<real_t, CUDA>::init,
+        th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem
+      );
     }
   };
 };
