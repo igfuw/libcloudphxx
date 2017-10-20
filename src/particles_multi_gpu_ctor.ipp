@@ -7,6 +7,9 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
+#include <functional>
+#include <thread>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -145,6 +148,12 @@ namespace libcloudphxx
       }
     }
 
+    void set_device_and_run(int id, std::function<void()> fun)
+    {
+      gpuErrchk(cudaSetDevice(id));
+      fun();
+    }
+
     // initialisation 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::init(
@@ -157,12 +166,19 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-      #pragma omp parallel num_threads(glob_opts_init.dev_count)
+      std::vector<std::thread> threads;
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
       {
-        const int dev_id = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+        threads.emplace_back(
+          set_device_and_run, i, 
+          std::function<void()> (std::bind(
+            &particles_t<real_t, CUDA>::init,
+            &particles[i],
+            th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem
+          ))
+        );
       }
+      for (auto &th : threads) th.join();
     }
   };
 };
