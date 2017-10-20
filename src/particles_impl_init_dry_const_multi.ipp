@@ -49,13 +49,13 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry_const_multi(
-      const common::unary_function<real_t> *n_of_lnrd_stp 
+      const common::unary_function<real_t> &n_of_lnrd_stp 
     )
     {
       // calculate cumulative distribution function
       thrust::host_vector<real_t> cdf;
 
-      detail::calc_CDF(*n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
+      detail::calc_CDF(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part_to_init);

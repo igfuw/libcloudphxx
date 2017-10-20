@@ -95,7 +95,7 @@ if (CUDA_FOUND)
     set (msg "20")
     message(STATUS "CUDA capability check failed, assuming a default of ${msg}")
   endif()
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg}")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg} --std=c++11")
   if (msg EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
     set(msg "20")
   endif()

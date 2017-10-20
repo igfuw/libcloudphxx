@@ -11,7 +11,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_tail(const common::unary_function<real_t> *fun, const real_t log_rd_min_init)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_tail(const common::unary_function<real_t> &fun, const real_t log_rd_min_init)
     {
       dist_analysis_const_multi(fun);
  
