@@ -15,8 +15,8 @@ namespace libcloudphxx
              n_t,           n_t,        // n   (multiplicity)
           real_t,        real_t,        // rw2 (wet radius squared)
           real_t,        real_t,        // vt  (terminal velocity)
-          real_t,        real_t,        // rd3 (dry radius cubed)
-          real_t,        real_t         // number of collisions
+          real_t,        real_t        // rd3 (dry radius cubed)
+//          real_t,        real_t         // number of collisions
         > tpl_rw_t;
 
         typedef thrust::tuple<

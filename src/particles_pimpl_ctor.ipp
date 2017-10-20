@@ -57,11 +57,14 @@ namespace libcloudphxx
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
       thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
-      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
+      // device container for kernel parameters, comes from opts_init
       thrust_device::vector<real_t> kernel_parameters;
-
-      //number of kernel parameters defined by user in opts_init
-      const n_t n_user_params;
+      // device container for kernel collision efficiencies
+      thrust_device::vector<real_t> kernel_coll_eff;
+      // device container for kernel collision efficiencies radii matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rad;
+      // device container for kernel collision efficiencies ratio matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rat;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -82,6 +85,9 @@ namespace libcloudphxx
              log_rd_max, // logarithm of the upper bound of the distr
              multiplier; // multiplier calculated for the above values
 
+      thrust_device::vector<thrust_size_t> col_pairs;
+      thrust_size_t n_tot_col_pairs;
+
       // terminal velocity (per particle)
       thrust_device::vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
@@ -93,7 +99,7 @@ namespace libcloudphxx
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
-        sorted_id, sorted_ijk;
+        sorted_id, sorted_ijk, sorted_ijk_col;
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
@@ -252,7 +258,6 @@ namespace libcloudphxx
         sorted(false), 
         counted(false), 
         u01(tmp_device_real_part),
-        n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
@@ -378,6 +383,7 @@ namespace libcloudphxx
       void hskpng_sort_helper(bool);
       void hskpng_sort();
       void hskpng_shuffle_and_sort();
+      void hskpng_shuffle_allperm_and_sort();
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
