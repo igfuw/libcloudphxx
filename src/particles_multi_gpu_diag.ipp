@@ -119,15 +119,26 @@ namespace libcloudphxx
     template <typename real_t>
     real_t* particles_t<real_t, multi_CUDA>::outbuf()
     {
-      #pragma omp parallel num_threads(glob_opts_init.dev_count)
+      // run fill_outbuf on each gpu
+      std::vector<std::thread> threads;
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
       {
-        const int dev_id = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id].pimpl->fill_outbuf();
+        threads.emplace_back(
+          detail::set_device_and_run, i, 
+          std::bind(
+            &particles_t<real_t, CUDA>::impl::fill_outbuf,
+            &(*(particles[i].pimpl))
+          )
+        );
+      }
+      for (auto &th : threads) th.join();
+
+      for(auto &p : particles) // TODO: perform this copy in parallell?
+      {
         thrust::copy(
-          particles[dev_id].pimpl->tmp_host_real_cell.begin(),
-          particles[dev_id].pimpl->tmp_host_real_cell.end(),
-          real_n_cell_tot.begin() + particles[dev_id].pimpl->n_cell_bfr
+          p.pimpl->tmp_host_real_cell.begin(),
+          p.pimpl->tmp_host_real_cell.end(),
+          real_n_cell_tot.begin() + p.pimpl->n_cell_bfr
         );
       }
       return &(*(real_n_cell_tot.begin()));
