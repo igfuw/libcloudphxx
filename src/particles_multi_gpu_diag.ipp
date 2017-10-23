@@ -127,7 +127,7 @@ namespace libcloudphxx
           detail::set_device_and_run, i, 
           std::bind(
             &particles_t<real_t, CUDA>::impl::fill_outbuf,
-            &(*(particles[i].pimpl))
+            &(*(particles[i]->pimpl))
           )
         );
       }
@@ -136,9 +136,9 @@ namespace libcloudphxx
       for(auto &p : particles) // TODO: perform this copy in parallell?
       {
         thrust::copy(
-          p.pimpl->tmp_host_real_cell.begin(),
-          p.pimpl->tmp_host_real_cell.end(),
-          real_n_cell_tot.begin() + p.pimpl->n_cell_bfr
+          p->pimpl->tmp_host_real_cell.begin(),
+          p->pimpl->tmp_host_real_cell.end(),
+          real_n_cell_tot.begin() + p->pimpl->n_cell_bfr
         );
       }
       return &(*(real_n_cell_tot.begin()));
@@ -165,7 +165,7 @@ namespace libcloudphxx
       {
         const int dev_id = omp_get_thread_num();
         gpuErrchk(cudaSetDevice(dev_id));
-        res = particles[dev_id].diag_puddle();
+        res = particles[dev_id]->diag_puddle();
       }
       return res;
     }

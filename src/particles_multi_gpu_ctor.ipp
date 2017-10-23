@@ -116,7 +116,8 @@ namespace libcloudphxx
           // adjust max numer of SDs on each card
           opts_init_tmp.n_sd_max = opts_init_tmp.n_sd_max / dev_count + 1;
         }
-        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
+      //  particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
+        particles.emplace_back(std::unique_ptr<particles_t<real_t, CUDA>>(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx))); // impl stores a copy of opts_init
       }
     }
 
@@ -158,7 +159,7 @@ namespace libcloudphxx
           detail::set_device_and_run, i, 
           std::bind(
             fun,
-            &particles[i],
+            particles[i].get(),
             std::forward<Args>(args)...
           )
         );
