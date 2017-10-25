@@ -8,6 +8,7 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
+#include <future>
 
 namespace libcloudphxx
 {
@@ -155,17 +156,24 @@ namespace libcloudphxx
     template <typename real_t>
     std::map<output_t, real_t> particles_t<real_t, multi_CUDA>::diag_puddle()
     {
-      #pragma omp declare reduction(PuddleAdd: std::map<output_t, real_t>: \
-      omp_out=add_puddle(omp_out, omp_in)) initializer( \
-      omp_priv= detail::empty_out_map<real_t>() )
+      using pudmap_t = std::map<output_t, real_t>;
+      pudmap_t res = detail::empty_out_map<real_t>();
 
-      std::map<output_t, real_t> res = detail::empty_out_map<real_t>();
-
-      #pragma omp parallel reduction(PuddleAdd:res) num_threads(glob_opts_init.dev_count)
+      std::vector<std::future<pudmap_t>> futures(glob_opts_init.dev_count);
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
       {
-        const int dev_id = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(dev_id));
-        res = particles[dev_id]->diag_puddle();
+        futures[i] = std::async(
+          std::launch::async,
+          [i, this](){
+            gpuErrchk(cudaSetDevice(i));
+            return this->particles[i]->diag_puddle();
+          }
+        );
+      }
+      // TODO: optimize this...
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
+      {
+        res = add_puddle(res, futures[i].get());
       }
       return res;
     }
