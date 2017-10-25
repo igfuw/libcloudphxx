@@ -7,7 +7,6 @@
 
 
 // contains definitions of members of particles_t specialized for multiple GPUs
-#include <omp.h>
 
 namespace libcloudphxx
 {
@@ -54,12 +53,7 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
-      #pragma omp parallel num_threads(glob_opts_init.dev_count)
-      {
-        const int dev_id = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id]->step_sync(opts, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
-      }
+      mcuda_run(&particles_t<real_t, CUDA>::step_sync, opts, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
     }
 
     template <typename real_t>

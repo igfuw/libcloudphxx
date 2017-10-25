@@ -7,7 +7,6 @@
 
 
 // contains definitions of members of particles_t specialized for multiple GPUs
-#include <omp.h>
 #include <future>
 
 namespace libcloudphxx
