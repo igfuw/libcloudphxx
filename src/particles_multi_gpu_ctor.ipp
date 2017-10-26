@@ -52,6 +52,9 @@ namespace libcloudphxx
 
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
+
+      // init the barrier
+      barrier.init(dev_count);
    
       // check if all GPUs support UVA
       // TODO: other checks?, see CUDA samples 0_simple/simpleP2P

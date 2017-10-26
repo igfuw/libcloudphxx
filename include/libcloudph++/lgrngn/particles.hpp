@@ -8,6 +8,9 @@
 #include "arrinfo.hpp"
 #include "backend.hpp"
 
+#include <mutex>
+#include <condition_variable>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -153,6 +156,55 @@ namespace libcloudphxx
 
 
 
+#if defined(__NVCC__)
+
+    // cxx_thread barrier, TODO: move to an impl file
+    namespace detail
+    {
+      // taken from libmpdata++, which in turn is based on boost barrier's code
+      class barrier_t
+      {
+	std::mutex m_mutex;
+	std::condition_variable m_cond;
+	std::size_t m_generation, m_count;
+        std::size_t m_threshold;
+
+	public:
+
+	barrier_t(/*const std::size_t count*/) : 
+          m_count(0), 
+          m_threshold(0),
+          m_generation(0) 
+        { }
+
+	void init(const std::size_t count)
+        {
+          m_count = count;
+          m_threshold = count;
+        }
+
+        // TODO: check that init was called! or better call the ctor in ctor of prtcls
+	bool wait()
+	{
+          std::unique_lock<std::mutex> lock(m_mutex);
+          unsigned int gen = m_generation;
+
+          if (--m_count == 0)
+          {
+            m_generation++;
+            m_count = m_threshold;
+            m_cond.notify_all();
+            return true;
+          }
+
+          while (gen == m_generation)
+            m_cond.wait(lock);
+          return false;
+	}
+      };
+    };
+
+
     // specialization for the multi_GPU backend
     // has the init, stepping and diag functions
     // plus list of pointers to particles_t<CUDA> on each GPU
@@ -166,6 +218,7 @@ namespace libcloudphxx
       opts_init_t<real_t> glob_opts_init; // global copy of opts_init (threads store their own in impl), 
       const int n_cell_tot;               // total number of cells
       std::vector<real_t> real_n_cell_tot; // vector of the size of the total number of cells to store output
+      detail::barrier_t barrier;
 
       // initialisation 
       void init(
@@ -216,10 +269,16 @@ namespace libcloudphxx
       void diag_vel_div();
       std::map<output_t, real_t> diag_puddle();
 
-      // cxx threads helper method
-      // TODO: move it to impl!
+      // cxx threads helper methods
+      // TODO: move them to impl!
       template<typename F, typename ... Args>
       void mcuda_run(F&& fun, Args&& ... args);
+      void step_async_and_copy(
+        const opts_t<real_t> &opts,
+        const int dev_id,
+        std::vector<cudaStream_t> &streams,
+        std::vector<cudaEvent_t> &events
+      );
 
       // constructors
       particles_t(const opts_init_t<real_t> &opts_init);
@@ -230,5 +289,6 @@ namespace libcloudphxx
       // helper typedef
       typedef particles_proto_t<real_t> parent_t;
     };
+#endif
   };
 };
