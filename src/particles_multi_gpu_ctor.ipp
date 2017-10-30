@@ -7,6 +7,7 @@
 
 // contains definitions of members of particles_t specialized for multiple GPUs
 #include <omp.h>
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -51,6 +52,9 @@ namespace libcloudphxx
 
       // copy dev_count to opts_init for threads to use
       glob_opts_init.dev_count = dev_count;
+
+      // init the barrier
+      barrier.init(dev_count);
    
       // check if all GPUs support UVA
       // TODO: other checks?, see CUDA samples 0_simple/simpleP2P
@@ -115,7 +119,8 @@ namespace libcloudphxx
           // adjust max numer of SDs on each card
           opts_init_tmp.n_sd_max = opts_init_tmp.n_sd_max / dev_count + 1;
         }
-        particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
+      //  particles.push_back(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx)); // impl stores a copy of opts_init
+        particles.emplace_back(std::unique_ptr<particles_t<real_t, CUDA>>(new particles_t<real_t, CUDA>(opts_init_tmp, n_x_bfr, glob_opts_init.nx))); // impl stores a copy of opts_init
       }
     }
 
@@ -145,6 +150,26 @@ namespace libcloudphxx
       }
     }
 
+    // run a function concurently on gpus
+    template <typename real_t>
+    template<typename F, typename ... Args>
+    void particles_t<real_t, multi_CUDA>::mcuda_run(F&& fun, Args&& ... args)
+    {
+      std::vector<std::thread> threads;
+      for (int i = 0; i < glob_opts_init.dev_count; ++i)
+      {
+        threads.emplace_back(
+          detail::set_device_and_run, i, 
+          std::bind(
+            fun,
+            particles[i].get(),
+            std::forward<Args>(args)...
+          )
+        );
+      }
+      for (auto &th : threads) th.join();
+    };
+
     // initialisation 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::init(
@@ -157,12 +182,10 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-      #pragma omp parallel num_threads(glob_opts_init.dev_count)
-      {
-        const int dev_id = omp_get_thread_num();
-        gpuErrchk(cudaSetDevice(dev_id));
-        particles[dev_id].init(th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
-      }
+      mcuda_run(
+        &particles_t<real_t, CUDA>::init,
+        th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem
+      );
     }
   };
 };
