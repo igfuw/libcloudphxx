@@ -7,7 +7,7 @@
   */
 
 #include "detail/multi_gpu_utils.hpp"
-#include "particles_multi_gpu_ctor.ipp"
+#include "particles_multi_gpu_pimpl_ctor.ipp"
 #include "particles_multi_gpu_diag.ipp"
 #include "particles_multi_gpu_step.ipp"
 

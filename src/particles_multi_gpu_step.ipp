@@ -39,42 +39,6 @@ namespace libcloudphxx
           return rmt + x - lcl;
         }
       };
-
-      // cxx_thread barrier, TODO: move to an impl file
-      // taken from libmpdata++, which in turn is based on boost barrier's code
-      class barrier_t
-      {
-	std::mutex m_mutex;
-	std::condition_variable m_cond;
-	std::size_t m_generation, m_count;
-        const std::size_t m_threshold;
-
-	public:
-
-	explicit barrier_t(const std::size_t count) : 
-          m_count(count), 
-          m_threshold(count),
-          m_generation(0) 
-        { }
-
-	bool wait()
-	{
-          std::unique_lock<std::mutex> lock(m_mutex);
-          unsigned int gen = m_generation;
-
-          if (--m_count == 0)
-          {
-            m_generation++;
-            m_count = m_threshold;
-            m_cond.notify_all();
-            return true;
-          }
-
-          while (gen == m_generation)
-            m_cond.wait(lock);
-          return false;
-	}
-      };
     };
 
     // time-stepping methods
@@ -90,7 +54,7 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
-      mcuda_run(&particles_t<real_t, CUDA>::step_sync, opts, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::step_sync, opts, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
     }
 
     template <typename real_t>
@@ -105,30 +69,29 @@ namespace libcloudphxx
       // cuda streams and events to control asynchronous copies
       // note: storing them in particles_multi_t caused errors
       // on program exit
-      std::vector<cudaStream_t> streams(glob_opts_init.dev_count);
-      std::vector<cudaEvent_t> events(glob_opts_init.dev_count);
+      std::vector<cudaStream_t> streams(this->opts_init->dev_count);
+      std::vector<cudaEvent_t> events(this->opts_init->dev_count);
       // if made a member of particles_t<multi_CUDA...> it causes errors on program exit...
-      detail::barrier_t barrier(glob_opts_init.dev_count);
+      detail::barrier_t barrier(this->opts_init->dev_count);
 
       // run on many GPUs
       std::vector<std::thread> threads;
-      for (int i = 0; i < glob_opts_init.dev_count; ++i)
+      for (int i = 0; i < this->opts_init->dev_count; ++i)
       {
         threads.emplace_back(
-          &particles_t<real_t, multi_CUDA>::step_async_and_copy<detail::barrier_t>, this, opts, i, std::ref(streams), std::ref(events), std::ref(barrier)
+          &particles_t<real_t, multi_CUDA>::impl::step_async_and_copy, pimpl.get(), opts, i, std::ref(streams), std::ref(events), std::ref(barrier)
         );
       }
       for (auto &th : threads) th.join();
     }
 
     template <typename real_t>
-    template <class barrier_t>
-    void particles_t<real_t, multi_CUDA>::step_async_and_copy(
+    void particles_t<real_t, multi_CUDA>::impl::step_async_and_copy(
       const opts_t<real_t> &opts,
       const int dev_id,
       std::vector<cudaStream_t> &streams,
       std::vector<cudaEvent_t> &events,
-      barrier_t &barrier
+      detail::barrier_t &barrier
     )
     {
       gpuErrchk(cudaSetDevice(dev_id));
