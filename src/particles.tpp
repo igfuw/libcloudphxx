@@ -20,6 +20,8 @@
 #include "detail/checknan.hpp"
 #include "detail/formatter.cpp"
 #include "detail/tpl_calc_wrapper.hpp"
+#include "detail/kernels.hpp"
+#include "detail/functors_host.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -36,7 +38,6 @@
 #include "particles_diag.ipp"
 
 // details
-#include "impl/particles_impl_kernel.ipp"
 #include "impl/particles_impl_dist_analysis.ipp"
 #include "impl/particles_impl_init_SD_with_distros_sd_conc.ipp"
 #include "impl/particles_impl_init_SD_with_distros_tail.ipp"
