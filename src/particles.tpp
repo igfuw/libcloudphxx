@@ -39,6 +39,7 @@
 #include "particles_diag.ipp"
 
 // details
+#include "impl/particles_impl.ipp"
 #include "impl/particles_impl_dist_analysis.ipp"
 #include "impl/particles_impl_init_SD_with_distros_sd_conc.ipp"
 #include "impl/particles_impl_init_SD_with_distros_tail.ipp"
