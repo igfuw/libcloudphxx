@@ -33,7 +33,7 @@
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 // public API
-#include "particles_pimpl_ctor.ipp"
+#include "particles_ctor.ipp"
 #include "particles_init.ipp"
 #include "particles_step.ipp"
 #include "particles_diag.ipp"
@@ -93,5 +93,4 @@
 #include "impl/particles_impl_sstp.ipp"
 #include "impl/particles_impl_sstp_chem.ipp"
 #include "impl/particles_impl_src.ipp"
-#include "impl/particles_impl_kernel_interpolation.ipp"
 
