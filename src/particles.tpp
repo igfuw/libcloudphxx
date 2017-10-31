@@ -21,6 +21,7 @@
 #include "detail/formatter.cpp"
 #include "detail/tpl_calc_wrapper.hpp"
 #include "detail/kernels.hpp"
+#include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
 
 //kernel definitions
