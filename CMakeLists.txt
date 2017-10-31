@@ -41,6 +41,18 @@ set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
+
+#############################################################################################
+# OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${OpenMP_CXX_FLAGS}")
+  #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
+else()
+  message(STATUS "CMAKE cant find OpenMP for AppleClang on OSX - TODO")
+  set(OpenMP_CXX_FLAGS " ")
+endif()
+
 ############################################################################################
 # Thrust
 include(CheckCXXSourceCompiles)
