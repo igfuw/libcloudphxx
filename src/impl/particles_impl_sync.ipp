@@ -5,7 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include "detail/functors_host.hpp"
 #include <thrust/iterator/discard_iterator.h>
 
 namespace libcloudphxx

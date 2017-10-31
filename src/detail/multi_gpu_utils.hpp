@@ -41,6 +41,42 @@ namespace libcloudphxx
         fun();
       }
 
+      // cxx_thread barrier
+      // taken from libmpdata++, which in turn is based on boost barrier's code
+      class barrier_t
+      {
+	std::mutex m_mutex;
+	std::condition_variable m_cond;
+	std::size_t m_generation, m_count;
+        const std::size_t m_threshold;
+
+	public:
+
+	explicit barrier_t(const std::size_t count) : 
+          m_count(count), 
+          m_threshold(count),
+          m_generation(0) 
+        { }
+
+	bool wait()
+	{
+          std::unique_lock<std::mutex> lock(m_mutex);
+          unsigned int gen = m_generation;
+
+          if (--m_count == 0)
+          {
+            m_generation++;
+            m_count = m_threshold;
+            m_cond.notify_all();
+            return true;
+          }
+
+          while (gen == m_generation)
+            m_cond.wait(lock);
+          return false;
+	}
+      };
+
 /*
       // run a function concurently on gpus, TODO: some forwarding/moving/passing by reference?
       void mcuda_run(int dev_count, std::function<void()> fun)
