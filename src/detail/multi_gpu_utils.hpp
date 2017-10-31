@@ -3,6 +3,9 @@
 #include <functional>
 #include <thread>
 
+#include <mutex>
+#include <condition_variable>
+
 // macro to check for cuda errors, taken from 
 // http://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans) { detail::gpuAssert((ans), __FILE__, __LINE__); }
