@@ -67,7 +67,7 @@ namespace libcloudphxx
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
       virtual void diag_max_rw()                                    { assert(false); }
       virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<output_t, real_t> diag_puddle()              { assert(false); }
+      virtual std::map<output_t, real_t> diag_puddle() = 0; //              { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
