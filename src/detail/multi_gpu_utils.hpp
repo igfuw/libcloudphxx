@@ -3,6 +3,9 @@
 #include <functional>
 #include <thread>
 
+#include <mutex>
+#include <condition_variable>
+
 // macro to check for cuda errors, taken from 
 // http://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans) { detail::gpuAssert((ans), __FILE__, __LINE__); }
@@ -76,21 +79,6 @@ namespace libcloudphxx
           return false;
 	}
       };
-
-/*
-      // run a function concurently on gpus, TODO: some forwarding/moving/passing by reference?
-      void mcuda_run(int dev_count, std::function<void()> fun)
-      {
-        std::vector<std::thread> threads;
-        for (int i = 0; i < dev_count; ++i)
-        {
-          threads.emplace_back(
-            detail::set_device_and_run, i, fun      
-          );
-        }
-        for (auto &th : threads) th.join();
-      }
-*/
     }
   }
 }

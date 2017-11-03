@@ -8,9 +8,6 @@
 #include "arrinfo.hpp"
 #include "backend.hpp"
 
-#include <mutex>
-#include <condition_variable>
-
 namespace libcloudphxx
 {
   namespace lgrngn
