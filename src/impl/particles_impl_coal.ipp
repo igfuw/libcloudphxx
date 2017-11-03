@@ -73,7 +73,7 @@ namespace libcloudphxx
         real_t operator()(const n_t &n)
         {
           // see section 5.1.3 in Shima et al. 2009
-          return real_t((n*(n-1))/2) / (n/2); 
+          return n>1 ? (real_t(n*(n-1))/2) / (n/2) : 0; 
         }
       };
 
@@ -287,7 +287,7 @@ namespace libcloudphxx
         off.begin(), off.end(),
         off.begin()
       );
-      nancheck(off, "off - droplet index within a cell");
+//      nancheck(off, "off - droplet index within a cell");
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
       rand_u01(n_part);
@@ -389,7 +389,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
       );
-      nancheck(n, "n - post coalescence");
+   //   nancheck(n, "n - post coalescence");
       nancheck(rw2, "rw2 - post coalescence");
       nancheck(rd3, "rd3 - post coalescence");
       nancheck(vt, "vt - post coalescence");
