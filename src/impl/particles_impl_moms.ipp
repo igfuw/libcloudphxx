@@ -149,8 +149,9 @@ namespace libcloudphxx
             printf("nan/inf res in moment counter, n = %g x = %g res = %g xp = %g\n", n, x, res, xp);
           }
           return res;
-#endif
+#else
           return n * pow(x, xp); // TODO: check if xp=0 is optimised
+#endif
         }
       };
     };
