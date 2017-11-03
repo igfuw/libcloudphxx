@@ -189,6 +189,15 @@ namespace libcloudphxx
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
         pimpl->stp_ctr = 0; //reset the counter
+#if !defined(NDEBUG)
+        // check if rv became negative
+        auto min_rv_it = thrust::min_element(pimpl->rv.begin(), pimpl->rv.end());
+        if(*min_rv_it < 0.)
+        {
+          printf("Negative rv in sync_out: %g at %g\n", real_t(*min_rv_it), int(min_rv_it - pimpl->rv.begin()));
+          assert(0);
+        }
+#endif
       }
 
       if (opts.chem_dsl == true)
