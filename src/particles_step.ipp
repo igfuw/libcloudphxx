@@ -82,6 +82,10 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
 
+      assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
+      assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
+      assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+
       // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
@@ -189,15 +193,6 @@ namespace libcloudphxx
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
         pimpl->stp_ctr = 0; //reset the counter
-#if !defined(NDEBUG)
-        // check if rv became negative
-        auto min_rv_it = thrust::min_element(pimpl->rv.begin(), pimpl->rv.end());
-        if(*min_rv_it < 0.)
-        {
-          printf("Negative rv in sync_out: %g at %g\n", real_t(*min_rv_it), int(min_rv_it - pimpl->rv.begin()));
-          assert(0);
-        }
-#endif
       }
 
       if (opts.chem_dsl == true)
