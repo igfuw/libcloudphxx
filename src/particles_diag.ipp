@@ -128,7 +128,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_sd_conc()
     {
       namespace arg = thrust::placeholders;
-      assert(selected_before_counting);
+      assert(pimpl->selected_before_counting);
 
       thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
 
