@@ -78,6 +78,7 @@ for i in range(100):
   prtcls.step_sync(opts,th,rv,rhod)
   prtcls.step_async(opts)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())
 print 'diag_sd_conc', tmp

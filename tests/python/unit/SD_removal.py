@@ -62,6 +62,7 @@ Opts.rcyc = True
 print 'before loop'
 for i in range(900):
   print 'start of step no ', i
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   sd_conc = np.frombuffer(prtcls.outbuf())[0]
   print 'sd conc pre ', sd_conc
@@ -70,6 +71,7 @@ for i in range(900):
   prtcls.step_async(Opts)
   print 'post step async ', i
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 sd_conc = np.frombuffer(prtcls.outbuf())[0]
 print 'final no of SDs: ', sd_conc

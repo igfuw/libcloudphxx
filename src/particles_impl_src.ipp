@@ -434,9 +434,8 @@ namespace libcloudphxx
         hskpng_resize_npart();   
       }
  
-      // --- after source particles are no longer sorted nor counted ---
+      // --- after source particles are no longer sorted ---
       sorted = false;
-      counted = false;
 
       // --- calc liquid water content after src ---
       hskpng_sort(); 

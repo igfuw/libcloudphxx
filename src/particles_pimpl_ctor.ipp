@@ -142,9 +142,6 @@ namespace libcloudphxx
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
 
-      // are count_num and count_ijk up to date
-      bool counted;
-
       // timestep counter
       n_t stp_ctr;
 
@@ -250,7 +247,6 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
-        counted(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
