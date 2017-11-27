@@ -28,6 +28,16 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct is_positive
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &a)
+        {
+          return a > 0. ? 1 : 0;
+        }
+      };
+
+      template <typename real_t>
       struct rw3_cr
       {
         BOOST_GPU_ENABLED
@@ -111,23 +121,32 @@ namespace libcloudphxx
       // RH defined in all cells
       pimpl->count_n = pimpl->n_cell;
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
-      // inform that count_n and count_ijk are invalid
-      pimpl->counted = false;
     }
 
     // records super-droplet concentration per grid cell
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
     {
-      // common code with coalescence, hence separated into a method
-      pimpl->hskpng_count(); 
+      namespace arg = thrust::placeholders;
+      assert(pimpl->selected_before_counting);
 
-      // n_t -> real_t cast
-      thrust::copy(
-        pimpl->count_num.begin(), 
-        pimpl->count_num.end(), 
-        pimpl->count_mom.begin()
+      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+
+      // similar to hskpng_count
+      pimpl->hskpng_sort();
+
+      // computing count_* - number of particles per grid cell
+      auto n = thrust::reduce_by_key(
+        pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),   // input - keys
+        thrust::make_permutation_iterator(
+          thrust::make_transform_iterator(n_filtered.begin(), detail::is_positive<real_t>()),
+          pimpl->sorted_id.begin()
+        ),
+        pimpl->count_ijk.begin(),                      // output - keys
+        pimpl->count_mom.begin()                      // output - values
       );
+
+      pimpl->count_n = n.first - pimpl->count_ijk.begin();
     }
 
     // selected all particles
@@ -251,7 +270,6 @@ namespace libcloudphxx
         typename thrust::counting_iterator<thrust_size_t>
       > pi;
 
-      namespace arg = thrust::placeholders;
 
       thrust::fill(
         pimpl->count_mom.begin(),
@@ -298,8 +316,6 @@ namespace libcloudphxx
       // divergence defined in all cells
       pimpl->count_n = pimpl->n_cell;
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
-      // inform that count_n and count_ijk are invalid
-      pimpl->counted = false;
     }
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs

@@ -32,8 +32,8 @@ Opts_init.dx = 1
 Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
-Opts_init.sd_conc = 50 / (Opts_init.nx * Opts_init.nz)
-Opts_init.n_sd_max = 50
+Opts_init.sd_conc = 10 
+Opts_init.n_sd_max = 10 * (Opts_init.nx * Opts_init.nz)
 
 Backend = lgrngn.backend_t.serial
 
@@ -72,6 +72,7 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   prtcls.step_sync(opts, th, rv, rhod)
 
   #prtcls.diag_wet_rng(0,1)
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   tab_in = np.copy(np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
   print "tab_in \n", tab_in
@@ -80,6 +81,7 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   prtcls.step_sync(opts, th, rv, rhod)
   
   #prtcls.diag_wet_rng(0,1)
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
   print "tab_out \n", tab_out, np.roll(tab_out, -1, 0)

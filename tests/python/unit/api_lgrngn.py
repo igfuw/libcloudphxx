@@ -125,7 +125,9 @@ prtcls.diag_kappa_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
+prtcls.diag_all()
 prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
 
@@ -140,6 +142,7 @@ prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv)
 prtcls.step_async(opts)
 opts_init.sd_conc_large_tail = 0
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 assert len(frombuffer(prtcls.outbuf())) == 1
@@ -158,12 +161,14 @@ prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 prtcls.step_sync(opts, th, rv)
 prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv, rhod)
 prtcls.step_async(opts)
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 assert len(frombuffer(prtcls.outbuf())) == 1
@@ -191,6 +196,7 @@ opts_init.sd_const_multi_dry_sizes = 1
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
@@ -229,6 +235,7 @@ opts_init.sd_const_multi_dry_sizes = 2
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
@@ -249,6 +256,7 @@ opts_init.sd_const_multi_dry_sizes = 2
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert frombuffer(prtcls.outbuf())[0] > 84 # 64 from dry_distro and 20 from sizes + tail
@@ -272,6 +280,7 @@ opts_init.sd_const_multi_dry_sizes = 2
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
@@ -315,6 +324,7 @@ for it in range(2):
   prtcls.step_async(opts)
   prtcls.step_sync(opts, th, rv, rhod, C)
 
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
   print frombuffer(prtcls.outbuf())
@@ -361,6 +371,7 @@ for it in range(2):
   prtcls.step_async(opts)
   prtcls.step_sync(opts, th, rv, rhod, Cx=Cx, Cz=Cz)
 
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
   print frombuffer(prtcls.outbuf())
@@ -399,6 +410,7 @@ for it in range(2):
   prtcls.step_sync(opts, th, rv, rhod)
   prtcls.step_async(opts)
   prtcls.step_sync(opts, th, rv, rhod, Cx=Cx, Cy=Cy, Cz=Cz)
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
 
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
@@ -415,6 +427,7 @@ prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv)
 prtcls.step_async(opts)
 opts_init.sd_conc_large_tail = 0
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
@@ -434,6 +447,7 @@ opts_init.sd_const_multi = int(prtcls_per_cell / 64)
 n_cell = opts_init.nz * opts_init.nx * opts_init.ny
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 prtcls.step_sync(opts, th, rv)
@@ -441,6 +455,7 @@ prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv, rhod)
 prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv, rhod, Cx=Cx, Cy=Cy, Cz=Cz)
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 
 assert len(frombuffer(prtcls.outbuf())) == n_cell
@@ -464,6 +479,7 @@ opts_init.sd_const_multi_dry_sizes = 1
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
@@ -498,6 +514,7 @@ opts_init.sd_const_multi = 0
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 from sizes
@@ -514,6 +531,7 @@ prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf())[0] > 64 + 20).all() # 64 from dry_distro and 20 from sizes + tail
@@ -537,6 +555,7 @@ opts_init.sd_const_multi_dry_sizes = 2
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
+prtcls.diag_all()
 prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf())[0] == 84).all() # 64 from dry_distro and 20 from sizes
