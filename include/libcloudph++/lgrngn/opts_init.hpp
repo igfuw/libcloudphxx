@@ -113,6 +113,9 @@ namespace libcloudphxx
       // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
       int dev_id;
 
+      // large-scale horizontal wind divergence [1/s], used to calculate subsidence rate as -div_LS*z
+      real_t div_LS;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -141,7 +144,8 @@ namespace libcloudphxx
         dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
-        src_z1(0)
+        src_z1(0),
+        div_LS(0.)
       {}
 
       // dtor (just to silence -Winline warnings)
