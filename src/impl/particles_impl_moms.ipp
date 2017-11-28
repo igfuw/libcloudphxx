@@ -142,7 +142,16 @@ namespace libcloudphxx
         {
           const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
+#if !defined(NDEBUG)
+          real_t res = n * pow(x, xp); // TODO: check if xp=0 is optimised
+          if(isnaninf()(res))
+          {
+            printf("nan/inf res in moment counter, n = %g x = %g res = %g xp = %g\n", n, x, res, xp);
+          }
+          return res;
+#else
           return n * pow(x, xp); // TODO: check if xp=0 is optimised
+#endif
         }
       };
     };
@@ -185,7 +194,17 @@ namespace libcloudphxx
         count_mom.begin()
       );  
 
+
       count_n = n.first - count_ijk.begin();
+#if !defined(NDEBUG)
+      {
+        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        if(nan_count>0)
+        {
+          std::cout << nan_count << " nan/inf numbers detected in count_mom after reduce_by_key " << std::endl;
+        }
+      }
+#endif
       assert(count_n > 0 && count_n <= n_cell);
       if(specific)
       {
@@ -199,6 +218,15 @@ namespace libcloudphxx
           count_mom.begin(),                                  // output (in place)
           thrust::divides<real_t>()
         );
+#if !defined(NDEBUG)
+        {
+          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          if(nan_count>0)
+          {
+            std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by dv " << std::endl;
+          }
+        }
+#endif
         // dividing by rhod to get specific moments
         // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
         thrust::transform(
@@ -210,7 +238,42 @@ namespace libcloudphxx
           count_mom.begin(),                                  // output (in place)
           thrust::divides<real_t>()
         );
+#if !defined(NDEBUG)
+        {
+          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          if(nan_count>0)
+          {
+            std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by rhod " << std::endl;
+          }
+        }
+#endif
       }
+#if !defined(NDEBUG)
+      {
+        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        if(nan_count>0)
+        {
+          std::cout << nan_count << " nan/inf numbers detected in count_mom " << std::endl;
+          std::cout << "count_n:" << count_n << std::endl;
+          std::cout << "count_mom:" << std::endl;
+          debug::print(count_mom.begin(), count_mom.begin() + count_n);
+          std::cout << "count_ijk:" << std::endl;
+          debug::print(count_ijk.begin(), count_ijk.begin() + count_n);
+          std::cout << "n_filtered:" << std::endl;
+          debug::print(n_filtered);
+          std::cout << "sorted_ijk:" << std::endl;
+          debug::print(sorted_ijk);
+          std::cout << "sorted_id:" << std::endl;
+          debug::print(sorted_id);
+          std::cout << "vec:" << std::endl;
+          debug::print(vec_bgn, vec_bgn + n_part);
+          std::cout << "dv:" << std::endl;
+          debug::print(dv);
+          std::cout << "rhod:" << std::endl;
+          debug::print(rhod);
+        }
+      }
+#endif
     }
   };  
 };

@@ -22,6 +22,7 @@ namespace libcloudphxx
       // calculating the 3rd wet moment before condensation
       moms_all();
       moms_calc(rw2.begin(), real_t(3./2.));
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
 
       // permute-copying the result to -dm_3
       // fill with 0s if not all cells will be updated in the following transform
@@ -55,7 +56,7 @@ namespace libcloudphxx
 
       // calculating the 3rd wet moment after condensation
       moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck(count_mom, "count_mom (3rd wet moment) after condensation");
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
       // adding the third moment after condensation to dm_3
       thrust::transform(

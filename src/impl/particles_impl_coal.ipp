@@ -73,7 +73,7 @@ namespace libcloudphxx
         real_t operator()(const n_t &n)
         {
           // see section 5.1.3 in Shima et al. 2009
-          return real_t((n*(n-1))/2) / (n/2); 
+          return n>1 ? (real_t(n*(n-1))/2) / (n/2) : 0; 
         }
       };
 
@@ -248,6 +248,7 @@ namespace libcloudphxx
         count_mom.begin(),                              // output
         detail::scale_factor<real_t, n_t>()
       );
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom storing scale_factors");
 
       // references to tmp data
       thrust_device::vector<real_t> 
@@ -269,6 +270,7 @@ namespace libcloudphxx
           count_ijk.begin()                   // permutation
         )
       );  
+      nancheck(scl, "scl - scale factors");
 
       // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
       // fill with 0s if not all cells will be updated in the following copy
@@ -285,6 +287,7 @@ namespace libcloudphxx
         off.begin(), off.end(),
         off.begin()
       );
+//      nancheck(off, "off - droplet index within a cell");
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
       rand_u01(n_part);
@@ -386,11 +389,17 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
       );
+   //   nancheck(n, "n - post coalescence");
+      nancheck(rw2, "rw2 - post coalescence");
+      nancheck(rd3, "rd3 - post coalescence");
+      nancheck(vt, "vt - post coalescence");
+      nancheck(col, "col - post coalescence");
 
       // add masses of chemicals
       if(opts_init.chem_switch)
       {
         for(int i=0; i<chem_all; ++i)
+        {
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
               thrust::make_permutation_iterator(chem_bgn[i], sorted_id.begin()),
@@ -406,9 +415,11 @@ namespace libcloudphxx
             )) + n_part -1,
             detail::summator()
           );
+          nancheck_range(chem_bgn[i], chem_bgn[i] + n_part - 1, "chem - post coalescence");
+        }
       }
       // add kappas
-      if(opts_init.dry_distros.size() > 1)
+      if(opts_init.dry_distros.size() + opts_init.dry_sizes.size() > 1)
       {
         thrust::for_each(
           thrust::make_zip_iterator(thrust::make_tuple(
@@ -429,6 +440,7 @@ namespace libcloudphxx
           )) + n_part -1,
           detail::weighted_summator<real_t>()
         );
+        nancheck(kpa, "kpa - post coalescence");
       }
     }
   };  
