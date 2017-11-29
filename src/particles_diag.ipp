@@ -28,7 +28,7 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct is_positive
+      struct is_positive : public thrust::unary_function<real_t, real_t>
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &a)
@@ -145,7 +145,6 @@ namespace libcloudphxx
         pimpl->count_ijk.begin(),                      // output - keys
         pimpl->count_mom.begin()                      // output - values
       );
-
       pimpl->count_n = n.first - pimpl->count_ijk.begin();
     }
 
