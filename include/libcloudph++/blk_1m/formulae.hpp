@@ -18,13 +18,14 @@ namespace libcloudphxx
     {
       //Kessler autoconversion
       //eq. 5a in Grabowski & Smolarkiewicz 1996
-      libcloudphxx_const(si::frequency, k_autoconv_default, .001, si::hertz)
+      //libcloudphxx_const(si::frequency, k_autoconv_default, .001, si::hertz)
 
       template <typename real_t>
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> autoconversion_rate(
 	const quantity<si::dimensionless, real_t> &rc,
 	const quantity<si::dimensionless, real_t> rc_thresh,
-	const quantity<si::frequency, real_t> k_autoconv = k_autoconv_default<real_t>()
+	//const quantity<si::frequency, real_t> k_autoconv = k_autoconv_default<real_t>()
+	const quantity<si::frequency, real_t> k_autoconv
       ) {
 	return k_autoconv * std::max( real_t(0) * si::dimensionless(), rc - rc_thresh);
       }
