@@ -50,6 +50,10 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> &rc,
         const quantity<si::mass_density, real_t> &rhod
       ) {
+
+        assert(rc > real_t(0)         && "rc < 0 in lambda_c in common_formulae.hpp");
+        assert((n * si::kilogram) > 0 && "n  < 0 in lambda_c in common_formulae.hpp");
+
         auto tmp = pow(
 	  c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1)) 
           / 

@@ -35,14 +35,43 @@ namespace libcloudphxx
       const real_t &dt
     )   
 //</listing>
-    {  
+    { 
+      real_t rc_eps = 1e-9;
+      real_t nc_eps = 1e3;
+      real_t rr_eps = 1e-12;
+      real_t nr_eps = 1.;
+
+      for (auto tup : zip(
+        rc_cont,
+        nc_cont,
+        rr_cont,
+        nr_cont
+      )) {
+        real_t
+          &rc = boost::get<0>(tup),
+          &nc = boost::get<1>(tup),
+          &rr = boost::get<2>(tup),
+          &nr = boost::get<3>(tup);
+
+        if (rc < rc_eps || nc < nc_eps)
+        {
+          rc = real_t(0);
+          nc = real_t(0);
+        }
+        if (rr < rr_eps || nr < nr_eps)
+        {
+          rr = real_t(0);
+          nr = real_t(0);
+        }
+      }
+ 
       // sanity checks
       assert(min(rv_cont) >= 0);
       assert(min(th_cont) > 0);
       assert(min(rc_cont) >= 0);
       assert(min(rr_cont) >= 0);
       assert(min(nc_cont) >= 0);
-      assert(min(nr_cont) >= 0);
+      assert(min(nr_cont) >= 0); //<----------------------
 
       // TODO: rewrite so thet's not needed
       assert(min(dot_nc_cont) == 0);
@@ -92,7 +121,7 @@ namespace libcloudphxx
         { //TODO what if we have some other source terms (that happen somewhere before here), like diffusion?
           assert(dot_rc == 0 && "activation is first");
           assert(dot_nc == 0 && "activation is first");
-          assert(dot_th == 0 && "activation is first");
+          //assert(dot_th == 0 && "activation is first");
 
           if (rv > common::const_cp::r_vs<real_t>(T, p))
           {
@@ -123,13 +152,13 @@ namespace libcloudphxx
 
           assert(dot_nc >= 0 && "activation can only increase cloud droplet concentration");
           assert(dot_rc >= 0 && "activation can only increase cloud water");
-          assert(dot_th >= 0 && "activation can only increase theta");
+          //assert(dot_th >= 0 && "activation can only increase theta");
         }
 
         // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
         if (opts.cond)
         {                          
-          if (rc > 0 && nc > 0)
+          if (rc > rc_eps && nc > nc_eps)
           {      //  ^^   TODO is it possible?
             quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> tmp = 
               cond_evap_rate<real_t>(
@@ -151,6 +180,7 @@ namespace libcloudphxx
                  // may result in small negative values 
                  // (for rc = 1e-8 and dot_rc * dt = 1e-8 the new rc was -1e-25)
                  // in this case shamelessly put rc and nc to zero and do not calculate the impact on theta
+std::cout << "SHAME!" << std::endl;
                 tmp = 0;
                 rc = 0;
                 nc = 0;
@@ -162,6 +192,7 @@ namespace libcloudphxx
           }
 
           assert(rc + dot_rc * dt >= 0 && "condensation/evaporation can't make rc < 0");
+          assert(nc + dot_nc * dt >= 0 && "condensation/evaporation can't make nc < 0");
           assert(rv + dot_rv * dt >= 0 && "condensation/evaporation can't make rv < 0");
           assert(th / si::kelvin + dot_th * dt >= 0 && "condensation/evaporation can't make th < 0");
         }
@@ -190,8 +221,8 @@ namespace libcloudphxx
 
         // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
         if (opts.acnv)
-        {                                  
-          if (rc > 0 && nc > 0)
+        { 
+          if (rc > rc_eps && nc > nc_eps)
           {  
             quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod);
 
@@ -213,14 +244,13 @@ namespace libcloudphxx
             dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
               * si::kilograms * si::seconds; // to make it dimensionless
           }
-
           assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
         }
 
         // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
         if (opts.accr)
         {              
-          if (rc > 0 && nc > 0 && rr > 0)  
+          if (rc > rc_eps && nc > nc_eps && rr > rr_eps)  
           {                   
             quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
             // so that accretion doesn't take more rc than there is
@@ -248,7 +278,7 @@ namespace libcloudphxx
         // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
         if (opts.acnv || opts.accr)
         {
-          if (nc > 0 && dot_rr > 0)  
+          if (nc > nc_eps && dot_rr > 0)  
           {                           
             quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
               collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
@@ -301,7 +331,7 @@ namespace libcloudphxx
         // evaporation of rain (see Morrison & Grabowski 2007)
         if (opts.cond)
         {
-          if (rr > 0 && nr_dim * si::kilograms > 0)
+          if (rr > rr_eps && nr_dim * si::kilograms > nr_eps)
           { // cond/evap for rr
             assert(rr_dim + dot_rr * dt >= 0 && "before rain cond-evap");
             assert(rv + dot_rv * dt >= 0 && "before rain cond-evap");
@@ -352,6 +382,31 @@ namespace libcloudphxx
           assert(rv + dot_rv * dt >= 0 && "rain condensation/evaporation can't make rv < 0");
           assert(nr_dim * si::kilograms + dot_nr * dt >= 0 && "rain condensation/evaporation can't make n_r < 0");
           assert(th / si::kelvin + dot_th * dt >= 0 && "rain condensation/evaporation can't make re < 0");
+        }
+      }
+
+      //TODO - cleanup to be consistent with the eps from different microphysics source terms
+      for (auto tup : zip(
+        rc_cont,
+        nc_cont,
+        rr_cont,
+        nr_cont
+      )) {
+        real_t
+          &rc = boost::get<0>(tup),
+          &nc = boost::get<1>(tup),
+          &rr = boost::get<2>(tup),
+          &nr = boost::get<3>(tup);
+
+        if (rc < rc_eps || nc < nc_eps)
+        {
+          rc = real_t(0);
+          nc = real_t(0);
+        }
+        if (rr < rr_eps || nr < nr_eps)
+        {
+          rr = real_t(0);
+          nr = real_t(0);
         }
       }
     }
