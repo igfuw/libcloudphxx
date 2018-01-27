@@ -224,7 +224,11 @@ std::cout << "SHAME!" << std::endl;
         { 
           if (rc > rc_eps && nc > nc_eps)
           {  
-            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod);
+            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod, 
+                                                                opts.acnv_A * si::dimensionless(), 
+                                                                opts.acnv_b * si::dimensionless(), 
+                                                                opts.acnv_c * si::dimensionless()
+                                                               );
 
             // so that autoconversion doesn't take more rc than there is
             tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));

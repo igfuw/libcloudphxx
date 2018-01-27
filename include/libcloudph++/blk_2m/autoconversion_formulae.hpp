@@ -26,21 +26,17 @@ namespace libcloudphxx
       inline quantity<si::frequency, real_t> autoconv_rate(
         real_t &rc,
         real_t &nc,
-        const quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> &rhod
+        const quantity<divide_typeof_helper<si::mass, si::volume>::type, real_t> &rhod,
+        const quantity<si::dimensionless, real_t> acnv_A,
+        const quantity<si::dimensionless, real_t> acnv_b,
+        const quantity<si::dimensionless, real_t> acnv_c
       ) {
 
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_c = rhod * nc / si::kilograms;
-/*
-std::cerr<<"autoconversion rate calc:"<<std::endl;
-std::cerr<<"rc^2.47   = "<<  std::pow(rc, real_t(2.47)) <<std::endl; 
-std::cerr<<"N_c^-1.79 = "<<  std::pow(N_c * real_t(1e-6) * si::cubic_metres, real_t(-1.79)) <<std::endl;
-std::cerr<<"rhod      = "<<  rhod <<std::endl;
-std::cerr<<"nc        = "<<  nc <<std::endl;
-std::cerr<<"N_c       = "<<  N_c <<std::endl;
-*/
-        return real_t(1350) / si::seconds
-          * std::pow(rc, real_t(2.47)) 
-          * std::pow(N_c * real_t(1e-6) * si::cubic_metres, real_t(-1.79));
+
+        return acnv_A / si::seconds
+          * std::pow(rc, acnv_b) 
+          * std::pow(N_c * real_t(1e-6) * si::cubic_metres, acnv_c);
         //                        ^^^^
         //                        \__  m-3  -->  cm-3 
       }
