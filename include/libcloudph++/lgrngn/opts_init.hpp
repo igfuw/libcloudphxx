@@ -52,6 +52,9 @@ namespace libcloudphxx
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
+      // is the z boundary periodic 
+      bool periodic_z;
+
       // no. of super-droplets per cell
       unsigned long long sd_conc; 
  
@@ -141,7 +144,8 @@ namespace libcloudphxx
         dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
-        src_z1(0)
+        src_z1(0),
+        periodic_z(false)
       {}
 
       // dtor (just to silence -Winline warnings)
