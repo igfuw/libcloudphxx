@@ -40,7 +40,7 @@ namespace libcloudphxx
       real_t nc_eps = 1e3;
       real_t rr_eps = 1e-12;
       real_t nr_eps = 1.;
-
+/*
       for (auto tup : zip(
         rc_cont,
         nc_cont,
@@ -64,7 +64,7 @@ namespace libcloudphxx
           nr = real_t(0);
         }
       }
- 
+*/
       // sanity checks
       assert(min(rv_cont) >= 0);
       assert(min(th_cont) > 0);
@@ -388,7 +388,7 @@ std::cout << "SHAME!" << std::endl;
           assert(th / si::kelvin + dot_th * dt >= 0 && "rain condensation/evaporation can't make re < 0");
         }
       }
-
+/*
       //TODO - cleanup to be consistent with the eps from different microphysics source terms
       for (auto tup : zip(
         rc_cont,
@@ -413,6 +413,7 @@ std::cout << "SHAME!" << std::endl;
           nr = real_t(0);
         }
       }
+*/
     }
   };    
 };
