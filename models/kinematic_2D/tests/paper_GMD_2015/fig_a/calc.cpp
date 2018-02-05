@@ -35,8 +35,7 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=200 --nt=9000 --spinup=7200 --nx=76 --nz=76 --relax_th_rv=false";
   set<string> opts_micro({
-    "--micro=blk_2m --outdir=out_blk_2m --acnv_A=1350 --acnv_b=2.47 --acnv_c=-1.79  "//,
-/*
+    "--micro=blk_2m --outdir=out_blk_2m",
     "--micro=blk_2m --outdir=out_blk_2m",
     "--micro=lgrngn --outdir=out_lgrngn --backend=OpenMP --sd_conc=64 --sstp_cond=10 --sstp_coal=10"  
       " --out_wet=\""
@@ -47,7 +46,6 @@ int main(int ac, char** av)
       " --out_dry=\""
         + bins_dry_str + // aerosol spectrum (dry)
       "\""
-*/
   });
 
   for (auto &opts_m : opts_micro)

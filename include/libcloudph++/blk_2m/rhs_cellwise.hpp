@@ -46,9 +46,9 @@ namespace libcloudphxx
 
       // TODO: rewrite so thet's not needed
       assert(min(dot_nc_cont) == 0);
-      assert(min(dot_nr_cont) == 0);
+      //assert(min(dot_nr_cont) == 0);
       assert(min(dot_rc_cont) == 0);
-      assert(min(dot_rr_cont) == 0);
+      //assert(min(dot_rr_cont) == 0);
       assert(max(dot_nc_cont) == 0);
       assert(max(dot_nr_cont) == 0);
       assert(max(dot_rc_cont) == 0);
@@ -218,13 +218,14 @@ namespace libcloudphxx
             dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
               * si::kilograms * si::seconds; // to make it dimensionless
           }
+
           assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
         }
 
         // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
         if (opts.accr)
         {              
-          if (rc > 0 && nc > 0)  
+          if (rc > 0 && nc > 0 && rr > 0)  
           {                   
             quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
             // so that accretion doesn't take more rc than there is
