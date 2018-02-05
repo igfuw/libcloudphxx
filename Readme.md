@@ -2,9 +2,8 @@ libcloudph++ - a cloud (micro)physics library
 =======================================================================
 
 To get more information on libcloudph++, please check: 
-  - http://libcloudphxx.igf.fuw.edu.pl/
-  - http://arxiv.org/abs/1310.1905
-  - http://www.geosci-model-dev-discuss.net/7/8275/2014/
+  - https://www.geosci-model-dev.net/8/1677/2015/
+  - https://github.com/igfuw/libcloudphxx/wiki
 
 Compilation of libcloudph++ requires:
 - a C++11 compliant compiler (optionally with OpenMP support)

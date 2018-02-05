@@ -1,4 +1,3 @@
-#include "tpl_calc_wrapper.hpp"
 #include <libcloudph++/common/moist_air.hpp>
 
 #if defined(__NVCC__)
