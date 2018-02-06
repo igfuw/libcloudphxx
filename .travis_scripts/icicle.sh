@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 set -ex
 
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then shell_session_update() { :; }; fi
-
 # libcloudph++ 
 mkdir build 
 cd build
