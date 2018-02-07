@@ -6,6 +6,7 @@
   */
 
 #include <libcloudph++/common/kappa_koehler.hpp> // TODO: not here...
+#include <thrust/sequence.h>
 
 namespace libcloudphxx
 {
@@ -13,6 +14,29 @@ namespace libcloudphxx
   {
     namespace detail 
     {
+      template <typename real_t>
+      struct add_div
+      {
+        const real_t dx;
+        add_div(const real_t &dx) : dx(dx) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &div, const thrust::tuple<real_t, real_t> &tpl)
+        {
+          return div + (thrust::get<1>(tpl) - thrust::get<0>(tpl)) / dx;
+        }
+      };
+
+      template <typename real_t>
+      struct is_positive : public thrust::unary_function<real_t, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &a)
+        {
+          return a > 0. ? 1 : 0;
+        }
+      };
+
       template <typename real_t>
       struct rw3_cr
       {
@@ -67,21 +91,61 @@ namespace libcloudphxx
           );
         }
       };
+
+      template <typename real_t>
+      struct get_sqrt : public thrust::unary_function<real_t, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2)
+        {
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
+          return sqrt(rw2);
+        }
+      };
+    }
+
+    // records relative humidity
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_RH()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->RH.begin(), 
+        pimpl->RH.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // RH defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
     // records super-droplet concentration per grid cell
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
     {
-      // common code with coalescence, hence separated into a method
-      pimpl->hskpng_count(); 
+      namespace arg = thrust::placeholders;
+      assert(pimpl->selected_before_counting);
 
-      // n_t -> real_t cast
-      thrust::copy(
-        pimpl->count_num.begin(), 
-        pimpl->count_num.end(), 
-        pimpl->count_mom.begin()
+      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+
+      // similar to hskpng_count
+      pimpl->hskpng_sort();
+
+      // computing count_* - number of particles per grid cell
+      auto n = thrust::reduce_by_key(
+        pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),   // input - keys
+        thrust::make_permutation_iterator(
+          thrust::make_transform_iterator(n_filtered.begin(), detail::is_positive<real_t>()),
+          pimpl->sorted_id.begin()
+        ),
+        pimpl->count_ijk.begin(),                      // output - keys
+        pimpl->count_mom.begin()                      // output - values
       );
+      pimpl->count_n = n.first - pimpl->count_ijk.begin();
     }
 
     // selected all particles
@@ -103,6 +167,13 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
+    }
+
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin());
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -173,6 +244,13 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
 
+    // compute n-th moment of kappa for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
@@ -180,7 +258,67 @@ namespace libcloudphxx
       pimpl->mass_dens_estim(pimpl->rw2.begin(), rad, sig0, 1./2.);
     }
 
-    // compute 1st (non-specific) moment of rw^3 * vt
+    // to diagnose if velocity field is nondivergent
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_vel_div()
+    {   
+      if(pimpl->n_dims==0) return;
+
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust::counting_iterator<thrust_size_t>
+      > pi;
+
+
+      thrust::fill(
+        pimpl->count_mom.begin(),
+        pimpl->count_mom.end(),
+        real_t(0.)
+      );
+
+      switch (pimpl->n_dims)
+      {
+        case 3:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),   // fre counts from the start of halo, but here we need only real cells
+              thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+        case 2:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
+              thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+        case 1:
+          thrust::transform(
+            pimpl->count_mom.begin(), //arg1
+            pimpl->count_mom.begin() + pimpl->n_cell,
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
+              thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
+            )), // arg2
+            pimpl->count_mom.begin(), //out
+            detail::add_div<real_t>(pimpl->opts_init.dt)
+          );
+      }
+      // divergence defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+
+    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // TODO: replace it with simple diag vt?
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate()
     {   
@@ -199,7 +337,8 @@ namespace libcloudphxx
         detail::precip_rate<real_t>()
       );  
 
-      pimpl->moms_calc_cond(pimpl->vt.begin(), 1.);
+      pimpl->moms_all();
+      pimpl->moms_calc(pimpl->vt.begin(), 1., false);
  
       // copy back stored vterm
       thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
@@ -207,12 +346,54 @@ namespace libcloudphxx
       tmp_vt.erase(tmp_vt.begin(), tmp_vt.end());
     }   
 
+    // get max rw in each cell
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_max_rw()
+    {   
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::const_iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_t;
+
+      pimpl->hskpng_sort();
+
+      thrust::pair<
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
+      > n = thrust::reduce_by_key(
+        // input - keys
+        pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+        // input - values
+        thrust::make_transform_iterator(
+          pi_t(pimpl->rw2.begin(),   pimpl->sorted_id.begin()),
+          detail::get_sqrt<real_t>()
+        ),
+        // output - keys
+        pimpl->count_ijk.begin(),
+        // output - values
+        pimpl->count_mom.begin(),
+        // key comparison
+        thrust::equal_to<real_t>(),
+        // reduction type
+        thrust::maximum<real_t>()
+      );  
+
+      pimpl->count_n = n.first - pimpl->count_ijk.begin();
+      assert(pimpl->count_n > 0 && pimpl->count_n <= pimpl->n_cell);
+    }
+
     // computes mean chemical properties for the selected particles
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_chem(const enum chem_species_t &c)
     {
       if(pimpl->opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
-      pimpl->moms_calc(pimpl->chem_bgn[c], 1);
+      pimpl->moms_calc(pimpl->chem_bgn[c], 1.);
+    }
+
+    template <typename real_t, backend_t device>
+    std::map<output_t, real_t> particles_t<real_t, device>::diag_puddle()
+    {
+      return pimpl->output_puddle;
     }
   };
 };

@@ -10,6 +10,7 @@
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
+#include <libcloudph++/lgrngn/advection_scheme.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -23,11 +24,20 @@ namespace libcloudphxx
     struct opts_init_t 
     {
       // initial dry sizes of aerosol
-      typedef boost::ptr_unordered_map<
+      // defined with a distribution
+      // uses shared_ptr to make opts_init copyable
+      typedef std::unordered_map<
         real_t,                // kappa
-        unary_function<real_t> // n(ln(rd)) @ STP 
+        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP 
       > dry_distros_t;
       dry_distros_t dry_distros;
+
+      // defined with a size-number pair
+      typedef std::map<
+        real_t,                // kappa
+        std::map<real_t, real_t> // radius-STP_concentration pair (1/m^3)
+      > dry_sizes_t;
+      dry_sizes_t dry_sizes;
 
       // Eulerian component parameters
       int nx, ny, nz;
@@ -44,6 +54,15 @@ namespace libcloudphxx
 
       // no. of super-droplets per cell
       unsigned long long sd_conc; 
+ 
+      // should more SDs be added to better represent large tail of the distribution
+      bool sd_conc_large_tail;
+
+      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
+      int sd_const_multi;
+
+      // const multiplicity of SDs initialized from a dry_sizes map
+      int sd_const_multi_dry_sizes;
 
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
@@ -64,6 +83,9 @@ namespace libcloudphxx
 
       // terminal velocity formula
       vt_t::vt_t terminal_velocity;
+
+      // super-droplet advection scheme
+      as_t::as_t adve_scheme;
 //</listing>
  
       // coalescence kernel parameters
@@ -73,7 +95,8 @@ namespace libcloudphxx
       bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
-           src_switch;  // if false no source throughout the whole simulation
+           src_switch,   // if false no source throughout the whole simulation
+           exact_sstp_cond; // if true, use per-particle sstp_cond logic, if false, use per-cell
 
       int sstp_chem;
       real_t chem_rho;
@@ -87,6 +110,9 @@ namespace libcloudphxx
       // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
+      // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
+      int dev_id;
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -94,6 +120,9 @@ namespace libcloudphxx
         x0(0), y0(0), z0(0),
         x1(1), y1(1), z1(1),
         sd_conc(0), 
+        sd_conc_large_tail(false), 
+        sd_const_multi(0),
+        sd_const_multi_dry_sizes(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         supstp_src(1),
@@ -101,12 +130,15 @@ namespace libcloudphxx
         sedi_switch(true),  // sedimentation turned on by default
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
+        exact_sstp_cond(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
+        adve_scheme(as_t::implicit),
         dev_count(0),
+        dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0)

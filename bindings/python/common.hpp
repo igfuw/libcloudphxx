@@ -44,6 +44,12 @@ namespace libcloudphxx
       {
 	return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
       }
+	    
+      template <typename real_t>
+      real_t l_v(const real_t &T)
+      {
+	return cmn::const_cp::l_v(T * si::kelvins) / si::joules * si::kilograms;
+      }
 
       template <typename real_t>
       real_t T(const real_t &th, const real_t &rhod)

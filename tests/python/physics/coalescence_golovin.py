@@ -66,23 +66,14 @@ rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
 
-kappa = 0
+kappa = 1e-10
 
 opts_init.dry_distros = {kappa:expvolumelnr}
-
-opts_init.sd_conc = pow(2,14)
-opts_init.n_sd_max = pow(2,14)
 
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.terminal_velocity = lgrngn.vt_t.beard77
 opts_init.kernel_parameters = np.array([b]);
 
-try:
-  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-except:
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
-
-prtcls.init(th, rv, rhod)
 
 opts = lgrngn.opts_t()
 opts.adve = False
@@ -116,17 +107,38 @@ def calc_golovin(res,t,n0,v0,b):
 results = np.zeros(bins.size-1)
 golovin_results = np.zeros(bins.size-1)
 
-init_number_of_particles = partno()
+#loop to test sd_conc and const_multi options
+for i in range(0,2):
+  if(i==0):
+    opts_init.sd_conc = pow(2,14)
+    opts_init.n_sd_max = pow(2,14)
+  else:
+    opts_init.sd_conc = 0
+    opts_init.sd_const_multi = 1000
+    opts_init.n_sd_max = int(float(n_zero) / opts_init.sd_const_multi + 10)
 
-#simulation loop
-prtcls.step_sync(opts, th, rv, rhod)
-prtcls.step_async(opts)
-    
-diag(results)
-calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero,b)
-rmsd = RMSD(results,golovin_results)
+  try:
+    prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+  except:
+    prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  
+  prtcls.init(th, rv, rhod)
+  init_number_of_particles = partno()
+  
+  #simulation loop
+  prtcls.step_sync(opts, th, rv, rhod)
+  prtcls.step_async(opts)
+      
+  diag(results)
+  calc_golovin(golovin_results,simulation_time,init_number_of_particles,v_zero,b)
+  rmsd = RMSD(results,golovin_results)
+  
+  if(i==0):
+    print 'sd_conc RMSD = ' + str(rmsd);
+    limit = 1e-5;
+  else:
+    print 'const_multi RMSD = ' + str(rmsd);
+    limit = 2e-5; # constant multiplicity doesn't represent tails of the distribution so well and mass densty function depends on large tail?
 
-print 'RMSD = ' + str(rmsd);
-
-if(rmsd > 1.71e-5):
-  raise Exception("Simulation result does not agree with analytic prediction")
+  if(rmsd > limit):
+    raise Exception("Simulation result does not agree with analytic prediction")

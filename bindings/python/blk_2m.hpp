@@ -21,19 +21,19 @@ namespace libcloudphxx
       template <typename arr_t>
       void rhs_cellwise(
 	const b2m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_th,
-	bp::numeric::array &dot_rv,
-	bp::numeric::array &dot_rc,
-	bp::numeric::array &dot_nc,
-	bp::numeric::array &dot_rr,
-	bp::numeric::array &dot_nr,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rc,
-	const bp::numeric::array &nc,
-	const bp::numeric::array &rr,
-	const bp::numeric::array &nr,
+	bp_array &dot_th,
+	bp_array &dot_rv,
+	bp_array &dot_rc,
+	bp_array &dot_nc,
+	bp_array &dot_rr,
+	bp_array &dot_nr,
+	const bp_array &rhod,
+	const bp_array &th,
+	const bp_array &rv,
+	bp_array &rc,
+	bp_array &nc,
+	bp_array &rr,
+	bp_array &nr,
 	const typename arr_t::T_numtype &dt
       ) 
       {
@@ -43,7 +43,11 @@ namespace libcloudphxx
 	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
 	  np2bz_dot_nc(np2bz<arr_t>(dot_nc)), 
 	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)), 
-	  np2bz_dot_nr(np2bz<arr_t>(dot_nr));
+	  np2bz_dot_nr(np2bz<arr_t>(dot_nr)),
+	  np2bz_nc(np2bz<arr_t>(nc)), 
+	  np2bz_rc(np2bz<arr_t>(rc)),
+	  np2bz_nr(np2bz<arr_t>(nr)), 
+	  np2bz_rr(np2bz<arr_t>(rr));
 	b2m::rhs_cellwise(
 	  opts,
 	  np2bz_dot_th,
@@ -55,10 +59,10 @@ namespace libcloudphxx
 	  np2bz<arr_t>(rhod),
 	  np2bz<arr_t>(th),
 	  np2bz<arr_t>(rv),
-	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(nc),
-	  np2bz<arr_t>(rr),
-	  np2bz<arr_t>(nr),
+	  np2bz_rc,
+	  np2bz_nc,
+	  np2bz_rr,
+	  np2bz_nr,
 	  dt
 	);
       } 
@@ -66,11 +70,11 @@ namespace libcloudphxx
       template <typename arr_t>
       typename arr_t::T_numtype rhs_columnwise(
 	const b2m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_rr,
-	bp::numeric::array &dot_nr,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &rr,
-	const bp::numeric::array &nr,
+	bp_array &dot_rr,
+	bp_array &dot_nr,
+	const bp_array &rhod,
+	const bp_array &rr,
+	const bp_array &nr,
 	const typename arr_t::T_numtype &dt,
 	const typename arr_t::T_numtype &dz
       ) {

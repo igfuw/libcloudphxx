@@ -51,7 +51,7 @@ rhod =   1. * np.ones((opts_init.nx, opts_init.nz))
 th   = 300. * np.ones((opts_init.nx, opts_init.nz))
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.nz))
 
-kappa = 0.
+kappa = 1e-10
 
 opts_init.dry_distros = {kappa:expvolumelnr}
 
@@ -101,5 +101,5 @@ for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.beard77fast]
   
   print 'RMSD = ' + str(rmsd);
   
-  if(rmsd > 4.5e-2):
+  if(rmsd > 6e-2):
     raise Exception("Simulation result does not agree with analytic prediction")

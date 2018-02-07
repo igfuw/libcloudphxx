@@ -18,19 +18,17 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::post_copy(const opts_t<real_t> &opts)
     {
       // recycling out-of-domain/invalidated particles 
-      // (doing it here and not in async reduces the need for a second sort before diagnostics,
-      // but also unneccesarily holds dyncore execution for a bit longer)
-      thrust_size_t n_rcyc = rcyc();
-      // TODO: ! if we do not recycle, we should remove them to care for out-od-domain advection after sedimentation...
-
-      // remove SDs with n = 0
-      // if(opts.sedi || opts.adve || opts.coal) 
-//      hskpng_remove_n0();  
+      if(opts.rcyc)
+        rcyc();
+      // if we do not recycle, we should remove them
+      else
+        hskpng_remove_n0();  
 
       // updating particle->cell look-up table
-      // (before advection and sedimentation so that their order does not matter,
-      if (opts.adve || opts.sedi || n_rcyc)
-        hskpng_ijk();
+      hskpng_ijk();
+
+      // updating count_ijk and count_num
+      hskpng_count();
     }
   };
 };

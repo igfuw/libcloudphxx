@@ -1,12 +1,31 @@
+# needed for the OpenMP test to work in C++-only project
+# (see http://public.kitware.com/Bug/view.php?id=11910)
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
+
 project(libcloudph++ CXX C)
+
+# the policies we care about:
+# - CMP0025 - make CMake distinguis between Apple and LLVM clang
+# - CMP0042 - make CMake use RPATHs on OSX
+# - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+if(CMAKE_VERSION VERSION_GREATER 2.9)
+  cmake_policy(VERSION 3.0)
+endif()
+
+set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
 
 # using include() istead of find_package(libcloudph++) to use local CMake code
 # and not the system-installed one
-include(${CMAKE_SOURCE_DIR}/libcloudph++-config.cmake)
-if (NOT libcloudphxx_FOUND)
-  message(FATAL_ERROR "local libcloudph++-config.cmake not found!")
-endif()
+#include(${CMAKE_SOURCE_DIR}/libcloudph++-config.cmake)
+#if (NOT libcloudphxx_FOUND)
+#  message(FATAL_ERROR "local libcloudph++-config.cmake not found!")
+#endif()
+
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE Release)
+ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
 # pointing to local headers
 set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
@@ -14,12 +33,13 @@ set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
 # enabling additional warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${libcloudphxx_CXX_FLAGS_RELEASE} -Winline")
-  set(CMAKE_CXX_FLAGS_RELEASE "")
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -DTHRUST_DEBUG")
-endif()
+# enabling c++11
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+# config-specific flags
+set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
 ############################################################################################
 # Thrust
@@ -63,7 +83,7 @@ endif()
 ############################################################################################
 
 # CUDA
-find_package(CUDA QUIET)
+find_package(CUDA)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 
@@ -115,7 +135,7 @@ if (CUDA_FOUND)
     set (msg "20")
     message(STATUS "CUDA capability check failed, assuming a default of ${msg}")
   endif()
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg}")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=sm_${msg} --std=c++11")
   if (msg EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
     set(msg "20")
   endif()
@@ -131,20 +151,59 @@ if (CUDA_FOUND)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
   
-  if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler -Ofast,-march=native,-DNDEBUG,-fopenmp")
-  else()
+  # Release with debug info mode cuda flags
+  if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-fopenmp")
+  # Debug mode cuda flags
+  elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler -fopenmp,-g")  
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
+  # Release mode cuda flags
+  else()
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
+        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+  endif()
 
-# do not use -G flag on travis since it causes build to fail; probably due to memory shortage
-    if(NOT DEFINED ENV{TRAVIS})
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -G")
-    endif()
+  # Check if OpenMP supports custom reductions
+  # why is it C, not C++ compiler? NVCC uses C compiler for preprocessing? change ipp to cpp?
+  # TODO: it's needed only if there are many GPUs (multi_CUDA backend)
+  include(CheckCSourceCompiles)
+  set(CMAKE_REQUIRED_FLAGS " -fopenmp")
+  check_c_source_compiles("
+    #include <omp.h>
+    int add(int x, int y) {return x+y;}
+    int S = 0;
+    #pragma omp declare reduction(Add: int: omp_out=add(omp_out, omp_in)) initializer( omp_priv={0} )
+    int main ()
+    {
+      #pragma omp parallel reduction(Add: S) 
+      {}  
+    }
+  " OMP_CUSTOM_REDUCTION)
+
+  if (NOT OMP_CUSTOM_REDUCTION)
+    message(FATAL_ERROR "C compiler does not support OpenMP user-defined reductions.")
   endif()
 
   add_definitions(-DCUDA_FOUND)
+endif()
+
+############################################################################################
+# Boost libraries
+find_package(Boost)
+if(Boost_FOUND)
+#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
+#  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
+  set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
+else()
+#TODO: check separately for optional and mandatory components
+message(FATAL_ERROR "Boost (or some of its components) not found.
+
+* To insall Boost, please try:
+*   Debian/Ubuntu: sudo apt-get install libboost-all-dev
+*   Fedora: sudo yum install boost-devel
+")
 endif()
 
 ############################################################################################
@@ -159,7 +218,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
   
   #include <thrust/system/cpp/vector.h>
-  
+
   #include <boost/numeric/odeint.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
   #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
@@ -191,7 +250,7 @@ file(WRITE "${tmpdir}/test.cpp" "
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
-execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
+execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" "-I${Boost_INCLUDE_DIR}" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
 if (NOT status EQUAL 0) 
   message(FATAL_ERROR "${pfx}: c++ compiler failed\n ${msg}")
 endif()
@@ -213,10 +272,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
 endif()
 
 add_subdirectory(src) 
-
 enable_testing()
 add_subdirectory(tests)
-
 add_subdirectory(include) 
 add_subdirectory(bindings) 
 

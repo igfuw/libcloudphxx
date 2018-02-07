@@ -62,9 +62,9 @@ namespace libcloudphxx
         using std::max;
 #endif
         // TODO: copy-pasted from init
-        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz);
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny));
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
       // syncing in Eulerian fields (if not null)
@@ -74,6 +74,21 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
+
+      nancheck(pimpl->th, " th after sync-in");
+      nancheck(pimpl->rv, " rv after sync-in");
+      nancheck(pimpl->courant_x, " courant_x after sync-in");
+      nancheck(pimpl->courant_y, " courant_y after sync-in");
+      nancheck(pimpl->courant_z, " courant_z after sync-in");
+      nancheck(pimpl->rhod, " rhod after sync-in");
+
+      assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
+      assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
+      assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+
+      // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
 
       if (pimpl->opts_init.chem_switch){
         for (int i = 0; i < chem_gas_n; ++i){
@@ -87,12 +102,72 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
-        for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+        if(pimpl->opts_init.exact_sstp_cond && pimpl->opts_init.sstp_cond > 1)
+        // apply substeps per-particle logic
+        {
+          for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+          {   
+            pimpl->sstp_step_exact(step, !rhod.is_null());
+            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+          } 
+          // copy sstp_tmp_rv and th to rv and th
+          pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
+          pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+        }
+        else
+        // apply per-cell sstp logic
+        {
+          for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+          {   
+            pimpl->sstp_step(step, !rhod.is_null());
+            pimpl->hskpng_Tpr(); 
+            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
+          }
+        }
+        nancheck(pimpl->th, " th after cond");
+        nancheck(pimpl->rv, " rv after cond");
+      }
+
+      // chemistry
+      // TODO: chemistry substepping still done the old way, i.e. per cell not per particle
+      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      {
+        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
         {   
-          pimpl->sstp_step(step, !rhod.is_null());
-          pimpl->hskpng_Tpr(); 
-          pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
-        } 
+          // calculate new volume of droplets (needed for chemistry)
+          pimpl->chem_vol_ante();
+
+          // set flag for those SD that are big enough to have chemical reactions
+          pimpl->chem_flag_ante();
+
+          if (opts.chem_dsl)
+          {
+            //adjust trace gases to substepping
+            pimpl->sstp_step_chem(step, !rhod.is_null());
+
+            //dissolving trace gases (Henrys law)
+            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+
+            //cleanup - TODO think of something better
+            pimpl->chem_cleanup();
+          }
+ 
+          if (opts.chem_dsc)
+          { //dissociation
+            pimpl->chem_dissoc();
+
+            //cleanup - TODO think of something better
+            pimpl->chem_cleanup();
+          }
+           
+          if (opts.chem_rct)
+          { //oxidation 
+            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+
+            //cleanup - TODO think of something better
+            pimpl->chem_cleanup();
+          }
+        }
       }
 
       // aerosol source, in sync since it changes th/rv
@@ -120,33 +195,9 @@ namespace libcloudphxx
         pimpl->stp_ctr = 0; //reset the counter
       }
 
-      // chemistry
-      if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
+      if (opts.chem_dsl == true)
       {
-        // calculate new volume of droplets (needed for Henrys law)
-        pimpl->chem_vol_ante();
-        // set flag for those SD that are big enough to have chemical reactions
-        pimpl->chem_flag_ante();
-
-        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step)
-        {
-          //dissolving trace gases (Henrys law)
-          if (opts.chem_dsl == true)
-            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem, opts.chem_sys_cls);
-
-          //dissociation
-          if (opts.chem_dsc == true)
-            pimpl->chem_dissoc();
-
-          //oxidation 
-          if (opts.chem_rct == true)
-          pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
-        }
-
-        //save the current drop volume in V_old (to be used in the next step for Henrys law)
-        pimpl->chem_vol_post();
-
-        // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
+        // syncing out trace gases // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         for (int i = 0; i < chem_gas_n; ++i)
           pimpl->sync(
             pimpl->ambient_chem[(chem_species_t)i],
@@ -159,7 +210,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    real_t particles_t<real_t, device>::step_async(
+    void particles_t<real_t, device>::step_async(
       const opts_t<real_t> &opts
     ) {
       //sanity checks
@@ -187,21 +238,18 @@ namespace libcloudphxx
         pimpl->sstp_save();
       }
 
+      if (opts.chem_dsl) 
+      { 
+        // saving rv to be used as rv_old
+        pimpl->sstp_save_chem();
+      }
+
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
-
-      // advection 
-      if (opts.adve) pimpl->adve(); 
 
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
-
-      if (opts.sedi) 
-      {
-        // advection with terminal velocity
-        pimpl->sedi();
-      }
 
       // coalescence
       if (opts.coal) 
@@ -215,12 +263,30 @@ namespace libcloudphxx
           if (step + 1 != pimpl->opts_init.sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
+
+        // decrease coalescence timestep
+        // done if number of collisions > 1 in const_multi mode
+        if(*(pimpl->increase_sstp_coal))
+        {
+          ++(pimpl->opts_init.sstp_coal);
+          *(pimpl->increase_sstp_coal) = false;
+        }
+      }
+
+      // advection, it invalidates i,j,k and ijk!
+      if (opts.adve) pimpl->adve(); 
+
+      // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
+      if (opts.sedi) 
+      {
+        // advection with terminal velocity
+        pimpl->sedi();
       }
 
       // boundary condition + accumulated rainfall to be returned
       // distmem version overwrites i and tmp_device_size_part
       // and they both need to be unchanged untill distmem copies
-      real_t ret = pimpl->bcnd();
+      pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
       // if its a multi_cuda spawn, multi_cuda step will do this
@@ -233,8 +299,6 @@ namespace libcloudphxx
         pimpl->post_copy(opts);
 
       pimpl->selected_before_counting = false;
-
-      return ret;
     }
   };
 };

@@ -1,41 +1,34 @@
-# needed for the OpenMP test to work in C++-only project
-# (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 2.8.8) 
-
-# the policies we care about:
-# - CMP0025 - make CMake distinguis between Apple and LLVM clang
-# - CMP0042 - make CMake use RPATHs on OSX
-if(CMAKE_VERSION VERSION_GREATER 2.9)
-  cmake_policy(VERSION 3.0)
-endif()
 
 ############################################################################################
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
-set(libcloudphxx_LIBRARIES "cloudphxx_lgrngn")
-set(libcloudphxx_CXX_FLAGS_DEBUG "")
-set(libcloudphxx_CXX_FLAGS_RELEASE "")
+set(libcloudphxx_LIBRARIES "")
 
 ############################################################################################
-# debug mode compiler flags
-set(libcloudphxx_CXX_FLAGS_DEBUG "${libcloudphxx_CXX_FLAGS_DEBUG} -std=c++11 -g") #TODO: -Og if compiler supports it?
-
-############################################################################################
-# release mode compiler flags
-if(
-  CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-  CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-  CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
-)
-  set(libcloudphxx_CXX_FLAGS_RELEASE "${libcloudphxx_CXX_FLAGS_RELEASE} -std=c++11 -DNDEBUG -Ofast -march=native")
+# libcloudphxx libs and headers 
+# also work for non-default install location (i.e. for make DESTDIR=<dir> install)
+set(libcloudphxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(CONFIG_SUFFIX "")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(CONFIG_SUFFIX "_relwithdbg")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CONFIG_SUFFIX "_dbg")
 endif()
+
+set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
+if(NOT EXISTS ${libcloudphxx_LIBRARIES})
+  message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARIES}") 
+endif() 
+
 
 ############################################################################################
 # Boost libraries
-find_package(Boost QUIET)
+find_package(Boost)
 if(Boost_FOUND)
-  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
+#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
+#  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
   set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
 else()
 #TODO: check separately for optional and mandatory components

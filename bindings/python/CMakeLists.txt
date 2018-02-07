@@ -14,7 +14,7 @@ target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-find_package(Boost COMPONENTS python QUIET)
+find_package(Boost COMPONENTS python)
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "
     Boost.Python not found. 
@@ -22,6 +22,15 @@ if (NOT Boost_FOUND)
   ")
 endif()
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+
+# boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
+if(${Boost_MINOR_VERSION} LESS 65)
+  target_compile_options(cloudphxx PRIVATE -DBPNUMERIC)
+else()
+  find_package(Boost COMPONENTS numpy REQUIRED)
+  target_link_libraries(cloudphxx ${Boost_LIBRARIES})
+  target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
+endif()
 
 # requireing Blitz++
 include(CheckCXXSourceCompiles)
@@ -37,29 +46,24 @@ if (NOT BLITZ_FOUND)
 else()
   target_link_libraries(cloudphxx blitz)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set_target_properties(cloudphxx PROPERTIES COMPILE_FLAGS -DBZDEBUG)
+    target_compile_options(cloudphxx PRIVATE -DBZDEBUG)
   endif()
 endif()
 
-# ... where to find libclouph++
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-# installation (see http://www.cmake.org/pipermail/cmake/2013-March/054138.html)
-execute_process (
-   COMMAND ${PYTHON_EXECUTABLE} -c
-   	"import site, sys; sys.stdout.write(site.PREFIXES[-1])"
-   OUTPUT_VARIABLE PYTHON_PREFIX
-)
-file ( TO_CMAKE_PATH "${PYTHON_PREFIX}" PYTHON_PREFIX )
-execute_process (
-   COMMAND ${PYTHON_EXECUTABLE} -c
-   	"import site, sys; sys.stdout.write(site.getsitepackages()[-1])"
-   OUTPUT_VARIABLE PYTHON_SITE_DIR
-)
-file ( TO_CMAKE_PATH "${PYTHON_SITE_DIR}" PYTHON_SITE_DIR )
-string ( REGEX REPLACE "^${PYTHON_PREFIX}/" ""
-   PYTHON_SITE_DIR "${PYTHON_SITE_DIR}"
-)
+#to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
+    import sysconfig as sc
+    print(sc.get_path('platlib'))"
+  OUTPUT_VARIABLE PYTHON_SITE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 
 install ( TARGETS cloudphxx
    LIBRARY

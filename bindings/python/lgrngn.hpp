@@ -19,6 +19,22 @@ namespace libcloudphxx
 
     namespace lgrngn
     {
+      namespace detail
+      {
+        template<class real_t>
+        struct pyunary : cmn::unary_function<real_t> 
+        {
+          bp::object fun;
+      
+          pyunary(const bp::object &fun) : fun(fun) {}
+      
+          real_t funval(const real_t x) const
+          {
+            return bp::extract<real_t>(fun(x)); 
+          }
+        };
+      };
+
       template <typename real_t>
       lgr::particles_proto_t<real_t> *factory(
 	const lgr::backend_t &backend,
@@ -55,12 +71,12 @@ namespace libcloudphxx
       template <typename real_t>
       void init(
 	lgr::particles_proto_t<real_t> *arg,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod,
-        const bp::numeric::array &Cx,
-        const bp::numeric::array &Cy,
-        const bp::numeric::array &Cz,
+	const bp_array &th,
+	const bp_array &rv,
+	const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
         const bp::dict &ambient_chem
       )
       {
@@ -70,7 +86,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
-            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+            np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
 	arg->init(
@@ -89,12 +105,12 @@ namespace libcloudphxx
       void step_sync(
 	lgr::particles_proto_t<real_t> *arg,
 	const lgr::opts_t<real_t> &opts,
-	const bp::numeric::array &th,
-	const bp::numeric::array &rv,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &Cx,
-	const bp::numeric::array &Cy,
-	const bp::numeric::array &Cz,
+	const bp_array &th,
+	const bp_array &rv,
+	const bp_array &rhod,
+	const bp_array &Cx,
+	const bp_array &Cy,
+	const bp_array &Cz,
         bp::dict &ambient_chem
       )
       {
@@ -104,7 +120,7 @@ namespace libcloudphxx
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
-            np2ai<real_t>(bp::extract<bp::numeric::array>(ambient_chem.values()[i]), sz(*arg))
+            np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
 	lgr::arrinfo_t<real_t>
@@ -123,6 +139,17 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
+      bp::dict diag_puddle(lgr::particles_proto_t<real_t> *arg)
+      {
+        typedef std::map<enum lgr::output_t, real_t> map_t;
+        map_t map = arg->diag_puddle();
+        bp::dict dict;
+        for(auto& x : map)
+          dict[static_cast<int>(x.first)] = x.second;
+        return dict;     
+      }
+
+      template <typename real_t>
       const lgr::opts_init_t<real_t> get_oi(
         lgr::particles_proto_t<real_t> *arg
       )
@@ -131,58 +158,60 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      void set_d_helper(
+      void set_dd( // dry_distro
 	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func,
-        bool src
+	const bp::dict &kappa_func)
+      {
+        arg->dry_distros.clear();
+        for (int i = 0; i < len(kappa_func.keys()); ++i)
+          arg->dry_distros.emplace(
+            bp::extract<real_t>(kappa_func.keys()[i]), 
+            std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
+          );
+      }
+
+      template <typename real_t>
+      void set_sdd( // src_dry_distro
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func)
+      {
+        arg->src_dry_distros.clear();
+        for (int i = 0; i < len(kappa_func.keys()); ++i)
+          arg->src_dry_distros.emplace(
+            bp::extract<real_t>(kappa_func.keys()[i]), 
+            std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
+          );
+      }
+
+      template <typename real_t>
+      void set_ds( // dry_sizes
+	lgr::opts_init_t<real_t> *arg,
+	const bp::dict &kappa_func
       )
       {
-	for (int i = 0; i < len(kappa_func.keys()); ++i)
-	{
-	  struct pyunary : cmn::unary_function<real_t> 
-	  {
-	    bp::object fun;
+        arg->dry_sizes.clear();
+        if(len(kappa_func.keys()) == 0)
+          return;
 
-	    pyunary(const bp::object &fun) : fun(fun) {}
+        // TODO: loop over kappas (right now only one possible)
+        const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[0]);
+        std::map<real_t, real_t> size_conc_map;
 
-	    real_t funval(const real_t x) const
-	    {
-	      return bp::extract<real_t>(fun(x)); 
-	    }
-	    
-	    pyunary *do_clone() const
-	    { 
-	      return new pyunary(*this); 
-	    }
-	  };
-
-          if(src)  // set the source distro
-	    boost::assign::ptr_map_insert<pyunary>(arg->src_dry_distros)(
-  	      bp::extract<real_t>(kappa_func.keys()[i]), 
-  	      pyunary(kappa_func.values()[i])
-  	    );
-          else    // set the initial distro
-	    boost::assign::ptr_map_insert<pyunary>(arg->dry_distros)(
-  	      bp::extract<real_t>(kappa_func.keys()[i]), 
-  	      pyunary(kappa_func.values()[i])
-  	    );
-	}
+        // turn the size-conc dict into a size-conc map
+	for (int i = 0; i < len(size_conc.keys()); ++i)
+        {
+          size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = bp::extract<real_t>(size_conc.values()[i]);
+        }
+        const real_t kappa = bp::extract<real_t>(kappa_func.keys()[0]);
+        arg->dry_sizes[kappa] = size_conc_map;
       }
 
       template <typename real_t>
-      void set_dd(
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
+      void get_ds(
+	lgr::opts_init_t<real_t> *arg
+      )
       {
-        set_d_helper(arg, kappa_func, false);
-      }
-
-      template <typename real_t>
-      void set_sdd(
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
-      {
-        set_d_helper(arg, kappa_func, true);
+	throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
@@ -204,7 +233,7 @@ namespace libcloudphxx
       template <typename real_t>
       void set_kp(
 	lgr::opts_init_t<real_t> *arg,
-	const bp::numeric::array &vec
+	const bp_array &vec
       )
       {
         sanity_checks(vec);
@@ -213,7 +242,7 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      bp::numeric::array get_kp(
+      bp_array get_kp(
 	lgr::opts_init_t<real_t> *arg
       )
       {
