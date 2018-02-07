@@ -10,6 +10,7 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    template <typename real_t>
     particles_t<real_t, multi_CUDA>::particles_t(opts_init_t<real_t> _opts_init) 
     {
       pimpl.reset(new impl(_opts_init));
@@ -22,6 +23,7 @@ namespace libcloudphxx
     template <typename real_t>
     particles_t<real_t, multi_CUDA>::~particles_t() {}
 
+    // TODO: what about MPI with other backends?
     // initialisation 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::init(
@@ -39,22 +41,23 @@ namespace libcloudphxx
         th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem
       );
       // exchange domains using mpi; has to be done sequentially here as MPI isn't good with calls from many threads per node; UPDATE: actually, MPI implementations used by libmpdata support such calls
-      if(glob_opts_init.dev_count > 1)
+      // TODO: hence, move this exchange to some &particles_t<real_t, multi_CUDA>::init ?
+      if(this->opts_init->dev_count > 1)
       {
         // first node receives first 
-        if(particles[0].pimpl->mpi_rank==0)
+        if(pimpl->particles[0]->pimpl->mpi_rank==0)
         {
-          particles[0].pimpl->xchng_domains();
-          particles[glob_opts_init.dev_count-1].pimpl->xchng_domains();
+          pimpl->particles[0]->pimpl->xchng_domains();
+          pimpl->particles[this->opts_init->dev_count-1]->pimpl->xchng_domains();
         }
         else  // other nodes send first
         {
-          particles[glob_opts_init.dev_count-1].pimpl->xchng_domains();
-          particles[0].pimpl->xchng_domains();
+          pimpl->particles[this->opts_init->dev_count-1]->pimpl->xchng_domains();
+          pimpl->particles[0]->pimpl->xchng_domains();
         }
       }
       else
-        particles[0].pimpl->xchng_domains();
+        pimpl->particles[0]->pimpl->xchng_domains();
     }
   };
 };

@@ -129,7 +129,6 @@ namespace libcloudphxx
         {
           gpuErrchk(cudaSetDevice(dev_id));
           opts_init_t<real_t> opts_init_tmp(glob_opts_init);
-          n_x_bfr = dev_id * detail::get_dev_nx(glob_opts_init, 0);
   
           // adjust opts_init for each device 
           if(dev_count > 1)
@@ -141,26 +140,26 @@ namespace libcloudphxx
 
         
           // set n_x_bfr and n_cell_bfr and bcond type for this device 
-          particles[dev_id].pimpl->n_x_bfr = n_x_bfr;
-          particles[dev_id].pimpl->n_cell_bfr = n_x_bfr * detail::m1(opts_init_tmp.ny) * detail::m1(opts_init_tmp.nz);
+          particles[dev_id]->pimpl->n_x_bfr = n_x_bfr;
+          particles[dev_id]->pimpl->n_cell_bfr = n_x_bfr * detail::m1(opts_init_tmp.ny) * detail::m1(opts_init_tmp.nz);
           // set distmem types
           if(dev_count > 1)
           {
-            if(!particles[dev_id].pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
-              particles[dev_id].pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+            if(!particles[dev_id]->pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
+              particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
             else // if there is MPI, set in-node boundaries between devices to cuda
             {
               if(dev_id == 0)
-                particles[dev_id].pimpl->bcond.second = detail::distmem_cuda;
+                particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
               else if(dev_id == dev_count - 1)
-                particles[dev_id].pimpl->bcond.first = detail::distmem_cuda;
+                particles[dev_id]->pimpl->bcond.first = detail::distmem_cuda;
               else
-                particles[dev_id].pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+                particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
             }
           }
+          // store dev_count in the thread; regular ctor zeroes it
+          particles[dev_id]->pimpl->opts_init.dev_count = dev_count;
         }
-        // store dev_count in the thread; regular ctor zeroes it
-        particles[dev_id].pimpl->opts_init.dev_count = dev_count;
       }
 
       // dtor
@@ -213,55 +212,4 @@ namespace libcloudphxx
 
 
 
-
-
-    // constructor
-    template <typename real_t>
-<<<<<<< HEAD
-    particles_t<real_t, multi_CUDA>::particles_t(opts_init_t<real_t> _opts_init) :
-      glob_opts_init(_opts_init),
-      n_cell_tot(
-        detail::m1(glob_opts_init.nx) *
-        detail::m1(glob_opts_init.ny) *
-        detail::m1(glob_opts_init.nz)
-      )
-    {
-      int dev_count;
-      // TODO: move these sanity checks to sanity_checks?
-      
-      if(glob_opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
-      if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
-
-      if(glob_opts_init.nx == 0)
-        throw std::runtime_error("multi_CUDA doesn't work for 0D setup");
-
-      if (!(glob_opts_init.x1 > glob_opts_init.x0 && glob_opts_init.x1 <= glob_opts_init.nx * glob_opts_init.dx))
-        throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-
-      // get number of available devices
-      gpuErrchk(cudaGetDeviceCount(&dev_count)); 
-      
-      // set number of devices to use
-      if(glob_opts_init.dev_count > 0)
-      {
-        if(dev_count < glob_opts_init.dev_count)
-          throw std::runtime_error("number of available GPUs smaller than number of GPUs defined in opts_init");
-        else 
-          dev_count = glob_opts_init.dev_count;
-      }
-      // copy actual dev_count to glob_opts_init
-      glob_opts_init.dev_count = dev_count;
-   
-      // check if all GPUs support UVA
-      // TODO: other checks?, see CUDA samples 0_simple/simpleP2P
-      for (int i = 0; i < dev_count; ++i)
-      {
-        // Get device properties
-        cudaDeviceProp devProp;
-        gpuErrchk(cudaGetDeviceProperties(&devProp, i));
-        if(!devProp.unifiedAddressing)
-          throw std::runtime_error("All GPUs have to support Unified Virtual Addressing.");
-        if(devProp.computeMode != 0)
-          throw std::runtime_error("All GPUs have to be in the \"shared\" compute mode.");
-      }
 
