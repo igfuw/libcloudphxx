@@ -24,9 +24,6 @@
 #include "detail/kernels.hpp"
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
-#if defined(USE_MPI)
-  #include "detail/get_mpi_type.hpp"
-#endif
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -40,6 +37,7 @@
   #include <mpi.h>
   // MPI init
   #include "detail/mpi_init.hpp"
+  #include "detail/get_mpi_type.hpp"
 #endif
 
 // public API
