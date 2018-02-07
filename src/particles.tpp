@@ -24,6 +24,9 @@
 #include "detail/kernels.hpp"
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
+#if defined(USE_MPI)
+  #include "detail/get_mpi_type.hpp"
+#endif
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -38,8 +41,6 @@
   // MPI init
   #include "detail/mpi_init.hpp"
 #endif
-
-#include "particles_impl_kernel.ipp"
 
 // public API
 #include "particles_ctor.ipp"
@@ -71,10 +72,9 @@
 #include "impl/particles_impl_init_hskpng_ncell.ipp"
 #include "impl/particles_impl_init_chem.ipp"
 #include "impl/particles_impl_init_kernel.ipp"
-#include "impl/particles_impl_step_finalize.ipp"
+#include "impl/particles_impl_post_copy.ipp"
 #include "impl/particles_impl_init_vterm.ipp"
 #include "impl/particles_impl_init_sanity_check.ipp"
-#include "impl/particles_impl_post_copy.ipp"
 #include "impl/particles_impl_xchng_domains.ipp"
 #include "impl/particles_impl_update_th_rv.ipp"
 #include "impl/particles_impl_hskpng_ijk.ipp"

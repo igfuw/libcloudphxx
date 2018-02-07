@@ -17,9 +17,6 @@
 
 #include <map>
 
-#if defined(USE_MPI)
-  #include "detail/get_mpi_type.hpp"
-#endif
 
 namespace libcloudphxx
 {
@@ -284,8 +281,7 @@ namespace libcloudphxx
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
-<<<<<<< HEAD:src/particles_pimpl_ctor.ipp
-        bcond(bcond),
+	bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
@@ -300,9 +296,6 @@ namespace libcloudphxx
         rgt_x0(-1),  // MPI boudanry
         lft_id(i),   // note: reuses i vector
         rgt_id(tmp_device_size_part),
-        vt0_n_bin(10000),
-        vt0_ln_r_min(log(5e-7)),
-        vt0_ln_r_max(log(3e-3)),  // Beard 1977 is defined on 1um - 6mm diameter range
         n_x_tot(n_x_tot),
         halo_x( 
           n_dims == 1 ? 1:                 // 1D
@@ -315,33 +308,6 @@ namespace libcloudphxx
             (opts_init.nz + 1) * opts_init.ny),// 3D
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
-        // sanity checks
-        if (n_dims > 0)
-        {
-	  if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)"); 
-	  if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)"); 
-	  if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)"); 
-          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
-//	  if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
-//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-	  if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
-	  if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
-        }
-
-        if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc == 0) throw std::runtime_error("please specify opts_init.sd_conc");
-        if (opts_init.coal_switch)
-        {
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
-          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
-        }
-        if (opts_init.sedi_switch)
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
         // if its a spawn, multi_CUDA ctor will alter it
@@ -542,49 +508,5 @@ namespace libcloudphxx
       void bcnd_remote_lft(const real_t &, const real_t &);
       void bcnd_remote_rgt(const real_t &, const real_t &);
     };
-
-    // ctor
-    template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init)
-    {
-      int rank, size;
-
-      // handle MPI init
-#if defined(USE_MPI)
-      detail::mpi_init(MPI_THREAD_SINGLE, rank, size); 
-#else
-      rank = 0;
-      size = 1;
-      // throw an error if ran with mpi, but not compiled for mpi
-      if (
-        // mpich
-        std::getenv("PMI_RANK") != NULL ||
-        // openmpi
-        std::getenv("OMPI_COMM_WORLD_RANK") != NULL ||
-        // lam
-        std::getenv("LAMRANK") != NULL ||
-        // mvapich2
-        std::getenv("MV2_COMM_WORLD_RANK") != NULL
-      ) throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
-#endif
-      std::pair<detail::bcond_t, detail::bcond_t> bcond;
-      if(size > 1)
-        bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
-      else
-        bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
-
-      // create impl instance
-      pimpl.reset(new impl(opts_init, bcond, rank, size));
-      this->opts_init = &pimpl->opts_init;
-      pimpl->sanity_checks();
-    }
-
-    // outbuf
-    template <typename real_t, backend_t device>
-    real_t *particles_t<real_t, device>::outbuf() 
-    {
-      pimpl->fill_outbuf();
-      return &(*(pimpl->tmp_host_real_cell.begin()));
-    }
   };
 };
