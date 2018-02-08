@@ -49,7 +49,7 @@ namespace libcloudphxx
         const thrust_size_t &rgt_count(particles[dev_id]->pimpl->rgt_count);
         auto &n_part(particles[dev_id]->pimpl->n_part);
         auto &n_part_old(particles[dev_id]->pimpl->n_part_old);
- 	const int &distmem_real_vctrs_count(particles[dev_id]->pimpl->distmem_real_vctrs_count);
+ 	const int &distmem_real_vctrs_count(particles[dev_id]->pimpl->distmem_real_vctrs.size());
         thrust_device::vector<real_t> &sstp_tmp_th(particles[dev_id]->pimpl->sstp_tmp_th);
         thrust_device::vector<real_t> &sstp_tmp_rh(particles[dev_id]->pimpl->sstp_tmp_rh);
         thrust_device::vector<real_t> &sstp_tmp_rv(particles[dev_id]->pimpl->sstp_tmp_rv);

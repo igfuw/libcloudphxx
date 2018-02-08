@@ -242,9 +242,6 @@ namespace libcloudphxx
       // real_t vectors copied in distributed memory case
       std::vector<thrust_device::vector<real_t>*> distmem_real_vctrs;
 
-      // number of real_t vectors to be copied
-      const int distmem_real_vctrs_count;
-
 
       // methods
 
@@ -286,11 +283,6 @@ namespace libcloudphxx
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
-        distmem_real_vctrs_count(
-          n_dims == 3 ? 7 :
-            n_dims == 2 ? 6 : 
-              n_dims == 1 ? 5:
-                0),  // distmem doesnt work for 0D anyway
         distmem_real_vctrs(7),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
@@ -352,8 +344,15 @@ namespace libcloudphxx
         }
 
         typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z, &y};
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
         distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+        if(opts_init.ny > 0) distmem_real_vctrs.push_back(&y);
+        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        {
+           distmem_real_vctrs.push_back(&sstp_tmp_rv);
+           distmem_real_vctrs.push_back(&sstp_tmp_th);
+           distmem_real_vctrs.push_back(&sstp_tmp_rh);
+        }
       }
 
       void sanity_checks();
