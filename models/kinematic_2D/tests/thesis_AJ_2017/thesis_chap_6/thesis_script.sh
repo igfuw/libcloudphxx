@@ -8,10 +8,10 @@ cd ../../../build/tests/thesis_AJ_2017/thesis_chap_6/
 
 export OMP_NUM_THREADS=1
 
-## run all the thesis test cases
+# run all the thesis test cases
 ./calc_chem ../../../
 
-## plot the quicklook plots
+# plot the quicklook plots
 ./plot_lgrngn_ch ../../
 ./plot_lgrngn_ch_chem ../../
 

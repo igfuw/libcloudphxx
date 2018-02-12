@@ -59,7 +59,7 @@ for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
 
     #plot settings
     fig = plt.figure(figsize=(17,13))
-    plt.rcParams.update({'font.size': 30})
+    plt.rcParams.update({'font.size': 34})
 
     ax=fig.add_subplot(111)
    
