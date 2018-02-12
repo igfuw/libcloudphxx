@@ -73,8 +73,6 @@ namespace libcloudphxx
         {
           // prepare buffer with n_t to be copied left
           // TODO: serialize n_t and real_t with boost serialize
-          assert(out_n_bfr.size() >= lft_count);
-          assert(in_n_bfr.size() >= lft_count); // assume all devices have same size of in bfr!
           particles[dev_id]->pimpl->pack_n_lft();
 
           // start async copy of n buffer to the left
@@ -113,8 +111,6 @@ namespace libcloudphxx
        //   real_t_vctrs.push_back(&sstp_tmp_rh);
        // }
        // const int real_vctrs_count = real_t_vctrs.size(); 
-        assert(out_real_bfr.size() >= lft_count * real_vctrs_count);
-        assert(in_real_bfr.size() >= lft_count * real_vctrs_count);
         if(bcond.second == detail::distmem_cuda)
         {
           // wait for the copy of n from right into current device to finish
@@ -122,7 +118,6 @@ namespace libcloudphxx
           // unpack the n buffer sent to this device from right
           particles[dev_id]->pimpl->unpack_n(particles[rgt_dev]->pimpl->lft_count); // also sets n_part_old and n_part
         }
-        assert(glob_opts_init.n_sd_max >= n_part);
 
         // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
         if(bcond.first == detail::distmem_cuda)
@@ -139,10 +134,6 @@ namespace libcloudphxx
         // barrier to make sure that all devices started copying
      //   #pragma omp barrier
         barrier.wait();
-
-        // prepare buffer with n_t to be copied right
-        assert(out_n_bfr.size() >= rgt_count);
-        assert(in_n_bfr.size() >= rgt_count);
 
         if(bcond.second == detail::distmem_cuda)
         {
@@ -176,8 +167,6 @@ namespace libcloudphxx
         barrier.wait();
 
         // prepare the real_t buffer for copy to the right
-        assert(out_real_bfr.size() >= rgt_count * real_vctrs_count);
-        assert(in_real_bfr.size() >= rgt_count * real_vctrs_count);
         if(bcond.second == detail::distmem_cuda)
            particles[dev_id]->pimpl->pack_real_rgt();
 
@@ -189,7 +178,6 @@ namespace libcloudphxx
           particles[dev_id]->pimpl->unpack_n(particles[lft_dev]->pimpl->rgt_count); // also sets n_part etc..
         }
 
-        assert(glob_opts_init.n_sd_max >= n_part);
         if(bcond.second == detail::distmem_cuda)
         {
           // start async copy of real buffer to the right

@@ -31,6 +31,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_n_lft()
     {
+      assert(out_n_bfr.size() >= lft_count);
+      assert(in_n_bfr.size() >= lft_count);
       thrust::copy(
         thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
         thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
@@ -41,6 +43,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_n_rgt()
     {
+      assert(out_n_bfr.size() >= rgt_count);
+      assert(in_n_bfr.size() >= rgt_count);
       thrust::copy(
         thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
         thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
@@ -51,6 +55,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_real_lft()
     {
+      assert(out_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
+      assert(in_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
       for(int i = 0; i < distmem_real_vctrs.size(); ++i)
         thrust::copy(
           thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), lft_id.begin()),
@@ -62,6 +68,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_real_rgt()
     {
+      assert(out_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
+      assert(in_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
       for(int i = 0; i < distmem_real_vctrs.size(); ++i)
         thrust::copy(
           thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), rgt_id.begin()),

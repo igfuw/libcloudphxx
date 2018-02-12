@@ -14,6 +14,7 @@ namespace libcloudphxx
     {
       n_part_old = n_part;
       n_part += n_copied;
+      assert(opts_init.n_sd_max >= n_part);
       n.resize(n_part);
       thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
     }
