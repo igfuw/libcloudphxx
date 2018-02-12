@@ -20,12 +20,9 @@ matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
 for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
-    # path to build directory with data and plots
-    dir_path = '../../../build/thesis_2017/thesis_chap_6/'
-
     # read in the data
-    data = h5.File(dir_path + 'out_' + case + '/timestep0000011800.h5', 'r')
-    mesh = h5.File(dir_path + 'out_' + case + '/const.h5', 'r')
+    data = h5.File('out_' + case + '/timestep0000011800.h5', 'r')
+    mesh = h5.File('out_' + case + '/const.h5', 'r')
 
     # left and right edges of bins for dry and wet radius
     wet_edges = np.fromiter( (1e-6 * 10**(-3 + i * .1) for i in xrange(56)), dtype="float")
@@ -66,7 +63,7 @@ for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
 
     ax=fig.add_subplot(111)
    
-    cmap = plt.get_cmap('Set1')
+    cmap = plt.get_cmap('Spectral')
     cmap.set_under('White')
     vmin = 3
     vmax = 5.8
@@ -90,7 +87,8 @@ for case in ('case_base', 'case1a', 'case3', 'case4', 'case5', 'case6'):
     # save fig to eps
     # I'm not sure why, but Python tends to produce very heavy figures
     # saving them as eps and then converting to pdf solves this problem...
-    output_dir = dir_path + '/plots_of_pH/'
+    output_dir = 'plots_of_pH/'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+    print "saving plots in ", output_dir + case + "_ph_profile.eps"
     plt.savefig(output_dir + case + "_ph_profile.eps")
