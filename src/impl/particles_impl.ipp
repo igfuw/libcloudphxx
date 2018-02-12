@@ -283,7 +283,6 @@ namespace libcloudphxx
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
-        distmem_real_vctrs(7),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
         lft_id(i),   // note: reuses i vector
