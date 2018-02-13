@@ -102,7 +102,6 @@ namespace libcloudphxx
         );
 
         // check if n buffer from right arrived
-        printf("Wait 1\n");
         MPI_Wait(&req_recv_n_t, &status);
 
         // unpack the n buffer sent to this device from right
@@ -113,7 +112,6 @@ namespace libcloudphxx
       // check if out_n_bfr sent left has been received
       if(bcond.first == detail::distmem_mpi)
       {
-        printf("Wait 2\n");
         MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
       }
 
@@ -127,14 +125,11 @@ namespace libcloudphxx
         bcnd_remote_rgt(opts_init.x1, rgt_x0);
 
         // wait for the copy of real from right into current device to finish
-        printf("Wait 3\n");
         MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
 
         // unpack the real buffer sent to this device from right
         unpack_real(n_copied);
 
-printf("rgt count %d\n", rgt_count);
-debug::print(out_n_bfr);
         // start async copy of n buffer to the right
         MPI_Isend(
           out_n_bfr.data().get(),       // raw pointer to the buffer
@@ -168,9 +163,7 @@ debug::print(out_n_bfr);
       // check if n buffer from left arrived
       if(bcond.first == detail::distmem_mpi)
       {
-        printf("Wait 4\n");
         MPI_Wait(&req_recv_n_t, &status);
-        printf("post Wait 4\n");
 
         // unpack the n buffer sent to this device from left
         MPI_Get_count(&status, detail::get_mpi_type<n_t>(), &n_copied);
@@ -216,7 +209,6 @@ debug::print(out_n_bfr);
       // wait for the copy of real from left into current device to finish
       if(bcond.first == detail::distmem_mpi)
       {
-        printf("Wait 5\n");
         MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
 
         // unpack the real buffer sent to this device from left
