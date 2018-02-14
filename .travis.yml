@@ -5,7 +5,7 @@ language: cpp
 dist: trusty
 sudo: required
 python: 
-  "2.7"
+  "2.7.10"
 virtualenv:
   system_site_packages: true
 
