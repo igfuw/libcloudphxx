@@ -102,10 +102,10 @@ namespace libcloudphxx
 	for (int i = 0; i < len(modes); ++i)
 	{
 	  arg->dry_distros.push_back({
-	    .mean_rd = bp::extract<real_t>(modes[i]["mean_rd"]),
-	    .sdev_rd = bp::extract<real_t>(modes[i]["sdev_rd"]),
-	    .N_stp   = bp::extract<real_t>(modes[i]["N_stp"]),
-	    .chem_b  = bp::extract<real_t>(modes[i]["chem_b"])
+	     bp::extract<real_t>(modes[i]["mean_rd"]),
+	     bp::extract<real_t>(modes[i]["sdev_rd"]),
+	     bp::extract<real_t>(modes[i]["N_stp"]),
+	     bp::extract<real_t>(modes[i]["chem_b"])
 	  });
 	}
       }

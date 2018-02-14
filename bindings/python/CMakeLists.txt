@@ -10,7 +10,7 @@ if (NOT PYTHON_LIBRARIES)
     Please install them (e.g. sudo apt-get install python-dev).
   ")
 endif()
-target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
+target_include_directories(cloudphxx PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
@@ -21,6 +21,7 @@ if (NOT Boost_FOUND)
     Please install it (e.g. sudo apt-get install libboost-python-dev).
   ")
 endif()
+target_include_directories(cloudphxx PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 
 # boost python 1.65.0 replaced the booost::python::numeric API with boost::python::numpy
