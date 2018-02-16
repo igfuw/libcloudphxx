@@ -109,14 +109,12 @@ namespace libcloudphxx
         unpack_n(n_copied);
       }
 
-      // check if out_n_bfr sent left has been received
-      if(bcond.first == detail::distmem_mpi)
-      {
-        MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
-      }
 
       if(bcond.second == detail::distmem_mpi)
       {
+        // check if out_n_bfr sent left has been received
+        if(bcond.first == detail::distmem_mpi)
+          MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
         // prepare buffer with n_t to be copied right
         pack_n_rgt();
 
@@ -156,15 +154,14 @@ namespace libcloudphxx
         );
       }
 
-      // check if real_t buffer sent left has been received
-      if(bcond.first == detail::distmem_mpi)
-      {
-        MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
-      }
-
       // prepare the real_t buffer for copy to the right
       if(bcond.second == detail::distmem_mpi)
       {
+        // check if real_t buffer sent left has been received
+        if(bcond.first == detail::distmem_mpi)
+        {
+          MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
+        }
         pack_real_rgt();
       }
 
