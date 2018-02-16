@@ -156,9 +156,17 @@ namespace libcloudphxx
         );
       }
 
+      // check if real_t buffer sent left has been received
+      if(bcond.first == detail::distmem_mpi)
+      {
+        MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
+      }
+
       // prepare the real_t buffer for copy to the right
       if(bcond.second == detail::distmem_mpi)
+      {
         pack_real_rgt();
+      }
 
       // check if n buffer from left arrived
       if(bcond.first == detail::distmem_mpi)
