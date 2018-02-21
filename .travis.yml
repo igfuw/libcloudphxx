@@ -6,17 +6,17 @@ dist: trusty
 sudo: required
 
 os: 
-#    - linux
+    - linux
     - osx
 compiler:
     - gcc
     - clang
 env:
-  #    - TEST_SUITE=cuda
+    - TEST_SUITE=cuda
     - TEST_SUITE=tests
-      #    - TEST_SUITE=parcel
-      #    - TEST_SUITE=icicle
-      #    - TEST_SUITE=UWLCM
+    - TEST_SUITE=parcel
+    - TEST_SUITE=icicle
+    - TEST_SUITE=UWLCM
 matrix:
     exclude:
         - os: osx
@@ -51,23 +51,24 @@ before_install:
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
-    
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew ls python; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew ls python2; fi
+
+# first find brew python python-config
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $BREWPYCONFIG; fi
 
 # find python paths, taken from 
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_INC=`$BREWPYCONFIG --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_LIB=`$BREWPYCONFIG --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
-
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     
-    
+# also find brew python executable dir and prepend it to PATH
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_EXC=`$BREWPYCONFIG --exec-prefix`/bin; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PATH=$PY_EXC:$PATH; fi
+
+# leaving this for debug purposes, it's not like a few lines matter compared to the usual size of the log
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $BREWPYCONFIG; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
 
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
