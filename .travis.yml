@@ -49,8 +49,8 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then python-config --exec-prefix; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PATH; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_EXC=`python-config --exec-prefix`/bin; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PATH=$PY_EXC:$PATH; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
