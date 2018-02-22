@@ -35,7 +35,7 @@ namespace libcloudphxx
       const real_t &dt
     )   
 //</listing>
-    {  
+    { 
       // sanity checks
       assert(min(rv_cont) >= 0);
       assert(min(th_cont) > 0);
@@ -162,6 +162,7 @@ namespace libcloudphxx
           }
 
           assert(rc + dot_rc * dt >= 0 && "condensation/evaporation can't make rc < 0");
+          assert(nc + dot_nc * dt >= 0 && "condensation/evaporation can't make nc < 0");
           assert(rv + dot_rv * dt >= 0 && "condensation/evaporation can't make rv < 0");
           assert(th / si::kelvin + dot_th * dt >= 0 && "condensation/evaporation can't make th < 0");
         }
@@ -190,10 +191,14 @@ namespace libcloudphxx
 
         // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
         if (opts.acnv)
-        {                                  
+        { 
           if (rc > 0 && nc > 0)
           {  
-            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod);
+            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod, 
+                                                                opts.acnv_A * si::dimensionless(), 
+                                                                opts.acnv_b * si::dimensionless(), 
+                                                                opts.acnv_c * si::dimensionless()
+                                                               );
 
             // so that autoconversion doesn't take more rc than there is
             tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
