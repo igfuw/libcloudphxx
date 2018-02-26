@@ -41,6 +41,17 @@ set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
+#############################################################################################
+# OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  message(STATUS " OpenMP found")
+else()
+  message(STATUS "CMAKE cant find OpenMP (known issue for AppleClang on OSX)")
+  # maybe some hints are here: https://github.com/src-d/kmcuda/issues/6
+  set(OpenMP_CXX_FLAGS " ")
+endif()
+
 ############################################################################################
 # Thrust
 include(CheckCXXSourceCompiles)

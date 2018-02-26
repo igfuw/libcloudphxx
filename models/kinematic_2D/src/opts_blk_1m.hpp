@@ -30,7 +30,9 @@ void setopts_micro(
     ("conv", po::value<bool>()->default_value(rt_params.cloudph_opts.conv) , "autoconversion of cloud water into rain (1=on, 0=off)")
     ("accr", po::value<bool>()->default_value(rt_params.cloudph_opts.accr) , "cloud water collection by rain (1=on, 0=off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "rain water sedimentation (1=on, 0=off)")
-//TODO: autoconv_threshold, epsilon
+    ("r_c0",   po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.r_c0)   , "blk 1m autoconversion treshold")
+    ("k_acnv", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.k_acnv) , "blk 1m autoconversion rate")
+    ("r_eps",  po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.r_eps)  , "blk 1m absolute tolerance")
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
@@ -42,6 +44,9 @@ void setopts_micro(
   rt_params.cloudph_opts.conv = vm["conv"].as<bool>();
   rt_params.cloudph_opts.accr = vm["accr"].as<bool>();
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
+  rt_params.cloudph_opts.r_c0   = vm["r_c0"].as<typename solver_t::real_t>();
+  rt_params.cloudph_opts.k_acnv = vm["k_acnv"].as<typename solver_t::real_t>();
+  rt_params.cloudph_opts.r_eps  = vm["r_eps"].as<typename solver_t::real_t>();
 
   // output variables
   rt_params.outvars = {
