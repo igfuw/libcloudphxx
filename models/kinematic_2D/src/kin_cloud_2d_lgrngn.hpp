@@ -35,6 +35,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     assert(this->rank == 0);
 
     // recording super-droplet concentration per grid cell 
+    prtcls->diag_all();
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc", prtcls->outbuf());
 

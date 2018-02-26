@@ -9,9 +9,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "detail/thrust.hpp"
-#include "detail/functors_host.hpp"
-
 #include <thrust/host_vector.h>
 #include <thrust/sort.h>
 #include <thrust/extrema.h>

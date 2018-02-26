@@ -208,27 +208,32 @@ namespace libcloudphxx
             fb = drw2; // for implicit Euler its equal to min_fun(x_old) 
           }
 
+          // to store the result
+          real_t rw2_new;
 
           // root-finding ill posed => explicit Euler 
-          if (fa * fb > 0) return rw2_old + drw2;
-
+          if (fa * fb > 0) rw2_new = rw2_old + drw2;
           // otherwise implicit Euler
-          uintmax_t n_iter = config.n_iter;
-#if defined(NDEBUG)
-          return common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
-#else
-          real_t root = common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
-          if(isnan(root) || isinf(root))
+          else
           {
-            printf("nan/inf root in cond: %g\n",root);
+            uintmax_t n_iter = config.n_iter;
+            rw2_new = common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
+          }
+          // check if it doesn't evaporate too much
+          if(rw2_new < rd2) rw2_new = rd2;
+
+#if !defined(NDEBUG)
+          if(isnan(rw2_new) || isinf(rw2_new))
+          {
+            printf("nan/inf root in cond: %g\n",rw2_new);
             printf("a: %g\n",a);
             printf("b: %g\n",b);
             printf("fa: %g\n",fa);
             printf("fb: %g\n",fb);
             assert(0);
           }
-          return root;
 #endif
+          return rw2_new;
         }
       };
     };

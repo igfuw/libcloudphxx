@@ -19,3 +19,14 @@ struct isnaninf {
     debug::print(arr);\
     assert(0);}}
 #endif
+
+#ifdef NDEBUG
+#define nancheck_range(begin, end, name) ((void)0)
+#else
+#define nancheck_range(begin, end, name) {\
+  int nan_count = thrust::transform_reduce(begin, end, isnaninf(), 0, thrust::plus<bool>());\
+  if(nan_count>0){\
+    std::cout << nan_count << " nan/inf numbers detected in: " << name << std::endl;\
+    debug::print(begin, end);\
+    assert(0);}}
+#endif
