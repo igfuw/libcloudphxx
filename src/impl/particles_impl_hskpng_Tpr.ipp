@@ -79,12 +79,13 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
       // T  = common::theta_dry::T<real_t>(th, rhod);
-      thrust::transform(
-        th.begin(), th.end(),      // input - first arg
-        rhod.begin(),              // input - second arg
-        T.begin(),                 // output
-        detail::common__theta_dry__T<real_t>() 
-      );
+      if(!external_T)
+        thrust::transform(
+          th.begin(), th.end(),      // input - first arg
+          rhod.begin(),              // input - second arg
+          T.begin(),                 // output
+          detail::common__theta_dry__T<real_t>() 
+        );
 
       {
         typedef thrust::zip_iterator<

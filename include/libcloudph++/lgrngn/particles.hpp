@@ -39,6 +39,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> RH = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> T = arrinfo_t<real_t>(),
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
@@ -104,6 +105,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> RH,
+        const arrinfo_t<real_t> T,
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
 
@@ -179,6 +181,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> RH = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> T = arrinfo_t<real_t>(),
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       );
       void step_async(

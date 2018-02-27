@@ -17,6 +17,7 @@ namespace libcloudphxx
       th.resize(n_cell);
       rv.resize(n_cell);
       RH.resize(n_cell); 
+      T.resize(n_cell); 
       for (int i = 0; i < chem_gas_n; ++i)
         ambient_chem[(chem_species_t)i].resize(n_cell);
 
