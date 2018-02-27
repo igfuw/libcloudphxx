@@ -104,12 +104,13 @@ namespace libcloudphxx
         );
 
         // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
-        thrust::transform(
-          zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
-          RH.begin(),                                                         // output
-          detail::RH<real_t>()
-        );
+        if(!external_RH)
+          thrust::transform(
+            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
+            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
+            RH.begin(),                                                         // output
+            detail::RH<real_t>()
+          );
       }
  
       // dynamic viscosity

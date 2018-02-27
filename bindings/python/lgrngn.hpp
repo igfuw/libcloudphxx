@@ -111,6 +111,7 @@ namespace libcloudphxx
 	const bp_array &Cx,
 	const bp_array &Cy,
 	const bp_array &Cz,
+	const bp_array &RH,
         bp::dict &ambient_chem
       )
       {
@@ -134,6 +135,7 @@ namespace libcloudphxx
 	  np2ai<real_t>(Cx, sz(*arg)),
 	  np2ai<real_t>(Cy, sz(*arg)),
 	  np2ai<real_t>(Cz, sz(*arg)),
+	  np2ai<real_t>(RH, sz(*arg)),
           map
 	);
       }

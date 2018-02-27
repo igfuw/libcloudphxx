@@ -294,6 +294,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("RH")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
