@@ -68,6 +68,8 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
+      pimpl->init_e2l(RH, &pimpl->RH);
+
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
