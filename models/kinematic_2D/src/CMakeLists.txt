@@ -10,8 +10,6 @@ add_executable(icicle icicle.cpp)
 target_link_libraries(icicle ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
-#link_directories(${libcloudphxx_LIBRARY_DIR})
-#target_link_libraries(icicle libcloudphxx_lgrngn)
 target_link_libraries(icicle ${libcloudphxx_LIBRARIES})
 
 find_package(Boost COMPONENTS program_options REQUIRED)
