@@ -3,6 +3,7 @@
 # the following variables will be set:
 set(libcloudphxx_FOUND False)
 set(libcloudphxx_INCLUDE_DIRS "")
+#set(libcloudphxx_LIBRARY_DIR "")
 set(libcloudphxx_LIBRARIES "")
 
 ############################################################################################
@@ -25,6 +26,11 @@ endif()
 if(NOT EXISTS ${libcloudphxx_LIBRARIES})
   message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARIES}") 
 endif() 
+
+#set(libcloudphxx_LIBRARY_DIR "${CMAKE_CURRENT_LIST_DIR}/../../lib/")
+#if(NOT EXISTS ${libcloudphxx_LIBRARY_DIR})
+#  message(FATAL_ERROR "The libcloudph++ library for selected config not found at ${libcloudphxx_LIBRARY_DIR}") 
+#endif() 
 
 ############################################################################################
 # Boost libraries
