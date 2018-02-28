@@ -18,7 +18,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CONFIG_SUFFIX "_dbg")
 endif()
 
-if("${CMAKE_CXX_COMPILER}" MATCHES "Xcode")
+if(APPLE)
   set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.dylib")
 else()
   set(libcloudphxx_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../../lib/libcloudphxx_lgrngn${CONFIG_SUFFIX}.so")
