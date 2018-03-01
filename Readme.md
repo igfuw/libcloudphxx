@@ -1,6 +1,9 @@
 libcloudph++ - a cloud (micro)physics library 
 =======================================================================
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cfcac2a22361474da9daef82ad53bd88)](https://app.codacy.com/app/igfuw/libcloudphxx?utm_source=github.com&utm_medium=referral&utm_content=igfuw/libcloudphxx&utm_campaign=badger)
+
+
 To get more information on libcloudph++, please check: 
   - https://www.geosci-model-dev.net/8/1677/2015/
   - https://github.com/igfuw/libcloudphxx/wiki
