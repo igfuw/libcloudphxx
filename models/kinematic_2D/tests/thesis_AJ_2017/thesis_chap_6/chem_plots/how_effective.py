@@ -15,7 +15,7 @@ sys.path.insert(0, "../../../../../build/bindings/python/")
 from libcloudphxx import common as cm
 
 # path to build directory with data
-dir_path = '../../../build/thesis_2017/thesis_chap_6/'
+dir_path = ''
 
 for case in ['case_base', 'case3', 'case4', 'case5', 'case6']:
 
