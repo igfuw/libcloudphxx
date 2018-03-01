@@ -80,15 +80,16 @@ namespace libcloudphxx
         using common::earth::rho_stp;
 
         // correcting STP -> actual ambient conditions
-        thrust::transform(
-          tmp_real.begin(), tmp_real.end(),            // input - 1st arg
-          thrust::make_permutation_iterator( // input - 2nd arg
-            tmp_rhod.begin(), 
-            tmp_ijk.begin()
-          ),
-          tmp_real.begin(),                       // output
-          arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
-        );
+        if(!opts_init.aerosol_independent_of_rhod)
+          thrust::transform(
+            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+            thrust::make_permutation_iterator( // input - 2nd arg
+              tmp_rhod.begin(), 
+              tmp_ijk.begin()
+            ),
+            tmp_real.begin(),                       // output
+            arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+          );
 
        
         // adjust to cell volume
