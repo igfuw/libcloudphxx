@@ -106,11 +106,11 @@ namespace libcloudphxx
 
         #if defined(USE_MPI)
           // initialize mpi with threading support, TODO: only if it has not been initialize before
-          const int prov_tlvl = detail::mpi_init(MPI_THREAD_FUNNELED);
-          if(prov_tlvl < MPI_THREAD_FUNNELED)
-            throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_FUNNELED, multi_CUDA backend won't work");
+          const int prov_tlvl = detail::mpi_init(MPI_THREAD_MULTIPLE);
+          if(prov_tlvl < MPI_THREAD_MULTIPLE)
+            throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_MULTIPLE, multi_CUDA backend won't work");
 
-          // check if it's the main thread of MPI in order to FUNNELED to work
+          // check if it's the main thread of MPI in order to MULTIPLE to work
           int main;
           MPI_Is_thread_main(&main);
           if(!main)
