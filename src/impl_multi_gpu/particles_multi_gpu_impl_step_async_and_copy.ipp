@@ -87,7 +87,6 @@ namespace libcloudphxx
         }
 
         // barrier to make sure that all devices started copying
-     //   #pragma omp barrier
         barrier.wait();
 
         // adjust x of prtcls to be sent left to match new device's domain
@@ -100,17 +99,6 @@ namespace libcloudphxx
           particles[dev_id]->pimpl->pack_real_lft();
         }
 
-        // prepare the real_t buffer for copy left
-    //    thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
-      //  std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
-      //  if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
-      //  if(glob_opts_init.sstp_cond > 1 && glob_opts_init.exact_sstp_cond)
-      //  {
-       //   real_t_vctrs.push_back(&sstp_tmp_rv);
-       //   real_t_vctrs.push_back(&sstp_tmp_th);
-       //   real_t_vctrs.push_back(&sstp_tmp_rh);
-       // }
-       // const int real_vctrs_count = real_t_vctrs.size(); 
         if(bcond.second == detail::distmem_cuda)
         {
           // wait for the copy of n from right into current device to finish
@@ -132,7 +120,6 @@ namespace libcloudphxx
           gpuErrchk(cudaEventRecord(events[dev_id], streams[dev_id]));
         }
         // barrier to make sure that all devices started copying
-     //   #pragma omp barrier
         barrier.wait();
 
         if(bcond.second == detail::distmem_cuda)
@@ -163,7 +150,6 @@ namespace libcloudphxx
           gpuErrchk(cudaEventRecord(events[dev_id], streams[dev_id]));
           // barrier to make sure that all devices started copying
         }
-     //   #pragma omp barrier
         barrier.wait();
 
         // prepare the real_t buffer for copy to the right
@@ -192,7 +178,6 @@ namespace libcloudphxx
         }
 
         // barrier to make sure that all devices started copying
-     //   #pragma omp barrier
         barrier.wait();
         if(bcond.first == detail::distmem_cuda)
           particles[dev_id]->pimpl->flag_lft(); 
@@ -215,38 +200,9 @@ namespace libcloudphxx
         particles[dev_id]->pimpl->sorted = false;          
 
         // clean streams and events
-     //   #pragma omp barrier
         barrier.wait();
         gpuErrchk(cudaStreamDestroy(streams[dev_id]));
         gpuErrchk(cudaEventDestroy(events[dev_id]));
-      }
-      if(opts.adve)
-      {
-        // perform mpi copy; has to be done sequentially here as MPI isn't good with calls from many threads per node; TODO: actually, libmpdata MPI uses implementations that can handle calls from multiple threads!
-        if(glob_opts_init.dev_count > 1)
-        {
-          // first node receives first 
-          // TODO: this causes a deadlock if the first node has dev_count==1!!!
-          if(particles[0]->pimpl->mpi_rank==0)
-          {
-            gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
-            particles[glob_opts_init.dev_count-1]->pimpl->mpi_exchange();
-            gpuErrchk(cudaSetDevice(0));
-            particles[0]->pimpl->mpi_exchange();
-          }
-          else  // other nodes send first
-          {
-            gpuErrchk(cudaSetDevice(0));
-            particles[0]->pimpl->mpi_exchange();
-            gpuErrchk(cudaSetDevice(glob_opts_init.dev_count-1));
-            particles[glob_opts_init.dev_count-1]->pimpl->mpi_exchange();
-          }
-        }
-        else
-        {
-          gpuErrchk(cudaSetDevice(0));
-          particles[0]->pimpl->mpi_exchange();
-        } 
       }
       // finalize async
       particles[dev_id]->pimpl->post_copy(opts);

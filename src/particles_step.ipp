@@ -289,8 +289,7 @@ namespace libcloudphxx
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
-      // if its a multi_cuda spawn, multi_cuda step will do this
-      if (opts.adve && !pimpl->opts_init.dev_count)
+      if (opts.adve)
         pimpl->mpi_exchange();
 
       // stuff has to be done after distmem copy 
