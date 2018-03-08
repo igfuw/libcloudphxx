@@ -42,9 +42,11 @@ namespace libcloudphxx
       );
       // exchange domains using mpi; has to be done sequentially here as MPI isn't good with calls from many threads per node; UPDATE: actually, MPI implementations used by libmpdata support such calls
       // TODO: hence, move this exchange to some &particles_t<real_t, multi_CUDA>::init ?
+/*
       pimpl->mcuda_run(
         &particles_t<real_t, CUDA>::xchng_domains
       );
+*/
 /*
       if(this->opts_init->dev_count > 1)
       {
