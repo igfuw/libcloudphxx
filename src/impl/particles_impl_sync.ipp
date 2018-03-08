@@ -26,7 +26,7 @@ namespace libcloudphxx
 #else
         to.begin(),
 #endif
-        detail::c_arr_get<real_t>(from.dataZero)
+        detail::c_arr_get<real_t>(from.data)
       );
 
 #if defined(__NVCC__)
@@ -56,7 +56,7 @@ namespace libcloudphxx
         from.begin(),
 #endif
         thrust::make_discard_iterator(),
-        detail::c_arr_set<real_t>(to.dataZero)
+        detail::c_arr_set<real_t>(to.data)
       );
     }   
   };  
