@@ -161,27 +161,6 @@ if (CUDA_FOUND)
         -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
   endif()
 
-  # Check if OpenMP supports custom reductions
-  # why is it C, not C++ compiler? NVCC uses C compiler for preprocessing? change ipp to cpp?
-  # TODO: it's needed only if there are many GPUs (multi_CUDA backend)
-  include(CheckCSourceCompiles)
-  set(CMAKE_REQUIRED_FLAGS " -fopenmp")
-  check_c_source_compiles("
-    #include <omp.h>
-    int add(int x, int y) {return x+y;}
-    int S = 0;
-    #pragma omp declare reduction(Add: int: omp_out=add(omp_out, omp_in)) initializer( omp_priv={0} )
-    int main ()
-    {
-      #pragma omp parallel reduction(Add: S) 
-      {}  
-    }
-  " OMP_CUSTOM_REDUCTION)
-
-  if (NOT OMP_CUSTOM_REDUCTION)
-    message(FATAL_ERROR "C compiler does not support OpenMP user-defined reductions.")
-  endif()
-
   add_definitions(-DCUDA_FOUND)
 endif()
 
