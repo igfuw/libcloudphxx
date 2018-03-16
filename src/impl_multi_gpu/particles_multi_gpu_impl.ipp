@@ -99,13 +99,13 @@ namespace libcloudphxx
             if(can_access_peer)
             {
               cudaError_t cuErr = cudaDeviceEnablePeerAccess(lft_dev, 0); 
-              if(cuErr != cudaErrorPeerAccessAlreadEnabled) gpuErrchk(cuErr);
+              if(cuErr != cudaErrorPeerAccessAlreadyEnabled) gpuErrchk(cuErr);
             }
             gpuErrchk(cudaDeviceCanAccessPeer(&can_access_peer, dev_id, rgt_dev));
             if(can_access_peer && dev_count > 2)
             {
               cudaError_t cuErr = cudaDeviceEnablePeerAccess(rgt_dev, 0);
-              if(cuErr != cudaErrorPeerAccessAlreadEnabled) gpuErrchk(cuErr);
+              if(cuErr != cudaErrorPeerAccessAlreadyEnabled) gpuErrchk(cuErr);
             }
           }
         }
