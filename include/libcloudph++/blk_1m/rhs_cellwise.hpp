@@ -40,7 +40,8 @@ namespace libcloudphxx
 	  tmp += ( 
 	    formulae::autoconversion_rate(
               rc        * si::dimensionless(), 
-              opts.r_c0 * si::dimensionless()
+              opts.r_c0 * si::dimensionless(),
+              opts.k_acnv / si::seconds
             ) * si::seconds // to make it dimensionless
 	  );
         }

@@ -29,6 +29,9 @@ void setopts_micro(
     ("accr", po::value<bool>()->default_value(rt_params.cloudph_opts.accr) , "TODO (on/off)")
     ("acnv", po::value<bool>()->default_value(rt_params.cloudph_opts.acnv) , "TODO (on/off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "TODO (on/off)")
+    ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
+    ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
+    ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
@@ -39,6 +42,9 @@ void setopts_micro(
   rt_params.cloudph_opts.accr = vm["accr"].as<bool>();
   rt_params.cloudph_opts.acnv = vm["acnv"].as<bool>();
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
+  rt_params.cloudph_opts.acnv_A = vm["acnv_A"].as<typename solver_t::real_t>();
+  rt_params.cloudph_opts.acnv_b = vm["acnv_b"].as<typename solver_t::real_t>();
+  rt_params.cloudph_opts.acnv_c = vm["acnv_c"].as<typename solver_t::real_t>();
 
   rt_params.cloudph_opts.dry_distros.push_back({
     .mean_rd = setup.mean_rd1 / si::metres,

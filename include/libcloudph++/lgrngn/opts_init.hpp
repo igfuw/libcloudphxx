@@ -28,7 +28,7 @@ namespace libcloudphxx
       // uses shared_ptr to make opts_init copyable
       typedef std::unordered_map<
         real_t,                // kappa
-        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP 
+        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
       > dry_distros_t;
       dry_distros_t dry_distros;
 
@@ -57,6 +57,9 @@ namespace libcloudphxx
  
       // should more SDs be added to better represent large tail of the distribution
       bool sd_conc_large_tail;
+
+      // should aerosol concentration init be independent of rhod (assumed to be in cm^{-3} and not at STP)
+      bool aerosol_independent_of_rhod;
 
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       int sd_const_multi;
@@ -124,6 +127,7 @@ namespace libcloudphxx
         x1(1), y1(1), z1(1),
         sd_conc(0), 
         sd_conc_large_tail(false), 
+        aerosol_independent_of_rhod(false), 
         sd_const_multi(0),
         sd_const_multi_dry_sizes(0),
         dt(0),   

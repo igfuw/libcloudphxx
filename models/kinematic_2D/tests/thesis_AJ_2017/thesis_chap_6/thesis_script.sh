@@ -4,30 +4,30 @@
 # The simulations take up to 12 hours (on cuda-k-2 server using CUDA and one thread)
 # It might be useful to run them in the background: nohup ./thesis_script.sh &
 
-cd ../../build/thesis_2017/thesis_chap_6
+cd ../../../build/tests/thesis_AJ_2017/thesis_chap_6/
 
 export OMP_NUM_THREADS=1
 
 # run all the thesis test cases
-./calc_chem ../../
+./calc_chem ../../../
 
- plot the quicklook plots
+# plot the quicklook plots
 ./plot_lgrngn_ch ../../
 ./plot_lgrngn_ch_chem ../../
 
 # plot the python scripts for pH and size distributions
-python ../../../thesis_2017/thesis_chap_6/chem_plots/ph_plot.py
-python ../../../thesis_2017/thesis_chap_6/chem_plots/rain_histograms_single.py
-python ../../../thesis_2017/thesis_chap_6/chem_plots/rain_histograms_all.py
+python ../../../../tests/thesis_AJ_2017/thesis_chap_6/chem_plots/ph_plot.py
+python ../../../../tests/thesis_AJ_2017/thesis_chap_6/chem_plots/rain_histograms_single.py
+python ../../../../tests/thesis_AJ_2017/thesis_chap_6/chem_plots/rain_histograms_all.py
 
 # check how much H2SO4 mass was created and what is the error
-python ../../../thesis_2017/thesis_chap_6/chem_plots/how_effective.py
-python ../../../thesis_2017/thesis_chap_6/chem_plots/test_mole_const.py
+python ../../../../tests/thesis_AJ_2017/thesis_chap_6/chem_plots/how_effective.py
+python ../../../../tests/thesis_AJ_2017/thesis_chap_6/chem_plots/test_mole_const.py
 
 # thesis_plots folder will contain all plots included in thesis
 mkdir -p thesis_plots
 
- copy quicklook plots from case1 and case4
+# copy quicklook plots from case1 and case4
 for sim_run in case1 case4; do
   for el in nc na ef rd rr sd_conc; do
     dir_name=out_${sim_run}.plot/${el}/;
