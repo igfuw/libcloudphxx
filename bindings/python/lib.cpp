@@ -43,7 +43,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   package.attr("__path__") = "libcloudphxx";
 
   // exposing git revision id
-  package.attr("git_revision") = GIT_REVISION;
+  package.attr("git_revision") = LIBCLOUDPHXX_GIT_REVISION;
 
   // common stuff
   {
@@ -266,6 +266,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("adve_scheme", &lgr::opts_init_t<real_t>::adve_scheme)
       .def_readwrite("sd_conc", &lgr::opts_init_t<real_t>::sd_conc)
       .def_readwrite("sd_conc_large_tail", &lgr::opts_init_t<real_t>::sd_conc_large_tail)
+      .def_readwrite("aerosol_independent_of_rhod", &lgr::opts_init_t<real_t>::aerosol_independent_of_rhod)
       .def_readwrite("sd_const_multi", &lgr::opts_init_t<real_t>::sd_const_multi)
       .def_readwrite("sd_const_multi_dry_sizes", &lgr::opts_init_t<real_t>::sd_const_multi_dry_sizes)
       .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)
