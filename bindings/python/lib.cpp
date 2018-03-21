@@ -43,7 +43,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
   package.attr("__path__") = "libcloudphxx";
 
   // exposing git revision id
-  package.attr("git_revision") = GIT_REVISION;
+  package.attr("git_revision") = LIBCLOUDPHXX_GIT_REVISION;
 
   // common stuff
   {
