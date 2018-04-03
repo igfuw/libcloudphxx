@@ -167,19 +167,19 @@ namespace libcloudphxx
 #if !defined(NDEBUG)
           if(isnan(drw2) || isinf(drw2))
           {
-            printf("nan/inf drw2 in cond: %g\n",drw2);
-            printf("rw2_old: %g\n",rw2_old);
-            printf("dt: %g\n",dt);
-            printf("RH_max: %g\n",RH_max);
-            printf("rhod: %g\n",thrust::get<0>(tpl));
-            printf("rv: %g\n",thrust::get<1>(tpl));
-            printf("T: %g\n",thrust::get<2>(tpl));
-            printf("p: %g\n",thrust::get<3>(tpl));
-            printf("RH: %g\n",thrust::get<4>(tpl));
-            printf("eta: %g\n",thrust::get<5>(tpl));
-            printf("rd3: %g\n",thrust::get<6>(tpl));
-            printf("kpa: %g\n",thrust::get<7>(tpl));
-            printf("vt: %g\n",thrust::get<8>(tpl));
+            fprintf(stderr, "nan/inf drw2 in cond: %g\n",drw2);
+            fprintf(stderr, "rw2_old: %g\n",rw2_old);
+            fprintf(stderr, "dt: %g\n",dt);
+            fprintf(stderr, "RH_max: %g\n",RH_max);
+            fprintf(stderr, "rhod: %g\n",thrust::get<0>(tpl));
+            fprintf(stderr, "rv: %g\n",thrust::get<1>(tpl));
+            fprintf(stderr, "T: %g\n",thrust::get<2>(tpl));
+            fprintf(stderr, "p: %g\n",thrust::get<3>(tpl));
+            fprintf(stderr, "RH: %g\n",thrust::get<4>(tpl));
+            fprintf(stderr, "eta: %g\n",thrust::get<5>(tpl));
+            fprintf(stderr, "rd3: %g\n",thrust::get<6>(tpl));
+            fprintf(stderr, "kpa: %g\n",thrust::get<7>(tpl));
+            fprintf(stderr, "vt: %g\n",thrust::get<8>(tpl));
             assert(0);
           }
 #endif
@@ -225,11 +225,11 @@ namespace libcloudphxx
 #if !defined(NDEBUG)
           if(isnan(rw2_new) || isinf(rw2_new))
           {
-            printf("nan/inf root in cond: %g\n",rw2_new);
-            printf("a: %g\n",a);
-            printf("b: %g\n",b);
-            printf("fa: %g\n",fa);
-            printf("fb: %g\n",fb);
+            fprintf(stderr, "nan/inf root in cond: %g\n",rw2_new);
+            fprintf(stderr, "a: %g\n",a);
+            fprintf(stderr, "b: %g\n",b);
+            fprintf(stderr, "fa: %g\n",fa);
+            fprintf(stderr, "fb: %g\n",fb);
             assert(0);
           }
 #endif
