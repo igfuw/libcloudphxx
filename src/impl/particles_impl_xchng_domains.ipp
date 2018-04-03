@@ -31,7 +31,7 @@ namespace libcloudphxx
             detail::get_mpi_type<real_t>(), // type
             i ? lft_rank : rgt_rank,                       // dest comm
             i,                              // message tag
-            MPI_COMM_WORLD,                 // communicator
+            detail::MPI_COMM_LIBCLOUD,                 // communicator
             new MPI_Request()
           );
         }
@@ -45,7 +45,7 @@ namespace libcloudphxx
             detail::get_mpi_type<real_t>(), // type
             i ? rgt_rank : lft_rank,                       // src comm
             i,                              // message tag
-            MPI_COMM_WORLD,                  // communicator
+            detail::MPI_COMM_LIBCLOUD,                  // communicator
             MPI_STATUS_IGNORE
           );
         }

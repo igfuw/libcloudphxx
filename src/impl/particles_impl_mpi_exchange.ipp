@@ -50,7 +50,7 @@ namespace libcloudphxx
           detail::get_mpi_type<n_t>(),    // type
           lft_rank,                     // dest comm
           detail::tag_n_lft,              // message tag
-          MPI_COMM_WORLD,
+          detail::MPI_COMM_LIBCLOUD,
           &req_send_n_t
         );
       }
@@ -63,7 +63,7 @@ namespace libcloudphxx
           detail::get_mpi_type<n_t>(),    // type
           rgt_rank,                     // src comm
           detail::tag_n_lft,              // message tag
-          MPI_COMM_WORLD,               // communicator
+          detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_n_t
         );
       }
@@ -83,7 +83,7 @@ namespace libcloudphxx
           detail::get_mpi_type<real_t>(),    // type
           lft_rank,                     // dest comm
           detail::tag_real_lft,              // message tag
-          MPI_COMM_WORLD,                // communicator
+          detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_real_t
         );
       }
@@ -97,7 +97,7 @@ namespace libcloudphxx
           detail::get_mpi_type<real_t>(),    // type
           rgt_rank,                     // src comm
           detail::tag_real_lft,              // message tag
-          MPI_COMM_WORLD,               // communicator
+          detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_real_t
         );
 
@@ -135,7 +135,7 @@ namespace libcloudphxx
           detail::get_mpi_type<n_t>(),    // type
           rgt_rank,                     // dest comm
           detail::tag_n_rgt,              // message tag
-          MPI_COMM_WORLD,                // communicator
+          detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_n_t
         );
       }
@@ -149,7 +149,7 @@ namespace libcloudphxx
           detail::get_mpi_type<n_t>(),    // type
           lft_rank,                     // src comm
           detail::tag_n_rgt,              // message tag
-          MPI_COMM_WORLD,               // communicator
+          detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_n_t
         );
       }
@@ -184,7 +184,7 @@ namespace libcloudphxx
           detail::get_mpi_type<real_t>(),    // type
           rgt_rank,                     // dest comm
           detail::tag_real_rgt,              // message tag
-          MPI_COMM_WORLD,                // communicator
+          detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_real_t
         );
       }
@@ -198,7 +198,7 @@ namespace libcloudphxx
           detail::get_mpi_type<real_t>(),    // type
           lft_rank,                     // src comm
           detail::tag_real_rgt,              // message tag
-          MPI_COMM_WORLD,               // communicator
+          detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_real_t
         );
       }
@@ -209,7 +209,6 @@ namespace libcloudphxx
 
       if(bcond.second == detail::distmem_mpi)
         flag_rgt();
-      
 
       // wait for the copy of real from left into current device to finish
       if(bcond.first == detail::distmem_mpi)
@@ -225,6 +224,11 @@ namespace libcloudphxx
 
       // particles are not sorted now
       sorted = false;          
+
+      // wait for all sends to finish to avoid external overwriting of the send buffer (e.g. multi_CUDA intra-node communications)
+      MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
+      MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
+      
 #endif
     }
   };
