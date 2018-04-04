@@ -1,13 +1,5 @@
 #pragma once
 
-
-#if !defined(__NVCC__)
-#include <cmath>
-using std::isnan;
-using std::isinf;
-#endif
-
-
 // functor for testing nan/inf values
 struct isnaninf { 
   template<class real_t>
