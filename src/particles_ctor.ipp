@@ -28,7 +28,7 @@ namespace libcloudphxx
 
       // handle MPI init
 #if defined(USE_MPI)
-      detail::mpi_init(MPI_THREAD_SINGLE, rank, size); 
+      detail::mpi_init(MPI_THREAD_FUNNELED, rank, size); 
 #else
       rank = 0;
       size = 1;
