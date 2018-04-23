@@ -49,6 +49,35 @@ namespace libcloudphxx
       }
 
       template <class arr_t>
+      void adj_cellwise_constp(
+	const b1m::opts_t<typename arr_t::T_numtype>& opts,
+	const bp_array &rhod,
+	const bp_array &p,
+	bp_array &th,
+	bp_array &rv,
+	bp_array &rc,
+	bp_array &rr,
+	const typename arr_t::T_numtype &dt
+      )
+      {
+	arr_t 
+	  np2bz_th(np2bz<arr_t>(th)), 
+	  np2bz_rv(np2bz<arr_t>(rv)),
+	  np2bz_rc(np2bz<arr_t>(rc)), 
+	  np2bz_rr(np2bz<arr_t>(rr));
+	b1m::adj_cellwise_constp(
+	  opts, 
+	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
+	  np2bz<arr_t>(p), 
+	  np2bz_th, 
+	  np2bz_rv, 
+	  np2bz_rc, 
+	  np2bz_rr, 
+	  dt
+	);
+      }
+
+      template <class arr_t>
       void rhs_cellwise(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
 	bp_array &dot_rc,

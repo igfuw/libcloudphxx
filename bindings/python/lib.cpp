@@ -154,6 +154,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
       ;
     bp::def("adj_cellwise", blk_1m::adj_cellwise<arr_t>);
+    bp::def("adj_cellwise_constp", blk_1m::adj_cellwise_constp<arr_t>);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>); 
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   }

@@ -16,6 +16,7 @@ print "r_c0 =", opts.r_c0
 print "r_eps =", opts.r_eps
 
 rhod = arr_t([1.  ])
+p    = arr_t([1.e5])
 th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
@@ -23,11 +24,23 @@ rr   = arr_t([0.  ])
 dt   = 1
 dz   = 1
 
+# sat adjustment with variable pressure
 th_old = th.copy()
 rv_old = rv.copy()
 rc_old = rc.copy()
 rr_old = rr.copy()
 blk_1m.adj_cellwise(opts, rhod, th, rv, rc, rr, dt)
+assert th != th_old # some water should have evaporated
+assert rv != rv_old
+assert rc != rc_old
+assert rr == rr_old
+
+# sat adjustment with constant pressure
+th   = arr_t([300.])
+rv   = arr_t([0.  ])
+rc   = arr_t([0.01])
+rr   = arr_t([0.  ])
+blk_1m.adj_cellwise_constp(opts, rhod, p, th, rv, rc, rr, dt)
 assert th != th_old # some water should have evaporated
 assert rv != rv_old
 assert rc != rc_old

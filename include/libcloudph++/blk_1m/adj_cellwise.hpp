@@ -226,9 +226,10 @@ namespace libcloudphxx
     }
 
 // saturation adjustment with a constant pressure profile (e.g. anleastic model)
+// needs a different name, because boost python got confused (TODO: fix it)
 //<listing>
     template <typename real_t, class cont_t>
-    void adj_cellwise(
+    void adj_cellwise_constp(
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, 
