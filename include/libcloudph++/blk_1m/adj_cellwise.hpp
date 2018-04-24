@@ -23,15 +23,17 @@ namespace libcloudphxx
 	private: 
          
         quantity<si::mass_density, real_t> rhod;
-        bool const_p;
+        bool const_p; // true if a constant pressure profile is used (e.g. anelastic model), otherwise pressure is deduced from rhod, rv and T
 	
         public: 
 
-	quantity<si::pressure,     real_t> p;
+	quantity<si::pressure,     real_t> p;   // total pressure
+	quantity<si::pressure,     real_t> p_d; // partial pressure of dry air, only needed if const_p = true
         
         void init(
 	  const quantity<si::mass_density, real_t> &_rhod,
 	  const quantity<si::pressure, real_t> &_p,
+	  const quantity<si::pressure, real_t> &_p_d,
 	  const quantity<si::temperature, real_t> &th,
 	  const quantity<si::dimensionless, real_t> &rv,
           const bool _const_p
@@ -40,6 +42,7 @@ namespace libcloudphxx
           const_p = _const_p;
 	  rhod = _rhod;
           p    = _p;
+          p_d    = _p_d;
 	  update(th, rv);
 	}
 
@@ -56,7 +59,7 @@ namespace libcloudphxx
           r  = rv;
 	  T  = common::theta_dry::T<real_t>(th, rhod);
           if(!const_p)
-	    p  = common::theta_dry::p<real_t>(rhod, rv, T);
+	    p   = common::theta_dry::p<real_t>(rhod, rv, T);
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
@@ -70,7 +73,10 @@ namespace libcloudphxx
 	)
 	{
 	  update(th, rv);
-	  F = common::theta_dry::d_th_d_rv<real_t>(T, p); 
+          if(const_p)
+	    F = common::theta_dry::d_th_d_rv<real_t>(T, p_d); 
+          else
+	    F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
 	}
       };
     }    
@@ -81,6 +87,7 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, // value not used if const_p = false
+      const cont_t &p_d_cont, // value not used if const_p = false
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -106,16 +113,17 @@ namespace libcloudphxx
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
       typename detail::rhs<real_t> F;
 
-      for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont))
+      for (auto tup : zip(rhod_cont, p_cont, p_d_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
           &rhod = boost::get<0>(tup),
-          &p    = boost::get<1>(tup);
+          &p    = boost::get<1>(tup),
+          &p_d  = boost::get<2>(tup);
         real_t 
-          &th = boost::get<2>(tup), 
-          &rv = boost::get<3>(tup), 
-          &rc = boost::get<4>(tup), 
-          &rr = boost::get<5>(tup);
+          &th = boost::get<3>(tup), 
+          &rv = boost::get<4>(tup), 
+          &rc = boost::get<5>(tup), 
+          &rr = boost::get<6>(tup);
 
 	// double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
@@ -126,6 +134,7 @@ namespace libcloudphxx
 	F.init(
 	  rhod * si::kilograms / si::cubic_metres,
           p    * si::pascals,
+          p_d  * si::pascals,
 	  th   * si::kelvins,
 	  rv   * si::dimensionless(),
           const_p
@@ -221,8 +230,8 @@ namespace libcloudphxx
     )
 //</listing>
     {
-      // rhod_cont passed twice on purpose - it's a dummy var for pressure to make the tuple compile
-      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
+      // rhod_cont passed trice on purpose - it's a dummy var for pressures to make the tuple compile
+      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
     }
 
 // saturation adjustment with a constant pressure profile (e.g. anleastic model)
@@ -233,6 +242,7 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, 
+      const cont_t &p_d_cont, 
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -241,7 +251,7 @@ namespace libcloudphxx
     )
 //</listing>
     {
-      adj_cellwise_hlpr(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
+      adj_cellwise_hlpr(opts, rhod_cont, p_cont, p_d_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
     }
   }
 };

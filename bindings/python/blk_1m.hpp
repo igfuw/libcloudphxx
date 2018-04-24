@@ -53,6 +53,7 @@ namespace libcloudphxx
 	const b1m::opts_t<typename arr_t::T_numtype>& opts,
 	const bp_array &rhod,
 	const bp_array &p,
+	const bp_array &p_d,
 	bp_array &th,
 	bp_array &rv,
 	bp_array &rc,
@@ -69,6 +70,7 @@ namespace libcloudphxx
 	  opts, 
 	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
 	  np2bz<arr_t>(p), 
+	  np2bz<arr_t>(p_d), 
 	  np2bz_th, 
 	  np2bz_rv, 
 	  np2bz_rc, 
