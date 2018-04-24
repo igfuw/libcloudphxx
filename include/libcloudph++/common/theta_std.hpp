@@ -29,6 +29,14 @@ namespace libcloudphxx
 	return (p - p_v<real_t>(p, rv)) /
 	  (pow(p / p_1000<real_t>(), R_d<real_t>()/c_pd<real_t>()) * R_d<real_t>() * th_std);
       }
+
+      // Exner pressure
+      template <typename real_t>
+      quantity<si::mass_density, real_t> exner(
+	const quantity<si::pressure, real_t> &p
+      ) {
+	return pow(p / p_1000<real_t>(), R_d<real_t>()/c_pd<real_t>());
+      }
     };
   };
 };

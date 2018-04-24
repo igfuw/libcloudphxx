@@ -70,7 +70,7 @@ namespace libcloudphxx
 	)
 	{
 	  update(th, rv);
-	  F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
+	  F = common::theta_dry::d_th_d_rv<real_t>(p); 
 	}
       };
     }    
