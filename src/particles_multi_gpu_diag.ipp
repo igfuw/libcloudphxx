@@ -26,6 +26,12 @@ namespace libcloudphxx
     }
     // diagnostic methods
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_pressure()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_pressure);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_RH()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_RH);

@@ -106,6 +106,24 @@ namespace libcloudphxx
       };
     }
 
+    // records pressure
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_pressure()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->p.begin(), 
+        pimpl->p.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+
+
     // records relative humidity
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_RH()
