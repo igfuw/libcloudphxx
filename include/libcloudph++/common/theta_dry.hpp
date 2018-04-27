@@ -69,7 +69,7 @@ namespace libcloudphxx
 	const quantity<si::temperature, real_t> &T,
 	const quantity<si::pressure, real_t> &p_d // dry air partial pressure
       ) {
-	return - 1. / exner(p_d) * const_cp::l_v<real_t>(T) / c_pd<real_t>();
+	return - const_cp::l_v<real_t>(T) / c_pd<real_t>() / exner(p_d);
       }
 
       template <typename real_t>
