@@ -35,6 +35,15 @@ namespace libcloudphxx
 
       template <typename real_t>
       BOOST_GPU_ENABLED
+      inline quantity<si::temperature, real_t> T(
+        const quantity<si::temperature, real_t> &th, // theta dry!!!
+        const quantity<si::pressure, real_t> &p_d // partial pressure of dry air
+      ) {
+        return th * exner(p_d);
+      }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p(
         const quantity<si::mass_density, real_t> &rhod,
 	const quantity<si::dimensionless, real_t> &r,
@@ -51,7 +60,7 @@ namespace libcloudphxx
 	const quantity<si::temperature, real_t> &T,
 	const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
-	return - th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
+	return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>
@@ -60,7 +69,7 @@ namespace libcloudphxx
 	const quantity<si::temperature, real_t> &T,
 	const quantity<si::pressure, real_t> &p_d // dry air partial pressure
       ) {
-	return - exner(p_d) * const_cp::l_v<real_t>(T) / c_pd<real_t>();
+	return - 1. / exner(p_d) * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>
