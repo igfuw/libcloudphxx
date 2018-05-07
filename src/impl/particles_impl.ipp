@@ -142,6 +142,9 @@ namespace libcloudphxx
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
 
+      // is a constant, external pressure profile used? (e.g. anelastic model)
+      bool const_p;
+
       // timestep counter
       n_t stp_ctr;
 

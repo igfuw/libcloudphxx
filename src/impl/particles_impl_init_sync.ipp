@@ -14,6 +14,9 @@ namespace libcloudphxx
     {
       // memory allocation for scalar fields
       rhod.resize(n_cell);
+      p.resize(n_cell);
+      if(const_p)
+        p_d.resize(n_cell);
       th.resize(n_cell);
       rv.resize(n_cell);
       for (int i = 0; i < chem_gas_n; ++i)

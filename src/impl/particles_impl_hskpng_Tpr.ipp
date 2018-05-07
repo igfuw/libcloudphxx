@@ -15,7 +15,7 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct common__theta_dry__T 
+      struct common__theta_dry__T_rhod 
       {
        BOOST_GPU_ENABLED 
        real_t operator()(const real_t &th, const real_t &rhod)
@@ -23,6 +23,19 @@ namespace libcloudphxx
          return common::theta_dry::T<real_t>(
            th   * si::kelvins,
            rhod * si::kilograms / si::cubic_metres
+         ) / si::kelvins;
+       }   
+      }; 
+
+      template <typename real_t>
+      struct common__theta_dry__T_pred 
+      {
+       BOOST_GPU_ENABLED 
+       real_t operator()(const real_t &th, const real_t &p_d)
+       {   
+         return common::theta_dry::T<real_t>(
+           th   * si::kelvins,
+           p_d  * si::pascals
          ) / si::kelvins;
        }   
       }; 
@@ -78,13 +91,26 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
-      // T  = common::theta_dry::T<real_t>(th, rhod);
-      thrust::transform(
-        th.begin(), th.end(),      // input - first arg
-        rhod.begin(),              // input - second arg
-        T.begin(),                 // output
-        detail::common__theta_dry__T<real_t>() 
-      );
+      if(!const_p) // variable pressure
+      {
+        // T  = common::theta_dry::T<real_t>(th, rhod);
+        thrust::transform(
+          th.begin(), th.end(),      // input - first arg
+          rhod.begin(),              // input - second arg
+          T.begin(),                 // output
+          detail::common__theta_dry__T_rhod<real_t>() 
+        );
+      }
+      else // external pressure profile
+      {
+        // T  = common::theta_dry::T<real_t>(th, p_d);
+        thrust::transform(
+          th.begin(), th.end(),      // input - first arg
+          p_d.begin(),               // input - second arg
+          T.begin(),                 // output
+          detail::common__theta_dry__T_pred<real_t>() 
+        );
+      }
 
       {
         typedef thrust::zip_iterator<
@@ -95,13 +121,16 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-        // p  = common::theta_dry::p<real_t>(rhod, r, T); 
-        thrust::transform(
-          zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())), // input - begin
-          zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )), // input - end
-          p.begin(),                                                         // output
-          detail::common__theta_dry__p<real_t>()
-        );
+        if(!const_p)
+        {
+          // p  = common::theta_dry::p<real_t>(rhod, r, T); 
+          thrust::transform(
+            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())), // input - begin
+            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )), // input - end
+            p.begin(),                                                         // output
+            detail::common__theta_dry__p<real_t>()
+          );
+        }
 
         // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
         thrust::transform(

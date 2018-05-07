@@ -21,6 +21,8 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> p = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> p_d = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
@@ -89,6 +91,8 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> p,
+        const arrinfo_t<real_t> p_d,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y, 
         const arrinfo_t<real_t> courant_z,
@@ -163,10 +167,12 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
-        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, const arrinfo_t<real_t> >()
+        const arrinfo_t<real_t> p,
+        const arrinfo_t<real_t> p_d,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y, 
+        const arrinfo_t<real_t> courant_z,
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem 
       );
 
       // time-stepping methods
@@ -174,11 +180,11 @@ namespace libcloudphxx
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod      = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
+        const arrinfo_t<real_t> rhod     ,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
       void step_async(
         const opts_t<real_t> &

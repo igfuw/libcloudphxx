@@ -17,6 +17,10 @@ namespace libcloudphxx
       const arrinfo_t<real_t> th,
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
+      const arrinfo_t<real_t> p,         // pressure profile [in Pascals], needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
+                                         // defaults to NULL-NULL pair (variable pressure)
+      const arrinfo_t<real_t> p_d,       // dry air partial pressure profile, needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
+                                         // defaults to NULL-NULL pair (variable pressure)
       const arrinfo_t<real_t> courant_x, // might be NULL
       const arrinfo_t<real_t> courant_y, // might be NULL
       const arrinfo_t<real_t> courant_z, // might be NULL
@@ -25,6 +29,12 @@ namespace libcloudphxx
     {
 
       pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
+
+      // if pre/pre_d is passed, assert that pre_d/pre is also passed
+      assert(p.is_null() == p_d.is_null());
+
+      // is a constant pressure profile used?
+      pimpl->const_p = !p.is_null();
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
@@ -47,6 +57,8 @@ namespace libcloudphxx
       pimpl->sync(th,   pimpl->th);
       pimpl->sync(rv,   pimpl->rv);
       pimpl->sync(rhod, pimpl->rhod);
+      pimpl->sync(p,   pimpl->p);
+      pimpl->sync(p_d, pimpl->p_d);
 
       if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
