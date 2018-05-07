@@ -80,10 +80,7 @@ namespace libcloudphxx
 	)
 	{
 	  update(th, rv);
-          if(const_p)
-	    F = common::theta_dry::d_th_d_rv<real_t>(T, p_d); 
-          else
-	    F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
+	  F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
 	}
       };
     }    

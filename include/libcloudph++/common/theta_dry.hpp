@@ -65,15 +65,6 @@ namespace libcloudphxx
 
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::temperature, real_t> d_th_d_rv(
-	const quantity<si::temperature, real_t> &T,
-	const quantity<si::pressure, real_t> &p_d // dry air partial pressure
-      ) {
-	return - const_cp::l_v<real_t>(T) / c_pd<real_t>() / exner(p_d);
-      }
-
-      template <typename real_t>
-      BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> std2dry(
         const quantity<si::temperature, real_t> &th_std,
         const quantity<si::dimensionless, real_t> &r
