@@ -17,6 +17,7 @@ print "r_eps =", opts.r_eps
 
 rhod = arr_t([1.  ])
 p    = arr_t([1.e5])
+p_d  = arr_t([.99e5])
 th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
@@ -40,7 +41,7 @@ th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
 rr   = arr_t([0.  ])
-blk_1m.adj_cellwise_constp(opts, rhod, p, th, rv, rc, rr, dt)
+blk_1m.adj_cellwise_constp(opts, rhod, p, p_d, th, rv, rc, rr, dt)
 assert th != th_old # some water should have evaporated
 assert rv != rv_old
 assert rc != rc_old

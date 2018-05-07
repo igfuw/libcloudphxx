@@ -64,7 +64,7 @@ namespace libcloudphxx
           }
           else
           {
-	    T  = common::theta_dry::T<real_t>(th, p_d);
+	    T  = th * common::theta_std::exner<real_t>(p_d);
           }
 
 	  rs = common::const_cp::r_vs<real_t>(T, p);

@@ -18,7 +18,6 @@ namespace libcloudphxx
       using moist_air::c_pd;
       using moist_air::p_v;
       using theta_std::p_1000;
-      using theta_std::exner;
 
       template <typename real_t>
       BOOST_GPU_ENABLED
@@ -31,15 +30,6 @@ namespace libcloudphxx
           * pow(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins, R_d<real_t>() / c_pd<real_t>()), 
           c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
         );
-      }
-
-      template <typename real_t>
-      BOOST_GPU_ENABLED
-      inline quantity<si::temperature, real_t> T(
-        const quantity<si::temperature, real_t> &th, // theta dry!!!
-        const quantity<si::pressure, real_t> &p_d // partial pressure of dry air
-      ) {
-        return th * exner(p_d);
       }
 
       template <typename real_t>

@@ -316,7 +316,7 @@ for it in range(2):
   if(it==0):
     prtcls.init(th, rv, rhod)
   else:  
-    prtcls.init(th, rv, rhod, C)
+    prtcls.init(th, rv, rhod, Cx=C)
 
   prtcls.step_sync(opts, th, rv)
   prtcls.step_async(opts)

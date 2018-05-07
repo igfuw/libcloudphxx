@@ -28,15 +28,14 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__T_pred 
+      struct common__theta_dry__T_pd 
       {
        BOOST_GPU_ENABLED 
        real_t operator()(const real_t &th, const real_t &p_d)
        {   
-         return common::theta_dry::T<real_t>(
-           th   * si::kelvins,
+         return th * common::theta_std::exner<real_t>(
            p_d  * si::pascals
-         ) / si::kelvins;
+         );
        }   
       }; 
 
@@ -108,7 +107,7 @@ namespace libcloudphxx
           th.begin(), th.end(),      // input - first arg
           p_d.begin(),               // input - second arg
           T.begin(),                 // output
-          detail::common__theta_dry__T_pred<real_t>() 
+          detail::common__theta_dry__T_pd<real_t>() 
         );
       }
 
