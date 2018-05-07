@@ -69,10 +69,10 @@ namespace libcloudphxx
           const real_t T = thrust::get<2>(tpl);
 
           return 
-      (rhod * rv * si::kilograms / si::cubic_metres)
-      * common::moist_air::R_v<real_t>()
-      * (T * si::kelvins)
-      / common::const_cp::p_vs(T * si::kelvins);
+            (rhod * rv * si::kilograms / si::cubic_metres)
+            * common::moist_air::R_v<real_t>()
+            * (T * si::kelvins)
+            / common::const_cp::p_vs(T * si::kelvins);
         }
       }; 
 

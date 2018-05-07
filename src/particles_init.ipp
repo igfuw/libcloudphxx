@@ -28,10 +28,7 @@ namespace libcloudphxx
     )
     {
 
-      pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
-
-      // if pre/pre_d is passed, assert that pre_d/pre is also passed
-      assert(p.is_null() == p_d.is_null());
+      pimpl->init_sanity_check(th, rv, rhod, p, p_d, courant_x, courant_y, courant_z, ambient_chem);
 
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();

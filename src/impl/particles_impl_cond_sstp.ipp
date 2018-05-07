@@ -34,7 +34,7 @@ namespace libcloudphxx
         sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
         sstp_tmp_rh.begin(),                    // input - second arg
         Tp.begin(),                             // output
-        detail::common__theta_dry__T<real_t>() 
+        detail::common__theta_dry__T_rhod<real_t>() 
       );  
 
       // calculating drop growth in a timestep using backward Euler 
