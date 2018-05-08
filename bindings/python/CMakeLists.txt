@@ -14,7 +14,7 @@ target_include_directories(cloudphxx PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
-if(${Boost_MINOR_VERSION} LESS 65)
+if(${Boost_MINOR_VERSION} LESS 67)
   find_package(Boost COMPONENTS python)
 else()
   find_package(Boost COMPONENTS python27)
