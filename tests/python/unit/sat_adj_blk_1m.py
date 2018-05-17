@@ -42,7 +42,7 @@ def test_adj_cellwise(init_sup_sat, r_eps = r_eps_def):
     T = common.T(th[0], rhod[0])
     p = common.p(rhod[0], rv[0], T)
     ss = supersaturation(T, p, rv[0])
-    print "final supersaturation", ss
+    print "final supersaturation", ss, th[0], rv[0]
     return ss
 
 def test_adj_cellwise_constp(init_sup_sat, r_eps = r_eps_def):
@@ -58,7 +58,7 @@ def test_adj_cellwise_constp(init_sup_sat, r_eps = r_eps_def):
     
     T = common.exner(p_d[0]) * th[0]
     ss = supersaturation(T, p[0], rv[0])
-    print "final supersaturation", ss
+    print "final supersaturation", ss, th[0], rv[0]
     return ss
 
 def test_adj_cellwise_nwtrph(init_sup_sat, nwtrph_iters = nwtrph_iters_def):
@@ -74,7 +74,7 @@ def test_adj_cellwise_nwtrph(init_sup_sat, nwtrph_iters = nwtrph_iters_def):
     
     T = common.exner(p_d[0]) * th[0]
     ss = supersaturation(T, p[0], rv[0])
-    print "final supersaturation", ss
+    print "final supersaturation", ss, th[0], rv[0]
     return ss
 
 eps = {
@@ -83,7 +83,7 @@ eps = {
                   'org_prec' : 6e-4, 'constp_prec' : 6e-4, 'nwtrph_prec' : 1e-12 },
         # subsaturation
         False : { 'org'      : 0.5 , 'constp'      : 0.5 , 'nwtrph'      : 1e-4,
-                  'org_prec' : 2e-3, 'constp_prec' : 2e-3, 'nwtrph_prec' : 1e-13 }
+                  'org_prec' : 2e-3, 'constp_prec' : 2e-3, 'nwtrph_prec' : 1e-12 }
       }
 
 for init_sup_sat in [True, False]:
