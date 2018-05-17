@@ -129,17 +129,17 @@ namespace libcloudphxx
       template <class arr_t>
       void rhs_cellwise_nwtrph(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
+	bp_array &dot_th,
+	bp_array &dot_rv,
 	bp_array &dot_rc,
 	bp_array &dot_rr,
-	const bp_array &rc,
-	const bp_array &rr,
 	const bp_array &rhod,
 	const bp_array &p,
 	const bp_array &p_d,
+	const bp_array &th,
 	const bp_array &rv,
-	const bp_array &tht,
-	bp_array &dot_rv,
-	bp_array &dot_th
+	const bp_array &rc,
+	const bp_array &rr
       ) 
       {
 	arr_t
@@ -149,17 +149,17 @@ namespace libcloudphxx
 	  np2bz_dot_th(np2bz<arr_t>(dot_th));
 	b1m::rhs_cellwise_nwtrph(
 	  opts,
+	  np2bz_dot_th,
+	  np2bz_dot_rv,
 	  np2bz_dot_rc,
 	  np2bz_dot_rr,
-	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(rr),
 	  np2bz<arr_t>(rhod),
 	  np2bz<arr_t>(p),
 	  np2bz<arr_t>(p_d),
+	  np2bz<arr_t>(th),
 	  np2bz<arr_t>(rv),
-	  np2bz<arr_t>(tht),
-	  np2bz_dot_rv,
-	  np2bz_dot_th
+	  np2bz<arr_t>(rc),
+	  np2bz<arr_t>(rr)
 	);
       } 
 
