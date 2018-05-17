@@ -28,14 +28,14 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__T_pd 
+      struct common__theta_dry__T_p 
       {
+       template <class tpl_t>
        BOOST_GPU_ENABLED 
-       real_t operator()(const real_t &th, const real_t &p_d)
+       real_t operator()(const real_t &th, const tpl_t &tpl) // tpl: (rv, p)
        {   
-         return th * common::theta_std::exner<real_t>(
-           p_d  * si::pascals
-         );
+         return common::theta_dry::dry2std(th * si::kelvins, quantity<si::dimensionless, real_t>(thrust::get<0>(tpl))) / si::kelvins * 
+                common::theta_std::exner<real_t>(thrust::get<1>(tpl)  * si::pascals);
        }   
       }; 
 
@@ -102,12 +102,12 @@ namespace libcloudphxx
       }
       else // external pressure profile
       {
-        // T  = common::theta_dry::T<real_t>(th, p_d);
+        // T = dry2std(th_d, rv) * exner(p_tot)
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
-          p_d.begin(),               // input - second arg
+          thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args
           T.begin(),                 // output
-          detail::common__theta_dry__T_pd<real_t>() 
+          detail::common__theta_dry__T_p<real_t>() 
         );
       }
 
