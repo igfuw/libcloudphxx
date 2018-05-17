@@ -38,6 +38,11 @@ namespace libcloudphxx
       pimpl->init_e2l(th,   &pimpl->th);
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
+      if(pimpl->const_p)
+      {
+        pimpl->init_e2l(p, &pimpl->p);
+        pimpl->init_e2l(p_d, &pimpl->p_d);
+      }
 
 #if !defined(__NVCC__)
       using std::max;
