@@ -85,6 +85,80 @@ namespace libcloudphxx
       };
     }    
 
+    template <typename real_t, class cont_t>
+    void adj_cellwise_nwtrph(
+      const opts_t<real_t> &opts,
+      const cont_t &p_cont,
+      const cont_t &p_d_cont,
+      cont_t &th_cont, 
+      cont_t &rv_cont,
+      cont_t &rc_cont,
+      const real_t &dt
+    )
+    {
+      using namespace common;
+      if (!opts.cond) return; // ignoring values of opts.cevp
+
+      for (auto tup : zip(p_cont, p_d_cont, th_cont, rv_cont, rc_cont))
+      {
+        const quantity<si::pressure, real_t> 
+          p    = boost::get<0>(tup) * si::pascals,
+          p_d  = boost::get<1>(tup) * si::pascals;
+
+        real_t 
+          &th = boost::get<2>(tup), 
+          &rv = boost::get<3>(tup), 
+          &rc = boost::get<4>(tup);
+	
+        // double-checking....
+	assert(th >= 273.15); // TODO: that's theta, not T!
+	assert(rc >= 0);
+	assert(rv >= 0);
+
+        real_t drc = 0;
+
+        real_t rv_tmp = rv;
+        quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
+	
+        auto exner_p_d = theta_std::exner(p_d);
+        quantity<si::temperature, real_t> T = th_tmp * exner_p_d; 
+
+        // constant l_v used in theta update
+        auto L0 = const_cp::l_v(T);
+
+        for (int iter = 0; iter < opts.nwtrph_iters; ++iter)
+        {
+	  quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T); 
+
+          // tricky, constant L0 comes from theta = theta + L0 / (c_pd * exner_p) * drc
+          // while variable L comes from dp_vs/dT
+          auto L = const_cp::l_v(T);
+          real_t coeff = L * L0 / (moist_air::c_pd<real_t>() * moist_air::R_v<real_t>()) / (T * T) / (1 - p_vs / p);
+
+          real_t r_vs = const_cp::r_vs(T, p);
+
+          drc +=  (rv_tmp - r_vs) / (1 + coeff * r_vs);
+
+          rv_tmp = rv - drc;
+          th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc;
+	  
+          T = th_tmp * exner_p_d; 
+        }
+
+        // limiting
+        drc = std::min(rv, std::max(-rc, drc));
+
+        rv -= drc;
+        rc += drc;
+        th += L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc / si::kelvins;
+
+	// triple-checking....
+	assert(th >= 273.15); // that is theta, not T ! TODO
+	assert(rc >= 0);
+	assert(rv >= 0);
+      }
+    }
+
 //<listing>
     template <typename real_t, class cont_t>
     void adj_cellwise_hlpr(
@@ -209,7 +283,7 @@ namespace libcloudphxx
 	    if ((drr_max -= drv) == 0) break; // but not more than Kessler allows
 	  }
 	}
-
+      
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
