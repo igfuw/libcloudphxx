@@ -127,7 +127,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
+    bp::def("exner", &common::exner<real_t>);
+    bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("r_vs", &common::r_vs<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
@@ -152,10 +155,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sedi", &b1m::opts_t<real_t>::sedi)
       .def_readwrite("r_c0", &b1m::opts_t<real_t>::r_c0)
       .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
+      .def_readwrite("nwtrph_iters", &b1m::opts_t<real_t>::nwtrph_iters)
       ;
     bp::def("adj_cellwise", blk_1m::adj_cellwise<arr_t>);
     bp::def("adj_cellwise_constp", blk_1m::adj_cellwise_constp<arr_t>);
+    bp::def("adj_cellwise_nwtrph", blk_1m::adj_cellwise_nwtrph<arr_t>);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>); 
+    bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>); 
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   }
 
