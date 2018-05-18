@@ -32,6 +32,12 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_temperature()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_temperature);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_RH()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_RH);

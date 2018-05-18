@@ -123,6 +123,22 @@ namespace libcloudphxx
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
+    // records temperature
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_temperature()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->T.begin(), 
+        pimpl->T.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // T defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
 
     // records relative humidity
     template <typename real_t, backend_t device>
