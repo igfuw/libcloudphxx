@@ -19,8 +19,6 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rhod,
       const arrinfo_t<real_t> p,         // pressure profile [in Pascals], needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
                                          // defaults to NULL-NULL pair (variable pressure)
-      const arrinfo_t<real_t> p_d,       // dry air partial pressure profile, needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
-                                         // defaults to NULL-NULL pair (variable pressure)
       const arrinfo_t<real_t> courant_x, // might be NULL
       const arrinfo_t<real_t> courant_y, // might be NULL
       const arrinfo_t<real_t> courant_z, // might be NULL
@@ -28,7 +26,7 @@ namespace libcloudphxx
     )
     {
 
-      pimpl->init_sanity_check(th, rv, rhod, p, p_d, courant_x, courant_y, courant_z, ambient_chem);
+      pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();
@@ -38,6 +36,8 @@ namespace libcloudphxx
       pimpl->init_e2l(th,   &pimpl->th);
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
+      if(pimpl->const_p)
+        pimpl->init_e2l(p, &pimpl->p);
 
 #if !defined(__NVCC__)
       using std::max;
@@ -55,7 +55,6 @@ namespace libcloudphxx
       pimpl->sync(rv,   pimpl->rv);
       pimpl->sync(rhod, pimpl->rhod);
       pimpl->sync(p,   pimpl->p);
-      pimpl->sync(p_d, pimpl->p_d);
 
       if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);

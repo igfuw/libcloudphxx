@@ -21,6 +21,7 @@ namespace libcloudphxx
 
       // dry air density as a function of p, theta and rv
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::mass_density, real_t> rhod(
 	const quantity<si::pressure, real_t> &p,
 	const quantity<si::temperature, real_t> &th_std, 
@@ -32,6 +33,7 @@ namespace libcloudphxx
 
       // Exner pressure
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> exner(
 	const quantity<si::pressure, real_t> &p
       ) {

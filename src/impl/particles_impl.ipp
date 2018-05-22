@@ -329,7 +329,7 @@ namespace libcloudphxx
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const arrinfo_t<real_t>, const arrinfo_t<real_t>,
-        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const std::map<enum chem_species_t, const arrinfo_t<real_t> >
       );
 
