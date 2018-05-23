@@ -246,11 +246,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
-add_subdirectory(src) 
+#add_subdirectory(src) 
 enable_testing()
-add_subdirectory(tests)
+#add_subdirectory(tests)
 add_subdirectory(include) 
-add_subdirectory(bindings) 
+#add_subdirectory(bindings) 
 
 install(
   FILES

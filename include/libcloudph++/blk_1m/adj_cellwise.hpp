@@ -126,6 +126,7 @@ namespace libcloudphxx
 
         for (int iter = 0; iter < opts.nwtrph_iters; ++iter)
         {
+          // TODO: use the approximate Tetens formulas for p_vs and r_vs from tetens.hpp?
 	  quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T); 
 
           // tricky, constant L0 comes from theta = theta + L0 / (c_pd * exner_p) * drc
