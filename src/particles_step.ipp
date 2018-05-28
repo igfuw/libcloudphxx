@@ -20,6 +20,8 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> RH,        // optionally, directly feed RH (e.g. KiD-A tests)
+      const arrinfo_t<real_t> T,         // optionally, directly feed T (e.g. KiD-A tests)
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
@@ -67,6 +69,9 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
+      if (!RH.is_null()) pimpl->init_e2l(RH, &pimpl->RH);
+      if (!T.is_null()) pimpl->init_e2l(T, &pimpl->T);
+
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
@@ -74,6 +79,11 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
       pimpl->sync(rhod,           pimpl->rhod);
+      pimpl->sync(RH,             pimpl->RH);
+      pimpl->sync(T,              pimpl->T);
+
+      pimpl->external_RH = RH.is_null() ? false : true;
+      pimpl->external_T = T.is_null() ? false : true;
 
       nancheck(pimpl->th, " th after sync-in");
       nancheck(pimpl->rv, " rv after sync-in");
@@ -81,10 +91,14 @@ namespace libcloudphxx
       nancheck(pimpl->courant_y, " courant_y after sync-in");
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
+      nancheck(pimpl->RH, " RH after sync-in");
+      nancheck(pimpl->T, " T after sync-in");
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      assert(*thrust::min_element(pimpl->RH.begin(), pimpl->RH.end()) >= 0);
+      assert(*thrust::min_element(pimpl->T.begin(), pimpl->T.end()) >= 0);
 
       // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );

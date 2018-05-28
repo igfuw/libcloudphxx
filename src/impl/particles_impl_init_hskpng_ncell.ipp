@@ -13,9 +13,9 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_hskpng_ncell()
     {
       // memory allocation
-      T.resize(n_cell);
+     // T.resize(n_cell);
       p.resize(n_cell);
-      RH.resize(n_cell); 
+     // RH.resize(n_cell); 
       eta.resize(n_cell); 
 
       count_ijk.resize(n_cell);

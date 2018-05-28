@@ -79,12 +79,13 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
       // T  = common::theta_dry::T<real_t>(th, rhod);
-      thrust::transform(
-        th.begin(), th.end(),      // input - first arg
-        rhod.begin(),              // input - second arg
-        T.begin(),                 // output
-        detail::common__theta_dry__T<real_t>() 
-      );
+      if(!external_T)
+        thrust::transform(
+          th.begin(), th.end(),      // input - first arg
+          rhod.begin(),              // input - second arg
+          T.begin(),                 // output
+          detail::common__theta_dry__T<real_t>() 
+        );
 
       {
         typedef thrust::zip_iterator<
@@ -104,12 +105,13 @@ namespace libcloudphxx
         );
 
         // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
-        thrust::transform(
-          zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
-          RH.begin(),                                                         // output
-          detail::RH<real_t>()
-        );
+        if(!external_RH)
+          thrust::transform(
+            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
+            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
+            RH.begin(),                                                         // output
+            detail::RH<real_t>()
+          );
       }
  
       // dynamic viscosity

@@ -142,6 +142,10 @@ namespace libcloudphxx
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
 
+      // true if RH/T is passed directly to step_sync
+      bool external_RH;
+      bool external_T;
+
       // timestep counter
       n_t stp_ctr;
 
@@ -247,6 +251,8 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
+        external_RH(false), 
+        external_T(false), 
         u01(tmp_device_real_part),
         n_user_params(opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
