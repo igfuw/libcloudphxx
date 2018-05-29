@@ -131,7 +131,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        p_d,// partial pressure of dry air [Pa] - only used if constant pressure profile is used (e.g. anelastic model)
         RH, // relative humisity (p_v / p_vs)
         eta;// dynamic viscosity 
 
