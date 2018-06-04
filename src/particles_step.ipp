@@ -100,6 +100,9 @@ namespace libcloudphxx
       }
 
       // condensation/evaporation 
+      // when exact substepping, pressure is not substepped
+      // TODO: add substepping of it?
+      //       or is it a good approximation and also remove substepping of rhod?
       if (opts.cond) 
       {
         if(pimpl->opts_init.exact_sstp_cond && pimpl->opts_init.sstp_cond > 1)

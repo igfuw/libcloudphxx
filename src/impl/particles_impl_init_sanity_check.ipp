@@ -30,9 +30,6 @@ namespace libcloudphxx
       if (th.is_null() || rv.is_null() || rhod.is_null())
         throw std::runtime_error("passing th, rv and rhod is mandatory");
 
-      if(!p.is_null() && opts_init.exact_sstp_cond)
-        throw std::runtime_error("exact_sstp_cond is not yet compatible with a constant pressure profile");
-
 
       // --------  init cell characteristics  --------
       // initialising Eulerian-Lagrandian coupling

@@ -30,54 +30,117 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
 
       // calc Tp
-      thrust::transform(
-        sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
-        sstp_tmp_rh.begin(),                    // input - second arg
-        Tp.begin(),                             // output
-        detail::common__theta_dry__T_rhod<real_t>() 
-      );  
+      if(!const_p) // variable pressure
+      {
+        thrust::transform(
+          sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
+          sstp_tmp_rh.begin(),                    // input - second arg
+          Tp.begin(),                             // output
+          detail::common__theta_dry__T_rhod<real_t>() 
+        );  
+      }
+      else // external pressure profile
+      {
+        // T = dry2std(th_d, rv) * exner(p_tot)
+        thrust::transform(
+          sstp_tmp_th.begin(), sstp_tmp_th.end(),                      // input - first arg
+          thrust::make_zip_iterator(thrust::make_tuple(
+            sstp_tmp_rv.begin(),                                       // input - second arg 
+            thrust::make_permutation_iterator(p.begin(), ijk.begin())  // input - third arg
+          )),
+          Tp.begin(),                                                  // output
+          detail::common__theta_dry__T_p<real_t>() 
+        );
+      }
+
 
       // calculating drop growth in a timestep using backward Euler 
-      thrust::transform(
-        rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
-        thrust::make_zip_iterator(      // input - 2nd arg
-          thrust::make_tuple(
-            sstp_tmp_rh.begin(),
-            sstp_tmp_rv.begin(),
-            Tp.begin(),
-            // particle-specific p
-            thrust::make_transform_iterator(
-              thrust::make_zip_iterator(
-                thrust::make_tuple(
-                  sstp_tmp_rh.begin(),
-                  sstp_tmp_rv.begin(),
-                  Tp.begin()
-              )),
-              detail::common__theta_dry__p<real_t>()
-            ),
-            // particle-specific RH
-            thrust::make_transform_iterator(
-              thrust::make_zip_iterator(
-                thrust::make_tuple(
-                  sstp_tmp_rh.begin(),
-                  sstp_tmp_rv.begin(),
-                  Tp.begin()
-              )),
-              detail::RH<real_t>(opts_init.RH_formula)
-            ),
-            // particle-specific eta
-            thrust::make_transform_iterator(
+      // TODO: these two function calls only differ in the way pressure is calculated,
+      //       find a way to reuse it (e.g. std::bind?)
+      // TODO2: in const_p we don't substep pressure
+      if(!const_p)
+      {
+        // particle-specific pressure iterator, used twice
+        // TODO: store the value somewhere?
+        auto pressure_iter = 
+          thrust::make_transform_iterator(
+            thrust::make_zip_iterator(
+              thrust::make_tuple(
+                sstp_tmp_rh.begin(),
+                sstp_tmp_rv.begin(),
+                Tp.begin()
+            )),
+            detail::common__theta_dry__p<real_t>()
+          );
+
+        thrust::transform(
+          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              sstp_tmp_rh.begin(),
+              sstp_tmp_rv.begin(),
               Tp.begin(),
-              detail::common__vterm__visc<real_t>()
-            ),
-            rd3.begin(),
-            kpa.begin(),
-            vt.begin()
-          )
-        ), 
-        rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max)
-      );
+              // particle-specific p
+              pressure_iter,
+              // particle-specific RH
+              thrust::make_transform_iterator(
+                thrust::make_zip_iterator(
+                  thrust::make_tuple(
+                    pressure_iter,
+                    sstp_tmp_rv.begin(),
+                    Tp.begin()
+                )),
+                detail::RH<real_t>(opts_init.RH_formula)
+              ),
+              // particle-specific eta
+              thrust::make_transform_iterator(
+                Tp.begin(),
+                detail::common__vterm__visc<real_t>()
+              ),
+              rd3.begin(),
+              kpa.begin(),
+              vt.begin()
+            )
+          ), 
+          rw2.begin(),                    // output
+          detail::advance_rw2<real_t>(dt, RH_max)
+        );
+      }
+      else
+      {
+        thrust::transform(
+          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              sstp_tmp_rh.begin(),
+              sstp_tmp_rv.begin(),
+              Tp.begin(),
+              // particle-specific p
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              // particle-specific RH
+              thrust::make_transform_iterator(
+                thrust::make_zip_iterator(
+                  thrust::make_tuple(
+                    thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+                    sstp_tmp_rv.begin(),
+                    Tp.begin()
+                )),
+                detail::RH<real_t>(opts_init.RH_formula)
+              ),
+              // particle-specific eta
+              thrust::make_transform_iterator(
+                Tp.begin(),
+                detail::common__vterm__visc<real_t>()
+              ),
+              rd3.begin(),
+              kpa.begin(),
+              vt.begin()
+            )
+          ), 
+          rw2.begin(),                    // output
+          detail::advance_rw2<real_t>(dt, RH_max)
+        );
+      }
 
       // calc rw3_new - rw3_old
       thrust::transform(
