@@ -48,9 +48,9 @@ opts.coal = False
 opts.chem = False
 
 #expected theta and rv after condensation:
-exp_th = { True : 309.357, # constp
-           False: 307.798}   # varp
-exp_rv = { True : 1.64e-2, # constp
+exp_th = { True : 309.34, # constp
+           False: 307.78}  # varp
+exp_rv = { True : 1.641e-2, # constp
            False: 1.7e-2}  # varp
 
 def supersaturation(prtcls):
@@ -82,7 +82,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
-    opts_init.RH_formula = lgrngn.RH_formula_t.pv_cc
+    opts_init.RH_formula = RH_formula
 
     rhod, th, rv, p, dt = initial_state()
     rv_init = rv.copy()
@@ -108,7 +108,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     ss_post_cond = supersaturation(prtcls)
     print "supersaturation after condensation", ss_post_cond, th[0], rv[0]
 
-    assert(abs(th[0] - exp_th[constp]) < 1e-5 * exp_th[constp])
+    assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
     assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
     rv_diff = rv_init.copy() - rv[0].copy()
   
@@ -129,8 +129,8 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     return ss_post_cond, th[0] - th_init[0], rv[0] - rv_init[0] - rv_diff[0]
 
 
-for constp in [True, False]:
-  for exact_sstp in [True, False]:
+for constp in [False, True]:
+  for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
       ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp) 
       print ss, th_diff_1  , rv_diff
