@@ -53,10 +53,17 @@ exp_th = { True : 309.357, # constp
 exp_rv = { True : 1.64e-2, # constp
            False: 1.7e-2}  # varp
 
-
 def supersaturation(prtcls):
     prtcls.diag_RH()
     return (frombuffer(prtcls.outbuf())[0] - 1) * 100
+
+def temperature(prtcls):
+    prtcls.diag_temperature()
+    return frombuffer(prtcls.outbuf())[0]
+
+def pressure(prtcls):
+    prtcls.diag_pressure()
+    return frombuffer(prtcls.outbuf())[0]
 
 def initial_state():
     rhod = arr_t([1.  ])
@@ -89,17 +96,20 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     print "initial supersaturation", ss
 
     exectime = 0
+    # first step without condesnation just to see diag output
+    opts.cond = False
     for step in arange(step_count):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      print step, supersaturation(prtcls), th[0], rv[0]
+      opts.cond = True
+  #    print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
     
     ss_post_cond = supersaturation(prtcls)
     print "supersaturation after condensation", ss_post_cond, th[0], rv[0]
 
-#    assert(abs(th[0] - exp_th[constp]) < 1e-5 * exp_th[constp])
-#    assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
+    assert(abs(th[0] - exp_th[constp]) < 1e-5 * exp_th[constp])
+    assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
     rv_diff = rv_init.copy() - rv[0].copy()
   
     # change to subsaturated air - test evaporation
@@ -110,7 +120,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      print step, supersaturation(prtcls), th[0], rv[0]
+#      print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
 
     ss_post_evap = supersaturation(prtcls)
     print "supersaturation after evaporation", ss_post_evap, th[0], rv[0]
@@ -119,27 +129,35 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     return ss_post_cond, th[0] - th_init[0], rv[0] - rv_init[0] - rv_diff[0]
 
 
-for constp in [False, True]:
-  for exact_sstp in [False]:#, [True, False]:
-    for RH_formula in [lgrngn.RH_formula_t.pv_cc]:#, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
+for constp in [True, False]:
+  for exact_sstp in [True, False]:
+    for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
       ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp) 
       print ss, th_diff_1  , rv_diff
-#      assert(abs(ss) < 4.5e-3)
-#      assert(abs(rv_diff) < 1e-9)
-#      assert(abs(th_diff_1) < 4.2e-2)
+      assert(abs(ss) < 4.5e-3)
+      assert(abs(rv_diff) < 1e-9)
 
       ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp)
       print ss, th_diff_10 , rv_diff
-#      assert(abs(ss) < 4.5e-3)
-#      assert(abs(rv_diff) < 1e-9)
-#      assert(abs(th_diff_10) < 4.2e-3)
+      assert(abs(ss) < 4.5e-3)
+      assert(abs(rv_diff) < 1e-9)
 
       ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp)
       print ss, th_diff_100, rv_diff
-#      assert(abs(ss) < 4.5e-3)
-#      assert(abs(rv_diff) < 1e-9)
-#      assert(abs(th_diff_100) < 4.2e-4)
+      assert(abs(ss) < 4.5e-3)
+      assert(abs(rv_diff) < 1e-9)
 
+      if constp == False:
+        assert(abs(th_diff_1) < 4.2e-2)
+        assert(abs(th_diff_10) < 4.2e-3)
+        assert(abs(th_diff_100) < 4.2e-4)
+      else :
+        # TODO: why with constant pressure the error doesn't scale so well?
+        #       is there a systematic error caused by the fact that with constant pressure,
+        #       pressure doesnt agree with T, rv and rhod?
+        assert(abs(th_diff_1) < 1.1e-1)
+        assert(abs(th_diff_10) < 7.4e-2)
+        assert(abs(th_diff_100) < 7.3e-2)
 
 
 
