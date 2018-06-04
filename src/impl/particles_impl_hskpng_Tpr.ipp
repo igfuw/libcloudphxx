@@ -5,6 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <nvfunctional>
 #include <libcloudph++/common/theta_dry.hpp>
 #include <libcloudph++/common/vterm.hpp> // TODO: should be viscosity!
 #include <libcloudph++/common/tetens.hpp>
@@ -58,56 +59,48 @@ namespace libcloudphxx
        }   
       }; 
 
-/*
       template <typename real_t>
       struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
+        const nvstd::function<real_t(const real_t&, const real_t&, const real_t&)> RH_fun;
+
+        // the type of formula to be used for RH
+        RH(RH_formula_t::RH_formula_t RH_formula):
+          RH_fun(
+            RH_formula == RH_formula_t::pv_cc ? 
+              [](const real_t &p, const real_t &rv, const real_t &T){
+                return real_t( 
+                  common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
+                  / common::const_cp::p_vs(T * si::kelvins));} :
+
+            RH_formula == RH_formula_t::rv_cc ? 
+              [](const real_t &p, const real_t &rv, const real_t &T){
+                return real_t(
+                  rv
+                  / common::const_cp::r_vs(T * si::kelvins, p * si::pascals));} :
+
+            RH_formula == RH_formula_t::pv_tet ? 
+              [](const real_t &p, const real_t &rv, const real_t &T){
+                return real_t(
+                  common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
+                  / common::tetens::p_vs(T * si::kelvins));} :
+
+            RH_formula == RH_formula_t::rv_tet ? 
+              [](const real_t &p, const real_t &rv, const real_t &T){
+                return real_t( 
+                  rv
+                  / common::tetens::r_vs(T * si::kelvins, p * si::pascals));} :
+
+              [](const real_t &p, const real_t &rv, const real_t &T){
+                assert(0);
+                return real_t(0.);}
+          )
+        {}
+
         BOOST_GPU_ENABLED 
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
         {
-          const real_t rhod = thrust::get<0>(tpl);
-          const real_t rv = thrust::get<1>(tpl);
-          const real_t T = thrust::get<2>(tpl);
-
-          return 
-            (rhod * rv * si::kilograms / si::cubic_metres)
-            * common::moist_air::R_v<real_t>()
-            * (T * si::kelvins)
-            / common::const_cp::p_vs(T * si::kelvins);
-        }
-      }; 
-*/
-
-/*
-      template <typename real_t>
-      struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
-      {   
-        BOOST_GPU_ENABLED 
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
-        {
-          const real_t p = thrust::get<0>(tpl);
-          const real_t rv = thrust::get<1>(tpl);
-          const real_t T = thrust::get<2>(tpl);
-
-          return 
-            common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
-            / common::const_cp::p_vs(T * si::kelvins);
-        }
-      }; 
-*/
-
-      // approximate formula RH = r_v / r_vs, where r_vs calculated using Tetens formula
-      template <typename real_t>
-      struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
-      {   
-        BOOST_GPU_ENABLED 
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
-        {
-          const real_t p = thrust::get<0>(tpl);
-          const real_t rv = thrust::get<1>(tpl);
-          const real_t T = thrust::get<2>(tpl);
-
-          return rv / common::tetens::r_vs(T * si::kelvins, p * si::pascals); 
+          return RH_fun(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl)); // p, rv, T
         }
       }; 
       
@@ -166,25 +159,11 @@ namespace libcloudphxx
           );
         }
 
-        // RH = p_v / p_vs = rhod * rv * R_v * T / p_vs
-        //thrust::transform(
-        //  zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())),  // input - begin
-        //  zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )),  // input - end
-        //  RH.begin(),                                                         // output
-        //  detail::RH<real_t>()
-        //);
-        // albo
-        // RH = p_v / p_vs = [p * rv / (rv + eps)] / p_vs,
-        // gdzie dla const_p  p = p^e
-        //     a dla !const_p p = rhod * ( R_d + rv R_v) T
-        // albo
-        // RH = r_ / r_vs(T, p)
-        // gdzie r_vs(T,p) liczone przy uzyciu rownania Tetens
         thrust::transform(
           zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
           zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end
           RH.begin(),                                                      // output
-          detail::RH<real_t>()
+          detail::RH<real_t>(opts_init.RH_formula)
         );
       }
  

@@ -18,7 +18,7 @@ namespace libcloudphxx
       {
         const real_t T_in_celsius(T / si::kelvins - 273.15);
         assert(T_in_celsius > 0.);
-	return 6.1078e3 * exp( (17.27 * T_in_celsius) / ( T_in_celsius + 237.3)) * si::pascals;
+	return real_t(6.1078e3 * exp( (17.27 * T_in_celsius) / ( T_in_celsius + 237.3))) * si::pascals;
       }
 
       template <typename real_t>
@@ -31,7 +31,7 @@ namespace libcloudphxx
         const real_t T_in_celsius(T / si::kelvins - 273.15);
         assert(T_in_celsius > 0.);
         // r_vs=3.8/(p*exp(-17.2693882*(T-273.15)/(T-35.86))-6.109)  p in mb, T in Kelvins
-	return 380. / (p / si::pascals * exp(-17.2693882 * (T_in_celsius) / (T / si::kelvins - 35.86)) - 610.9);
+	return real_t(380. / (p / si::pascals * exp(-17.2693882 * (T_in_celsius) / (T / si::kelvins - 35.86)) - 610.9));
       }
     };
   };

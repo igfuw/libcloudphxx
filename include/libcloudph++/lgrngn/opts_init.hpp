@@ -11,6 +11,7 @@
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/advection_scheme.hpp>
+#include <libcloudph++/lgrngn/RH_formula.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -89,6 +90,9 @@ namespace libcloudphxx
 
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
+
+      // RH formula
+      RH_formula_t::RH_formula_t RH_formula;
 //</listing>
  
       // coalescence kernel parameters
@@ -144,6 +148,7 @@ namespace libcloudphxx
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
+        RH_formula(RH_formula_t::pv_cc),
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),

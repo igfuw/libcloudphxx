@@ -131,7 +131,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        RH, // relative humisity (p_v / p_vs)
+        RH, // relative humisity 
         eta;// dynamic viscosity 
 
       // sorting needed only for diagnostics and coalescence

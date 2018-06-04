@@ -63,7 +63,7 @@ namespace libcloudphxx
                   sstp_tmp_rv.begin(),
                   Tp.begin()
               )),
-              detail::RH<real_t>()
+              detail::RH<real_t>(opts_init.RH_formula)
             ),
             // particle-specific eta
             thrust::make_transform_iterator(
