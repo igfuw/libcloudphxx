@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
 from numpy import arange
@@ -34,10 +35,10 @@ opts_init.coal_switch = False
 opts_init.sedi_switch = False
 opts_init.RH_max = 1.01
 opts_init.dt = 1
-opts_init.sd_conc = int(1e3)
+opts_init.sd_conc = int(1e2)
 opts_init.n_sd_max = opts_init.sd_conc
 
-backend = lgrngn.backend_t.serial
+backend = lgrngn.backend_t.OpenMP
 
 opts.adve = False
 opts.sedi = False

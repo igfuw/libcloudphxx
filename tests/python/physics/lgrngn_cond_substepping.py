@@ -47,9 +47,9 @@ opts_init.sedi_switch = False
 opts_init.RH_max = 1.0001
 opts_init.dt = 1
 opts_init.sd_conc = int(1e3)
-opts_init.n_sd_max = opts_init.sd_conc
+opts_init.n_sd_max = opts_init.sd_conc 
 
-backend = lgrngn.backend_t.serial
+backend = lgrngn.backend_t.OpenMP
 
 opts.adve = False
 opts.sedi = False
@@ -101,6 +101,11 @@ def third_r(prtcls):
 
 def act_conc(prtcls):
     prtcls.diag_wet_rng(0.5e-6, 1)
+    prtcls.diag_wet_mom(0)
+    return (frombuffer(prtcls.outbuf())[0] / 1e3) # per gram
+
+def gccn_conc(prtcls):
+    prtcls.diag_dry_rng(0.5e-6, 1)
     prtcls.diag_wet_mom(0)
     return (frombuffer(prtcls.outbuf())[0] / 1e3) # per gram
 
@@ -188,9 +193,9 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
  #     print step, supersaturation(prtcls), th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
 
     ss_post_evap = supersaturation(prtcls)
-    print "supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
+    print "supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls), gccn_conc(prtcls)
     # after evaporation, only larger mode particles should have r > 0.5 microns
-    assert(8124.960 < act_conc(prtcls) < 8124.962)
+    assert(act_conc(prtcls) == gccn_conc(prtcls))
     print 'execution time: ', exectime
     
     return ss_post_cond, th[0] - th_init[0] - th_diff[0], rv[0] - rv_init[0] - rv_diff[0], act_conc_post_cond, mean_r_post_cond, second_r_post_cond, third_r_post_cond
