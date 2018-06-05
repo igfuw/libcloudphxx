@@ -6,7 +6,7 @@ dist: trusty
 sudo: required
 
 os: 
-    - linux
+#    - linux
     - osx
 compiler:
     - gcc
@@ -14,8 +14,8 @@ compiler:
 env:
     - TEST_SUITE=cuda
     - TEST_SUITE=tests
-    - TEST_SUITE=parcel
-    - TEST_SUITE=icicle
+#    - TEST_SUITE=parcel
+#    - TEST_SUITE=icicle
     - TEST_SUITE=UWLCM
 matrix:
     exclude:
