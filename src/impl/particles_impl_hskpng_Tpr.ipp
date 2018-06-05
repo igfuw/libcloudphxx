@@ -5,7 +5,9 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <nvfunctional>
+#if defined(__NVCC__)
+  #include <nvfunctional>
+#endif
 #include <libcloudph++/common/theta_dry.hpp>
 #include <libcloudph++/common/vterm.hpp> // TODO: should be viscosity!
 #include <libcloudph++/common/tetens.hpp>
@@ -62,7 +64,12 @@ namespace libcloudphxx
       template <typename real_t>
       struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
-        const nvstd::function<real_t(const real_t&, const real_t&, const real_t&)> RH_fun;
+#if defined(__NVCC__)
+        using nvstd::function
+#else
+        using std::function
+#endif
+        const function<real_t(const real_t&, const real_t&, const real_t&)> RH_fun;
 
         // the type of formula to be used for RH
         RH(RH_formula_t::RH_formula_t RH_formula):
