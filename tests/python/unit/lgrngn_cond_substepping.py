@@ -8,7 +8,6 @@ sys.path.insert(0, "../../bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
 from numpy import arange
-from numpy import isclose
 from numpy import frombuffer
 from math import exp, log, sqrt, pi
 import timeit
@@ -90,7 +89,7 @@ def second_r(prtcls):
     mom2 = frombuffer(prtcls.outbuf())[0]
     prtcls.diag_wet_mom(0)
     mom0 = frombuffer(prtcls.outbuf())[0]
-    return mom2 / mom0 
+    return mom2 / mom0
 
 def third_r(prtcls):
     prtcls.diag_wet_rng(0.5e-6, 1)
@@ -98,7 +97,7 @@ def third_r(prtcls):
     mom3 = frombuffer(prtcls.outbuf())[0]
     prtcls.diag_wet_mom(0)
     mom0 = frombuffer(prtcls.outbuf())[0]
-    return mom3 / mom0 
+    return mom3 / mom0
 
 def act_conc(prtcls):
     prtcls.diag_wet_rng(0.5e-6, 1)
@@ -110,12 +109,11 @@ def initial_state():
     rhod = arr_t([1.1  ])
     th   = arr_t([305.])
     rv   = arr_t([0.0085])
-    dt   = 1
-    
+
     T = common.T(th[0], rhod[0])
     p = arr_t([common.p(rhod[0], rv[0], T)])
 
-    return rhod, th, rv, p, dt
+    return rhod, th, rv, p 
 
 def supersat_state():
     rhod = arr_t([1.  ])
@@ -135,7 +133,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     opts_init.exact_sstp_cond=exact_substep
     opts_init.RH_formula = RH_formula
 
-    rhod, th, rv, p, dt = initial_state()
+    rhod, th, rv, p = initial_state()
     rhod_ss, th_ss, rv_ss, p_ss = supersat_state()
     prtcls = lgrngn.factory(backend, opts_init)
 
@@ -192,7 +190,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     ss_post_evap = supersaturation(prtcls)
     print "supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
     # after evaporation, only larger mode particles should have r > 0.5 microns
-    assert(8124.960 < act_conc(prtcls) < 8124.962) 
+    assert(8124.960 < act_conc(prtcls) < 8124.962)
     print 'execution time: ', exectime
     
     return ss_post_cond, th[0] - th_init[0] - th_diff[0], rv[0] - rv_init[0] - rv_diff[0], act_conc_post_cond, mean_r_post_cond, second_r_post_cond, third_r_post_cond
@@ -214,13 +212,13 @@ for constp in [False, True]:
                           lgrngn.RH_formula_t.rv_cc  : 40809,
                           lgrngn.RH_formula_t.pv_tet : 40809,
                           lgrngn.RH_formula_t.rv_tet : 8128,
-                       }, 
+                       },
                  False: {        # varp
                           lgrngn.RH_formula_t.pv_cc  : 40809,
                           lgrngn.RH_formula_t.rv_cc  : 40809,
                           lgrngn.RH_formula_t.pv_tet : 40809,
                           lgrngn.RH_formula_t.rv_tet : 8125,
-                        } 
+                        }
                }
       # expected mean radius of droplets with r>0.5um
       exp_mr ={ True: {        # constp
@@ -273,7 +271,7 @@ for constp in [False, True]:
       assert(abs(tr - exp_tr[constp][RH_formula]) < 1e-3 * exp_tr[constp][RH_formula])
 
 
-      ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp) 
+      ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp)
       print ss, th_diff_10  , rv_diff, act, mr, sr, tr
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
@@ -341,7 +339,7 @@ for constp in [False, True]:
       assert(abs(sr - exp_sr[constp][RH_formula]) < 1e-3 * exp_sr[constp][RH_formula])
       assert(abs(tr - exp_tr[constp][RH_formula]) < 1e-3 * exp_tr[constp][RH_formula])
 
-      ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp) 
+      ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp)
       print ss, th_diff_100  , rv_diff, act, mr, sr, tr
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])

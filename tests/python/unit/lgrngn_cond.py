@@ -3,7 +3,6 @@ sys.path.insert(0, "../../bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
 from numpy import arange
-from numpy import isclose
 from numpy import frombuffer
 from math import exp, log, sqrt, pi
 import timeit
@@ -68,12 +67,11 @@ def initial_state():
     rhod = arr_t([1.  ])
     th   = arr_t([300.])
     rv   = arr_t([0.02])
-    dt   = 1
-    
+
     T = common.T(th[0], rhod[0])
     p = arr_t([common.p(rhod[0], rv[0], T)])
 
-    return rhod, th, rv, p, dt
+    return rhod, th, rv, p
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp):
     print "[RH_formula = ", RH_formula,"]"
@@ -83,7 +81,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     opts_init.exact_sstp_cond=exact_substep
     opts_init.RH_formula = RH_formula
 
-    rhod, th, rv, p, dt = initial_state()
+    rhod, th, rv, p = initial_state()
     rv_init = rv.copy()
     th_init = th.copy()
     prtcls = lgrngn.factory(backend, opts_init)
@@ -131,7 +129,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 for constp in [False, True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
-      ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp) 
+      ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp)
       print ss, th_diff_1  , rv_diff
       assert(abs(ss) < 4.5e-3)
       assert(abs(rv_diff) < 1e-9)
