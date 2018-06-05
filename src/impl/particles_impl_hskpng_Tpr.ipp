@@ -18,6 +18,12 @@ namespace libcloudphxx
   {
     namespace detail
     {
+#if defined(__NVCC__)
+      using nvstd::function;
+#else
+      using std::function;
+#endif
+
       template <typename real_t>
       struct common__theta_dry__T_rhod 
       {
@@ -64,11 +70,6 @@ namespace libcloudphxx
       template <typename real_t>
       struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
-#if defined(__NVCC__)
-        using nvstd::function
-#else
-        using std::function
-#endif
         const function<real_t(const real_t&, const real_t&, const real_t&)> RH_fun;
 
         // the type of formula to be used for RH
