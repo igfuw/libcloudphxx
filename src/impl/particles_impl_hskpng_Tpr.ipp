@@ -23,7 +23,6 @@ namespace libcloudphxx
 #else
       using std::function;
 #endif
-
       template <typename real_t>
       struct common__theta_dry__T_rhod 
       {
@@ -68,40 +67,61 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
+      BOOST_GPU_ENABLED
+      real_t RH_pv_cc(const real_t &p, const real_t &rv, const real_t &T)
+      {
+        return real_t( 
+          common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
+          / common::const_cp::p_vs(T * si::kelvins));
+      }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      real_t RH_rv_cc(const real_t &p, const real_t &rv, const real_t &T)
+      {
+        return real_t(
+          rv
+          / common::const_cp::r_vs(T * si::kelvins, p * si::pascals)); 
+      }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      real_t RH_pv_tet(const real_t &p, const real_t &rv, const real_t &T)
+      {
+        return real_t(
+          common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
+          / common::tetens::p_vs(T * si::kelvins)); 
+      }
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      real_t RH_rv_tet(const real_t &p, const real_t &rv, const real_t &T)
+      {
+        return real_t( 
+          rv
+          / common::tetens::r_vs(T * si::kelvins, p * si::pascals)); 
+      }
+
+      template <typename real_t>
       struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
+        /*
+ *      on CUDA 8.0 the code below compiles, but gives memory errors at runtime
+ *      probably due to some __host__ / __device__ code mismatch
+ *      TODO: fix it
+ */
+
+/* 
         const function<real_t(const real_t&, const real_t&, const real_t&)> RH_fun;
 
         // the type of formula to be used for RH
         RH(RH_formula_t::RH_formula_t RH_formula):
           RH_fun(
-            RH_formula == RH_formula_t::pv_cc ? 
-              [](const real_t &p, const real_t &rv, const real_t &T){
-                return real_t( 
-                  common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
-                  / common::const_cp::p_vs(T * si::kelvins));} :
-
-            RH_formula == RH_formula_t::rv_cc ? 
-              [](const real_t &p, const real_t &rv, const real_t &T){
-                return real_t(
-                  rv
-                  / common::const_cp::r_vs(T * si::kelvins, p * si::pascals));} :
-
-            RH_formula == RH_formula_t::pv_tet ? 
-              [](const real_t &p, const real_t &rv, const real_t &T){
-                return real_t(
-                  common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
-                  / common::tetens::p_vs(T * si::kelvins));} :
-
-            RH_formula == RH_formula_t::rv_tet ? 
-              [](const real_t &p, const real_t &rv, const real_t &T){
-                return real_t( 
-                  rv
-                  / common::tetens::r_vs(T * si::kelvins, p * si::pascals));} :
-
-              [](const real_t &p, const real_t &rv, const real_t &T){
-                assert(0);
-                return real_t(0.);}
+            RH_formula == RH_formula_t::pv_cc  ? RH_pv_cc<real_t>  : 
+            RH_formula == RH_formula_t::rv_cc  ? RH_rv_cc<real_t>  : 
+            RH_formula == RH_formula_t::pv_tet ? RH_pv_tet<real_t> :
+            RH_formula == RH_formula_t::rv_tet ? RH_rv_tet<real_t> :
+            RH_pv_cc<real_t> // if unrecognised option, use pv_cc, TODO: throw assert?
           )
         {}
 
@@ -109,6 +129,33 @@ namespace libcloudphxx
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) 
         {
           return RH_fun(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl)); // p, rv, T
+        }
+*/
+
+        // an alternative implementation with formula choice at functor call
+        const RH_formula_t::RH_formula_t RH_formula;
+        // the type of formula to be used for RH
+        RH(RH_formula_t::RH_formula_t RH_formula):
+          RH_formula(RH_formula)
+        {}
+
+        BOOST_GPU_ENABLED 
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)  // p, rv, T
+        {
+          switch (RH_formula)
+          {
+            case RH_formula_t::pv_cc:
+              return RH_pv_cc<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
+            case RH_formula_t::rv_cc:
+              return RH_rv_cc<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
+            case RH_formula_t::pv_tet:
+              return RH_pv_tet<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
+            case RH_formula_t::rv_tet:
+              return RH_rv_tet<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
+            default:
+              assert(0);
+              return 0.;
+          }
         }
       }; 
       
