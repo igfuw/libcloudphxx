@@ -47,7 +47,7 @@ opts_init.sedi_switch = False
 opts_init.RH_max = 1.0001
 opts_init.dt = 1
 opts_init.sd_conc = int(1e3)
-opts_init.n_sd_max = opts_init.sd_conc 
+opts_init.n_sd_max = opts_init.sd_conc
 
 backend = lgrngn.backend_t.serial
 
@@ -118,13 +118,13 @@ def initial_state():
     T = common.T(th[0], rhod[0])
     p = arr_t([common.p(rhod[0], rv[0], T)])
 
-    return rhod, th, rv, p 
+    return rhod, th, rv, p
 
 def supersat_state():
     rhod = arr_t([1.  ])
     th   = arr_t([300.])
     rv   = arr_t([0.0091])
-    
+
     T = common.T(th[0], rhod[0])
     p = arr_t([common.p(rhod[0], rv[0], T)])
 
@@ -205,7 +205,7 @@ for constp in [False, True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
 
-      ss, th_diff_1  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 1, exact_sstp, constp) 
+      ss, th_diff_1  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 1, exact_sstp, constp)
       print ss, th_diff_1  , rv_diff, act, mr, sr, tr
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
@@ -231,13 +231,13 @@ for constp in [False, True]:
                           lgrngn.RH_formula_t.rv_cc  : 3.126,
                           lgrngn.RH_formula_t.pv_tet : 2.727,
                           lgrngn.RH_formula_t.rv_tet : 8.170,
-                       }, 
+                       },
                  False: {        # varp
                           lgrngn.RH_formula_t.pv_cc  : 2.905,
                           lgrngn.RH_formula_t.rv_cc  : 2.92,
                           lgrngn.RH_formula_t.pv_tet : 2.417,
                           lgrngn.RH_formula_t.rv_tet : 8.099,
-                        } 
+                        }
                }
 
       # expected second moment of droplets with r>0.5um

@@ -25,7 +25,7 @@ def initial_state(init_sup_sat):
     rc   = arr_t([0.015])
     rr   = arr_t([0.  ])
     dt   = 1
-    
+
     T = common.T(th[0], rhod[0])
     p = common.p(rhod[0], rv[0], T)
     ss = supersaturation(T, p, rv[0])
