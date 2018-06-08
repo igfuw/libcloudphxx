@@ -46,9 +46,9 @@ opts.coal = False
 opts.chem = False
 
 #expected theta and rv after condensation:
-exp_th = { True : 309.34, # constp
+exp_th = { True : 309.72, # constp
            False: 307.78}  # varp
-exp_rv = { True : 1.641e-2, # constp
+exp_rv = { True : 1.627e-2, # constp
            False: 1.7e-2}  # varp
 
 def supersaturation(prtcls):
@@ -70,8 +70,9 @@ def initial_state():
 
     T = common.T(th[0], rhod[0])
     p = arr_t([common.p(rhod[0], rv[0], T)])
+    p_d = arr_t([p[0] - common.p_v(p[0], rv[0])])
 
-    return rhod, th, rv, p
+    return rhod, th, rv, p, p_d
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp):
     print "[RH_formula = ", RH_formula,"]"
@@ -81,14 +82,14 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     opts_init.exact_sstp_cond=exact_substep
     opts_init.RH_formula = RH_formula
 
-    rhod, th, rv, p = initial_state()
+    rhod, th, rv, p, p_d = initial_state()
     rv_init = rv.copy()
     th_init = th.copy()
     prtcls = lgrngn.factory(backend, opts_init)
     if constp == False:
       prtcls.init(th, rv, rhod)
     else:
-      prtcls.init(th, rv, rhod, p)
+      prtcls.init(th, rv, rhod, p, p_d)
     ss = supersaturation(prtcls)
     print "initial supersaturation", ss
 
@@ -105,8 +106,8 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     ss_post_cond = supersaturation(prtcls)
     print "supersaturation after condensation", ss_post_cond, th[0], rv[0]
 
-    assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
-    assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
+    assert(abs(th[0] - exp_th[constp]) < 2e-4 * exp_th[constp])
+    assert(abs(rv[0] - exp_rv[constp]) < 2e-3 * exp_rv[constp])
     rv_diff = rv_init.copy() - rv[0].copy()
   
     # change to subsaturated air - test evaporation
@@ -126,7 +127,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     return ss_post_cond, th[0] - th_init[0], rv[0] - rv_init[0] - rv_diff[0]
 
 
-for constp in [False, True]:
+for constp in [ True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
       ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp)
