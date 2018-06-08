@@ -52,10 +52,11 @@ def test_adj_cellwise_constp(init_sup_sat, r_eps = r_eps_def):
 
     # define pressure consistent with adj_cellwise to compare results
     p   = arr_t([common.p(rhod[0], rv[0], common.T(th[0], rhod[0]))])
+    p_d = arr_t([p[0] - common.p_v(p[0], rv[0])])
 
-    blk_1m.adj_cellwise_constp(opts, rhod, p, th, rv, rc, rr, dt)
+    blk_1m.adj_cellwise_constp(opts, rhod, p, p_d, th, rv, rc, rr, dt)
     
-    T = common.exner(p[0]) * common.th_dry2std(th[0], rv[0])
+    T = common.exner(p_d[0]) * th[0]
     ss = supersaturation(T, p[0], rv[0])
     print "final supersaturation", ss, th[0], rv[0]
     return ss
@@ -67,21 +68,22 @@ def test_adj_cellwise_nwtrph(init_sup_sat, nwtrph_iters = nwtrph_iters_def):
 
     # define pressure consistent with adj_cellwise to compare results
     p   = arr_t([common.p(rhod[0], rv[0], common.T(th[0], rhod[0]))])
+    p_d = arr_t([p[0] - common.p_v(p[0], rv[0])])
 
-    blk_1m.adj_cellwise_nwtrph(opts, p, th, rv, rc, dt)
-   
-    T = common.exner(p[0]) * common.th_dry2std(th[0], rv[0])
+    blk_1m.adj_cellwise_nwtrph(opts, p, p_d, th, rv, rc, dt)
+    
+    T = common.exner(p_d[0]) * th[0]
     ss = supersaturation(T, p[0], rv[0])
     print "final supersaturation", ss, th[0], rv[0]
     return ss
 
 eps = {
         # supersaturation
-        True  : { 'org'      : 3e-2, 'constp'      : 0.1 , 'nwtrph'      : 1e-2,
-                  'org_prec' : 6e-4, 'constp_prec' : 6e-4, 'nwtrph_prec' : 9e-4 },
+        True  : { 'org'      : 3e-2, 'constp'      : 3e-2, 'nwtrph'      : 1e-3,
+                  'org_prec' : 6e-4, 'constp_prec' : 6e-4, 'nwtrph_prec' : 1e-12 },
         # subsaturation
-        False : { 'org'      : 0.5 , 'constp'      : 0.5 , 'nwtrph'      : 5e-3,
-                  'org_prec' : 2e-3, 'constp_prec' : 2e-3, 'nwtrph_prec' : 2e-6 }
+        False : { 'org'      : 0.5 , 'constp'      : 0.5 , 'nwtrph'      : 1e-4,
+                  'org_prec' : 2e-3, 'constp_prec' : 2e-3, 'nwtrph_prec' : 1e-12 }
       }
 
 for init_sup_sat in [True, False]:

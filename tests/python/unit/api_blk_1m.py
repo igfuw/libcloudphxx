@@ -17,6 +17,7 @@ print "r_eps =", opts.r_eps
 
 rhod = arr_t([1.  ])
 p    = arr_t([1.e5])
+p_d  = arr_t([.99e5])
 th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
@@ -40,7 +41,7 @@ th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
 rr   = arr_t([0.  ])
-blk_1m.adj_cellwise_constp(opts, rhod, p, th, rv, rc, rr, dt)
+blk_1m.adj_cellwise_constp(opts, rhod, p, p_d, th, rv, rc, rr, dt)
 assert th != th_old # some water should have evaporated
 assert rv != rv_old
 assert rc != rc_old
@@ -50,7 +51,7 @@ assert rr == rr_old
 th   = arr_t([300.])
 rv   = arr_t([0.  ])
 rc   = arr_t([0.01])
-blk_1m.adj_cellwise_nwtrph(opts, p, th, rv, rc, dt)
+blk_1m.adj_cellwise_nwtrph(opts, p, p_d, th, rv, rc, dt)
 assert th != th_old # some water should have evaporated
 assert rv != rv_old
 assert rc != rc_old
@@ -69,7 +70,7 @@ dot_rv = arr_t([0.])
 dot_rc = arr_t([0.])
 dot_rr = arr_t([0.])
 
-blk_1m.rhs_cellwise_nwtrph(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p, th, rv, rc, rr)
+blk_1m.rhs_cellwise_nwtrph(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p, p_d, th, rv, rc, rr)
 assert dot_rc != 0 # some water should have coalesced
 assert dot_rr != 0
 assert dot_th != 0 # some rain should have evaporated
