@@ -31,6 +31,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
       const arrinfo_t<real_t> p,
+      const arrinfo_t<real_t> p_d,
       const arrinfo_t<real_t> courant_1,
       const arrinfo_t<real_t> courant_2,
       const arrinfo_t<real_t> courant_3,
@@ -39,7 +40,7 @@ namespace libcloudphxx
     {
       pimpl->mcuda_run(
         &particles_t<real_t, CUDA>::init,
-        th, rv, rhod, p, courant_1, courant_2, courant_3, ambient_chem
+        th, rv, rhod, p, p_d, courant_1, courant_2, courant_3, ambient_chem
       );
     }
   };

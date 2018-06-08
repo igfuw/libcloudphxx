@@ -16,6 +16,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
       const arrinfo_t<real_t> p,
+      const arrinfo_t<real_t> p_d,
       const arrinfo_t<real_t> courant_x,
       const arrinfo_t<real_t> courant_y,
       const arrinfo_t<real_t> courant_z,
@@ -47,6 +48,9 @@ namespace libcloudphxx
         if (n_dims == 3 && (courant_x.is_null() || courant_y.is_null() || courant_z.is_null()))
           throw std::runtime_error("All XYZ Courant number components required in 3D setup");
       }
+
+      if (p.is_null() != p_d.is_null())
+        throw std::runtime_error("both p and p_d need to be passed in the constant pressure mode");
 
       if (opts_init.chem_switch && ambient_chem.size() != chem_gas_n)
         throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
