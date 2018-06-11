@@ -208,9 +208,9 @@ for constp in [True]:#False, True]:
 
       ss, th_diff_1  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 1, exact_sstp, constp)
       print ss, th_diff_1  , rv_diff, act, mr, sr, tr
-      print(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-      print(abs(rv_diff) < exp_rv_diff[constp])
-      print(abs(th_diff_1) < 7e-3)
+      assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
+      assert(abs(rv_diff) < exp_rv_diff[constp])
+      assert(abs(th_diff_1) < 7e-3)
 
       # expected concentration of droplets with r>0.5um
       exp_act ={ True: {        # constp
@@ -271,17 +271,17 @@ for constp in [True]:#False, True]:
                         } 
                }
 
-      print(abs(act - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
-      print(abs(mr - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
-      print(abs(sr - exp_sr[constp][RH_formula]) < 1e-3 * exp_sr[constp][RH_formula])
-      print(abs(tr - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
+      assert(abs(act - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
+      assert(abs(mr - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
+      assert(abs(sr - exp_sr[constp][RH_formula]) < 1e-3 * exp_sr[constp][RH_formula])
+      assert(abs(tr - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
 
 
       ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp)
-      print ss, th_diff_10  , rv_diff, act, mr, sr, tr
-      print(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-      print(abs(rv_diff) < exp_rv_diff[constp])
-      print(abs(th_diff_10) < 5e-3)
+      assert ss, th_diff_10  , rv_diff, act, mr, sr, tr
+      assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
+      assert(abs(rv_diff) < exp_rv_diff[constp])
+      assert(abs(th_diff_10) < 5e-3)
 
 
       exp_act ={ True: {        # constp
@@ -340,16 +340,16 @@ for constp in [True]:#False, True]:
                         } 
                }
 
-      print(abs(act - exp_act[constp][RH_formula]) < 1e-2 * exp_act[constp][RH_formula])
-      print(abs(mr - exp_mr[constp][RH_formula]) < 1e-2 * exp_mr[constp][RH_formula])
-      print(abs(sr - exp_sr[constp][RH_formula]) < 1e-2 * exp_sr[constp][RH_formula])
-      print(abs(tr - exp_tr[constp][RH_formula]) < 1e-2 * exp_tr[constp][RH_formula])
+      assert(abs(act - exp_act[constp][RH_formula]) < 1e-2 * exp_act[constp][RH_formula])
+      assert(abs(mr - exp_mr[constp][RH_formula]) < 1e-2 * exp_mr[constp][RH_formula])
+      assert(abs(sr - exp_sr[constp][RH_formula]) < 1e-2 * exp_sr[constp][RH_formula])
+      assert(abs(tr - exp_tr[constp][RH_formula]) < 1e-2 * exp_tr[constp][RH_formula])
 
       ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp)
-      print ss, th_diff_100  , rv_diff, act, mr, sr, tr
-      print(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-      print(abs(rv_diff) < exp_rv_diff[constp])
-      print(abs(th_diff_100) < 5e-3)
+      assert ss, th_diff_100  , rv_diff, act, mr, sr, tr
+      assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
+      assert(abs(rv_diff) < exp_rv_diff[constp])
+      assert(abs(th_diff_100) < 5e-3)
 
       exp_act ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 16097,
@@ -408,10 +408,10 @@ for constp in [True]:#False, True]:
                }
 
       # reduced precision due to differences in results between Linux and OSX
-      print(abs(act - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
-      print(abs(mr - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
-      print(abs(sr - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
-      print(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
+      assert(abs(act - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
+      assert(abs(mr - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
+      assert(abs(sr - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
+      assert(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
 
 
