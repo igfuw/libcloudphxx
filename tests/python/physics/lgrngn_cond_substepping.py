@@ -202,7 +202,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     return ss_post_cond, th[0] - th_init[0] - th_diff[0], rv[0] - rv_init[0] - rv_diff[0], act_conc_post_cond, mean_r_post_cond, second_r_post_cond, third_r_post_cond
 
 
-for constp in [True]:#False, True]:
+for constp in [False, True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
 
