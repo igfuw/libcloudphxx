@@ -340,10 +340,10 @@ for constp in [True]:#False, True]:
                         } 
                }
 
-      assert(abs(act - exp_act[constp][RH_formula]) < 1e-2 * exp_act[constp][RH_formula])
-      assert(abs(mr - exp_mr[constp][RH_formula]) < 1e-2 * exp_mr[constp][RH_formula])
-      assert(abs(sr - exp_sr[constp][RH_formula]) < 1e-2 * exp_sr[constp][RH_formula])
-      assert(abs(tr - exp_tr[constp][RH_formula]) < 1e-2 * exp_tr[constp][RH_formula])
+      assert(abs(act - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
+      assert(abs(mr - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
+      assert(abs(sr - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
+      assert(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
       ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp)
       print ss, th_diff_100  , rv_diff, act, mr, sr, tr
