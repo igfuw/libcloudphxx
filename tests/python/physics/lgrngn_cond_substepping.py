@@ -278,7 +278,7 @@ for constp in [True]:#False, True]:
 
 
       ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp)
-      assert ss, th_diff_10  , rv_diff, act, mr, sr, tr
+      print ss, th_diff_10  , rv_diff, act, mr, sr, tr
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
       assert(abs(th_diff_10) < 5e-3)
@@ -346,7 +346,7 @@ for constp in [True]:#False, True]:
       assert(abs(tr - exp_tr[constp][RH_formula]) < 1e-2 * exp_tr[constp][RH_formula])
 
       ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp)
-      assert ss, th_diff_100  , rv_diff, act, mr, sr, tr
+      print ss, th_diff_100  , rv_diff, act, mr, sr, tr
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
       assert(abs(th_diff_100) < 5e-3)
