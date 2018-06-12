@@ -106,7 +106,7 @@ namespace libcloudphxx
           &rr = boost::get<8>(tup);
 
         quantity<si::temperature, real_t> T = th * theta_std::exner(p_d);
-        real_t r_vs = const_cp::r_vs(T, p_d);
+        real_t r_vs = const_cp::r_vs(T, p);
 
         tmp = (
           formulae::evaporation_rate(
