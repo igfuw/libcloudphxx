@@ -23,6 +23,21 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
+      sync_in(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
+      step_cond(opts, th, rv, ambient_chem);
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::sync_in(
+      arrinfo_t<real_t> th,
+      arrinfo_t<real_t> rv,
+      const arrinfo_t<real_t> rhod,      // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
+      const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+    )
+    {
       // sanity checks
       if (!pimpl->init_called)
         throw std::runtime_error("please call init() before calling step_sync()");
@@ -67,6 +82,9 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
+      // did rhod change
+      pimpl->var_rho = !rhod.is_null();
+
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
@@ -98,6 +116,23 @@ namespace libcloudphxx
           );
         }
       }
+  
+      pimpl->should_now_run_cond = true;
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::step_cond(
+      const opts_t<real_t> &opts,
+      arrinfo_t<real_t> th,                                            // for sync-out
+      arrinfo_t<real_t> rv,                                            // for sync-out
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem   // for sync-out
+    )
+    {
+      //sanity checks
+      if (!pimpl->should_now_run_cond)
+        throw std::runtime_error("please call sync_in() before calling step_cond()");
+
+      pimpl->should_now_run_cond = false;
 
       // condensation/evaporation 
       // if const_p == True, pressure is not substepped
@@ -122,7 +157,7 @@ namespace libcloudphxx
         {
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
-            pimpl->sstp_step(step, !rhod.is_null());
+            pimpl->sstp_step(step);
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
           }
@@ -146,7 +181,7 @@ namespace libcloudphxx
           if (opts.chem_dsl)
           {
             //adjust trace gases to substepping
-            pimpl->sstp_step_chem(step, !rhod.is_null());
+            pimpl->sstp_step_chem(step);
 
             //dissolving trace gases (Henrys law)
             pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);

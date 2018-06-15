@@ -34,7 +34,10 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool init_called, should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting, should_now_run_cond;
+
+      // did density vary in this step
+      bool var_rho;
 
       // member fields
       opts_init_t<real_t> opts_init; // a copy
@@ -237,6 +240,8 @@ namespace libcloudphxx
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
+        should_now_run_cond(false),
+        var_rho(false),
 	opts_init(_opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
@@ -448,10 +453,10 @@ namespace libcloudphxx
 
       void src(const real_t &dt);
 
-      void sstp_step(const int &step, const bool &var_rho);
+      void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
       void sstp_save();
-      void sstp_step_chem(const int &step, const bool &var_rho);
+      void sstp_step_chem(const int &step);
       void sstp_save_chem();
 
       void step_finalize(const opts_t<real_t>&);

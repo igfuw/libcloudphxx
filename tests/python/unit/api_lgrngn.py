@@ -130,6 +130,41 @@ prtcls.diag_sd_conc()
 print frombuffer(prtcls.outbuf())
 assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
+# ----------
+# 0D (parcel) with explicit calls to sync_in and step_cond 
+print "0D"
+rhod = arr_t([  1.])
+th   = arr_t([300.])
+rv   = arr_t([  0.01])
+
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+try: 
+  prtcls.init(th, rv, rhod)
+  raise Exception("multiple init call not reported!")
+except:
+  pass
+try:
+  prtcls.step_cond(opts, th, rv)
+  raise Exception("sync_in/cond order mismatch not reported!")
+except:
+  pass
+prtcls.sync_in(th, rv, rhod)
+prtcls.step_cond(opts, th, rv)
+prtcls.step_async(opts)
+prtcls.step_sync(opts, th, rv)
+prtcls.diag_dry_rng(0.,1.)
+prtcls.diag_wet_rng(0.,1.)
+prtcls.diag_dry_mom(1)
+prtcls.diag_wet_mom(1)
+prtcls.diag_kappa_mom(1)
+puddle = prtcls.diag_puddle()
+print 'puddle: ', puddle
+#prtcls.diag_chem(lgrngn.chem_species_t.OH)
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+print frombuffer(prtcls.outbuf())
+assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
 
 
 # ----------
