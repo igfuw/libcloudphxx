@@ -31,10 +31,18 @@ namespace libcloudphxx
         rand_un(n_part);
 
         // sorting the sequence with the random key
-        thrust::sort_by_key(
-          un.begin(), un.end(),
-          sorted_id.begin()
-        );
+        try
+        {
+          thrust::sort_by_key(
+            un.begin(), un.end(),
+            sorted_id.begin()
+          );
+        }
+        catch(std::bad_alloc &e)
+        {
+          std::cerr << "Ran out of memory while sorting with the random key" << std::endl;
+          exit(-1);
+        }
 
         // permuting sorted_ijk accordingly
         thrust::copy(
@@ -45,10 +53,18 @@ namespace libcloudphxx
       }
 
       // sorting sorted_ijk and sorted_id
-      thrust::sort_by_key(
-	sorted_ijk.begin(), sorted_ijk.end(), // keys
-	sorted_id.begin()                     // values
-      );
+      try
+      {
+        thrust::sort_by_key(
+          sorted_ijk.begin(), sorted_ijk.end(), // keys
+          sorted_id.begin()                     // values
+        );
+      }
+      catch(std::bad_alloc &e)
+      {
+        std::cerr << "Ran out of memory while sorting" << std::endl;
+        exit(-1);
+      }
 
       // flagging that particles are now sorted
       sorted = true;
