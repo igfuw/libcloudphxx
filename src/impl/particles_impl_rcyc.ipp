@@ -67,10 +67,18 @@ namespace libcloudphxx
 	thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
 	thrust::copy(n.begin(), n.end(), tmp.begin());
 
-	thrust::sort_by_key(
-	  tmp.begin(), tmp.end(),
-	  sorted_id.begin()
-	);
+        try
+        {
+          thrust::sort_by_key(
+            tmp.begin(), tmp.end(),
+            sorted_id.begin()
+          );
+        }
+        catch(std::bad_alloc &e)
+        {
+          std::cerr << "Ran out of memory while sorting in rcyc" << std::endl;
+          exit(-1);
+        }
        
         // check how many SDs are available to split
         thrust_size_t n_splittable;
