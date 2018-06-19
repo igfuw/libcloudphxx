@@ -121,27 +121,18 @@ namespace libcloudphxx
       );
 
       // sorting by ijk and rd3
-      try
-      {
-        thrust::sort_by_key(
-          thrust::make_zip_iterator(thrust::make_tuple(
-            sorted_ijk.begin(),
-            sorted_rd3.begin()
-          )),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            sorted_ijk.begin(),
-            sorted_rd3.begin()
-          )) + n_part,                           // keys
-          sorted_id.begin(),                     // values
-          detail::two_keys_sort<thrust_size_t, real_t>()
-        ); 
-      }
-      catch(std::bad_alloc &e)
-      {
-        std::cerr << "Ran out of memory while sorting in src" << std::endl;
-        exit(-1);
-      }
-
+      thrust::sort_by_key(
+        thrust::make_zip_iterator(thrust::make_tuple(
+          sorted_ijk.begin(),
+          sorted_rd3.begin()
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple(
+          sorted_ijk.begin(),
+          sorted_rd3.begin()
+        )) + n_part,                           // keys
+        sorted_id.begin(),                     // values
+        detail::two_keys_sort<thrust_size_t, real_t>()
+      ); 
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
