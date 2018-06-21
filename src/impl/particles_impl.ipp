@@ -216,7 +216,8 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
 
-      const int halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
+      const int halo_size = 2,
+                halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
 
@@ -265,14 +266,15 @@ namespace libcloudphxx
         n_x_tot(n_x_tot),
         n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         halo_x( 
-          n_dims == 1 ? 1:                 // 1D
-            n_dims == 2 ? opts_init.nz:    // 2D
-              opts_init.nz * opts_init.ny // 3D
+          n_dims == 1 ? halo_size:                                      // 1D
+          n_dims == 2 ? halo_size * opts_init.nz:                       // 2D
+                        halo_size * opts_init.nz * opts_init.ny         // 3D
         ),
-        halo_y((opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_y(         halo_size * (opts_init.ny + 1) * opts_init.nz), // 3D
         halo_z( 
-          n_dims == 2 ? opts_init.nz + 1:      // 2D
-            (opts_init.nz + 1) * opts_init.ny),// 3D
+          n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
+                        halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
+        ),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
         // note: there could be less tmp data spaces if _cell vectors
