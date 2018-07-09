@@ -71,7 +71,6 @@ namespace libcloudphxx
       cont_t &dot_rr_cont,
       const cont_t &rhod_cont,
       const cont_t &p_cont,
-      const cont_t &p_d_cont,
       const cont_t &th_cont,
       const cont_t &rv_cont,
       const cont_t &rc_cont,
@@ -81,7 +80,7 @@ namespace libcloudphxx
       rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont, rc_cont, rr_cont);
       
       // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
-      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rr_cont, rhod_cont, p_cont, p_d_cont, th_cont, rv_cont, rr_cont))
+      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rr_cont))
       {
         using namespace common;
         
@@ -95,16 +94,16 @@ namespace libcloudphxx
           rhod = boost::get<3>(tup) * si::kilograms / si::cubic_metres;
         
         const quantity<si::pressure, real_t> 
-          p   = boost::get<4>(tup) * si::pascals,
-          p_d = boost::get<5>(tup) * si::pascals;
+          p   = boost::get<4>(tup) * si::pascals;
 
         const quantity<si::temperature, real_t> 
-          th = boost::get<6>(tup) * si::kelvins;
+          th = boost::get<5>(tup) * si::kelvins;
         
         const real_t
-          &rv = boost::get<7>(tup),
-          &rr = boost::get<8>(tup);
+          &rv = boost::get<6>(tup),
+          &rr = boost::get<7>(tup);
 
+        auto p_d = p - moist_air::p_v(p, rv * si::dimensionless());
         quantity<si::temperature, real_t> T = th * theta_std::exner(p_d);
         real_t r_vs = const_cp::r_vs(T, p);
 

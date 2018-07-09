@@ -134,7 +134,6 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        p_d,// dry air partial pressure [Pa]
         RH, // relative humisity 
         eta;// dynamic viscosity 
 
@@ -334,8 +333,7 @@ namespace libcloudphxx
       void init_SD_with_distros_finalize(const real_t &);
       void init_SD_with_sizes();
       void init_sanity_check(
-        const arrinfo_t<real_t>, const arrinfo_t<real_t>, 
-        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const std::map<enum chem_species_t, const arrinfo_t<real_t> >

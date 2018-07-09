@@ -28,12 +28,10 @@ namespace libcloudphxx
         public: 
 
 	quantity<si::pressure,     real_t> p;   // total pressure
-	quantity<si::pressure,     real_t> p_d; // partial pressure of dry air, only needed if const_p = true
         
         void init(
 	  const quantity<si::mass_density, real_t> &_rhod,
 	  const quantity<si::pressure, real_t> &_p,
-	  const quantity<si::pressure, real_t> &_p_d,
 	  const quantity<si::temperature, real_t> &th,
 	  const quantity<si::dimensionless, real_t> &rv,
           const bool _const_p
@@ -42,7 +40,6 @@ namespace libcloudphxx
           const_p = _const_p;
 	  rhod = _rhod;
           p    = _p;
-          p_d    = _p_d;
 	  update(th, rv);
 	}
 
@@ -64,7 +61,7 @@ namespace libcloudphxx
           }
           else
           {
-	    T  = th * common::theta_std::exner<real_t>(p_d);
+	    T  = common::theta_dry::dry2std(th, r) * common::theta_std::exner<real_t>(p);
           }
 
 	  rs = common::const_cp::r_vs<real_t>(T, p);
@@ -89,7 +86,6 @@ namespace libcloudphxx
     void adj_cellwise_nwtrph(
       const opts_t<real_t> &opts,
       const cont_t &p_cont,
-      const cont_t &p_d_cont,
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -99,16 +95,15 @@ namespace libcloudphxx
       using namespace common;
       if (!opts.cond) return; // ignoring values of opts.cevp
 
-      for (auto tup : zip(p_cont, p_d_cont, th_cont, rv_cont, rc_cont))
+      for (auto tup : zip(p_cont, th_cont, rv_cont, rc_cont))
       {
         const quantity<si::pressure, real_t> 
-          p    = boost::get<0>(tup) * si::pascals,
-          p_d  = boost::get<1>(tup) * si::pascals;
+          p    = boost::get<0>(tup) * si::pascals;
 
         real_t 
-          &th = boost::get<2>(tup), 
-          &rv = boost::get<3>(tup), 
-          &rc = boost::get<4>(tup);
+          &th = boost::get<1>(tup), 
+          &rv = boost::get<2>(tup), 
+          &rc = boost::get<3>(tup);
 	
         // double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
@@ -120,8 +115,11 @@ namespace libcloudphxx
         real_t rv_tmp = rv;
         quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
 	
+        auto p_d = p - moist_air::p_v(p, rv * si::dimensionless());
         auto exner_p_d = theta_std::exner(p_d);
-        quantity<si::temperature, real_t> T = th_tmp * exner_p_d; 
+        auto exner_p = theta_std::exner(p);
+        
+        quantity<si::temperature, real_t> T = theta_dry::dry2std(th_tmp, rv * si::dimensionless()) * exner_p; 
 
         // constant l_v used in theta update
         auto L0 = const_cp::l_v(T);
@@ -143,7 +141,7 @@ namespace libcloudphxx
           rv_tmp = rv - drc;
           th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc;
 	  
-          T = th_tmp * exner_p_d; 
+          T = theta_dry::dry2std(th_tmp, rv_tmp * si::dimensionless()) * exner_p; 
         }
 
         // limiting
@@ -166,7 +164,6 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, // value not used if const_p = false
-      const cont_t &p_d_cont, // value not used if const_p = false
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -192,17 +189,16 @@ namespace libcloudphxx
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
       typename detail::rhs<real_t> F;
 
-      for (auto tup : zip(rhod_cont, p_cont, p_d_cont, th_cont, rv_cont, rc_cont, rr_cont))
+      for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
           &rhod = boost::get<0>(tup),
-          &p    = boost::get<1>(tup),
-          &p_d  = boost::get<2>(tup);
+          &p    = boost::get<1>(tup);
         real_t 
-          &th = boost::get<3>(tup), 
-          &rv = boost::get<4>(tup), 
-          &rc = boost::get<5>(tup), 
-          &rr = boost::get<6>(tup);
+          &th = boost::get<2>(tup), 
+          &rv = boost::get<3>(tup), 
+          &rc = boost::get<4>(tup), 
+          &rr = boost::get<5>(tup);
 
 	// double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
@@ -213,7 +209,6 @@ namespace libcloudphxx
 	F.init(
 	  rhod * si::kilograms / si::cubic_metres,
           p    * si::pascals,
-          p_d  * si::pascals,
 	  th   * si::kelvins,
 	  rv   * si::dimensionless(),
           const_p
@@ -309,8 +304,8 @@ namespace libcloudphxx
     )
 //</listing>
     {
-      // rhod_cont passed trice on purpose - it's a dummy var for pressures to make the tuple compile
-      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
+      // rhod_cont passed twice on purpose - it's a dummy var for pressures to make the tuple compile
+      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
     }
 
 // saturation adjustment with a constant pressure profile (e.g. anleastic model)
@@ -321,7 +316,6 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, 
-      const cont_t &p_d_cont, 
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -330,7 +324,7 @@ namespace libcloudphxx
     )
 //</listing>
     {
-      adj_cellwise_hlpr(opts, rhod_cont, p_cont, p_d_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
+      adj_cellwise_hlpr(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
     }
   }
 };

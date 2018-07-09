@@ -53,7 +53,6 @@ namespace libcloudphxx
 	const b1m::opts_t<typename arr_t::T_numtype>& opts,
 	const bp_array &rhod,
 	const bp_array &p,
-	const bp_array &p_d,
 	bp_array &th,
 	bp_array &rv,
 	bp_array &rc,
@@ -70,7 +69,6 @@ namespace libcloudphxx
 	  opts, 
 	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
 	  np2bz<arr_t>(p), 
-	  np2bz<arr_t>(p_d), 
 	  np2bz_th, 
 	  np2bz_rv, 
 	  np2bz_rc, 
@@ -83,7 +81,6 @@ namespace libcloudphxx
       void adj_cellwise_nwtrph(
 	const b1m::opts_t<typename arr_t::T_numtype>& opts,
 	const bp_array &p,
-	const bp_array &p_d,
 	bp_array &th,
 	bp_array &rv,
 	bp_array &rc,
@@ -97,7 +94,6 @@ namespace libcloudphxx
 	b1m::adj_cellwise_nwtrph(
 	  opts, 
 	  np2bz<arr_t>(p), 
-	  np2bz<arr_t>(p_d), 
 	  np2bz_th, 
 	  np2bz_rv, 
 	  np2bz_rc, 
@@ -135,7 +131,6 @@ namespace libcloudphxx
 	bp_array &dot_rr,
 	const bp_array &rhod,
 	const bp_array &p,
-	const bp_array &p_d,
 	const bp_array &th,
 	const bp_array &rv,
 	const bp_array &rc,
@@ -155,7 +150,6 @@ namespace libcloudphxx
 	  np2bz_dot_rr,
 	  np2bz<arr_t>(rhod),
 	  np2bz<arr_t>(p),
-	  np2bz<arr_t>(p_d),
 	  np2bz<arr_t>(th),
 	  np2bz<arr_t>(rv),
 	  np2bz<arr_t>(rc),
