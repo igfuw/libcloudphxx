@@ -41,12 +41,15 @@ namespace libcloudphxx
       }
       else // external pressure profile
       {
-        // T = th_d * exner(p_d)
+        // T = dry2std(th_d, rv) * exner(p_tot)
         thrust::transform(
           sstp_tmp_th.begin(), sstp_tmp_th.end(),                      // input - first arg
-          thrust::make_permutation_iterator(p_d.begin(), ijk.begin()),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            sstp_tmp_rv.begin(),                                       // input - second arg 
+            thrust::make_permutation_iterator(p.begin(), ijk.begin())  // input - third arg
+          )),
           Tp.begin(),                                                  // output
-          detail::common__theta_dry__T_pd<real_t>() 
+          detail::common__theta_dry__T_p<real_t>() 
         );
       }
 
