@@ -38,11 +38,29 @@ namespace libcloudphxx
       {
 	return cmn::theta_dry::std2dry(th_std * si::kelvins, r * si::dimensionless()) / si::kelvins;
       }
+      
+      template <typename real_t>
+      real_t exner(const real_t &p)
+      {
+	return cmn::theta_std::exner(p * si::pascals);
+      }
+
+      template <typename real_t>
+      real_t p_v(const real_t &p, const real_t &r)
+      {
+	return cmn::moist_air::p_v(p * si::pascals, r * si::dimensionless()) / si::pascals;
+      }
 
       template <typename real_t>
       real_t p_vs(const real_t &T)
       {
 	return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
+      }
+      
+      template <typename real_t>
+      real_t r_vs(const real_t &T, const real_t &p)
+      {
+	return cmn::const_cp::r_vs(T * si::kelvins, p * si::pascals);
       }
 	    
       template <typename real_t>

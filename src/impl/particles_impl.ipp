@@ -131,7 +131,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        RH, // relative humisity (p_v / p_vs)
+        RH, // relative humisity 
         eta;// dynamic viscosity 
 
       // sorting needed only for diagnostics and coalescence
@@ -141,6 +141,9 @@ namespace libcloudphxx
       bool *increase_sstp_coal;
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
+
+      // is a constant, external pressure profile used? (e.g. anelastic model)
+      bool const_p;
 
       // timestep counter
       n_t stp_ctr;
@@ -324,7 +327,8 @@ namespace libcloudphxx
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
-        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const std::map<enum chem_species_t, const arrinfo_t<real_t> >
       );
 
@@ -443,7 +447,7 @@ namespace libcloudphxx
       void src(const real_t &dt);
 
       void sstp_step(const int &step, const bool &var_rho);
-      void sstp_step_exact(const int &step, const bool &var_rho);
+      void sstp_step_exact(const int &step);
       void sstp_save();
       void sstp_step_chem(const int &step, const bool &var_rho);
       void sstp_save_chem();

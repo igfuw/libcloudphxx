@@ -25,6 +25,7 @@ namespace libcloudphxx
         r_c0   = 5e-4,   // autoconv. threshold
         k_acnv = 0.001,  // Kessler autoconversion (eq. 5a in Grabowski & Smolarkiewicz 1996)
         r_eps  = 2e-5;   // absolute tolerance
+      int nwtrph_iters = 3; // number of iterations in Newton-Raphson saturation adjustment
     };
 //</listing>
   }; 

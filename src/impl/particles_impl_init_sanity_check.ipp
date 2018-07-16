@@ -15,6 +15,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> th,
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
+      const arrinfo_t<real_t> p,
       const arrinfo_t<real_t> courant_x,
       const arrinfo_t<real_t> courant_y,
       const arrinfo_t<real_t> courant_z,
@@ -28,6 +29,7 @@ namespace libcloudphxx
       // sanity checks
       if (th.is_null() || rv.is_null() || rhod.is_null())
         throw std::runtime_error("passing th, rv and rhod is mandatory");
+
 
       // --------  init cell characteristics  --------
       // initialising Eulerian-Lagrandian coupling

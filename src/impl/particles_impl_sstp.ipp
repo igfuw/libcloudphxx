@@ -94,8 +94,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_step_exact(
-      const int &step,
-      const bool &var_rho // if rho varied and need to be updated
+      const int &step
     )
     {   
       if (opts_init.sstp_cond == 1) return;
@@ -108,7 +107,7 @@ namespace libcloudphxx
         *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh },
         *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2 };
 
-      for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
+      for (int ix = 0; ix < n; ++ix)
       {
         const real_t sstp = opts_init.sstp_cond;
       	if (step == 0)

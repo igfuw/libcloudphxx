@@ -100,6 +100,9 @@ namespace libcloudphxx
       }
 
       // condensation/evaporation 
+      // if const_p == True, pressure is not substepped
+      // TODO: add substepping of it?
+      //       or is it a good approximation and also remove substepping of rhod?
       if (opts.cond) 
       {
         if(pimpl->opts_init.exact_sstp_cond && pimpl->opts_init.sstp_cond > 1)
@@ -107,7 +110,7 @@ namespace libcloudphxx
         {
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
-            pimpl->sstp_step_exact(step, !rhod.is_null());
+            pimpl->sstp_step_exact(step);
             pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
           } 
           // copy sstp_tmp_rv and th to rv and th
