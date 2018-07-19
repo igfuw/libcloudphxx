@@ -127,7 +127,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
 
     bp::def("th_dry2std", &common::th_dry2std<real_t>);
     bp::def("th_std2dry", &common::th_std2dry<real_t>);
+    bp::def("exner", &common::exner<real_t>);
+    bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("r_vs", &common::r_vs<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
@@ -152,9 +155,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sedi", &b1m::opts_t<real_t>::sedi)
       .def_readwrite("r_c0", &b1m::opts_t<real_t>::r_c0)
       .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
+      .def_readwrite("nwtrph_iters", &b1m::opts_t<real_t>::nwtrph_iters)
       ;
     bp::def("adj_cellwise", blk_1m::adj_cellwise<arr_t>);
+    bp::def("adj_cellwise_constp", blk_1m::adj_cellwise_constp<arr_t>);
+    bp::def("adj_cellwise_nwtrph", blk_1m::adj_cellwise_nwtrph<arr_t>);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>); 
+    bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>); 
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   }
 
@@ -206,6 +213,11 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("beard77fast", lgr::vt_t::beard77fast)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
       .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
+    bp::enum_<lgr::RH_formula_t::RH_formula_t>("RH_formula_t") 
+      .value("pv_cc", lgr::RH_formula_t::pv_cc)
+      .value("rv_cc", lgr::RH_formula_t::rv_cc)
+      .value("pv_tet", lgr::RH_formula_t::pv_tet)
+      .value("rv_tet", lgr::RH_formula_t::rv_tet);
     bp::enum_<lgr::as_t::as_t>("as_t") 
       .value("implicit", lgr::as_t::implicit)
       .value("euler", lgr::as_t::euler)
@@ -272,6 +284,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)
       .def_readwrite("n_sd_max", &lgr::opts_init_t<real_t>::n_sd_max)
       .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
+      .def_readwrite("RH_formula", &lgr::opts_init_t<real_t>::RH_formula)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
       .def_readwrite("rng_seed", &lgr::opts_init_t<real_t>::rng_seed)
@@ -304,6 +317,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_rw_ge_rc",&lgr::particles_proto_t<real_t>::diag_rw_ge_rc)
       .def("diag_RH_ge_Sc",&lgr::particles_proto_t<real_t>::diag_RH_ge_Sc)
       .def("diag_RH",&lgr::particles_proto_t<real_t>::diag_RH)
+      .def("diag_pressure",&lgr::particles_proto_t<real_t>::diag_pressure)
+      .def("diag_temperature",&lgr::particles_proto_t<real_t>::diag_temperature)
       .def("diag_vel_div",&lgr::particles_proto_t<real_t>::diag_vel_div)
       .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)

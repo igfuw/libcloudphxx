@@ -23,21 +23,27 @@ namespace libcloudphxx
 	private: 
          
         quantity<si::mass_density, real_t> rhod;
+        bool const_p; // true if a constant pressure profile is used (e.g. anelastic model), otherwise pressure is deduced from rhod, rv and T
 	
         public: 
+
+	quantity<si::pressure,     real_t> p;   // total pressure
         
         void init(
 	  const quantity<si::mass_density, real_t> &_rhod,
+	  const quantity<si::pressure, real_t> &_p,
 	  const quantity<si::temperature, real_t> &th,
-	  const quantity<si::dimensionless, real_t> &rv
+	  const quantity<si::dimensionless, real_t> &rv,
+          const bool _const_p
 	)
 	{
+          const_p = _const_p;
 	  rhod = _rhod;
+          p    = _p;
 	  update(th, rv);
 	}
 
 	quantity<si::dimensionless, real_t> r, rs;
-	quantity<si::pressure,      real_t> p;
 	quantity<si::temperature,   real_t> T;
 
 	private: 
@@ -48,8 +54,16 @@ namespace libcloudphxx
 	)
 	{
           r  = rv;
-	  T  = common::theta_dry::T<real_t>(th, rhod);
-	  p  = common::theta_dry::p<real_t>(rhod, rv, T);
+          if(!const_p)
+          {
+	    T  = common::theta_dry::T<real_t>(th, rhod);
+	    p   = common::theta_dry::p<real_t>(rhod, rv, T);
+          }
+          else
+          {
+	    T  = common::theta_dry::dry2std(th, r) * common::theta_std::exner<real_t>(p);
+          }
+
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
@@ -68,16 +82,94 @@ namespace libcloudphxx
       };
     }    
 
+    template <typename real_t, class cont_t>
+    void adj_cellwise_nwtrph(
+      const opts_t<real_t> &opts,
+      const cont_t &p_cont,
+      cont_t &th_cont, 
+      cont_t &rv_cont,
+      cont_t &rc_cont,
+      const real_t &dt
+    )
+    {
+      using namespace common;
+      if (!opts.cond) return; // ignoring values of opts.cevp
+
+      for (auto tup : zip(p_cont, th_cont, rv_cont, rc_cont))
+      {
+        const quantity<si::pressure, real_t> 
+          p    = boost::get<0>(tup) * si::pascals;
+
+        real_t 
+          &th = boost::get<1>(tup), 
+          &rv = boost::get<2>(tup), 
+          &rc = boost::get<3>(tup);
+	
+        // double-checking....
+	assert(th >= 273.15); // TODO: that's theta, not T!
+	assert(rc >= 0);
+	assert(rv >= 0);
+
+        real_t drc = 0;
+
+        real_t rv_tmp = rv;
+        quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
+	
+        auto p_d = p - moist_air::p_v(p, rv * si::dimensionless());
+        auto exner_p_d = theta_std::exner(p_d);
+        auto exner_p = theta_std::exner(p);
+        
+        quantity<si::temperature, real_t> T = theta_dry::dry2std(th_tmp, rv * si::dimensionless()) * exner_p; 
+
+        // constant l_v used in theta update
+        auto L0 = const_cp::l_v(T);
+
+        for (int iter = 0; iter < opts.nwtrph_iters; ++iter)
+        {
+          // TODO: use the approximate Tetens formulas for p_vs and r_vs from tetens.hpp?
+	  quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T); 
+
+          // tricky, constant L0 comes from theta = theta + L0 / (c_pd * exner_p) * drc
+          // while variable L comes from dp_vs/dT
+          auto L = const_cp::l_v(T);
+          real_t coeff = L * L0 / (moist_air::c_pd<real_t>() * moist_air::R_v<real_t>()) / (T * T) / (1 - p_vs / p);
+
+          real_t r_vs = const_cp::r_vs(T, p);
+
+          drc +=  (rv_tmp - r_vs) / (1 + coeff * r_vs);
+
+          rv_tmp = rv - drc;
+          th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc;
+	  
+          T = theta_dry::dry2std(th_tmp, rv_tmp * si::dimensionless()) * exner_p; 
+        }
+
+        // limiting
+        drc = std::min(rv, std::max(-rc, drc));
+
+        rv -= drc;
+        rc += drc;
+        th += L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc / si::kelvins;
+
+	// triple-checking....
+	assert(th >= 273.15); // that is theta, not T ! TODO
+	assert(rc >= 0);
+	assert(rv >= 0);
+      }
+    }
+
 //<listing>
     template <typename real_t, class cont_t>
-    void adj_cellwise(
+    void adj_cellwise_hlpr(
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
+      const cont_t &p_cont, // value not used if const_p = false
       cont_t &th_cont, 
       cont_t &rv_cont,
       cont_t &rc_cont,
       cont_t &rr_cont,
-      const real_t &dt
+      const real_t &dt,
+      const bool const_p
     )
 //</listing>
     {
@@ -97,15 +189,16 @@ namespace libcloudphxx
       > S; // TODO: would be better to instantiate in the ctor (but what about thread safety! :()
       typename detail::rhs<real_t> F;
 
-      for (auto tup : zip(rhod_cont, th_cont, rv_cont, rc_cont, rr_cont))
+      for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
-          &rhod = boost::get<0>(tup);
+          &rhod = boost::get<0>(tup),
+          &p    = boost::get<1>(tup);
         real_t 
-          &th = boost::get<1>(tup), 
-          &rv = boost::get<2>(tup), 
-          &rc = boost::get<3>(tup), 
-          &rr = boost::get<4>(tup);
+          &th = boost::get<2>(tup), 
+          &rv = boost::get<3>(tup), 
+          &rc = boost::get<4>(tup), 
+          &rr = boost::get<5>(tup);
 
 	// double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
@@ -115,8 +208,10 @@ namespace libcloudphxx
 
 	F.init(
 	  rhod * si::kilograms / si::cubic_metres,
+          p    * si::pascals,
 	  th   * si::kelvins,
-	  rv   * si::dimensionless()
+	  rv   * si::dimensionless(),
+          const_p
 	);
 
 	real_t vapour_excess;
@@ -184,7 +279,7 @@ namespace libcloudphxx
 	    if ((drr_max -= drv) == 0) break; // but not more than Kessler allows
 	  }
 	}
-
+      
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
@@ -193,6 +288,43 @@ namespace libcloudphxx
 	assert(rv >= 0);
 	assert(rr >= 0);
       }
+    }
+
+// saturation adjustment with variable pressure calculated using rhod, rv and T
+//<listing>
+    template <typename real_t, class cont_t>
+    void adj_cellwise(
+      const opts_t<real_t> &opts,
+      const cont_t &rhod_cont, 
+      cont_t &th_cont, 
+      cont_t &rv_cont,
+      cont_t &rc_cont,
+      cont_t &rr_cont,
+      const real_t &dt
+    )
+//</listing>
+    {
+      // rhod_cont passed twice on purpose - it's a dummy var for pressures to make the tuple compile
+      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
+    }
+
+// saturation adjustment with a constant pressure profile (e.g. anleastic model)
+// needs a different name, because boost python got confused (TODO: fix it)
+//<listing>
+    template <typename real_t, class cont_t>
+    void adj_cellwise_constp(
+      const opts_t<real_t> &opts,
+      const cont_t &rhod_cont, 
+      const cont_t &p_cont, 
+      cont_t &th_cont, 
+      cont_t &rv_cont,
+      cont_t &rc_cont,
+      cont_t &rr_cont,
+      const real_t &dt
+    )
+//</listing>
+    {
+      adj_cellwise_hlpr(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
     }
   }
 };

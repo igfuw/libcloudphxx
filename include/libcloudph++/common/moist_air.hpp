@@ -76,6 +76,7 @@ namespace libcloudphxx
       
       // water vapour partial pressure as a function of mixing ratio
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p_v(
 	const quantity<si::pressure, real_t> &p,
 	const quantity<si::dimensionless, real_t> &r
