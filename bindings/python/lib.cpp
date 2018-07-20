@@ -311,6 +311,20 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
+      .def("sync_in",    &lgrngn::sync_in<real_t>, (
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rhod")= BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("ambient_chem") = bp::dict()
+      ))
+      .def("step_cond",    &lgrngn::step_cond<real_t>, (
+        bp::arg("th")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("rv")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("ambient_chem") = bp::dict()
+      ))
       .def("step_async",   &lgr::particles_proto_t<real_t>::step_async)
       .def("diag_sd_conc", &lgr::particles_proto_t<real_t>::diag_sd_conc)
       .def("diag_all",     &lgr::particles_proto_t<real_t>::diag_all)

@@ -29,6 +29,31 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::sync_in(
+      arrinfo_t<real_t> th,
+      arrinfo_t<real_t> rv,
+      const arrinfo_t<real_t> rhod,
+      const arrinfo_t<real_t> courant_1,
+      const arrinfo_t<real_t> courant_2,
+      const arrinfo_t<real_t> courant_3,
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::sync_in, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::step_cond(
+      const opts_t<real_t> &opts,
+      arrinfo_t<real_t> th,
+      arrinfo_t<real_t> rv,
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::step_cond, opts, th, rv, ambient_chem);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_async(
       const opts_t<real_t> &opts
     )

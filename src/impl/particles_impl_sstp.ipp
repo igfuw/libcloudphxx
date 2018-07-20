@@ -46,8 +46,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_step(
-      const int &step,
-      const bool &var_rho // if rho varied and need to be updated
+      const int &step
     )
     {   
       if (opts_init.sstp_cond == 1) return;
