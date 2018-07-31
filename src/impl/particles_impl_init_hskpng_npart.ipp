@@ -53,6 +53,11 @@ namespace libcloudphxx
         sstp_tmp_rv.resize(opts_init.n_sd_max);
         sstp_tmp_th.resize(opts_init.n_sd_max);
         sstp_tmp_rh.resize(opts_init.n_sd_max);
+        if(const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
+        {
+          sstp_tmp_p.resize(opts_init.n_sd_max);
+          tmp_device_real_part5.reserve(opts_init.n_sd_max);  
+        }
       }
       // reserve memory for in/out buffers
       if(opts_init.dev_count > 1)
@@ -60,8 +65,8 @@ namespace libcloudphxx
         in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
         out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
 
-        in_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh
-        out_real_bfr.resize(10 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+        in_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p
+        out_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
     }
   };

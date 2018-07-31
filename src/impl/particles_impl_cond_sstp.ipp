@@ -46,7 +46,7 @@ namespace libcloudphxx
           sstp_tmp_th.begin(), sstp_tmp_th.end(),                      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(
             sstp_tmp_rv.begin(),                                       // input - second arg 
-            thrust::make_permutation_iterator(p.begin(), ijk.begin())  // input - third arg
+            sstp_tmp_p.begin(),                                        // input - third arg
           )),
           Tp.begin(),                                                  // output
           detail::common__theta_dry__T_p<real_t>() 
@@ -116,12 +116,12 @@ namespace libcloudphxx
               sstp_tmp_rv.begin(),
               Tp.begin(),
               // particle-specific p
-              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              sstp_tmp_p.begin(),
               // particle-specific RH
               thrust::make_transform_iterator(
                 thrust::make_zip_iterator(
                   thrust::make_tuple(
-                    thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+                    sstp_tmp_p.begin(),
                     sstp_tmp_rv.begin(),
                     Tp.begin()
                 )),
