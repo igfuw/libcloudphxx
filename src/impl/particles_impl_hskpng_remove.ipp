@@ -37,6 +37,8 @@ namespace libcloudphxx
         real_t_vctrs.push_back(&sstp_tmp_th);
         real_t_vctrs.push_back(&sstp_tmp_rv);
         real_t_vctrs.push_back(&sstp_tmp_rh);
+        if(const_p)
+          real_t_vctrs.push_back(&sstp_tmp_p);
       }
 
       namespace arg = thrust::placeholders;
