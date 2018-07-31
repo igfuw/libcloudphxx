@@ -46,7 +46,7 @@ namespace libcloudphxx
           sstp_tmp_th.begin(), sstp_tmp_th.end(),                      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(
             sstp_tmp_rv.begin(),                                       // input - second arg 
-            sstp_tmp_p.begin(),                                        // input - third arg
+            sstp_tmp_p.begin()                                         // input - third arg
           )),
           Tp.begin(),                                                  // output
           detail::common__theta_dry__T_p<real_t>() 
