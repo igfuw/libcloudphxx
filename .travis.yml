@@ -99,8 +99,9 @@ install:
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
 # get latest FindBoost.cmake
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo mv FindBoost.cmake /usr/local/Cellar/cmake/3.9.4/share/cmake/Modules/; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake -P MyCmakeModules; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}:${PWD}/MyCmakeModules; fi
 
 # get blitz and python+packages
 #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
