@@ -146,6 +146,9 @@ if (CUDA_FOUND)
   unset(status)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
+
+  # use per-thread default stream to run concurrently async copies and thrust calls in multi_gpu_step:step_async()
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --default-stream per-thread")
   
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
