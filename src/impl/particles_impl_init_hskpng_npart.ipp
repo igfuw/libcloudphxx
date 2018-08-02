@@ -23,8 +23,7 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 
       if (opts_init.nz != 0) z.reserve(opts_init.n_sd_max); 
 
-      vt.reserve(opts_init.n_sd_max);
-      thrust::fill(vt.begin(), vt.end(), 0); // so that it may be safely used in condensation before first update
+      vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
 
       sorted_id.reserve(opts_init.n_sd_max);
       sorted_ijk.reserve(opts_init.n_sd_max);
