@@ -133,7 +133,7 @@ for i in range(0,2):
     limit = 1e-5;
   else:
     print 'const_multi RMSD = ' + str(rmsd);
-    limit = 2e-5; # constant multiplicity doesn't represent tails of the distribution so well and mass densty function depends on large tail?
+    limit = 3e-5; # constant multiplicity doesn't represent tails of the distribution so well and mass densty function depends on large tail?
 
   if(rmsd > limit):
     raise Exception("Simulation result does not agree with analytic prediction")
