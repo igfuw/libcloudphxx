@@ -159,12 +159,17 @@ namespace libcloudphxx
             pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
           }
         }
+
         nancheck(pimpl->th, " th after cond");
         nancheck(pimpl->rv, " rv after cond");
+
+        // saving rv to be used as rv_old
+        pimpl->sstp_save();
       }
 
       // chemistry
       // TODO: chemistry substepping still done the old way, i.e. per cell not per particle
+      // TODO2: shouldn't we run hskpng_Tpr before chemistry?
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
@@ -240,6 +245,11 @@ namespace libcloudphxx
           );
       }
 
+      // TODO: revert to old th and rv, so that processes in step_async see the same th and rv as passed in sync_in?;
+      //       but then what happens in step_cond after condensation (i.e. chemistry and source) sees the post-cond th and rv!;
+      //       this revert could probably be avoided if sstp_tmp_rv/th, pdrv, sstp_save() and etc would be cleverly used
+      //       so that th and rv are not directly changed in step_sync (would also fix the problem with chem and src 2 lines above)
+
       pimpl->should_now_run_async = true;
       pimpl->selected_before_counting = false;
     }
@@ -267,15 +277,10 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
-      if (opts.cond) 
-      { 
-        // saving rv to be used as rv_old
-        pimpl->sstp_save();
-      }
-
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
+        // NOTE: doing it here assumes that gases didn't change since chemistry finished in step_cond
         pimpl->sstp_save_chem();
       }
 
