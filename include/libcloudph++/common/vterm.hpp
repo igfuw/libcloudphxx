@@ -44,54 +44,59 @@ namespace libcloudphxx
         using moist_air::rho_w;
         using earth::g;
 
+        // explicitly convert to doubles
+	quantity<si::length, double> r_dbl(r);//.value * si::metres); 
+	quantity<si::mass_density, double> rhoa_dbl(rhoa);//.value * si::kilograms / si::cubic_metres); 
+	quantity<si::dynamic_viscosity, double> eta_dbl(eta);//.value * si::pascal * si::second); 
+
 	/// Best number (eq 2.7 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci) 
 	/// with maximum projected cross-sectional area parametrised as for spherical droplets (A=pi/4*D^2)
-	quantity<si::dimensionless, real_t> X = real_t(32./3) * (rho_w<real_t>() - rhoa)/rhoa * g<real_t>() 
-	  * r * r * r / eta / eta * rhoa * rhoa; //TODO use pow<>()  
+	quantity<si::dimensionless, double> X = double(32./3) * (rho_w<double>() - rhoa_dbl)/rhoa_dbl * g<double>() 
+	  * r_dbl * r_dbl * r_dbl / eta_dbl / eta_dbl * rhoa_dbl * rhoa_dbl; //TODO use pow<>()  
 
 	/// terminal velocity parametrisation coeffs 
 	/// eqs 2.12, 2.13 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
-	quantity<si::dimensionless, real_t> b = real_t(.0902/2) * sqrt(X)
-	  * pow(sqrt(real_t(1)+real_t(.0902)*sqrt(X))-real_t(1), -1)
-	  * pow(sqrt(real_t(1)+real_t(.0902)*sqrt(X)), -1) ;
-	quantity<si::dimensionless, real_t> a = real_t(9.06 * 9.06 / 4)
-	  * pow(sqrt(real_t(1)+real_t(.0902)*sqrt(X))-real_t(1), 2) / pow(X,b) ;
+	quantity<si::dimensionless, double> b = double(.0902/2) * sqrt(X)
+	  * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), -1)
+	  * pow(sqrt(double(1)+double(.0902)*sqrt(X)), -1) ;
+	quantity<si::dimensionless, double> a = double(9.06 * 9.06 / 4)
+	  * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), 2) / pow(X,b) ;
 
-        quantity<si::dimensionless, real_t> Av;
-        quantity<si::dimensionless, real_t> Bv;
+        quantity<si::dimensionless, double> Av;
+        quantity<si::dimensionless, double> Bv;
 
         if(spherical)
         {
   	  /// eq 3.1 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
 	  Av = a
-	    * pow(eta / rhoa * real_t(1e4) * si::seconds / si::square_metres, real_t(1)-real_t(2)*b)
-	    * pow(real_t(4./3) * rho_w<real_t>() / rhoa * g<real_t>() *real_t(1e2)* si::seconds * si::seconds / si::metres, b) ;
+	    * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
+	    * pow(double(4./3) * rho_w<double>() / rhoa_dbl * g<double>() *double(1e2)* si::seconds * si::seconds / si::metres, b) ;
         }
         else
         // nonspherical
         {
           // aspect ratio eq. 3.4
-          quantity<si::length, real_t> lambda_half = real_t(2.35e-3) * si::metres;
-          quantity<si::dimensionless, real_t> ksi = exp(-r / lambda_half) 
-            + (real_t(1) - exp(-r / lambda_half)) / (real_t(1) + r / lambda_half);
+          quantity<si::length, double> lambda_half = double(2.35e-3) * si::metres;
+          quantity<si::dimensionless, double> ksi = exp(-r_dbl / lambda_half) 
+            + (double(1) - exp(-r_dbl / lambda_half)) / (double(1) + r_dbl / lambda_half);
 
           // parameters from table 1
-          quantity<si::mass_density, real_t> alfa = 
+          quantity<si::mass_density, double> alfa = 
 #if !defined(__NVCC__)
-            pi<real_t>()
+            pi<double>()
 #else
             CUDART_PI
 #endif
-            / real_t(6) * rho_w<real_t>() * ksi;    
+            / double(6) * rho_w<double>() * ksi;    
 
           // eqs. 2.24, 2.25
           Av = a 
-	    * pow(eta / rhoa * real_t(1e4) * si::seconds / si::square_metres, real_t(1)-real_t(2)*b)
-            * pow(real_t(2.546479) * alfa / rhoa * g<real_t>()  * real_t(1e2) * si::seconds * si::seconds / si::metres  , b);
+	    * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
+            * pow(double(2.546479) * alfa / rhoa_dbl * g<double>()  * double(1e2) * si::seconds * si::seconds / si::metres  , b);
         }
-	Bv = real_t(3)*b - real_t(1) ;
+	Bv = double(3)*b - double(1) ;
 
-	return (Av * real_t(pow(real_t(2*1e2) * r/si::metres, Bv)))/real_t(1e2) * si::metres_per_second;
+	return quantity<si::velocity, real_t>((Av * double(pow(double(2*1e2) * r_dbl/si::metres, Bv)))/double(1e2) * si::metres_per_second);
       }
 
       // terminal fall velocity at sea level according to Beard (1977)
