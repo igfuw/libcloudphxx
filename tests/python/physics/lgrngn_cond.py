@@ -46,9 +46,9 @@ opts.coal = False
 opts.chem = False
 
 #expected theta and rv after condensation:
-exp_th = { True : 309.34, # constp
+exp_th = { True : 306.9, # constp
            False: 307.78}  # varp
-exp_rv = { True : 1.641e-2, # constp
+exp_rv = { True : 1.628e-2, # constp
            False: 1.7e-2}  # varp
 
 def supersaturation(prtcls):
@@ -83,6 +83,13 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 
     rhod, th, rv, p = initial_state()
     rv_init = rv.copy()
+
+    # in constp mode, th_std is expected instead of th_dry
+    if constp == True:
+      # dry/std conversions assume p = rhod (Rd + rv * Rv) T
+      # which in general is not true in constp, but is true at init so we use it here
+      th[0] = common.th_dry2std(th[0], rv[0])
+
     th_init = th.copy()
     prtcls = lgrngn.factory(backend, opts_init)
     if constp == False:

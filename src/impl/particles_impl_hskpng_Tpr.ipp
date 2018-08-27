@@ -43,7 +43,7 @@ namespace libcloudphxx
        BOOST_GPU_ENABLED 
        real_t operator()(const real_t &th, const tpl_t &tpl) // tpl: (rv, p)
        {   
-         return common::theta_dry::dry2std(th * si::kelvins, quantity<si::dimensionless, real_t>(thrust::get<0>(tpl))) / si::kelvins * 
+         return th * 
                 common::theta_std::exner<real_t>(thrust::get<1>(tpl)  * si::pascals);
        }   
       }; 
@@ -185,7 +185,7 @@ namespace libcloudphxx
       }
       else // external pressure profile
       {
-        // T = dry2std(th_d, rv) * exner(p_tot)
+        // T = th * exner(p_tot)
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args

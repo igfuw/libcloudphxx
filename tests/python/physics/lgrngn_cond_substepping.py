@@ -59,7 +59,7 @@ opts.chem = False
 #opts.RH_max = 1.005
 
 #expected theta and rv after condensation:
-exp_th = { True : 300.126, # constp
+exp_th = { True : 298.884, # constp
            False: 300.115}   # varp
 exp_rv = { True : 9.05e-3, # constp
            False: 9.06e-3}  # varp
@@ -67,7 +67,7 @@ exp_rv_diff = { True : 1e-6, # constp
                 False: 5e-9}   # varp
 
 # range of supersat after condesation
-ss_max = -0.73
+ss_max = -0.71
 ss_min = -0.96
 
 
@@ -140,6 +140,14 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 
     rhod, th, rv, p = initial_state()
     rhod_ss, th_ss, rv_ss, p_ss = supersat_state()
+
+    # in constp mode, th_std is expected instead of th_dry
+    if constp == True:
+      # dry/std conversions assume p = rhod (Rd + rv * Rv) T
+      # which in general is not true in constp, but is true at init so we use it here
+      th[0] = common.th_dry2std(th[0], rv[0])
+      th_ss[0] = common.th_dry2std(th_ss[0], rv_ss[0])
+
     prtcls = lgrngn.factory(backend, opts_init)
 
     if constp == False:
@@ -227,9 +235,9 @@ for constp in [False, True]:
                }
       # expected mean radius of droplets with r>0.5um
       exp_mr ={ True: {        # constp
-                          lgrngn.RH_formula_t.pv_cc  : 3.111,
-                          lgrngn.RH_formula_t.rv_cc  : 3.126,
-                          lgrngn.RH_formula_t.pv_tet : 2.727,
+                          lgrngn.RH_formula_t.pv_cc  : 3.141,
+                          lgrngn.RH_formula_t.rv_cc  : 3.156,
+                          lgrngn.RH_formula_t.pv_tet : 2.767,
                           lgrngn.RH_formula_t.rv_tet : 8.170,
                        },
                  False: {        # varp
@@ -242,9 +250,9 @@ for constp in [False, True]:
 
       # expected second moment of droplets with r>0.5um
       exp_sr ={ True: {        # constp
-                          lgrngn.RH_formula_t.pv_cc  : 1.649e-11,
-                          lgrngn.RH_formula_t.rv_cc  : 1.655e-11,
-                          lgrngn.RH_formula_t.pv_tet : 1.515e-11,
+                          lgrngn.RH_formula_t.pv_cc  : 1.662e-11,
+                          lgrngn.RH_formula_t.rv_cc  : 1.668e-11,
+                          lgrngn.RH_formula_t.pv_tet : 1.528e-11,
                           lgrngn.RH_formula_t.rv_tet : 6.760e-11,
                        }, 
                  False: {        # varp
@@ -257,9 +265,9 @@ for constp in [False, True]:
 
       # expected third moment of droplets with r>0.5um
       exp_tr ={ True: {        # constp
-                          lgrngn.RH_formula_t.pv_cc  : 1.221e-16,
-                          lgrngn.RH_formula_t.rv_cc  : 1.223e-16,
-                          lgrngn.RH_formula_t.pv_tet : 1.174e-16,
+                          lgrngn.RH_formula_t.pv_cc  : 1.226e-16,
+                          lgrngn.RH_formula_t.rv_cc  : 1.228e-16,
+                          lgrngn.RH_formula_t.pv_tet : 1.179e-16,
                           lgrngn.RH_formula_t.rv_tet : 5.662e-16,
                        }, 
                  False: {        # varp
@@ -272,7 +280,7 @@ for constp in [False, True]:
 
       assert(abs(act - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
       assert(abs(mr - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
-      assert(abs(sr - exp_sr[constp][RH_formula]) < 1e-3 * exp_sr[constp][RH_formula])
+      assert(abs(sr - exp_sr[constp][RH_formula]) < 1.2e-3 * exp_sr[constp][RH_formula])
       assert(abs(tr - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
 
 
@@ -286,7 +294,7 @@ for constp in [False, True]:
       exp_act ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 16561,
                           lgrngn.RH_formula_t.rv_cc  : 17036,
-                          lgrngn.RH_formula_t.pv_tet : 8926,
+                          lgrngn.RH_formula_t.pv_tet : 9485,
                           lgrngn.RH_formula_t.rv_tet : 8125,
                        }, 
                  False: {        # varp
@@ -300,7 +308,7 @@ for constp in [False, True]:
       exp_mr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 4.726,
                           lgrngn.RH_formula_t.rv_cc  : 4.642,
-                          lgrngn.RH_formula_t.pv_tet : 7.600,
+                          lgrngn.RH_formula_t.pv_tet : 7.200,
                           lgrngn.RH_formula_t.rv_tet : 8.212,
                        }, 
                  False: {        # varp
@@ -314,7 +322,7 @@ for constp in [False, True]:
       exp_sr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 3.526e-11,
                           lgrngn.RH_formula_t.rv_cc  : 3.435e-11,
-                          lgrngn.RH_formula_t.pv_tet : 6.324e-11,
+                          lgrngn.RH_formula_t.pv_tet : 5.961e-11,
                           lgrngn.RH_formula_t.rv_tet : 6.828e-11,
                        }, 
                  False: {        # varp
@@ -328,7 +336,7 @@ for constp in [False, True]:
       exp_tr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 2.948e-16,
                           lgrngn.RH_formula_t.rv_cc  : 2.867e-16,
-                          lgrngn.RH_formula_t.pv_tet : 5.361e-16,
+                          lgrngn.RH_formula_t.pv_tet : 5.054e-16,
                           lgrngn.RH_formula_t.rv_tet : 5.749e-16,
                        }, 
                  False: {        # varp
@@ -353,7 +361,7 @@ for constp in [False, True]:
       exp_act ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 16097,
                           lgrngn.RH_formula_t.rv_cc  : 16404,
-                          lgrngn.RH_formula_t.pv_tet : 8573,
+                          lgrngn.RH_formula_t.pv_tet : 8979,
                           lgrngn.RH_formula_t.rv_tet : 8125,
                        }, 
                  False: {        # varp
@@ -367,7 +375,7 @@ for constp in [False, True]:
       exp_mr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 4.792,
                           lgrngn.RH_formula_t.rv_cc  : 4.741,
-                          lgrngn.RH_formula_t.pv_tet : 7.894,
+                          lgrngn.RH_formula_t.pv_tet : 7.572,
                           lgrngn.RH_formula_t.rv_tet : 8.222,
                        }, 
                  False: {        # varp
@@ -381,7 +389,7 @@ for constp in [False, True]:
       exp_sr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 3.622e-11,
                           lgrngn.RH_formula_t.rv_cc  : 3.560e-11,
-                          lgrngn.RH_formula_t.pv_tet : 6.600e-11,
+                          lgrngn.RH_formula_t.pv_tet : 6.307e-11,
                           lgrngn.RH_formula_t.rv_tet : 6.844e-11,
                        }, 
                  False: {        # varp
@@ -395,7 +403,7 @@ for constp in [False, True]:
       exp_tr ={ True: {        # constp
                           lgrngn.RH_formula_t.pv_cc  : 3.041e-16,
                           lgrngn.RH_formula_t.rv_cc  : 2.985e-16,
-                          lgrngn.RH_formula_t.pv_tet : 5.601e-16,
+                          lgrngn.RH_formula_t.pv_tet : 5.357e-16,
                           lgrngn.RH_formula_t.rv_tet : 5.768e-16,
                        }, 
                  False: {        # varp

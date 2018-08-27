@@ -77,8 +77,9 @@ namespace libcloudphxx
 	y,   // y spatial coordinate (for 3D)
 	z,   // z spatial coordinate (for 2D and 3D)
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta_d
-        sstp_tmp_rh; // ditto for rho
+        sstp_tmp_th, // ditto for theta
+        sstp_tmp_rh, // ditto for rho
+        sstp_tmp_p; // ditto for pressure
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -192,6 +193,7 @@ namespace libcloudphxx
         tmp_device_real_part2,  
         tmp_device_real_part3,
         tmp_device_real_part4,
+        tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
