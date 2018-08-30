@@ -61,7 +61,7 @@ namespace libcloudphxx
           }
           else
           {
-	    T  = common::theta_dry::dry2std(th, r) * common::theta_std::exner<real_t>(p);
+	    T  = th * common::theta_std::exner<real_t>(p);
           }
 
 	  rs = common::const_cp::r_vs<real_t>(T, p);
@@ -115,11 +115,9 @@ namespace libcloudphxx
         real_t rv_tmp = rv;
         quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
 	
-        auto p_d = p - moist_air::p_v(p, rv * si::dimensionless());
-        auto exner_p_d = theta_std::exner(p_d);
         auto exner_p = theta_std::exner(p);
         
-        quantity<si::temperature, real_t> T = theta_dry::dry2std(th_tmp, rv * si::dimensionless()) * exner_p; 
+        quantity<si::temperature, real_t> T = th_tmp * exner_p; 
 
         // constant l_v used in theta update
         auto L0 = const_cp::l_v(T);
@@ -139,9 +137,9 @@ namespace libcloudphxx
           drc +=  (rv_tmp - r_vs) / (1 + coeff * r_vs);
 
           rv_tmp = rv - drc;
-          th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc;
+          th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p) * drc;
 	  
-          T = theta_dry::dry2std(th_tmp, rv_tmp * si::dimensionless()) * exner_p; 
+          T = th_tmp * exner_p; 
         }
 
         // limiting
@@ -149,7 +147,7 @@ namespace libcloudphxx
 
         rv -= drc;
         rc += drc;
-        th += L0 / (moist_air::c_pd<real_t>() * exner_p_d) * drc / si::kelvins;
+        th += L0 / (moist_air::c_pd<real_t>() * exner_p) * drc / si::kelvins;
 
 	// triple-checking....
 	assert(th >= 273.15); // that is theta, not T ! TODO
@@ -164,7 +162,7 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, // value not used if const_p = false
-      cont_t &th_cont, 
+      cont_t &th_cont, // if const_p == false, its th_dry, otherwise its th_std 
       cont_t &rv_cont,
       cont_t &rc_cont,
       cont_t &rr_cont,
@@ -296,7 +294,7 @@ namespace libcloudphxx
     void adj_cellwise(
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
-      cont_t &th_cont, 
+      cont_t &th_cont,  // th_dry
       cont_t &rv_cont,
       cont_t &rc_cont,
       cont_t &rr_cont,
@@ -316,7 +314,7 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       const cont_t &rhod_cont, 
       const cont_t &p_cont, 
-      cont_t &th_cont, 
+      cont_t &th_cont,  // th_std
       cont_t &rv_cont,
       cont_t &rc_cont,
       cont_t &rr_cont,
