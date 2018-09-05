@@ -103,8 +103,7 @@ namespace libcloudphxx
           &rv = boost::get<6>(tup),
           &rr = boost::get<7>(tup);
 
-        auto p_d = p - moist_air::p_v(p, rv * si::dimensionless());
-        quantity<si::temperature, real_t> T = th * theta_std::exner(p_d);
+        quantity<si::temperature, real_t> T = th * theta_std::exner(p);
         real_t r_vs = const_cp::r_vs(T, p);
 
         tmp = (
@@ -120,7 +119,7 @@ namespace libcloudphxx
         dot_rv += tmp;
         dot_rr -= tmp;
 
-        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p_d)) * tmp / si::kelvins;
+        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * tmp / si::kelvins;
       }
     }
   }
