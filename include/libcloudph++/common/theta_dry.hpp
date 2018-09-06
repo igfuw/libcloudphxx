@@ -50,7 +50,7 @@ namespace libcloudphxx
 	const quantity<si::temperature, real_t> &T,
 	const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
-	return - th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
+	return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>

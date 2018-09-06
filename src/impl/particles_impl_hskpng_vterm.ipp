@@ -50,6 +50,8 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
+          // TODO: move the formula selection to the functor's constructor to avoid the switch in each function call,
+          //       see how it is done in RH calculation in hskpng_Tpr
           switch(vt_eq)
           {
             case(vt_t::beard76):

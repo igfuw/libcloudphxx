@@ -1,5 +1,5 @@
 # non-pytest tests
-foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 col_kernels terminal_velocities SD_removal uniform_init source chem_coal sstp_cond multiple_kappas adve_scheme lgrngn_subsidence)
+foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 col_kernels terminal_velocities SD_removal uniform_init source chem_coal sstp_cond multiple_kappas adve_scheme lgrngn_subsidence sat_adj_blk_1m )
   #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}

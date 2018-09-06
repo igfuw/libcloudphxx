@@ -73,6 +73,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &sstp_tmp_th(particles[dev_id]->pimpl->sstp_tmp_th);
         thrust_device::vector<real_t> &sstp_tmp_rh(particles[dev_id]->pimpl->sstp_tmp_rh);
         thrust_device::vector<real_t> &sstp_tmp_rv(particles[dev_id]->pimpl->sstp_tmp_rv);
+        thrust_device::vector<real_t> &sstp_tmp_p(particles[dev_id]->pimpl->sstp_tmp_p);
         thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
         thrust_device::vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
         thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
@@ -122,6 +123,7 @@ namespace libcloudphxx
         );
 
         // prepare the real_t buffer for copy left
+        // TODO: init real_t_vctrs only once per run
         thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
         std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
         if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
@@ -130,6 +132,8 @@ namespace libcloudphxx
           real_t_vctrs.push_back(&sstp_tmp_rv);
           real_t_vctrs.push_back(&sstp_tmp_th);
           real_t_vctrs.push_back(&sstp_tmp_rh);
+          if(particles[dev_id]->pimpl->const_p)
+            real_t_vctrs.push_back(&sstp_tmp_p);
         }
         const int real_vctrs_count = real_t_vctrs.size(); 
         assert(out_real_bfr.size() >= lft_count * real_vctrs_count);

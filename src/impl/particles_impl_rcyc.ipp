@@ -103,6 +103,8 @@ namespace libcloudphxx
         detail::copy_prop<real_t>(sstp_tmp_rv.begin(), sorted_id, n_flagged);
         detail::copy_prop<real_t>(sstp_tmp_th.begin(), sorted_id, n_flagged);
         detail::copy_prop<real_t>(sstp_tmp_rh.begin(), sorted_id, n_flagged);
+        if(const_p)
+          detail::copy_prop<real_t>(sstp_tmp_p.begin(), sorted_id, n_flagged);
       }
 
       // ... chemical properties only if chem enabled

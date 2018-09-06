@@ -16,11 +16,11 @@ namespace libcloudphxx
     {
       if (opts_init.sstp_cond == 1) return;
 
-      const int n = 3;
+      const int n = 4;
       thrust_device::vector<real_t>
-        *fr[n] = { &rv,          &th,          &rhod        },
-        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
-      for (int ix = 0; ix < n; ++ix) // TODO: var_rho
+        *fr[n] = { &rv,          &th,          &rhod,        &p          },
+        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
+      for (int ix = 0; ix < ( (const_p && opts_init.exact_sstp_cond) ? n : n-1); ++ix) // TODO: var_rho
       {
         if(opts_init.exact_sstp_cond) // per-particle version
           thrust::copy(
@@ -46,8 +46,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_step(
-      const int &step,
-      const bool &var_rho // if rho varied and need to be updated
+      const int &step
     )
     {   
       if (opts_init.sstp_cond == 1) return;
@@ -94,21 +93,20 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_step_exact(
-      const int &step,
-      const bool &var_rho // if rho varied and need to be updated
+      const int &step
     )
     {   
       if (opts_init.sstp_cond == 1) return;
 
       namespace arg = thrust::placeholders;
 
-      const int n = 3;
+      const int n = 4;
       thrust_device::vector<real_t>
-        *scl[n] = { &rv,          &th,          &rhod        },
-        *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh },
-        *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2 };
+        *scl[n] = { &rv,          &th,          &rhod,        &p          },
+        *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
+        *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2, &tmp_device_real_part5 };
 
-      for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
+      for (int ix = 0; ix < (const_p ? n : n-1); ++ix)
       {
         const real_t sstp = opts_init.sstp_cond;
       	if (step == 0)
