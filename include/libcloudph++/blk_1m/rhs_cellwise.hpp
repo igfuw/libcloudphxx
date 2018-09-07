@@ -116,6 +116,9 @@ namespace libcloudphxx
           ) * si::seconds // to make it dimensionless
         );
 
+        // limiting
+        tmp = std::min(rr, tmp);
+
         dot_rv += tmp;
         dot_rr -= tmp;
 
