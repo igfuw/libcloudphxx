@@ -185,7 +185,7 @@ namespace libcloudphxx
         &z_old(tmp_device_real_part1);
 
       // shift to coordiante system starting at halo's left edge
-      thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 + opts_init.dx);
+      thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 + halo_size * opts_init.dx);
 
       hskpng_ijk();        // get cell indices in new coordinates
 
@@ -291,7 +291,7 @@ namespace libcloudphxx
           (arg::_1 + arg::_2) / real_t(2.)       // oper
         );
       // shift back to regular coordiante system
-      thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 - opts_init.dx);
+      thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 - halo_size * opts_init.dx);
     }
   };  
 };
