@@ -128,6 +128,9 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem   // for sync-out
     )
     {
+//printf("step_cond start\n");
+//printf("x\n");
+//debug::print(pimpl->x);
       //sanity checks
       if (!pimpl->should_now_run_cond)
         throw std::runtime_error("please call sync_in() before calling step_cond()");
@@ -277,6 +280,10 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
+      printf("step_async start\n");
+      printf("x\n");
+      debug::print(pimpl->x);
+
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
@@ -284,12 +291,24 @@ namespace libcloudphxx
         pimpl->sstp_save_chem();
       }
 
+      printf("step_async pre Tpr\n");
+      printf("x\n");
+      debug::print(pimpl->x);
+
       // updating Tpr look-up table (includes RH update)
       pimpl->hskpng_Tpr(); 
+
+      printf("step_async pre vt\n");
+      printf("x\n");
+      debug::print(pimpl->x);
 
       // updating terminal velocities
       if (opts.sedi || opts.coal)
         pimpl->hskpng_vterm_all();
+
+      printf("step_async pre coal\n");
+      printf("x\n");
+      debug::print(pimpl->x);
 
       // coalescence
       if (opts.coal) 
@@ -315,8 +334,12 @@ namespace libcloudphxx
 
       // advection, it invalidates i,j,k and ijk!
       printf("prtcls adve start\n");
+      printf("x\n");
+      debug::print(pimpl->x);
       if (opts.adve) pimpl->adve(); 
       printf("prtcls adve done\n");
+      printf("x\n");
+      debug::print(pimpl->x);
 
       // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
@@ -324,6 +347,11 @@ namespace libcloudphxx
         // advection with terminal velocity
         pimpl->sedi();
       }
+
+      printf("step_async post sedi\n");
+      printf("x\n");
+      debug::print(pimpl->x);
+
 
       // boundary condition + accumulated rainfall to be returned
       // multi_GPU version invalidates i and k;

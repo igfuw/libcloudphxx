@@ -50,7 +50,47 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
+printf("mCUDA step_cond start\n");
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::step_cond, opts, th, rv, ambient_chem);
+
+//      detail::barrier_t barrier(this->opts_init->dev_count);
+//printf("mCCUDA step_cond post barrier\n");
+//if(this->opts_init->dev_id == 0)
+//{
+//printf("step cond dev id %d\n", this->opts_init->dev_id);
+//      // do step async on each device
+//      gpuErrchk(cudaSetDevice(this->opts_init->dev_id));
+//      pimpl->particles[this->opts_init->dev_id]->step_cond(opts, th, rv, ambient_chem);
+//printf("step cond dev id %d done\n", this->opts_init->dev_id);
+//}
+//        barrier.wait();
+//if(this->opts_init->dev_id == 1)
+//{
+//printf("step cond dev id %d\n", this->opts_init->dev_id);
+//      // do step async on each device
+//      gpuErrchk(cudaSetDevice(this->opts_init->dev_id));
+//      pimpl->particles[this->opts_init->dev_id]->step_cond(opts, th, rv, ambient_chem);
+//printf("step cond dev id %d done\n", this->opts_init->dev_id);
+//}
+//        barrier.wait();
+//if(this->opts_init->dev_id == 2)
+//{
+//printf("step cond dev id %d\n", this->opts_init->dev_id);
+//      // do step async on each device
+//      gpuErrchk(cudaSetDevice(this->opts_init->dev_id));
+//      pimpl->particles[this->opts_init->dev_id]->step_cond(opts, th, rv, ambient_chem);
+//printf("step cond dev id %d done\n", this->opts_init->dev_id);
+//}
+//        barrier.wait();
+//if(this->opts_init->dev_id == 3)
+//{
+//printf("step cond dev id %d\n", this->opts_init->dev_id);
+//      // do step async on each device
+//      gpuErrchk(cudaSetDevice(this->opts_init->dev_id));
+//      pimpl->particles[this->opts_init->dev_id]->step_cond(opts, th, rv, ambient_chem);
+//printf("step cond dev id %d done\n", this->opts_init->dev_id);
+//}
+//        barrier.wait();
     }
 
     template <typename real_t>
