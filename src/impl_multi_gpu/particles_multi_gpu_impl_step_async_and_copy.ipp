@@ -47,46 +47,14 @@ namespace libcloudphxx
       detail::barrier_t &barrier
     )
     {
-printf("step async and copy start\n");
       gpuErrchk(cudaSetDevice(dev_id));
 
-if(dev_id == 0)
-{
-printf("step async do step dev id %d\n", dev_id);
       // do step async on each device
       particles[dev_id]->step_async(opts);
-printf("step async do step dev id %d done\n", dev_id);
-}
-        barrier.wait();
-if(dev_id == 1)
-{
-printf("step async do step dev id %d\n", dev_id);
-      // do step async on each device
-      particles[dev_id]->step_async(opts);
-printf("step async do step dev id %d done\n", dev_id);
-}
-        barrier.wait();
-if(dev_id == 2)
-{
-printf("step async do step dev id %d\n", dev_id);
-      // do step async on each device
-      particles[dev_id]->step_async(opts);
-printf("step async do step dev id %d done\n", dev_id);
-}
-        barrier.wait();
-if(dev_id == 3)
-{
-printf("step async do step dev id %d\n", dev_id);
-      // do step async on each device
-      particles[dev_id]->step_async(opts);
-printf("step async do step dev id %d done\n", dev_id);
-}
-        barrier.wait();
 
       // --- copy advected SDs to other devices ---
       if(opts.adve && glob_opts_init.dev_count>1)
       {
-printf("step async do copy\n");
         namespace arg = thrust::placeholders;
         typedef unsigned long long n_t; // TODO: same typedef is in impl struct !! particles::impl::n_t ? 
 
@@ -308,12 +276,10 @@ printf("step async do copy\n");
         barrier.wait();
         gpuErrchk(cudaStreamDestroy(streams[dev_id]));
         gpuErrchk(cudaEventDestroy(events[dev_id]));
-printf("step async copy done\n");
       }
       // finalize async
       if(glob_opts_init.dev_count>1)
         particles[dev_id]->pimpl->step_finalize(opts);
-printf("step async done\n");
     }
   };
 };

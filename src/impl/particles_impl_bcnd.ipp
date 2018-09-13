@@ -92,19 +92,11 @@ namespace libcloudphxx
           // more than one GPU - save ids of particles that need to be copied left/right
           else
           {
-printf("save ids start\n");
 	    namespace arg = thrust::placeholders;
             // use i and k as temp storage - after bcond they are invalid anyway
             // multi_CUDA works only for 2D and 3D
             thrust_device::vector<thrust_size_t> &lft_id(i);
             thrust_device::vector<thrust_size_t> &rgt_id(k);
-
-printf("n_part %d\n", n_part);
-printf("x0 %g\n", opts_init.x0);
-printf("x\n");
-debug::print(x);
-printf("lft_id pre\n");
-debug::print(lft_id);
 
             // save ids of SDs to copy
             lft_count = thrust::copy_if(
@@ -114,18 +106,12 @@ debug::print(lft_id);
               arg::_1 < opts_init.x0
             ) - lft_id.begin();
 
-printf("lft_id post\n");
-debug::print(lft_id);
-
-printf("save ids half\n");
             rgt_count = thrust::copy_if(
               zero, zero+n_part,
               x.begin(),
               rgt_id.begin(),
               arg::_1 >= opts_init.x1
             ) - rgt_id.begin();
-
-printf("save ids done\n");
 
             if(lft_count > in_n_bfr.size() || rgt_count > in_n_bfr.size())
               throw std::runtime_error(detail::formatter() << "Overflow of the in int buffer, bfr size: " << in_n_bfr.size() << " to be copied left: " << lft_count << " right: " << rgt_count); // TODO: resize buffers?
@@ -134,18 +120,15 @@ printf("save ids done\n");
           // hardcoded periodic boundary in y! (TODO - as an option)
           if (n_dims == 3)
           {
-printf("y transform start\n");
 	    thrust::transform(
 	      y.begin(), y.end(),
 	      y.begin(),
 	      detail::periodic<real_t>(opts_init.y0, opts_init.y1)
 	    );
-printf("y transform done\n");
           }
 
           if (n_dims > 1)
           {
-printf("bcnd 1\n");
 	    // hardcoded "open" boudary at the top of the domain 
 	    // (just for numerical-error-sourced out-of-domain particles)
 	    {
@@ -158,7 +141,6 @@ printf("bcnd 1\n");
 	      );
 	    }
 
-printf("bcnd 2\n");
 	    // precipitation on the bottom edge of the domain
 	    //// first: count the volume of particles below the domain
 	    // TODO! (using tranform_reduce?)
@@ -170,7 +152,6 @@ printf("bcnd 2\n");
 
               thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
 
-printf("bcnd 3\n");
               // copy n of SDs that are out of the domain (otherwise remains n_filtered=0)
               thrust::transform_if(
                 n.begin(), n.end(),               // input 1
@@ -180,7 +161,6 @@ printf("bcnd 3\n");
                 arg::_1 < opts_init.z0            // condition
               );
 
-printf("bcnd 4\n");
               // add total liquid water volume that fell out in this step
               output_puddle[outliq_vol] += 
                 thrust::transform_reduce(
@@ -193,7 +173,6 @@ printf("bcnd 4\n");
                   thrust::plus<real_t>()
                 );
 
-printf("bcnd 5\n");
               // add total dry volume that fell out in this step
               output_puddle[outdry_vol] += 
                 thrust::transform_reduce(
@@ -206,7 +185,6 @@ printf("bcnd 5\n");
                   thrust::plus<real_t>()
                 );
 
-printf("bcnd 6\n");
               if(opts_init.chem_switch)
               {
                 for (int i = 0; i < chem_all; ++i)
@@ -222,7 +200,6 @@ printf("bcnd 6\n");
                     );
               }
 
-printf("bcnd 7\n");
               // zero-out multiplicities
 	      thrust::transform_if(   
 		z.begin(), z.end(),          // input 
@@ -230,7 +207,6 @@ printf("bcnd 7\n");
 		detail::flag<n_t, real_t>(), // operation (zero-out)
 		arg::_1 < opts_init.z0       // condition
 	      );
-printf("bcnd 8\n");
 	    }
           }
           break; 

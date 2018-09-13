@@ -314,9 +314,7 @@ namespace libcloudphxx
       }
 
       // advection, it invalidates i,j,k and ijk!
-      printf("prtcls adve start\n");
       if (opts.adve) pimpl->adve(); 
-      printf("prtcls adve done\n");
 
       // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
@@ -330,9 +328,7 @@ namespace libcloudphxx
       // this has to be done last since i and k will be used by multi_gpu copy to other devices
       // TODO: instead of using i and k define new vectors ?
       // TODO: do this only if we advect/sediment?
-      printf("prtcls bcnd start\n");
       pimpl->bcnd();
-      printf("prtcls bcnd done\n");
 
       // some stuff to be done at the end of the step.
       // if using more than 1 GPU
