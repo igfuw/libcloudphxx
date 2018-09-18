@@ -118,7 +118,7 @@ namespace libcloudphxx
         );
 
         // limiting
-        tmp = std::min(rr, tmp) * dt;
+        tmp = std::min(rr, tmp) / dt;
 
         dot_rv += tmp;
         dot_rr -= tmp;
