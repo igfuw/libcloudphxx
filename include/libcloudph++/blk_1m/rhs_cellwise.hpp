@@ -74,7 +74,8 @@ namespace libcloudphxx
       const cont_t &th_cont,
       const cont_t &rv_cont,
       const cont_t &rc_cont,
-      const cont_t &rr_cont
+      const cont_t &rr_cont,
+      const real_t &dt // time step in seconds
     )   
     {
       rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont, rc_cont, rr_cont);
@@ -113,11 +114,11 @@ namespace libcloudphxx
             rr * si::dimensionless(),
             rhod,
             p
-          ) * si::seconds // to make it dimensionless
+          ) * si::seconds * dt
         );
 
         // limiting
-        tmp = std::min(rr, tmp);
+        tmp = std::min(rr, tmp) * dt;
 
         dot_rv += tmp;
         dot_rr -= tmp;
