@@ -300,19 +300,19 @@ namespace libcloudphxx
           {
             case 3:
               n_grid = std::max(std::max(
-                (opts_init.nx+2+1) * (opts_init.ny+0) * (opts_init.nz+0), 
-                (opts_init.nx+2) * (opts_init.ny+1) * (opts_init.nz+0)),
-                (opts_init.nx+2) * (opts_init.ny+0) * (opts_init.nz+1)
+                (opts_init.nx+2*halo_size+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                (opts_init.nx+2*halo_size) * (opts_init.ny+1) * (opts_init.nz+0)),
+                (opts_init.nx+2*halo_size) * (opts_init.ny+0) * (opts_init.nz+1)
               );
               break;
             case 2:
               n_grid = std::max(
-                (opts_init.nx+2+1) * (opts_init.nz+0), 
-                (opts_init.nx+2) * (opts_init.nz+1)
+                (opts_init.nx+2*halo_size+1) * (opts_init.nz+0), 
+                (opts_init.nx+2*halo_size) * (opts_init.nz+1)
               );
               break;
             case 1:
-              n_grid = opts_init.nx+2+1;
+              n_grid = opts_init.nx+2*halo_size+1;
               break;
             case 0:
               n_grid = 1;
