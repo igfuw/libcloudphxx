@@ -66,6 +66,9 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
         thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
         thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
+        thrust_device::vector<real_t> &up(particles[dev_id]->pimpl->up);
+        thrust_device::vector<real_t> &vp(particles[dev_id]->pimpl->vp);
+        thrust_device::vector<real_t> &wp(particles[dev_id]->pimpl->wp);
         thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
         thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
         thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
@@ -134,6 +137,12 @@ namespace libcloudphxx
           real_t_vctrs.push_back(&sstp_tmp_rh);
           if(particles[dev_id]->pimpl->const_p)
             real_t_vctrs.push_back(&sstp_tmp_p);
+        }
+        if(glob_opts_init.turb_switch)
+        {
+          if(glob_opts_init.nx > 0) real_t_vctrs.push_back(&up);
+          if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&vp);
+          if(glob_opts_init.nz > 0) real_t_vctrs.push_back(&wp);
         }
         const int real_vctrs_count = real_t_vctrs.size(); 
         assert(out_real_bfr.size() >= lft_count * real_vctrs_count);

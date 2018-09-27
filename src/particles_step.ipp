@@ -292,6 +292,9 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
+      if(opts.turb_adve && !pimpl->opts_init.turb_switch) 
+        throw std::runtime_error("all turbulence sgs was switched off in opts_init, but turb_adve==True");
+
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
@@ -329,13 +332,13 @@ namespace libcloudphxx
       }
 
       // calc turbulent perturbation of velocity
-      if (opts.adve && opts.turb_switch) pimpl->hskpng_turb_vel_calc();
+      if (opts.turb_adve) pimpl->hskpng_turb_vel_calc();
 
       // advection, it invalidates i,j,k and ijk!
       if (opts.adve) pimpl->adve(); 
 
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
-      if (opts.adve && opts.turb_switch) pimpl->turb_adve();
+      if (opts.turb_adve) pimpl->turb_adve();
 
       // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 

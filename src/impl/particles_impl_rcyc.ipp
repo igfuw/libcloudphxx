@@ -112,6 +112,13 @@ namespace libcloudphxx
         for (int i = 0; i < chem_all; ++i)
           detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
       }
+  
+      if(opts_init.turb_switch)
+      {
+        if (opts_init.nx > 0) detail::copy_prop<real_t>(up.begin(), sorted_id, n_flagged); 
+        if (opts_init.ny > 0) detail::copy_prop<real_t>(vp.begin(), sorted_id, n_flagged); 
+        if (opts_init.nz > 0) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
+      }
 
       {
         namespace arg = thrust::placeholders;
