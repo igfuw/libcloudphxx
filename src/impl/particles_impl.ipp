@@ -76,6 +76,9 @@ namespace libcloudphxx
 	x,   // x spatial coordinate (for 1D, 2D and 3D)
 	y,   // y spatial coordinate (for 3D)
 	z,   // z spatial coordinate (for 2D and 3D)
+        up,  // turbulent perturbation of velocity
+        vp,  // turbulent perturbation of velocity
+        wp,  // turbulent perturbation of velocity
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
@@ -136,7 +139,10 @@ namespace libcloudphxx
         T,  // temperature [K]
         p,  // pressure [Pa]
         RH, // relative humisity 
-        eta;// dynamic viscosity 
+        eta,// dynamic viscosity 
+        TKE;// turbulent kinetic energy
+
+      real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -275,6 +281,11 @@ namespace libcloudphxx
         halo_z( 
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
+        ),
+        L( 
+          n_dims == 1 ? opts_init.dx:                                                              // 1D
+          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx, opts_init.dz):              // 2D
+                        common::turbulence::length_scale(opts_init.dx, opts_init.dy, opts_init.dz) // 3D
         ),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
       {

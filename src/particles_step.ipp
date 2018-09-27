@@ -20,10 +20,11 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> diss_rate, // defaults to NULL-NULL pair
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
-      sync_in(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
+      sync_in(th, rv, rhod, courant_x, courant_y, courant_z, diss_rate, ambient_chem);
       step_cond(opts, th, rv, ambient_chem);
     }
 
@@ -35,6 +36,7 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
       const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> diss_rate, // defaults to NULL-NULL pair
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
@@ -68,6 +70,12 @@ namespace libcloudphxx
 
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
+
+      if (pimpl->opts_init.turb_switch && diss_rate.is_null())
+        throw std::runtime_error("turbulence was not switched off and diss_rate is empty");
+
+      if (!pimpl->opts_init.turb_switch && !diss_rate.is_null())
+        throw std::runtime_error("turbulence was switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -82,6 +90,9 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
+      if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
+        pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
+
       // did rhod change
       pimpl->var_rho = !rhod.is_null();
 
@@ -91,6 +102,7 @@ namespace libcloudphxx
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
+      pimpl->sync(diss_rate,      pimpl->diss_rate);
       pimpl->sync(rhod,           pimpl->rhod);
 
       nancheck(pimpl->th, " th after sync-in");
@@ -98,11 +110,14 @@ namespace libcloudphxx
       nancheck(pimpl->courant_x, " courant_x after sync-in");
       nancheck(pimpl->courant_y, " courant_y after sync-in");
       nancheck(pimpl->courant_z, " courant_z after sync-in");
+      nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      if(opts_init.turb_switch)
+        assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) );
@@ -313,13 +328,19 @@ namespace libcloudphxx
         }
       }
 
+      // calc turbulent perturbation of velocity
+      if (opts.adve && opts.turb_switch) pimpl->hskpng_turb_vel_calc();
+
       // advection, it invalidates i,j,k and ijk!
       if (opts.adve) pimpl->adve(); 
+
+      // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
+      if (opts.adve && opts.turb_switch) pimpl->turb_adve();
 
       // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
       {
-        // advection with terminal velocity
+        // advection with terminal velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
         pimpl->sedi();
       }
 

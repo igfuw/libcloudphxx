@@ -17,11 +17,14 @@ namespace libcloudphxx
       p.resize(n_cell);
       th.resize(n_cell);
       rv.resize(n_cell);
-      for (int i = 0; i < chem_gas_n; ++i)
-        ambient_chem[(chem_species_t)i].resize(n_cell);
+      if(opts_init.chem_swtich)
+        for (int i = 0; i < chem_gas_n; ++i)
+          ambient_chem[(chem_species_t)i].resize(n_cell);
+      if(opts_init.turb_switch)
+        diss_rate.resize(n_cell);
 
       // memory allocation for vector fields (Arakawa-C grid)
-      // 1-cell halo in the x dimensions (which could be distmem boundary)
+      // halo in the x dimensions (which could be distmem boundary)
       switch (n_dims)
       {
         case 3: 
