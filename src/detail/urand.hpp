@@ -134,7 +134,7 @@ namespace libcloudphxx
           _unused(status);
 	}
 
-	void generate_normal01_n(
+	void generate_normal_n(
 	  thrust_device::vector<float> &v, 
 	  const thrust_size_t n
 	)
@@ -144,7 +144,7 @@ namespace libcloudphxx
           _unused(status);
 	}
 
-	void generate_normal01_n(
+	void generate_normal_n(
 	  thrust_device::vector<double> &v, 
 	  const thrust_size_t n
 	)
