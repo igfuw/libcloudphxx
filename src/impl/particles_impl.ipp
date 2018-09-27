@@ -445,6 +445,7 @@ namespace libcloudphxx
       );
 
       void adve();
+      void turb_adve();
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi();
