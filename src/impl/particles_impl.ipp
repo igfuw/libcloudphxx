@@ -14,6 +14,8 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
+#include <libcloudph++/common/turbulence.hpp>
+
 #include <map>
 
 namespace libcloudphxx
@@ -140,7 +142,7 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
-        TKE;// turbulent kinetic energy
+        diss_rate; // turbulent kinetic energy dissipation rate
 
       real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller
 
@@ -283,9 +285,9 @@ namespace libcloudphxx
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
         L( 
-          n_dims == 1 ? opts_init.dx:                                                              // 1D
-          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx, opts_init.dz):              // 2D
-                        common::turbulence::length_scale(opts_init.dx, opts_init.dy, opts_init.dz) // 3D
+          n_dims == 1 ? common::turbulence::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                        common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
         ),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
@@ -404,6 +406,8 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_tke();
+      void hskpng_turb_vel();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 

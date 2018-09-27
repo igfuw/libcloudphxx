@@ -17,7 +17,7 @@ namespace libcloudphxx
       p.resize(n_cell);
       th.resize(n_cell);
       rv.resize(n_cell);
-      if(opts_init.chem_swtich)
+      if(opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
           ambient_chem[(chem_species_t)i].resize(n_cell);
       if(opts_init.turb_switch)

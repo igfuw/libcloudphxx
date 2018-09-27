@@ -116,7 +116,7 @@ namespace libcloudphxx
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      if(opts_init.turb_switch)
+      if(pimpl->opts_init.turb_switch)
         assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
@@ -331,14 +331,19 @@ namespace libcloudphxx
         }
       }
 
-      // calc turbulent perturbation of velocity
-      if (opts.turb_adve) pimpl->hskpng_turb_vel_calc();
+      if (opts.turb_adve)
+      {
+        // calc tke (diss_rate now holds TKE, not dissipation rate!)
+        pimpl->hskpng_tke();
+        // calc turbulent perturbation of velocity
+//        pimpl->hskpng_turb_vel();
+      }
 
       // advection, it invalidates i,j,k and ijk!
       if (opts.adve) pimpl->adve(); 
 
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
-      if (opts.turb_adve) pimpl->turb_adve();
+//      if (opts.turb_adve) pimpl->turb_adve();
 
       // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
