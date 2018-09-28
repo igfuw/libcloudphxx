@@ -18,6 +18,11 @@ namespace libcloudphxx
         , real_t(1./3.))
       );
 
+#if !defined(__NVCC__)
+      using std::pow;
+      using std::sqrt;
+#endif
+
       typedef divide_typeof_helper<
         si::dimensionless,  
         si::length
@@ -44,7 +49,7 @@ namespace libcloudphxx
       quantity<si::length, real_t> length_scale(
         quantity<si::length, real_t> dx
       )
-      { return dx;}
+      { return quantity<si::length, real_t>(dx);}
 
       template <typename real_t>
       quantity<si::length, real_t> length_scale(
@@ -68,7 +73,7 @@ namespace libcloudphxx
         const quantity<si::length, real_t> &L // characteristic length-scale
       )
       {
-        return pow((L * diss_rate) / si::cubic_metres * si::seconds * si::seconds * si::seconds / C_E<real_t>(), real_t(2./3.)) * si::metres * si::metres / si::seconds / si::seconds;
+        return quantity<area_over_time_squared, real_t>(pow((L * diss_rate) / si::cubic_metres * si::seconds * si::seconds * si::seconds / C_E<real_t>(), real_t(2./3.)) * si::metres * si::metres / si::seconds / si::seconds);
       };
 
       template <typename real_t>
