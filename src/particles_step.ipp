@@ -91,7 +91,7 @@ namespace libcloudphxx
       }
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
-        pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
+        if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
 
       // did rhod change
       pimpl->var_rho = !rhod.is_null();
