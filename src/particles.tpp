@@ -70,6 +70,7 @@
 #include "impl/particles_impl_hskpng_Tpr.ipp"
 #include "impl/particles_impl_hskpng_vterm.ipp"
 #include "impl/particles_impl_hskpng_turb_vel.ipp"
+#include "impl/particles_impl_hskpng_tke.ipp"
 #include "impl/particles_impl_hskpng_sort.ipp"
 #include "impl/particles_impl_hskpng_count.ipp"
 #include "impl/particles_impl_hskpng_remove.ipp"

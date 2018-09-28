@@ -27,13 +27,13 @@ namespace libcloudphxx
             diss_rate * si::metres * si::metres / si::seconds / si::seconds / si::seconds,
             L) / si::metres / si::metres * si::seconds * si::seconds;
         }
-      }
-    }
+      };
+    };
     // calc the SGS TKE, in place of dissipation rate
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_tke()
     {   
-      thrust::transform(diss_rate.begin(), diss_rate.end(), diss_rate.begin(), common__turbulence__tke(L));
+      thrust::transform(diss_rate.begin(), diss_rate.end(), diss_rate.begin(), detail::common__turbulence__tke<real_t>(L));
     }
   };
 };

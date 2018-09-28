@@ -68,7 +68,7 @@ namespace libcloudphxx
         const quantity<si::length, real_t> &L // characteristic length-scale
       )
       {
-        return pow(L * diss_rate / C_E<real_t>(), real_t(2./3.));
+        return pow((L * diss_rate) / si::cubic_metres * si::seconds * si::seconds * si::seconds / C_E<real_t>(), real_t(2./3.)) * si::metres * si::metres / si::seconds / si::seconds;
       };
 
       template <typename real_t>
