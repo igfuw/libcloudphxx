@@ -59,26 +59,24 @@ namespace libcloudphxx
       thrust::transform(tke.begin(), tke.end(), tau.begin(), detail::common__turbulence__tau<real_t>(L));
 
       thrust_device::vector<real_t> &r_normal(tmp_device_real_part);
-
       thrust_device::vector<real_t> * vel_turbs_vctrs_a[] = {&up, &wp, &vp};
-      std::vector<thrust_device::vector<real_t>*> vel_turbs_vctrs(&vel_turbs_vctrs_a[0], &vel_turbs_vctrs_a[0]+n_dims);
-      for(auto vctr_ptr : vel_turbs_vctrs)
+      for(int i=0; i<n_dims; ++i)
       {
         rng.generate_normal_n(r_normal, n_part); // generate a random number for wach particle with a normal distribution with mean 0 and std dev 1
         thrust::transform(
           thrust::make_zip_iterator(thrust::make_tuple(
-            vctr_ptr->begin(),
+            vel_turbs_vctrs_a[i]->begin(),
             thrust::make_permutation_iterator(tau.begin(), ijk.begin()),
             thrust::make_permutation_iterator(tke.begin(), ijk.begin()),
             r_normal.begin()
           )),
           thrust::make_zip_iterator(thrust::make_tuple(
-            up.begin(),
+            vel_turbs_vctrs_a[i]->begin(),
             thrust::make_permutation_iterator(tau.begin(), ijk.begin()),
             thrust::make_permutation_iterator(tke.begin(), ijk.begin()),
             r_normal.begin()
           )) + n_part,
-          vctr_ptr->begin(),
+          vel_turbs_vctrs_a[i]->begin(),
           detail::common__turbulence__update_turb_vel<real_t>(opts_init.dt)
         );
       }
