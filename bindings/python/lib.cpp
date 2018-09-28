@@ -235,6 +235,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)
+      .def_readwrite("turb_adve", &lgr::opts_t<real_t>::turb_adve)
       .def_readwrite("sedi", &lgr::opts_t<real_t>::sedi)
       .def_readwrite("cond", &lgr::opts_t<real_t>::cond)
       .def_readwrite("coal", &lgr::opts_t<real_t>::coal)
@@ -269,6 +270,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
       .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)
       .def_readwrite("src_switch", &lgr::opts_init_t<real_t>::src_switch)
+      .def_readwrite("turb_switch", &lgr::opts_init_t<real_t>::turb_switch)
       .def_readwrite("exact_sstp_cond", &lgr::opts_init_t<real_t>::exact_sstp_cond)
       .def_readwrite("sstp_cond", &lgr::opts_init_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
@@ -318,6 +320,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("diss_rate")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_cond",    &lgrngn::step_cond<real_t>, (
