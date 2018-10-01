@@ -295,6 +295,9 @@ namespace libcloudphxx
       if(opts.turb_adve && !pimpl->opts_init.turb_switch) 
         throw std::runtime_error("all turbulence sgs was switched off in opts_init, but turb_adve==True");
 
+      if(opts.turb_adve && pimpl->n_dims==0) 
+        throw std::runtime_error("turbulent advection does not work in 0D");
+
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
