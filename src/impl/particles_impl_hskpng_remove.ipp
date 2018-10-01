@@ -42,7 +42,13 @@ namespace libcloudphxx
         if (opts_init.nz != 0)  real_t_vctrs.push_back(&wp);
 
       if(opts_init.turb_cond_switch)
-        if (opts_init.nz != 0)  real_t_vctrs.push_back(&ssp);
+      {
+        if (opts_init.nz != 0)
+        {
+          real_t_vctrs.push_back(&ssp);
+          real_t_vctrs.push_back(&dot_ssp);
+        }
+      }
 
       if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
       {

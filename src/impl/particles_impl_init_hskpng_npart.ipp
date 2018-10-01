@@ -34,7 +34,13 @@ namespace libcloudphxx
         if (opts_init.nz != 0)  wp.resize(opts_init.n_sd_max, 0.);
 
       if(opts_init.turb_cond_switch)
-        if (opts_init.nz != 0)  ssp.resize(opts_init.n_sd_max, 0.);
+      {
+        if (opts_init.nz != 0) 
+        {
+          ssp.resize(opts_init.n_sd_max, 0.);
+          dot_ssp.resize(opts_init.n_sd_max, 0.);
+        }
+      }
 
       vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
 

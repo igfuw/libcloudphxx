@@ -364,8 +364,8 @@ namespace libcloudphxx
 
       if(opts.turb_cond)
       {
-        // calculate the turbulent supersaturation; used in the next step during condensation in step_cond - is it a problem?
-        pimpl->hskpng_turb_ss(); 
+        // calculate the time derivatie of the turbulent supersaturation perturbation; applied in the next step during condensation substepping - is the delay a problem?
+        pimpl->hskpng_turb_dot_ss(); 
       }
 
       // advection, it invalidates i,j,k and ijk!
