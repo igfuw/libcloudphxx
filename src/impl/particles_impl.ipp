@@ -408,7 +408,8 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel();
+      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 

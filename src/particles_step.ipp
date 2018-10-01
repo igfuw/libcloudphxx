@@ -359,13 +359,13 @@ namespace libcloudphxx
       else if (opts.turb_cond)
       {
         // calc turbulent perturbation only of vertical velocity
-//        pimpl->hskpng_turb_vert_vel();
+        pimpl->hskpng_turb_vel(true);
       }
 
       if(opts.turb_cond)
       {
         // calculate the turbulent supersaturation; used in the next step during condensation in step_cond - is it a problem?
-        //pimpl->hskpng_turb_ss(); 
+        pimpl->hskpng_turb_ss(); 
       }
 
       // advection, it invalidates i,j,k and ijk!
