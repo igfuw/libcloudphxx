@@ -410,7 +410,7 @@ namespace libcloudphxx
       void hskpng_vterm_invalid();
       void hskpng_tke();
       void hskpng_turb_vel(const bool only_vertical = false);
-      void hskpng_turb_ss();
+      void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 
@@ -454,8 +454,8 @@ namespace libcloudphxx
       void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max);
-      void cond_sstp(const real_t &dt, const real_t &RH_max);
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);

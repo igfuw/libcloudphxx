@@ -9,11 +9,36 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      template<class real_t>
+      struct RH_hlpr : thrust::unary_function<const thrust::tuple<thrust::tuple<real_t, real_t, real_t>, real_t>&, real_t>
+      {
+        const bool turb_cond;
+        RH<real_t> resolved_RH;
+
+        RH_hlpr(RH_formula_t::RH_formula_t RH_formula, const bool turb_cond):
+          resolved_RH(RH_formula),
+          turb_cond(turb_cond)
+        {}
+
+        BOOST_GPU_ENABLED 
+        real_t operator()(const thrust::tuple<thrust::tuple<real_t, real_t, real_t>, real_t> &tpl) 
+        {
+          real_t res = resolved_RH(thrust::get<0>(tpl));
+          return turb_cond ? res + thrust::get<1>(tpl) : res;
+        }
+      };
+    };
+
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond_sstp(
       const real_t &dt,
-      const real_t &RH_max
+      const real_t &RH_max,
+      const bool turb_cond
     ) {   
+      namespace arg = thrust::placeholders;
+
       // prerequisite
       hskpng_sort(); 
       // particle's local change in rv
@@ -57,7 +82,6 @@ namespace libcloudphxx
       // calculating drop growth in a timestep using backward Euler 
       // TODO: these two function calls only differ in the way pressure is calculated,
       //       find a way to reuse it (e.g. std::bind?)
-      // TODO2: in const_p we don't substep pressure
       if(!const_p)
       {
         // particle-specific pressure iterator, used twice
@@ -82,16 +106,21 @@ namespace libcloudphxx
               Tp.begin(),
               // particle-specific p
               pressure_iter,
-              // particle-specific RH
+              // particle-specific RH, resolved + SGS
+              // TODO: if turb_cond_switch=0, ssp has size=0 - it shouldnt be a problem, but maybe?
               thrust::make_transform_iterator(
                 thrust::make_zip_iterator(
                   thrust::make_tuple(
-                    pressure_iter,
-                    sstp_tmp_rv.begin(),
-                    Tp.begin()
+                    thrust::make_zip_iterator(
+                      thrust::make_tuple(
+                        pressure_iter,
+                        sstp_tmp_rv.begin(),
+                        Tp.begin()
+                    )),
+                    ssp.begin()
                 )),
-                detail::RH<real_t>(opts_init.RH_formula)
-              ),
+                detail::RH_hlpr<real_t>(opts_init.RH_formula, turb_cond)
+              ),        
               // particle-specific eta
               thrust::make_transform_iterator(
                 Tp.begin(),
@@ -117,16 +146,21 @@ namespace libcloudphxx
               Tp.begin(),
               // particle-specific p
               sstp_tmp_p.begin(),
-              // particle-specific RH
+              // particle-specific RH, resolved + SGS
+              // TODO: if turb_cond_switch=0, ssp has size=0 - it shouldnt be a problem, but maybe?
               thrust::make_transform_iterator(
                 thrust::make_zip_iterator(
                   thrust::make_tuple(
-                    sstp_tmp_p.begin(),
-                    sstp_tmp_rv.begin(),
-                    Tp.begin()
+                    thrust::make_zip_iterator(
+                      thrust::make_tuple(
+                        sstp_tmp_p.begin(),
+                        sstp_tmp_rv.begin(),
+                        Tp.begin()
+                    )),
+                    ssp.begin()
                 )),
-                detail::RH<real_t>(opts_init.RH_formula)
-              ),
+                detail::RH_hlpr<real_t>(opts_init.RH_formula, turb_cond)
+              ),        
               // particle-specific eta
               thrust::make_transform_iterator(
                 Tp.begin(),

@@ -164,7 +164,9 @@ namespace libcloudphxx
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
             pimpl->sstp_step_exact(step);
-            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+            if(opts.turb_cond)
+              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
           // copy sstp_tmp_rv and th to rv and th
           pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
@@ -179,7 +181,7 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
+            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond);
           }
         }
 

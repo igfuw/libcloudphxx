@@ -23,6 +23,7 @@ namespace libcloudphxx
         }
       };
 
+      template<class real_t>
       struct common__turbulence__turb_dot_ss
       {
         template<class tpl_t>
@@ -66,7 +67,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(tau_rlx.begin(), ijk.begin())
         )) + n_part,
         dot_ssp.begin(),
-        detail::common__turbulence__turb_dot_ss()
+        detail::common__turbulence__turb_dot_ss<real_t>()
       );
     }
   };

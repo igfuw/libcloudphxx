@@ -20,7 +20,7 @@ kappa = .61
 Opts_init.dry_distros = {kappa:lognormal}
 Opts_init.coal_switch = False
 Opts_init.sedi_switch = False
-Opts_init.turb_switch = True
+Opts_init.turb_adve_switch = True
 
 Opts_init.dt = 1
 
