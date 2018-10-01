@@ -476,6 +476,7 @@ namespace libcloudphxx
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
+      void sstp_step_ssp(const real_t &dt);
       void sstp_save();
       void sstp_step_chem(const int &step);
       void sstp_save_chem();

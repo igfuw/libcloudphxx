@@ -176,6 +176,8 @@ namespace libcloudphxx
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
             pimpl->sstp_step(step);
+            if(opts.turb_cond)
+              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
           }

@@ -12,7 +12,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond(
       const real_t &dt,
-      const real_t &RH_max
+      const real_t &RH_max,
+      const bool &turb_cond
     ) {   
 
       // --- calc liquid water content before cond ---
@@ -34,24 +35,45 @@ namespace libcloudphxx
       );
 
       // calculating drop growth in a timestep using backward Euler 
-      thrust::transform(
-        rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
-        thrust::make_zip_iterator(      // input - 2nd arg
-          thrust::make_tuple(
-            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
-            rd3.begin(),
-            kpa.begin(),
-            vt.begin()
-          )
-        ), 
-        rw2.begin(),                    // output
-        detail::advance_rw2<real_t>(dt, RH_max)
-      );
+      // TODO: both calls almost identical, use std::bind or sth?
+      if(turb_cond)
+        thrust::transform(
+          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              thrust::make_transform_iterator(thrust::make_permutation_iterator(RH.begin(), ijk.begin()), ssp.begin(), thrust::add<real_t>()),
+              thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
+              rd3.begin(),
+              kpa.begin(),
+              vt.begin()
+            )
+          ), 
+          rw2.begin(),                    // output
+          detail::advance_rw2<real_t>(dt, RH_max)
+        );
+      else
+        thrust::transform(
+          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
+              rd3.begin(),
+              kpa.begin(),
+              vt.begin()
+            )
+          ), 
+          rw2.begin(),                    // output
+          detail::advance_rw2<real_t>(dt, RH_max)
+        );
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
       // calculating the 3rd wet moment after condensation

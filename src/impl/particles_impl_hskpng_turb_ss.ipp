@@ -47,8 +47,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &tau_rlx(count_mom); 
       thrust::transform(
         tau_rlx.begin(),
-        dv.begin(),
         tau_rlx.end(),
+        dv.begin(),
         tau_rlx.begin(),
         detail::common__turbulence__tau_relax()
       );
