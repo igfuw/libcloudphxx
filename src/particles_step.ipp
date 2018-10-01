@@ -71,11 +71,17 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
-      if (pimpl->opts_init.turb_switch && diss_rate.is_null())
-        throw std::runtime_error("turbulence was not switched off and diss_rate is empty");
+      if (pimpl->opts_init.turb_adve_switch && diss_rate.is_null())
+        throw std::runtime_error("turbulent advection was not switched off and diss_rate is empty");
 
-      if (!pimpl->opts_init.turb_switch && !diss_rate.is_null())
-        throw std::runtime_error("turbulence was switched off and diss_rate is not empty");
+      if (!pimpl->opts_init.turb_adve_switch && !diss_rate.is_null())
+        throw std::runtime_error("turbulent advection was switched off and diss_rate is not empty");
+
+      if (pimpl->opts_init.turb_cond_switch && diss_rate.is_null())
+        throw std::runtime_error("turbulent condensation was not switched off and diss_rate is empty");
+
+      if (!pimpl->opts_init.turb_cond_switch && !diss_rate.is_null())
+        throw std::runtime_error("turbulent condensation was switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -112,12 +118,12 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
+      nancheck(pimpl->diss_rate, " diss_rate after sync-in");
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      if(pimpl->opts_init.turb_switch)
-        assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) );
@@ -292,11 +298,17 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
-      if(opts.turb_adve && !pimpl->opts_init.turb_switch) 
-        throw std::runtime_error("all turbulence sgs was switched off in opts_init, but turb_adve==True");
+      if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
+        throw std::runtime_error("turb_adve_switch=False, but turb_adve==True");
+
+      if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
+        throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
 
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("turbulent advection does not work in 0D");
+
+      if(opts.turb_cond && pimpl->n_dims<2) 
+        throw std::runtime_error("turbulent condensation works only in 2D and 3D");
 
       if (opts.chem_dsl) 
       { 
@@ -334,12 +346,26 @@ namespace libcloudphxx
         }
       }
 
-      if (opts.turb_adve)
+      if (opts.turb_adve || opts.turb_cond)
       {
         // calc tke (diss_rate now holds TKE, not dissipation rate!)
         pimpl->hskpng_tke();
+      }
+      if (opts.turb_adve)
+      {
         // calc turbulent perturbation of velocity
         pimpl->hskpng_turb_vel();
+      }
+      else if (opts.turb_cond)
+      {
+        // calc turbulent perturbation only of vertical velocity
+//        pimpl->hskpng_turb_vert_vel();
+      }
+
+      if(opts.turb_cond)
+      {
+        // calculate the turbulent supersaturation; used in the next step during condensation in step_cond - is it a problem?
+        //pimpl->hskpng_turb_ss(); 
       }
 
       // advection, it invalidates i,j,k and ijk!

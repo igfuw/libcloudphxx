@@ -33,12 +33,17 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
 
-      if(opts_init.turb_switch) // TODO: they are not needed by turb_coal, but diss_rate is - make more switches
+      if(opts_init.turb_adve_switch) 
       {
         if (opts_init.nx != 0) up.resize(n_part); 
         if (opts_init.ny != 0) vp.resize(n_part); 
         if (opts_init.nz != 0) wp.resize(n_part); 
       }
+      else if(opts_init.turb_cond_switch)
+        if (opts_init.nz != 0)  wp.resize(n_part);
+
+      if(opts_init.turb_cond_switch)
+        if (opts_init.nz != 0)  ssp.resize(n_part);
 
       if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
       {

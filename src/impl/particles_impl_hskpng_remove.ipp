@@ -32,12 +32,17 @@ namespace libcloudphxx
       if (opts_init.ny != 0)  real_t_vctrs.push_back(&y);
       if (opts_init.nz != 0)  real_t_vctrs.push_back(&z);
 
-      if(opts_init.turb_switch)
+      if(opts_init.turb_adve_switch)
       {
         if (opts_init.nx != 0)  real_t_vctrs.push_back(&up);
         if (opts_init.ny != 0)  real_t_vctrs.push_back(&vp);
         if (opts_init.nz != 0)  real_t_vctrs.push_back(&wp);
       }
+      else if(opts_init.turb_cond_switch)
+        if (opts_init.nz != 0)  real_t_vctrs.push_back(&wp);
+
+      if(opts_init.turb_cond_switch)
+        if (opts_init.nz != 0)  real_t_vctrs.push_back(&ssp);
 
       if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
       {

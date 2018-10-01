@@ -104,7 +104,8 @@ namespace libcloudphxx
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
            exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
-           turb_switch;   // if true, turbulent motion of SDs is modeled
+           turb_adve_switch,   // if true, turbulent motion of SDs is modeled
+           turb_cond_switch;   // if true, turbulent condensation of SDs is modeled
 
       int sstp_chem;
       real_t chem_rho;
@@ -143,7 +144,8 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),
-        turb_switch(false),
+        turb_cond_switch(false),
+        turb_adve_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),

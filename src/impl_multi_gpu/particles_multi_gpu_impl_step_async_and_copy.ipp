@@ -138,12 +138,18 @@ namespace libcloudphxx
           if(particles[dev_id]->pimpl->const_p)
             real_t_vctrs.push_back(&sstp_tmp_p);
         }
-        if(glob_opts_init.turb_switch)
+        if(glob_opts_init.turb_adve_switch)
         {
           if(glob_opts_init.nx > 0) real_t_vctrs.push_back(&up);
           if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&vp);
           if(glob_opts_init.nz > 0) real_t_vctrs.push_back(&wp);
         }
+        else if(glob_opts_init.turb_cond_switch)
+          if(glob_opts_init.nz > 0) real_t_vctrs.push_back(&wp);
+
+        if(glob_opts_init.turb_cond_switch)
+          if(glob_opts_init.nz > 0) real_t_vctrs.push_back(&ssp);
+
         const int real_vctrs_count = real_t_vctrs.size(); 
         assert(out_real_bfr.size() >= lft_count * real_vctrs_count);
         assert(in_real_bfr.size() >= lft_count * real_vctrs_count);

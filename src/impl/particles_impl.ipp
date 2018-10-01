@@ -81,6 +81,7 @@ namespace libcloudphxx
         up,  // turbulent perturbation of velocity
         vp,  // turbulent perturbation of velocity
         wp,  // turbulent perturbation of velocity
+        ssp, // turbulent perturbation of supersaturation
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
