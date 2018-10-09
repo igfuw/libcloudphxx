@@ -12,21 +12,18 @@ namespace libcloudphxx
     namespace detail
     {
       template<class real_t>
-      struct RH_hlpr : thrust::unary_function<const thrust::tuple<thrust::tuple<real_t, real_t, real_t>, real_t>&, real_t>
+      struct RH_sgs : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t, real_t>&, real_t>
       {
-        const bool turb_cond;
         RH<real_t> resolved_RH;
 
-        RH_hlpr(RH_formula_t::RH_formula_t RH_formula, const bool turb_cond):
-          resolved_RH(RH_formula),
-          turb_cond(turb_cond)
+        RH_sgs(RH_formula_t::RH_formula_t RH_formula):
+          resolved_RH(RH_formula)
         {}
 
         BOOST_GPU_ENABLED 
-        real_t operator()(const thrust::tuple<thrust::tuple<real_t, real_t, real_t>, real_t> &tpl) 
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) 
         {
-          real_t res = resolved_RH(thrust::get<0>(tpl));
-          return turb_cond ? res + thrust::get<1>(tpl) : res;
+          return resolved_RH(thrust::make_tuple(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl))) + thrust::get<3>(tpl);
         }
       };
     };
@@ -36,7 +33,7 @@ namespace libcloudphxx
       const real_t &dt,
       const real_t &RH_max,
       const bool turb_cond
-    ) {   
+    ) { 
       namespace arg = thrust::placeholders;
 
       // prerequisite
@@ -78,102 +75,123 @@ namespace libcloudphxx
         );
       }
 
+      auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
+        sstp_tmp_rh.begin(),
+        sstp_tmp_rv.begin(),
+        Tp.begin(),
+        // particle-specific eta
+        thrust::make_transform_iterator(
+          Tp.begin(),
+          detail::common__vterm__visc<real_t>()
+        ),
+        rd3.begin(),
+        kpa.begin(),
+        vt.begin()
+      ));
 
       // calculating drop growth in a timestep using backward Euler 
-      // TODO: these two function calls only differ in the way pressure is calculated,
-      //       find a way to reuse it (e.g. std::bind?)
+      // TODO: these function calls only slightly differ...
       if(!const_p)
       {
         // particle-specific pressure iterator, used twice
         // TODO: store the value somewhere?
-        auto pressure_iter = 
-          thrust::make_transform_iterator(
-            thrust::make_zip_iterator(
-              thrust::make_tuple(
-                sstp_tmp_rh.begin(),
-                sstp_tmp_rv.begin(),
-                Tp.begin()
-            )),
-            detail::common__theta_dry__p<real_t>()
-          );
+        auto pressure_iter = thrust::make_transform_iterator(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            sstp_tmp_rh.begin(),
+            sstp_tmp_rv.begin(),
+            Tp.begin()
+          )),
+          detail::common__theta_dry__p<real_t>()
+        );
 
-        thrust::transform(
-          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
-          thrust::make_zip_iterator(      // input - 2nd arg
-            thrust::make_tuple(
-              sstp_tmp_rh.begin(),
-              sstp_tmp_rv.begin(),
-              Tp.begin(),
+        if(turb_cond)
+          thrust::transform(
+            rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+            thrust::make_zip_iterator(thrust::make_tuple(      // input - 2nd arg
+              hlpr_zip_iter,
+              // particle-specific p
+              pressure_iter,
+              // particle-specific RH, resolved + SGS
+              thrust::make_transform_iterator(
+                thrust::make_zip_iterator(thrust::make_tuple(
+                  pressure_iter,
+                  sstp_tmp_rv.begin(),
+                  Tp.begin(),
+                  ssp.begin()
+                )),
+                detail::RH_sgs<real_t>(opts_init.RH_formula)
+              )        
+            )), 
+            rw2.begin(),                    // output
+            detail::advance_rw2<real_t>(dt, RH_max)
+          );
+        else
+          thrust::transform(
+            rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+            thrust::make_zip_iterator(thrust::make_tuple(      // input - 2nd arg
+              hlpr_zip_iter,
               // particle-specific p
               pressure_iter,
               // particle-specific RH, resolved + SGS
               // TODO: if turb_cond_switch=0, ssp has size=0 - it shouldnt be a problem, but maybe?
               thrust::make_transform_iterator(
-                thrust::make_zip_iterator(
-                  thrust::make_tuple(
-                    thrust::make_zip_iterator(
-                      thrust::make_tuple(
-                        pressure_iter,
-                        sstp_tmp_rv.begin(),
-                        Tp.begin()
-                    )),
-                    ssp.begin()
+                thrust::make_zip_iterator(thrust::make_tuple(
+                  pressure_iter,
+                  sstp_tmp_rv.begin(),
+                  Tp.begin()
                 )),
-                detail::RH_hlpr<real_t>(opts_init.RH_formula, turb_cond)
-              ),        
-              // particle-specific eta
-              thrust::make_transform_iterator(
-                Tp.begin(),
-                detail::common__vterm__visc<real_t>()
-              ),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
-            )
-          ), 
-          rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max)
-        );
+                detail::RH<real_t>(opts_init.RH_formula)
+              )        
+            )), 
+            rw2.begin(),                    // output
+            detail::advance_rw2<real_t>(dt, RH_max)
+          );
       }
       else
       {
-        thrust::transform(
-          rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
-          thrust::make_zip_iterator(      // input - 2nd arg
-            thrust::make_tuple(
-              sstp_tmp_rh.begin(),
-              sstp_tmp_rv.begin(),
-              Tp.begin(),
+        if(turb_cond)
+          thrust::transform(
+            rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+            thrust::make_zip_iterator(thrust::make_tuple(      // input - 2nd arg
+              hlpr_zip_iter,
               // particle-specific p
               sstp_tmp_p.begin(),
               // particle-specific RH, resolved + SGS
               // TODO: if turb_cond_switch=0, ssp has size=0 - it shouldnt be a problem, but maybe?
               thrust::make_transform_iterator(
-                thrust::make_zip_iterator(
-                  thrust::make_tuple(
-                    thrust::make_zip_iterator(
-                      thrust::make_tuple(
-                        sstp_tmp_p.begin(),
-                        sstp_tmp_rv.begin(),
-                        Tp.begin()
-                    )),
-                    ssp.begin()
+                thrust::make_zip_iterator(thrust::make_tuple(
+                  sstp_tmp_p.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin(),
+                  ssp.begin()
                 )),
-                detail::RH_hlpr<real_t>(opts_init.RH_formula, turb_cond)
-              ),        
-              // particle-specific eta
+                detail::RH_sgs<real_t>(opts_init.RH_formula)
+              )        
+            )), 
+            rw2.begin(),                    // output
+            detail::advance_rw2<real_t>(dt, RH_max)
+          );
+        else
+          thrust::transform(
+            rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
+            thrust::make_zip_iterator(thrust::make_tuple(      // input - 2nd arg
+              hlpr_zip_iter,
+              // particle-specific p
+              sstp_tmp_p.begin(),
+              // particle-specific RH, resolved + SGS
+              // TODO: if turb_cond_switch=0, ssp has size=0 - it shouldnt be a problem, but maybe?
               thrust::make_transform_iterator(
-                Tp.begin(),
-                detail::common__vterm__visc<real_t>()
-              ),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
-            )
-          ), 
-          rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max)
-        );
+                thrust::make_zip_iterator(thrust::make_tuple(
+                  sstp_tmp_p.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin()
+                )),
+                detail::RH<real_t>(opts_init.RH_formula)
+              )        
+            )), 
+            rw2.begin(),                    // output
+            detail::advance_rw2<real_t>(dt, RH_max)
+          );
       }
 
       // calc rw3_new - rw3_old

@@ -44,6 +44,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_turb_dot_ss()
     {   
       // calc tau_relax
+      moms_all();
       moms_calc(rw2.begin(), real_t(1./2), false);
       thrust_device::vector<real_t> &tau_rlx(count_mom); 
       thrust::transform(

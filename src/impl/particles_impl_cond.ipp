@@ -36,6 +36,16 @@ namespace libcloudphxx
         thrust::negate<real_t>()
       );
 
+      auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
+        thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
+        rd3.begin(),
+        kpa.begin(),
+        vt.begin()
+      ));
+
       // calculating drop growth in a timestep using backward Euler 
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
@@ -52,15 +62,9 @@ namespace libcloudphxx
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
-              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              RH_plus_ssp.begin(),
-              thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
+              RH_plus_ssp.begin()
             )
           ), 
           rw2.begin(),                    // output
@@ -72,15 +76,9 @@ namespace libcloudphxx
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
-              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
             )
           ), 
           rw2.begin(),                    // output

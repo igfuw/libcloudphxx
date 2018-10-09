@@ -71,17 +71,11 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
-      if (pimpl->opts_init.turb_adve_switch && diss_rate.is_null())
-        throw std::runtime_error("turbulent advection was not switched off and diss_rate is empty");
+      if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && diss_rate.is_null())
+        throw std::runtime_error("turbulent advection and condesation are not switched off and diss_rate is empty");
 
-      if (!pimpl->opts_init.turb_adve_switch && !diss_rate.is_null())
-        throw std::runtime_error("turbulent advection was switched off and diss_rate is not empty");
-
-      if (pimpl->opts_init.turb_cond_switch && diss_rate.is_null())
-        throw std::runtime_error("turbulent condensation was not switched off and diss_rate is empty");
-
-      if (!pimpl->opts_init.turb_cond_switch && !diss_rate.is_null())
-        throw std::runtime_error("turbulent condensation was switched off and diss_rate is not empty");
+      if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && !diss_rate.is_null())
+        throw std::runtime_error("turbulent advection and condesation are switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -118,12 +112,14 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
-      nancheck(pimpl->diss_rate, " diss_rate after sync-in");
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+        {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+        {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
       assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) );
@@ -152,6 +148,12 @@ namespace libcloudphxx
       //sanity checks
       if (!pimpl->should_now_run_cond)
         throw std::runtime_error("please call sync_in() before calling step_cond()");
+
+      if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
+        throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
+
+      if(opts.turb_cond && pimpl->n_dims<2) 
+        throw std::runtime_error("turbulent condensation works only in 2D and 3D");
 
       pimpl->should_now_run_cond = false;
 
@@ -305,14 +307,8 @@ namespace libcloudphxx
       if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
         throw std::runtime_error("turb_adve_switch=False, but turb_adve==True");
 
-      if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
-        throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
-
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("turbulent advection does not work in 0D");
-
-      if(opts.turb_cond && pimpl->n_dims<2) 
-        throw std::runtime_error("turbulent condensation works only in 2D and 3D");
 
       if (opts.chem_dsl) 
       { 
