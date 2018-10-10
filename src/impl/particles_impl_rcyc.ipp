@@ -119,16 +119,12 @@ namespace libcloudphxx
         if (opts_init.ny > 0) detail::copy_prop<real_t>(vp.begin(), sorted_id, n_flagged); 
         if (opts_init.nz > 0) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
       }
-      else if(opts_init.turb_cond_switch)
-        if (opts_init.nz > 0) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
 
       if(opts_init.turb_cond_switch)
       {
-        if (opts_init.nz > 0)
-        {
-          detail::copy_prop<real_t>(ssp.begin(), sorted_id, n_flagged); 
-          detail::copy_prop<real_t>(dot_ssp.begin(), sorted_id, n_flagged); 
-        }
+        if(!(opts_init.turb_adve_switch && opts_init.nz > 0)) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
+        detail::copy_prop<real_t>(ssp.begin(), sorted_id, n_flagged); 
+        detail::copy_prop<real_t>(dot_ssp.begin(), sorted_id, n_flagged); 
       }
 
       {

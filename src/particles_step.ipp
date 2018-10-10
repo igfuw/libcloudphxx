@@ -152,9 +152,6 @@ namespace libcloudphxx
       if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
         throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
 
-      if(opts.turb_cond && pimpl->n_dims<2) 
-        throw std::runtime_error("turbulent condensation works only in 2D and 3D");
-
       pimpl->should_now_run_cond = false;
 
       // condensation/evaporation 
