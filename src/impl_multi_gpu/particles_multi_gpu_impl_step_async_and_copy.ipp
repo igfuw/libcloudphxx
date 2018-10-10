@@ -69,6 +69,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &up(particles[dev_id]->pimpl->up);
         thrust_device::vector<real_t> &vp(particles[dev_id]->pimpl->vp);
         thrust_device::vector<real_t> &wp(particles[dev_id]->pimpl->wp);
+        thrust_device::vector<real_t> &ssp(particles[dev_id]->pimpl->ssp);
         thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
         thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
         thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
