@@ -6,6 +6,7 @@
   */
 
 #include <thrust/remove.h>
+#include <set>
 
 namespace libcloudphxx
 {
