@@ -20,15 +20,15 @@ namespace libcloudphxx
       template <typename real_t>
       class rhs
       {
-	private: 
-         
+	private:
+
         quantity<si::mass_density, real_t> rhod;
         bool const_p; // true if a constant pressure profile is used (e.g. anelastic model), otherwise pressure is deduced from rhod, rv and T
-	
-        public: 
+
+        public:
 
 	quantity<si::pressure,     real_t> p;   // total pressure
-        
+
         void init(
 	  const quantity<si::mass_density, real_t> &_rhod,
 	  const quantity<si::pressure, real_t> &_p,
@@ -46,7 +46,7 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> r, rs;
 	quantity<si::temperature,   real_t> T;
 
-	private: 
+	private:
 
         void update(
 	  const quantity<si::temperature, real_t> &th,
@@ -67,9 +67,9 @@ namespace libcloudphxx
 	  rs = common::const_cp::r_vs<real_t>(T, p);
 	}
 
-	public: 
+	public:
 
-	// F = d th / d rv 
+	// F = d th / d rv
         void operator()(
 	  const quantity<si::temperature, real_t> &th,
 	  quantity<si::temperature, real_t> &F,
@@ -77,16 +77,16 @@ namespace libcloudphxx
 	)
 	{
 	  update(th, rv);
-	  F = common::theta_dry::d_th_d_rv<real_t>(T, th); 
+	  F = common::theta_dry::d_th_d_rv<real_t>(T, th);
 	}
       };
-    }    
+    }
 
     template <typename real_t, class cont_t>
     void adj_cellwise_nwtrph(
       const opts_t<real_t> &opts,
       const cont_t &p_cont,
-      cont_t &th_cont, 
+      cont_t &th_cont,
       cont_t &rv_cont,
       cont_t &rc_cont,
       const real_t &dt
@@ -97,14 +97,14 @@ namespace libcloudphxx
 
       for (auto tup : zip(p_cont, th_cont, rv_cont, rc_cont))
       {
-        const quantity<si::pressure, real_t> 
-          p    = boost::get<0>(tup) * si::pascals;
+        const quantity<si::pressure, real_t>
+          p    = std::get<0>(tup) * si::pascals;
 
-        real_t 
-          &th = boost::get<1>(tup), 
-          &rv = boost::get<2>(tup), 
-          &rc = boost::get<3>(tup);
-	
+        real_t
+          &th = std::get<1>(tup),
+          &rv = std::get<2>(tup),
+          &rc = std::get<3>(tup);
+
         // double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
@@ -114,10 +114,10 @@ namespace libcloudphxx
 
         real_t rv_tmp = rv;
         quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
-	
+
         auto exner_p = theta_std::exner(p);
-        
-        quantity<si::temperature, real_t> T = th_tmp * exner_p; 
+
+        quantity<si::temperature, real_t> T = th_tmp * exner_p;
 
         // constant l_v used in theta update
         auto L0 = const_cp::l_v(T);
@@ -125,7 +125,7 @@ namespace libcloudphxx
         for (int iter = 0; iter < opts.nwtrph_iters; ++iter)
         {
           // TODO: use the approximate Tetens formulas for p_vs and r_vs from tetens.hpp?
-	  quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T); 
+	  quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T);
 
           // tricky, constant L0 comes from theta = theta + L0 / (c_pd * exner_p) * drc
           // while variable L comes from dp_vs/dT
@@ -138,8 +138,8 @@ namespace libcloudphxx
 
           rv_tmp = rv - drc;
           th_tmp = th * si::kelvins + L0 / (moist_air::c_pd<real_t>() * exner_p) * drc;
-	  
-          T = th_tmp * exner_p; 
+
+          T = th_tmp * exner_p;
         }
 
         // limiting
@@ -160,9 +160,9 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise_hlpr(
       const opts_t<real_t> &opts,
-      const cont_t &rhod_cont, 
+      const cont_t &rhod_cont,
       const cont_t &p_cont, // value not used if const_p = false
-      cont_t &th_cont, // if const_p == false, its th_dry, otherwise its th_std 
+      cont_t &th_cont, // if const_p == false, its th_dry, otherwise its th_std
       cont_t &rv_cont,
       cont_t &rc_cont,
       cont_t &rr_cont,
@@ -190,19 +190,19 @@ namespace libcloudphxx
       for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
-          &rhod = boost::get<0>(tup),
-          &p    = boost::get<1>(tup);
-        real_t 
-          &th = boost::get<2>(tup), 
-          &rv = boost::get<3>(tup), 
-          &rc = boost::get<4>(tup), 
-          &rr = boost::get<5>(tup);
+          &rhod = std::get<0>(tup),
+          &p    = std::get<1>(tup);
+        real_t
+          &th = std::get<2>(tup),
+          &rv = std::get<3>(tup),
+          &rc = std::get<4>(tup),
+          &rr = std::get<5>(tup);
 
 	// double-checking....
 	assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
-	assert(rr >= 0); 
+	assert(rr >= 0);
 
 	F.init(
 	  rhod * si::kilograms / si::cubic_metres,
@@ -214,7 +214,7 @@ namespace libcloudphxx
 
 	real_t vapour_excess;
 	real_t drr_max = 0;
-	if (F.rs > F.r && rr > 0 && opts.revp) 
+	if (F.rs > F.r && rr > 0 && opts.revp)
         {
           drr_max = (dt * si::seconds) * formulae::evaporation_rate(
             F.r, F.rs, rr * si::dimensionless(), rhod * si::kilograms / si::cubic_metres, F.p
@@ -226,20 +226,20 @@ namespace libcloudphxx
 	while (
 	  // condensation of cloud water if supersaturated more than a threshold
 	  (vapour_excess = rv - F.rs) > opts.r_eps
-	  || 
-          ( 
-            opts.cevp && vapour_excess < -opts.r_eps && ( // or if subsaturated and 
+	  ||
+          (
+            opts.cevp && vapour_excess < -opts.r_eps && ( // or if subsaturated and
 	      (incloud = (rc > 0))  // in cloud (then cloud evaporation first)
-	      ||                    // or 
+	      ||                    // or
               (opts.revp && rr > 0 && drr_max > 0) // in rain shaft (rain evaporation out-of-cloud)
 	    )
           )
 	)
 	{
           // an arbitrary initial guess for drv
-	  real_t drv = - copysign(std::min(.5 * opts.r_eps, .5 * vapour_excess), vapour_excess); 
+	  real_t drv = - copysign(std::min(.5 * opts.r_eps, .5 * vapour_excess), vapour_excess);
           // preventing negative mixing ratios if evaporating
-	  if (vapour_excess < 0) drv = 
+	  if (vapour_excess < 0) drv =
             incloud ? std::min(rc, drv) // limiting by rc
 	            : std::min(drr_max, std::min(rr, drv)); // limiting by rr and drr_max
 	  assert(drv != 0); // otherwise it should not pass the while condition!
@@ -261,14 +261,14 @@ namespace libcloudphxx
 	  // updating rv
 	  rv += drv;
 	  assert(rv >= 0);
-	  
+
 	  if (vapour_excess > 0 || incloud)
 	  {
             // condensation or evaporation of cloud water
 	    rc -= drv;
 	    assert(rc >= 0);
 	  }
-	  else 
+	  else
 	  {
             // evaporation of rain water
 	    assert(opts.revp); // should be guaranteed by the while() condition above
@@ -277,7 +277,7 @@ namespace libcloudphxx
 	    if ((drr_max -= drv) == 0) break; // but not more than Kessler allows
 	  }
 	}
-      
+
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
@@ -293,7 +293,7 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise(
       const opts_t<real_t> &opts,
-      const cont_t &rhod_cont, 
+      const cont_t &rhod_cont,
       cont_t &th_cont,  // th_dry
       cont_t &rv_cont,
       cont_t &rc_cont,
@@ -312,8 +312,8 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise_constp(
       const opts_t<real_t> &opts,
-      const cont_t &rhod_cont, 
-      const cont_t &p_cont, 
+      const cont_t &rhod_cont,
+      const cont_t &p_cont,
       cont_t &th_cont,  // th_std
       cont_t &rv_cont,
       cont_t &rc_cont,
