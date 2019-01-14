@@ -54,7 +54,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install python@2; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
 
 # first find brew python python-config
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
@@ -73,6 +73,9 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
+
+    # locally installed stuff comes first
+    - export PATH=/usr/local/bin:$PATH
 
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
