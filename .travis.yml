@@ -83,7 +83,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-5; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-5; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake python-numpy python-scipy libthrust-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
 #TODO: install only required parts of the toolkit to save time
@@ -93,13 +93,6 @@ install:
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
     # recent boost is installed using addons functionality
-
-# get boost odeint > 1.58
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -rf /usr/include/boost/numeric/odeint; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
     # cmake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
