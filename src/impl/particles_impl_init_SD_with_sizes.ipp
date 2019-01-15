@@ -19,15 +19,16 @@ namespace libcloudphxx
       using dry_sizes_t = typename opts_init_t<real_t>::dry_sizes_t;
       using kappa_t  = typename dry_sizes_t::key_type;
       using size_number_t = typename dry_sizes_t::mapped_type;
+      //using conc_multi_t = typename size_number_t::mapped_type;
 
 
-      // loop over dry_sizes
+      // loop over kappas
       for (typename dry_sizes_t::const_iterator dsi = opts_init.dry_sizes.begin(); dsi != opts_init.dry_sizes.end(); ++dsi)
       {
         const kappa_t &kappa(dsi->first);
         const size_number_t &size_number_map(dsi->second);
 
-        // loop over size-number pairs for this kappa
+        // loop over the "size : {concentration, multiplicity}" pairs for this kappa
         for (typename size_number_t::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
         {
           // init number of SDs of this kappa in cells
@@ -52,7 +53,7 @@ namespace libcloudphxx
           init_kappa(kappa);
   
           // init multiplicities
-          init_n_const_multi(opts_init.sd_const_multi_dry_sizes); 
+          init_n_const_multi(sni->second.second); 
   
           // initialising wet radii
           init_wet();
