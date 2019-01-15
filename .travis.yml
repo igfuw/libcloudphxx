@@ -33,7 +33,9 @@ addons:
       - g++-5
       - gcc-5
       - clang-4.0
+      - boost1.61
     sources: &sources
+      - sourceline: 'ppa:rakhimov/boost'
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty-4.0
 
@@ -52,7 +54,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install python@2; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
 
 # first find brew python python-config
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
@@ -72,14 +74,17 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
 
+    # locally installed stuff comes first
+    - export PATH=/usr/local/bin:$PATH
+
 install:
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-5; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-5; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost1.55-all-dev; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake python-numpy python-scipy libthrust-dev python-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
@@ -87,12 +92,11 @@ install:
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
-# get boost odeint > 1.58
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -rf /usr/include/boost/numeric/odeint; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
+    # recent boost is installed using addons functionality
+
+    # cmake 
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
@@ -113,7 +117,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U matplotlib --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install --only-binary=numpy,scipy numpy scipy --ignore-installed six; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then command curl -sSL https://rvm.io/mpapis.asc | gpg --import - ; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm get stable; fi
 
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
