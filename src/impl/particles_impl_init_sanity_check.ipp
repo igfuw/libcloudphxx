@@ -65,17 +65,8 @@ namespace libcloudphxx
       if(opts_init.dry_distros.size() > 1 && opts_init.src_switch)
         throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
 
-//      if(opts_init.dry_distros.size() > 0 && opts_init.dry_sizes.size() > 0)
-  //      throw std::runtime_error("Define dry_distros or dry_sizes, not both");
-
       if(opts_init.dry_distros.size() == 0 && opts_init.dry_sizes.size() == 0)
         throw std::runtime_error("Both dry_distros and dry_sizes are undefined");
-
-      if(opts_init.dry_sizes.size() > 1)
-        throw std::runtime_error("Multiple kappas dry_sizes is not supported yet");
-
-  //    if(opts_init.dry_sizes.size() > 0 && opts_init.sd_conc > 0)
-//        throw std::runtime_error("Dry_sizes init is not compatible with sd_conc (works only with const_multi)");
 
       if(opts_init.dry_sizes.size() > 0 && opts_init.sd_const_multi_dry_sizes == 0)
         throw std::runtime_error("Dry_sizes init used. Please specify multiplicity of dry_sizes SDs: sd_const_multi_dry_sizes.");

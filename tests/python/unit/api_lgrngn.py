@@ -220,10 +220,11 @@ opts_init.sd_conc = sd_conc_old
 
 
 # ----------
-# 0D dry_sizes init
+# 0D dry_sizes init with two kappas
 print "0D dry sizes"
 opts_init.dry_distros = dict()
-opts_init.dry_sizes = {kappa1 : {1.e-6 : 30. * rho_stp, 15.e-6 : 10. * rho_stp}}
+opts_init.dry_sizes = {kappa1 : {1.e-6  : 30. * rho_stp, 15.e-6 : 10. * rho_stp},
+                       kappa2 : {1.2e-6 : 20. * rho_stp, 12.e-6 : 15. * rho_stp}}
 
 sd_conc_old = opts_init.sd_conc
 opts_init.sd_conc = 0
@@ -245,13 +246,39 @@ assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi_dry_sizes)
 
 prtcls.diag_dry_rng(1e-6, 1.1e-6);
 prtcls.diag_wet_mom(0)
-print frombuffer(prtcls.outbuf())
-assert (frombuffer(prtcls.outbuf()) == 30 ).all()
+n = frombuffer(prtcls.outbuf()).copy()
+prtcls.diag_kappa_mom(1)
+k = frombuffer(prtcls.outbuf())
+print n, k
+assert (n == 30 ).all()
+assert isclose(k, n * kappa1, rtol=1e-20)
+
+prtcls.diag_dry_rng(1.2e-6, 1.3e-6);
+prtcls.diag_wet_mom(0)
+n = frombuffer(prtcls.outbuf()).copy()
+prtcls.diag_kappa_mom(1)
+k = frombuffer(prtcls.outbuf())
+print n, k
+assert (n == 20 ).all()
+assert isclose(k, n * kappa2, rtol=1e-20)
+
+prtcls.diag_dry_rng(12e-6, 13e-6);
+prtcls.diag_wet_mom(0)
+n = frombuffer(prtcls.outbuf()).copy()
+prtcls.diag_kappa_mom(1)
+k = frombuffer(prtcls.outbuf())
+print n, k
+assert (n == 15 ).all()
+assert isclose(k, n * kappa2, rtol=1e-20)
 
 prtcls.diag_dry_rng(15e-6, 15.1e-6);
 prtcls.diag_wet_mom(0)
-print frombuffer(prtcls.outbuf())
-assert (frombuffer(prtcls.outbuf()) == 10 ).all()
+n = frombuffer(prtcls.outbuf()).copy()
+prtcls.diag_kappa_mom(1)
+k = frombuffer(prtcls.outbuf())
+print n, k
+assert (n == 10 ).all()
+assert isclose(k, n * kappa1, rtol=1e-20)
 
 # go back to distros init
 opts_init.sd_const_multi_dry_sizes = 0
