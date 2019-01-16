@@ -242,7 +242,7 @@ prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
 print frombuffer(prtcls.outbuf())
 assert (prtcls_tot == 75.) # 25 SDs have multiplicity = 2 and 25 have multiplicity = 1
-assert (sd_tot     == 50.) 
+assert (sd_tot == 50.) 
 
 prtcls.diag_dry_rng(1e-6, 1.1e-6);
 prtcls.diag_wet_mom(0)
