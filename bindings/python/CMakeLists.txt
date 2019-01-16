@@ -67,14 +67,13 @@ set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 # where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    import sysconfig as sc
-    print(sc.get_path('platlib'))"
-  OUTPUT_VARIABLE PYTHON_SITE_DIR
+    from distutils import sysconfig as sc
+    print(sc.get_python_lib(prefix='', plat_specific=True))"
+  OUTPUT_VARIABLE PYTHON_SITE
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION ${PYTHON_SITE_DIR}
+     DESTINATION ${PYTHON_SITE}
      COMPONENT library
 )
