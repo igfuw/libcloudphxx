@@ -90,8 +90,8 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
 
 @pytest.mark.parametrize("Cx, Cz, roll_st, roll_ax", [
                           (1., 0., -1, 0), (-1., 0., 1, 0),
-                          pytest.mark.xfail((0., 1., -1, 1)), 
-                          pytest.mark.xfail((0., -1., 1, 1))
+                          pytest.param(0., 1., -1, 1, marks = pytest.mark.xfail), 
+                          pytest.param(0., -1., 1, 1, marks = pytest.mark.xfail)
                           ])
 def test_advection(Cx, Cz, roll_st, roll_ax):
   tab_in, tab_out = advection_1step(Cx, Cz)
