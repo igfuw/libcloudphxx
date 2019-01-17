@@ -43,7 +43,7 @@ namespace libcloudphxx
 
           init_sstp();
   
-          // init ijk vector, also n_part and resize n_part vectors
+          // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();
   
           // initialising dry radii (needs ijk)

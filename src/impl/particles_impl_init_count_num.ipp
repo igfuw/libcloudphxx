@@ -48,20 +48,28 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
-      // initialize number of SDs in cells taking into account differences in rhod
-      // and that not all Eulerian cells are fully covered by Lagrangian domain (round to int)
-      thrust::transform(rhod.begin(), rhod.end(), dv.begin(), count_num.begin(),
-        (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2 / 
-          (n_dims == 0 ? dv[0] : opts_init.dx * opts_init.dy * opts_init.dz) 
-          + real_t(0.5))
+
+      // initialize number of SDs in cells taking into account
+      // that not all Eulerian cells are fully covered by Lagrangian domain (round to int)
+      thrust::transform(dv.begin(), dv.end(), count_num.begin(),
+        multiplier * arg::_1 / 
+        (n_dims == 0 ? dv[0] : opts_init.dx * opts_init.dy * opts_init.dz) 
+        + real_t(0.5)
       );
+
+      // correct for density with respect to STP
+      if(!opts_init.aerosol_independent_of_rhod)
+        thrust::transform(rhod.begin(), rhod.end(), count_num.begin(), count_num.begin(),
+          arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
+          + real_t(0.5)
+        );
     }
 
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_multi)
     {
-      init_count_num_hlpr(conc_multi.first, conc_multi.second);
+      thrust::fill(count_num.begin(), count_num.end(), conc_multi.second);
     }
 
     template <typename real_t, backend_t device>
