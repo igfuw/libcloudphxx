@@ -197,6 +197,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
 	  this->make_arrinfo(this->mem->advectee(ix::th)),
 	  this->make_arrinfo(this->mem->advectee(ix::rv)),
 	  this->make_arrinfo(this->mem->g_factor()),
+          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
 	  this->make_arrinfo(Cx),
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
 	  this->make_arrinfo(Cz),
