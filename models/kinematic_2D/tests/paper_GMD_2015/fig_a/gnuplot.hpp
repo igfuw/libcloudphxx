@@ -15,7 +15,7 @@ void init(
     boost::filesystem::path(file).parent_path()
   );
 
-  gp << "set term png size " << nx * 500 << "," << ny * 500 << "\n";
+  gp << "set term svg size " << nx * 500 << "," << ny * 500 << "\n";
   gp << "set size square\n";
   gp << "set encoding utf8\n";
   // progressive-rock connoisseur palette ;)
