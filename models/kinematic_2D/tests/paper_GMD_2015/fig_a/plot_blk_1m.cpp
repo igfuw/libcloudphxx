@@ -7,7 +7,7 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
 
-  std::string 
+  std::string
     dir = string(av[1]) + "/paper_GMD_2015/fig_a/",
     h5  = dir + "out_blk_1m";
 
@@ -16,9 +16,9 @@ int main(int ac, char** av)
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
     for (auto &plt : std::set<std::string>({"rc", "rr"}))
-    {   
+    {
       Gnuplot gp;
-      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
+      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".png", 1, 1, n);
 
       if (plt == "rc")
       {

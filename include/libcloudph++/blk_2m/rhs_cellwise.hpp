@@ -48,8 +48,6 @@ namespace libcloudphxx
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
-      //unfortunately can't zip through more than 10 arguments
-      //so instead one loop over all forcings, there will be a few
       for (auto tup : zip(
         dot_th_cont,
         dot_rv_cont,
@@ -82,15 +80,16 @@ namespace libcloudphxx
           &rr = std::get<11>(tup),
           &nr = std::get<12>(tup);
 
-        // helper dimensionless verions of real_t
+        // helper dimensionless verions of real_t...
         const quantity<si::dimensionless, real_t> rr_dim = rr * si::dimensionless();
+        // ... and a dimensional version of concentration
         const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> nr_dim = nr / si::kilograms;
 
         //helper temperature and pressure
         const quantity<si::temperature, real_t> T = common::theta_dry::T<real_t>(th, rhod);
         const quantity<si::pressure, real_t>    p = common::theta_dry::p<real_t>(rhod, rv, T);
 
-        // rhs only due to this function needed for limiting
+        // rhs only due to rhs_cellwise microphysics functions (needed for limiting)
         real_t local_dot_rc = 0,
                local_dot_rr = 0,
                local_dot_nc = 0,
@@ -149,11 +148,10 @@ namespace libcloudphxx
           // evaporation of rain (see Morrison & Grabowski 2007)
           if (rr > 0 && nr > 0)
           {
-            // only evaporation for rain
             quantity<si::frequency, real_t> tmp =
               std::min(
                 cond_evap_rate<real_t>(T, p, rv, tau_relax_r(T, rhod, rr_dim, nr_dim)),
-                real_t(0) / si::seconds
+                real_t(0) / si::seconds  // only evaporation for rain
               );
 
             assert(r_drop_r(rr_dim, nr_dim) >= 0 * si::metres  && "mean drop radius cannot be < 0");
@@ -181,7 +179,7 @@ namespace libcloudphxx
           rain_limiter  = true;
         }
 
-        dot_rv -= local_dot_rc + local_dot_rr;
+        dot_rv -= (local_dot_rc + local_dot_rr);
         dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
         dot_rc += local_dot_rc;
         dot_rr += local_dot_rr;
@@ -194,7 +192,7 @@ namespace libcloudphxx
         local_dot_nc = 0;
         local_dot_nr = 0;
 
-        if (!cloud_limiter)
+        if (!cloud_limiter) // only do collisions if not all cloud water was evaporated
         {
           // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.acnv)
@@ -230,8 +228,7 @@ namespace libcloudphxx
             if (rc > 0 && nc > 0 && rr > 0)
             {
               quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr_dim);
-              // so that accretion doesn't take more rc than there is
-              // tmp = std::min(tmp, rc / (dt * si::seconds));
+
               assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
 
               local_dot_rc -= tmp * si::seconds;
@@ -240,7 +237,7 @@ namespace libcloudphxx
               // limit dot_rc coming from acnv and accr
               local_dot_rc = std::max(local_dot_rc, - rc / dt);
 
-              if(tmp == rc / (dt * si::seconds)) // all cloud water turned into rain
+              if(local_dot_rc == -rc / dt) // all cloud water turned into rain
                 cloud_limiter = true;
 
               // the sink of N for cloud droplets is combined with sink due to autoconversion
@@ -248,9 +245,9 @@ namespace libcloudphxx
             }
           }
 
-          // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
-          //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
-          // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
+          // sink of n_c due to autoconversion and accretion
+          //    (see Khairoutdinov and Kogan 2000 eq 35
+          //     but be careful cause "q" there actually means mixing ratio, not water content)
           if (opts.acnv || opts.accr)
           {
             // if all cloud water was turned into rain, set nc = 0
