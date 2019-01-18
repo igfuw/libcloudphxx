@@ -25,17 +25,17 @@ namespace libcloudphxx
       cont_t &dot_nc_cont,
       cont_t &dot_rr_cont,
       cont_t &dot_nr_cont,
-      const cont_t &rhod_cont,   
+      const cont_t &rhod_cont,
       const cont_t &th_cont,
       const cont_t &rv_cont,
-      cont_t &rc_cont,
-      cont_t &nc_cont,
-      cont_t &rr_cont,
-      cont_t &nr_cont,
+      const cont_t &rc_cont,
+      const cont_t &nc_cont,
+      const cont_t &rr_cont,
+      const cont_t &nr_cont,
       const real_t &dt
-    )   
+    )
 //</listing>
-    { 
+    {
       // sanity checks
       assert(min(rv_cont) >= 0);
       assert(min(th_cont) > 0);
@@ -44,321 +44,236 @@ namespace libcloudphxx
       assert(min(nc_cont) >= 0);
       assert(min(nr_cont) >= 0);
 
-      // TODO: rewrite so thet's not needed
-      assert(min(dot_nc_cont) == 0);
-      //assert(min(dot_nr_cont) == 0);
-      assert(min(dot_rc_cont) == 0);
-      //assert(min(dot_rr_cont) == 0);
-      assert(max(dot_nc_cont) == 0);
-      assert(max(dot_nr_cont) == 0);
-      assert(max(dot_rc_cont) == 0);
-      assert(max(dot_rr_cont) == 0);
-
       using namespace formulae;
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
-      //unfortunately can't zip through more than 10 arguments 
-      //so instead one loop over all forcings, there will be a few 
       for (auto tup : zip(
-        dot_th_cont, 
-        dot_rv_cont, 
-        dot_rc_cont, 
+        dot_th_cont,
+        dot_rv_cont,
+        dot_rc_cont,
         dot_nc_cont,
-        rhod_cont, 
-        th_cont,  
-        rv_cont,  
-        rc_cont,  
-        nc_cont
+        dot_rr_cont,
+        dot_nr_cont,
+        rhod_cont,
+        th_cont,
+        rv_cont,
+        rc_cont,
+        nc_cont,
+        rr_cont,
+        nr_cont
       ))
       {
         real_t
-          &dot_th = boost::get<0>(tup),
-          &dot_rv = boost::get<1>(tup),
-          &dot_rc = boost::get<2>(tup),
-          &dot_nc = boost::get<3>(tup);
-        const quantity<si::mass_density,  real_t> &rhod  = boost::get<4>(tup) * si::kilograms / si::cubic_metres;
-        const quantity<si::temperature,   real_t> &th    = boost::get<5>(tup) * si::kelvins;
-        const quantity<si::dimensionless, real_t> &rv    = boost::get<6>(tup) * si::dimensionless();
-        real_t &rc = boost::get<7>(tup);
-        real_t &nc = boost::get<8>(tup);
+          &dot_th = std::get<0>(tup),
+          &dot_rv = std::get<1>(tup),
+          &dot_rc = std::get<2>(tup),
+          &dot_nc = std::get<3>(tup),
+          &dot_rr = std::get<4>(tup),
+          &dot_nr = std::get<5>(tup);
+        const quantity<si::mass_density,  real_t> &rhod  = std::get<6>(tup) * si::kilograms / si::cubic_metres;
+        const quantity<si::temperature,   real_t> &th    = std::get<7>(tup) * si::kelvins;
+        const quantity<si::dimensionless, real_t> &rv    = std::get<8>(tup) * si::dimensionless();
+        const real_t
+          &rc = std::get<9>(tup),
+          &nc = std::get<10>(tup),
+          &rr = std::get<11>(tup),
+          &nr = std::get<12>(tup);
+
+        // helper dimensionless verions of real_t...
+        const quantity<si::dimensionless, real_t> rr_dim = rr * si::dimensionless();
+        // ... and a dimensional version of concentration
+        const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> nr_dim = nr / si::kilograms;
 
         //helper temperature and pressure
-        quantity<si::temperature, real_t> T = common::theta_dry::T<real_t>(th, rhod);
-        quantity<si::pressure, real_t>    p = common::theta_dry::p<real_t>(rhod, rv, T);
+        const quantity<si::temperature, real_t> T = common::theta_dry::T<real_t>(th, rhod);
+        const quantity<si::pressure, real_t>    p = common::theta_dry::p<real_t>(rhod, rv, T);
+
+        // rhs only due to rhs_cellwise microphysics functions (needed for limiting)
+        real_t local_dot_rc = 0,
+               local_dot_rr = 0,
+               local_dot_nc = 0,
+               local_dot_nr = 0;
+
+        // helper flags for when all cloud/rain evaporated and we skip collisions
+        bool
+          cloud_limiter = false,
+          rain_limiter  = false;
 
         // activation (see Morrison & Grabowski 2007)
         if (opts.acti)
-        { //TODO what if we have some other source terms (that happen somewhere before here), like diffusion?
-          assert(dot_rc == 0 && "activation is first");
-          assert(dot_nc == 0 && "activation is first");
-          assert(dot_th == 0 && "activation is first");
-
+        {
           if (rv > common::const_cp::r_vs<real_t>(T, p))
           {
             // summing by looping over lognormal modes
             quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_ccn = 0;
             for (const auto &mode : opts.dry_distros)
-            { 
+            {
               n_ccn += n_c_p<real_t>(
-                p, T, rv, 
-                mode.mean_rd * si::metres, 
-                mode.sdev_rd, 
-                mode.N_stp / si::cubic_metres, 
+                p, T, rv,
+                mode.mean_rd * si::metres,
+                mode.sdev_rd,
+                mode.N_stp / si::cubic_metres,
                 mode.chem_b,
                 opts.RH_max
-              ); 
+              );
             }
 
-            quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp = 
+            quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
               activation_rate<real_t>(n_ccn, nc / si::kilograms, dt * si::seconds);
 
-	    dot_nc += tmp * si::kilograms * si::seconds;  
-            dot_rv -= tmp * ccnmass<real_t>() * si::seconds;
-            dot_rc += tmp * ccnmass<real_t>() * si::seconds;
-
-            //TODO maybe some common part for all the forcings (for example dot_th)?
-            dot_th -= tmp * ccnmass<real_t>() * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
+	    local_dot_nc += tmp * si::kilograms * si::seconds;
+            local_dot_rc += tmp * ccnmass<real_t>() * si::seconds;
           }
 
-          assert(dot_nc >= 0 && "activation can only increase cloud droplet concentration");
-          assert(dot_rc >= 0 && "activation can only increase cloud water");
-          assert(dot_th >= 0 && "activation can only increase theta");
+          assert(local_dot_nc >= 0 && "activation can only increase cloud droplet concentration");
+          assert(local_dot_rc >= 0 && "activation can only increase cloud water");
         }
 
-        // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
         if (opts.cond)
-        {                          
+        {
+          // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
           if (rc > 0 && nc > 0)
           {      //  ^^   TODO is it possible?
-            quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> tmp = 
+            quantity<si::frequency, real_t> tmp =
               cond_evap_rate<real_t>(
                 T, p, rv, tau_relax_c(T, p, r_drop_c(rc, nc, rhod), rhod * nc / si::kilograms)
               );
 
             assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
 
-            if (rc + ((dot_rc / si::seconds + tmp) * (dt * si::seconds))  < 0)
-            {   // so that we don't evaporate more cloud water than there is
-              tmp     = -(rc + (dt * dot_rc)) / (dt * si::seconds);  // evaporate all rc
-              dot_nc  = -nc / dt;                                    // and all nc
-            }
-            dot_rc += tmp * si::seconds;
-
-            if (rc + dot_rc * dt < 0)
-            {  // (*)
-                 // if rc is very small due to numerical reasons the above condition 
-                 // may result in small negative values 
-                 // (for rc = 1e-8 and dot_rc * dt = 1e-8 the new rc was -1e-25)
-                 // in this case shamelessly put rc and nc to zero and do not calculate the impact on theta
-                tmp = 0;
-                rc = 0;
-                nc = 0;
-                dot_rc = 0;
-                dot_nc = 0;
-            }
-            dot_rv -= tmp * si::seconds;
-            dot_th -= tmp  * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
+            local_dot_rc += tmp * si::seconds;
           }
 
-          assert(rc + dot_rc * dt >= 0 && "condensation/evaporation can't make rc < 0");
-          assert(nc + dot_nc * dt >= 0 && "condensation/evaporation can't make nc < 0");
-          assert(rv + dot_rv * dt >= 0 && "condensation/evaporation can't make rv < 0");
-          assert(th / si::kelvin + dot_th * dt >= 0 && "condensation/evaporation can't make th < 0");
-        }
-      }
-
-      for (auto tup : zip(
-        dot_rc_cont, 
-        dot_nc_cont, 
-        dot_rr_cont, 
-        dot_nr_cont,
-        rhod_cont,
-        rc_cont,  
-        nc_cont, 
-        rr_cont
-      ))
-      {
-        real_t
-          &dot_rc = boost::get<0>(tup),
-          &dot_nc = boost::get<1>(tup),
-          &dot_rr = boost::get<2>(tup),
-          &dot_nr = boost::get<3>(tup);
-        const quantity<si::mass_density, real_t>  &rhod = boost::get<4>(tup) * si::kilograms / si::cubic_metres;
-        real_t &rc = boost::get<5>(tup);
-        real_t &nc = boost::get<6>(tup);
-        const quantity<si::dimensionless, real_t>   &rr = boost::get<7>(tup) * si::dimensionless();
-
-        // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
-        if (opts.acnv)
-        { 
-          if (rc > 0 && nc > 0)
-          {  
-            quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod, 
-                                                                opts.acnv_A * si::dimensionless(), 
-                                                                opts.acnv_b * si::dimensionless(), 
-                                                                opts.acnv_c * si::dimensionless()
-                                                               );
-
-            // so that autoconversion doesn't take more rc than there is
-            tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-            assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
-
-            dot_rc -= tmp * si::seconds;
-            if (rc + dot_rc * dt < 0)
-            { //see comment (*) in condensation 
-              tmp = 0;
-              rc = 0;
-              dot_rc = 0;
-            }
-            dot_rr += tmp * si::seconds;
-
-            // sink of N for cloud droplets is combined with the sink due to accretion
-            // source of N for drizzle assumes that all the drops have the same radius
-            dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
-              * si::kilograms * si::seconds; // to make it dimensionless
-          }
-
-          assert(rc + dot_rc * dt >= 0 && "autoconversion can't make rc negative");
-        }
-
-        // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
-        if (opts.accr)
-        {              
-          if (rc > 0 && nc > 0 && rr > 0)  
-          {                   
-            quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr);
-            // so that accretion doesn't take more rc than there is
-            tmp = std::min(tmp, (rc + dt * dot_rc) / (dt * si::seconds));
-            assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
-          
-            dot_rc -= tmp * si::seconds;
-            if (rc + dot_rc * dt < 0)
-            { //see comment (*) in condensation 
-              tmp = 0;
-              rc = 0;
-              dot_rc = 0;
-            }
-            dot_rr += tmp * si::seconds;
-
-            // the sink of N for cloud droplets is combined with sink due to autoconversion
-            // accretion does not change N for drizzle 
-          }
-
-          assert(rc + dot_rc * dt >= 0 && "accretion can't make rc negative");
-        }
-
-        // sink of n_c due to autoconversion and accretion (see Khairoutdinov and Kogan 2000 eq 35)
-        //                                                 (be careful cause "q" there actually means mixing ratio, not water content)
-        // has to be just after autoconv. and accretion so that dot_rr is a sum of only those two
-        if (opts.acnv || opts.accr)
-        {
-          if (nc > 0 && dot_rr > 0)  
-          {                           
-            quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
-              collision_sink_rate(dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
-
-            assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
-            assert(tmp >= 0 / si::kilograms / si::seconds && "tmp");
- 
-            // so that collisions don't take more n_c than there is
-            tmp = std::min(tmp, (nc / si::kilograms + dt * dot_nc / si::kilograms) / (dt * si::seconds));
-            dot_nc -= tmp * si::kilograms * si::seconds;
-            if (nc + dot_nc * dt < 0)
-            { //see comment (*) in condensation
-              nc = 0;
-              dot_nc = 0;
-            }
-          }
-          assert(nc + dot_nc * dt >= 0 && "collisions can't make n_c negative");
-        } 
-      }
-
-      for (auto tup : zip(
-        dot_th_cont,
-        dot_rv_cont, 
-        dot_rr_cont, 
-        dot_nr_cont,
-        rhod_cont,
-        th_cont, 
-        rv_cont, 
-        rr_cont,
-        nr_cont
-      )) {
-        real_t
-          &dot_th = boost::get<0>(tup),
-          &dot_rv = boost::get<1>(tup),
-          &dot_rr = boost::get<2>(tup),
-          &dot_nr = boost::get<3>(tup);
-        const quantity<si::mass_density,  real_t> &rhod  = boost::get<4>(tup) * si::kilograms / si::cubic_metres;
-        const quantity<si::temperature,   real_t> &th    = boost::get<5>(tup) * si::kelvins;
-        const quantity<si::dimensionless, real_t> &rv    = boost::get<6>(tup) * si::dimensionless();
-        real_t &rr    = boost::get<7>(tup);
-        real_t &nr    = boost::get<8>(tup);
-
-        quantity<si::dimensionless, real_t> rr_dim = rr * si::dimensionless();
-        quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> nr_dim = nr / si::kilograms;
-
-        // helper temperature and pressure (TODO: it is repeated above!)
-        quantity<si::temperature, real_t> T = common::theta_dry::T<real_t>(th, rhod);
-        quantity<si::pressure, real_t>    p = common::theta_dry::p<real_t>(rhod, rv, T);
-
-        // evaporation of rain (see Morrison & Grabowski 2007)
-        if (opts.cond)
-        {
-          if (rr > 0 && nr_dim * si::kilograms > 0)
-          { // cond/evap for rr
-            assert(rr_dim + dot_rr * dt >= 0 && "before rain cond-evap");
-            assert(rv + dot_rv * dt >= 0 && "before rain cond-evap");
-            assert(nr_dim * si::kilograms + dot_nr * dt >= 0 && "before rain cond-evap");
-            assert(th / si::kelvin + dot_th * dt >= 0 && "before rain cond-evap");
-
-            quantity<si::frequency, real_t> tmp = 
-              cond_evap_rate<real_t>(T, p, rv, tau_relax_r(T, rhod, rr_dim, nr_dim));
+          // evaporation of rain (see Morrison & Grabowski 2007)
+          if (rr > 0 && nr > 0)
+          {
+            quantity<si::frequency, real_t> tmp =
+              std::min(
+                cond_evap_rate<real_t>(T, p, rv, tau_relax_r(T, rhod, rr_dim, nr_dim)),
+                real_t(0) / si::seconds  // only evaporation for rain
+              );
 
             assert(r_drop_r(rr_dim, nr_dim) >= 0 * si::metres  && "mean drop radius cannot be < 0");
 
-            tmp = std::min(tmp, real_t(0) / si::seconds);
-            if (rr_dim + (dot_rr / si::seconds + tmp) * (dt * si::seconds) < 0) // so that we don't evaporate more than we have
+            local_dot_rr += tmp * si::seconds;
+            // during evaporation n_r is reduced so that a constant mean drizzle/raindrop radius is mantained
+            local_dot_nr += tmp * nr / rr * si::seconds;
+          }
+        }
+
+        //limiters after acnv, cond/evap for rc and evap for rr
+        local_dot_rc = std::max(local_dot_rc, - rc / dt);
+        local_dot_rr = std::max(local_dot_rr, - rr / dt);
+        local_dot_nr = std::max(local_dot_nr, - nr / dt);
+
+        if(local_dot_rc == - rc / dt)
+        {
+          local_dot_nc = - nc / dt;
+          cloud_limiter = true;
+        }
+
+        if(local_dot_rr == - rr / dt)
+        {
+          local_dot_nr = - nr / dt;
+          rain_limiter  = true;
+        }
+
+        dot_rv -= (local_dot_rc + local_dot_rr);
+        dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
+        dot_rc += local_dot_rc;
+        dot_rr += local_dot_rr;
+        dot_nc += local_dot_nc;
+        dot_nr += local_dot_nr;
+
+        // zero-out for reuse in collisions
+        local_dot_rc = 0;
+        local_dot_rr = 0;
+        local_dot_nc = 0;
+        local_dot_nr = 0;
+
+        if (!cloud_limiter) // only do collisions if not all cloud water was evaporated
+        {
+          // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
+          if (opts.acnv)
+          {
+            if (rc > 0 && nc > 0)
             {
-              tmp = - (rr_dim + dt * dot_rr) / (dt * si::seconds); // evaporate all rr
-              dot_rv -= tmp * si::seconds;
-              dot_th += -tmp  * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
+              quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod,
+                                                                  opts.acnv_A * si::dimensionless(),
+                                                                  opts.acnv_b * si::dimensionless(),
+                                                                  opts.acnv_c * si::dimensionless()
+                                                                 );
 
-              //dot_rr += tmp * si::seconds;
-              //dot_nr  = -nr_dim / dt * si::kilograms; // and all n_r
-              dot_rr = 0;
-              dot_nr = 0;
-              nr = 0;
-              rr = 0;
-            }
-            else
-            {
-              dot_rv -= tmp * si::seconds;
-              dot_rr += tmp * si::seconds;
-           
-              dot_th += -tmp * d_th_d_rv<real_t>(T, th) / si::kelvins * si::seconds; 
+              // so that autoconversion doesn't take more rc than there is
+              tmp = std::min(tmp, rc / (dt * si::seconds));
+              assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
-              // during evaporation n_r is reduced so that a constant mean drizzle/raindrop radius is mantained
-              if (tmp < 0 / si::seconds) 
-              {
-                quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> dot_nr_tmp = tmp * nr_dim / rr_dim;
+              local_dot_rc -= tmp * si::seconds;
+              local_dot_rr += tmp * si::seconds;
 
-                if (nr_dim + (dot_nr / si::kilograms / si::seconds + dot_nr_tmp) * (dt * si::seconds) > 0 / si::kilograms)
-                {
-                  dot_nr += dot_nr_tmp * si::kilograms * si::seconds;
-                }
-                // else do nothing
-              }
+              // sink of N for cloud droplets is combined with the sink due to accretion
+              // source of N for drizzle assumes that all the drops have the same radius
+              local_dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
+                * si::kilograms * si::seconds; // to make it dimensionless
+
+              if(tmp == rc / (dt * si::seconds)) // all cloud water turned into rain
+                cloud_limiter = true;
             }
           }
 
-          assert(rr_dim + dot_rr * dt >= 0 && "rain condensation/evaporation can't make rr < 0");
-          assert(rv + dot_rv * dt >= 0 && "rain condensation/evaporation can't make rv < 0");
-          assert(nr_dim * si::kilograms + dot_nr * dt >= 0 && "rain condensation/evaporation can't make n_r < 0");
-          assert(th / si::kelvin + dot_th * dt >= 0 && "rain condensation/evaporation can't make re < 0");
+          // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
+          if (opts.accr && !cloud_limiter && !rain_limiter)
+          {
+            if (rc > 0 && nc > 0 && rr > 0)
+            {
+              quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr_dim);
+
+              assert(tmp * si::seconds >= 0 && "accretion rate has to be >= 0");
+
+              local_dot_rc -= tmp * si::seconds;
+              local_dot_rr += tmp * si::seconds;
+
+              // limit dot_rc coming from acnv and accr
+              local_dot_rc = std::max(local_dot_rc, - rc / dt);
+
+              if(local_dot_rc == -rc / dt) // all cloud water turned into rain
+                cloud_limiter = true;
+
+              // the sink of N for cloud droplets is combined with sink due to autoconversion
+              // accretion does not change N for drizzle
+            }
+          }
+
+          // sink of n_c due to autoconversion and accretion
+          //    (see Khairoutdinov and Kogan 2000 eq 35
+          //     but be careful cause "q" there actually means mixing ratio, not water content)
+          if (opts.acnv || opts.accr)
+          {
+            // if all cloud water was turned into rain, set nc = 0
+            if(cloud_limiter)
+              local_dot_nc = - nc / dt;
+            // else calc sink of nc from local_dot_rr
+            else if (nc > 0 && local_dot_rr > 0)
+            {
+              quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
+                collision_sink_rate(local_dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
+
+              assert(r_drop_c(rc, nc, rhod) >= 0 * si::metres  && "mean droplet radius cannot be < 0");
+              assert(tmp >= 0 / si::kilograms / si::seconds && "tmp");
+
+              // so that collisions don't take more n_c than there is
+              tmp = std::min(tmp, (nc / si::kilograms) / (dt * si::seconds));
+              local_dot_nc -= tmp * si::kilograms * si::seconds;
+            }
+          }
+
+          dot_rc += local_dot_rc;
+          dot_rr += local_dot_rr;
+          dot_nc += local_dot_nc;
+          dot_nr += local_dot_nr;
         }
       }
     }
-  };    
+  };
 };
