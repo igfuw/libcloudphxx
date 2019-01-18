@@ -48,6 +48,19 @@ namespace libcloudphxx
       using namespace common::moist_air;
       using namespace common::theta_dry;
 
+      // TODO - do we want it to be runtime params?
+      // typical assumed scales of cloud/rain water mixing ratios and concentrations
+      using inverse_mass = divide_typeof_helper<si::dimensionless, si::mass>::type;
+      const quantity<inverse_mass,      real_t> nc_scale = real_t(1e7) * si::dimensionless() / si::kilograms;
+      const quantity<inverse_mass,      real_t> nr_scale = real_t(1e6) * si::dimensionless() / si::kilograms;
+      const quantity<si::dimensionless, real_t> rc_scale = real_t(1e-3) * si::dimensionless();
+      const quantity<si::dimensionless, real_t> rr_scale = real_t(1e-4) * si::dimensionless();
+      // multiply by the numerical precission to get the limit below whitch it should be treated as zero
+      const quantity<si::dimensionless, real_t> nc_eps = nc_scale * si::kilograms * std::numeric_limits<real_t>::epsilon();
+      const quantity<si::dimensionless, real_t> nr_eps = nr_scale * si::kilograms * std::numeric_limits<real_t>::epsilon();
+      const quantity<si::dimensionless, real_t> rc_eps = rc_scale * std::numeric_limits<real_t>::epsilon();
+      const quantity<si::dimensionless, real_t> rr_eps = rr_scale * std::numeric_limits<real_t>::epsilon();
+
       for (auto tup : zip(
         dot_th_cont,
         dot_rv_cont,
@@ -133,7 +146,7 @@ namespace libcloudphxx
         if (opts.cond)
         {
           // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
-          if (rc > 0 && nc > 0)
+          if (rc > rc_eps && nc > nc_eps)
           {      //  ^^   TODO is it possible?
             quantity<si::frequency, real_t> tmp =
               cond_evap_rate<real_t>(
@@ -146,7 +159,7 @@ namespace libcloudphxx
           }
 
           // evaporation of rain (see Morrison & Grabowski 2007)
-          if (rr > 0 && nr > 0)
+          if (rr > rr_eps && nr > nr_eps)
           {
             quantity<si::frequency, real_t> tmp =
               std::min(
@@ -197,7 +210,7 @@ namespace libcloudphxx
           // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.acnv)
           {
-            if (rc > 0 && nc > 0)
+            if (rc > rc_eps && nc > nc_eps)
             {
               quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod,
                                                                   opts.acnv_A * si::dimensionless(),
@@ -207,6 +220,7 @@ namespace libcloudphxx
 
               // so that autoconversion doesn't take more rc than there is
               tmp = std::min(tmp, rc / (dt * si::seconds));
+
               assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
               local_dot_rc -= tmp * si::seconds;
@@ -225,7 +239,7 @@ namespace libcloudphxx
           // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.accr && !cloud_limiter && !rain_limiter)
           {
-            if (rc > 0 && nc > 0 && rr > 0)
+            if (rc > rc_eps && nc > nc_eps && rr > rr_eps)
             {
               quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr_dim);
 
@@ -254,7 +268,7 @@ namespace libcloudphxx
             if(cloud_limiter)
               local_dot_nc = - nc / dt;
             // else calc sink of nc from local_dot_rr
-            else if (nc > 0 && local_dot_rr > 0)
+            else if (nc > nc_eps && local_dot_rr > rr_eps)
             {
               quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
                 collision_sink_rate(local_dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
