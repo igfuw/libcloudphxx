@@ -130,5 +130,20 @@ namespace libcloudphxx
     {
       thrust::fill(n.begin() + n_part_old, n.end(), const_multi);
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc)
+    {
+      namespace arg = thrust::placeholders;
+      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      thrust::fill(concentration.begin(), concentration.end(), conc);
+      conc_to_number(concentration);
+      thrust::transform(
+        thrust::make_permutation_iterator(concentration.begin(), ijk.begin() + n_part_old),
+        thrust::make_permutation_iterator(concentration.begin(), ijk.end()),
+        n.begin() + n_part_old,
+        arg::_1 / sd_conc + real_t(.5)
+      ); 
+    }
   };
 };

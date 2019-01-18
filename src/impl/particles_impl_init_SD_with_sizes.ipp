@@ -53,7 +53,7 @@ namespace libcloudphxx
           init_kappa(kappa);
   
           // init multiplicities
-          init_n_const_multi(sni->second.second); 
+          init_n_dry_sizes(sni->second.first, sni->second.second); 
   
           // initialising wet radii
           init_wet();
