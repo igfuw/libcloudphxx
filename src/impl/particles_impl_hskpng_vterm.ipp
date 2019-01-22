@@ -134,8 +134,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
     {   
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
 
@@ -143,7 +143,7 @@ namespace libcloudphxx
 
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
-        thrust::device_vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
+        thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
         // get cached bin number
         thrust::transform_if(
           rw2.begin(), rw2.end(),
@@ -188,14 +188,14 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_vterm_all()
     {   
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
 
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
-        thrust::device_vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
+        thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
         // get cached bin number
         thrust::transform(
           rw2.begin(), rw2.end(),

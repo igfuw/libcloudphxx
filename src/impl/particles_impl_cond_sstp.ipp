@@ -17,7 +17,7 @@ namespace libcloudphxx
       // prerequisite
       hskpng_sort(); 
       // particle's local change in rv
-      thrust::device_vector<real_t> &pdrv(tmp_device_real_part4);
+      thrust_device::vector<real_t> &pdrv(tmp_device_real_part4);
       // -rw3_old
       thrust::transform(
         thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
@@ -27,7 +27,7 @@ namespace libcloudphxx
       );
 
       // vector for each particle's T
-      thrust::device_vector<real_t> &Tp(tmp_device_real_part3);
+      thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
 
       // calc Tp
       if(!const_p) // variable pressure

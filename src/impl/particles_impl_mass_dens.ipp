@@ -29,17 +29,17 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::mass_dens_estim(
-      const typename thrust::device_vector<real_t>::iterator &vec_bgn,
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const real_t radius, const real_t sigma0, const real_t power
     )
     {
       assert(selected_before_counting); //TODO: force moms_all() before mass density estimation?
 
       // same as above
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       // number of SD in each cell casted to real_t
-      thrust::device_vector<real_t> &count_num_real_t(tmp_device_real_cell);
+      thrust_device::vector<real_t> &count_num_real_t(tmp_device_real_cell);
 
       // get number of SD in each cell
       hskpng_count();
@@ -53,15 +53,15 @@ namespace libcloudphxx
 
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::const_iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::const_iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
 
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t> > zip_it_t;
 
       thrust::pair<
-        thrust::device_vector<thrust_size_t>::iterator,
-        typename thrust::device_vector<real_t>::iterator
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         // input - keys
         sorted_ijk.begin(), sorted_ijk.end(),

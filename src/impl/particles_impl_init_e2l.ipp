@@ -31,7 +31,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
-      thrust::device_vector<real_t> * key,
+      thrust_device::vector<real_t> * key,
       const int ext_x, const int ext_y, const int ext_z,
       const long int offset
     )

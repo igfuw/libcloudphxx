@@ -63,25 +63,25 @@ namespace libcloudphxx
         const thrust_size_t &rgt_count(particles[dev_id]->pimpl->rgt_count);
         thrust_size_t &n_part(particles[dev_id]->pimpl->n_part);
         thrust_size_t &n_part_old(particles[dev_id]->pimpl->n_part_old);
-        thrust::device_vector<real_t> &x(particles[dev_id]->pimpl->x);
-        thrust::device_vector<real_t> &y(particles[dev_id]->pimpl->y);
-        thrust::device_vector<real_t> &z(particles[dev_id]->pimpl->z);
-        thrust::device_vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
-        thrust::device_vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
-        thrust::device_vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
-        thrust::device_vector<real_t> &vt(particles[dev_id]->pimpl->vt);
-        thrust::device_vector<real_t> &sstp_tmp_th(particles[dev_id]->pimpl->sstp_tmp_th);
-        thrust::device_vector<real_t> &sstp_tmp_rh(particles[dev_id]->pimpl->sstp_tmp_rh);
-        thrust::device_vector<real_t> &sstp_tmp_rv(particles[dev_id]->pimpl->sstp_tmp_rv);
-        thrust::device_vector<real_t> &sstp_tmp_p(particles[dev_id]->pimpl->sstp_tmp_p);
-        thrust::device_vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
-        thrust::device_vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
-        thrust::device_vector<n_t> &n(particles[dev_id]->pimpl->n);
-        thrust::device_vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
-        thrust::device_vector<n_t> &in_n_bfr(particles[dev_id]->pimpl->in_n_bfr);
+        thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
+        thrust_device::vector<real_t> &y(particles[dev_id]->pimpl->y);
+        thrust_device::vector<real_t> &z(particles[dev_id]->pimpl->z);
+        thrust_device::vector<real_t> &rd3(particles[dev_id]->pimpl->rd3);
+        thrust_device::vector<real_t> &rw2(particles[dev_id]->pimpl->rw2);
+        thrust_device::vector<real_t> &kpa(particles[dev_id]->pimpl->kpa);
+        thrust_device::vector<real_t> &vt(particles[dev_id]->pimpl->vt);
+        thrust_device::vector<real_t> &sstp_tmp_th(particles[dev_id]->pimpl->sstp_tmp_th);
+        thrust_device::vector<real_t> &sstp_tmp_rh(particles[dev_id]->pimpl->sstp_tmp_rh);
+        thrust_device::vector<real_t> &sstp_tmp_rv(particles[dev_id]->pimpl->sstp_tmp_rv);
+        thrust_device::vector<real_t> &sstp_tmp_p(particles[dev_id]->pimpl->sstp_tmp_p);
+        thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
+        thrust_device::vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
+        thrust_device::vector<n_t> &n(particles[dev_id]->pimpl->n);
+        thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
+        thrust_device::vector<n_t> &in_n_bfr(particles[dev_id]->pimpl->in_n_bfr);
         // i and k must have not changed since impl->bcnd !!
-        const thrust::device_vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
-        const thrust::device_vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->k);
+        const thrust_device::vector<thrust_size_t> &lft_id(particles[dev_id]->pimpl->i);
+        const thrust_device::vector<thrust_size_t> &rgt_id(particles[dev_id]->pimpl->k);
 
         // IDs of devices to the left/right, periodic_ext boundary in x
         const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,
@@ -124,8 +124,8 @@ namespace libcloudphxx
 
         // prepare the real_t buffer for copy left
         // TODO: init real_t_vctrs only once per run
-        thrust::device_vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
-        std::vector<thrust::device_vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
+        thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
+        std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
         if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
         if(glob_opts_init.sstp_cond > 1 && glob_opts_init.exact_sstp_cond)
         {

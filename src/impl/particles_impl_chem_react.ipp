@@ -121,32 +121,32 @@ namespace libcloudphxx
       struct chem_rhs
       { 
         const real_t dt;
-        const thrust::device_vector<real_t> &V;
-        const thrust::device_vector<unsigned int> &chem_flag;
+        const thrust_device::vector<real_t> &V;
+        const thrust_device::vector<unsigned int> &chem_flag;
  
         typedef thrust::permutation_iterator<
-          typename thrust::device_vector<real_t>::iterator,
-          typename thrust::device_vector<thrust_size_t>::iterator
+          typename thrust_device::vector<real_t>::iterator,
+          typename thrust_device::vector<thrust_size_t>::iterator
         > pi_t;
         const pi_t &T;
        
-        const typename thrust::device_vector<real_t>::const_iterator &m_H; 
+        const typename thrust_device::vector<real_t>::const_iterator &m_H; 
         const int n_part;
 
         // ctor
         chem_rhs(
           const real_t dt,
-          const thrust::device_vector<real_t> &V,
+          const thrust_device::vector<real_t> &V,
           const pi_t &T,
-          const typename thrust::device_vector<real_t>::const_iterator &m_H,
-          const thrust::device_vector<unsigned int> &chem_flag
+          const typename thrust_device::vector<real_t>::const_iterator &m_H,
+          const thrust_device::vector<unsigned int> &chem_flag
         ) :
           dt(dt), V(V), T(T), m_H(m_H), n_part(V.size()), chem_flag(chem_flag)
         {}
 
         void operator()(
-          const thrust::device_vector<real_t> &psi, 
-          thrust::device_vector<real_t> &dot_psi,
+          const thrust_device::vector<real_t> &psi, 
+          thrust_device::vector<real_t> &dot_psi,
           const real_t /* t */
         )
         {
@@ -157,12 +157,12 @@ namespace libcloudphxx
             thrust::tuple<
               pi_t, // T
               // those in psi...
-              typename thrust::device_vector<real_t>::const_iterator, // S_IV
-              typename thrust::device_vector<real_t>::const_iterator, // S_VI
-              typename thrust::device_vector<real_t>::const_iterator, // H2O2
-              typename thrust::device_vector<real_t>::const_iterator, // O3
+              typename thrust_device::vector<real_t>::const_iterator, // S_IV
+              typename thrust_device::vector<real_t>::const_iterator, // S_VI
+              typename thrust_device::vector<real_t>::const_iterator, // H2O2
+              typename thrust_device::vector<real_t>::const_iterator, // O3
               // ... but not only!
-              typename thrust::device_vector<real_t>::const_iterator  // H
+              typename thrust_device::vector<real_t>::const_iterator  // H
             >
           > zip_it_t;
 
@@ -259,13 +259,13 @@ namespace libcloudphxx
     {   
       using namespace common::molar_mass; // M-prefixed
 
-      thrust::device_vector<real_t> &V(tmp_device_real_part);
-      thrust::device_vector<unsigned int> &chem_flag(tmp_device_n_part);
+      thrust_device::vector<real_t> &V(tmp_device_real_part);
+      thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
-      thrust::device_vector<real_t> &old_S_VI(tmp_device_real_part1);
+      thrust_device::vector<real_t> &old_S_VI(tmp_device_real_part1);
 
       // copy old H2SO4 values to allow dry radii recalculation
       thrust::copy(
@@ -293,9 +293,9 @@ namespace libcloudphxx
       // TODO: using namespace for S_VI
       typedef thrust::zip_iterator<
         thrust::tuple<
-          typename thrust::device_vector<real_t>::iterator, // old S_VI 
-          typename thrust::device_vector<real_t>::iterator, // new_S_VI
-          typename thrust::device_vector<real_t>::iterator  // rd3
+          typename thrust_device::vector<real_t>::iterator, // old S_VI 
+          typename thrust_device::vector<real_t>::iterator, // new_S_VI
+          typename thrust_device::vector<real_t>::iterator  // rd3
         >
       > zip_it_t;
 

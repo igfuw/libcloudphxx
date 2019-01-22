@@ -22,7 +22,7 @@ namespace libcloudphxx
 #endif
 
 #if !defined(__NVCC__)
-      thrust::device_vector<thrust_size_t> &pi(count_ijk);
+      thrust_device::vector<thrust_size_t> &pi(count_ijk);
 #else
       thrust::host_vector<thrust_size_t> &pi(tmp_host_size_cell);
 #endif

@@ -14,7 +14,7 @@ namespace libcloudphxx
     struct kernel_base
     {
       // pointer to kernel parameters device vector
-      thrust::device_ptr<real_t> k_params;
+      thrust_device::pointer<real_t> k_params;
 
       // number of user-defined parameters
       n_t n_user_params; 
@@ -23,7 +23,7 @@ namespace libcloudphxx
       real_t r_max;
    
       //ctor
-      kernel_base(thrust::device_ptr<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
+      kernel_base(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
         k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
 
       BOOST_GPU_ENABLED
@@ -36,7 +36,7 @@ namespace libcloudphxx
     struct kernel_golovin : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_golovin(thrust::device_ptr<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
+      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -73,7 +73,7 @@ namespace libcloudphxx
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
       //ctor
-      kernel_geometric(thrust::device_ptr<real_t> k_params = thrust::device_ptr<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
+      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
         kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
 
       //bilinear interpolation of collision efficiencies, required by dervied classes
@@ -116,7 +116,7 @@ namespace libcloudphxx
     struct kernel_geometric_with_multiplier : kernel_geometric<real_t, n_t>
     {
       //ctor
-      kernel_geometric_with_multiplier(thrust::device_ptr<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
+      kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -162,7 +162,7 @@ namespace libcloudphxx
     struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>
     {
       //ctor
-      kernel_geometric_with_efficiencies(thrust::device_ptr<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
+      kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -191,7 +191,7 @@ namespace libcloudphxx
       detail::wang_collision_enhancement_t<real_t> wang_collision_enhancement;
 
       //ctor
-      kernel_onishi(thrust::device_ptr<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
+      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const

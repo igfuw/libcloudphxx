@@ -251,11 +251,11 @@ namespace libcloudphxx
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom storing scale_factors");
 
       // references to tmp data
-      thrust::device_vector<real_t> 
+      thrust_device::vector<real_t> 
         &scl(tmp_device_real_cell), // scale factor for probablility
         &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
                                     // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
-      thrust::device_vector<thrust_size_t> 
+      thrust_device::vector<thrust_size_t> 
         &off(tmp_device_size_cell); // offset for getting index of particle within a cell
 
       // laying out scale factor onto ijk grid
@@ -294,20 +294,20 @@ namespace libcloudphxx
 
       // colliding
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<thrust_size_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_size_t;
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_real_t;
 
-      typedef  typename thrust::device_vector<real_t>::iterator i_real_t;
+      typedef  typename thrust_device::vector<real_t>::iterator i_real_t;
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<n_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<n_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
 
       typedef thrust::zip_iterator<

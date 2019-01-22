@@ -226,8 +226,8 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
       using namespace common::dissoc;     // K-prefixed
 
-      const thrust::device_vector<unsigned int> &chem_flag(tmp_device_n_part);
-      const thrust::device_vector<real_t> &V(tmp_device_real_part);
+      const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
+      const thrust_device::vector<real_t> &V(tmp_device_real_part);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
@@ -294,12 +294,12 @@ namespace libcloudphxx
 
       // helpers for sorting out droplets
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<n_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<n_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_n_t;
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_chem_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_n_t, pi_chem_t> > zip_it_t;
 
@@ -307,8 +307,8 @@ namespace libcloudphxx
       hskpng_sort();
 
       // temporarily needed to store old mass per cell 
-      thrust::device_vector<real_t> &mass_old(tmp_device_real_cell);
-      thrust::device_vector<real_t> &mass_new(tmp_device_real_cell1);
+      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
+      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
 
       for (int i = 0; i < chem_gas_n; ++i)
       {
@@ -350,8 +350,8 @@ namespace libcloudphxx
 
         // store the total mass of chem species in cloud droplets per cell after Henry
         thrust::pair<
-          typename thrust::device_vector<thrust_size_t>::iterator,
-          typename thrust::device_vector<real_t>::iterator
+          typename thrust_device::vector<thrust_size_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator
         > np =
         thrust::reduce_by_key(
           sorted_ijk.begin(), sorted_ijk.end(),

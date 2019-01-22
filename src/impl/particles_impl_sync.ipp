@@ -14,7 +14,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
       const arrinfo_t<real_t> &from,
-      thrust::device_vector<real_t> &to
+      thrust_device::vector<real_t> &to
     )
     {   
       if (from.is_null()) return;
@@ -37,7 +37,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
-      const thrust::device_vector<real_t> &from,
+      const thrust_device::vector<real_t> &from,
       arrinfo_t<real_t> &to
     )
     {   

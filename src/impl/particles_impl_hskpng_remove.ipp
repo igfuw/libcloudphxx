@@ -19,9 +19,9 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_remove_n0()
     {
       // TODO: init these vctrs once per run
-      thrust::device_vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt};
-      std::vector<thrust::device_vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
-      std::vector<thrust::device_vector<thrust_size_t>*> n_t_vctrs;
+      thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt};
+      std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
+      std::vector<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
       n_t_vctrs.push_back(&ijk);
 
       if (opts_init.nx != 0)  n_t_vctrs.push_back(&i);
@@ -48,14 +48,14 @@ namespace libcloudphxx
       {
         for (int i = chem_all-1; i >= 0; --i)
         {
-          typename thrust::device_vector<real_t>::iterator new_last = thrust::remove_if(
+          typename thrust_device::vector<real_t>::iterator new_last = thrust::remove_if(
             chem_bgn[i],
             chem_end[i],
             n.begin(),
             arg::_1 == 0
           );
           
-          thrust::device_vector<real_t> &vec(
+          thrust_device::vector<real_t> &vec(
             i < chem_rhs_beg 
               ? chem_ante_rhs
               : i < chem_rhs_fin

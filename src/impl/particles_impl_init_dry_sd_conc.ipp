@@ -46,9 +46,9 @@ namespace libcloudphxx
       rand_u01(n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
-      thrust::device_vector<real_t> &lnrd(rd3);
+      thrust_device::vector<real_t> &lnrd(rd3);
       
-      thrust::device_vector<thrust_size_t> &ptr(tmp_device_size_cell);
+      thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs to init in cells up to (i-1), TODO: same is done in init_xyz, store it?
       
       // shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3

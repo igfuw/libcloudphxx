@@ -17,7 +17,7 @@ namespace libcloudphxx
       if (opts_init.sstp_chem == 1) return;
 
       const int n = 6;
-      thrust::device_vector<real_t>
+      thrust_device::vector<real_t>
         *fr[n] = { &ambient_chem[(chem_species_t)0], &ambient_chem[(chem_species_t)1], &ambient_chem[(chem_species_t)2],
                    &ambient_chem[(chem_species_t)3], &ambient_chem[(chem_species_t)4], &ambient_chem[(chem_species_t)5]},
 
@@ -60,7 +60,7 @@ namespace libcloudphxx
 
       const int n = 6;
 
-      thrust::device_vector<real_t>
+      thrust_device::vector<real_t>
         *scl[n] = { &ambient_chem[(chem_species_t)0], &ambient_chem[(chem_species_t)1], &ambient_chem[(chem_species_t)2],
                     &ambient_chem[(chem_species_t)3], &ambient_chem[(chem_species_t)4], &ambient_chem[(chem_species_t)5]},
 

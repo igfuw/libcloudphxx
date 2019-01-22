@@ -55,7 +55,7 @@ namespace libcloudphxx
 
       // --- calc liquid water content before src ---
       hskpng_sort(); 
-      thrust::device_vector<real_t> &drv(tmp_device_real_cell);
+      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
       thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
       moms_all();
@@ -106,7 +106,7 @@ namespace libcloudphxx
       thrust::sequence(sorted_id.begin(), sorted_id.end());
      
       // tmp vector with sorted rd3
-      thrust::device_vector<real_t> &sorted_rd3(tmp_device_real_part);
+      thrust_device::vector<real_t> &sorted_rd3(tmp_device_real_part);
 
       // use sorted_rd3 as tmp copy of rd3
       thrust::copy(
@@ -156,7 +156,7 @@ namespace libcloudphxx
                       n_part_tot_in_src = n_part_to_init;
 
         // tmp vector with bin number of existing SDs
-        thrust::device_vector<thrust_size_t> bin_no(n_part);
+        thrust_device::vector<thrust_size_t> bin_no(n_part);
 
         const thrust_size_t out_of_bins = 4444444444; // would cause an error for src_sd_conc > out_of_bins
         // calc bin no
@@ -183,7 +183,7 @@ namespace libcloudphxx
 
         // -- init new SDs that didnt have a match -- 
         {
-          thrust::device_vector<thrust_size_t> tmp_bin_no(n_part_old);
+          thrust_device::vector<thrust_size_t> tmp_bin_no(n_part_old);
           thrust::copy(bin_no.begin(), bin_no.begin() + n_part_old, tmp_bin_no.begin());
 
           thrust_size_t n_out_of_bins = thrust::count(tmp_bin_no.begin(), tmp_bin_no.end(), out_of_bins);
@@ -206,14 +206,14 @@ namespace libcloudphxx
           {
           // remove duplicates from tmp_bin_no
             thrust::pair<
-              thrust::device_vector<thrust_size_t>::iterator,
-              typename thrust::device_vector<thrust_size_t>::iterator
+              thrust_device::vector<thrust_size_t>::iterator,
+              typename thrust_device::vector<thrust_size_t>::iterator
             > np = thrust::unique_by_key(tmp_bin_no.begin(), tmp_bin_no.begin() + n_part_old - n_out_of_bins, sorted_ijk.begin());
             count_bins = np.first - tmp_bin_no.begin(); // total no of bins with a match
           }
 
           // --- remove rd3 and ijk of newly added SDs that have counterparts ---
-          thrust::device_vector<bool> have_match(n_part_to_init);
+          thrust_device::vector<bool> have_match(n_part_to_init);
           // find those with a match
           thrust::binary_search(
             thrust::make_zip_iterator(thrust::make_tuple(
@@ -275,8 +275,8 @@ namespace libcloudphxx
           {
             // count number of matched bins per cell
             thrust::pair<
-              thrust::device_vector<thrust_size_t>::iterator,
-              typename thrust::device_vector<thrust_size_t>::iterator
+              thrust_device::vector<thrust_size_t>::iterator,
+              typename thrust_device::vector<thrust_size_t>::iterator
             > np =  thrust::reduce_by_key(
               sorted_ijk.begin(), sorted_ijk.begin() + count_bins, 
               thrust::make_constant_iterator<thrust_size_t>(1), 
@@ -297,17 +297,17 @@ namespace libcloudphxx
         }
 
         // tmp vector to hold number of particles in a given size bin in a given cell
-        thrust::device_vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
+        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
         // tmp vector for number of particles in bins up to this one
-        thrust::device_vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
+        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
 
         thrust_size_t count_bins;
         {
-          thrust::device_vector<thrust_size_t> &out(bin_cell_count_ptr); // use it temporarily
+          thrust_device::vector<thrust_size_t> &out(bin_cell_count_ptr); // use it temporarily
           // calc no of SDs in bins/cells
           thrust::pair<
-            thrust::device_vector<thrust_size_t>::iterator,
-            typename thrust::device_vector<thrust_size_t>::iterator
+            thrust_device::vector<thrust_size_t>::iterator,
+            typename thrust_device::vector<thrust_size_t>::iterator
           > np = thrust::reduce_by_key(
               bin_no.begin(),
               bin_no.begin() + n_part_bfr_src,

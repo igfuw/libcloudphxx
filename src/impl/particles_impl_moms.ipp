@@ -51,7 +51,7 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::copy(
         n.begin(), n.end(),
@@ -64,13 +64,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_rng(
       const real_t &min, const real_t &max, 
-      const typename thrust::device_vector<real_t>::iterator &vec_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn
     )
     {
       hskpng_sort(); 
 
       // transforming n -> n if within range, else 0
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::transform(
         n.begin(), n.end(),   // input - 1st arg
@@ -85,13 +85,13 @@ namespace libcloudphxx
     // selects particles for which vec1[i] >= vec2[i]
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_cmp(
-      const typename thrust::device_vector<real_t>::iterator &vec1_bgn,
-      const typename thrust::device_vector<real_t>::iterator &vec2_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec1_bgn,
+      const typename thrust_device::vector<real_t>::iterator &vec2_bgn
     )
     {
       hskpng_sort();
 
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       thrust::transform(
         n.begin(), n.end(),                      // input - 1st arg
@@ -108,12 +108,12 @@ namespace libcloudphxx
     // selects particles for which vec[i] >= 0
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_ge0(
-      const typename thrust::device_vector<real_t>::iterator &vec_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn
     )
     {
       hskpng_sort();
 
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
       
       {
         namespace arg = thrust::placeholders;
@@ -158,7 +158,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc(
-      const typename thrust::device_vector<real_t>::iterator &vec_bgn,
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const real_t power,
       const bool specific
     )
@@ -166,17 +166,17 @@ namespace libcloudphxx
       assert(selected_before_counting);
 
       // same as above
-      thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::const_iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::const_iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t> > zip_it_t;
 
       thrust::pair<
-        thrust::device_vector<thrust_size_t>::iterator,
-        typename thrust::device_vector<real_t>::iterator
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         // input - keys
         sorted_ijk.begin(), sorted_ijk.end(),  

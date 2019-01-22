@@ -164,14 +164,13 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       assert(pimpl->selected_before_counting);
 
-      thrust::device_vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
 
       // similar to hskpng_count
       pimpl->hskpng_sort();
 
       // computing count_* - number of particles per grid cell
       auto n = thrust::reduce_by_key(
-			  thrust::cuda::par,
         pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),   // input - keys
         thrust::make_permutation_iterator(
           thrust::make_transform_iterator(n_filtered.begin(), detail::is_positive<real_t>()),
@@ -216,7 +215,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_RH_ge_Sc()
     {
       // intentionally using the same tmp vector as inside moms_cmp below
-      thrust::device_vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
+      thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
 
       // computing RH_minus_Sc for each particle
       thrust::transform(
@@ -245,7 +244,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_rw_ge_rc()
     {
       // intentionally using the same tmp vector as inside moms_cmp below
-      thrust::device_vector<real_t> &rc2(pimpl->tmp_device_real_part);
+      thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
 
       // computing rc2 for each particle
       thrust::transform(
@@ -300,7 +299,7 @@ namespace libcloudphxx
       if(pimpl->n_dims==0) return;
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator,
         typename thrust::counting_iterator<thrust_size_t>
       > pi;
 
@@ -386,15 +385,15 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_max_rw()
     {   
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::const_iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::const_iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
 
       pimpl->hskpng_sort();
 
       thrust::pair<
-        thrust::device_vector<thrust_size_t>::iterator,
-        typename thrust::device_vector<real_t>::iterator
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         // input - keys
         pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  

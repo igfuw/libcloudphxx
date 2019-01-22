@@ -15,8 +15,8 @@ namespace libcloudphxx
     {
       template <typename real_t>
       void copy_prop(
-        const typename thrust::device_vector<real_t>::iterator &prop_bgn,
-        const thrust::device_vector<thrust_size_t> &sorted_id,
+        const typename thrust_device::vector<real_t>::iterator &prop_bgn,
+        const thrust_device::vector<thrust_size_t> &sorted_id,
         const thrust_size_t &n_flagged
       ) 
       {
@@ -64,7 +64,7 @@ namespace libcloudphxx
 #else
         static_assert(sizeof(thrust_size_t) == sizeof(n_t), "");
 #endif
-	thrust::device_vector<thrust_size_t> &tmp(sorted_ijk);
+	thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
 	thrust::copy(n.begin(), n.end(), tmp.begin());
 
 	thrust::sort_by_key(

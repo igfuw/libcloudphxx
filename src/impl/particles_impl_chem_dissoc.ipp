@@ -145,25 +145,25 @@ namespace libcloudphxx
     {   
       using namespace common::molar_mass; // M-prefixed
 
-      thrust::device_vector<real_t> &V(tmp_device_real_part);
-      const thrust::device_vector<unsigned int> &chem_flag(tmp_device_n_part);
+      thrust_device::vector<real_t> &V(tmp_device_real_part);
+      const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
       typedef thrust::permutation_iterator<
-        typename thrust::device_vector<real_t>::iterator,
-        typename thrust::device_vector<thrust_size_t>::iterator
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
 
       { // calculate H+ ions after dissociation so that drops remain electroneutral
         typedef thrust::zip_iterator<
           thrust::tuple<
-            typename thrust::device_vector<real_t>::iterator, // S_IV
-            typename thrust::device_vector<real_t>::iterator, // C_IV
-            typename thrust::device_vector<real_t>::iterator, // N_V
-            typename thrust::device_vector<real_t>::iterator, // N_III
-            typename thrust::device_vector<real_t>::iterator, // S_VI
-            typename thrust::device_vector<real_t>::iterator, // V
+            typename thrust_device::vector<real_t>::iterator, // S_IV
+            typename thrust_device::vector<real_t>::iterator, // C_IV
+            typename thrust_device::vector<real_t>::iterator, // N_V
+            typename thrust_device::vector<real_t>::iterator, // N_III
+            typename thrust_device::vector<real_t>::iterator, // S_VI
+            typename thrust_device::vector<real_t>::iterator, // V
             pi_t  // T
           >
         > zip_it_t;

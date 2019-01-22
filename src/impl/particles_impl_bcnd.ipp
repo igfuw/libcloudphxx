@@ -95,8 +95,8 @@ namespace libcloudphxx
 	    namespace arg = thrust::placeholders;
             // use i and k as temp storage - after bcond they are invalid anyway
             // multi_CUDA works only for 2D and 3D
-            thrust::device_vector<thrust_size_t> &lft_id(i);
-            thrust::device_vector<thrust_size_t> &rgt_id(k);
+            thrust_device::vector<thrust_size_t> &lft_id(i);
+            thrust_device::vector<thrust_size_t> &rgt_id(k);
 
             // save ids of SDs to copy
             lft_count = thrust::copy_if(
@@ -148,7 +148,7 @@ namespace libcloudphxx
 	    {
 	      namespace arg = thrust::placeholders;
 
-              thrust::device_vector<real_t> &n_filtered(tmp_device_real_part);
+              thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
               thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
 
