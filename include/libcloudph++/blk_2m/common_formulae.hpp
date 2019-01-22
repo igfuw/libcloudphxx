@@ -17,6 +17,16 @@ namespace libcloudphxx
     {
       using namespace common::moist_air;
 
+      // numerical epsilon
+      template<typename real_t>
+      real_t num_eps = std::numeric_limits<real_t>::epsilon();
+      // typical scale * numerical precission to get the limit
+      // below whitch microphysics variables should be treated as zero
+      libcloudphxx_const(si::dimensionless, rc_eps, 1e-3 * num_eps<real_t>, 1)
+      libcloudphxx_const(si::dimensionless, rr_eps, 1e-4 * num_eps<real_t>, 1)
+      libcloudphxx_const(si::dimensionless, nc_eps, 1e7  * num_eps<real_t>, 1) // #/kg
+      libcloudphxx_const(si::dimensionless, nr_eps, 1e6  * num_eps<real_t>, 1) // #/kg
+
       // eq.2 Morrison and Grabowski 2007
       template<typename real_t>
       inline quantity<si::dimensionless, real_t> eta(
