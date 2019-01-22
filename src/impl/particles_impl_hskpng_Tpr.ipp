@@ -197,9 +197,9 @@ namespace libcloudphxx
       {
         typedef thrust::zip_iterator<
           thrust::tuple<
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator
+            typename thrust::device_vector<real_t>::iterator,
+            typename thrust::device_vector<real_t>::iterator,
+            typename thrust::device_vector<real_t>::iterator
           >
         > zip_it_t;
 

@@ -8,7 +8,7 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    typedef thrust_device::vector<int>::size_type thrust_size_t;
+    typedef thrust::device_vector<int>::size_type thrust_size_t;
 
 //#if !defined(NDEBUG) // TODO (CMake defaults)
     namespace debug

@@ -48,7 +48,7 @@ namespace libcloudphxx
         rng(int seed) : engine(seed), dist_u01(0,1), dist_un(0, std::numeric_limits<unsigned int>::max()) {}
 
 	void generate_n(
-	  thrust_device::vector<real_t> &u01, 
+	  thrust::device_vector<real_t> &u01, 
 	  const thrust_size_t n
 	) {
           // note: generate_n copies the third argument!!!
@@ -56,7 +56,7 @@ namespace libcloudphxx
 	}
 
 	void generate_n(
-	  thrust_device::vector<unsigned int> &un, 
+	  thrust::device_vector<unsigned int> &un, 
 	  const thrust_size_t n
 	) {
           // note: generate_n copies the third argument!!!
@@ -98,7 +98,7 @@ namespace libcloudphxx
 	}
 
 	void generate_n(
-	  thrust_device::vector<float> &v, 
+	  thrust::device_vector<float> &v, 
 	  const thrust_size_t n
 	)
 	{
@@ -108,7 +108,7 @@ namespace libcloudphxx
 	}
 
 	void generate_n(
-	  thrust_device::vector<double> &v, 
+	  thrust::device_vector<double> &v, 
 	  const thrust_size_t n
 	)
 	{
@@ -118,7 +118,7 @@ namespace libcloudphxx
 	}
 
 	void generate_n(
-	  thrust_device::vector<unsigned int> &v, 
+	  thrust::device_vector<unsigned int> &v, 
 	  const thrust_size_t n
 	)
 	{

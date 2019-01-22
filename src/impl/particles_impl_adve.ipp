@@ -106,13 +106,13 @@ namespace libcloudphxx
         case 1:
         {
           // advection
-          typedef thrust_device::vector<thrust_size_t>::iterator th_s_i; 
+          typedef thrust::device_vector<thrust_size_t>::iterator th_s_i; 
           typedef thrust::permutation_iterator<
             th_s_i,
             typename thrust::transform_iterator<detail::add_val<thrust_size_t>, th_s_i>
           > pi_size_size;
           typedef thrust::permutation_iterator<
-            typename thrust_device::vector<real_t>::iterator, 
+            typename thrust::device_vector<real_t>::iterator, 
             pi_size_size
           > pi_real_size;
 
@@ -179,7 +179,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       // old positions storage
-      thrust_device::vector<real_t> 
+      thrust::device_vector<real_t> 
         &x_old(tmp_device_real_part),
         &y_old(tmp_device_real_part2),
         &z_old(tmp_device_real_part1);

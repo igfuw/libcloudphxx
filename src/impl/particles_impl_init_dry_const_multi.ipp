@@ -58,7 +58,7 @@ namespace libcloudphxx
       rand_u01(n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
-      thrust_device::vector<real_t> &lnrd(rd3);
+      thrust::device_vector<real_t> &lnrd(rd3);
 
       thrust::host_vector<real_t> host_u01(n_part_to_init); 
       thrust::copy(u01.begin(), u01.begin()+n_part_to_init, host_u01.begin());

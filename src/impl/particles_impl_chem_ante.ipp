@@ -62,7 +62,7 @@ namespace libcloudphxx
       if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
 
       //calculate new drop volumes (to be used in chem)
-      thrust_device::vector<real_t> &V(tmp_device_real_part);
+      thrust::device_vector<real_t> &V(tmp_device_real_part);
 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input

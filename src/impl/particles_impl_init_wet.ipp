@@ -47,14 +47,14 @@ namespace libcloudphxx
 	// calculating rw_eq
         {
           typedef thrust::permutation_iterator<
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<thrust_size_t>::iterator
+            typename thrust::device_vector<real_t>::iterator,
+            typename thrust::device_vector<thrust_size_t>::iterator
           > pi_t;
 
           typedef thrust::zip_iterator<
             thrust::tuple<
-              typename thrust_device::vector<real_t>::iterator,
-              typename thrust_device::vector<real_t>::iterator,
+              typename thrust::device_vector<real_t>::iterator,
+              typename thrust::device_vector<real_t>::iterator,
               pi_t,
               pi_t
             >

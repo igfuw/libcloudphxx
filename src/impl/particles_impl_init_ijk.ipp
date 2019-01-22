@@ -14,8 +14,8 @@ namespace libcloudphxx
     {
       struct arbitrary_sequence //fill container with n 0s, m 1s, l 2s, etc...
       {
-        thrust_device::pointer<thrust_size_t> res;
-        arbitrary_sequence(thrust_device::pointer<thrust_size_t> res): res(res) {}
+        thrust::device_ptr<thrust_size_t> res;
+        arbitrary_sequence(thrust::device_ptr<thrust_size_t> res): res(res) {}
       
         template<typename Tuple>
         BOOST_GPU_ENABLED
@@ -34,7 +34,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_ijk()
     {
-      thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
+      thrust::device_vector<thrust_size_t> &ptr(tmp_device_size_cell);
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
       // fill ijk with cell number of each SD

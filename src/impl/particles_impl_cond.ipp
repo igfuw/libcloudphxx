@@ -17,7 +17,7 @@ namespace libcloudphxx
 
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      thrust::device_vector<real_t> &drv(tmp_device_real_cell);
 
       // calculating the 3rd wet moment before condensation
       moms_all();

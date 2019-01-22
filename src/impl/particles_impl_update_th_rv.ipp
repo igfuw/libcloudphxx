@@ -35,7 +35,7 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
-      thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
+      thrust::device_vector<real_t> &drv // change in water vapor mixing ratio
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
@@ -66,9 +66,9 @@ namespace libcloudphxx
       // updating th
       {
         typedef thrust::zip_iterator<thrust::tuple<
-          typename thrust_device::vector<real_t>::iterator,
-          typename thrust_device::vector<real_t>::iterator,
-          typename thrust_device::vector<real_t>::iterator
+          typename thrust::device_vector<real_t>::iterator,
+          typename thrust::device_vector<real_t>::iterator,
+          typename thrust::device_vector<real_t>::iterator
         > > zip_it_t;
 
         // apply dth
@@ -93,20 +93,20 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_pstate(
-      thrust_device::vector<real_t> &pstate, // cell characteristic
-      thrust_device::vector<real_t> &pdstate // change in cell characteristic
+      thrust::device_vector<real_t> &pstate, // cell characteristic
+      thrust::device_vector<real_t> &pdstate // change in cell characteristic
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
 
       // cell-wise change in state
-      thrust_device::vector<real_t> &dstate(tmp_device_real_cell);
+      thrust::device_vector<real_t> &dstate(tmp_device_real_cell);
       // init dstate with 0s
       thrust::fill(dstate.begin(), dstate.end(), real_t(0));
       // calc sum of pdstate in each cell
       thrust::pair<
-        thrust_device::vector<thrust_size_t>::iterator,
-        typename thrust_device::vector<real_t>::iterator
+        thrust::device_vector<thrust_size_t>::iterator,
+        typename thrust::device_vector<real_t>::iterator
       > n = thrust::reduce_by_key(
         sorted_ijk.begin(), sorted_ijk.end(),
         thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin()),
@@ -136,8 +136,8 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_state(
-      thrust_device::vector<real_t> &state, // cell state
-      thrust_device::vector<real_t> &pstate // particle-specific cell state (same for all particles in one cell)
+      thrust::device_vector<real_t> &state, // cell state
+      thrust::device_vector<real_t> &pstate // particle-specific cell state (same for all particles in one cell)
     ) 
     {
      thrust::copy(

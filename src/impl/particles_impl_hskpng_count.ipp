@@ -19,8 +19,8 @@ namespace libcloudphxx
 
       // computing count_* - number of particles per grid cell
       thrust::pair<
-        thrust_device::vector<thrust_size_t>::iterator,
-        thrust_device::vector<n_t>::iterator
+        thrust::device_vector<thrust_size_t>::iterator,
+        thrust::device_vector<n_t>::iterator
       > n = thrust::reduce_by_key(
         sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
         thrust::make_constant_iterator(n_t(1)), // input - values

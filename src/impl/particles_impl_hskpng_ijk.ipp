@@ -34,8 +34,8 @@ namespace libcloudphxx
       // helper functor
       struct {
         void operator()(
-          thrust_device::vector<real_t> &vx,
-          thrust_device::vector<thrust_size_t> &vi,
+          thrust::device_vector<real_t> &vx,
+          thrust::device_vector<thrust_size_t> &vi,
           const real_t &vd
         ) {
 	  thrust::transform(

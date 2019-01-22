@@ -17,7 +17,7 @@ namespace libcloudphxx
       if (opts_init.sstp_cond == 1) return;
 
       const int n = 4;
-      thrust_device::vector<real_t>
+      thrust::device_vector<real_t>
         *fr[n] = { &rv,          &th,          &rhod,        &p          },
         *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
       for (int ix = 0; ix < ( (const_p && opts_init.exact_sstp_cond) ? n : n-1); ++ix) // TODO: var_rho
@@ -54,7 +54,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       const int n = 3;
-      thrust_device::vector<real_t>
+      thrust::device_vector<real_t>
         *scl[n] = { &rv,          &th,          &rhod        },
         *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
 
@@ -101,7 +101,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       const int n = 4;
-      thrust_device::vector<real_t>
+      thrust::device_vector<real_t>
         *scl[n] = { &rv,          &th,          &rhod,        &p          },
         *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
         *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2, &tmp_device_real_part5 };

@@ -149,7 +149,7 @@ namespace libcloudphxx
       // helper iterators
       for (int i = 0; i < chem_all; ++i)
       {
-        thrust_device::vector<real_t> &vec(
+        thrust::device_vector<real_t> &vec(
           i < chem_rhs_beg 
             ? chem_ante_rhs
             : i < chem_rhs_fin

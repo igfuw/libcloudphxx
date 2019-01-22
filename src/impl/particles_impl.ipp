@@ -53,23 +53,23 @@ namespace libcloudphxx
       kernel_base<real_t, n_t> *p_kernel;
  
       // containters for all kernel types
-      thrust_device::vector<kernel_golovin<real_t, n_t> > k_golovin;
-      thrust_device::vector<kernel_geometric<real_t, n_t> > k_geometric;
-      thrust_device::vector<kernel_long<real_t, n_t> > k_long;
-      thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
-      thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
-      thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
+      thrust::device_vector<kernel_golovin<real_t, n_t> > k_golovin;
+      thrust::device_vector<kernel_geometric<real_t, n_t> > k_geometric;
+      thrust::device_vector<kernel_long<real_t, n_t> > k_long;
+      thrust::device_vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
+      thrust::device_vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
+      thrust::device_vector<kernel_onishi<real_t, n_t> > k_onishi;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
-      thrust_device::vector<real_t> kernel_parameters;
+      thrust::device_vector<real_t> kernel_parameters;
 
       //number of kernel parameters defined by user in opts_init
       const n_t n_user_params;
 
       // particle attributes
-      thrust_device::vector<n_t>
+      thrust::device_vector<n_t>
 	n;   // multiplicity
-      thrust_device::vector<real_t> 
+      thrust::device_vector<real_t> 
 	rd3, // dry radii cubed 
 	rw2, // wet radius square
         kpa, // kappa
@@ -87,33 +87,33 @@ namespace libcloudphxx
              multiplier; // multiplier calculated for the above values
 
       // terminal velocity (per particle)
-      thrust_device::vector<real_t> vt; 
+      thrust::device_vector<real_t> vt; 
       // sea level term velocity according to Beard 1977, compute once
-      thrust_device::vector<real_t> vt_0; 
+      thrust::device_vector<real_t> vt_0; 
 
       // grid-cell volumes (per grid cell)
-      thrust_device::vector<real_t> dv;
+      thrust::device_vector<real_t> dv;
 
       // housekeeping data (per particle)
-      thrust_device::vector<thrust_size_t> 
+      thrust::device_vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
 
       // Arakawa-C grid helper vars
-      thrust_device::vector<thrust_size_t> 
+      thrust::device_vector<thrust_size_t> 
         lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
       // moment-counting stuff
-      thrust_device::vector<thrust_size_t> 
+      thrust::device_vector<thrust_size_t> 
         count_ijk; // key-value pair for sorting particles by cell index
-      thrust_device::vector<n_t>
+      thrust::device_vector<n_t>
         count_num; // number of particles in a given grid cell
-      thrust_device::vector<real_t> 
+      thrust::device_vector<real_t> 
         count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
       // Eulerian-Lagrangian interface vars
-      thrust_device::vector<real_t> 
+      thrust::device_vector<real_t> 
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
@@ -127,12 +127,12 @@ namespace libcloudphxx
         courant_y, 
         courant_z;
 
-      std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
+      std::map<enum chem_species_t, thrust::device_vector<real_t> > ambient_chem;
 
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
       std::map<enum output_t, real_t> output_puddle;
   
-      thrust_device::vector<real_t> 
+      thrust::device_vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
         RH, // relative humisity 
@@ -155,15 +155,15 @@ namespace libcloudphxx
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
       std::map<
-        const thrust_device::vector<real_t>*, 
+        const thrust::device_vector<real_t>*, 
         thrust::host_vector<int> 
       > l2e; 
 
       // chem stuff
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
-      std::vector<typename thrust_device::vector<real_t>::iterator >
+      std::vector<typename thrust::device_vector<real_t>::iterator >
         chem_bgn, chem_end; // indexed with enum chem_species_t
-      thrust_device::vector<real_t> chem_rhs, chem_ante_rhs, chem_post_rhs;
+      thrust::device_vector<real_t> chem_rhs, chem_ante_rhs, chem_post_rhs;
       /* TODO:
         On May 9, 2012, at 7:44 PM, Karsten Ahnert wrote:
         > ... unfortunately the Rosenbrock method cannot be used with any other state type than ublas.matrix.
@@ -172,9 +172,9 @@ namespace libcloudphxx
         > should benchmark both steppers and choose the faster one.
       */
       boost::numeric::odeint::runge_kutta4<
-        thrust_device::vector<real_t>, // state_type
+        thrust::device_vector<real_t>, // state_type
         real_t,                        // value_type
-        thrust_device::vector<real_t>, // deriv_type
+        thrust::device_vector<real_t>, // deriv_type
         real_t,                        // time_type
         boost::numeric::odeint::thrust_algebra,
         boost::numeric::odeint::thrust_operations,
@@ -187,7 +187,7 @@ namespace libcloudphxx
         tmp_host_real_cell;
       thrust::host_vector<thrust_size_t>
         tmp_host_size_cell;
-      thrust_device::vector<real_t>
+      thrust::device_vector<real_t>
         tmp_device_real_part,
         tmp_device_real_part1,  
         tmp_device_real_part2,  
@@ -197,10 +197,10 @@ namespace libcloudphxx
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
-      thrust_device::vector<unsigned int>
+      thrust::device_vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
-      thrust_device::vector<thrust_size_t>
+      thrust::device_vector<thrust_size_t>
         tmp_device_size_cell,
         tmp_device_size_part;
 
@@ -224,9 +224,9 @@ namespace libcloudphxx
 
 
       // in/out buffers for SDs copied from other GPUs
-      thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
+      thrust::device_vector<n_t> in_n_bfr, out_n_bfr;
       // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
-      thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
+      thrust::device_vector<real_t> in_real_bfr, out_real_bfr;
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -368,7 +368,7 @@ namespace libcloudphxx
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const real_t &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust::device_vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
@@ -399,33 +399,33 @@ namespace libcloudphxx
       void moms_all();
    
       void moms_cmp(
-        const typename thrust_device::vector<real_t>::iterator &vec1_bgn,
-        const typename thrust_device::vector<real_t>::iterator &vec2_bgn
+        const typename thrust::device_vector<real_t>::iterator &vec1_bgn,
+        const typename thrust::device_vector<real_t>::iterator &vec2_bgn
       );
       void moms_ge0(
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+        const typename thrust::device_vector<real_t>::iterator &vec_bgn
       );
       void moms_rng(
         const real_t &min, const real_t &max, 
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+        const typename thrust::device_vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+	const typename thrust::device_vector<real_t>::iterator &vec_bgn,
         const real_t power,
         const bool specific = true
       );
 
       void mass_dens_estim(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+	const typename thrust::device_vector<real_t>::iterator &vec_bgn,
         const real_t, const real_t, const real_t
       );
 
       void sync(
         const arrinfo_t<real_t> &, // from 
-        thrust_device::vector<real_t> & // to
+        thrust::device_vector<real_t> & // to
       );
       void sync(
-        const thrust_device::vector<real_t> &, // from
+        const thrust::device_vector<real_t> &, // from
         arrinfo_t<real_t> &// to
       );
 
@@ -437,9 +437,9 @@ namespace libcloudphxx
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max);
       void cond_sstp(const real_t &dt, const real_t &RH_max);
-      void update_th_rv(thrust_device::vector<real_t> &);
-      void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_th_rv(thrust::device_vector<real_t> &);
+      void update_state(thrust::device_vector<real_t> &, thrust::device_vector<real_t> &);
+      void update_pstate(thrust::device_vector<real_t> &, thrust::device_vector<real_t> &);
 
       void coal(const real_t &dt);
 
