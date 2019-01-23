@@ -29,6 +29,15 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(prop_bgn, sorted_id.begin())
 	);
       }
+
+			struct is_zero
+			{
+				BOOST_GPU_ENABLED
+				bool operator()(const thrust_size_t &x)
+				{
+					return x == thrust_size_t(0);
+				}
+			};
     };
 
     template <typename real_t, backend_t device>
@@ -38,8 +47,7 @@ namespace libcloudphxx
       // count the numer of paticles to recycle
       thrust_size_t n_flagged, n_to_rcyc;
       {
-	namespace arg = thrust::placeholders;
-        n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
+        n_flagged = thrust::count_if(n.begin(), n.end(), detail::is_zero());
       }
 
       if (n_flagged == 0) return 0;
