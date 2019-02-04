@@ -37,7 +37,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # config-specific flags
-set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
+set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
