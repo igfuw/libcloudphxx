@@ -23,6 +23,7 @@ namespace libcloudphxx
       real_t r_max;
    
       //ctor
+      BOOST_GPU_ENABLED
       kernel_base(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
         k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
       kernel_base() = default; 
@@ -37,6 +38,7 @@ namespace libcloudphxx
     struct kernel_golovin : kernel_base<real_t, n_t>
     {
       //ctor
+      BOOST_GPU_ENABLED
       kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
       kernel_golovin() = default ;
 
@@ -75,9 +77,9 @@ namespace libcloudphxx
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
       //ctor
+      BOOST_GPU_ENABLED
       kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
         kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
-      kernel_geometric() = default;
 
       //bilinear interpolation of collision efficiencies, required by dervied classes
       BOOST_GPU_ENABLED
@@ -119,6 +121,7 @@ namespace libcloudphxx
     struct kernel_geometric_with_multiplier : kernel_geometric<real_t, n_t>
     {
       //ctor
+      BOOST_GPU_ENABLED
       kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
       kernel_geometric_with_multiplier() = default;
 
@@ -135,8 +138,8 @@ namespace libcloudphxx
     {
       enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
       //ctor
+      BOOST_GPU_ENABLED
       kernel_long() : kernel_geometric<real_t, n_t>() {}
-      kernel_long() = default;
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -167,6 +170,7 @@ namespace libcloudphxx
     struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>
     {
       //ctor
+      BOOST_GPU_ENABLED
       kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
       kernel_geometric_with_efficiencies() = default;
 
@@ -197,6 +201,7 @@ namespace libcloudphxx
       detail::wang_collision_enhancement_t<real_t> wang_collision_enhancement;
 
       //ctor
+      BOOST_GPU_ENABLED
       kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
       kernel_onishi() = default;
 
