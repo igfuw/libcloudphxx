@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 set -e
 
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
-
 # gnuplot-iostream
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install gnuplot-nox; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
