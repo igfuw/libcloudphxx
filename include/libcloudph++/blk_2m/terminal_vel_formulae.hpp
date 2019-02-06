@@ -16,13 +16,13 @@ namespace libcloudphxx
   namespace blk_2m
   {
     namespace formulae
-    { 
-      // terminal fall velocity based on the data from Gunn and Kinzer (1949) and Beard (1976) 
+    {
+      // terminal fall velocity based on the data from Gunn and Kinzer (1949) and Beard (1976)
       // modified by Simmel et al. (2002) -> see table 2 there
 
       // the actuall fall velocity for rain density or concentration is calculated as mass or number weighted mean:
       // v_m = \int N(D) m(D) vt(D) dD
-      // v_n = \int N(D)      vt(D) dD 
+      // v_n = \int N(D)      vt(D) dD
 
       libcloudphxx_const(si::length, d1,  134.43 * 1e-6, si::metres)
       libcloudphxx_const(si::length, d2, 1511.64 * 1e-6, si::metres)
@@ -33,12 +33,12 @@ namespace libcloudphxx
         const quantity<si::length, real_t> &drop_r
       ) {
          assert(drop_r >= 0 * si::metres  && "mean drop radius cannot be < 0");
-         
+
          if (real_t(2) * drop_r == 0 * si::metres)   {return 0;} //TODO if no rain, terminal velocity = 0
-         else if (real_t(2) * drop_r < d1<real_t>()) {return 4.5795 * 1e5;} 
-         else if (real_t(2) * drop_r < d2<real_t>()) {return 4.962  * 1e3;} 
-         else if (real_t(2) * drop_r < d3<real_t>()) {return 1.732  * 1e3;} 
-         else                                        {return 9.17   * 1e2;} 
+         else if (real_t(2) * drop_r < d1<real_t>()) {return 4.5795 * 1e5;}
+         else if (real_t(2) * drop_r < d2<real_t>()) {return 4.962  * 1e3;}
+         else if (real_t(2) * drop_r < d3<real_t>()) {return 1.732  * 1e3;}
+         else                                        {return 9.17   * 1e2;}
       }
 
       template <typename real_t>
@@ -47,10 +47,10 @@ namespace libcloudphxx
       ) {
          assert(drop_r >= 0 * si::metres  && "mean drop radius cannot be < 0");
 
-         if (real_t(2) * drop_r < d1<real_t>())      {return 2./3;} 
-         else if (real_t(2) * drop_r < d2<real_t>()) {return 1./3;} 
-         else if (real_t(2) * drop_r < d3<real_t>()) {return 1./6;} 
-         else                                        {return 0;} 
+         if (real_t(2) * drop_r < d1<real_t>())      {return 2./3;}
+         else if (real_t(2) * drop_r < d2<real_t>()) {return 1./3;}
+         else if (real_t(2) * drop_r < d3<real_t>()) {return 1./6;}
+         else                                        {return 0;}
       }
 
       //helper intergrals for vm
@@ -60,7 +60,7 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp =  - pow(lbd * si::metres, -6) * exp(-lbd * D) * 
+          auto tmp =  - pow(lbd * si::metres, -6) * exp(-lbd * D) *
             (pow(real_t(lbd * D), 5) + 5 * pow(real_t(lbd * D), 4) * 20 * pow(real_t(lbd * D), 3) + 60 * pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
 
           assert(finite(tmp) && "mint_1 is finite failed");
@@ -72,7 +72,7 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = - pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) * 
+          auto tmp = - pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) *
             (pow(real_t(lbd * D), 4) + 4 * pow(real_t(lbd * D), 3) * 12 * pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
 
           assert(finite(tmp) && "mint_2 is finite failed");
@@ -84,8 +84,8 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, // slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = real_t(1./16) / pow(real_t(lbd * si::metres), real_t(9./2)) 
-                   * (105 * sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D)) 
+          auto tmp = real_t(1./16) / pow(real_t(lbd * si::metres), real_t(9./2))
+                   * (105 * sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D))
                       - 2 * sqrt(lbd * D) * exp(-lbd * D) * (8 * pow(real_t(lbd * D), 3) + 28 * pow(real_t(lbd * D), 2) + 70 * real_t(lbd * D) + 105)
                    );
 
@@ -99,7 +99,7 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = - pow(real_t(lbd * si::metres), -1) * exp(-lbd * D); 
+          auto tmp = - pow(real_t(lbd * si::metres), -1) * exp(-lbd * D);
 
           assert(finite(tmp) && "int_4 is finite failed");
           return tmp;
@@ -148,31 +148,31 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::dimensionless, real_t> &rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nr
-      ) { 
-        if (rr == 0 || nr == 0 / si::kilograms) 
+      ) {
+        if (rr < rr_eps<real_t>() || nr < nr_eps<real_t>() / si::kilograms)
           return 0 * si::metres_per_second;
 
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(nr, rr);
 
-        // eq. A4 in Morrison 2005 
-        auto tmp = rho_stp<real_t>() / rhod 
-          * lbd * si::metres * c_md<real_t>() 
-          * si::cubic_metres / si::kilograms // to make it dimensionless 
+        // eq. A4 in Morrison 2005
+        auto tmp = rho_stp<real_t>() / rhod
+          * lbd * si::metres * c_md<real_t>()
+          * si::cubic_metres / si::kilograms // to make it dimensionless
           * real_t(1000) // mass of the drop in grams
           * (
-	    alpha_fall(d1<real_t>() / real_t(2)) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2))) 
+	    alpha_fall(d1<real_t>() / real_t(2))
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
 	    * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
 	    +
-	    alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2)) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2))) 
+	    alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
 	    * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
 	    +
-	    alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2)) 
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2))) 
+	    alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
+            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
 	    * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
 	    +
-	    alpha_fall(real_t(2) * d3<real_t>()) 
+	    alpha_fall(real_t(2) * d3<real_t>())
             * (real_t(0) - int_4(lbd, d3<real_t>()))
 	  ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
@@ -187,29 +187,29 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::dimensionless, real_t> &rr,
         const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nr
-      ) { 
-        if (rr == 0 || nr == 0 / si::kilograms) 
+      ) {
+        if (rr < rr_eps<real_t>() || nr < nr_eps<real_t>() / si::kilograms)
           return 0 * si::metres_per_second;
 
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(nr, rr);
 
         // eq A4 in Morrison 2005
-        auto tmp = rho_stp<real_t>() / rhod 
+        auto tmp = rho_stp<real_t>() / rhod
           * (
-	   alpha_fall(d1<real_t>() / real_t(2)) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2))) 
+	   alpha_fall(d1<real_t>() / real_t(2))
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
            * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
 	   +
-           alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2)) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2))) 
+           alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
            * (nint_2(lbd, d2<real_t>()) - nint_2(lbd, d1<real_t>()))
            +
-           alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2)) 
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2))) 
+           alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
+           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
            * (nint_3(lbd, d3<real_t>()) - nint_3(lbd, d2<real_t>()))
            +
            alpha_fall(real_t(2) * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
-          ) 
+          )
           * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
 //return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
