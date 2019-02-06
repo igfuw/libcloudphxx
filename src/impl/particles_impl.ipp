@@ -276,7 +276,7 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
-        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
@@ -351,6 +351,7 @@ namespace libcloudphxx
         const common::unary_function<real_t> &n_of_lnrd
       );
       void init_n_const_multi(const thrust_size_t &);
+      void init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc);
 
       void dist_analysis_sd_conc(
         const common::unary_function<real_t> &n_of_lnrd,
@@ -366,8 +367,10 @@ namespace libcloudphxx
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
-      void init_count_num_dry_sizes(const real_t &);
+      void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
+      template <class arr_t>
+      void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();

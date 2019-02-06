@@ -133,7 +133,7 @@ namespace libcloudphxx
         if (opts.cond)
         {
           // condensation/evaporation of cloud water (see Morrison & Grabowski 2007)
-          if (rc > 0 && nc > 0)
+          if (rc > rc_eps<real_t>() && nc > nc_eps<real_t>())
           {      //  ^^   TODO is it possible?
             quantity<si::frequency, real_t> tmp =
               cond_evap_rate<real_t>(
@@ -146,7 +146,7 @@ namespace libcloudphxx
           }
 
           // evaporation of rain (see Morrison & Grabowski 2007)
-          if (rr > 0 && nr > 0)
+          if (rr > rr_eps<real_t>() && nr > nr_eps<real_t>())
           {
             quantity<si::frequency, real_t> tmp =
               std::min(
@@ -197,7 +197,7 @@ namespace libcloudphxx
           // autoconversion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.acnv)
           {
-            if (rc > 0 && nc > 0)
+            if (rc > rc_eps<real_t>() && nc > nc_eps<real_t>())
             {
               quantity<si::frequency, real_t> tmp = autoconv_rate(rc, nc, rhod,
                                                                   opts.acnv_A * si::dimensionless(),
@@ -207,6 +207,7 @@ namespace libcloudphxx
 
               // so that autoconversion doesn't take more rc than there is
               tmp = std::min(tmp, rc / (dt * si::seconds));
+
               assert(tmp * si::seconds >= 0 && "autoconv rate has to be >= 0");
 
               local_dot_rc -= tmp * si::seconds;
@@ -225,7 +226,7 @@ namespace libcloudphxx
           // accretion rate (as in Khairoutdinov and Kogan 2000, but see Wood 2005 table 1)
           if (opts.accr && !cloud_limiter && !rain_limiter)
           {
-            if (rc > 0 && nc > 0 && rr > 0)
+            if (rc > rc_eps<real_t>() && nc > nc_eps<real_t>() && rr > rr_eps<real_t>())
             {
               quantity<si::frequency, real_t> tmp = accretion_rate(rc, rr_dim);
 
@@ -254,7 +255,7 @@ namespace libcloudphxx
             if(cloud_limiter)
               local_dot_nc = - nc / dt;
             // else calc sink of nc from local_dot_rr
-            else if (nc > 0 && local_dot_rr > 0)
+            else if (nc > nc_eps<real_t>() && local_dot_rr > rr_eps<real_t>())
             {
               quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
                 collision_sink_rate(local_dot_rr / si::seconds, r_drop_c(rc, nc, rhod));
