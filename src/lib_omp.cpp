@@ -1,7 +1,7 @@
 #include "lib.hpp"
 
 // workarounding Thrust bug #383 (Thanks to Jared for suggestion!)
-#include <thrust/system/omp/execution_policy.h>
+//#include <thrust/system/omp/execution_policy.h>
 
 #include <thrust/system/omp/vector.h>
 namespace thrust_device = ::thrust::omp;
