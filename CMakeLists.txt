@@ -37,7 +37,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # config-specific flags
-set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
+set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
@@ -154,7 +154,7 @@ if (CUDA_FOUND)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-Og,-rdynamic")  
   # Release mode cuda flags
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
