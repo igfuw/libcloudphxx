@@ -1,3 +1,4 @@
+#fake
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
 cmake_minimum_required(VERSION 2.8.11) # for target_include_directories
