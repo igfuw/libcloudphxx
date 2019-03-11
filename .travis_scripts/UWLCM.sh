@@ -38,4 +38,4 @@ cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 make
 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../..
-set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
+#set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
