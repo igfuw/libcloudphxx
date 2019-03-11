@@ -14,4 +14,4 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5; fi
 #if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
 #if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
-set +e
+#set +e
