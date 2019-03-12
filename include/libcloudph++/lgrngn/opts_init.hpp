@@ -11,6 +11,7 @@
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/advection_scheme.hpp>
+#include <libcloudph++/lgrngn/RH_formula.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
 
 namespace libcloudphxx
@@ -34,8 +35,10 @@ namespace libcloudphxx
 
       // defined with a size-number pair
       typedef std::map<
-        real_t,                // kappa
-        std::map<real_t, real_t> // radius-STP_concentration pair (1/m^3)
+        real_t,                  // kappa
+        std::map<real_t,         // radius [m]
+          std::pair<real_t, int> // STP_concentration [1/m^3], SD multiplicity
+        > 
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
 
@@ -64,9 +67,6 @@ namespace libcloudphxx
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       int sd_const_multi;
 
-      // const multiplicity of SDs initialized from a dry_sizes map
-      int sd_const_multi_dry_sizes;
-
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
       unsigned long long n_sd_max; 
@@ -89,6 +89,9 @@ namespace libcloudphxx
 
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
+
+      // RH formula
+      RH_formula_t::RH_formula_t RH_formula;
 //</listing>
  
       // coalescence kernel parameters
@@ -129,7 +132,6 @@ namespace libcloudphxx
         sd_conc_large_tail(false), 
         aerosol_independent_of_rhod(false), 
         sd_const_multi(0),
-        sd_const_multi_dry_sizes(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
         supstp_src(1),
@@ -144,6 +146,7 @@ namespace libcloudphxx
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
+        RH_formula(RH_formula_t::pv_cc),
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),

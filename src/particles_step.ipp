@@ -23,6 +23,21 @@ namespace libcloudphxx
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
+      sync_in(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
+      step_cond(opts, th, rv, ambient_chem);
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::sync_in(
+      arrinfo_t<real_t> th,
+      arrinfo_t<real_t> rv,
+      const arrinfo_t<real_t> rhod,      // defaults to NULL-NULL pair (e.g. kinematic or boussinesq model)
+      const arrinfo_t<real_t> courant_x, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_y, // defaults to NULL-NULL pair (e.g. kinematic model)
+      const arrinfo_t<real_t> courant_z, // defaults to NULL-NULL pair (e.g. kinematic model)
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+    )
+    {
       // sanity checks
       if (!pimpl->init_called)
         throw std::runtime_error("please call init() before calling step_sync()");
@@ -72,6 +87,9 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
       }
 
+      // did rhod change
+      pimpl->var_rho = !rhod.is_null();
+
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
@@ -91,9 +109,21 @@ namespace libcloudphxx
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
 
-      // check if courants are greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
+      // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
+      #if !defined(NDEBUG)
+        if(!(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) ))
+        {
+          std::cerr << "Courant x less than -2 in pred_corr advection, minimum courant x: " << *(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() << std::endl;
+          debug::print(pimpl->courant_x);
+          assert(false);
+        }
+        if(!(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(2.) )) ))
+        {
+          std::cerr << "Courant x more than 2 in pred_corr advection, maximum courant x: " << *(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() << std::endl;
+          debug::print(pimpl->courant_x);
+          assert(false);
+        }
+      #endif
 
       if (pimpl->opts_init.chem_switch){
         for (int i = 0; i < chem_gas_n; ++i){
@@ -103,6 +133,23 @@ namespace libcloudphxx
           );
         }
       }
+  
+      pimpl->should_now_run_cond = true;
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::step_cond(
+      const opts_t<real_t> &opts,
+      arrinfo_t<real_t> th,                                            // for sync-out
+      arrinfo_t<real_t> rv,                                            // for sync-out
+      std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem   // for sync-out
+    )
+    {
+      //sanity checks
+      if (!pimpl->should_now_run_cond)
+        throw std::runtime_error("please call sync_in() before calling step_cond()");
+
+      pimpl->should_now_run_cond = false;
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -112,7 +159,7 @@ namespace libcloudphxx
         {
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
-            pimpl->sstp_step_exact(step, !rhod.is_null());
+            pimpl->sstp_step_exact(step);
             pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
           } 
           // copy sstp_tmp_rv and th to rv and th
@@ -124,17 +171,22 @@ namespace libcloudphxx
         {
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
-            pimpl->sstp_step(step, !rhod.is_null());
+            pimpl->sstp_step(step);
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
           }
         }
+
         nancheck(pimpl->th, " th after cond");
         nancheck(pimpl->rv, " rv after cond");
+
+        // saving rv to be used as rv_old
+        pimpl->sstp_save();
       }
 
       // chemistry
       // TODO: chemistry substepping still done the old way, i.e. per cell not per particle
+      // TODO2: shouldn't we run hskpng_Tpr before chemistry?
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
         for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
@@ -148,7 +200,7 @@ namespace libcloudphxx
           if (opts.chem_dsl)
           {
             //adjust trace gases to substepping
-            pimpl->sstp_step_chem(step, !rhod.is_null());
+            pimpl->sstp_step_chem(step);
 
             //dissolving trace gases (Henrys law)
             pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
@@ -210,6 +262,11 @@ namespace libcloudphxx
           );
       }
 
+      // TODO: revert to old th and rv, so that processes in step_async see the same th and rv as passed in sync_in?;
+      //       but then what happens in step_cond after condensation (i.e. chemistry and source) sees the post-cond th and rv!;
+      //       this revert could probably be avoided if sstp_tmp_rv/th, pdrv, sstp_save() and etc would be cleverly used
+      //       so that th and rv are not directly changed in step_sync (would also fix the problem with chem and src 2 lines above)
+
       pimpl->should_now_run_async = true;
       pimpl->selected_before_counting = false;
     }
@@ -237,15 +294,10 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
-      if (opts.cond) 
-      { 
-        // saving rv to be used as rv_old
-        pimpl->sstp_save();
-      }
-
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
+        // NOTE: doing it here assumes that gases didn't change since chemistry finished in step_cond
         pimpl->sstp_save_chem();
       }
 

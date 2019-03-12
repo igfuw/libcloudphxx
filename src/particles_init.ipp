@@ -17,6 +17,8 @@ namespace libcloudphxx
       const arrinfo_t<real_t> th,
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
+      const arrinfo_t<real_t> p,         // pressure profile [in Pascals], needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
+                                         // defaults to NULL-NULL pair (variable pressure)
       const arrinfo_t<real_t> courant_x, // might be NULL
       const arrinfo_t<real_t> courant_y, // might be NULL
       const arrinfo_t<real_t> courant_z, // might be NULL
@@ -24,13 +26,21 @@ namespace libcloudphxx
     )
     {
 
-      pimpl->init_sanity_check(th, rv, rhod, courant_x, courant_y, courant_z, ambient_chem);
+      pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
+
+      // is a constant pressure profile used?
+      pimpl->const_p = !p.is_null();
+      // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
+      if(pimpl->const_p && pimpl->opts_init.sstp_cond > 1 && pimpl->opts_init.exact_sstp_cond)
+        pimpl->distmem_real_vctrs.push_back(&pimpl->sstp_tmp_p);
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
       pimpl->init_e2l(th,   &pimpl->th);
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
+      if(pimpl->const_p)
+        pimpl->init_e2l(p, &pimpl->p);
 
 #if !defined(__NVCC__)
       using std::max;
@@ -52,14 +62,15 @@ namespace libcloudphxx
       pimpl->sync(th,   pimpl->th);
       pimpl->sync(rv,   pimpl->rv);
       pimpl->sync(rhod, pimpl->rhod);
+      pimpl->sync(p,   pimpl->p);
 
       if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
-      // check if courants arent greater than 1 since it would break the predictor-corrector (halo of size 1 in the x direction) 
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-1.) )) );
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 1.) )) );
+      // check if courants arent greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) );
+      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 2.) )) );
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)

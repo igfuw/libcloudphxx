@@ -35,7 +35,6 @@ namespace libcloudphxx
       };
     };
 
-    // init i,j,k,x,y,z based on the number of SDs to init in each cell stored in count_num
     // reused in source
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()

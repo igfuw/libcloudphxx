@@ -18,12 +18,12 @@ int main(int ac, char** av)
     for (auto &plt : std::set<std::string>({"rc", "rr", "nc", "nr", "th"}))
     {
       Gnuplot gp;
-      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
+      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n);
 
-      if (plt == "rc") 
+      if (plt == "rc")
       {
 	auto rc = h5load(h5, "rc", at * n["outfreq"]) * 1e3;
-	gp << "set title 'cloud water mixing ratio r_c [g/kg]'\n"; 
+	gp << "set title 'cloud water mixing ratio r_c [g/kg]'\n";
 	gp << "set cbrange [0:1.3]\n";
 	plot(gp, rc);
       }
@@ -31,7 +31,7 @@ int main(int ac, char** av)
       {
 	auto rr = h5load(h5, "rr", at * n["outfreq"]) * 1e3;
 	gp << "set logscale cb\n";
-	gp << "set title 'rain water mixing ratio r_r [g/kg]'\n"; 
+	gp << "set title 'rain water mixing ratio r_r [g/kg]'\n";
 	gp << "set cbrange [1e-2:1]\n";
 	plot(gp, rr);
 	gp << "unset logscale cb\n";
@@ -39,14 +39,14 @@ int main(int ac, char** av)
       else if (plt == "nc")
       {
 	auto nc = h5load(h5, "nc", at * n["outfreq"]) * 1e-6;
-	gp << "set title 'cloud droplet specific concentration n_c [mg^{-1}]'\n"; 
+	gp << "set title 'cloud droplet specific concentration n_c [mg^{-1}]'\n";
 	gp << "set cbrange [0:150]\n";
 	plot(gp, nc);
       }
       else if (plt == "nr")
       {
 	auto nr = h5load(h5, "nr", at * n["outfreq"]) * 1e-6;
-	gp << "set title 'rain drop specific concentration n_r [mg^{-1}]'\n"; 
+	gp << "set title 'rain drop specific concentration n_r [mg^{-1}]'\n";
 	gp << "set cbrange [0.01:10]\n";
 	gp << "set logscale cb\n";
 	plot(gp, nr);
@@ -54,11 +54,11 @@ int main(int ac, char** av)
       else if (plt == "th")
       {
 	auto nr = h5load(h5, "th", at * n["outfreq"]);
-	gp << "set title 'theta_d [K]'\n"; 
+	gp << "set title 'theta_d [K]'\n";
 	gp << "set cbrange [*:*]\n";
 	gp << "unset logscale cb\n";
 	plot(gp, nr);
       }
     }
-  } 
+  }
 }

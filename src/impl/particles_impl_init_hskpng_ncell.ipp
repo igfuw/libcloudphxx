@@ -12,9 +12,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_hskpng_ncell()
     {
-      // memory allocation
+      // memory allocation, p already resized in init_sync()
       T.resize(n_cell);
-      p.resize(n_cell);
       RH.resize(n_cell); 
       eta.resize(n_cell); 
 

@@ -72,7 +72,7 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   prtcls = lgrngn.factory(backend, opts_init)
   Cx = Cx_arg * np.ones((opts_init.nx + 1, opts_init.nz))
   Cz = Cz_arg * np.ones((opts_init.nx, opts_init.nz + 1))
-  prtcls.init(th, rv, rhod, Cx, Cz=Cz)
+  prtcls.init(th, rv, rhod, Cx=Cx, Cz=Cz)
 
   prtcls.step_sync(opts, th, rv, rhod)
 
@@ -95,8 +95,8 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
 
 @pytest.mark.parametrize("Cx, Cz, roll_st, roll_ax", [
                           (1., 0., -1, 0), (-1., 0., 1, 0),
-                          pytest.mark.xfail((0., 1., -1, 1)), 
-                          pytest.mark.xfail((0., -1., 1, 1))
+                          pytest.param(0., 1., -1, 1, marks = pytest.mark.xfail), 
+                          pytest.param(0., -1., 1, 1, marks = pytest.mark.xfail)
                           ])
 def test_advection(Cx, Cz, roll_st, roll_ax):
   tab_in, tab_out = advection_1step(Cx, Cz)

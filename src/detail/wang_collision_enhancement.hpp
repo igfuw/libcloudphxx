@@ -11,18 +11,9 @@ namespace libcloudphxx
       template<class real_t>
       struct wang_collision_enhancement_t
       {
-        real_t R0[7];            // collector radius
-        real_t rat[11];          // ratio of radii
-        real_t eta_e[11][2][7];  // [rat][eps][R0]
-
-        // ctor
-        wang_collision_enhancement_t() 
-        {
-          real_t R0_def[] = {10e-6, 20e-6, 30e-6, 40e-6, 50e-6, 60e-6, 100e-6};
-          std::copy(R0_def, R0_def+7, R0);
-          real_t rat_def[11] = {0., .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.};
-          std::copy(rat_def, rat_def+11, rat);
-          real_t eta_e_def[11][2][7] =  
+        real_t R0[7]           = {10e-6, 20e-6, 30e-6, 40e-6, 50e-6, 60e-6, 100e-6}; // collector radius
+        real_t rat[11]         = {0., .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.};       // ratio of radii
+        real_t eta_e[11][2][7] =                                                     // [rat][eps][R0]
           {                                       
             {{1.74, 1.74, 1.773,1.49, 1.207,1.207,1.0},
             {4.976,4.976,3.593,2.519,1.445,1.445,1.0},},
@@ -46,9 +37,7 @@ namespace libcloudphxx
             {3.788,3.788,1.501,1.311,1.120,1.120,1.0},},
             {{20.3, 20.3, 14.6, 8.61, 2.60, 2.60, 1.0},
             {36.52,36.52,19.16,22.80,26.0, 26.0, 1.0}}
-          };
-          std::copy(&eta_e_def[0][0][0], &eta_e_def[0][0][0]+154, &eta_e[0][0][0]);
-        }
+          };  
 
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &r1, const real_t &r2, const real_t &eps) const // radii in meters, dissipation rate in m^2/s^3

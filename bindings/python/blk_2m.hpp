@@ -30,23 +30,23 @@ namespace libcloudphxx
 	const bp_array &rhod,
 	const bp_array &th,
 	const bp_array &rv,
-	bp_array &rc,
-	bp_array &nc,
-	bp_array &rr,
-	bp_array &nr,
+	const bp_array &rc,
+	const bp_array &nc,
+	const bp_array &rr,
+	const bp_array &nr,
 	const typename arr_t::T_numtype &dt
-      ) 
+      )
       {
 	arr_t
-	  np2bz_dot_th(np2bz<arr_t>(dot_th)), 
-	  np2bz_dot_rv(np2bz<arr_t>(dot_rv)), 
-	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
-	  np2bz_dot_nc(np2bz<arr_t>(dot_nc)), 
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)), 
+	  np2bz_dot_th(np2bz<arr_t>(dot_th)),
+	  np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+	  np2bz_dot_nc(np2bz<arr_t>(dot_nc)),
+	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
 	  np2bz_dot_nr(np2bz<arr_t>(dot_nr)),
-	  np2bz_nc(np2bz<arr_t>(nc)), 
+	  np2bz_nc(np2bz<arr_t>(nc)),
 	  np2bz_rc(np2bz<arr_t>(rc)),
-	  np2bz_nr(np2bz<arr_t>(nr)), 
+	  np2bz_nr(np2bz<arr_t>(nr)),
 	  np2bz_rr(np2bz<arr_t>(rr));
 	b2m::rhs_cellwise(
 	  opts,
@@ -65,7 +65,7 @@ namespace libcloudphxx
 	  np2bz_nr,
 	  dt
 	);
-      } 
+      }
 
       template <typename arr_t>
       typename arr_t::T_numtype rhs_columnwise(
@@ -79,7 +79,7 @@ namespace libcloudphxx
 	const typename arr_t::T_numtype &dz
       ) {
 	arr_t
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)), 
+	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
 	  np2bz_dot_nr(np2bz<arr_t>(dot_nr));
 	return b2m::rhs_columnwise(
 	  opts,
@@ -91,7 +91,7 @@ namespace libcloudphxx
 	  dt,
 	  dz
 	);
-      } 
+      }
 
       template <typename real_t>
       void set_dd(

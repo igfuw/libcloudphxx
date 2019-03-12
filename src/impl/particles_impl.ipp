@@ -36,7 +36,10 @@ namespace libcloudphxx
       typedef unsigned long long n_t; // thrust_size_t?
  
       // order of operation flags
-      bool init_called, should_now_run_async, selected_before_counting;
+      bool init_called, should_now_run_async, selected_before_counting, should_now_run_cond;
+
+      // did density vary in this step
+      bool var_rho;
 
       // member fields
       opts_init_t<real_t> opts_init; // a copy
@@ -76,8 +79,9 @@ namespace libcloudphxx
 	y,   // y spatial coordinate (for 3D)
 	z,   // z spatial coordinate (for 2D and 3D)
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta_d
-        sstp_tmp_rh; // ditto for rho
+        sstp_tmp_th, // ditto for theta
+        sstp_tmp_rh, // ditto for rho
+        sstp_tmp_p; // ditto for pressure
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -133,7 +137,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        RH, // relative humisity (p_v / p_vs)
+        RH, // relative humisity 
         eta;// dynamic viscosity 
 
       // sorting needed only for diagnostics and coalescence
@@ -143,6 +147,9 @@ namespace libcloudphxx
       bool *increase_sstp_coal;
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
+
+      // is a constant, external pressure profile used? (e.g. anelastic model)
+      bool const_p;
 
       // timestep counter
       n_t stp_ctr;
@@ -188,6 +195,7 @@ namespace libcloudphxx
         tmp_device_real_part2,  
         tmp_device_real_part3,
         tmp_device_real_part4,
+        tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
 	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
@@ -220,7 +228,8 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
 
-      const int halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
+      const int halo_size = 2,
+                halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
 
@@ -259,6 +268,8 @@ namespace libcloudphxx
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
+        should_now_run_cond(false),
+        var_rho(false),
 	opts_init(_opts_init),
 	n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
@@ -289,15 +300,16 @@ namespace libcloudphxx
         rgt_id(tmp_device_size_part),
         n_x_tot(n_x_tot),
         halo_x( 
-          n_dims == 1 ? 1:                 // 1D
-            n_dims == 2 ? opts_init.nz:    // 2D
-              opts_init.nz * opts_init.ny // 3D
+          n_dims == 1 ? halo_size:                                      // 1D
+          n_dims == 2 ? halo_size * opts_init.nz:                       // 2D
+                        halo_size * opts_init.nz * opts_init.ny         // 3D
         ),
-        halo_y((opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_y(         halo_size * (opts_init.ny + 1) * opts_init.nz), // 3D
         halo_z( 
-          n_dims == 2 ? opts_init.nz + 1:      // 2D
-            (opts_init.nz + 1) * opts_init.ny),// 3D
-        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.sd_const_multi_dry_sizes > 0)) // coal prob can be greater than one only in sd_conc simulations
+          n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
+                        halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
+        ),
+        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -319,19 +331,19 @@ namespace libcloudphxx
           {
             case 3:
               n_grid = std::max(std::max(
-                (opts_init.nx+2+1) * (opts_init.ny+0) * (opts_init.nz+0), 
-                (opts_init.nx+2) * (opts_init.ny+1) * (opts_init.nz+0)),
-                (opts_init.nx+2) * (opts_init.ny+0) * (opts_init.nz+1)
+                (opts_init.nx+2*halo_size+1) * (opts_init.ny+0) * (opts_init.nz+0), 
+                (opts_init.nx+2*halo_size) * (opts_init.ny+1) * (opts_init.nz+0)),
+                (opts_init.nx+2*halo_size) * (opts_init.ny+0) * (opts_init.nz+1)
               );
               break;
             case 2:
               n_grid = std::max(
-                (opts_init.nx+2+1) * (opts_init.nz+0), 
-                (opts_init.nx+2) * (opts_init.nz+1)
+                (opts_init.nx+2*halo_size+1) * (opts_init.nz+0), 
+                (opts_init.nx+2*halo_size) * (opts_init.nz+1)
               );
               break;
             case 1:
-              n_grid = opts_init.nx+2+1;
+              n_grid = opts_init.nx+2*halo_size+1;
               break;
             case 0:
               n_grid = 1;
@@ -351,6 +363,7 @@ namespace libcloudphxx
            distmem_real_vctrs.push_back(&sstp_tmp_rv);
            distmem_real_vctrs.push_back(&sstp_tmp_th);
            distmem_real_vctrs.push_back(&sstp_tmp_rh);
+           // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
         }
       }
 
@@ -363,7 +376,8 @@ namespace libcloudphxx
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
-        const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
+        const arrinfo_t<real_t>, const arrinfo_t<real_t>,
         const std::map<enum chem_species_t, const arrinfo_t<real_t> >
       );
 
@@ -377,6 +391,7 @@ namespace libcloudphxx
         const common::unary_function<real_t> &n_of_lnrd
       );
       void init_n_const_multi(const thrust_size_t &);
+      void init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc);
 
       void dist_analysis_sd_conc(
         const common::unary_function<real_t> &n_of_lnrd,
@@ -392,8 +407,10 @@ namespace libcloudphxx
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
-      void init_count_num_dry_sizes(const real_t &);
+      void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
+      template <class arr_t>
+      void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();
@@ -482,10 +499,10 @@ namespace libcloudphxx
 
       void src(const real_t &dt);
 
-      void sstp_step(const int &step, const bool &var_rho);
-      void sstp_step_exact(const int &step, const bool &var_rho);
+      void sstp_step(const int &step);
+      void sstp_step_exact(const int &step);
       void sstp_save();
-      void sstp_step_chem(const int &step, const bool &var_rho);
+      void sstp_step_chem(const int &step);
       void sstp_save_chem();
 
       void post_copy(const opts_t<real_t>&);
