@@ -28,7 +28,6 @@ git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ..; fi
 cmake ..
 sudo make install
 cd ../../..
@@ -37,11 +36,10 @@ cd ../../..
 cd libcloudphxx/models/kinematic_2D
 mkdir -p build 
 cd build
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi
+if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBOOST_ROOT=/usr/local; fi
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
-if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
-if [[ $CXX == 'clang++' ]]; then ctest -VV -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
+if [[ $COMPILER == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
+if [[ $COMPILER == 'clang++' ]]; then ctest -VV -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+if [[ $COMPILER == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
 cd ../../../..                                       
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
