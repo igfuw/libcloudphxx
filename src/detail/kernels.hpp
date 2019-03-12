@@ -26,9 +26,9 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       kernel_base(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
         k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
-      kernel_base() = default; 
 
       // thrust requires that a default ctor exists
+      BOOST_GPU_ENABLED
       kernel_base() = default;
 
       BOOST_GPU_ENABLED
@@ -43,7 +43,9 @@ namespace libcloudphxx
       //ctor
       BOOST_GPU_ENABLED
       kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
+
       // thrust requires that a default ctor exists
+      BOOST_GPU_ENABLED
       kernel_golovin() = default;
 
       BOOST_GPU_ENABLED
@@ -127,9 +129,9 @@ namespace libcloudphxx
       //ctor
       BOOST_GPU_ENABLED
       kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
-      kernel_geometric_with_multiplier() = default;
 
-      // thrust from CUDA9 requires that a default ctor exists
+      // thrust requires that a default ctor exists
+      BOOST_GPU_ENABLED
       kernel_geometric_with_multiplier() = default;
 
       BOOST_GPU_ENABLED
@@ -179,9 +181,9 @@ namespace libcloudphxx
       //ctor
       BOOST_GPU_ENABLED
       kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
-      kernel_geometric_with_efficiencies() = default;
 
       // thrust requires that a default ctor exists
+      BOOST_GPU_ENABLED
       kernel_geometric_with_efficiencies() = default;
 
       BOOST_GPU_ENABLED
@@ -213,9 +215,9 @@ namespace libcloudphxx
       //ctor
       BOOST_GPU_ENABLED
       kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
-      kernel_onishi() = default;
 
       // thrust requires that a default ctor exists
+      BOOST_GPU_ENABLED
       kernel_onishi() = default;
 
       BOOST_GPU_ENABLED
