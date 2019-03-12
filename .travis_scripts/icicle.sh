@@ -39,7 +39,7 @@ mkdir -p build
 cd build
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DBOOST_ROOT=/usr/local; fi
 if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi
-cmake -DCMAKE_BUILD_TYPE=Release ../ 
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 if [[ $CXX == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
 if [[ $CXX == 'clang++' ]]; then ctest -VV -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 if [[ $CXX == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi
