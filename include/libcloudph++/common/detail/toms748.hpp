@@ -11,6 +11,7 @@
 
 #include <cfloat>
 #include <cassert>
+#include <stdio.h>
 
 namespace libcloudphxx {
 namespace common {
