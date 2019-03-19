@@ -21,10 +21,10 @@ struct isneg {
   );}
 #else
 #define negtozero(arr, name) {\
-  if(*thrust::min_element(arr.begin(), arr.end()) <= 0.)\
+  auto min_position = thrust::min_element(arr.begin(), arr.end());\
+  if(*min_position <= 0.)\
   {\
-    printf("A non-positive number detected in: " name "\n");\
-    debug::print(arr);\
+    printf("A non-positive number (%g) detected in: " name " at position %g\n", *min_position, min_position);\
     printf("Cheating in libcloudphxx: replacing non-positive values with small positive ones\n");\
     thrust::replace_if(\
       arr.begin(), arr.end(), \
