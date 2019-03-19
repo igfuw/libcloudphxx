@@ -41,6 +41,11 @@ addons:
 
 
 before_install:
+    # define a compiler variable for use in if statements
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export COMPILER=g++; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export COMPILER=clang++; fi # only clang on osx
+
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
 
@@ -78,10 +83,11 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXX=clang++-4.0; fi
+    # redefine CXX to the actual version used
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-5; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-5; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
