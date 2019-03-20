@@ -24,7 +24,6 @@ git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ..; fi
 cmake ..
 sudo make install
 cd ../../..
