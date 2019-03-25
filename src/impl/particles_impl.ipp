@@ -68,14 +68,14 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+        n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+        rd3, // dry radii cubed 
+        rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 1D, 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z,   // z spatial coordinate (for 2D and 3D)
+        x,   // x spatial coordinate (for 1D, 2D and 3D)
+        y,   // y spatial coordinate (for 3D)
+        z,   // z spatial coordinate (for 2D and 3D)
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
@@ -138,6 +138,8 @@ namespace libcloudphxx
         RH, // relative humisity 
         eta;// dynamic viscosity 
 
+      thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
+
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
@@ -196,7 +198,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
-	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+        &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
@@ -244,8 +246,8 @@ namespace libcloudphxx
         selected_before_counting(false),
         should_now_run_cond(false),
         var_rho(false),
-	opts_init(_opts_init),
-	n_dims( // 0, 1, 2 or 3
+        opts_init(_opts_init),
+        n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
           opts_init.nz/m1(opts_init.nz)
@@ -276,11 +278,14 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
+        w_LS(opts_init.w_LS),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
+        std::cerr << "w_LS" << std::endl;
+        debug::print(w_LS);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
@@ -320,7 +325,7 @@ namespace libcloudphxx
             default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
-	  tmp_host_real_grid.resize(n_grid);
+          tmp_host_real_grid.resize(n_grid);
         }
         tmp_host_size_cell.resize(n_cell);
         tmp_host_real_cell.resize(n_cell);
@@ -413,13 +418,13 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
         const bool specific = true
       );
 
       void mass_dens_estim(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t, const real_t, const real_t
       );
 

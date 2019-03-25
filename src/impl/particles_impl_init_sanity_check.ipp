@@ -101,6 +101,10 @@ namespace libcloudphxx
         }
         if (opts_init.sedi_switch)
           if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
+        if (opts_init.sedi_switch && opts_init.nz == 0)
+          throw std::runtime_error("opts_init.sedi_switch can be True only if n_dims > 1");
+        if (opts_init.nz != w_LS.size())
+          throw std::runtime_error("subsidence velocity profile size != nz");
     }
   };
 };
