@@ -68,6 +68,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.terminal_velocity = lgrngn.vt_t.beard77
 opts_init.kernel_parameters = np.array([b]);
+opts_init.sedi_switch = False
 
 
 opts = lgrngn.opts_t()

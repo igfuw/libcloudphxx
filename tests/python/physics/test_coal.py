@@ -37,6 +37,7 @@ opts_init.n_sd_max = pow(2,14)
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard77fast
+opts_init.sedi_switch = False
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
