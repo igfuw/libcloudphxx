@@ -287,7 +287,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
       .def_readwrite("rng_seed", &lgr::opts_init_t<real_t>::rng_seed)
-      .def_readwrite("div_LS", &lgr::opts_init_t<real_t>::div_LS)
+      .add_property("w_LS", &lgrngn::get_w_LS<real_t>, &lgrngn::set_w_LS<real_t>)
       .add_property("kernel_parameters", &lgrngn::get_kp<real_t>, &lgrngn::set_kp<real_t>)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")

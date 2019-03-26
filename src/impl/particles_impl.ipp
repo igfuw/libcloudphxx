@@ -284,8 +284,6 @@ namespace libcloudphxx
         // note: there could be less tmp data spaces if _cell vectors
         //       would point to _part vector data... but using.end() would not possible
         // initialising device temporary arrays
-        std::cerr << "w_LS" << std::endl;
-        debug::print(w_LS);
         tmp_device_real_cell.resize(n_cell);
         tmp_device_real_cell1.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);

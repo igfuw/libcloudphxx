@@ -37,17 +37,17 @@ namespace libcloudphxx
 
       template <typename real_t>
       lgr::particles_proto_t<real_t> *factory(
-	const lgr::backend_t &backend,
-	lgr::opts_init_t<real_t> opts_init
+        const lgr::backend_t &backend,
+        lgr::opts_init_t<real_t> opts_init
       ) {
-	return lgr::factory(backend, opts_init);
+        return lgr::factory(backend, opts_init);
       }
 
       template <typename real_t>
       bp::object outbuf(
         lgr::particles_proto_t<real_t> *arg
       ) {
-	return bp::object(bp::handle<>(PyBuffer_FromMemory(
+        return bp::object(bp::handle<>(PyBuffer_FromMemory(
           arg->outbuf(), 
           sizeof(real_t)
           * std::max(1, arg->opts_init->nx) 
@@ -70,11 +70,11 @@ namespace libcloudphxx
       // 
       template <typename real_t>
       void init(
-	lgr::particles_proto_t<real_t> *arg,
-	const bp_array &th,
-	const bp_array &rv,
-	const bp_array &rhod,
-	const bp_array &p,
+        lgr::particles_proto_t<real_t> *arg,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rhod,
+        const bp_array &p,
         const bp_array &Cx,
         const bp_array &Cy,
         const bp_array &Cz,
@@ -90,29 +90,29 @@ namespace libcloudphxx
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
-	arg->init(
-	  np2ai<real_t>(th,      sz(*arg)),
-	  np2ai<real_t>(rv,      sz(*arg)),
-	  np2ai<real_t>(rhod,    sz(*arg)),
-	  np2ai<real_t>(p,       sz(*arg)),
+        arg->init(
+          np2ai<real_t>(th,      sz(*arg)),
+          np2ai<real_t>(rv,      sz(*arg)),
+          np2ai<real_t>(rhod,    sz(*arg)),
+          np2ai<real_t>(p,       sz(*arg)),
           np2ai<real_t>(Cx,      sz(*arg)),
           np2ai<real_t>(Cy,      sz(*arg)),
           np2ai<real_t>(Cz,      sz(*arg)),
           map // ambient_chem
-	);
+        );
       }
 
       // 
       template <typename real_t>
       void step_sync(
-	lgr::particles_proto_t<real_t> *arg,
-	const lgr::opts_t<real_t> &opts,
-	const bp_array &th,
-	const bp_array &rv,
-	const bp_array &rhod,
-	const bp_array &Cx,
-	const bp_array &Cy,
-	const bp_array &Cz,
+        lgr::particles_proto_t<real_t> *arg,
+        const lgr::opts_t<real_t> &opts,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
         bp::dict &ambient_chem
       )
       {
@@ -125,31 +125,31 @@ namespace libcloudphxx
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
-	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
-	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
-	arg->step_sync(
-	  opts, 
-	  np2ai_th,
-	  np2ai_rv,
-	  np2ai<real_t>(rhod, sz(*arg)),
-	  np2ai<real_t>(Cx, sz(*arg)),
-	  np2ai<real_t>(Cy, sz(*arg)),
-	  np2ai<real_t>(Cz, sz(*arg)),
+        lgr::arrinfo_t<real_t>
+          np2ai_th(np2ai<real_t>(th, sz(*arg))),
+          np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
+        arg->step_sync(
+          opts, 
+          np2ai_th,
+          np2ai_rv,
+          np2ai<real_t>(rhod, sz(*arg)),
+          np2ai<real_t>(Cx, sz(*arg)),
+          np2ai<real_t>(Cy, sz(*arg)),
+          np2ai<real_t>(Cz, sz(*arg)),
           map
-	);
+        );
       }
 
       // 
       template <typename real_t>
       void sync_in(
-	lgr::particles_proto_t<real_t> *arg,
-	const bp_array &th,
-	const bp_array &rv,
-	const bp_array &rhod,
-	const bp_array &Cx,
-	const bp_array &Cy,
-	const bp_array &Cz,
+        lgr::particles_proto_t<real_t> *arg,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
         bp::dict &ambient_chem
       )
       {
@@ -162,27 +162,27 @@ namespace libcloudphxx
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
-	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
-	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
-	arg->sync_in(
-	  np2ai_th,
-	  np2ai_rv,
-	  np2ai<real_t>(rhod, sz(*arg)),
-	  np2ai<real_t>(Cx, sz(*arg)),
-	  np2ai<real_t>(Cy, sz(*arg)),
-	  np2ai<real_t>(Cz, sz(*arg)),
+        lgr::arrinfo_t<real_t>
+          np2ai_th(np2ai<real_t>(th, sz(*arg))),
+          np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
+        arg->sync_in(
+          np2ai_th,
+          np2ai_rv,
+          np2ai<real_t>(rhod, sz(*arg)),
+          np2ai<real_t>(Cx, sz(*arg)),
+          np2ai<real_t>(Cy, sz(*arg)),
+          np2ai<real_t>(Cz, sz(*arg)),
           map
-	);
+        );
       }
 
       // 
       template <typename real_t>
       void step_cond(
-	lgr::particles_proto_t<real_t> *arg,
-	const lgr::opts_t<real_t> &opts,
-	const bp_array &th,
-	const bp_array &rv,
+        lgr::particles_proto_t<real_t> *arg,
+        const lgr::opts_t<real_t> &opts,
+        const bp_array &th,
+        const bp_array &rv,
         bp::dict &ambient_chem
       )
       {
@@ -195,15 +195,15 @@ namespace libcloudphxx
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
-	lgr::arrinfo_t<real_t>
-	  np2ai_th(np2ai<real_t>(th, sz(*arg))),
-	  np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
-	arg->step_cond(
-	  opts, 
-	  np2ai_th,
-	  np2ai_rv,
+        lgr::arrinfo_t<real_t>
+          np2ai_th(np2ai<real_t>(th, sz(*arg))),
+          np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
+        arg->step_cond(
+          opts, 
+          np2ai_th,
+          np2ai_rv,
           map
-	);
+        );
       }
 
       template <typename real_t>
@@ -227,8 +227,8 @@ namespace libcloudphxx
 
       template <typename real_t>
       void set_dd( // dry_distro
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func)
       {
         arg->dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
@@ -240,8 +240,8 @@ namespace libcloudphxx
 
       template <typename real_t>
       void set_sdd( // src_dry_distro
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func)
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func)
       {
         arg->src_dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
@@ -253,8 +253,8 @@ namespace libcloudphxx
 
       template <typename real_t>
       void set_ds( // dry_sizes
-	lgr::opts_init_t<real_t> *arg,
-	const bp::dict &kappa_func
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func
       )
       {
         arg->dry_sizes.clear();
@@ -262,7 +262,7 @@ namespace libcloudphxx
           return;
 
         // loop over kappas
-	for (int j = 0; j < len(kappa_func.keys()); ++j)
+        for (int j = 0; j < len(kappa_func.keys()); ++j)
         {
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<real_t, std::pair<real_t, int>> size_conc_map;
@@ -283,45 +283,65 @@ namespace libcloudphxx
 
       template <typename real_t>
       void get_ds(
-	lgr::opts_init_t<real_t> *arg
+        lgr::opts_init_t<real_t> *arg
       )
       {
-	throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
+        throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
       void get_dd(
-	lgr::opts_init_t<real_t> *arg
+        lgr::opts_init_t<real_t> *arg
       )
       {
-	throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
+        throw std::runtime_error("dry_distros does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
       void get_sdd(
-	lgr::opts_init_t<real_t> *arg
+        lgr::opts_init_t<real_t> *arg
       )
       {
-	throw std::runtime_error("source_dry_distros does not feature a getter yet - TODO");
+        throw std::runtime_error("source_dry_distros does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
       void set_kp(
-	lgr::opts_init_t<real_t> *arg,
-	const bp_array &vec
+        lgr::opts_init_t<real_t> *arg,
+        const bp_array &vec
       )
       {
         sanity_checks(vec);
-	for (int i = 0; i < len(vec); ++i)
-	  arg->kernel_parameters.push_back(bp::extract<real_t>(vec[i]));
+        for (int i = 0; i < len(vec); ++i)
+          arg->kernel_parameters.push_back(bp::extract<real_t>(vec[i]));
       }
 
       template <typename real_t>
       bp_array get_kp(
-	lgr::opts_init_t<real_t> *arg
+        lgr::opts_init_t<real_t> *arg
       )
       {
-	throw std::runtime_error("kernel_paramteres does not feature a getter yet - TODO");
+        throw std::runtime_error("kernel_paramteres does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void set_w_LS(
+        lgr::opts_init_t<real_t> *arg,
+        const bp_array &vec
+      )
+      {
+        sanity_checks(vec);
+        arg->w_LS.resize(0);
+        for (int i = 0; i < len(vec); ++i)
+          arg->w_LS.push_back(bp::extract<real_t>(vec[i]));
+      }
+
+      template <typename real_t>
+      bp_array get_w_LS(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("w_LS profile does not feature a getter yet - TODO");
       }
     };
   };
