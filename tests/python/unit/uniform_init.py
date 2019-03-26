@@ -31,6 +31,7 @@ opts_init.x1 = opts_init.dx * opts_init.nx
 opts_init.z1 = opts_init.dz * opts_init.nz
 opts_init.y1 = opts_init.dy * opts_init.ny
 opts_init.rng_seed = int(time.time())
+opts_init.sedi_switch=0
 
 th   = 300 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.ny, opts_init.nz))  

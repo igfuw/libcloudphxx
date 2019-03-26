@@ -392,7 +392,6 @@ for it in range(2):
 # ----------
 # 2D (periodic horizontal domain)
 print "2D"
-opts_init.sedi_switch = True
 rhod = arr_t([[  1.,    1.   ],     [   1.,     1.  ]])
 th   = arr_t([[300.,  300.   ],     [ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01 ],     [    .01,    .01]])
@@ -405,6 +404,9 @@ opts_init.dz = 10
 opts_init.dx = 10
 opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
+
+opts_init.w_LS = zeros(opts_init.nz)
+opts_init.sedi_switch = True
 
 prtcls = lgrngn.factory(backend, opts_init)
 try:

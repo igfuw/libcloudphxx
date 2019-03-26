@@ -43,13 +43,13 @@ opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.sedi_switch = False
 
 backend = lgrngn.backend_t.serial
 
 opts = lgrngn.opts_t()
 
 # 0D
-opts_init.sedi_switch = False
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
@@ -60,7 +60,6 @@ prtcls.init(th, rv, rhod)
 check_kappa_conc(prtcls, 2e-2)
 
 # 3D
-opts_init.sedi_switch = True
 opts_init.ny = 2
 opts_init.dy = 10
 opts_init.y1 = opts_init.ny * opts_init.dy
