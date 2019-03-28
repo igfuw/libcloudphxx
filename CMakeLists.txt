@@ -164,7 +164,7 @@ endif()
 
 # make nvcc include the thrust found here instead of the one shipped with cuda
 if (CUDA_FOUND)
-  set(CUDA_INCLUDE_DIRS "${THRUST_INCLUDE_DIR};${CUDA_INCLUDE_DIRS}")
+  CUDA_INCLUDE_DIRECTORIES("${THRUST_INCLUDE_DIR}")
 endif()
 
 ############################################################################################
