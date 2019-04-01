@@ -108,7 +108,18 @@ if (CUDA_FOUND)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
   separate_arguments(msg)
+  list(REMOVE_ITEM msg "")
   list(REMOVE_DUPLICATES msg)
+
+  # find the lowest compute capability and set it as virtual architecture, see:
+  # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
+  list(SORT msg)
+  list(GET msg 0 VIRT)
+  message("msg = ${msg}")
+  message("virt = ${VIRT}")
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${VIRT}")
+
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=")
   foreach(code ${msg})
     message(STATUS "CUDA capability: ${code}")
     if (code STREQUAL "?")
@@ -119,7 +130,7 @@ if (CUDA_FOUND)
     if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
       set(arch "20")
     endif()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --generate-code arch=compute_${arch},code=sm_${code}")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}sm_${arch},")
   endforeach(code)
 
   # enabling c++11
