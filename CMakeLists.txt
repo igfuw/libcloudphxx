@@ -115,8 +115,6 @@ if (CUDA_FOUND)
   # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
   list(SORT msg)
   list(GET msg 0 VIRT)
-  message("msg = ${msg}")
-  message("virt = ${VIRT}")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${VIRT}")
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=")
