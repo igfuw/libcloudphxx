@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <cassert>
+#include <boost/config.hpp>
 
 namespace libcloudphxx
 {

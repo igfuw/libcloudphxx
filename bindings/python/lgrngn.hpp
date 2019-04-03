@@ -265,17 +265,24 @@ namespace libcloudphxx
         if(len(kappa_func.keys()) == 0)
           return;
 
-        // TODO: loop over kappas (right now only one possible)
-        const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[0]);
-        std::map<real_t, real_t> size_conc_map;
-
-        // turn the size-conc dict into a size-conc map
-	for (int i = 0; i < len(size_conc.keys()); ++i)
+        // loop over kappas
+	for (int j = 0; j < len(kappa_func.keys()); ++j)
         {
-          size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = bp::extract<real_t>(size_conc.values()[i]);
+          const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
+          std::map<real_t, std::pair<real_t, int>> size_conc_map;
+
+          // turn the size : {conc, multi} dict into a size : {conc, multi} map
+          for (int i = 0; i < len(size_conc.keys()); ++i)
+          {
+            const bp::list conc_multi_list = bp::extract<bp::list>(size_conc.values()[i]);
+            assert(len(conc_multi_list) == 2);
+            const real_t conc = bp::extract<real_t>(conc_multi_list[0]);
+            const int multi   = bp::extract<int>   (conc_multi_list[1]);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, multi);
+          }
+          const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
+          arg->dry_sizes[kappa] = size_conc_map;
         }
-        const real_t kappa = bp::extract<real_t>(kappa_func.keys()[0]);
-        arg->dry_sizes[kappa] = size_conc_map;
       }
 
       template <typename real_t>

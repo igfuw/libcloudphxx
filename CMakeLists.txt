@@ -12,6 +12,8 @@ if(CMAKE_VERSION VERSION_GREATER 2.9)
   cmake_policy(VERSION 3.0)
 endif()
 
+list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
+
 set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
 
 # using include() istead of find_package(libcloudph++) to use local CMake code
@@ -37,7 +39,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # config-specific flags
-set(CMAKE_CXX_FLAGS_DEBUG " -g -DTHRUST_DEBUG") #TODO: -Og if compiler supports it?
+set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
@@ -50,24 +52,6 @@ else()
   message(STATUS "CMAKE cant find OpenMP (known issue for AppleClang on OSX)")
   # maybe some hints are here: https://github.com/src-d/kmcuda/issues/6
   set(OpenMP_CXX_FLAGS " ")
-endif()
-
-############################################################################################
-# Thrust
-include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("
-    #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-    #include <thrust/version.h>
-    int main() {}
-  " THRUST_FOUND)
-if (NOT THRUST_FOUND)
-  message(FATAL_ERROR "Thrust library not found. 
-
-* To install Thrust, please try:
-*   Debian/Ubuntu: sudo apt-get install libthrust-dev
-*   Fedora: TODO
-*   Homebrew: TODO
-  ")
 endif()
 
 ############################################################################################
@@ -154,7 +138,7 @@ if (CUDA_FOUND)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-rdynamic")  
+        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-Og,-rdynamic")  
   # Release mode cuda flags
   else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
@@ -162,6 +146,25 @@ if (CUDA_FOUND)
   endif()
 
   add_definitions(-DCUDA_FOUND)
+endif()
+
+############################################################################################
+# Thrust, location of Thrust can be hinted by setting THRUST_INCLUDE_DIR
+find_package(Thrust)
+
+if (NOT THRUST_INCLUDE_DIR)
+  message(FATAL_ERROR "Thrust library not found. 
+
+* To install Thrust, please try:
+*   Debian/Ubuntu: sudo apt-get install libthrust-dev
+*   Fedora: TODO
+*   Homebrew: TODO
+  ")
+endif()
+
+# make nvcc include the thrust found here instead of the one shipped with cuda
+if (CUDA_FOUND)
+  CUDA_INCLUDE_DIRECTORIES("${THRUST_INCLUDE_DIR}")
 endif()
 
 ############################################################################################
