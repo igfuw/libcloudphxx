@@ -34,34 +34,54 @@ namespace libcloudphxx
       thrust::fill(count_num.begin(), count_num.end(), ratio * opts_init.sd_conc);
     }
 
+    // calculate number of droplets in a cell from concentration [1/m^3], taking into account cell volume and air density
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_hlpr(const real_t &conc, const thrust_size_t &const_multi)
+    template <class arr_t>
+    void particles_t<real_t, device>::impl::conc_to_number(arr_t &arr) 
     {
-      // number of SDs per cell under STP conditions
-      real_t multiplier = round(conc
-        / real_t(const_multi)
-        * (n_dims == 0 ? dv[0] : 
-            opts_init.dx
-          * opts_init.dy
-          * opts_init.dz)
-        );
+      assert(arr.size() == dv.size());
 
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
-      // initialize number of SDs in cells taking into account differences in rhod
-      // and that not all Eulerian cells are fully covered by Lagrangian domain (round to int)
-      thrust::transform(rhod.begin(), rhod.end(), dv.begin(), count_num.begin(),
-        (multiplier * arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2 / 
-          (n_dims == 0 ? dv[0] : opts_init.dx * opts_init.dy * opts_init.dz) 
-          + real_t(0.5))
+
+      // cell volume
+      thrust::transform(
+        dv.begin(), dv.end(), 
+        arr.begin(), 
+        arr.begin(),
+        arg::_2 * arg::_1 
+      );
+
+      // correct for density with respect to STP
+      if(!opts_init.aerosol_independent_of_rhod)
+        thrust::transform(
+          rhod.begin(), rhod.end(), 
+          arr.begin(), 
+          arr.begin(),
+          arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
+        );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_count_num_hlpr(const real_t &conc, const thrust_size_t &const_multi)
+    {
+      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      thrust::fill(concentration.begin(), concentration.end(), conc);
+      conc_to_number(concentration);
+
+      namespace arg = thrust::placeholders;
+      thrust::transform(
+        concentration.begin(), concentration.end(),
+        count_num.begin(),
+        arg::_1 / const_multi + real_t(0.5)
       );
     }
 
-
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const real_t &conc)
+    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_multi)
     {
-      init_count_num_hlpr(conc, opts_init.sd_const_multi_dry_sizes);
+      thrust::fill(count_num.begin(), count_num.end(), conc_multi.second);
+      //init_count_num_hlpr(conc_multi.first, conc_multi.second);
     }
 
     template <typename real_t, backend_t device>

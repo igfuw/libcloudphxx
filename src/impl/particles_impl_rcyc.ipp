@@ -20,26 +20,33 @@ namespace libcloudphxx
         const thrust_size_t &n_flagged
       ) 
       {
-	thrust::copy_n(
+        thrust::copy_n(
           // input (properties of n_flagged particles with largest multiplicities
           thrust::make_permutation_iterator(prop_bgn, make_reverse_iterator(sorted_id.end())),
           // count
           n_flagged,
           // output (properties of n_flagged particles with zero multiplicities
           thrust::make_permutation_iterator(prop_bgn, sorted_id.begin())
-	);
+        );
       }
+
+      struct is_zero
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const thrust_size_t &x)
+        {
+          return x == thrust_size_t(0);
+        }
+      };
     };
 
     template <typename real_t, backend_t device>
     thrust_size_t particles_t<real_t, device>::impl::rcyc()
     {   
-
       // count the numer of paticles to recycle
       thrust_size_t n_flagged, n_to_rcyc;
       {
-	namespace arg = thrust::placeholders;
-        n_flagged = thrust::count_if(n.begin(), n.end(), arg::_1 == 0);
+        n_flagged = thrust::count_if(n.begin(), n.end(), detail::is_zero());
       }
 
       if (n_flagged == 0) return 0;
@@ -64,13 +71,13 @@ namespace libcloudphxx
 #else
         static_assert(sizeof(thrust_size_t) == sizeof(n_t), "");
 #endif
-	thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
-	thrust::copy(n.begin(), n.end(), tmp.begin());
-
-	thrust::sort_by_key(
-	  tmp.begin(), tmp.end(),
-	  sorted_id.begin()
-	);
+        thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
+        thrust::copy(n.begin(), n.end(), tmp.begin());
+      
+        thrust::sort_by_key(
+          tmp.begin(), tmp.end(),
+          sorted_id.begin()
+        );
        
         // check how many SDs are available to split
         thrust_size_t n_splittable;
@@ -87,7 +94,6 @@ namespace libcloudphxx
 
         // if there are not enough SDs to split, reduce n_flagged
         if(n_splittable < n_flagged) n_flagged = n_splittable;
-
       }
 
       // for each property... 
@@ -124,18 +130,18 @@ namespace libcloudphxx
         namespace arg = thrust::placeholders;
 
         // increasing multiplicities of recycled particles
-	thrust::transform(
-	  // input 
+        thrust::transform(
+          // input 
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())),
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())) + n_flagged,
-	  // output
+          // output
           thrust::make_permutation_iterator(n.begin(), sorted_id.begin()),
           // op
           arg::_1 - (arg::_1 / 2)
-	);
+        );
 
-	// reducing multiplicites of splitted particles
-	thrust::transform(
+        // reducing multiplicites of splitted particles
+        thrust::transform(
           // input
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())),
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())) + n_flagged,
@@ -143,7 +149,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(n.begin(), make_reverse_iterator(sorted_id.end())),
           // op
           arg::_1 / 2
-	);
+        );
       };
       
       // if not all were recycled, remove those with n==0

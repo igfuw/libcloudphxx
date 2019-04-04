@@ -322,13 +322,13 @@ void setopts_micro(
   if (vm["adve_scheme"].as<std::string>() == "implicit") {
     rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
   }
-  if (vm["adve_scheme"].as<std::string>() == "euler") {
+  else if (vm["adve_scheme"].as<std::string>() == "euler") {
     rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
   }
-  if (vm["adve_scheme"].as<std::string>() == "pred_corr") {
+  else if (vm["adve_scheme"].as<std::string>() == "pred_corr") {
     rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
   }
-   else {
+  else {
     std::cerr<<"Invalid advection choice"<<std::endl;
     assert(false); 
   }

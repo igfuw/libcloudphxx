@@ -18,7 +18,7 @@ int main(int ac, char** av)
     for (auto &plt : std::set<std::string>({"rl", "rr", "nc", "nr", "ef", "na", "sd_conc", "th", "rv"}))
     {
       Gnuplot gp;
-      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
+      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n);
 
       if (n["x"] == 76 && n["z"] == 76)
       {
@@ -26,7 +26,7 @@ int main(int ac, char** av)
 	  char lbl = 'i';
 	  for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
 	  {
-	    for (auto &pr : fcs) 
+	    for (auto &pr : fcs)
 	    {
 	      auto &x = pr.first;
 	      auto &y = pr.second;
@@ -53,7 +53,7 @@ int main(int ac, char** av)
 	  char lbl = 'i';
 	  for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
 	  {
-	    for (auto &pr : fcs) 
+	    for (auto &pr : fcs)
 	    {
 	      auto &x = pr.first;
 	      auto &y = pr.second;
@@ -110,7 +110,7 @@ int main(int ac, char** av)
       {
 	// effective radius
 	auto r_eff = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) / h5load(h5, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
-	gp << "set title 'cloud droplet effective radius [μm]'\n"; 
+	gp << "set title 'cloud droplet effective radius [μm]'\n";
 	gp << "set cbrange [1:20]\n";
 	plot(gp, r_eff);
       }
