@@ -73,13 +73,6 @@ execute_process(
   OUTPUT_VARIABLE PYTHON_SITE
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
 install ( TARGETS cloudphxx
    LIBRARY
      DESTINATION ${PYTHON_SITE}
