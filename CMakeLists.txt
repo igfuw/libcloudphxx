@@ -94,7 +94,7 @@ if (CUDA_FOUND)
         else
         {   
           std::cerr << cudaGetErrorString(err);
-          std::cout << \"?\";
+          std::cout << \"? \";
         }   
       }
     }
@@ -108,28 +108,32 @@ if (CUDA_FOUND)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
   separate_arguments(msg)
-  list(REMOVE_ITEM msg "")
   list(REMOVE_DUPLICATES msg)
+  list(REMOVE_ITEM msg "")
 
-  # find the lowest compute capability and set it as virtual architecture, see:
-  # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
-  list(SORT msg)
-  list(GET msg 0 VIRT)
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${VIRT}")
+  if(msg)
+    # find the lowest compute capability and set it as virtual architecture, see:
+    # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
+    list(SORT msg)
+    list(GET msg 0 VIRT)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${VIRT}")
 
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=")
-  foreach(code ${msg})
-    message(STATUS "CUDA capability: ${code}")
-    if (code STREQUAL "?")
-      set (code "20")
-      message(STATUS "CUDA capability check failed, assuming a default of ${code}")
-    endif()
-    set(arch ${code})
-    if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
-      set(arch "20")
-    endif()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}sm_${arch},")
-  endforeach(code)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=")
+    foreach(code ${msg})
+      message(STATUS "CUDA capability: ${code}")
+      if (code STREQUAL "?")
+        set (code "20")
+        message(STATUS "CUDA capability check failed, assuming a default of ${code}")
+      endif()
+      set(arch ${code})
+      if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
+        set(arch "20")
+      endif()
+      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}sm_${arch},")
+    endforeach(code)
+  else()
+    message(STATUS "CUDA capability check didn't find any devices")
+  endif()
 
   # enabling c++11
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
