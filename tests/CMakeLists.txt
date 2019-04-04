@@ -1,5 +1,4 @@
 set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include ${CMAKE_CXX_FLAGS}")
-include_directories(${libcloudphxx_INCLUDE_DIRS})
 
 #TODO: add test_cuda
 add_subdirectory(theta)

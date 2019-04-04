@@ -19,5 +19,5 @@ else()
 endif()
 
 set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg)
-target_include_directories(cloudphxx_lgrngn PRIVATE ${libcloudphxx_INCLUDE_DIRS})
+#target_include_directories(cloudphxx_lgrngn PRIVATE ${libcloudphxx_INCLUDE_DIRS})
 install(TARGETS cloudphxx_lgrngn LIBRARY DESTINATION lib)
