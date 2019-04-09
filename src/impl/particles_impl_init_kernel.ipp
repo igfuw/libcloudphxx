@@ -182,9 +182,9 @@ namespace libcloudphxx
 
         //Onishi turbulent kernel (Onishi 2015 JAS) with Hall, Davis and Jones (no van der Waals) efficiencies 
         case(kernel_t::onishi_hall_davis_no_waals):
-          if(n_user_params != 2)
+          if(n_user_params != 1)
           {
-            throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
+            throw std::runtime_error("Please supply one kernel parameter: Taylor microscale Reynolds number.");
           }
           if(!opts_init.turb_coal_switch)
             throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");
@@ -207,9 +207,9 @@ namespace libcloudphxx
 
         //Onishi turbulent kernel (Onishi 2015 JAS) with Hall  efficiencies 
         case(kernel_t::onishi_hall):
-          if(n_user_params != 2)
+          if(n_user_params != 1)
           {
-            throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
+            throw std::runtime_error("Please supply one kernel parameter: Taylor microscale Reynolds number.");
           }
           if(!opts_init.turb_coal_switch)
             throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");

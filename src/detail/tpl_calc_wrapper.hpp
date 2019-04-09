@@ -21,7 +21,8 @@ namespace libcloudphxx
 
         typedef thrust::tuple<
           real_t,                       // rhod
-          real_t                        // eta
+          real_t,                       // eta
+          real_t                        // tke dissipation rate
         > tpl_ro_calc_t;
 
         tpl_rw_t tpl_rw;

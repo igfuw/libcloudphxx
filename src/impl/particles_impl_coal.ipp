@@ -135,9 +135,10 @@ namespace libcloudphxx
         // read-only parameters passed to the calc function
         typedef thrust::tuple<
           real_t,                      // rhod (dry air density)
-          real_t                       // eta (dynamic viscosity)
+          real_t,                      // eta (dynamic viscosity)
+          real_t                       // tke dissipation rate
         > tpl_ro_calc_t;
-        enum { rhod_ix, eta_ix };
+        enum { rhod_ix, eta_ix, diss_rate_ix };
 
         const real_t dt;
         const kernel_base<real_t, n_t> *p_kernel;
@@ -334,9 +335,10 @@ namespace libcloudphxx
       typedef thrust::zip_iterator<
         thrust::tuple<
           pi_real_t,  // rhod
-          pi_real_t   // eta
+          pi_real_t,  // eta
+          pi_real_t   // tke dissipation rate
         >
-      > zip_ro_calc_t;    //read-only parameters passed to the calc() function, later also epsilon and Re_lambda
+      > zip_ro_calc_t;    //read-only parameters passed to the calc() function, TODO: add Re_lambda for Onishi kernel
 
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
@@ -360,7 +362,11 @@ namespace libcloudphxx
           // rhod
           thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
           // eta
-          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin())
+          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+          // tke dissipation rate
+          opts_init.turb_coal_switch ? 
+            thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) :
+            thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
         )
       );
 
