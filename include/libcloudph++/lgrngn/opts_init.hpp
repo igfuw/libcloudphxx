@@ -104,7 +104,8 @@ namespace libcloudphxx
            src_switch,   // if false no source throughout the whole simulation
            exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
-           turb_cond_switch;   // if true, turbulent condensation of SDs is modeled
+           turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
+           turb_coal_switch;   // if true, turbulent coalescence kernels can be used
 
       int sstp_chem;
       real_t chem_rho;

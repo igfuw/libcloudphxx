@@ -71,11 +71,11 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
-      if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && diss_rate.is_null())
-        throw std::runtime_error("turbulent advection and condesation are not switched off and diss_rate is empty");
+      if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && diss_rate.is_null())
+        throw std::runtime_error("turbulent advection, coalescence and condesation are not switched off and diss_rate is empty");
 
-      if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && !diss_rate.is_null())
-        throw std::runtime_error("turbulent advection and condesation are switched off and diss_rate is not empty");
+      if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && !diss_rate.is_null())
+        throw std::runtime_error("turbulent advection, coalescence and condesation are switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -112,13 +112,13 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
-      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
@@ -357,7 +357,7 @@ namespace libcloudphxx
 
       if (opts.turb_adve || opts.turb_cond)
       {
-        // calc tke (diss_rate now holds TKE, not dissipation rate!)
+        // calc tke (diss_rate now holds TKE, not dissipation rate! Hence this must be done after coal, which requires diss rate)
         pimpl->hskpng_tke();
       }
       if (opts.turb_adve)

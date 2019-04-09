@@ -186,6 +186,8 @@ namespace libcloudphxx
           {
             throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
           }
+          if(!opts_init.turb_coal_switch)
+            throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");
           //read in kernel efficiencies to a temporary container
           detail::hall_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
          
@@ -209,6 +211,8 @@ namespace libcloudphxx
           {
             throw std::runtime_error("Please supply two kernel parameters: rate of dissipation epsilon [m^2/s^3] and Taylor microscale Reynolds number.");
           }
+          if(!opts_init.turb_coal_switch)
+            throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");
           //read in kernel efficiencies to a temporary container
           detail::hall_efficiencies<real_t> (tmp_kernel_eff);
          
