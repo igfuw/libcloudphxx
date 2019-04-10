@@ -159,6 +159,8 @@ namespace libcloudphxx
           using std::max;
           using std::pow;
           using std::abs;
+          using std::isnan;
+          using std::isinf;
 #endif
 
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
