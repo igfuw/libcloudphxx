@@ -237,7 +237,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::coal(const real_t &dt)
+    void particles_t<real_t, device>::impl::coal(const real_t &dt, const bool &turb_coal)
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
@@ -332,14 +332,6 @@ namespace libcloudphxx
         >
       > zip_rw_t;
 
-      typedef thrust::zip_iterator<
-        thrust::tuple<
-          pi_real_t,  // rhod
-          pi_real_t,  // eta
-          pi_real_t   // tke dissipation rate
-        >
-      > zip_ro_calc_t;    //read-only parameters passed to the calc() function, TODO: add Re_lambda for Onishi kernel
-
       zip_ro_t zip_ro_it(
         thrust::make_tuple(
           // u01
@@ -358,24 +350,28 @@ namespace libcloudphxx
       );
 
       auto zip_ro_calc_it = 
-        thrust::make_tuple(
-          // rhod
-          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
-          // eta
-          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
-          // tke dissipation rate
-          thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
+        thrust::make_zip_iterator(
+          thrust::make_tuple(
+            // rhod
+            thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+            // eta
+            thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+            // tke dissipation rate
+            thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
+          )
         )
       ;
 
-      zip_ro_calc_t zip_ro_calc_turb_it = 
-        thrust::make_tuple(
-          // rhod
-          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
-          // eta
-          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
-          // tke dissipation rate
-          thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) 
+      auto zip_ro_calc_turb_it = 
+        thrust::make_zip_iterator(
+          thrust::make_tuple(
+            // rhod
+            thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+            // eta
+            thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+            // tke dissipation rate
+            thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) 
+          )
         )
       ;
 
@@ -400,7 +396,7 @@ namespace libcloudphxx
       );
 
 
-      if(opts.turb_coal)
+      if(turb_coal)
         thrust::for_each(
           thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)),
           thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)) + n_part - 1,

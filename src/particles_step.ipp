@@ -339,7 +339,7 @@ namespace libcloudphxx
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->opts_init.dt / pimpl->opts_init.sstp_coal);
+          pimpl->coal(pimpl->opts_init.dt / pimpl->opts_init.sstp_coal, opts.turb_coal);
 
           // update invalid vterm 
           if (step + 1 != pimpl->opts_init.sstp_coal)
