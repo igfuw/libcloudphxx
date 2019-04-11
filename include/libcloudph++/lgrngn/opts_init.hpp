@@ -125,6 +125,8 @@ namespace libcloudphxx
       // large-scale horizontal wind divergence [1/s], used to calculate subsidence rate as -div_LS*z
       real_t div_LS;
 
+      real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -158,7 +160,8 @@ namespace libcloudphxx
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0),
-        div_LS(0.)
+        div_LS(0.),
+        rd_min(0.)
       {}
 
       // dtor (just to silence -Winline warnings)
