@@ -1,6 +1,8 @@
 #pragma once
 #include <thrust/tuple.h>
 
+// TODO: enums used to get from these tuples are defined separately in at least two other places, define them once here
+
 namespace libcloudphxx
 {
   namespace lgrngn

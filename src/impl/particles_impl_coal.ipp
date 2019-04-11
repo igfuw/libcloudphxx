@@ -357,18 +357,27 @@ namespace libcloudphxx
         )
       );
 
-      zip_ro_calc_t zip_ro_calc_it(
+      auto zip_ro_calc_it = 
         thrust::make_tuple(
           // rhod
           thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
           // eta
           thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
           // tke dissipation rate
-          opts_init.turb_coal_switch ? 
-            thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) :
-            thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
+          thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
         )
-      );
+      ;
+
+      zip_ro_calc_t zip_ro_calc_turb_it = 
+        thrust::make_tuple(
+          // rhod
+          thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
+          // eta
+          thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+          // tke dissipation rate
+          thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) 
+        )
+      ;
 
       zip_rw_t zip_rw_it(
         thrust::make_tuple(
@@ -390,11 +399,20 @@ namespace libcloudphxx
         )
       );
 
-      thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
-        detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
-      );
+
+      if(opts.turb_coal)
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)) + n_part - 1,
+          detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
+        );
+      else
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
+          detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
+        );
+
    //   nancheck(n, "n - post coalescence");
       nancheck(rw2, "rw2 - post coalescence");
       nancheck(rd3, "rd3 - post coalescence");
