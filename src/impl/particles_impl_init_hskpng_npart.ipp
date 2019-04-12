@@ -68,11 +68,11 @@ namespace libcloudphxx
       // reserve memory for in/out buffers
       if(opts_init.dev_count > 1)
       {
-        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
-        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+        in_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
+        out_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
 
-        in_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p
-        out_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+        in_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p
+        out_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
     }
   };

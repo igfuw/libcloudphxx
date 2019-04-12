@@ -86,6 +86,9 @@ namespace libcloudphxx
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p; // ditto for pressure
 
+      const int no_of_n_vctrs_copied = 1;
+      const int no_of_real_vctrs_copied = 15;
+
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
              log_rd_max, // logarithm of the upper bound of the distr
