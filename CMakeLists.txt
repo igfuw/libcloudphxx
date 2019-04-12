@@ -262,6 +262,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
+include_directories(${libcloudphxx_INCLUDE_DIRS})
+
 add_subdirectory(src) 
 enable_testing()
 add_subdirectory(tests)
