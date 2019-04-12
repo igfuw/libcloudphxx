@@ -43,15 +43,27 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_turb_dot_ss()
     {   
-      // calc tau_relax
+      // calc tau_relax (only in cells that contain any SDs)
       moms_all();
       moms_calc(rw2.begin(), real_t(1./2), false);
       thrust_device::vector<real_t> &tau_rlx(count_mom); 
       thrust::transform(
-        tau_rlx.begin(),
-        tau_rlx.end(),
-        dv.begin(),
-        tau_rlx.begin(),
+        thrust::make_permutation_iterator(
+          tau_rlx.begin(),
+          count_ijk.begin()
+        ),
+        thrust::make_permutation_iterator(
+          tau_rlx.begin(),
+          count_ijk.begin()
+        ) + count_n,
+        thrust::make_permutation_iterator(
+          dv.begin(),
+          count_ijk.begin()
+        ),
+        thrust::make_permutation_iterator(
+          tau_rlx.begin(),
+          count_ijk.begin()
+        ),
         detail::common__turbulence__tau_relax()
       );
 
