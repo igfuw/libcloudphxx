@@ -58,7 +58,7 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
       using std::max;
 #endif
-      log_rd_min = max(log_rd_min, log(opts_init.rd_min)); // user-defined lower limit for rd
+      log_rd_min = max(log_rd_min, real_t(log(opts_init.rd_min))); // user-defined lower limit for rd
     };
 
     template <typename real_t, backend_t device>
@@ -96,7 +96,7 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
       using std::max;
 #endif
-      log_rd_min = max(log_rd_min, log(opts_init.rd_min)); // user-defined lower limit for rd
+      log_rd_min = max(log_rd_min, real_t(log(opts_init.rd_min))); // user-defined lower limit for rd
     }
   };
 };
