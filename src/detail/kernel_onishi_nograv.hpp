@@ -29,6 +29,8 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       real_t kernel_onishi_nograv(const real_t &r1, const real_t &r2, const real_t &Re_l, const real_t &eps, real_t dnu, real_t ratio_den)
       {
+        if(eps < 1e-10) return 0.;
+
 #if !defined(__NVCC__)
         using std::max;
         using std::pow;

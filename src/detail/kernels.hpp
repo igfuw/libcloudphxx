@@ -223,7 +223,6 @@ namespace libcloudphxx
           common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()) // ratio of water to air density
         );
 
-        printf("onishi calc diss rate: %g\n", thrust::get<diss_rate_ix>(tpl_wrap.get_ro_calc()));
         real_t res = 
           kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *             // stagnant air collision efficiency
           wang_collision_enhancement(rwa, rwb, kernel_base<real_t, n_t>::k_params[0]) *  // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
