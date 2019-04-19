@@ -60,10 +60,6 @@ namespace libcloudphxx
       if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
-      // check if courants arent greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) );
-      assert(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t( 2.) )) );
-
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
 	  pimpl->sync(
