@@ -164,12 +164,12 @@ namespace libcloudphxx
     {   
       if(n_dims==0) return;
 
-      if(opts_init.adve_scheme == as_t::euler)
+      if(adve_scheme == as_t::euler)
       {
         adve_calc<detail::adve_helper_expl<real_t> >(true, halo_x);
         return;
       }
-      else if(opts_init.adve_scheme == as_t::implicit)
+      else if(adve_scheme == as_t::implicit)
       {
         adve_calc<detail::adve_helper_impl<real_t> >(true, halo_x);
         return;

@@ -122,20 +122,20 @@ namespace libcloudphxx
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
-      #if !defined(NDEBUG)
         if(!(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) >= real_t(-2.) )) ))
         {
-          std::cerr << "Courant x less than -2 in pred_corr advection, minimum courant x: " << *(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() << std::endl;
-          debug::print(pimpl->courant_x);
-          assert(false);
+#if !defined(NDEBUG)
+          std::cerr << "Courant x less than -2 in pred_corr advection, minimum courant x: " << *(thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::min_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() << " using first order advection in this step" << std::endl;
+#endif
+          pimpl->adve_scheme = as_t::euler;
         }
         if(!(pimpl->opts_init.adve_scheme != as_t::pred_corr || (courant_x.is_null() || ((*(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end()))) <= real_t(2.) )) ))
         {
-          std::cerr << "Courant x more than 2 in pred_corr advection, maximum courant x: " << *(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() << std::endl;
-          debug::print(pimpl->courant_x);
-          assert(false);
+#if !defined(NDEBUG)
+          std::cerr << "Courant x more than 2 in pred_corr advection, maximum courant x: " << *(thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) << " at " << (thrust::max_element(pimpl->courant_x.begin(), pimpl->courant_x.end())) - pimpl->courant_x.begin() <<  " using first order advection in this step" << std::endl;
+#endif
+          pimpl->adve_scheme = as_t::euler;
         }
-      #endif
 
       if (pimpl->opts_init.chem_switch){
         for (int i = 0; i < chem_gas_n; ++i){
@@ -379,6 +379,8 @@ namespace libcloudphxx
 
       // advection, it invalidates i,j,k and ijk!
       if (opts.adve) pimpl->adve(); 
+      // revert to the desired adve scheme (in case we used eulerian this timestep for halo reasons)
+      pimpl->adve_scheme = pimpl->opts_init.adve_scheme;
 
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
       if (opts.turb_adve) pimpl->turb_adve();
