@@ -169,6 +169,7 @@ namespace libcloudphxx
       // apply change in rv to sstp_tmp_rv
       update_pstate(sstp_tmp_rv, pdrv);
 
+/*
       // calc particle-specific change in th based on pdrv
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple(  
@@ -187,6 +188,7 @@ namespace libcloudphxx
 
       // apply change in th to sstp_tmp_th
       update_pstate(sstp_tmp_th, pdrv);
+      */
     }
   };  
 };

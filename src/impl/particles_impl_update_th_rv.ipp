@@ -64,6 +64,7 @@ namespace libcloudphxx
       nancheck(rv, "update_th_rv: rv after update");
 
       // updating th
+      /*
       {
         typedef thrust::zip_iterator<thrust::tuple<
           typename thrust_device::vector<real_t>::iterator,
@@ -86,6 +87,7 @@ namespace libcloudphxx
           thrust::plus<real_t>()
         );
       }
+      */
       nancheck(th, "update_th_rv: th after update");
     }
 
