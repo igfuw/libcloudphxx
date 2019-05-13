@@ -66,7 +66,8 @@ namespace libcloudphxx
         quantity<si::length, real_t> dx,
         quantity<si::length, real_t> dz
       )
-      { return quantity<si::length, real_t>(sqrt(dx*dz));}
+      //{ return quantity<si::length, real_t>(sqrt(dx*dz));}
+      { return quantity<si::length, real_t>(dz);}
 
       template <typename real_t>
       quantity<si::length, real_t> length_scale(
@@ -74,7 +75,8 @@ namespace libcloudphxx
         quantity<si::length, real_t> dy,
         quantity<si::length, real_t> dz
       )
-      { return quantity<si::length, real_t>(pow((dx/si::metres)*(dy/si::metres)*(dz/si::metres), real_t(1./3.)) * si::metres);}
+      //{ return quantity<si::length, real_t>(pow((dx/si::metres)*(dy/si::metres)*(dz/si::metres), real_t(1./3.)) * si::metres);}
+      { return quantity<si::length, real_t>(dz);}
 
       template <typename real_t>
       BOOST_GPU_ENABLED
