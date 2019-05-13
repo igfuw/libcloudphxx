@@ -50,6 +50,7 @@ namespace libcloudphxx
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
       detail::config<real_t> config;
+      as_t::as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -294,6 +295,7 @@ namespace libcloudphxx
           n_dims == 2 ? common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
                         common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
         ),
+        adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
         // note: there could be less tmp data spaces if _cell vectors
