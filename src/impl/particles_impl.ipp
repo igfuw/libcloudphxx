@@ -142,7 +142,11 @@ namespace libcloudphxx
         T,  // temperature [K]
         p,  // pressure [Pa]
         RH, // relative humisity 
-        eta;// dynamic viscosity 
+        eta,// dynamic viscosity 
+        accr20, // accumulated volume (without 4/3 pi) of water turned into rain water (r>20um) through accretion
+        acnv20, // ditto for autoconversion
+        accr32, // ditto, but for rain definition r>32um
+        acnv32;
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;

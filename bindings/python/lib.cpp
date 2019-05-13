@@ -343,6 +343,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
       .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)
       .def("diag_puddle",    &lgrngn::diag_puddle<real_t>)
+      .def("diag_accr20",&lgr::particles_proto_t<real_t>::diag_accr20)
+      .def("diag_accr32",&lgr::particles_proto_t<real_t>::diag_accr32)
+      .def("diag_acnv20",&lgr::particles_proto_t<real_t>::diag_acnv20)
+      .def("diag_acnv32",&lgr::particles_proto_t<real_t>::diag_acnv32)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
     ;
     // functions

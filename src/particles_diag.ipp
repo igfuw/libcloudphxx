@@ -429,5 +429,63 @@ namespace libcloudphxx
     {
       return pimpl->output_puddle;
     }
+
+
+    // records accretion with rain r>20
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_accr20()
+    {
+      thrust::copy(
+        pimpl->accr20.begin(), 
+        pimpl->accr20.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+    // records accretion with rain r>32
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_accr32()
+    {
+      thrust::copy(
+        pimpl->accr32.begin(), 
+        pimpl->accr32.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+    // records acnvetion with rain r>20
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_acnv20()
+    {
+      thrust::copy(
+        pimpl->acnv20.begin(), 
+        pimpl->acnv20.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+    // records acnvetion with rain r>32
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_acnv32()
+    {
+      thrust::copy(
+        pimpl->acnv32.begin(), 
+        pimpl->acnv32.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
   };
 };

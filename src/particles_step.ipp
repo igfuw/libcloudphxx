@@ -329,7 +329,83 @@ namespace libcloudphxx
           *(pimpl->increase_sstp_coal) = false;
         }
 
-        // add accr and acnv to cell statistics (TODO: zero-out cell statistics at start)
+        // add accr and acnv to cell statistics, similar to moms_calc + repeated 4 times :)
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_accr20.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_accr32.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->accr32.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->accr32.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_acnv20.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->acnv20.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->acnv20.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_acnv32.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->acnv32.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->acnv32.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
       }
 
       // advection, it invalidates i,j,k and ijk!
