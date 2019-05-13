@@ -23,11 +23,19 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 
       if (opts_init.nz != 0) z.reserve(opts_init.n_sd_max); 
 
-      if(opts_init.turb_switch)
+      // using resize instead of reserve is ok, because hskpng_resize is called right after this init
+      if(opts_init.turb_adve_switch)
       {
         if (opts_init.nx != 0) up.resize(opts_init.n_sd_max, 0.); // init with no perturbation 
         if (opts_init.ny != 0) vp.resize(opts_init.n_sd_max, 0.); 
         if (opts_init.nz != 0) wp.resize(opts_init.n_sd_max, 0.); 
+      }
+
+      if(opts_init.turb_cond_switch)
+      {
+        wp.resize(opts_init.n_sd_max, 0.);
+        ssp.resize(opts_init.n_sd_max, 0.);
+        dot_ssp.resize(opts_init.n_sd_max, 0.);
       }
 
       vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
@@ -48,7 +56,7 @@ namespace libcloudphxx
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
-      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3)
+      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
       {
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
       }

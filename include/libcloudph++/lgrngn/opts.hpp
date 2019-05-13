@@ -19,7 +19,7 @@ namespace libcloudphxx
     struct opts_t 
     {
       // process toggling
-      bool adve, sedi, cond, coal, src, rcyc, turb_adve;
+      bool adve, sedi, cond, coal, src, rcyc, turb_adve, turb_cond;
 
       // RH limit for drop growth
       real_t RH_max;       
@@ -32,7 +32,7 @@ namespace libcloudphxx
       opts_t() : 
         adve(true), sedi(true), cond(true), coal(true), src(false), rcyc(false),
         chem_dsl(false), chem_dsc(false), chem_rct(false),
-        turb_adve(false),
+        turb_adve(false), turb_cond(false),
         RH_max(44) // :) (anything greater than 1.1 would be enough
       {
       }

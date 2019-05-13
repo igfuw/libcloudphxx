@@ -27,7 +27,7 @@ namespace libcloudphxx
         si::dimensionless,  
         si::length
       >::type one_over_length;
-      libcloudphxx_const(one_over_length, a_1, real_t(3e-4), 1. / si::meters);
+      libcloudphxx_const(one_over_length, a_1, real_t(3e-4), real_t(1) / si::meters);
 
       typedef divide_typeof_helper<
         si::area,  
@@ -44,6 +44,16 @@ namespace libcloudphxx
         area_over_time_squared, 
         si::time
       >::type area_over_time_cubed;
+
+      typedef divide_typeof_helper<
+        si::dimensionless, 
+        si::time
+      >::type one_over_time;
+
+      typedef divide_typeof_helper<
+        si::dimensionless, 
+        si::area
+      >::type one_over_area;
 
       template <typename real_t>
       quantity<si::length, real_t> length_scale(
@@ -89,7 +99,7 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> update_turb_vel(
-        const quantity<si::velocity, real_t> &vt,
+        const quantity<si::velocity, real_t> &wp,
         const quantity<si::time, real_t> &tau,
         const quantity<si::time, real_t> &dt,
         const quantity<area_over_time_squared, real_t> &tke,
@@ -97,7 +107,27 @@ namespace libcloudphxx
       )
       {
         quantity<si::dimensionless, real_t> exp_m_dt_ov_tau(exp(-dt / tau));
-        return quantity<si::velocity, real_t>(vt * exp_m_dt_ov_tau + sqrt((real_t(1) - exp_m_dt_ov_tau * exp_m_dt_ov_tau) * real_t(2./3.) * tke ) * r_normal);
+        return quantity<si::velocity, real_t>(wp * exp_m_dt_ov_tau + sqrt((real_t(1) - exp_m_dt_ov_tau * exp_m_dt_ov_tau) * real_t(2./3.) * tke ) * r_normal);
+      };
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::time, real_t> tau_relax(
+        const quantity<one_over_area, real_t> &wet_mom_1_over_vol
+      )
+      {
+        return quantity<si::time, real_t>(real_t(1) / ( a_2<real_t>() * wet_mom_1_over_vol ) ); 
+      };
+
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<one_over_time, real_t> dot_turb_ss(
+        const quantity<si::dimensionless, real_t> &ssp,
+        const quantity<si::velocity, real_t> &wp,
+        const quantity<si::time, real_t> &tau_rlx
+      )
+      {
+        return quantity<one_over_time, real_t>(a_1<real_t>() *  wp - ssp / tau_rlx);
       };
     };
   };

@@ -80,7 +80,7 @@ assert(tab_out[0][4] == 0.)
 assert(tab_out[0][3] == 0.)
 tolerance = 1. / sqrt(Opts_init.sd_conc)
 print "relative tolerance: ", tolerance
-assert np.isclose(res_2, tab_out[0][2], atol=0., rtol=4*tolerance)
+assert np.isclose(res_2, tab_out[0][2], atol=0., rtol=5*tolerance)
 assert np.isclose(res_01, tab_out[0][1], atol=0., rtol=tolerance)
 assert np.isclose(res_01, tab_out[0][0], atol=0., rtol=tolerance)
 

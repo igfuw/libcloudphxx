@@ -81,6 +81,8 @@ namespace libcloudphxx
         up,  // turbulent perturbation of velocity
         vp,  // turbulent perturbation of velocity
         wp,  // turbulent perturbation of velocity
+        ssp, // turbulent perturbation of supersaturation
+        dot_ssp, // time derivative of the turbulent perturbation of supersaturation
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
@@ -413,7 +415,8 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel();
+      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 
@@ -457,8 +460,10 @@ namespace libcloudphxx
       void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max);
-      void cond_sstp(const real_t &dt, const real_t &RH_max);
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      template<class pres_iter, class RH_iter>
+      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
@@ -479,6 +484,7 @@ namespace libcloudphxx
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
+      void sstp_step_ssp(const real_t &dt);
       void sstp_save();
       void sstp_step_chem(const int &step);
       void sstp_save_chem();

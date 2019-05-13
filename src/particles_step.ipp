@@ -71,11 +71,11 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
-      if (pimpl->opts_init.turb_switch && diss_rate.is_null())
-        throw std::runtime_error("turbulence was not switched off and diss_rate is empty");
+      if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && diss_rate.is_null())
+        throw std::runtime_error("turbulent advection and condesation are not switched off and diss_rate is empty");
 
-      if (!pimpl->opts_init.turb_switch && !diss_rate.is_null())
-        throw std::runtime_error("turbulence was switched off and diss_rate is not empty");
+      if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)  && !diss_rate.is_null())
+        throw std::runtime_error("turbulent advection and condesation are switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -112,12 +112,14 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+        {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      if(pimpl->opts_init.turb_switch)
-        assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch)
+        {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
       #if !defined(NDEBUG)
@@ -159,6 +161,9 @@ namespace libcloudphxx
       if (!pimpl->should_now_run_cond)
         throw std::runtime_error("please call sync_in() before calling step_cond()");
 
+      if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
+        throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
+
       pimpl->should_now_run_cond = false;
 
       // condensation/evaporation 
@@ -170,7 +175,9 @@ namespace libcloudphxx
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
             pimpl->sstp_step_exact(step);
-            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max); 
+            if(opts.turb_cond)
+              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
           // copy sstp_tmp_rv and th to rv and th
           pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
@@ -182,8 +189,10 @@ namespace libcloudphxx
           for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
           {   
             pimpl->sstp_step(step);
+            if(opts.turb_cond)
+              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max);
+            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond);
           }
         }
 
@@ -304,8 +313,11 @@ namespace libcloudphxx
       if(opts.sedi && !pimpl->opts_init.sedi_switch) 
         throw std::runtime_error("all sedimentation was switched off in opts_init");
 
-      if(opts.turb_adve && !pimpl->opts_init.turb_switch) 
-        throw std::runtime_error("all turbulence sgs was switched off in opts_init, but turb_adve==True");
+      if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
+        throw std::runtime_error("turb_adve_switch=False, but turb_adve==True");
+
+      if(opts.turb_adve && pimpl->n_dims==0) 
+        throw std::runtime_error("turbulent advection does not work in 0D");
 
       if (opts.chem_dsl) 
       { 
@@ -343,12 +355,26 @@ namespace libcloudphxx
         }
       }
 
-      if (opts.turb_adve)
+      if (opts.turb_adve || opts.turb_cond)
       {
         // calc tke (diss_rate now holds TKE, not dissipation rate!)
         pimpl->hskpng_tke();
+      }
+      if (opts.turb_adve)
+      {
         // calc turbulent perturbation of velocity
         pimpl->hskpng_turb_vel();
+      }
+      else if (opts.turb_cond)
+      {
+        // calc turbulent perturbation only of vertical velocity
+        pimpl->hskpng_turb_vel(true);
+      }
+
+      if(opts.turb_cond)
+      {
+        // calculate the time derivatie of the turbulent supersaturation perturbation; applied in the next step during condensation substepping - is the delay a problem?
+        pimpl->hskpng_turb_dot_ss(); 
       }
 
       // advection, it invalidates i,j,k and ijk!
