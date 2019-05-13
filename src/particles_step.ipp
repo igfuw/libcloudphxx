@@ -306,6 +306,11 @@ namespace libcloudphxx
       // coalescence
       if (opts.coal) 
       {
+        thrust::fill(pimpl->delta_accr20.begin(), pimpl->delta_accr20.end(), real_t(0));
+        thrust::fill(pimpl->delta_acnv20.begin(), pimpl->delta_acnv20.end(), real_t(0));
+        thrust::fill(pimpl->delta_accr32.begin(), pimpl->delta_accr32.end(), real_t(0));
+        thrust::fill(pimpl->delta_acnv32.begin(), pimpl->delta_acnv32.end(), real_t(0));
+
         for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
         {
           // collide
@@ -323,6 +328,8 @@ namespace libcloudphxx
           ++(pimpl->opts_init.sstp_coal);
           *(pimpl->increase_sstp_coal) = false;
         }
+
+        // add accr and acnv to cell statistics (TODO: zero-out cell statistics at start)
       }
 
       // advection, it invalidates i,j,k and ijk!

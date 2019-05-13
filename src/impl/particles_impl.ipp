@@ -69,18 +69,23 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+        n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+        rd3, // dry radii cubed 
+        rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 1D, 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z,   // z spatial coordinate (for 2D and 3D)
+        x,   // x spatial coordinate (for 1D, 2D and 3D)
+        y,   // y spatial coordinate (for 3D)
+        z,   // z spatial coordinate (for 2D and 3D)
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
-        sstp_tmp_p; // ditto for pressure
+        sstp_tmp_p, // ditto for pressure
+        delta_accr20, // change of n * r_w^3 due to accretion
+        delta_acnv20, // change of n * r_w^3 due to autoconversion
+        delta_accr32, // change of n * r_w^3 due to accretion
+        delta_acnv32; // change of n * r_w^3 due to autoconversion
+
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
