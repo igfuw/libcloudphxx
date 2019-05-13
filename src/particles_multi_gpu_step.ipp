@@ -22,10 +22,11 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_1,
       const arrinfo_t<real_t> courant_2,
       const arrinfo_t<real_t> courant_3,
+      const arrinfo_t<real_t> diss_rate,
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
-      pimpl->mcuda_run(&particles_t<real_t, CUDA>::step_sync, opts, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::step_sync, opts, th, rv, rhod, courant_1, courant_2, courant_3, diss_rate, ambient_chem);
     }
 
     template <typename real_t>
@@ -36,10 +37,11 @@ namespace libcloudphxx
       const arrinfo_t<real_t> courant_1,
       const arrinfo_t<real_t> courant_2,
       const arrinfo_t<real_t> courant_3,
+      const arrinfo_t<real_t> diss_rate,
       std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
     )
     {
-      pimpl->mcuda_run(&particles_t<real_t, CUDA>::sync_in, th, rv, rhod, courant_1, courant_2, courant_3, ambient_chem);
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::sync_in, th, rv, rhod, courant_1, courant_2, courant_3, diss_rate, ambient_chem);
     }
 
     template <typename real_t>
