@@ -103,7 +103,7 @@ namespace libcloudphxx
           if(accr20_flag)
             thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
           if(accr32_flag)
-            thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
+            thrust::get<accr32_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
 
           // multiplicity change (eq. 12 in Shima et al. 2009)
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
@@ -144,7 +144,7 @@ namespace libcloudphxx
           if(accr20_flag)
             thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           if(accr32_flag)
-            thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<accr32_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
 
           // multiplicity change (eq. 12 in Shima et al. 2009)
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
