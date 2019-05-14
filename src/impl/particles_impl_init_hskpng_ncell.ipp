@@ -29,6 +29,9 @@ namespace libcloudphxx
         sstp_tmp_rh.resize(n_cell);
       }
 
+      revp20.resize(n_cell, real_t(0));
+      revp25.resize(n_cell, real_t(0));
+      revp32.resize(n_cell, real_t(0));
       accr20.resize(n_cell, real_t(0));
       acnv20.resize(n_cell, real_t(0));
       accr32.resize(n_cell, real_t(0));

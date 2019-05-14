@@ -149,10 +149,11 @@ namespace libcloudphxx
 
         advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
 
+        template <class tpl_tpl_t>
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+          tpl_tpl_t tpl_tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -160,6 +161,9 @@ namespace libcloudphxx
           using std::pow;
           using std::abs;
 #endif
+
+          auto tpl = thrust::get<0>(tpl_tpl);
+          //auto &tpl_revp = thrust::get<1>(tpl_tpl);
 
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
@@ -221,6 +225,17 @@ namespace libcloudphxx
           }
           // check if it doesn't evaporate too much
           if(rw2_new < rd2) rw2_new = rd2;
+
+          // store rain evaporation rates
+          if(rw2_new < rw2_old)
+          {
+            if(rw2_old > 4e-10)       // r_rain > 20um
+              thrust::get<0>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 6.25e-10)    // r_rain > 25um
+              thrust::get<1>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 1.024e-9)    // r_rain > 32um
+              thrust::get<2>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+          }
 
 #if !defined(NDEBUG)
           if(isnan(rw2_new) || isinf(rw2_new))

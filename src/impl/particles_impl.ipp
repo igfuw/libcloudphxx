@@ -81,6 +81,9 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
+        delta_revp20, // change of n * r_w^3 due to rain evaporation
+        delta_revp25, // change of n * r_w^3 due to rain evaporation
+        delta_revp32, // change of n * r_w^3 due to rain evaporation
         delta_accr20, // change of n * r_w^3 due to accretion
         delta_acnv20, // change of n * r_w^3 due to autoconversion
         delta_accr32, // change of n * r_w^3 due to accretion
@@ -143,6 +146,9 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
+        revp20,
+        revp25,
+        revp32,
         accr20, // accumulated volume (without 4/3 pi) of water turned into rain water (r>20um) through accretion
         acnv20, // ditto for autoconversion
         accr32, // ditto, but for rain definition r>32um

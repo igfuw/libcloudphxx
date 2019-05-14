@@ -77,31 +77,42 @@ namespace libcloudphxx
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
-              sstp_tmp_rh.begin(),
-              sstp_tmp_rv.begin(),
-              Tp.begin(),
-              // particle-specific p
-              pressure_iter,
-              // particle-specific RH
-              thrust::make_transform_iterator(
-                thrust::make_zip_iterator(
-                  thrust::make_tuple(
-                    pressure_iter,
-                    sstp_tmp_rv.begin(),
-                    Tp.begin()
-                )),
-                detail::RH<real_t>(opts_init.RH_formula)
-              ),
-              // particle-specific eta
-              thrust::make_transform_iterator(
-                Tp.begin(),
-                detail::common__vterm__visc<real_t>()
-              ),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
+              thrust::make_zip_iterator(   
+                thrust::make_tuple(
+                  sstp_tmp_rh.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin(),
+                  // particle-specific p
+                  pressure_iter,
+                  // particle-specific RH
+                  thrust::make_transform_iterator(
+                    thrust::make_zip_iterator(
+                      thrust::make_tuple(
+                        pressure_iter,
+                        sstp_tmp_rv.begin(),
+                        Tp.begin()
+                    )),
+                    detail::RH<real_t>(opts_init.RH_formula)
+                  ),
+                  // particle-specific eta
+                  thrust::make_transform_iterator(
+                    Tp.begin(),
+                    detail::common__vterm__visc<real_t>()
+                  ),
+                  rd3.begin(),
+                  kpa.begin(),
+                  vt.begin()
+                )
+              ), 
+              thrust::make_zip_iterator(   
+                thrust::make_tuple(
+                  delta_revp20.begin(),
+                  delta_revp25.begin(),
+                  delta_revp32.begin()
+                )
+              ) 
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt, RH_max)
         );
@@ -112,31 +123,42 @@ namespace libcloudphxx
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
-              sstp_tmp_rh.begin(),
-              sstp_tmp_rv.begin(),
-              Tp.begin(),
-              // particle-specific p
-              sstp_tmp_p.begin(),
-              // particle-specific RH
-              thrust::make_transform_iterator(
-                thrust::make_zip_iterator(
-                  thrust::make_tuple(
-                    sstp_tmp_p.begin(),
-                    sstp_tmp_rv.begin(),
-                    Tp.begin()
-                )),
-                detail::RH<real_t>(opts_init.RH_formula)
-              ),
-              // particle-specific eta
-              thrust::make_transform_iterator(
-                Tp.begin(),
-                detail::common__vterm__visc<real_t>()
-              ),
-              rd3.begin(),
-              kpa.begin(),
-              vt.begin()
+              thrust::make_zip_iterator(      
+                thrust::make_tuple(
+                  sstp_tmp_rh.begin(),
+                  sstp_tmp_rv.begin(),
+                  Tp.begin(),
+                  // particle-specific p
+                  sstp_tmp_p.begin(),
+                  // particle-specific RH
+                  thrust::make_transform_iterator(
+                    thrust::make_zip_iterator(
+                      thrust::make_tuple(
+                        sstp_tmp_p.begin(),
+                        sstp_tmp_rv.begin(),
+                        Tp.begin()
+                    )),
+                    detail::RH<real_t>(opts_init.RH_formula)
+                  ),
+                  // particle-specific eta
+                  thrust::make_transform_iterator(
+                    Tp.begin(),
+                    detail::common__vterm__visc<real_t>()
+                  ),
+                  rd3.begin(),
+                  kpa.begin(),
+                  vt.begin()
+                )
+              ), 
+              thrust::make_zip_iterator(   
+                thrust::make_tuple(
+                  delta_revp20.begin(),
+                  delta_revp25.begin(),
+                  delta_revp32.begin()
+                )
+              ) 
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt, RH_max)
         );

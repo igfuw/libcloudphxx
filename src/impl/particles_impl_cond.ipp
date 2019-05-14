@@ -36,19 +36,28 @@ namespace libcloudphxx
       // calculating drop growth in a timestep using backward Euler 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
-        thrust::make_zip_iterator(      // input - 2nd arg
-          thrust::make_tuple(
-            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
-            rd3.begin(),
-            kpa.begin(),
-            vt.begin()
-          )
-        ), 
+        thrust::make_zip_iterator(thrust::make_tuple(
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
+              rd3.begin(),
+              kpa.begin(),
+              vt.begin()
+            )
+          ), 
+          thrust::make_zip_iterator(      // input - 2nd arg
+            thrust::make_tuple(
+              delta_revp20.begin(),
+              delta_revp25.begin(),
+              delta_revp32.begin()
+            )
+          ) 
+        )),
         rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)
       );

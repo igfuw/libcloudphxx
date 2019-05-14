@@ -93,6 +93,9 @@ namespace libcloudphxx
       virtual void diag_vel_div()                                   { assert(false); }
       virtual std::map<output_t, real_t> diag_puddle()              { assert(false); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
+      virtual void diag_revp20()                                   { assert(false); }
+      virtual void diag_revp25()                                   { assert(false); }
+      virtual void diag_revp32()                                   { assert(false); }
       virtual void diag_accr20()                                   { assert(false); }
       virtual void diag_accr32()                                   { assert(false); }
       virtual void diag_acnv20()                                   { assert(false); }
@@ -184,6 +187,9 @@ namespace libcloudphxx
       void diag_vel_div();
       std::map<output_t, real_t> diag_puddle();
       real_t *outbuf();
+      virtual void diag_revp20();
+      virtual void diag_revp25();
+      virtual void diag_revp32();
       virtual void diag_accr20();
       virtual void diag_accr32();
       virtual void diag_acnv20();
@@ -277,6 +283,9 @@ namespace libcloudphxx
       void diag_max_rw();
       void diag_vel_div();
       std::map<output_t, real_t> diag_puddle();
+      virtual void diag_revp20();
+      virtual void diag_revp25();
+      virtual void diag_revp32();
       virtual void diag_accr20();
       virtual void diag_accr32();
       virtual void diag_acnv20();
