@@ -33,8 +33,10 @@ namespace libcloudphxx
       revp25.resize(n_cell, real_t(0));
       revp32.resize(n_cell, real_t(0));
       accr20.resize(n_cell, real_t(0));
-      acnv20.resize(n_cell, real_t(0));
+      accr25.resize(n_cell, real_t(0));
       accr32.resize(n_cell, real_t(0));
+      acnv20.resize(n_cell, real_t(0));
+      acnv25.resize(n_cell, real_t(0));
       acnv32.resize(n_cell, real_t(0));
     }
   };

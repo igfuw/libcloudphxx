@@ -95,15 +95,19 @@ namespace libcloudphxx
         if(thrust::get<rw2_a>(tpl) < thrust::get<rw2_b>(tpl)) // ugly if only for accretion
         {
           bool acnv20_flag = thrust::get<rw2_a>(tpl) < 4e-10 && thrust::get<rw2_b>(tpl) < 4e-10;
+          bool acnv25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) < 6.25e-10;
           bool acnv32_flag = thrust::get<rw2_a>(tpl) < 1.024e-9 && thrust::get<rw2_b>(tpl) < 1.024e-9;
 
           bool accr20_flag = thrust::get<rw2_a>(tpl) < 4e-10 && thrust::get<rw2_b>(tpl) >= 4e-10;
+          bool accr25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) >= 6.25e-10;
           bool accr32_flag = thrust::get<rw2_a>(tpl) < 1.024e-9 && thrust::get<rw2_b>(tpl) >= 1.024e-9;
 
           if(accr20_flag)
-            thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
+            thrust::get<accr20_b>(thrust::get<0>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
           if(accr32_flag)
-            thrust::get<accr32_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
+            thrust::get<accr32_b>(thrust::get<0>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
+          if(accr25_flag)
+            thrust::get<accr20_b>(thrust::get<1>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
 
           // multiplicity change (eq. 12 in Shima et al. 2009)
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
@@ -117,12 +121,15 @@ namespace libcloudphxx
           );
 
           acnv20_flag = acnv20_flag && thrust::get<rw2_b>(tpl) >= 4e-10;
+          acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
           acnv32_flag = acnv32_flag && thrust::get<rw2_b>(tpl) >= 1.024e-9;
 
           if(acnv20_flag)
-            thrust::get<acnv20_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<acnv20_b>(thrust::get<0>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           if(acnv32_flag)
-            thrust::get<acnv32_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<acnv32_b>(thrust::get<0>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+          if(acnv25_flag)
+            thrust::get<acnv20_b>(thrust::get<1>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           
           // dry radius change (eq. 13 in Shima et al. 2009)
           thrust::get<rd3_b>(tpl) 
@@ -136,15 +143,19 @@ namespace libcloudphxx
         else // rb < ra
         {
           bool acnv20_flag = thrust::get<rw2_a>(tpl) < 4e-10 && thrust::get<rw2_b>(tpl) < 4e-10;
+          bool acnv25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) < 6.25e-10;
           bool acnv32_flag = thrust::get<rw2_a>(tpl) < 1.024e-9 && thrust::get<rw2_b>(tpl) < 1.024e-9;
 
           bool accr20_flag = thrust::get<rw2_b>(tpl) < 4e-10 && thrust::get<rw2_a>(tpl) >= 4e-10;
+          bool accr25_flag = thrust::get<rw2_b>(tpl) < 6.25e-10 && thrust::get<rw2_a>(tpl) >= 6.25e-10;
           bool accr32_flag = thrust::get<rw2_b>(tpl) < 1.024e-9 && thrust::get<rw2_a>(tpl) >= 1.024e-9;
 
           if(accr20_flag)
-            thrust::get<accr20_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<accr20_b>(thrust::get<0>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           if(accr32_flag)
-            thrust::get<accr32_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<accr32_b>(thrust::get<0>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+          if(accr25_flag)
+            thrust::get<accr20_b>(thrust::get<1>(tpl_accr_acnv)) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
 
           // multiplicity change (eq. 12 in Shima et al. 2009)
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
@@ -158,12 +169,15 @@ namespace libcloudphxx
           );
 
           acnv20_flag = acnv20_flag && thrust::get<rw2_b>(tpl) >= 4e-10;
+          acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
           acnv32_flag = acnv32_flag && thrust::get<rw2_b>(tpl) >= 1.024e-9;
 
           if(acnv20_flag)
-            thrust::get<acnv20_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<acnv20_b>(thrust::get<0>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           if(acnv32_flag)
-            thrust::get<acnv32_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+            thrust::get<acnv32_b>(thrust::get<0>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+          if(acnv25_flag)
+            thrust::get<acnv20_b>(thrust::get<1>(tpl_accr_acnv)) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
           
           // dry radius change (eq. 13 in Shima et al. 2009)
           thrust::get<rd3_b>(tpl) 
@@ -461,16 +475,25 @@ namespace libcloudphxx
         )
       );
 
-      auto zip_accr_acnv_it = thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_permutation_iterator(delta_accr20.begin(),   sorted_id.begin()),  
-        thrust::make_permutation_iterator(delta_accr20.begin(),   sorted_id.begin())+1,  
-        thrust::make_permutation_iterator(delta_acnv20.begin(),   sorted_id.begin()),  
-        thrust::make_permutation_iterator(delta_acnv20.begin(),   sorted_id.begin())+1,  
-        thrust::make_permutation_iterator(delta_accr32.begin(),   sorted_id.begin()),  
-        thrust::make_permutation_iterator(delta_accr32.begin(),   sorted_id.begin())+1,  
-        thrust::make_permutation_iterator(delta_acnv32.begin(),   sorted_id.begin()),  
-        thrust::make_permutation_iterator(delta_acnv32.begin(),   sorted_id.begin())+1 
-      ));
+      auto zip_accr_acnv_it = 
+        thrust::make_zip_iterator(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(delta_accr20.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_accr20.begin(),   sorted_id.begin())+1,  
+            thrust::make_permutation_iterator(delta_acnv20.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_acnv20.begin(),   sorted_id.begin())+1,  
+            thrust::make_permutation_iterator(delta_accr32.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_accr32.begin(),   sorted_id.begin())+1,  
+            thrust::make_permutation_iterator(delta_acnv32.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_acnv32.begin(),   sorted_id.begin())+1 
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(delta_accr25.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_accr25.begin(),   sorted_id.begin())+1,  
+            thrust::make_permutation_iterator(delta_acnv25.begin(),   sorted_id.begin()),  
+            thrust::make_permutation_iterator(delta_acnv25.begin(),   sorted_id.begin())+1 
+          ))
+        ));
 
       thrust::for_each(
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)),

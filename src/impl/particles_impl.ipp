@@ -85,8 +85,10 @@ namespace libcloudphxx
         delta_revp25, // change of n * r_w^3 due to rain evaporation
         delta_revp32, // change of n * r_w^3 due to rain evaporation
         delta_accr20, // change of n * r_w^3 due to accretion
-        delta_acnv20, // change of n * r_w^3 due to autoconversion
+        delta_accr25, // change of n * r_w^3 due to accretion
         delta_accr32, // change of n * r_w^3 due to accretion
+        delta_acnv20, // change of n * r_w^3 due to autoconversion
+        delta_acnv25, // change of n * r_w^3 due to autoconversion
         delta_acnv32; // change of n * r_w^3 due to autoconversion
 
 
@@ -150,8 +152,10 @@ namespace libcloudphxx
         revp25,
         revp32,
         accr20, // accumulated volume (without 4/3 pi) of water turned into rain water (r>20um) through accretion
-        acnv20, // ditto for autoconversion
+        accr25, // ditto, but for rain definition r>32um
         accr32, // ditto, but for rain definition r>32um
+        acnv20, // ditto for autoconversion
+        acnv25, // ditto for autoconversion
         acnv32;
 
       // sorting needed only for diagnostics and coalescence

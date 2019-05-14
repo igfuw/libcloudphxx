@@ -97,8 +97,10 @@ namespace libcloudphxx
       virtual void diag_revp25()                                   { assert(false); }
       virtual void diag_revp32()                                   { assert(false); }
       virtual void diag_accr20()                                   { assert(false); }
+      virtual void diag_accr25()                                   { assert(false); }
       virtual void diag_accr32()                                   { assert(false); }
       virtual void diag_acnv20()                                   { assert(false); }
+      virtual void diag_acnv25()                                   { assert(false); }
       virtual void diag_acnv32()                                   { assert(false); }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -191,8 +193,10 @@ namespace libcloudphxx
       virtual void diag_revp25();
       virtual void diag_revp32();
       virtual void diag_accr20();
+      virtual void diag_accr25();
       virtual void diag_accr32();
       virtual void diag_acnv20();
+      virtual void diag_acnv25();
       virtual void diag_acnv32();
 
       struct impl;
@@ -287,8 +291,10 @@ namespace libcloudphxx
       virtual void diag_revp25();
       virtual void diag_revp32();
       virtual void diag_accr20();
+      virtual void diag_accr25();
       virtual void diag_accr32();
       virtual void diag_acnv20();
+      virtual void diag_acnv25();
       virtual void diag_acnv32();
 
       struct impl;

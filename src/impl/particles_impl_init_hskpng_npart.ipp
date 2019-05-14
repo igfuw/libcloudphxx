@@ -40,8 +40,10 @@ namespace libcloudphxx
       delta_revp25.reserve(opts_init.n_sd_max);
       delta_revp32.reserve(opts_init.n_sd_max);
       delta_accr20.reserve(opts_init.n_sd_max);
-      delta_acnv20.reserve(opts_init.n_sd_max);
+      delta_accr25.reserve(opts_init.n_sd_max);
       delta_accr32.reserve(opts_init.n_sd_max);
+      delta_acnv20.reserve(opts_init.n_sd_max);
+      delta_acnv25.reserve(opts_init.n_sd_max);
       delta_acnv32.reserve(opts_init.n_sd_max);
 
       if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
