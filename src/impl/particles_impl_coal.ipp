@@ -500,6 +500,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)) + n_part - 1,
         detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
       );
+      nancheck(delta_accr20, "delta_accr20 - post coalescence");
    //   nancheck(n, "n - post coalescence");
       nancheck(rw2, "rw2 - post coalescence");
       nancheck(rd3, "rd3 - post coalescence");

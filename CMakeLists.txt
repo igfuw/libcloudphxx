@@ -56,7 +56,7 @@ endif()
 
 ############################################################################################
 # CUDA
-#find_package(CUDA)
+find_package(CUDA)
 if (NOT CUDA_FOUND)
   message(STATUS "CUDA not found. 
 

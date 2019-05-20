@@ -419,6 +419,8 @@ namespace libcloudphxx
 
         // add accr and acnv to cell statistics, similar to moms_calc + repeated 4 times :)
         {
+          std::cerr << "delta accr 20 post coal" << std::endl;
+          debug::print(pimpl->delta_accr20);
           const auto n = thrust::reduce_by_key(
             // input - keys
             pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
@@ -429,13 +431,20 @@ namespace libcloudphxx
             // output - values
             pimpl->count_mom.begin()
           );  
+          std::cerr << "count mom post delta accr 20 reduce" << std::endl;
+          debug::print(pimpl->count_mom);
           auto count_n = n.first - pimpl->count_ijk.begin();
+          std::cerr << "count_n = " << count_n << std::endl;
+          std::cerr << "accr 20 pre sum" << std::endl;
+          debug::print(pimpl->accr20);
           thrust::transform(
             pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
             thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
             thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
             thrust::plus<real_t>()
           );
+          std::cerr << "accr 20 post sum" << std::endl;
+          debug::print(pimpl->accr20);
         }
         {
           const auto n = thrust::reduce_by_key(
