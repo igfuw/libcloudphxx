@@ -506,12 +506,6 @@ namespace libcloudphxx
           ))
         ));
 
-      thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)),
-        thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)) + n_part - 1,
-        detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
-      );
-
       if(turb_coal)
         thrust::for_each(
           thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it, zip_accr_acnv_it)),
