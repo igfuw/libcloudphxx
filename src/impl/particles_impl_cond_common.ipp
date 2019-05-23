@@ -69,20 +69,20 @@ namespace libcloudphxx
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
           rw2_old(rw2 * si::square_metres),
-          rhod(    thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
-          rv(      thrust::get<1>(tpl)),
-          T(       thrust::get<2>(tpl) * si::kelvins),
-          p(       thrust::get<3>(tpl) * si::pascals),
-          RH(      thrust::get<4>(tpl)),
-          eta(     thrust::get<5>(tpl) * si::pascals * si::seconds),
-          rd3(     thrust::get<6>(tpl) * si::cubic_metres),
-          kpa(     thrust::get<7>(tpl)),
-          vt(      thrust::get<8>(tpl) * si::metres_per_second),
+          rhod(    thrust::get<0>(thrust::get<0>(tpl)) * si::kilograms / si::cubic_metres),
+          rv(      thrust::get<1>(thrust::get<0>(tpl))),
+          T(       thrust::get<2>(thrust::get<0>(tpl)) * si::kelvins),
+          eta(     thrust::get<3>(thrust::get<0>(tpl)) * si::pascals * si::seconds),
+          rd3(     thrust::get<4>(thrust::get<0>(tpl)) * si::cubic_metres),
+          kpa(     thrust::get<5>(thrust::get<0>(tpl))),
+          vt(      thrust::get<6>(thrust::get<0>(tpl)) * si::metres_per_second),
+          p(       thrust::get<1>(tpl) * si::pascals),
+          RH(      thrust::get<2>(tpl)),
           RH_max(RH_max)
         {}
 
@@ -100,7 +100,9 @@ namespace libcloudphxx
           using common::mean_free_path::lambda_K;
           using common::ventil::Sh;
           using common::ventil::Nu;
+#if !defined(__NVCC__)
           using std::sqrt;
+#endif
 
           const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
           const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
@@ -165,7 +167,7 @@ namespace libcloudphxx
           auto tpl = thrust::get<0>(tpl_tpl);
           //auto &tpl_revp = thrust::get<1>(tpl_tpl);
 
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, thrust::make_tuple(tpl, thrust::get<1>(tpl_tpl), thrust::get<2>(tpl_tpl)), RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
@@ -178,19 +180,19 @@ namespace libcloudphxx
             printf("rhod: %g\n",thrust::get<0>(tpl));
             printf("rv: %g\n",thrust::get<1>(tpl));
             printf("T: %g\n",thrust::get<2>(tpl));
-            printf("p: %g\n",thrust::get<3>(tpl));
-            printf("RH: %g\n",thrust::get<4>(tpl));
-            printf("eta: %g\n",thrust::get<5>(tpl));
-            printf("rd3: %g\n",thrust::get<6>(tpl));
-            printf("kpa: %g\n",thrust::get<7>(tpl));
-            printf("vt: %g\n",thrust::get<8>(tpl));
+            printf("eta: %g\n",thrust::get<3>(tpl));
+            printf("rd3: %g\n",thrust::get<4>(tpl));
+            printf("kpa: %g\n",thrust::get<5>(tpl));
+            printf("vt: %g\n",thrust::get<6>(tpl));
+            printf("p: %g\n",thrust::get<1>(tpl_tpl));
+            printf("RH: %g\n",thrust::get<2>(tpl_tpl));
             assert(0);
           }
 #endif
 
           if (drw2 == 0) return rw2_old;
 
-          const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
+          const real_t rd2 = pow(thrust::get<4>(tpl), real_t(2./3));
  
           const real_t 
             a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
@@ -230,11 +232,11 @@ namespace libcloudphxx
           if(rw2_new < rw2_old)
           {
             if(rw2_old > 4e-10)       // r_rain > 20um
-              thrust::get<0>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+              thrust::get<0>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
             if(rw2_old > 6.25e-10)    // r_rain > 25um
-              thrust::get<1>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+              thrust::get<1>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
             if(rw2_old > 1.024e-9)    // r_rain > 32um
-              thrust::get<2>(thrust::get<1>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+              thrust::get<2>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
           }
 
 #if !defined(NDEBUG)

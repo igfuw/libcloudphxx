@@ -8,6 +8,7 @@ import numpy as np
 rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
+diss_rate = 0.04 * np.ones((1,))
 
 def lognormal(lnr):
   mean_r = .04e-6 / 2
@@ -31,7 +32,8 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([])
   if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals or kernel == lgrngn.kernel_t.onishi_hall):
-    opts_init.kernel_parameters = np.array([0.04, 100]);
+    opts_init.turb_coal_switch = True
+    opts_init.kernel_parameters = np.array([100.]);
   if(kernel == lgrngn.kernel_t.golovin):
     opts_init.kernel_parameters = np.array([1.])
   if(kernel == lgrngn.kernel_t.geometric):
@@ -47,6 +49,8 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   except:
     prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
+  print opts_init.turb_coal_switch
+
   prtcls.init(th, rv, rhod)
 
   Opts = lgrngn.opts_t()
@@ -58,5 +62,10 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   Opts.chem_dsc = False
   Opts.chem_rct = False
 
-  prtcls.step_sync(Opts,th,rv,rhod)
+  if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals or kernel == lgrngn.kernel_t.onishi_hall):
+    Opts.turb_coal = True
+    prtcls.step_sync(Opts,th,rv,rhod, diss_rate = diss_rate)
+  else:
+    prtcls.step_sync(Opts,th,rv,rhod)
+
   prtcls.step_async(Opts)

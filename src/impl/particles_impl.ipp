@@ -14,6 +14,8 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
+#include <libcloudph++/common/turbulence.hpp>
+
 #include <map>
 
 namespace libcloudphxx
@@ -77,6 +79,11 @@ namespace libcloudphxx
         x,   // x spatial coordinate (for 1D, 2D and 3D)
         y,   // y spatial coordinate (for 3D)
         z,   // z spatial coordinate (for 2D and 3D)
+        up,  // turbulent perturbation of velocity
+        vp,  // turbulent perturbation of velocity
+        wp,  // turbulent perturbation of velocity
+        ssp, // turbulent perturbation of supersaturation
+        dot_ssp, // time derivative of the turbulent perturbation of supersaturation
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
@@ -91,6 +98,9 @@ namespace libcloudphxx
         delta_acnv25, // change of n * r_w^3 due to autoconversion
         delta_acnv32; // change of n * r_w^3 due to autoconversion
 
+
+      const int no_of_n_vctrs_copied = 1;
+      const int no_of_real_vctrs_copied = 15;
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -156,7 +166,10 @@ namespace libcloudphxx
         accr32, // ditto, but for rain definition r>32um
         acnv20, // ditto for autoconversion
         acnv25, // ditto for autoconversion
-        acnv32;
+        acnv32,
+        diss_rate; // turbulent kinetic energy dissipation rate
+
+      real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -296,6 +309,11 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
+        L( 
+          n_dims == 1 ? common::turbulence::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                        common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
+        ),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
@@ -417,6 +435,9 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_tke();
+      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 
@@ -454,18 +475,21 @@ namespace libcloudphxx
       );
 
       void adve();
+      void turb_adve();
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max);
-      void cond_sstp(const real_t &dt, const real_t &RH_max);
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      template<class pres_iter, class RH_iter>
+      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
-      void coal(const real_t &dt);
+      void coal(const real_t &dt, const bool &turb_coal);
 
       void chem_vol_ante();
       void chem_flag_ante();
@@ -481,6 +505,7 @@ namespace libcloudphxx
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
+      void sstp_step_ssp(const real_t &dt);
       void sstp_save();
       void sstp_step_chem(const int &step);
       void sstp_save_chem();

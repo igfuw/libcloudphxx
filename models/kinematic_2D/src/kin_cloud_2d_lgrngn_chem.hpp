@@ -259,6 +259,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+        libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         ambient_chem
       ); 
 

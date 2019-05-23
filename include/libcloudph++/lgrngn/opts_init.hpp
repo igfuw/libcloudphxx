@@ -102,7 +102,10 @@ namespace libcloudphxx
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
-           exact_sstp_cond; // if true, use per-particle sstp_cond logic, if false, use per-cell
+           exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
+           turb_adve_switch,   // if true, turbulent motion of SDs is modeled
+           turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
+           turb_coal_switch;   // if true, turbulent coalescence kernels can be used
 
       int sstp_chem;
       real_t chem_rho;
@@ -122,6 +125,8 @@ namespace libcloudphxx
       // large-scale horizontal wind divergence [1/s], used to calculate subsidence rate as -div_LS*z
       real_t div_LS;
 
+      real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -140,6 +145,9 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),
+        turb_cond_switch(false),
+        turb_adve_switch(false),
+        turb_coal_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
@@ -152,7 +160,8 @@ namespace libcloudphxx
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0),
-        div_LS(0.)
+        div_LS(0.),
+        rd_min(0.)
       {}
 
       // dtor (just to silence -Winline warnings)
