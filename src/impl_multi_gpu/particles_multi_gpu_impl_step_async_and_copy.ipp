@@ -124,8 +124,7 @@ namespace libcloudphxx
 
         // prepare the real_t buffer for copy left
         // TODO: init real_t_vctrs only once per run
-        thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt, &x, &z};
-        std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+6);
+        std::vector<thrust_device::vector<real_t>*> real_t_vctrs = {&rd3, &rw2, &kpa, &vt, &x, &z};
         if(glob_opts_init.ny > 0) real_t_vctrs.push_back(&y);
         if(glob_opts_init.sstp_cond > 1 && glob_opts_init.exact_sstp_cond)
         {
