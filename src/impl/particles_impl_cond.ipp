@@ -64,7 +64,14 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              RH_plus_ssp.begin()
+              RH_plus_ssp.begin(),
+              thrust::make_zip_iterator( 
+                thrust::make_tuple(
+                  delta_revp20.begin(),
+                  delta_revp25.begin(),
+                  delta_revp32.begin()
+                )
+              ) 
             )
           ), 
           rw2.begin(),                    // output
@@ -78,7 +85,14 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+              thrust::make_zip_iterator(      // input - 2nd arg
+                thrust::make_tuple(
+                  delta_revp20.begin(),
+                  delta_revp25.begin(),
+                  delta_revp32.begin()
+                )
+              ) 
             )
           ), 
           rw2.begin(),                    // output

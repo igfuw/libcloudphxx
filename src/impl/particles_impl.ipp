@@ -71,14 +71,14 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+        n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+        rd3, // dry radii cubed 
+        rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 1D, 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z,   // z spatial coordinate (for 2D and 3D)
+        x,   // x spatial coordinate (for 1D, 2D and 3D)
+        y,   // y spatial coordinate (for 3D)
+        z,   // z spatial coordinate (for 2D and 3D)
         up,  // turbulent perturbation of velocity
         vp,  // turbulent perturbation of velocity
         wp,  // turbulent perturbation of velocity
@@ -87,7 +87,17 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
-        sstp_tmp_p; // ditto for pressure
+        sstp_tmp_p, // ditto for pressure
+        delta_revp20, // change of n * r_w^3 due to rain evaporation
+        delta_revp25, // change of n * r_w^3 due to rain evaporation
+        delta_revp32, // change of n * r_w^3 due to rain evaporation
+        delta_accr20, // change of n * r_w^3 due to accretion
+        delta_accr25, // change of n * r_w^3 due to accretion
+        delta_accr32, // change of n * r_w^3 due to accretion
+        delta_acnv20, // change of n * r_w^3 due to autoconversion
+        delta_acnv25, // change of n * r_w^3 due to autoconversion
+        delta_acnv32; // change of n * r_w^3 due to autoconversion
+
 
       const int no_of_n_vctrs_copied = 1;
       const int no_of_real_vctrs_copied = 15;
@@ -148,6 +158,15 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
+        revp20,
+        revp25,
+        revp32,
+        accr20, // accumulated volume (without 4/3 pi) of water turned into rain water (r>20um) through accretion
+        accr25, // ditto, but for rain definition r>32um
+        accr32, // ditto, but for rain definition r>32um
+        acnv20, // ditto for autoconversion
+        acnv25, // ditto for autoconversion
+        acnv32,
         diss_rate; // turbulent kinetic energy dissipation rate
 
       real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller

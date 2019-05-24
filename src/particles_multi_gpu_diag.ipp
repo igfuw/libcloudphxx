@@ -188,5 +188,52 @@ namespace libcloudphxx
       }
       return res;
     }
+
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_revp20()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_revp20);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_revp25()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_revp25);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_revp32()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_revp32);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_accr20()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_accr20);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_accr25()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_accr25);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_accr32()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_accr32);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_acnv20()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_acnv20);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_acnv25()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_acnv25);
+    }
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_acnv32()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_acnv32);
+    }
   };
 };

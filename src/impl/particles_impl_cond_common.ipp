@@ -151,10 +151,11 @@ namespace libcloudphxx
 
         advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
 
+        template <class tpl_tpl_t>
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
+          tpl_tpl_t tpl_tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -163,8 +164,10 @@ namespace libcloudphxx
           using std::abs;
 #endif
 
-          auto& tpl_in = thrust::get<0>(tpl);
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
+          auto tpl = thrust::get<0>(tpl_tpl);
+          //auto &tpl_revp = thrust::get<1>(tpl_tpl);
+
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, thrust::make_tuple(tpl, thrust::get<1>(tpl_tpl), thrust::get<2>(tpl_tpl)), RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
@@ -174,22 +177,22 @@ namespace libcloudphxx
             printf("rw2_old: %g\n",rw2_old);
             printf("dt: %g\n",dt);
             printf("RH_max: %g\n",RH_max);
-            printf("rhod: %g\n",thrust::get<0>(tpl_in));
-            printf("rv: %g\n",thrust::get<1>(tpl_in));
-            printf("T: %g\n",thrust::get<2>(tpl_in));
-            printf("eta: %g\n",thrust::get<3>(tpl_in));
-            printf("rd3: %g\n",thrust::get<4>(tpl_in));
-            printf("kpa: %g\n",thrust::get<5>(tpl_in));
-            printf("vt: %g\n",thrust::get<6>(tpl_in));
-            printf("p: %g\n",thrust::get<1>(tpl));
-            printf("RH: %g\n",thrust::get<2>(tpl));
+            printf("rhod: %g\n",thrust::get<0>(tpl));
+            printf("rv: %g\n",thrust::get<1>(tpl));
+            printf("T: %g\n",thrust::get<2>(tpl));
+            printf("eta: %g\n",thrust::get<3>(tpl));
+            printf("rd3: %g\n",thrust::get<4>(tpl));
+            printf("kpa: %g\n",thrust::get<5>(tpl));
+            printf("vt: %g\n",thrust::get<6>(tpl));
+            printf("p: %g\n",thrust::get<1>(tpl_tpl));
+            printf("RH: %g\n",thrust::get<2>(tpl_tpl));
             assert(0);
           }
 #endif
 
           if (drw2 == 0) return rw2_old;
 
-          const real_t rd2 = pow(thrust::get<4>(tpl_in), real_t(2./3));
+          const real_t rd2 = pow(thrust::get<4>(tpl), real_t(2./3));
  
           const real_t 
             a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
@@ -224,6 +227,17 @@ namespace libcloudphxx
           }
           // check if it doesn't evaporate too much
           if(rw2_new < rd2) rw2_new = rd2;
+
+          // store rain evaporation rates
+          if(rw2_new < rw2_old)
+          {
+            if(rw2_old > 4e-10)       // r_rain > 20um
+              thrust::get<0>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 6.25e-10)    // r_rain > 25um
+              thrust::get<1>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 1.024e-9)    // r_rain > 32um
+              thrust::get<2>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+          }
 
 #if !defined(NDEBUG)
           if(isnan(rw2_new) || isinf(rw2_new))

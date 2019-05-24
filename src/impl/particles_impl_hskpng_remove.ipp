@@ -20,8 +20,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_remove_n0()
     {
       // TODO: init these vctrs once per run
-      thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt};
-      std::set<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
+      std::set<thrust_device::vector<real_t>*> real_t_vctrs = {&rd3, &rw2, &kpa, &vt, &delta_revp20, &delta_revp25, &delta_revp32, &delta_accr20, &delta_accr25, &delta_acnv20, &delta_acnv25, &delta_accr32, &delta_acnv32};
       std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
       n_t_vctrs.insert(&ijk);
 
