@@ -17,10 +17,14 @@ env:
     - TEST_SUITE=parcel
     - TEST_SUITE=icicle
     - TEST_SUITE=UWLCM
+    - TEST_SUITE=KidA
 matrix:
     exclude:
         - os: osx
           compiler: gcc
+
+        - os: osx
+          env: TEST_SUITE=KidA
 
         - compiler: clang
           env: TEST_SUITE=cuda
@@ -92,11 +96,14 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
+
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda-8.0; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
+
+    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo apt-get install -y gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
 
     # recent boost is installed using addons functionality
 
@@ -146,3 +153,5 @@ script:
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
     # UWLCM
     - if [[ $TEST_SUITE == 'UWLCM' ]]; then . ./.travis_scripts/UWLCM.sh; fi
+    # KiD-A 1D
+    - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
