@@ -2,7 +2,7 @@
 #      getting g++-4.9 in container build: http://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler/32127147#32127147
 
 language: cpp
-dist: trusty
+dist: xenial
 sudo: required
 
 os: 
