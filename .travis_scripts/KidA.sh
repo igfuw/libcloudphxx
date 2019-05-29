@@ -2,7 +2,10 @@
 set -ex
 
 # libcloudph++ 
-git checkout -b kida-1d --track origin/kida-1d
+git fetch origin
+git branch -v -a
+git branch -r
+git checkout -b kida-1d origin/kida-1d
 git merge master
 mkdir build 
 cd build
