@@ -1,5 +1,15 @@
 #!/usr/bin/env sh
 set -ex
+
+# libcloudph++ 
+mkdir build 
+cd build
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+VERBOSE=1 make 
+sudo make install
+cd ../..
+
+#Kid-A 1D
 git clone --depth=1 git://github.com/igfuw/kid-libcloud.git;
 cd kid-libcloud
 chmod +x ./.travis_scripts/*
