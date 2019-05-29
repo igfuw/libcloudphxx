@@ -2,6 +2,11 @@
 set -ex
 
 # libcloudph++ 
+git remote show
+git remote show origin
+git fetch origin
+git checkout kida-1d
+git merge master
 mkdir build 
 cd build
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
