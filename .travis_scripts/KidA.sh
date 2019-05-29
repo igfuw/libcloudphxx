@@ -2,10 +2,7 @@
 set -ex
 
 # libcloudph++ 
-git remote show
-git remote show origin
-git fetch origin
-git checkout kida-1d
+git checkout -b kida-1d --track origin/kida-1d
 git merge master
 mkdir build 
 cd build
