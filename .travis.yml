@@ -115,7 +115,7 @@ install:
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
-    - sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust;
+    - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
 
 # get latest FindBoost.cmake
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
