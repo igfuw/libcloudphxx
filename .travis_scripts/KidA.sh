@@ -2,7 +2,10 @@
 set -ex
 
 # libcloudph++ 
+git remote show
+git remote show origin
 git fetch origin
+git status
 git branch -v -a
 git branch -r
 git checkout -b kida-1d origin/kida-1d
