@@ -1,16 +1,11 @@
 #!/usr/bin/env sh
 set -ex
 
-# libcloudph++ 
-git remote show
-git remote show origin
-git fetch
-git fetch origin
-git status
-git branch -v -a
-git branch -r
-git checkout -b kida-1d origin/kida-1d
-git merge master
+# libcloudph++ with the PR + merge kida-1d branch
+git ls-remote --heads origin
+git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git fetch --all
+git merge origin/kida-1d
 mkdir build 
 cd build
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
