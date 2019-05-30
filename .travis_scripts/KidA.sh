@@ -4,6 +4,7 @@ set -ex
 # libcloudph++ 
 git remote show
 git remote show origin
+git fetch
 git fetch origin
 git status
 git branch -v -a
