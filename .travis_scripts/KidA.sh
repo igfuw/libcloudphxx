@@ -9,8 +9,12 @@ git fetch --all
 git branch -r
 git branch -v -a
 git status
+git stash
 git checkout kida-1d
 git checkout ${build_head}
+git status
+git stash apply
+git status
 git merge kida-1d
 #git merge origin/kida-1d
 mkdir build 
