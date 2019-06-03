@@ -2,10 +2,17 @@
 set -ex
 
 # libcloudph++ with the PR + merge kida-1d branch
+local build_head=$(git rev-parse HEAD)
 git ls-remote --heads origin
-git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 git fetch --all
-git merge origin/kida-1d
+git branch -r
+git branch -v -a
+git status
+git checkout kida-1d
+git checkout ${build_head}
+git merge kida-1d
+#git merge origin/kida-1d
 mkdir build 
 cd build
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
