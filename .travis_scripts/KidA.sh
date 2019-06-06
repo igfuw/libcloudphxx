@@ -10,13 +10,18 @@ git branch -r
 git branch -v -a
 git status
 git stash
-git checkout kida-1d
-git checkout ${build_head}
 git status
-git merge --verbose --progress kida-1d
+git merge --verbose --progress origin/kida-1d
 git status
 git stash apply
 git status
+#git checkout kida-1d
+#git checkout ${build_head}
+#git status
+#git merge --verbose --progress kida-1d
+#git status
+#git stash apply
+#git status
 #git merge origin/kida-1d
 mkdir build 
 cd build
