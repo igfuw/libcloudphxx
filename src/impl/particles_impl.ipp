@@ -71,14 +71,14 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+        n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+        rd3, // dry radii cubed 
+        rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 1D, 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z,   // z spatial coordinate (for 2D and 3D)
+        x,   // x spatial coordinate (for 1D, 2D and 3D)
+        y,   // y spatial coordinate (for 3D)
+        z,   // z spatial coordinate (for 2D and 3D)
         up,  // turbulent perturbation of velocity
         vp,  // turbulent perturbation of velocity
         wp,  // turbulent perturbation of velocity
@@ -210,7 +210,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
-	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+        &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
@@ -258,8 +258,8 @@ namespace libcloudphxx
         selected_before_counting(false),
         should_now_run_cond(false),
         var_rho(false),
-	opts_init(_opts_init),
-	n_dims( // 0, 1, 2 or 3
+        opts_init(_opts_init),
+        n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
           opts_init.nz/m1(opts_init.nz)
@@ -290,11 +290,6 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
-        lambda( 
-          n_dims == 1 ? common::SGS_length_scale::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-          n_dims == 2 ? common::SGS_length_scale::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                        common::SGS_length_scale::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
-        ),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
@@ -312,6 +307,29 @@ namespace libcloudphxx
         increase_sstp_coal = new bool();
 #endif
         *increase_sstp_coal = false;
+
+        switch (opts_init.SGS_length_scale)
+        {
+          case SGS_length_scale_t::vertical:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::arithmetic_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::geometric_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          default: assert(false && "unrecognized value of opts_init.SGS_length_scale"); 
+        }
 
         // initialising host temporary arrays
         {
@@ -340,7 +358,7 @@ namespace libcloudphxx
             default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
-	  tmp_host_real_grid.resize(n_grid);
+          tmp_host_real_grid.resize(n_grid);
         }
         tmp_host_size_cell.resize(n_cell);
         tmp_host_real_cell.resize(n_cell);
@@ -436,13 +454,13 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
         const bool specific = true
       );
 
       void mass_dens_estim(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t, const real_t, const real_t
       );
 
