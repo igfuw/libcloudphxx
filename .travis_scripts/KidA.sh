@@ -11,7 +11,7 @@ git branch -v -a
 git status
 git stash
 git status
-git merge --verbose --progress origin/kida-1d
+travis_wait 30 git merge --verbose --progress origin/kida-1d
 git status
 git stash apply
 git status
