@@ -14,7 +14,7 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
-#include <libcloudph++/common/turbulence.hpp>
+#include <libcloudph++/common/SGS_length_scale.hpp>
 
 #include <map>
 
@@ -150,7 +150,7 @@ namespace libcloudphxx
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller
+      real_t lambda;
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -290,10 +290,10 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
-        L( 
-          n_dims == 1 ? common::turbulence::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                        common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
+        lambda( 
+          n_dims == 1 ? common::SGS_length_scale::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+          n_dims == 2 ? common::SGS_length_scale::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                        common::SGS_length_scale::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
         ),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
