@@ -33,7 +33,7 @@ git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="SGS"
 make
 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../..
