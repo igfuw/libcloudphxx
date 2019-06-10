@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <libcloudph++/common/turbulence.hpp>
+#include <libcloudph++/common/GA17_turbulence.hpp>
 
 namespace libcloudphxx
 {
@@ -16,16 +16,16 @@ namespace libcloudphxx
       template<class real_t>
       struct common__turbulence__tau
       {
-        const quantity<si::length, real_t> L;
-        common__turbulence__tau(const real_t &L):
-          L(L * si::metres){}
+        const quantity<si::length, real_t> lambda;
+        common__turbulence__tau(const real_t &lambda):
+          lambda(lambda * si::metres){}
 
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &tke)
         {
-          return common::turbulence::tau(
+          return common::GA17_turbulence::tau(
             tke * si::metres * si::metres / si::seconds / si::seconds,
-            L) / si::seconds;
+            lambda) / si::seconds;
         }
       };
 
@@ -40,7 +40,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(tpl_t tpl)
         {
-          return common::turbulence::update_turb_vel(
+          return common::GA17_turbulence::update_turb_vel(
             thrust::get<0>(tpl) * si::metres / si::seconds,
             thrust::get<1>(tpl) * si::seconds,
             dt,
@@ -56,7 +56,7 @@ namespace libcloudphxx
     {   
       thrust_device::vector<real_t> &tau(tmp_device_real_cell);
       thrust_device::vector<real_t> &tke(diss_rate); // should be called after hskpng_tke, which replaces diss_rate with tke
-      thrust::transform(tke.begin(), tke.end(), tau.begin(), detail::common__turbulence__tau<real_t>(L));
+      thrust::transform(tke.begin(), tke.end(), tau.begin(), detail::common__turbulence__tau<real_t>(lambda));
 
       thrust_device::vector<real_t> &r_normal(tmp_device_real_part);
       thrust_device::vector<real_t> * vel_turbs_vctrs_a[] = {&up, &wp, &vp};

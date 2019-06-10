@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <libcloudph++/common/turbulence.hpp>
+#include <libcloudph++/common/GA17_turbulence.hpp>
 
 namespace libcloudphxx
 {
@@ -19,7 +19,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &wet_mom_1, const real_t &dv)
         {
-          return common::turbulence::tau_relax(wet_mom_1 / dv / si::square_metres) / si::seconds;
+          return common::GA17_turbulence::tau_relax(wet_mom_1 / dv / si::square_metres) / si::seconds;
         }
       };
 
@@ -31,7 +31,7 @@ namespace libcloudphxx
         real_t operator()(tpl_t tpl)
         {
           assert(thrust::get<2>(tpl) > real_t(0));
-          return common::turbulence::dot_turb_ss(
+          return common::GA17_turbulence::dot_turb_ss(
             quantity<si::dimensionless, real_t>(thrust::get<0>(tpl)),
             thrust::get<1>(tpl) * si::metres / si::seconds,
             thrust::get<2>(tpl) * si::seconds
