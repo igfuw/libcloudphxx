@@ -20,13 +20,13 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::dynamic_viscosity, real_t> visc(
-	quantity<si::temperature, real_t> T
+        quantity<si::temperature, real_t> T
       ) 
       {  
         using const_cp::T_tri;
  
-	return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
-	  * real_t(pow(T/T_tri<real_t>(), real_t(3./2))) * si::kilograms / si::metres / si::seconds;
+        return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
+          * real_t(pow(T/T_tri<real_t>(), real_t(3./2))) * si::kilograms / si::metres / si::seconds;
       }
 
       // terminal fall velocity of spherical droplets 
@@ -35,9 +35,9 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_khvorostyanov( 
-	quantity<si::length, real_t> r, //radius
-	quantity<si::temperature, real_t> T, //temperature
-	quantity<si::mass_density, real_t> rhoa, //density of air
+        quantity<si::length, real_t> r, //radius
+        quantity<si::temperature, real_t> T, //temperature
+        quantity<si::mass_density, real_t> rhoa, //density of air
         quantity<si::dynamic_viscosity, real_t> eta,
         bool spherical // flag if we include nonsphericity (0) or not (1)
       ) {
@@ -45,32 +45,32 @@ namespace libcloudphxx
         using earth::g;
 
         // explicitly convert to doubles
-	quantity<si::length, double> r_dbl(r);//.value * si::metres); 
-	quantity<si::mass_density, double> rhoa_dbl(rhoa);//.value * si::kilograms / si::cubic_metres); 
-	quantity<si::dynamic_viscosity, double> eta_dbl(eta);//.value * si::pascal * si::second); 
+        quantity<si::length, double> r_dbl(r);//.value * si::metres); 
+        quantity<si::mass_density, double> rhoa_dbl(rhoa);//.value * si::kilograms / si::cubic_metres); 
+        quantity<si::dynamic_viscosity, double> eta_dbl(eta);//.value * si::pascal * si::second); 
 
-	/// Best number (eq 2.7 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci) 
-	/// with maximum projected cross-sectional area parametrised as for spherical droplets (A=pi/4*D^2)
-	quantity<si::dimensionless, double> X = double(32./3) * (rho_w<double>() - rhoa_dbl)/rhoa_dbl * g<double>() 
-	  * r_dbl * r_dbl * r_dbl / eta_dbl / eta_dbl * rhoa_dbl * rhoa_dbl; //TODO use pow<>()  
+        /// Best number (eq 2.7 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci) 
+        /// with maximum projected cross-sectional area parametrised as for spherical droplets (A=pi/4*D^2)
+        quantity<si::dimensionless, double> X = double(32./3) * (rho_w<double>() - rhoa_dbl)/rhoa_dbl * g<double>() 
+          * r_dbl * r_dbl * r_dbl / eta_dbl / eta_dbl * rhoa_dbl * rhoa_dbl; //TODO use pow<>()  
 
-	/// terminal velocity parametrisation coeffs 
-	/// eqs 2.12, 2.13 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
-	quantity<si::dimensionless, double> b = double(.0902/2) * sqrt(X)
-	  * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), -1)
-	  * pow(sqrt(double(1)+double(.0902)*sqrt(X)), -1) ;
-	quantity<si::dimensionless, double> a = double(9.06 * 9.06 / 4)
-	  * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), 2) / pow(X,b) ;
+        /// terminal velocity parametrisation coeffs 
+        /// eqs 2.12, 2.13 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
+        quantity<si::dimensionless, double> b = double(.0902/2) * sqrt(X)
+          * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), -1)
+          * pow(sqrt(double(1)+double(.0902)*sqrt(X)), -1) ;
+        quantity<si::dimensionless, double> a = double(9.06 * 9.06 / 4)
+          * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), 2) / pow(X,b) ;
 
         quantity<si::dimensionless, double> Av;
         quantity<si::dimensionless, double> Bv;
 
         if(spherical)
         {
-  	  /// eq 3.1 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
-	  Av = a
-	    * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
-	    * pow(double(4./3) * rho_w<double>() / rhoa_dbl * g<double>() *double(1e2)* si::seconds * si::seconds / si::metres, b) ;
+            /// eq 3.1 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
+          Av = a
+            * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
+            * pow(double(4./3) * rho_w<double>() / rhoa_dbl * g<double>() *double(1e2)* si::seconds * si::seconds / si::metres, b) ;
         }
         else
         // nonspherical
@@ -91,12 +91,12 @@ namespace libcloudphxx
 
           // eqs. 2.24, 2.25
           Av = a 
-	    * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
+            * pow(eta_dbl / rhoa_dbl * double(1e4) * si::seconds / si::square_metres, double(1)-double(2)*b)
             * pow(double(2.546479) * alfa / rhoa_dbl * g<double>()  * double(1e2) * si::seconds * si::seconds / si::metres  , b);
         }
-	Bv = double(3)*b - double(1) ;
+        Bv = double(3)*b - double(1) ;
 
-	return quantity<si::velocity, real_t>((Av * double(pow(double(2*1e2) * r_dbl/si::metres, Bv)))/double(1e2) * si::metres_per_second);
+        return quantity<si::velocity, real_t>((Av * double(pow(double(2*1e2) * r_dbl/si::metres, Bv)))/double(1e2) * si::metres_per_second);
       }
 
       // terminal fall velocity at sea level according to Beard (1977)
@@ -104,7 +104,7 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_beard77_v0( 
-	quantity<si::length, real_t> r //radius
+        quantity<si::length, real_t> r //radius
       ) 
       {
         // use 3rd degree polynominal for r<20um
@@ -129,9 +129,9 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> vt_beard77_fact( 
-	quantity<si::length, real_t> r, //radius
-	quantity<si::pressure, real_t> p, //pressure
-	quantity<si::mass_density, real_t> rhoa, //density of air
+        quantity<si::length, real_t> r, //radius
+        quantity<si::pressure, real_t> p, //pressure
+        quantity<si::mass_density, real_t> rhoa, //density of air
         quantity<si::dynamic_viscosity, real_t> eta
       ) 
       {
@@ -141,8 +141,8 @@ namespace libcloudphxx
         if(r <= quantity<si::length, real_t>(real_t(20e-6) * si::meters))
         {
           using earth::p_stp;
-	  quantity<si::length, real_t> l_0(6.62e-8 * si::metres);
-	  quantity<si::length, real_t> l(l_0 * (eta / eta_0) * sqrt(p_stp<real_t>() / p * rho_stp<real_t>() / rhoa));
+          quantity<si::length, real_t> l_0(6.62e-8 * si::metres);
+          quantity<si::length, real_t> l(l_0 * (eta / eta_0) * sqrt(p_stp<real_t>() / p * rho_stp<real_t>() / rhoa));
           return (eta_0 / eta) * (1 + 1.255 * (l / r)) / (1 + 1.255 * (l_0 / r));
         }
         else
@@ -158,10 +158,10 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::velocity, real_t> vt_beard76( 
-	quantity<si::length, real_t> r, //radius
-	quantity<si::temperature, real_t> T, //temperature
-	quantity<si::pressure, real_t> p, //pressure
-	quantity<si::mass_density, real_t> rhoa, //density of air
+        quantity<si::length, real_t> r, //radius
+        quantity<si::temperature, real_t> T, //temperature
+        quantity<si::pressure, real_t> p, //pressure
+        quantity<si::mass_density, real_t> rhoa, //density of air
         quantity<si::dynamic_viscosity, real_t> eta
       ) 
       {

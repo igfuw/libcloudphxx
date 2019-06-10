@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <libcloudph++/common/turbulence.hpp>
+#include <libcloudph++/common/GA17_turbulence.hpp>
 
 namespace libcloudphxx
 {
@@ -16,16 +16,16 @@ namespace libcloudphxx
       template<class real_t>
       struct common__turbulence__tke
       {
-        const quantity<si::length, real_t> L;
-        common__turbulence__tke(const real_t &L):
-          L(L * si::metres){}
+        const quantity<si::length, real_t> lambda;
+        common__turbulence__tke(const real_t &lambda):
+          lambda(lambda * si::metres){}
 
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &diss_rate)
         {
-          return common::turbulence::tke(
+          return common::GA17_turbulence::tke(
             diss_rate * si::metres * si::metres / si::seconds / si::seconds / si::seconds,
-            L) / si::metres / si::metres * si::seconds * si::seconds;
+            lambda) / si::metres / si::metres * si::seconds * si::seconds;
         }
       };
     };
@@ -33,7 +33,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_tke()
     {   
-      thrust::transform(diss_rate.begin(), diss_rate.end(), diss_rate.begin(), detail::common__turbulence__tke<real_t>(L));
+      thrust::transform(diss_rate.begin(), diss_rate.end(), diss_rate.begin(), detail::common__turbulence__tke<real_t>(lambda));
     }
   };
 };

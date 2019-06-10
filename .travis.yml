@@ -16,8 +16,10 @@ env:
     - TEST_SUITE=tests
     - TEST_SUITE=parcel
     - TEST_SUITE=icicle
-    - TEST_SUITE=UWLCM
     - TEST_SUITE=KidA
+    - TEST_SUITE=UWLCM_MT
+    - TEST_SUITE=UWLCM_unit_iles
+    - TEST_SUITE=UWLCM_unit_sgs
 matrix:
     exclude:
         - os: osx
@@ -29,8 +31,13 @@ matrix:
         - compiler: clang
           env: TEST_SUITE=cuda
 
+        # UWLCM is not tested on clang yet
         - compiler: clang
-          env: TEST_SUITE=UWLCM # UWLCM is not tested on clang yet
+          env: TEST_SUITE=UWLCM_MT
+        - compiler: clang
+          env: TEST_SUITE=UWLCM_unit_iles
+        - compiler: clang
+          env: TEST_SUITE=UWLCM_unit_sgs
 addons:
   apt:
     packages:
@@ -154,6 +161,8 @@ script:
     # icicle
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
     # UWLCM
-    - if [[ $TEST_SUITE == 'UWLCM' ]]; then . ./.travis_scripts/UWLCM.sh; fi
+    - if [[ $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/UWLCM_MT.sh; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_iles' ]]; then . ./.travis_scripts/UWLCM_unit_iles.sh; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_sgs' ]]; then . ./.travis_scripts/UWLCM_unit_sgs.sh; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
