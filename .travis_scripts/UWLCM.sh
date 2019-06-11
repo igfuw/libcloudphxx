@@ -1,5 +1,11 @@
 #!/usr/bin/env sh
 set -ex
+
+if [ $# -ne 1 ]; then
+  echo "UWLCM.sh accepts exactly one argument"
+  exit 1
+fi
+
 # libcloudph++ 
 mkdir build 
 cd build
@@ -24,5 +30,5 @@ cd ../../..
 ## UWLCM
 git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
-. .travis_scripts/unit_iles.sh
+. .travis_scripts/$1.sh
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
