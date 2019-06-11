@@ -3,8 +3,6 @@ sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
 
-print(lgrngn.__path__.__dict__["_path"][0])
-
 from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose
 
 from math import exp, log, sqrt, pi
