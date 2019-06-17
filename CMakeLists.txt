@@ -30,6 +30,11 @@ IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
+# clearing default config-specific flags
+set(CMAKE_CXX_FLAGS_DEBUG "")
+set(CMAKE_CXX_FLAGS_RELEASE "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+
 ############################################################################################
 # see if CUDA is available
 include(CheckLanguage)
@@ -93,11 +98,10 @@ target_compile_options(cloudphxx_lgrngn PRIVATE -Wextra)
 # enabling c++11
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_11)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE "$<$<CONFIG:DEBUG>: -g -Og -DTHRUST_DEBUG>")
-target_compile_options(cloudphxx_lgrngn PRIVATE "$<$<CONFIG:RELWITHDEBINFO>: -Ofast -march=native>")
-target_compile_options(cloudphxx_lgrngn PRIVATE "$<$<CONFIG:RELEASE>: -DNDEBUG -Ofast -march=native> -Winline")
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:DEBUG>: -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELWITHDEBINFO>: -Ofast -march=native>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELEASE>:  -DNDEBUG -Ofast -march=native -Winline>)
 #set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 #set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
@@ -203,8 +207,7 @@ if (CMAKE_CUDA_COMPILER)
   endif()
 
   target_compile_options(cloudphxx_lgrngn PRIVATE ${CUDA_NVCC_FLAGS})
-
-  add_definitions(-DCUDA_FOUND)
+  target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
 endif()
 
 ############################################################################################
