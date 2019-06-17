@@ -49,6 +49,8 @@ if (NOT CMAKE_CUDA_COMPILER)
 *   Fedora: TODO
 *   Homebrew: TODO
   ")
+else()
+  enable_language(CUDA)
 endif()
 
 #############################################################################################
@@ -67,12 +69,12 @@ endif()
 
 ############################################################################################
 # allowing runtime choice between CUDA, CPP and OpenMP backends
-set(files "src/lib.cpp")
-set(files "${files};src/lib_cpp.cpp")
-
-if (OPENMP_CXX_FOUND)
-  set(files "${files};src/lib_omp.cpp")
-endif()
+#set(files "src/lib.cpp")
+#set(files "${files};src/lib_cpp.cpp")
+#
+#if (OPENMP_CXX_FOUND)
+#  set(files "${files};src/lib_omp.cpp")
+#endif()
 
 if (CMAKE_CUDA_COMPILER)
   set(files "${files};src/lib_cuda.cu")
@@ -99,7 +101,7 @@ target_compile_options(cloudphxx_lgrngn PRIVATE -Wextra)
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_11)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:DEBUG>: -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>: -g -Og -DTHRUST_DEBUG>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELWITHDEBINFO>: -Ofast -march=native>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELEASE>:  -DNDEBUG -Ofast -march=native -Winline>)
 #set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
@@ -114,7 +116,7 @@ endif()
 target_compile_options(cloudphxx_lgrngn PUBLIC "${OpenMP_CXX_FLAGS}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
-set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would?
+#set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would?
 
 ############################################################################################
 # figure out CUDA nvcc flags
@@ -164,9 +166,9 @@ if (CMAKE_CUDA_COMPILER)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
     list(SORT msg)
     list(GET msg 0 VIRT)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-architecture=compute_${VIRT}")
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
 
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --gpu-code=")
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-code=>)
     foreach(code ${msg})
       message(STATUS "CUDA capability: ${code}")
       if (code STREQUAL "?")
@@ -177,36 +179,31 @@ if (CMAKE_CUDA_COMPILER)
       if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
         set(arch "20")
       endif()
-      set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}sm_${arch},")
+      target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>:sm_${arch}>)
     endforeach(code)
   else()
     message(STATUS "CUDA capability check didn't find any devices")
   endif()
 
   # enabling c++11
-#  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
   unset(pfx)
   unset(tmpdir)
   unset(msg)
   unset(status)
 
-#  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
+#  target_compile_options(cloudphxx_lgrngn PRIVATE -I${CMAKE_SOURCE_DIR}/include)
   
   # Release with debug info mode cuda flags
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-fopenmp")
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -DTHRUST_DEBUG -lineinfo
-        \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-Og,-rdynamic")  
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo \"-DBOOST_NOINLINE=__attribute__((noinline))\" -Xcompiler=-fopenmp,-g,-Og,-rdynamic>)
   # Release mode cuda flags
   else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -DNDEBUG -O3 -use_fast_math
-        -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp")
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp>)
   endif()
 
-  target_compile_options(cloudphxx_lgrngn PRIVATE ${CUDA_NVCC_FLAGS})
   target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
 endif()
 
