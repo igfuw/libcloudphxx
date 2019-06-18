@@ -1,6 +1,6 @@
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR) # 3.8 for built-in cuda support
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR) # 3.9 for OpenMP targets-based build
 
 project(libcloudph++ LANGUAGES CXX)
 
@@ -8,14 +8,14 @@ project(libcloudph++ LANGUAGES CXX)
 # - CMP0025 - make CMake distinguis between Apple and LLVM clang
 # - CMP0042 - make CMake use RPATHs on OSX
 # - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
-if(CMAKE_VERSION VERSION_GREATER 2.9)
-  cmake_policy(VERSION 3.0)
-endif()
+#if(CMAKE_VERSION VERSION_GREATER 2.9)
+#  cmake_policy(VERSION 3.0)
+#endif()
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 
-set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
+#set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
 
 # using include() istead of find_package(libcloudph++) to use local CMake code
 # and not the system-installed one
@@ -34,6 +34,10 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS_RELEASE "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+#set(CMAKE_CUDA_FLAGS "")
+#set(CMAKE_CUDA_FLAGS_DEBUG "")
+#set(CMAKE_CUDA_FLAGS_RELEASE "")
+#set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
 
 ############################################################################################
 # see if CUDA is available
@@ -51,6 +55,9 @@ if (NOT CMAKE_CUDA_COMPILER)
   ")
 else()
   enable_language(CUDA)
+  set(CMAKE_CUDA_FLAGS_DEBUG "")
+  set(CMAKE_CUDA_FLAGS_RELEASE "")
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
 endif()
 
 #############################################################################################
@@ -69,12 +76,12 @@ endif()
 
 ############################################################################################
 # allowing runtime choice between CUDA, CPP and OpenMP backends
-#set(files "src/lib.cpp")
-#set(files "${files};src/lib_cpp.cpp")
-#
-#if (OPENMP_CXX_FOUND)
-#  set(files "${files};src/lib_omp.cpp")
-#endif()
+set(files "src/lib.cpp")
+set(files "${files};src/lib_cpp.cpp")
+
+if (OPENMP_CXX_FOUND)
+  set(files "${files};src/lib_omp.cpp")
+endif()
 
 if (CMAKE_CUDA_COMPILER)
   set(files "${files};src/lib_cuda.cu")
@@ -94,26 +101,26 @@ target_include_directories(cloudphxx_lgrngn
 )
 
 # enabling additional warnings
-target_compile_options(cloudphxx_lgrngn PRIVATE -Wextra)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -Wextra>)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
 # enabling c++11
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_11)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>: -g -Og -DTHRUST_DEBUG>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELWITHDEBINFO>: -Ofast -march=native>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<CONFIG:RELEASE>:  -DNDEBUG -Ofast -march=native -Winline>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:         -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>: -Ofast -march=native>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:       -DNDEBUG -Ofast -march=native -Winline>)
 #set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
 #set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
 # add dependencies
-if (CMAKE_CUDA_COMPILER)
-  target_link_libraries(cloudphxx_lgrngn PRIVATE ${CUDA_curand_LIBRARY})
-endif()
+#if (CMAKE_CUDA_COMPILER)
+  #target_link_libraries(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_curand_LIBRARY}>)
+#endif()
 
-target_compile_options(cloudphxx_lgrngn PUBLIC "${OpenMP_CXX_FLAGS}")
+#target_link_libraries(cloudphxx_lgrngn PRIVATE OpenMP::OpenMP_CXX)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 #set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would?
@@ -168,7 +175,7 @@ if (CMAKE_CUDA_COMPILER)
     list(GET msg 0 VIRT)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
 
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-code=>)
+    set(GPU_CODE_OPTIONS  --gpu-code=)
     foreach(code ${msg})
       message(STATUS "CUDA capability: ${code}")
       if (code STREQUAL "?")
@@ -179,8 +186,9 @@ if (CMAKE_CUDA_COMPILER)
       if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
         set(arch "20")
       endif()
-      target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>:sm_${arch}>)
+      set(GPU_CODE_OPTIONS ${GPU_CODE_OPTIONS}sm_${arch},)
     endforeach(code)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>:${GPU_CODE_OPTIONS}>)
   else()
     message(STATUS "CUDA capability check didn't find any devices")
   endif()
