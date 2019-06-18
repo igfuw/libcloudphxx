@@ -76,16 +76,21 @@ endif()
 
 ############################################################################################
 # allowing runtime choice between CUDA, CPP and OpenMP backends
-set(files "src/lib.cpp")
+
+set(files "")
+
+if (CMAKE_CUDA_COMPILER)
+  set(files "${files};src/lib_cuda.cu")
+endif()
+
+set(files "${files};src/lib.cpp")
+
 set(files "${files};src/lib_cpp.cpp")
 
 if (OPENMP_CXX_FOUND)
   set(files "${files};src/lib_omp.cpp")
 endif()
 
-if (CMAKE_CUDA_COMPILER)
-  set(files "${files};src/lib_cuda.cu")
-endif()
 
 ############################################################################################
 # create the library target
@@ -116,11 +121,18 @@ target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,
 #set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
 # add dependencies
-#if (CMAKE_CUDA_COMPILER)
-  #target_link_libraries(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_curand_LIBRARY}>)
-#endif()
+message("CUDA curand lib: ${CUDA_curand_LIBRARY}")
+if (CMAKE_CUDA_COMPILER)
+  target_link_libraries(cloudphxx_lgrngn PRIVATE curand)
+endif()
 
-#target_link_libraries(cloudphxx_lgrngn PRIVATE OpenMP::OpenMP_CXX)
+if(OPENMP_CXX_FOUND)
+  # target_link_libraries would be preferable, but it adds -fopenmp to nvcc and that breaks the build
+  #target_link_libraries(cloudphxx_lgrngn PRIVATE OpenMP::OpenMP_CXX>)
+
+  target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
+  target_link_libraries(cloudphxx_lgrngn PRIVATE ${OpenMP_CXX_LIBRARIES})
+endif()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 #set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would?
@@ -201,7 +213,7 @@ if (CMAKE_CUDA_COMPILER)
 
 #  target_compile_options(cloudphxx_lgrngn PRIVATE -I${CMAKE_SOURCE_DIR}/include)
   
-  # Release with debug info mode cuda flags
+  # Release with debug info mode cuda flags, shouldn't cmake push CXX compiler flags as -Xcompiler=... ?
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
   # Debug mode cuda flags
