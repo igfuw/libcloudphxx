@@ -79,16 +79,16 @@ endif()
 
 set(files "")
 
-if (CMAKE_CUDA_COMPILER)
-  set(files "${files};src/lib_cuda.cu")
-endif()
-
 set(files "${files};src/lib.cpp")
 
 set(files "${files};src/lib_cpp.cpp")
 
 if (OPENMP_CXX_FOUND)
   set(files "${files};src/lib_omp.cpp")
+endif()
+
+if (CMAKE_CUDA_COMPILER)
+  set(files "${files};src/lib_cuda.cu")
 endif()
 
 
