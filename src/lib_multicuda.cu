@@ -9,6 +9,7 @@
 #include <thrust/system/cuda/vector.h>
 namespace thrust_device = ::thrust::cuda;
 
+#include "particles.tpp"
 #include "particles_multi_gpu.tpp"
 
 namespace libcloudphxx

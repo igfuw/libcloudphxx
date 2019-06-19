@@ -177,14 +177,15 @@ if (CMAKE_CUDA_COMPILER)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
   separate_arguments(msg)
+  list(REMOVE_ITEM msg "")
   list(LENGTH msg gpu_count)
   if(gpu_count GREATER 1)
     # compile the multi_CUDA backend
+    message(STATUS "Detected more than 1 GPU, the multi_CUDA backend will be built.")
     target_sources(cloudphxx_lgrngn PRIVATE src/lib_multicuda.cu)
     target_compile_definitions(cloudphxx_lgrngn PRIVATE MULTICUDA_FOUND)
   endif()
   list(REMOVE_DUPLICATES msg)
-  list(REMOVE_ITEM msg "")
 
   if(msg)
     # find the lowest compute capability and set it as virtual architecture, see:
