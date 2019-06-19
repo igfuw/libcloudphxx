@@ -177,6 +177,12 @@ if (CMAKE_CUDA_COMPILER)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
   separate_arguments(msg)
+  list(LENGTH msg gpu_count)
+  if(gpu_count GREATER 1)
+    # compile the multi_CUDA backend
+    target_sources(cloudphxx_lgrngn PRIVATE src/lib_multicuda.cu)
+    target_compile_definitions(cloudphxx_lgrngn PRIVATE MULTICUDA_FOUND)
+  endif()
   list(REMOVE_DUPLICATES msg)
   list(REMOVE_ITEM msg "")
 
