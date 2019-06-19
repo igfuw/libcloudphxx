@@ -1,2 +1,3 @@
 add_executable(test_toms748 test_toms748.cpp)
 add_test(test_toms748 test_toms748)
+target_link_libraries(test_toms748 cloudphxx_lgrngn)
