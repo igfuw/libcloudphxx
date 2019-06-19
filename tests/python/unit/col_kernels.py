@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
@@ -44,9 +45,15 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
     # geometric with multiplier
       opts_init.kernel_parameters = np.array([10.])
 
+#  try:
+#    print "trying CUDA"
+#    prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
+#  except:
+  print "KO, trying OpenMP"
   try:
     prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
   except:
+    print "KO, trying serial"
     prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
   print opts_init.turb_coal_switch
