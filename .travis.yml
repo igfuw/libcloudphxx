@@ -92,6 +92,9 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
 
+# add runtime path to clang libomp
+    - if [[ $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH; fi
+
     # locally installed stuff comes first
     - export PATH=/usr/local/bin:$PATH
 
