@@ -41,13 +41,13 @@ matrix:
 addons:
   apt:
     packages:
-#      - g++-5
-#      - gcc-5
+#      - g++-7
+#      - gcc-7
       - clang-4.0
       - boost1.61
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
-#      - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test
 #      - llvm-toolchain-xenial-4.0
 
 
@@ -107,6 +107,10 @@ install:
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
+
+    - if [[ $TEST_SUITE != 'cuda'     ]];  then sudo $apt_get_install gcc-7 g++-7; fi
+    - if [[ $TEST_SUITE != 'cuda'     ]];  then export CC=gcc-7; fi
+    - if [[ $TEST_SUITE != 'cuda'     ]];  then export CXX=g++-7; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
