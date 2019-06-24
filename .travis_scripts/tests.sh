@@ -9,7 +9,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPY
 cmake -DCMAKE_BUILD_TYPE=Debug ../
 VERBOSE=1 make
 ldd bindings/python/libcloudphxx.so
-ldd /home/travis/build/igfuw/libcloudphxx/build/src/libcloudphxx_lgrngn_dbg.so
+ldd /home/travis/build/igfuw/libcloudphxx/build/libcloudphxx_lgrngn_dbg.so
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
