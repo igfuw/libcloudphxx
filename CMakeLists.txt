@@ -130,8 +130,8 @@ if(OPENMP_CXX_FOUND)
   # target_link_libraries would be preferable, but it adds -fopenmp to nvcc and that breaks the build
   #target_link_libraries(cloudphxx_lgrngn PRIVATE OpenMP::OpenMP_CXX>)
 
-  target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
-  target_link_libraries(cloudphxx_lgrngn PRIVATE ${OpenMP_CXX_LIBRARIES})
+  target_compile_options(cloudphxx_lgrngn PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
+  target_link_libraries(cloudphxx_lgrngn PUBLIC ${OpenMP_CXX_LIBRARIES})
 endif()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
