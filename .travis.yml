@@ -114,9 +114,10 @@ install:
 
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda-8.0; fi
+
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda-10.1; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
 
