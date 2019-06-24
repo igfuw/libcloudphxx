@@ -65,9 +65,12 @@ before_install:
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
 # cuda 8 installation from https://github.com/tmcdonell/cuda/
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-10-1_10.1.168-1_amd64.deb; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-10-1_10.1.168-1_amd64.deb; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-10-1_10.1.168-1_amd64.deb; fi
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt install -y --no-install-recommends ./cuda-10-1_10.1.168-1_amd64.deb; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt install -y --no-install-recommends ./cuda-10-1_10.1.168-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
