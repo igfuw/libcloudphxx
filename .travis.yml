@@ -65,8 +65,8 @@ before_install:
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
 # cuda 8 installation from https://github.com/tmcdonell/cuda/
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-10-1_10.1.168-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-10-1_10.1.168-1_amd64.deb; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
@@ -103,7 +103,7 @@ install:
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
-    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-10-1; fi
 
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
