@@ -73,27 +73,27 @@ before_install:
     - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
 
 # first find brew python python-config
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
 
 # find python paths, taken from 
 # https://github.com/breannansmith/scisim/blob/master/.travis.yml
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_INC=`$BREWPYCONFIG --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_LIB=`$BREWPYCONFIG --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_INC=`$BREWPYCONFIG --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_LIB=`$BREWPYCONFIG --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
     
 # also find brew python executable dir and prepend it to PATH
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_EXC=`$BREWPYCONFIG --exec-prefix`/bin; fi
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PATH=$PY_EXC:$PATH; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_EXC=`$BREWPYCONFIG --exec-prefix`/bin; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PATH=$PY_EXC:$PATH; fi
 
 # leaving this for debug purposes, it's not like a few lines matter compared to the usual size of the log
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $BREWPYCONFIG; fi
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
-#    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $BREWPYCONFIG; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
 
 # add runtime path to clang libomp
     - if [[ $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib/:$LD_LIBRARY_PATH; fi
