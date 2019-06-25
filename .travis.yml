@@ -44,9 +44,9 @@ addons:
 #      - g++-7
 #      - gcc-7
       - clang-4.0
-      - libboost
+      - boost1.61
     sources: &sources
-      - sourceline: 'ppa:mhier/libboost-latest'
+      - sourceline: 'ppa:rakhimov/boost'
 #      - ubuntu-toolchain-r-test
 #      - llvm-toolchain-xenial-4.0
 
