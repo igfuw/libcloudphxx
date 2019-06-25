@@ -111,9 +111,9 @@ install:
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
 
-    - if [[ $TEST_SUITE != 'cuda'     ]];  then sudo $apt_get_install gcc-6 g++-6; fi
-    - if [[ $TEST_SUITE != 'cuda'     ]];  then export CC=gcc-6; fi
-    - if [[ $TEST_SUITE != 'cuda'     ]];  then export CXX=g++-6; fi
+    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then sudo $apt_get_install gcc-6 g++-6; fi
+    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CC=gcc-6; fi
+    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CXX=g++-6; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
