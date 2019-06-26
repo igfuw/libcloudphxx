@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 set -ex
-nvcc --version
 # libcloudph++ 
 mkdir build 
 cd build

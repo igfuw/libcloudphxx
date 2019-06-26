@@ -34,10 +34,6 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS_RELEASE "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
-#set(CMAKE_CUDA_FLAGS "")
-#set(CMAKE_CUDA_FLAGS_DEBUG "")
-#set(CMAKE_CUDA_FLAGS_RELEASE "")
-#set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
 
 ############################################################################################
 # see if CUDA is available
@@ -111,14 +107,10 @@ target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -Wext
 
 # enabling c++11
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_11)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # config-specific flags
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:         -g -Og -DTHRUST_DEBUG>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>: -Ofast -march=native>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:       -DNDEBUG -Ofast -march=native -Winline>)
-#set(CMAKE_CXX_FLAGS_DEBUG " -g -Og -DTHRUST_DEBUG")
-#set(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -Ofast -march=native")
-#set(CMAKE_CXX_FLAGS_RELEASE " -DNDEBUG -Ofast -march=native -Winline")
 
 # add dependencies
 message("CUDA curand lib: ${CUDA_curand_LIBRARY}")
@@ -133,9 +125,6 @@ if(OPENMP_CXX_FOUND)
   target_compile_options(cloudphxx_lgrngn PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
   target_link_libraries(cloudphxx_lgrngn PUBLIC ${OpenMP_CXX_LIBRARIES})
 endif()
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-
-#set(CUDA_PROPAGATE_HOST_FLAGS OFF) # -std=c++11 will not work, TODO: actually now it would?
 
 ############################################################################################
 # figure out CUDA nvcc flags
@@ -212,14 +201,11 @@ if (CMAKE_CUDA_COMPILER)
     message(STATUS "CUDA capability check didn't find any devices")
   endif()
 
-  # enabling c++11
   unset(pfx)
   unset(tmpdir)
   unset(msg)
   unset(status)
 
-#  target_compile_options(cloudphxx_lgrngn PRIVATE -I${CMAKE_SOURCE_DIR}/include)
-  
   # Release with debug info mode cuda flags, shouldn't cmake push CXX compiler flags as -Xcompiler=... ?
   if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
@@ -255,9 +241,6 @@ target_include_directories(cloudphxx_lgrngn PRIVATE ${THRUST_INCLUDE_DIR})
 # Boost libraries
 find_package(Boost COMPONENTS) # we only need header-only boost libs
 if(Boost_FOUND)
-#TODO: if boost is not linked in some program, link boost libs to libcloudphxx_lgrngn.so ?
-##  set(libcloudphxx_LIBRARIES "${libcloudphxx_LIBRARIES};${Boost_LIBRARIES}")
-#  set(libcloudphxx_INCLUDE_DIRS "${libcloudphxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
   target_link_libraries(cloudphxx_lgrngn
     PUBLIC 
       Boost::boost
@@ -337,24 +320,14 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
-#include_directories(${libcloudphxx_INCLUDE_DIRS})
-
 enable_testing()
 
-#add_subdirectory(src) 
 add_subdirectory(tests)
 add_subdirectory(include) 
 add_subdirectory(bindings) 
 
 ############################################################################################
 # installation
-#install(
-#  FILES
-#    libcloudph++-config.cmake
-#  DESTINATION
-#    share/libcloudph++
-#)
-
 set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg)
 
 # install files and export targets
