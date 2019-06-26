@@ -26,6 +26,7 @@ cd ..
 # make libcloudph++ in Debug mode
 sudo rm -rf libcloudphxx/build/*
 cd libcloudphxx/build
+if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
 cmake -DCMAKE_BUILD_TYPE=Debug ../
 VERBOSE=1 make
 sudo make install
