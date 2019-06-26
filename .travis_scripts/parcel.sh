@@ -24,6 +24,7 @@ py.test -v unit_test
 cd ..
 
 # make libcloudph++ in Debug mode
+sudo rm -rf libcloudphxx/build/*
 cd libcloudphxx/build
 cmake -DCMAKE_BUILD_TYPE=Debug ../
 VERBOSE=1 make
