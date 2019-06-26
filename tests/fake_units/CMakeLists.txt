@@ -1,2 +1,3 @@
 add_executable(test_fake_units test_fake_units.cpp)
 add_test(test_fake_units test_fake_units)
+target_link_libraries(test_fake_units cloudphxx_lgrngn)

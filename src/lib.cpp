@@ -17,7 +17,7 @@ namespace libcloudphxx
       switch (backend)
       {
 	case multi_CUDA:
-#if defined(CUDA_FOUND) // should be present through CMake's add_definitions(), TODO: some other check in CMake?
+#if defined(MULTICUDA_FOUND) // should be present through CMake's add_definitions(), TODO: some other check in CMake?
 	  return new particles_t<real_t, multi_CUDA>(opts_init);
 #else
           throw std::runtime_error("multi_CUDA backend was not compiled");

@@ -194,7 +194,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::enum_<lgr::backend_t>("backend_t")
       .value("serial", lgr::serial)
       .value("OpenMP", lgr::OpenMP)
-      .value("CUDA",   lgr::CUDA);
+      .value("CUDA",   lgr::CUDA)
+      .value("multi_CUDA",   lgr::multi_CUDA);
     bp::enum_<lgr::kernel_t::kernel_t>("kernel_t") 
       .value("geometric", lgr::kernel_t::geometric)
       .value("golovin", lgr::kernel_t::golovin)

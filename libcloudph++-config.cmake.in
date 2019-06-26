@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+get_filename_component(cloudphxx_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+find_dependency(Boost REQUIRED)
+
+if(NOT TARGET clphxx::cloudphxx_lgrngn)
+    include("${cloudphxx_CMAKE_DIR}/cloudphxx_lgrngn-targets.cmake")
+endif()
