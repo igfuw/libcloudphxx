@@ -97,40 +97,13 @@ namespace libcloudphxx
       }
 
       // for each property... 
-      if (opts_init.nx > 0) detail::copy_prop<real_t>(x.begin(), sorted_id, n_flagged); 
-      if (opts_init.ny > 0) detail::copy_prop<real_t>(y.begin(), sorted_id, n_flagged); 
-      if (opts_init.nz > 0) detail::copy_prop<real_t>(z.begin(), sorted_id, n_flagged); 
-
-      detail::copy_prop<real_t>(rd3.begin(), sorted_id, n_flagged);
-      detail::copy_prop<real_t>(rw2.begin(), sorted_id, n_flagged);
-      detail::copy_prop<real_t>(kpa.begin(), sorted_id, n_flagged);
-      if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
-      {
-        detail::copy_prop<real_t>(sstp_tmp_rv.begin(), sorted_id, n_flagged);
-        detail::copy_prop<real_t>(sstp_tmp_th.begin(), sorted_id, n_flagged);
-        detail::copy_prop<real_t>(sstp_tmp_rh.begin(), sorted_id, n_flagged);
-        if(const_p)
-          detail::copy_prop<real_t>(sstp_tmp_p.begin(), sorted_id, n_flagged);
-      }
+      for(auto vec: distmem_real_vctrs)
+        detail::copy_prop<real_t>(distmem_real_vctrs->begin(), sorted_id, n_flagged); 
 
       // ... chemical properties only if chem enabled
       if (opts_init.chem_switch){
         for (int i = 0; i < chem_all; ++i)
           detail::copy_prop<real_t>(chem_bgn[i], sorted_id, n_flagged);
-      }
-  
-      if(opts_init.turb_adve_switch)
-      {
-        if (opts_init.nx > 0) detail::copy_prop<real_t>(up.begin(), sorted_id, n_flagged); 
-        if (opts_init.ny > 0) detail::copy_prop<real_t>(vp.begin(), sorted_id, n_flagged); 
-        if (opts_init.nz > 0) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
-      }
-
-      if(opts_init.turb_cond_switch)
-      {
-        if(!(opts_init.turb_adve_switch && opts_init.nz > 0)) detail::copy_prop<real_t>(wp.begin(), sorted_id, n_flagged); 
-        detail::copy_prop<real_t>(ssp.begin(), sorted_id, n_flagged); 
-        detail::copy_prop<real_t>(dot_ssp.begin(), sorted_id, n_flagged); 
       }
 
       {

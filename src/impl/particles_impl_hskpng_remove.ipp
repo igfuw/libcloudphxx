@@ -20,41 +20,12 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_remove_n0()
     {
       // TODO: init these vctrs once per run
-      thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt};
-      std::set<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
       std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
       n_t_vctrs.insert(&ijk);
 
       if (opts_init.nx != 0)  n_t_vctrs.insert(&i);
       if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
       if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
-
-      if (opts_init.nx != 0)  real_t_vctrs.insert(&x);
-      if (opts_init.ny != 0)  real_t_vctrs.insert(&y);
-      if (opts_init.nz != 0)  real_t_vctrs.insert(&z);
-
-      if(opts_init.turb_adve_switch)
-      {
-        if (opts_init.nx != 0)  real_t_vctrs.insert(&up);
-        if (opts_init.ny != 0)  real_t_vctrs.insert(&vp);
-        if (opts_init.nz != 0)  real_t_vctrs.insert(&wp);
-      }
-
-      if(opts_init.turb_cond_switch)
-      {
-        real_t_vctrs.insert(&wp);
-        real_t_vctrs.insert(&ssp);
-        real_t_vctrs.insert(&dot_ssp);
-      }
-
-      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
-      {
-        real_t_vctrs.insert(&sstp_tmp_th);
-        real_t_vctrs.insert(&sstp_tmp_rv);
-        real_t_vctrs.insert(&sstp_tmp_rh);
-        if(const_p)
-          real_t_vctrs.insert(&sstp_tmp_p);
-      }
 
       namespace arg = thrust::placeholders;
 
@@ -83,7 +54,7 @@ namespace libcloudphxx
       }
 
       // remove from real_t vectors
-      for(auto vec: real_t_vctrs)
+      for(auto vec: distmem_real_vctrs)
       { 
         thrust::remove_if(
           vec->begin(),
@@ -111,7 +82,6 @@ namespace libcloudphxx
         arg::_1 == 0
       );
       n_part = new_end - n.begin();
-
 
       // resize vectors
       hskpng_resize_npart();
