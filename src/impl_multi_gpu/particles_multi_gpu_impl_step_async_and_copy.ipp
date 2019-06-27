@@ -49,17 +49,13 @@ namespace libcloudphxx
         const thrust_size_t &rgt_count(particles[dev_id]->pimpl->rgt_count);
         auto &n_part(particles[dev_id]->pimpl->n_part);
         auto &n_part_old(particles[dev_id]->pimpl->n_part_old);
- 	const int &distmem_real_vctrs_count(particles[dev_id]->pimpl->distmem_real_vctrs.size());
-        thrust_device::vector<real_t> &sstp_tmp_th(particles[dev_id]->pimpl->sstp_tmp_th);
-        thrust_device::vector<real_t> &sstp_tmp_rh(particles[dev_id]->pimpl->sstp_tmp_rh);
-        thrust_device::vector<real_t> &sstp_tmp_rv(particles[dev_id]->pimpl->sstp_tmp_rv);
-        thrust_device::vector<real_t> &sstp_tmp_p(particles[dev_id]->pimpl->sstp_tmp_p);
+      	const int &distmem_real_vctrs_count(particles[dev_id]->pimpl->distmem_real_vctrs.size());
         thrust_device::vector<real_t> &out_real_bfr(particles[dev_id]->pimpl->out_real_bfr);
         thrust_device::vector<real_t> &in_real_bfr(particles[dev_id]->pimpl->in_real_bfr);
         thrust_device::vector<real_t> &x(particles[dev_id]->pimpl->x);
         thrust_device::vector<n_t> &out_n_bfr(particles[dev_id]->pimpl->out_n_bfr);
         thrust_device::vector<n_t> &in_n_bfr(particles[dev_id]->pimpl->in_n_bfr);
-	std::pair<detail::bcond_t, detail::bcond_t> &bcond(particles[dev_id]->pimpl->bcond);
+        std::pair<detail::bcond_t, detail::bcond_t> &bcond(particles[dev_id]->pimpl->bcond);
 
         // IDs of devices to the left/right, periodic_ext boundary in x
         const int lft_dev = dev_id > 0 ? dev_id - 1 : glob_opts_init.dev_count - 1,

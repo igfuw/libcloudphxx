@@ -23,6 +23,21 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 
       if (opts_init.nz != 0) z.reserve(opts_init.n_sd_max); 
 
+      // using resize instead of reserve is ok, because hskpng_resize is called right after this init
+      if(opts_init.turb_adve_switch)
+      {
+        if (opts_init.nx != 0) up.resize(opts_init.n_sd_max, 0.); // init with no perturbation 
+        if (opts_init.ny != 0) vp.resize(opts_init.n_sd_max, 0.); 
+        if (opts_init.nz != 0) wp.resize(opts_init.n_sd_max, 0.); 
+      }
+
+      if(opts_init.turb_cond_switch)
+      {
+        wp.resize(opts_init.n_sd_max, 0.);
+        ssp.resize(opts_init.n_sd_max, 0.);
+        dot_ssp.resize(opts_init.n_sd_max, 0.);
+      }
+
       vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
 
       sorted_id.reserve(opts_init.n_sd_max);
@@ -40,7 +55,7 @@ namespace libcloudphxx
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
-      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3)
+      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
       {
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
       }
@@ -63,11 +78,14 @@ namespace libcloudphxx
       // overkill?
       if(distmem())
       {
-        in_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
-        out_n_bfr.resize(opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+        const auto no_of_n_vctrs_copied(int(1));
+        const auto no_of_real_vctrs_copied(distmem_real_vctrs.size());
 
-        in_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p
-        out_real_bfr.resize(11 * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+        in_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
+        out_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
+
+        in_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p, etc.
+        out_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
     }
   };

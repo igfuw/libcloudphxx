@@ -69,20 +69,20 @@ namespace libcloudphxx
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
           rw2_old(rw2 * si::square_metres),
-          rhod(    thrust::get<0>(tpl) * si::kilograms / si::cubic_metres),
-          rv(      thrust::get<1>(tpl)),
-          T(       thrust::get<2>(tpl) * si::kelvins),
-          p(       thrust::get<3>(tpl) * si::pascals),
-          RH(      thrust::get<4>(tpl)),
-          eta(     thrust::get<5>(tpl) * si::pascals * si::seconds),
-          rd3(     thrust::get<6>(tpl) * si::cubic_metres),
-          kpa(     thrust::get<7>(tpl)),
-          vt(      thrust::get<8>(tpl) * si::metres_per_second),
+          rhod(    thrust::get<0>(thrust::get<0>(tpl)) * si::kilograms / si::cubic_metres),
+          rv(      thrust::get<1>(thrust::get<0>(tpl))),
+          T(       thrust::get<2>(thrust::get<0>(tpl)) * si::kelvins),
+          eta(     thrust::get<3>(thrust::get<0>(tpl)) * si::pascals * si::seconds),
+          rd3(     thrust::get<4>(thrust::get<0>(tpl)) * si::cubic_metres),
+          kpa(     thrust::get<5>(thrust::get<0>(tpl))),
+          vt(      thrust::get<6>(thrust::get<0>(tpl)) * si::metres_per_second),
+          p(       thrust::get<1>(tpl) * si::pascals),
+          RH(      thrust::get<2>(tpl)),
           RH_max(RH_max)
         {}
 
@@ -100,7 +100,9 @@ namespace libcloudphxx
           using common::mean_free_path::lambda_K;
           using common::ventil::Sh;
           using common::ventil::Nu;
+#if !defined(__NVCC__)
           using std::sqrt;
+#endif
 
           const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres; 
           const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
@@ -152,15 +154,18 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
           using std::max;
           using std::pow;
           using std::abs;
+          using std::isnan;
+          using std::isinf;
 #endif
 
+          auto& tpl_in = thrust::get<0>(tpl);
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
@@ -181,9 +186,9 @@ namespace libcloudphxx
               "rd3: %g  "
               "kpa: %g  "
               "vt: %g\n",
-               drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl),thrust::get<1>(tpl),
-               thrust::get<2>(tpl),thrust::get<3>(tpl),thrust::get<4>(tpl),thrust::get<5>(tpl),
-               thrust::get<6>(tpl),thrust::get<7>(tpl),thrust::get<8>(tpl)
+               drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
+               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
+               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
             );
             assert(0);
           }
@@ -191,7 +196,7 @@ namespace libcloudphxx
 
           if (drw2 == 0) return rw2_old;
 
-          const real_t rd2 = pow(thrust::get<6>(tpl), real_t(2./3));
+          const real_t rd2 = pow(thrust::get<4>(tpl_in), real_t(2./3));
  
           const real_t 
             a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
@@ -220,9 +225,9 @@ namespace libcloudphxx
               "rd3: %g  "
               "kpa: %g  "
               "vt: %g\n",
-               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl),thrust::get<1>(tpl),
-               thrust::get<2>(tpl),thrust::get<3>(tpl),thrust::get<4>(tpl),thrust::get<5>(tpl),
-               thrust::get<6>(tpl),thrust::get<7>(tpl),thrust::get<8>(tpl)
+               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
+               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
+               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
             );
             assert(0);
           }

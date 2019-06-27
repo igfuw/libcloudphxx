@@ -92,7 +92,7 @@ namespace libcloudphxx
           // distributed memory - save ids of particles that need to be copied left/right
           else
           {
-	    namespace arg = thrust::placeholders;
+	          namespace arg = thrust::placeholders;
 
             // save ids of SDs to copy
             lft_count = thrust::copy_if(
@@ -109,8 +109,23 @@ namespace libcloudphxx
               arg::_1 >= opts_init.x1
             ) - rgt_id.begin();
 
-            if(lft_count > in_n_bfr.size() || rgt_count > in_n_bfr.size())
-              throw std::runtime_error(detail::formatter() << "Overflow of the in int buffer, bfr size: " << in_n_bfr.size() << " to be copied left: " << lft_count << " right: " << rgt_count); // TODO: resize buffers?
+            const auto no_of_n_vctrs_copied(int(1));
+            const auto no_of_real_vctrs_copied(distmem_real_vctrs.size());
+
+            if(lft_count*no_of_n_vctrs_copied > in_n_bfr.size() || rgt_count*no_of_n_vctrs_copied  > in_n_bfr.size())
+            {
+              n_t new_size = lft_count > rgt_count ?
+                               1.1 * lft_count : 
+                               1.1 * rgt_count;
+
+              std::cerr << "Overflow of the buffer, bfr size: " << in_n_bfr.size() << " to be copied left: " << lft_count << " right: " << rgt_count << "; resizing to: " << new_size << std::endl;
+
+              in_n_bfr.resize(no_of_n_vctrs_copied * new_size);    
+              out_n_bfr.resize(no_of_n_vctrs_copied * new_size);
+
+              in_real_bfr.resize(no_of_real_vctrs_copied * new_size);
+              out_real_bfr.resize(no_of_real_vctrs_copied * new_size);
+            }
           }
 
           // hardcoded periodic boundary in y! (TODO - as an option)

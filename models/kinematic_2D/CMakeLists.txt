@@ -3,6 +3,7 @@ project(icicle CXX C)
 enable_testing()
 
 # search for a local version of libcloudphxx
+# TODO: do it using the libcloudph++ target? what about proper lib for selected condig type?
 unset(libcloudphxx_LIBRARIES CACHE)
 set(libcloud_postfix "")
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -10,7 +11,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(libcloud_postfix "_dbg")
 endif()
-find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn${libcloud_postfix} ${CMAKE_SOURCE_DIR}/../../build/src NO_DEFAULT_PATH)
+find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn${libcloud_postfix} ${CMAKE_SOURCE_DIR}/../../build NO_DEFAULT_PATH)
 if (libcloudphxx_LIBRARIES)
   message(STATUS "icicle will use libclouphxx++ from current repository")
   include_directories(PUBLIC ${CMAKE_SOURCE_DIR}/../../include)

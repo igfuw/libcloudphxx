@@ -15,6 +15,8 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
+#include <libcloudph++/common/SGS_length_scale.hpp>
+
 #include <map>
 
 
@@ -50,6 +52,7 @@ namespace libcloudphxx
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
       detail::config<real_t> config;
+      as_t::as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -70,14 +73,19 @@ namespace libcloudphxx
 
       // particle attributes
       thrust_device::vector<n_t>
-	n;   // multiplicity
+        n;   // multiplicity
       thrust_device::vector<real_t> 
-	rd3, // dry radii cubed 
-	rw2, // wet radius square
+        rd3, // dry radii cubed 
+        rw2, // wet radius square
         kpa, // kappa
-	x,   // x spatial coordinate (for 1D, 2D and 3D)
-	y,   // y spatial coordinate (for 3D)
-	z,   // z spatial coordinate (for 2D and 3D)
+        x,   // x spatial coordinate (for 1D, 2D and 3D)
+        y,   // y spatial coordinate (for 3D)
+        z,   // z spatial coordinate (for 2D and 3D)
+        up,  // turbulent perturbation of velocity
+        vp,  // turbulent perturbation of velocity
+        wp,  // turbulent perturbation of velocity
+        ssp, // turbulent perturbation of supersaturation
+        dot_ssp, // time derivative of the turbulent perturbation of supersaturation
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
@@ -138,7 +146,10 @@ namespace libcloudphxx
         T,  // temperature [K]
         p,  // pressure [Pa]
         RH, // relative humisity 
-        eta;// dynamic viscosity 
+        eta,// dynamic viscosity 
+        diss_rate; // turbulent kinetic energy dissipation rate
+
+      real_t lambda;
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -198,7 +209,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
-	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+        &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
@@ -270,8 +281,8 @@ namespace libcloudphxx
         selected_before_counting(false),
         should_now_run_cond(false),
         var_rho(false),
-	opts_init(_opts_init),
-	n_dims( // 0, 1, 2 or 3
+        opts_init(_opts_init),
+        n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
           opts_init.nz/m1(opts_init.nz)
@@ -309,6 +320,7 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
+        adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
 
@@ -323,6 +335,29 @@ namespace libcloudphxx
         increase_sstp_coal = new bool();
 #endif
         *increase_sstp_coal = false;
+
+        switch (opts_init.SGS_length_scale)
+        {
+          case SGS_length_scale_t::vertical:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::arithmetic_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::geometric_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          default: assert(false && "unrecognized value of opts_init.SGS_length_scale"); 
+        }
 
         // initialising host temporary arrays
         {
@@ -351,7 +386,7 @@ namespace libcloudphxx
             default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
-	  tmp_host_real_grid.resize(n_grid);
+          tmp_host_real_grid.resize(n_grid);
         }
 
         typedef thrust_device::vector<real_t>* ptr_t;
@@ -364,6 +399,21 @@ namespace libcloudphxx
            distmem_real_vctrs.push_back(&sstp_tmp_th);
            distmem_real_vctrs.push_back(&sstp_tmp_rh);
            // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
+        }
+
+        if(opts_init.turb_adve_switch)
+        {
+          if(opts_init.nx > 0) distmem_real_vctrs.push_back(&up);
+          if(opts_init.ny > 0) distmem_real_vctrs.push_back(&vp);
+          if(opts_init.nz > 0) distmem_real_vctrs.push_back(&wp);
+        }
+        else if(opts_init.turb_cond_switch)
+          if(opts_init.nz > 0) distmem_real_vctrs.push_back(&wp);
+
+        if(opts_init.turb_cond_switch)
+        {
+          if(opts_init.nz > 0) distmem_real_vctrs.push_back(&ssp);
+          if(opts_init.nz > 0) distmem_real_vctrs.push_back(&dot_ssp);
         }
       }
 
@@ -437,6 +487,9 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_tke();
+      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 
@@ -454,13 +507,13 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
         const bool specific = true
       );
 
       void mass_dens_estim(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t, const real_t, const real_t
       );
 
@@ -474,18 +527,21 @@ namespace libcloudphxx
       );
 
       void adve();
+      void turb_adve();
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi();
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max);
-      void cond_sstp(const real_t &dt, const real_t &RH_max);
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      template<class pres_iter, class RH_iter>
+      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
-      void coal(const real_t &dt);
+      void coal(const real_t &dt, const bool &turb_coal);
 
       void chem_vol_ante();
       void chem_flag_ante();
@@ -501,6 +557,7 @@ namespace libcloudphxx
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
+      void sstp_step_ssp(const real_t &dt);
       void sstp_save();
       void sstp_step_chem(const int &step);
       void sstp_save_chem();

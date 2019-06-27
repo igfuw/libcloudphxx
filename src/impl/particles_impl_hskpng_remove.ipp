@@ -6,6 +6,7 @@
   */
 
 #include <thrust/remove.h>
+#include <set>
 
 namespace libcloudphxx
 {
@@ -20,25 +21,39 @@ namespace libcloudphxx
     {
       // TODO: init these vctrs once per run
       thrust_device::vector<real_t> * real_t_vctrs_a[] = {&rd3, &rw2, &kpa, &vt};
-      std::vector<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
-      std::vector<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
-      n_t_vctrs.push_back(&ijk);
+      std::set<thrust_device::vector<real_t>*> real_t_vctrs(&real_t_vctrs_a[0], &real_t_vctrs_a[0]+4);
+      std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
+      n_t_vctrs.insert(&ijk);
 
-      if (opts_init.nx != 0)  n_t_vctrs.push_back(&i);
-      if (opts_init.ny != 0)  n_t_vctrs.push_back(&j);
-      if (opts_init.nz != 0)  n_t_vctrs.push_back(&k);
+      if (opts_init.nx != 0)  n_t_vctrs.insert(&i);
+      if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
+      if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
 
-      if (opts_init.nx != 0)  real_t_vctrs.push_back(&x);
-      if (opts_init.ny != 0)  real_t_vctrs.push_back(&y);
-      if (opts_init.nz != 0)  real_t_vctrs.push_back(&z);
+      if (opts_init.nx != 0)  real_t_vctrs.insert(&x);
+      if (opts_init.ny != 0)  real_t_vctrs.insert(&y);
+      if (opts_init.nz != 0)  real_t_vctrs.insert(&z);
+
+      if(opts_init.turb_adve_switch)
+      {
+        if (opts_init.nx != 0)  real_t_vctrs.insert(&up);
+        if (opts_init.ny != 0)  real_t_vctrs.insert(&vp);
+        if (opts_init.nz != 0)  real_t_vctrs.insert(&wp);
+      }
+
+      if(opts_init.turb_cond_switch)
+      {
+        real_t_vctrs.insert(&wp);
+        real_t_vctrs.insert(&ssp);
+        real_t_vctrs.insert(&dot_ssp);
+      }
 
       if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
       {
-        real_t_vctrs.push_back(&sstp_tmp_th);
-        real_t_vctrs.push_back(&sstp_tmp_rv);
-        real_t_vctrs.push_back(&sstp_tmp_rh);
+        real_t_vctrs.insert(&sstp_tmp_th);
+        real_t_vctrs.insert(&sstp_tmp_rv);
+        real_t_vctrs.insert(&sstp_tmp_rh);
         if(const_p)
-          real_t_vctrs.push_back(&sstp_tmp_p);
+          real_t_vctrs.insert(&sstp_tmp_p);
       }
 
       namespace arg = thrust::placeholders;

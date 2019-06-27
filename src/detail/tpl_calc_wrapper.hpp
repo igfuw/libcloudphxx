@@ -1,6 +1,8 @@
 #pragma once
 #include <thrust/tuple.h>
 
+// TODO: enums used to get from these tuples are defined separately in at least two other places, define them once here
+
 namespace libcloudphxx
 {
   namespace lgrngn
@@ -21,7 +23,8 @@ namespace libcloudphxx
 
         typedef thrust::tuple<
           real_t,                       // rhod
-          real_t                        // eta
+          real_t,                       // eta
+          real_t                        // tke dissipation rate
         > tpl_ro_calc_t;
 
         tpl_rw_t tpl_rw;

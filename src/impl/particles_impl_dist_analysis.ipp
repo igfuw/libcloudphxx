@@ -55,6 +55,10 @@ namespace libcloudphxx
         else if (n_max == 0) rd_max /= 1.01;
         else found_optimal_range = true;
       }
+#if !defined(__NVCC__)
+      using std::max;
+#endif
+      log_rd_min = max(log_rd_min, real_t(log(opts_init.rd_min))); // user-defined lower limit for rd
     };
 
     template <typename real_t, backend_t device>
@@ -89,6 +93,10 @@ namespace libcloudphxx
           detail::eval_and_add<real_t>(n_of_lnrd_stp, -init_dist_bound_value)(real_t(log(config.rd_max_init))),
           config.eps_tolerance, n_iter
         );
+#if !defined(__NVCC__)
+      using std::max;
+#endif
+      log_rd_min = max(log_rd_min, real_t(log(opts_init.rd_min))); // user-defined lower limit for rd
     }
   };
 };
