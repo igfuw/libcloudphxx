@@ -234,7 +234,7 @@ if (CMAKE_CUDA_COMPILER)
   endif()
 
   if(USE_MPI)
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler -DUSE_MPI)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler -DUSE_MPI>)
   endif()
 
   target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
