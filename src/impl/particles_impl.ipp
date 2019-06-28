@@ -18,6 +18,7 @@
 #include <libcloudph++/common/SGS_length_scale.hpp>
 
 #include <map>
+#include <set>
 
 
 namespace libcloudphxx
@@ -388,15 +389,13 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
           tmp_host_real_grid.resize(n_grid);
         }
-      }
 
-      // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
-      // TODO: add to that list vectors of other types (e.g integer pimpl->n)
-      // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
-      {
+        // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
+        // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
         ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
-        distmem_real_vctrs = std::vector<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+        distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
 
         if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
         if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);

@@ -22,10 +22,14 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unpack_real(const int &n_copied)
     {
-      for(int i = 0; i < distmem_real_vctrs.size(); ++i)
+      auto it = distmem_real_vctrs.begin();
+
+      while (it != distmem_real_vctrs.end())
       {
-        distmem_real_vctrs[i]->resize(n_part);
-        thrust::copy( in_real_bfr.begin() + i * n_copied, in_real_bfr.begin() + (i+1) * n_copied, distmem_real_vctrs[i]->begin() + n_part_old);
+        (*it)->resize(n_part);
+        auto distance = std::distance(distmem_real_vctrs.begin(), it);
+        thrust::copy( in_real_bfr.begin() + distance * n_copied, in_real_bfr.begin() + (distance+1) * n_copied, (*it)->begin() + n_part_old);
+        it++;
       }
     }
 

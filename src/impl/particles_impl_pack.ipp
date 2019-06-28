@@ -57,12 +57,18 @@ namespace libcloudphxx
     {
       assert(out_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
       assert(in_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
-      for(int i = 0; i < distmem_real_vctrs.size(); ++i)
+
+      auto it = distmem_real_vctrs.begin();
+
+      while (it != distmem_real_vctrs.end())
+      {
         thrust::copy(
-          thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), lft_id.begin()),
-          thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), lft_id.begin()) + lft_count,
-          out_real_bfr.begin() + i * lft_count
+          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()),
+          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()) + lft_count,
+          out_real_bfr.begin() + std::distance(distmem_real_vctrs.begin(), it) * lft_count
         );
+        it++;
+      }
     }
 
     template <typename real_t, backend_t device>
@@ -70,12 +76,18 @@ namespace libcloudphxx
     {
       assert(out_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
       assert(in_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
-      for(int i = 0; i < distmem_real_vctrs.size(); ++i)
+
+      auto it = distmem_real_vctrs.begin();
+
+      while (it != distmem_real_vctrs.end())
+      {
         thrust::copy(
-          thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), rgt_id.begin()),
-          thrust::make_permutation_iterator(distmem_real_vctrs[i]->begin(), rgt_id.begin()) + rgt_count,
-          out_real_bfr.begin() + i * rgt_count
+          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()),
+          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()) + rgt_count,
+          out_real_bfr.begin() + std::distance(distmem_real_vctrs.begin(), it) * rgt_count
         );
+        it++;
+      }
     }
 
     template <typename real_t, backend_t device>

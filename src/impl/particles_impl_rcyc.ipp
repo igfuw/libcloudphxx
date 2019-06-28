@@ -98,7 +98,7 @@ namespace libcloudphxx
 
       // for each property... 
       for(auto vec: distmem_real_vctrs)
-        detail::copy_prop<real_t>(distmem_real_vctrs->begin(), sorted_id, n_flagged); 
+        detail::copy_prop<real_t>(vec->begin(), sorted_id, n_flagged); 
 
       // ... chemical properties only if chem enabled
       if (opts_init.chem_switch){
