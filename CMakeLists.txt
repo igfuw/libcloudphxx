@@ -61,9 +61,6 @@ endif()
 find_package(OpenMP)
 if(OPENMP_CXX_FOUND)
   message(STATUS " OpenMP found")
-  message("OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES}")
-  message("OpenMP_CXX_LIBRARY ${OpenMP_CXX_LIBRARY}")
-  message("OpenMP_CXX_LIBRARIES ${OpenMP_CXX_LIBRARIES}")
 else()
   message(STATUS "CMAKE cant find OpenMP (known issue for AppleClang on OSX)")
   # maybe some hints are here: https://github.com/src-d/kmcuda/issues/6
@@ -113,7 +110,6 @@ target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:       -DNDEBUG -Ofast -march=native -Winline>)
 
 # add dependencies
-message("CUDA curand lib: ${CUDA_curand_LIBRARY}")
 if (CMAKE_CUDA_COMPILER)
   target_link_libraries(cloudphxx_lgrngn PRIVATE curand)
 endif()
