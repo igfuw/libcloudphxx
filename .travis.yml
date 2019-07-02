@@ -6,7 +6,7 @@ dist: xenial
 sudo: required
 
 os: 
-#    - linux
+    - linux
     - osx
 compiler:
     - gcc
@@ -156,12 +156,8 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install --only-binary=numpy,scipy numpy scipy --ignore-installed six; fi
 
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gpg2; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then \curl -sSL https://get.rvm.io | bash -s -- --branch stable; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm reload; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB; fi
-    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm get stable; fi
 
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/include/* /usr/local/include/; fi
