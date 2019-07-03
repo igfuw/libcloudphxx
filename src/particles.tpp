@@ -24,6 +24,7 @@
 #include "detail/kernels.hpp"
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
+#include "detail/ran_with_mpi.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"

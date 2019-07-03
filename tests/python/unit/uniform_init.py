@@ -1,10 +1,10 @@
 #test if after initialization we have approximately the same water content in each cell
 
 import sys
-try:
-  import boost.mpi
-except:
-  pass
+#try:
+#  import boost.mpi
+#except:
+#  pass
 
 sys.path.insert(0, "../../bindings/python/")
 
