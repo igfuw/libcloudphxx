@@ -33,7 +33,7 @@ namespace libcloudphxx
 
           if(!MPI_COMM_LIBCLOUD_INITIALIZED)
           {
-            MPI_Comm_dup(MPI_COMM_WORLD, &MPI_COMM_LIBCLOUD);
+            MPI_CHECK(MPI_Comm_dup(MPI_COMM_WORLD, &MPI_COMM_LIBCLOUD));
             MPI_COMM_LIBCLOUD_INITIALIZED = true;
           }
 
