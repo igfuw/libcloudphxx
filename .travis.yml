@@ -119,6 +119,8 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
+    - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
+
     # redefine CXX to the actual version used
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
