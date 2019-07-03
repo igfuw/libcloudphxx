@@ -7,7 +7,7 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 
 # get libclang-dev for headers
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then sudo $apt_get_install libclang-dev; fi
-if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXXFLAGS="-nostdinc++ ${CXXFLAGS}"; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXXFLAGS="-nostdinc++ ${CXXFLAGS}"; fi
 
 # redefine CXX to the actual version used
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++; fi
@@ -24,7 +24,7 @@ if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/setup_local_
     # put /usr/bin first to use clang++-3.5 instead of the default 3.4
     #if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export PATH=/usr/bin:$PATH; fi
 
-if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXXFLAGS="-DBOOST_HAS_INT128=1 ${CXXFLAGS}"; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXXFLAGS="-DBOOST_HAS_INT128=1 ${CXXFLAGS}"; fi
 
 # cmake 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
