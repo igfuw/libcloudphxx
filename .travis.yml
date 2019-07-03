@@ -1,6 +1,10 @@
 #TODO: container based build
 #      getting g++-4.9 in container build: http://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler/32127147#32127147
 
+stages:
+  - precache
+  - test
+
 language: cpp
 dist: xenial
 sudo: required
@@ -20,6 +24,13 @@ env:
     - TEST_SUITE=UWLCM_MT
     - TEST_SUITE=UWLCM_unit_iles
     - TEST_SUITE=UWLCM_unit_sgs
+    - TEST_SUITE=MPI_tests
+
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+
 matrix:
     exclude:
         - os: osx
@@ -27,6 +38,9 @@ matrix:
 
         - os: osx
           env: TEST_SUITE=KidA
+
+        - os: osx
+          env: TEST_SUITE=MPI_tests
 
         - compiler: clang
           env: TEST_SUITE=cuda
@@ -181,3 +195,25 @@ script:
     - if [[ $TEST_SUITE == 'UWLCM_unit_sgs' ]]; then . ./.travis_scripts/UWLCM.sh unit_sgs; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
+    # unit tests and drops.py with MPI (drop drops here?)
+    - if [[ $TEST_SUITE == 'MPI_tests' ]]; then . ./.travis_scripts/tests.sh; fi
+
+
+# YAML alias for the options common to precache jobs
+job_info: &precache_default
+  stage: precache
+  os: linux
+  dist: xenial
+  language: cpp
+  install: 
+    - . ./.travis_scripts/install_mpi_dependencies.sh
+  script: echo "Preparing cache finished"
+
+jobs:
+  include:
+    - <<: *precache_default
+      env: TEST_SUITE=MPI_tests
+      compiler: gcc
+    - <<: *precache_default
+      env: TEST_SUITE=MPI_tests
+      compiler: clang
