@@ -6,12 +6,12 @@ set -e
 DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 
 # get libclang-dev for headers
-if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then sudo $apt_get_install libclang-5.0-dev; fi
+if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then sudo $apt_get_install libclang-dev; fi
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXXFLAGS="-nostdinc++ ${CXXFLAGS}"; fi
 
 # redefine CXX to the actual version used
-if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-5.0; fi
-if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-6; fi
+if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++; fi
+if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++; fi
 # downloads and setups local clang on osx
 if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/setup_local_clang.sh; fi
 
@@ -36,8 +36,8 @@ if [[ -z "$(ls -A ${DEPS_DIR}/mvapich2-2.3b)" ]]; then
   wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3b.tar.gz;
   tar xf mvapich2-2.3b.tar.gz;
   cd mvapich2-2.3b;
-  if [[ $COMPILER == 'g++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=gcc-6 CXX=g++-6 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
-  if [[ $COMPILER == 'clang++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=clang-5.0 CXX=clang++-5.0 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
+  if [[ $COMPILER == 'g++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=gcc CXX=g++ --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
+  if [[ $COMPILER == 'clang++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=clang CXX=clang++ --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
   make -j4;  
   make install;
   cd ..;
