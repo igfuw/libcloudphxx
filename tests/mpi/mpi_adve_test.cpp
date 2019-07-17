@@ -166,96 +166,93 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
   opts.coal = 1;
 //  opts.chem = 0;
 
-
-  prtcls->diag_all();
-  prtcls->diag_sd_conc();
-  double *out = prtcls->outbuf();
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  
-  for(int i=0;i<70;++i)
-    two_step(prtcls,th,rhod,rv,Cx, ndims==2 ? arrinfo_t<double>() : Cy, Cz, opts);
-
-  prtcls->diag_all();
-  prtcls->diag_sd_conc();
-  out = prtcls->outbuf();
+  double *out;
 
   int n_cell = opts_init.nx * m1(opts_init.ny) * opts_init.nz;
   int n_cell_tot = nx_total * m1(opts_init.ny) * opts_init.nz;
-
-  // sequential output
-  /*
-  for(int i = 0; i < size; ++i)
-  {
-    if(i == rank)
-    {
-      printf("---sd_conc po coal---\n");
-      printf("%d:",rank);
-      for(int j = 0; j < n_cell; ++j)
-        printf(" %lf", out[j]);
-      printf("\n");
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-  }
-  */
-
-  std::vector<double> sd_conc_global_post_coal(nx_total * opts_init.nz * m1(opts_init.ny));
-  std::vector<double> sd_conc_global_post_adve(nx_total * opts_init.nz * m1(opts_init.ny));
   
   std::vector<int> recvcount(size), displs(size);
-
   std::iota(recvcount.begin(), recvcount.end(), nx_min); 
   std::transform(recvcount.begin(), recvcount.end(), recvcount.begin(), [opts_init](const double& c){return c*opts_init.nz * m1(opts_init.ny);});
-  //std::fill(recvcount.begin(), recvcount.end(), nx_min); 
-
   std::partial_sum(recvcount.begin(), recvcount.end()-1, displs.begin()+1);
   displs[0] = 0;
-  MPI_Gatherv(out, opts_init.nx * opts_init.nz * m1(opts_init.ny), MPI_DOUBLE, sd_conc_global_post_coal.data(), recvcount.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
+  MPI_Barrier(MPI_COMM_WORLD);
 
+  // output variables
+  std::map<std::string, std::vector<double>> global_out_post_coal,
+                                             global_out_post_adve;
+
+  std::vector<std::string> out_names = {"sd_conc", "rd", "rw", "kpa"};
+
+  for(std::string name: out_names)
+  {
+    global_out_post_coal[name] = std::vector<double>(nx_total * opts_init.nz * m1(opts_init.ny));
+    global_out_post_adve[name] = std::vector<double>(nx_total * opts_init.nz * m1(opts_init.ny));
+  }
+  
+  // run the simulation 
+
+  // coalescence time steps
+  for(int i=0;i<70;++i)
+    two_step(prtcls,th,rhod,rv,Cx, ndims==2 ? arrinfo_t<double>() : Cy, Cz, opts);
+
+  // diagnostics
+  for(std::string name: out_names)
+  {
+    prtcls->diag_all();
+    if(name == "sd_conc")
+      prtcls->diag_sd_conc();
+    else if(name == "rd")
+      prtcls->diag_dry_mom(1);
+    else if(name == "rw")
+      prtcls->diag_wet_mom(1);
+    else if(name == "kpa")
+      prtcls->diag_kappa_mom(1);
+    out = prtcls->outbuf();
+    MPI_Gatherv(out, opts_init.nx * opts_init.nz * m1(opts_init.ny), MPI_DOUBLE, global_out_post_coal[name].data(), recvcount.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  }
+
+  // advection time steps
   opts.coal = 0;
   opts.adve = 1;
 
   for(int i=0; i<nx_total; ++i)
     two_step(prtcls,th,rhod,rv,Cx, ndims==2 ? arrinfo_t<double>() : Cy, Cz, opts);
 
-  prtcls->diag_all();
-  prtcls->diag_sd_conc();
-  out = prtcls->outbuf();
-
-  // sequential output
-  /*
-  for(int i = 0; i < size; ++i)
+  // diagnostics
+  for(std::string name: out_names)
   {
-    if(i == rank)
+    prtcls->diag_all();
+    if(name == "sd_conc")
+      prtcls->diag_sd_conc();
+    else if(name == "rd")
+      prtcls->diag_dry_mom(1);
+    else if(name == "rw")
+      prtcls->diag_wet_mom(1);
+    else if(name == "kpa")
+      prtcls->diag_kappa_mom(1);
+    out = prtcls->outbuf();
+    MPI_Gatherv(out, opts_init.nx * opts_init.nz * m1(opts_init.ny), MPI_DOUBLE, global_out_post_adve[name].data(), recvcount.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  }
+
+  // test if all variables are the same after advection
+  for(std::string name: out_names)
+    if(rank==0)
     {
-      printf("---sd_conc po adve---\n");
-      printf("%d:",rank);
-      for(int j = 0; j < n_cell; ++j)
-        printf(" %lf", out[j]);
-      printf("\n");
+      std::cerr << "global_out_post_coal[" << name <<"]: { ";
+      for(auto val: global_out_post_coal[name])
+        std::cerr << val << ", ";
+      std::cerr << "}" << std::endl;
+
+      std::cerr << "global_out_post_adve[" << name << "]: { ";
+      for(auto val: global_out_post_adve[name])
+        std::cerr << val << ", ";
+      std::cerr << "}" << std::endl;
+
+      if(global_out_post_coal[name] != global_out_post_adve[name])
+        throw std::runtime_error("error in advection\n");
     }
-    MPI_Barrier(MPI_COMM_WORLD);
-  }
-  */
-
-  MPI_Gatherv(out, opts_init.nx * opts_init.nz * m1(opts_init.ny), MPI_DOUBLE, sd_conc_global_post_adve.data(), recvcount.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-  if(rank==0)
-  {
-    std::cerr << "sd_conc_global_post_coal: { ";
-    for(auto val: sd_conc_global_post_coal)
-      std::cerr << val << ", ";
-    std::cerr << "}" << std::endl;
-
-    std::cerr << "sd_conc_global_post_adve: { ";
-    for(auto val: sd_conc_global_post_adve)
-      std::cerr << val << ", ";
-    std::cerr << "}" << std::endl;
-
-    if(sd_conc_global_post_coal != sd_conc_global_post_adve)
-      throw std::runtime_error("error in advection\n");
-  }
 }
 
 int main(int argc, char *argv[]){
