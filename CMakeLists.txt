@@ -342,12 +342,12 @@ configure_package_config_file(
   libcloudph++-config.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/libcloudph++-config.cmake"
   INSTALL_DESTINATION 
-    lib/cmake/libcloudph++
+    share/libcloudph++
 )
 install(
   FILES
     "${CMAKE_CURRENT_BINARY_DIR}/libcloudph++-config.cmake"
   DESTINATION
-    lib/cmake/libcloudph++
+    share/libcloudph++
 )
 ############################################################################################
