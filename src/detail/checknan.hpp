@@ -1,12 +1,19 @@
 #pragma once
-
-// functor for testing nan/inf values
-struct isnaninf { 
-  template<class real_t>
-  BOOST_GPU_ENABLED
-  bool operator()(const real_t a) const {
-    return isnan(a) || isinf(a);
-  }
+namespace
+{
+  #if !defined(__NVCC__)
+    using std::isnan;
+    using std::isinf;
+  #endif
+  
+  // functor for testing nan/inf values
+  struct isnaninf { 
+    template<class real_t>
+    BOOST_GPU_ENABLED
+    bool operator()(const real_t a) const {
+      return isnan(a) || isinf(a);
+    }
+  };
 };
 
 #ifdef NDEBUG

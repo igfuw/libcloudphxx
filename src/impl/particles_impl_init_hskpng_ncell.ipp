@@ -22,6 +22,12 @@ namespace libcloudphxx
       count_mom.resize(n_cell);
       count_n = 0;
 
+      // initialising device temporary arrays
+      tmp_device_real_cell.resize(n_cell);
+      tmp_device_real_cell1.resize(n_cell);
+      tmp_device_size_cell.resize(n_cell);
+      tmp_host_size_cell.resize(n_cell);
+      tmp_host_real_cell.resize(n_cell);
       if(opts_init.sstp_cond > 1 && !opts_init.exact_sstp_cond)
       {
         sstp_tmp_rv.resize(n_cell);

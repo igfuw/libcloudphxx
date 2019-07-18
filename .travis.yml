@@ -1,8 +1,12 @@
 #TODO: container based build
 #      getting g++-4.9 in container build: http://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler/32127147#32127147
 
+stages:
+  - precache
+  - test
+
 language: cpp
-dist: trusty
+dist: xenial
 sudo: required
 
 os: 
@@ -16,31 +20,57 @@ env:
     - TEST_SUITE=tests
     - TEST_SUITE=parcel
     - TEST_SUITE=icicle
-    - TEST_SUITE=UWLCM
+    - TEST_SUITE=KidA
+    - TEST_SUITE=UWLCM_MT
+    - TEST_SUITE=UWLCM_unit_iles
+    - TEST_SUITE=UWLCM_unit_sgs
+    - TEST_SUITE=MPI_tests
+#TODO: MPI icicle test once libmpdata++ has mpi
+#TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
+
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+
 matrix:
     exclude:
         - os: osx
           compiler: gcc
 
+        - os: osx
+          env: TEST_SUITE=KidA
+
+        - os: osx
+          env: TEST_SUITE=MPI_tests
+
         - compiler: clang
           env: TEST_SUITE=cuda
 
+        # UWLCM is not tested on clang yet
         - compiler: clang
-          env: TEST_SUITE=UWLCM # UWLCM is not tested on clang yet
+          env: TEST_SUITE=UWLCM_MT
+        - compiler: clang
+          env: TEST_SUITE=UWLCM_unit_iles
+        - compiler: clang
+          env: TEST_SUITE=UWLCM_unit_sgs
 addons:
   apt:
     packages:
-      - g++-5
-      - gcc-5
+#      - g++-7
+#      - gcc-7
       - clang-4.0
       - boost1.61
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-4.0
+#      - ubuntu-toolchain-r-test
+#      - llvm-toolchain-xenial-4.0
 
 
 before_install:
+# if added in cuda, it upgrades to gcc-5.5, which is not supported by cuda 10-1
+#    - if [[ $TEST_SUITE != 'cuda'     ]];  then sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"; fi
+
     # define a compiler variable for use in if statements
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export COMPILER=g++; fi
@@ -49,12 +79,17 @@ before_install:
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
-# cuda 8 installation from https://github.com/tmcdonell/cuda/
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
-    - if [[ $TEST_SUITE == 'cuda'     ]];  then  sudo dpkg -i cuda-repo-ubuntu1404_8.0.61-1_amd64.deb; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
+# cuda 10 installation, requires Boost >= 1.65.1
+#    - if [[ $TEST_SUITE == 'cuda'     ]];  then wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
+#    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub; fi
+# cuda 8 installation
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
@@ -79,24 +114,37 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
     - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
 
+# add runtime path to clang libomp
+    - if [[ $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib/:$LD_LIBRARY_PATH; fi
+
     # locally installed stuff comes first
     - export PATH=/usr/local/bin:$PATH
 
 install:
+    - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
+
     # redefine CXX to the actual version used
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
 # the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
+
+#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then sudo $apt_get_install gcc-6 g++-6; fi
+#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CC=gcc-6; fi
+#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CXX=g++-6; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
+
 #TODO: install only required parts of the toolkit to save time
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda-8.0; fi
+
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
+
+    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
 
     # recent boost is installed using addons functionality
 
@@ -107,6 +155,7 @@ install:
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
+    - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
 
 # get latest FindBoost.cmake
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
@@ -145,4 +194,30 @@ script:
     # icicle
     - if [[ $TEST_SUITE == 'icicle' ]]; then . ./.travis_scripts/icicle.sh; fi
     # UWLCM
-    - if [[ $TEST_SUITE == 'UWLCM' ]]; then . ./.travis_scripts/UWLCM.sh; fi
+    - if [[ $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/UWLCM.sh moist_thermal; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_iles' ]]; then . ./.travis_scripts/UWLCM.sh unit_iles; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_sgs' ]]; then . ./.travis_scripts/UWLCM.sh unit_sgs; fi
+    # KiD-A 1D
+    - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
+    # unit tests and drops.py with MPI (drop drops here?)
+    - if [[ $TEST_SUITE == 'MPI_tests' ]]; then . ./.travis_scripts/tests.sh; fi
+
+
+# YAML alias for the options common to precache jobs
+job_info: &precache_default
+  stage: precache
+  os: linux
+  dist: xenial
+  language: cpp
+  install: 
+    - . ./.travis_scripts/install_mpi_dependencies.sh
+  script: echo "Preparing cache finished"
+
+jobs:
+  include:
+    - <<: *precache_default
+      env: TEST_SUITE=MPI_tests
+      compiler: gcc
+    - <<: *precache_default
+      env: TEST_SUITE=MPI_tests
+      compiler: clang
