@@ -2,10 +2,10 @@
 # by comparing mass density function with results of EFM modeling
 
 import sys
-try:
-  import boost.mpi
-except:
-  pass
+#try:
+#  import boost.mpi
+#except:
+#  pass
 
 sys.path.insert(0, "../../bindings/python/")
 
