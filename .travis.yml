@@ -25,6 +25,8 @@ env:
     - TEST_SUITE=UWLCM_unit_iles
     - TEST_SUITE=UWLCM_unit_sgs
     - TEST_SUITE=MPI_tests
+#TODO: MPI icicle test once libmpdata++ has mpi
+#TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
 
 
 cache:
