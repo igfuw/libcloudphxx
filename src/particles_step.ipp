@@ -85,9 +85,14 @@ namespace libcloudphxx
         using std::max;
 #endif
         // TODO: copy-pasted from init
+        /*
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
+        */
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
       }
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
@@ -602,17 +607,18 @@ namespace libcloudphxx
       }
 
       // boundary condition + accumulated rainfall to be returned
-      // multi_GPU version invalidates i and k;
-      // this has to be done last since i and k will be used by multi_gpu copy to other devices
-      // TODO: instead of using i and k define new vectors ?
-      // TODO: do this only if we advect/sediment?
+      // distmem version overwrites i and tmp_device_size_part
+      // and they both need to be unchanged untill distmem copies
       pimpl->bcnd();
+      
+      // copy advected SDs using asynchronous MPI;
+      if (opts.adve)
+        pimpl->mpi_exchange();
 
-      // some stuff to be done at the end of the step.
-      // if using more than 1 GPU
-      // has to be done after copy 
-      if (pimpl->opts_init.dev_count < 2)
-        pimpl->step_finalize(opts);
+      // stuff has to be done after distmem copy 
+      // if it is a spawn of multi_CUDA, multi_CUDA will handle finalize
+      if(!pimpl->opts_init.dev_count)
+        pimpl->post_copy(opts);
 
       pimpl->selected_before_counting = false;
     }

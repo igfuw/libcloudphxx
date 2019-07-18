@@ -47,8 +47,8 @@ def test(turb_cond):
   opts_init.z1 = opts_init.nz * opts_init.dz
   
   rhod =   1. * ones((opts_init.nx, opts_init.nz))
-  Cx =   1. * ones((opts_init.nx+1, opts_init.nz))
-  Cz =   0. * ones((opts_init.nx, opts_init.nz+1))
+  Cx =   1. * ones((opts_init.nx+1+4, opts_init.nz))
+  Cz =   0. * ones((opts_init.nx+4, opts_init.nz+1))
   eps =   1e-4 * ones((opts_init.nx, opts_init.nz))
   
   for sstp_cond in [1,2,5]:

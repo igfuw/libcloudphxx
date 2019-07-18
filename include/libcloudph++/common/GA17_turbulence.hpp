@@ -5,7 +5,7 @@ namespace libcloudphxx
   namespace common
   {
     // Grabowski and Abade 2017
-    namespace turbulence
+    namespace GA17_turbulence
     {
       libcloudphxx_const_derived(si::dimensionless, C_E, real_t(0.845));
       libcloudphxx_const_derived(si::dimensionless, C_tau, real_t(1.5));
@@ -54,29 +54,6 @@ namespace libcloudphxx
         si::dimensionless, 
         si::area
       >::type one_over_area;
-
-      template <typename real_t>
-      quantity<si::length, real_t> length_scale(
-        quantity<si::length, real_t> dx
-      )
-      { return quantity<si::length, real_t>(dx);}
-
-      template <typename real_t>
-      quantity<si::length, real_t> length_scale(
-        quantity<si::length, real_t> dx,
-        quantity<si::length, real_t> dz
-      )
-      //{ return quantity<si::length, real_t>(sqrt(dx*dz));}
-      { return quantity<si::length, real_t>(dz);}
-
-      template <typename real_t>
-      quantity<si::length, real_t> length_scale(
-        quantity<si::length, real_t> dx,
-        quantity<si::length, real_t> dy,
-        quantity<si::length, real_t> dz
-      )
-      //{ return quantity<si::length, real_t>(pow((dx/si::metres)*(dy/si::metres)*(dz/si::metres), real_t(1./3.)) * si::metres);}
-      { return quantity<si::length, real_t>(dz);}
 
       template <typename real_t>
       BOOST_GPU_ENABLED

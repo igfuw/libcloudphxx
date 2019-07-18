@@ -1,2 +1,3 @@
 add_executable(test_common_pvs test_common_pvs.cpp)
 add_test(test_common_pvs test_common_pvs)
+target_link_libraries(test_common_pvs cloudphxx_lgrngn)

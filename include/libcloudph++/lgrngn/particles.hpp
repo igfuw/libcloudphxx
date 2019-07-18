@@ -207,7 +207,7 @@ namespace libcloudphxx
       std::unique_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot = 0); // n_x_bfr should have default=0, but python bindings fail if more than one default value...
+      particles_t(opts_init_t<real_t> opts_init, int n_x_tot = 0); // NOTE: python bindings fail if more than one default value...
 
       // declare destructor to delay it's definition until impl is defined
       ~particles_t();
@@ -307,7 +307,7 @@ namespace libcloudphxx
       std::unique_ptr<impl> pimpl;
 
       // constructors
-      particles_t(const opts_init_t<real_t> &opts_init);
+      particles_t(opts_init_t<real_t> opts_init);
 
       // dtor
       ~particles_t();

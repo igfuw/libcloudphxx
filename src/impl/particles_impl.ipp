@@ -9,14 +9,17 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
+#include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
-#include <libcloudph++/common/turbulence.hpp>
+#include <libcloudph++/common/SGS_length_scale.hpp>
 
 #include <map>
+#include <set>
+
 
 namespace libcloudphxx
 {
@@ -99,9 +102,6 @@ namespace libcloudphxx
         delta_acnv32; // change of n * r_w^3 due to autoconversion
 
 
-      const int no_of_n_vctrs_copied = 1;
-      const int no_of_real_vctrs_copied = 15;
-
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
              log_rd_max, // logarithm of the upper bound of the distr
@@ -169,7 +169,7 @@ namespace libcloudphxx
         acnv32,
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      real_t L; // extent of a cell, needed in tubulence, TODO: should be a ncell array, cause some cells are smaller
+      real_t lambda;
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -229,7 +229,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
-	&u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+        &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
@@ -240,8 +240,17 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // number of particles to be copied left/right in multi-GPU setup
-      thrust_size_t lft_count, rgt_count;
+      // -- distributed memory stuff --
+      // TODO: move to a separate struct?
+
+      const int mpi_rank,
+                mpi_size;
+
+      // boundary type (shared mem/distmem)
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+
+      // number of particles to be copied left/right in distmem setup
+      unsigned int lft_count, rgt_count;
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
@@ -256,10 +265,25 @@ namespace libcloudphxx
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
 
 
+      // x0 of the process to the right
+      real_t rgt_x0;
+
+      // x1 of the process to the left
+      real_t lft_x1;
+
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
+
+      // ids of sds to be copied with distmem
+      thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      // real_t vectors copied in distributed memory case
+      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
+
+
+      // methods
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -271,14 +295,14 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const int &n_x_tot) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const int &n_x_tot) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
         should_now_run_cond(false),
         var_rho(false),
-	opts_init(_opts_init),
-	n_dims( // 0, 1, 2 or 3
+        opts_init(_opts_init),
+        n_dims( // 0, 1, 2 or 3
           opts_init.nx/m1(opts_init.nx) + 
           opts_init.ny/m1(opts_init.ny) + 
           opts_init.nz/m1(opts_init.nz)
@@ -296,9 +320,16 @@ namespace libcloudphxx
         un(tmp_device_n_part),
         rng(opts_init.rng_seed),
         stp_ctr(0),
-        n_x_bfr(n_x_bfr),
+	bcond(bcond),
+        n_x_bfr(0),
+        n_cell_bfr(0),
+        mpi_rank(mpi_rank),
+        mpi_size(mpi_size),
+        lft_x1(-1),  // default to no
+        rgt_x0(-1),  // MPI boudanry
+        lft_id(i),   // note: reuses i vector
+        rgt_id(tmp_device_size_part),
         n_x_tot(n_x_tot),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
         halo_x( 
           n_dims == 1 ? halo_size:                                      // 1D
           n_dims == 2 ? halo_size * opts_init.nz:                       // 2D
@@ -309,20 +340,13 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
-        L( 
-          n_dims == 1 ? common::turbulence::length_scale(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-          n_dims == 2 ? common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                        common::turbulence::length_scale(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres  // 3D
-        ),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
-        // note: there could be less tmp data spaces if _cell vectors
-        //       would point to _part vector data... but using.end() would not possible
-        // initialising device temporary arrays
-        tmp_device_real_cell.resize(n_cell);
-        tmp_device_real_cell1.resize(n_cell);
-        tmp_device_size_cell.resize(n_cell);
+
+        // set 0 dev_count to mark that its not a multi_CUDA spawn
+        // if its a spawn, multi_CUDA ctor will alter it
+        opts_init.dev_count = 0; 
 
         // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
 #if defined(__NVCC__)
@@ -331,6 +355,29 @@ namespace libcloudphxx
         increase_sstp_coal = new bool();
 #endif
         *increase_sstp_coal = false;
+
+        switch (opts_init.SGS_length_scale)
+        {
+          case SGS_length_scale_t::vertical:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::arithmetic_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          case SGS_length_scale_t::geometric_mean:
+            lambda =  
+              n_dims == 1 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
+              n_dims == 2 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
+                            common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
+            break;
+          default: assert(false && "unrecognized value of opts_init.SGS_length_scale"); 
+        }
 
         // initialising host temporary arrays
         {
@@ -359,13 +406,43 @@ namespace libcloudphxx
             default: assert(false); 
           }
           if (n_dims != 0) assert(n_grid > n_cell);
-	  tmp_host_real_grid.resize(n_grid);
+          tmp_host_real_grid.resize(n_grid);
         }
-        tmp_host_size_cell.resize(n_cell);
-        tmp_host_real_cell.resize(n_cell);
+
+        // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
+        // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
+        typedef thrust_device::vector<real_t>* ptr_t;
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &delta_revp20, &delta_revp25, &delta_revp32, &delta_accr20, &delta_accr25, &delta_acnv20, &delta_acnv25, &delta_accr32, &delta_acnv32};
+        distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+
+        if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
+        if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
+        if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
+
+        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        {
+           distmem_real_vctrs.insert(&sstp_tmp_rv);
+           distmem_real_vctrs.insert(&sstp_tmp_th);
+           distmem_real_vctrs.insert(&sstp_tmp_rh);
+           // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
+        }
+
+        if(opts_init.turb_adve_switch)
+        {
+          if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
+          if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
+          if(opts_init.nz != 0) distmem_real_vctrs.insert(&wp);
+        }
+
+        if(opts_init.turb_cond_switch)
+        {
+          distmem_real_vctrs.insert(&wp);
+          distmem_real_vctrs.insert(&ssp);
+          distmem_real_vctrs.insert(&dot_ssp);
+        }
       }
 
-      // methods
       void sanity_checks();
       void init_SD_with_distros();
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
@@ -424,6 +501,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      void mpi_exchange();
 
            // rename hskpng_ -> step_?
       void hskpng_sort_helper(bool);
@@ -455,13 +533,13 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       ); 
       void moms_calc(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
         const bool specific = true
       );
 
       void mass_dens_estim(
-	const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t, const real_t, const real_t
       );
 
@@ -510,7 +588,23 @@ namespace libcloudphxx
       void sstp_step_chem(const int &step);
       void sstp_save_chem();
 
-      void step_finalize(const opts_t<real_t>&);
+      void post_copy(const opts_t<real_t>&);
+
+      // distmem stuff
+      void xchng_domains();
+      bool distmem_mpi();
+      bool distmem_cuda();
+      bool distmem();
+      void pack_n_lft();
+      void pack_n_rgt();
+      void pack_real_lft();
+      void pack_real_rgt();
+      void unpack_n(const int &);
+      void unpack_real(const int &);
+      void flag_lft();
+      void flag_rgt();
+      void bcnd_remote_lft(const real_t &, const real_t &);
+      void bcnd_remote_rgt(const real_t &, const real_t &);
     };
   };
 };

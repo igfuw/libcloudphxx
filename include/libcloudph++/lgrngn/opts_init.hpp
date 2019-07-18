@@ -10,6 +10,7 @@
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
+#include <libcloudph++/lgrngn/SGS_length_scale.hpp>
 #include <libcloudph++/lgrngn/advection_scheme.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
@@ -87,6 +88,9 @@ namespace libcloudphxx
       // terminal velocity formula
       vt_t::vt_t terminal_velocity;
 
+      // SGS mixing length
+      SGS_length_scale_t::SGS_length_scale_t SGS_length_scale;
+
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
 
@@ -116,7 +120,7 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
-      // no of GPUs to use, 0 for all available
+      // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
       // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
@@ -152,6 +156,7 @@ namespace libcloudphxx
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
+        SGS_length_scale(SGS_length_scale_t::geometric_mean),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),
