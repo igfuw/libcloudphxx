@@ -228,9 +228,9 @@ namespace libcloudphxx
               "rd3: %g  "
               "kpa: %g  "
               "vt: %g\n",
-               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
-               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
-               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
+               a, b, drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl),thrust::get<1>(tpl),
+               thrust::get<2>(tpl),thrust::get<1>(tpl_tpl),thrust::get<2>(tpl_tpl),thrust::get<3>(tpl),
+               thrust::get<4>(tpl),thrust::get<5>(tpl),thrust::get<6>(tpl)
             );
             assert(0);
           }
