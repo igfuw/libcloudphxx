@@ -331,7 +331,7 @@ install(TARGETS cloudphxx_lgrngn EXPORT cloudphxx_lgrngn-targets
   LIBRARY DESTINATION lib
   INCLUDES DESTINATION include)
 
-install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION lib/cmake/libcloudph++)
+install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
 
 # generate and install a config file
 include(CMakePackageConfigHelpers)
