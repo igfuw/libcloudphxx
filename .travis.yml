@@ -19,7 +19,7 @@ env:
     - TEST_SUITE=KidA
     - TEST_SUITE=UWLCM_MT
     - TEST_SUITE=UWLCM_unit_iles
-    - TEST_SUITE=UWLCM_unit_sgs
+    - TEST_SUITE=UWLCM_unit_smg
 matrix:
     exclude:
         - os: osx
@@ -37,7 +37,7 @@ matrix:
         - compiler: clang
           env: TEST_SUITE=UWLCM_unit_iles
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_sgs
+          env: TEST_SUITE=UWLCM_unit_smg
 addons:
   apt:
     packages:
@@ -178,6 +178,6 @@ script:
     # UWLCM
     - if [[ $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/UWLCM.sh moist_thermal; fi
     - if [[ $TEST_SUITE == 'UWLCM_unit_iles' ]]; then . ./.travis_scripts/UWLCM.sh unit_iles; fi
-    - if [[ $TEST_SUITE == 'UWLCM_unit_sgs' ]]; then . ./.travis_scripts/UWLCM.sh unit_sgs; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_smg' ]]; then . ./.travis_scripts/UWLCM.sh unit_smg; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
