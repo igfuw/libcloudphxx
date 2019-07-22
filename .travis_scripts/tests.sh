@@ -21,7 +21,7 @@ cd ../..
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-h5py; fi 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 git://github.com/igfuw/drops.py.git; fi
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PYTHONPATH=${HOME}/usr/local/lib/python2.7/site-packages/:${PYTHONPATH}; fi
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PYTHONPATH=${HOME}/usr/local/lib/python2.7/dist-packages/:${PYTHONPATH}; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd drops.py; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then mkdir build; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd build; fi
