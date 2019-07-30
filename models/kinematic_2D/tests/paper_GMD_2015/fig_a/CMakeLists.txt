@@ -44,7 +44,7 @@ add_executable(travis_calc_lgrngn travis_calc_lgrngn.cpp)
 add_test(travis_calc_lgrngn travis_calc_lgrngn ${CMAKE_BINARY_DIR})
 
 add_test(travis_2D_kin_cloud_dims_blk bash -c "
-  for dir in out_blk_1m out_blk_2m; do
+  for dir in travis_out_blk_1m travis_out_blk_2m; do
     echo 'comparing const.h5'
     if h5diff $dir/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5 | grep 'not comparable'; then
       echo 'the subsequent diff test will not detect differences -- Fail'
@@ -57,7 +57,7 @@ add_test(travis_2D_kin_cloud_dims_blk bash -c "
 ")
 
 add_test(travis_2D_kin_cloud_diff_blk_1m bash -c "
-  for dir in out_blk_1m; do
+  for dir in travis_out_blk_1m; do
     echo 'comparing const.h5'                                                                                                &&
     h5diff --delta=2e-7  -v2 $dir/const.h5           ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                       &&
     echo 'comparing timestep0000000000.h5'                                                                                   &&
@@ -74,7 +74,7 @@ add_test(travis_2D_kin_cloud_diff_blk_1m bash -c "
 ")
 
 add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
-  for dir in out_blk_2m; do
+  for dir in travis_out_blk_2m; do
     echo 'comparing const.h5'
     h5diff --delta=2e-7     -v2 $dir/const.h5              ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/const.h5                    &&
     echo 'comparing timestep0000000000.h5'                                                                                     &&
@@ -94,7 +94,7 @@ add_test(travis_2D_kin_cloud_diff_blk_2m bash -c "
 
 add_test(travis_2D_kin_cloud_dims_lgrngn bash -c "
     echo 'comparing dimensions in const.h5'
-    if h5diff out_lgrngn/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/out_lgrngn/travis_const.h5 | grep 'not comparable'; then
+    if h5diff travis_out_lgrngn/const.h5 ${CMAKE_CURRENT_SOURCE_DIR}/refdata/travis_out_lgrngn/travis_const.h5 | grep 'not comparable'; then
       echo 'the subsequent diff test will not detect differences -- Fail'
       exit 1      
     else          # If h5diff encounters files that cannot be compared (for example with different dimesions)
@@ -104,7 +104,7 @@ add_test(travis_2D_kin_cloud_dims_lgrngn bash -c "
 ")
 
 add_test(travis_2D_kin_cloud_diff_lgrngn bash -c "
-  for dir in out_lgrngn; do
+  for dir in travis_out_lgrngn; do
     echo 'comparing const.h5'
     h5diff --delta=1e-6     -v2 $dir/const.h5                ${CMAKE_CURRENT_SOURCE_DIR}/refdata/$dir/travis_const.h5                       &&
     echo 'comparing timestep0000000000.h5'                                                                                                  &&
