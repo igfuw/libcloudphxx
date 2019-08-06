@@ -53,7 +53,7 @@ namespace libcloudphxx
 #endif
 
       thrust::transform(
-        l2e[&from].begin() + offset_lft, l2e[&from].end() + offset_rgt, 
+        l2e[&from].begin() + offset_lft, l2e[&from].end() - offset_rgt, 
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
