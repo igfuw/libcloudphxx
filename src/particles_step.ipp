@@ -104,9 +104,9 @@ namespace libcloudphxx
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
-      pimpl->sync(courant_x,      pimpl->courant_x);
-      pimpl->sync(courant_y,      pimpl->courant_y);
-      pimpl->sync(courant_z,      pimpl->courant_z);
+      pimpl->sync(courant_x,      pimpl->courant_x, pimpl->halo_x, pimpl->halo_x);
+      pimpl->sync(courant_y,      pimpl->courant_y, pimpl->halo_y, pimpl->halo_y);
+      pimpl->sync(courant_z,      pimpl->courant_z, pimpl->halo_z, pimpl->halo_z);
       pimpl->sync(diss_rate,      pimpl->diss_rate);
       pimpl->sync(rhod,           pimpl->rhod);
 

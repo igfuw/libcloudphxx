@@ -64,9 +64,9 @@ namespace libcloudphxx
       pimpl->sync(rhod, pimpl->rhod);
       pimpl->sync(p,   pimpl->p);
 
-      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
-      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
-      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
+      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x, pimpl->halo_x, pimpl->halo_x);
+      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y, pimpl->halo_y, pimpl->halo_y);
+      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z, pimpl->halo_z, pimpl->halo_z);
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)

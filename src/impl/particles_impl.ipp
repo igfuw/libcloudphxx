@@ -527,11 +527,15 @@ namespace libcloudphxx
 
       void sync(
         const arrinfo_t<real_t> &, // from 
-        thrust_device::vector<real_t> & // to
+        thrust_device::vector<real_t> &, // to
+        const long int = 0, // offsets
+        const long int = 0
       );
       void sync(
         const thrust_device::vector<real_t> &, // from
-        arrinfo_t<real_t> &// to
+        arrinfo_t<real_t> &,// to
+        const long int = 0, // offsets
+        const long int = 0
       );
 
       void adve();

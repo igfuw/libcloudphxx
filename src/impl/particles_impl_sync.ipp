@@ -14,13 +14,15 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
       const arrinfo_t<real_t> &from,
-      thrust_device::vector<real_t> &to
+      thrust_device::vector<real_t> &to,
+      const long int offset_lft, // in case we do not want to fill the whole array
+      const long int offset_rgt
     )
     {   
       if (from.is_null()) return;
 
       thrust::transform(
-        l2e[&to].begin(), l2e[&to].end(),
+        l2e[&to].begin() + offset_lft, l2e[&to].end() - offset_rgt,
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
@@ -38,7 +40,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
       const thrust_device::vector<real_t> &from,
-      arrinfo_t<real_t> &to
+      arrinfo_t<real_t> &to,
+      const long int offset_lft,
+      const long int offset_rgt
     )
     {   
       if (to.is_null()) return;
@@ -49,7 +53,7 @@ namespace libcloudphxx
 #endif
 
       thrust::transform(
-        l2e[&from].begin(), l2e[&from].end(), 
+        l2e[&from].begin() + offset_lft, l2e[&from].end() + offset_rgt, 
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
