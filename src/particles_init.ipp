@@ -55,8 +55,8 @@ namespace libcloudphxx
       */
 
       if (pimpl->opts_init.chem_switch)
-	for (int i = 0; i < chem_gas_n; ++i)
-	  pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
 
       // feeding in Eulerian fields
       pimpl->sync(th,   pimpl->th);
@@ -71,8 +71,8 @@ namespace libcloudphxx
       pimpl->sync(courant_z,      pimpl->courant_z, pimpl->bcond.first != detail::distmem_cuda ? pimpl->halo_z : 0, pimpl->bcond.second != detail::distmem_cuda ? pimpl->halo_z : 0);
 
       if (pimpl->opts_init.chem_switch)
-	for (int i = 0; i < chem_gas_n; ++i)
-	  pimpl->sync(
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
