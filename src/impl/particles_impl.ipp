@@ -235,7 +235,7 @@ namespace libcloudphxx
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
-                   n_x_tot; // total number of cells in x in all devices
+                   n_x_tot; // total number of cells in x in all devices of this process
 
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
