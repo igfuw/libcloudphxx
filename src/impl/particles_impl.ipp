@@ -240,7 +240,8 @@ namespace libcloudphxx
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
 
-      const int halo_size, // NOTE: halo_size = 0 means that both x courant numbers in edge cells are known, what is equivalent to halo = 1 in libmpdata++
+      const int halo_size, // NOTE:  halo_size = 0 means that both x courant numbers in edge cells are known, what is equivalent to halo = 1 in libmpdata++
+                           // NOTE2: halo means that some values of the Eulerian courant array are pointed to by more than one e2l, what could lead to race conditions if we wanted to sync out courants
                 halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
@@ -527,9 +528,7 @@ namespace libcloudphxx
 
       void sync(
         const arrinfo_t<real_t> &, // from 
-        thrust_device::vector<real_t> &, // to
-        const long int = 0, // offsets
-        const long int = 0
+        thrust_device::vector<real_t> & // to
       );
       void sync(
         const thrust_device::vector<real_t> &, // from

@@ -14,28 +14,25 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
       const arrinfo_t<real_t> &from,
-      thrust_device::vector<real_t> &to,
-      const long int offset_lft, // in case we do not want to fill the whole array
-      const long int offset_rgt
+      thrust_device::vector<real_t> &to
     )
     {   
       if (from.is_null()) return;
 
-      auto copy_size = l2e[&to].size() - offset_lft - offset_rgt;
-      assert(to.size() >= copy_size);
+      assert(to.size() >= l2e[&to].size());
 
       thrust::transform(
-        l2e[&to].begin() + offset_lft, l2e[&to].end() - offset_rgt,
+        l2e[&to].begin(), l2e[&to].end(),
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
-        to.begin() + offset_lft,
+        to.begin(),
 #endif
         detail::c_arr_get<real_t>(from.data)
       );
 
 #if defined(__NVCC__)
-      thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + copy_size, to.begin() + offset_lft);
+      thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + l2e[&to].size(), to.begin());
 #endif
     }   
 
