@@ -21,28 +21,28 @@ namespace libcloudphxx
     {   
       if (from.is_null()) return;
 
+      auto copy_size = l2e[&to].size() - offset_lft - offset_rgt;
+      assert(to.size() >= copy_size);
+
       thrust::transform(
         l2e[&to].begin() + offset_lft, l2e[&to].end() - offset_rgt,
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
-        to.begin(),
+        to.begin() + offset_lft,
 #endif
         detail::c_arr_get<real_t>(from.data)
       );
 
 #if defined(__NVCC__)
-      assert(to.size() >= l2e[&to].size());
-      thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + l2e[&to].size(), to.begin());
+      thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + copy_size, to.begin() + offset_lft);
 #endif
     }   
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sync(
       const thrust_device::vector<real_t> &from,
-      arrinfo_t<real_t> &to,
-      const long int offset_lft,
-      const long int offset_rgt
+      arrinfo_t<real_t> &to
     )
     {   
       if (to.is_null()) return;
@@ -53,7 +53,7 @@ namespace libcloudphxx
 #endif
 
       thrust::transform(
-        l2e[&from].begin() + offset_lft, l2e[&from].end() - offset_rgt, 
+        l2e[&from].begin(), l2e[&from].end(), 
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
         tmp_host_real_grid.begin(), 
 #else
