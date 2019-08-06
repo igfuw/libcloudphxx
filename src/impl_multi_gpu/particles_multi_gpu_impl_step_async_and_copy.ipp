@@ -66,7 +66,7 @@ namespace libcloudphxx
         gpuErrchk(cudaEventCreateWithFlags(&events[dev_id], cudaEventDisableTiming ));
 
         // prepare buffer with n_t to be copied left
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
         {
           // prepare buffer with n_t to be copied left
           // TODO: serialize n_t and real_t with boost serialize
@@ -87,7 +87,7 @@ namespace libcloudphxx
         barrier.wait();
 
         // adjust x of prtcls to be sent left to match new device's domain
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
         {
           // adjust x of prtcls to be sent left to match new device's domain
           particles[dev_id]->pimpl->bcnd_remote_lft(particles[dev_id]->opts_init->x0, particles[lft_dev]->opts_init->x1);
@@ -96,7 +96,7 @@ namespace libcloudphxx
           particles[dev_id]->pimpl->pack_real_lft();
         }
 
-        if(detail::bcond_is_distmem_cuda(bcond.second))
+        if(bcond.second == detail::distmem_cuda)
         {
           // wait for the copy of n from right into current device to finish
           gpuErrchk(cudaEventSynchronize(events[rgt_dev]));
@@ -105,7 +105,7 @@ namespace libcloudphxx
         }
 
         // start async copy of real buffer to the left; same stream as n_bfr - will start only if previous copy finished
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
         {
           gpuErrchk(cudaMemcpyPeerAsync(
             particles[lft_dev]->pimpl->in_real_bfr.data().get(), lft_dev,  //dst
@@ -119,7 +119,7 @@ namespace libcloudphxx
         // barrier to make sure that all devices started copying
         barrier.wait();
 
-        if(detail::bcond_is_distmem_cuda(bcond.second))
+        if(bcond.second == detail::distmem_cuda)
         {
           // prepare buffer with n_t to be copied right
           particles[dev_id]->pimpl->pack_n_rgt();
@@ -150,10 +150,10 @@ namespace libcloudphxx
         barrier.wait();
 
         // prepare the real_t buffer for copy to the right
-        if(detail::bcond_is_distmem_cuda(bcond.second))
+        if(bcond.second == detail::distmem_cuda)
            particles[dev_id]->pimpl->pack_real_rgt();
 
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
         {
           // wait for the copy of n from left into current device to finish
           gpuErrchk(cudaEventSynchronize(events[lft_dev]));
@@ -161,7 +161,7 @@ namespace libcloudphxx
           particles[dev_id]->pimpl->unpack_n(particles[lft_dev]->pimpl->rgt_count); // also sets n_part etc..
         }
 
-        if(detail::bcond_is_distmem_cuda(bcond.second))
+        if(bcond.second == detail::distmem_cuda)
         {
           // start async copy of real buffer to the right
           gpuErrchk(cudaMemcpyPeerAsync(
@@ -176,12 +176,12 @@ namespace libcloudphxx
 
         // barrier to make sure that all devices started copying
         barrier.wait();
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
           particles[dev_id]->pimpl->flag_lft(); 
-        if(detail::bcond_is_distmem_cuda(bcond.second))
+        if(bcond.second == detail::distmem_cuda)
           particles[dev_id]->pimpl->flag_rgt(); 
         
-        if(detail::bcond_is_distmem_cuda(bcond.first))
+        if(bcond.first == detail::distmem_cuda)
         {
           // wait for the copy of real from left into current device to finish
           gpuErrchk(cudaEventSynchronize(events[lft_dev]));

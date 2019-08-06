@@ -19,7 +19,7 @@ namespace libcloudphxx
     bool particles_t<real_t, device>::impl::distmem_cuda(
     )
     {
-      return (detail::bcond_is_distmem_cuda(bcond.first) || detail::bcond_is_distmem_cuda(bcond.second));
+      return (bcond.first == detail::distmem_cuda || bcond.second == detail::distmem_cuda);
     }
     template <typename real_t, backend_t device>
     bool particles_t<real_t, device>::impl::distmem(
