@@ -14,8 +14,10 @@ namespace libcloudphxx
       struct periodic_cellno
       {
         const long int n_tot;                     // size of the input array
+
         periodic_cellno(const long int &n_tot):
           n_tot(n_tot) {}
+
         BOOST_GPU_ENABLED
         long int operator()(long int cell_idx)
         {
@@ -41,7 +43,7 @@ namespace libcloudphxx
 
       long int shift =    // index of element of arr copied to 0-th position in key
         + n_cell_bfr // for multi_CUDA: cells in memory of GPUs to the left of this one (only on this node - arrinfo.data points to first occupied memory, not (0,0,0))
-        + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers),
+        + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers), or halo shift for courant numbers
 
       switch (n_dims)
       {
@@ -92,14 +94,13 @@ namespace libcloudphxx
         default: assert(false);
       }
 
-      // apply bcnd for halo
-      /*
+      // apply cyclic bcnd for halo
+      // halos over mpi boundaries are filled after sync()
       thrust::transform(
         l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
         l2e[key].begin(), // in place 
         detail::periodic_cellno((n_x_tot + ext_x) * arr.strides[0])
       );
-      */
     }
   };
 };
