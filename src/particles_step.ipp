@@ -110,6 +110,9 @@ namespace libcloudphxx
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
 
+      // fill in mpi courant halos
+      pimpl->xchng_courants();
+
       nancheck(pimpl->th, " th after sync-in");
       nancheck(pimpl->rv, " rv after sync-in");
       nancheck(pimpl->courant_x, " courant_x after sync-in");

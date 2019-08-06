@@ -575,6 +575,7 @@ namespace libcloudphxx
 
       // distmem stuff
       void xchng_domains();
+      void xchng_courants();
       bool distmem_mpi();
       bool distmem_cuda();
       bool distmem();

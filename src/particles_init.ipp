@@ -64,11 +64,12 @@ namespace libcloudphxx
       pimpl->sync(rhod, pimpl->rhod);
       pimpl->sync(p,   pimpl->p);
 
-      // don't expect Eulerian Courant numbers to contain halos
-      // hence set offset of halo size on sharedmem/mpi boundaries
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
+
+      // fill in mpi courant halos
+      pimpl->xchng_courants();
 
       if (pimpl->opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
