@@ -64,9 +64,11 @@ namespace libcloudphxx
       pimpl->sync(rhod, pimpl->rhod);
       pimpl->sync(p,   pimpl->p);
 
-      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x, pimpl->halo_x, pimpl->halo_x);
-      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y, pimpl->halo_y, pimpl->halo_y);
-      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z, pimpl->halo_z, pimpl->halo_z);
+      // don't expect Eulerian Courant numbers to contain halos
+      // hence set offset of halo size on sharedmem/mpi boundaries
+      pimpl->sync(courant_x,      pimpl->courant_x, pimpl->bcond.first != detail::distmem_cuda ? pimpl->halo_x : 0, pimpl->bcond.second != detail::distmem_cuda ? pimpl->halo_x : 0);
+      pimpl->sync(courant_y,      pimpl->courant_y, pimpl->bcond.first != detail::distmem_cuda ? pimpl->halo_y : 0, pimpl->bcond.second != detail::distmem_cuda ? pimpl->halo_y : 0);
+      pimpl->sync(courant_z,      pimpl->courant_z, pimpl->bcond.first != detail::distmem_cuda ? pimpl->halo_z : 0, pimpl->bcond.second != detail::distmem_cuda ? pimpl->halo_z : 0);
 
       if (pimpl->opts_init.chem_switch)
 	for (int i = 0; i < chem_gas_n; ++i)
