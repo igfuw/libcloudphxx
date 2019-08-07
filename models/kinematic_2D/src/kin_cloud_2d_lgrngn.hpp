@@ -180,11 +180,11 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         // temporarily Cx & Cz are multiplied by rhod ...
         auto
           Cx = this->mem->GC[0](
-            this->mem->grid_size[0]^h^2, 
+            this->mem->grid_size[0]^h, 
             this->mem->grid_size[1]
           ).reindex({0,0}).copy(),
           Cz = this->mem->GC[1](
-            this->mem->grid_size[0]^2, 
+            this->mem->grid_size[0], 
             this->mem->grid_size[1]^h
           ).reindex({0,0}).copy();
 
