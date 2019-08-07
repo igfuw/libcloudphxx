@@ -135,10 +135,10 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
   std::vector<double> vth(opts_init.nx * m1(opts_init.ny) * opts_init.nz, 300.);
   std::vector<double> vrhod(opts_init.nx * m1(opts_init.ny) * opts_init.nz, 1.225);
   std::vector<double> vrv(opts_init.nx * m1(opts_init.ny) * opts_init.nz, 0.01);
-  std::vector<double> vCxm((opts_init.nx + 3) * m1(opts_init.ny) * opts_init.nz, -1);
-  std::vector<double> vCxp((opts_init.nx + 3) * m1(opts_init.ny) * opts_init.nz, 1);
-  std::vector<double> vCy((opts_init.nx + 2) * (m1(opts_init.ny+1)) * opts_init.nz, 0);
-  std::vector<double> vCz((opts_init.nx + 2) * m1(opts_init.ny) * (opts_init.nz+1), 0);
+  std::vector<double> vCxm((opts_init.nx + 1) * m1(opts_init.ny) * opts_init.nz, -1);
+  std::vector<double> vCxp((opts_init.nx + 1) * m1(opts_init.ny) * opts_init.nz, 1);
+  std::vector<double> vCy((opts_init.nx) * (m1(opts_init.ny+1)) * opts_init.nz, 0);
+  std::vector<double> vCz((opts_init.nx) * m1(opts_init.ny) * (opts_init.nz+1), 0);
 
   long int strides[] = {0, 1, 1};
   long int xstrides[] = {0, 1, 1};

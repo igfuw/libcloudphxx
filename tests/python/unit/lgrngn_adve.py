@@ -70,8 +70,8 @@ Rv   = 0.01 * np.ones((Opts_init.nx, Opts_init.nz))
 def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=Opts, 
                     rhod=Rhod, th=Th, rv=Rv):
   prtcls = lgrngn.factory(backend, opts_init)
-  Cx = Cx_arg * np.ones((opts_init.nx + 1 + 4, opts_init.nz))
-  Cz = Cz_arg * np.ones((opts_init.nx + 0 + 4, opts_init.nz + 1))
+  Cx = Cx_arg * np.ones((opts_init.nx + 1, opts_init.nz))
+  Cz = Cz_arg * np.ones((opts_init.nx, opts_init.nz + 1))
   prtcls.init(th, rv, rhod, Cx=Cx, Cz=Cz)
 
   prtcls.step_sync(opts, th, rv, rhod)

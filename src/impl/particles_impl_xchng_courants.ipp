@@ -62,7 +62,7 @@ namespace libcloudphxx
           if( (i ? bcond.first : bcond.second) == detail::distmem_mpi)
           {
             MPI_Isend(
-              i ? courant_x.data().get() + cx_lft_internal_idx : courant_x_data().get() +  cx_rgt_internal_idx,
+              i ? courant_x.data().get() + cx_lft_internal_idx : courant_x.data().get() +  cx_rgt_internal_idx,
               halo_x,                              // no of values
               detail::get_mpi_type<real_t>(),      // type
               i ? lft_rank : rgt_rank,             // dest comm
@@ -76,7 +76,7 @@ namespace libcloudphxx
           if( (i ? bcond.second : bcond.first) == detail::distmem_mpi)
           {
             MPI_Recv(
-              i ? courant_x.data().get() + cx_rgt_halo_idx : courant_x_data().get() +  cx_lft_halo_idx,
+              i ? courant_x.data().get() + cx_rgt_halo_idx : courant_x.data().get() +  cx_lft_halo_idx,
               halo_x,                              // no of values
               detail::get_mpi_type<real_t>(), // type
               i ? rgt_rank : lft_rank,                       // src comm
@@ -93,7 +93,7 @@ namespace libcloudphxx
           if( (i ? bcond.first : bcond.second) == detail::distmem_mpi)
           {
             MPI_Isend(
-              i ? courant_z.data().get() + cz_lft_internal_idx : courant_z_data().get() +  cz_rgt_internal_idx,
+              i ? courant_z.data().get() + cz_lft_internal_idx : courant_z.data().get() +  cz_rgt_internal_idx,
               halo_z,                              // no of values
               detail::get_mpi_type<real_t>(),      // type
               i ? lft_rank : rgt_rank,             // dest comm
@@ -107,7 +107,7 @@ namespace libcloudphxx
           if( (i ? bcond.second : bcond.first) == detail::distmem_mpi)
           {
             MPI_Recv(
-              i ? courant_z.data().get() + cz_rgt_halo_idx : courant_z_data().get() +  cz_lft_halo_idx,
+              i ? courant_z.data().get() + cz_rgt_halo_idx : courant_z.data().get() +  cz_lft_halo_idx,
               halo_z,                              // no of values
               detail::get_mpi_type<real_t>(), // type
               i ? rgt_rank : lft_rank,                       // src comm
@@ -124,7 +124,7 @@ namespace libcloudphxx
           if( (i ? bcond.first : bcond.second) == detail::distmem_mpi)
           {
             MPI_Isend(
-              i ? courant_y.data().get() + cy_lft_internal_idx : courant_y_data().get() +  cy_rgt_internal_idx,
+              i ? courant_y.data().get() + cy_lft_internal_idx : courant_y.data().get() +  cy_rgt_internal_idx,
               halo_y,                              // no of values
               detail::get_mpi_type<real_t>(),      // type
               i ? lft_rank : rgt_rank,             // dest comm
@@ -138,7 +138,7 @@ namespace libcloudphxx
           if( (i ? bcond.second : bcond.first) == detail::distmem_mpi)
           {
             MPI_Recv(
-              i ? courant_y.data().get() + cy_rgt_halo_idx : courant_y_data().get() +  cy_lft_halo_idx,
+              i ? courant_y.data().get() + cy_rgt_halo_idx : courant_y.data().get() +  cy_lft_halo_idx,
               halo_y,                              // no of values
               detail::get_mpi_type<real_t>(), // type
               i ? rgt_rank : lft_rank,                       // src comm

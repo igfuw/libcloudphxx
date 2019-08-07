@@ -75,6 +75,7 @@
 #include "impl/particles_impl_init_vterm.ipp"
 #include "impl/particles_impl_init_sanity_check.ipp"
 #include "impl/particles_impl_xchng_domains.ipp"
+#include "impl/particles_impl_xchng_courants.ipp"
 #include "impl/particles_impl_update_th_rv.ipp"
 #include "impl/particles_impl_hskpng_ijk.ipp"
 #include "impl/particles_impl_hskpng_Tpr.ipp"
