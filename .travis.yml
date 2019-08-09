@@ -155,7 +155,7 @@ install:
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
 
     # boost
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT'     ]]; then sudo $apt_get_install boost1.61; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
 
     # cmake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
