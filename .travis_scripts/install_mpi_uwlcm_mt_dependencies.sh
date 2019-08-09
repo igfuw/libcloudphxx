@@ -5,7 +5,7 @@ set -e
 #############################################################################
 DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 
-. ./travis_scripts/install_mpi_dependencies.sh
+. ${PWD}/travis_scripts/install_mpi_dependencies.sh
 
 # numpy needs to be installed before building boost python in order to build boost numpy
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
