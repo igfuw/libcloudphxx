@@ -244,4 +244,4 @@ jobs:
       env: TEST_SUITE=MPI_tests
       compiler: clang
     - <<: *precache_uwlcm_mpi
-      env: TEST_SUITE=MPI_UWLCM_MT
+      env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
