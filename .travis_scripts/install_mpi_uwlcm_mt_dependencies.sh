@@ -19,8 +19,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-numpy; fi
       tar xf boost_1_65_1.tar.gz
       cd boost_1_65_1
       # configure and install
-      if [[ $COMPILER == 'g++' ]]; then echo "using gcc : 6.2 : g++-6 ;" > $HOME/user-config.jam; fi
-      if [[ $COMPILER == 'clang++' ]]; then echo "using clang : 5.0 : clang++-5.0 ;" > $HOME/user-config.jam; fi
+      if [[ $COMPILER == 'g++' ]]; then echo "using gcc : 5.4 : g++ ;" > $HOME/user-config.jam; fi
       echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
