@@ -127,9 +127,7 @@ before_install:
 
 install:
     - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then wget https://raw.githubusercontent.com/pdziekan/UWLCM/mpi_up_to_date/.travis_scripts/install_mpi_dependencies.sh -O install_uwlcm_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then chmod +x install_uwlcm_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./install_uwlcm_mpi_dependencies.sh; fi
+    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh; fi
 
     # redefine CXX to the actual version used
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
@@ -230,9 +228,7 @@ job_info: &precache_uwlcm_mpi
   language: cpp
   compiler: gcc
   install: 
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then wget https://raw.githubusercontent.com/pdziekan/UWLCM/mpi_up_to_date/.travis_scripts/install_mpi_dependencies.sh -O install_uwlcm_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then chmod +x install_uwlcm_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./install_uwlcm_mpi_dependencies.sh; fi
+    - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
   script: echo "Preparing cache finished"
 
 jobs:
