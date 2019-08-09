@@ -33,6 +33,8 @@ env:
 cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+    - ${TRAVIS_BUILD_DIR}/deps/boost
+    - ${TRAVIS_BUILD_DIR}/deps/hdf5
 
 matrix:
     exclude:
