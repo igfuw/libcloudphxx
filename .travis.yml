@@ -23,7 +23,7 @@ env:
     - TEST_SUITE=KidA
     - TEST_SUITE=UWLCM_MT
     - TEST_SUITE=UWLCM_unit_iles
-    - TEST_SUITE=UWLCM_unit_sgs
+    - TEST_SUITE=UWLCM_unit_smg
     - TEST_SUITE=MPI_tests
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
@@ -53,7 +53,7 @@ matrix:
         - compiler: clang
           env: TEST_SUITE=UWLCM_unit_iles
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_sgs
+          env: TEST_SUITE=UWLCM_unit_smg
 addons:
   apt:
     packages:
@@ -92,6 +92,7 @@ before_install:
     - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
+
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
@@ -172,8 +173,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U matplotlib --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install --only-binary=numpy,scipy numpy scipy --ignore-installed six; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm get stable; fi
+
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then \curl -sSL https://get.rvm.io | bash -s -- --branch stable; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm reload; fi
 
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
 #    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/include/* /usr/local/include/; fi
@@ -196,7 +198,7 @@ script:
     # UWLCM
     - if [[ $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/UWLCM.sh moist_thermal; fi
     - if [[ $TEST_SUITE == 'UWLCM_unit_iles' ]]; then . ./.travis_scripts/UWLCM.sh unit_iles; fi
-    - if [[ $TEST_SUITE == 'UWLCM_unit_sgs' ]]; then . ./.travis_scripts/UWLCM.sh unit_sgs; fi
+    - if [[ $TEST_SUITE == 'UWLCM_unit_smg' ]]; then . ./.travis_scripts/UWLCM.sh unit_smg; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
     # unit tests and drops.py with MPI (drop drops here?)

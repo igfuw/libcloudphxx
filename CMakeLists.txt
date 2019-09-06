@@ -184,11 +184,13 @@ if (CMAKE_CUDA_COMPILER)
   separate_arguments(msg)
   list(REMOVE_ITEM msg "")
   list(LENGTH msg gpu_count)
-  if(gpu_count GREATER 1)
+  if(gpu_count GREATER 1 OR LIBCLOUDPHXX_FORCE_MULTI_CUDA)
     # compile the multi_CUDA backend
-    message(STATUS "Detected more than 1 GPU, the multi_CUDA backend will be built.")
+    message(STATUS "Detected more than 1 GPU or LIBCLOUDPHXX_FORCE_MULTI_CUDA set, the multi_CUDA backend will be built.")
     target_sources(cloudphxx_lgrngn PRIVATE src/lib_multicuda.cu)
     target_compile_definitions(cloudphxx_lgrngn PRIVATE MULTICUDA_FOUND)
+  else()
+    message(STATUS "Number of GPUs detected <=1, the multi_CUDA backend will not be built. You can force compilation of this backend by setting LIBCLOUDPHXX_FORCE_MULTI_CUDA.")
   endif()
   list(REMOVE_DUPLICATES msg)
 
@@ -366,7 +368,7 @@ install(TARGETS cloudphxx_lgrngn EXPORT cloudphxx_lgrngn-targets
   LIBRARY DESTINATION lib
   INCLUDES DESTINATION include)
 
-install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION lib/cmake/libcloudph++)
+install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
 
 # generate and install a config file
 include(CMakePackageConfigHelpers)
@@ -377,12 +379,12 @@ configure_package_config_file(
   libcloudph++-config.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/libcloudph++-config.cmake"
   INSTALL_DESTINATION 
-    lib/cmake/libcloudph++
+    share/libcloudph++
 )
 install(
   FILES
     "${CMAKE_CURRENT_BINARY_DIR}/libcloudph++-config.cmake"
   DESTINATION
-    lib/cmake/libcloudph++
+    share/libcloudph++
 )
 ############################################################################################
