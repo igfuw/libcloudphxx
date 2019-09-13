@@ -279,12 +279,6 @@ message(FATAL_ERROR "Boost (or some of its components) not found.
 ")
 endif()
 
-# if compiled with MPI support, we need Boost.MPI for python tests to work
-if(USE_MPI)
-  find_package(Boost COMPONENTS mpi QUIET)
-  #TODO: link the boost.mpi library?
-endif()
-
 
 ############################################################################################
 # BOOST ODEINT VERSION TEST
