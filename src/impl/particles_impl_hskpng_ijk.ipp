@@ -38,11 +38,11 @@ namespace libcloudphxx
           thrust_device::vector<thrust_size_t> &vi,
           const real_t &vd
         ) {
-	  thrust::transform(
-	    vx.begin(), vx.end(),                                // input
-	    vi.begin(),                                          // output
-	    detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math
-	  );
+          thrust::transform(
+            vx.begin(), vx.end(),                                // input
+            vi.begin(),                                          // output
+            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math
+          );
         }
       } helper;
 

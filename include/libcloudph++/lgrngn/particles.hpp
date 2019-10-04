@@ -39,6 +39,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(), // TKE dissipation rate (epsilon)
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
@@ -51,6 +52,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(),
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
@@ -91,7 +93,7 @@ namespace libcloudphxx
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
       virtual void diag_max_rw()                                    { assert(false); }
       virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<output_t, real_t> diag_puddle()              { assert(false); }
+      virtual std::map<output_t, real_t> diag_puddle()              { assert(false); return std::map<output_t, real_t>(); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -127,6 +129,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
 
@@ -137,6 +140,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
 
@@ -221,6 +225,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
 
@@ -231,6 +236,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
         std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
 

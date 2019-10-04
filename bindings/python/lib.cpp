@@ -194,7 +194,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::enum_<lgr::backend_t>("backend_t")
       .value("serial", lgr::serial)
       .value("OpenMP", lgr::OpenMP)
-      .value("CUDA",   lgr::CUDA);
+      .value("CUDA",   lgr::CUDA)
+      .value("multi_CUDA",   lgr::multi_CUDA);
     bp::enum_<lgr::kernel_t::kernel_t>("kernel_t") 
       .value("geometric", lgr::kernel_t::geometric)
       .value("golovin", lgr::kernel_t::golovin)
@@ -213,6 +214,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("beard77fast", lgr::vt_t::beard77fast)
       .value("khvorostyanov_spherical", lgr::vt_t::khvorostyanov_spherical)
       .value("khvorostyanov_nonspherical", lgr::vt_t::khvorostyanov_nonspherical);
+    bp::enum_<lgr::SGS_length_scale_t::SGS_length_scale_t>("SGS_length_scale_t") 
+      .value("vertical", lgr::SGS_length_scale_t::vertical)
+      .value("arithmetic_mean", lgr::SGS_length_scale_t::arithmetic_mean)
+      .value("geometric_mean", lgr::SGS_length_scale_t::geometric_mean);
     bp::enum_<lgr::RH_formula_t::RH_formula_t>("RH_formula_t") 
       .value("pv_cc", lgr::RH_formula_t::pv_cc)
       .value("rv_cc", lgr::RH_formula_t::rv_cc)
@@ -244,6 +249,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("chem_dsc", &lgr::opts_t<real_t>::chem_dsc)
       .def_readwrite("chem_rct", &lgr::opts_t<real_t>::chem_rct)
       .def_readwrite("RH_max", &lgr::opts_t<real_t>::RH_max)
+      .def_readwrite("turb_adve", &lgr::opts_t<real_t>::turb_adve)
+      .def_readwrite("turb_cond", &lgr::opts_t<real_t>::turb_cond)
+      .def_readwrite("turb_coal", &lgr::opts_t<real_t>::turb_coal)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
@@ -269,6 +277,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
       .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)
       .def_readwrite("src_switch", &lgr::opts_init_t<real_t>::src_switch)
+      .def_readwrite("turb_adve_switch", &lgr::opts_init_t<real_t>::turb_adve_switch)
+      .def_readwrite("turb_cond_switch", &lgr::opts_init_t<real_t>::turb_cond_switch)
+      .def_readwrite("turb_coal_switch", &lgr::opts_init_t<real_t>::turb_coal_switch)
       .def_readwrite("exact_sstp_cond", &lgr::opts_init_t<real_t>::exact_sstp_cond)
       .def_readwrite("sstp_cond", &lgr::opts_init_t<real_t>::sstp_cond)
       .def_readwrite("sstp_coal", &lgr::opts_init_t<real_t>::sstp_coal)
@@ -283,6 +294,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("src_sd_conc", &lgr::opts_init_t<real_t>::src_sd_conc)
       .def_readwrite("n_sd_max", &lgr::opts_init_t<real_t>::n_sd_max)
       .def_readwrite("terminal_velocity", &lgr::opts_init_t<real_t>::terminal_velocity)
+      .def_readwrite("SGS_length_scale", &lgr::opts_init_t<real_t>::SGS_length_scale)
       .def_readwrite("RH_formula", &lgr::opts_init_t<real_t>::RH_formula)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
@@ -308,6 +320,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("diss_rate")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("sync_in",    &lgrngn::sync_in<real_t>, (
@@ -317,6 +330,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
         bp::arg("Cx")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cy")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("Cz")  = BP_ARR_FROM_BP_OBJ,
+        bp::arg("diss_rate")  = BP_ARR_FROM_BP_OBJ,
         bp::arg("ambient_chem") = bp::dict()
       ))
       .def("step_cond",    &lgrngn::step_cond<real_t>, (

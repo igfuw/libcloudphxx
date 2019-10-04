@@ -348,6 +348,28 @@ opts_init.sd_const_multi = 0
 opts_init.dry_sizes = dict()
 
 
+# ----------
+# 0D turb
+print "0D turb"
+eps = arr_t([  1e-4])
+opts_init.turb_cond_switch=True
+opts.turb_cond=True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv, diss_rate=eps)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == 1
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == 64
+
+opts_init.turb_cond_switch=False
+opts.turb_cond=False
+
+
 
 # ----------
 # 1D (periodic horizontal domain)
@@ -387,7 +409,28 @@ for it in range(2):
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
 
+print "1D turb"
+eps   = arr_t([   1e-4,  1e-4,  1e-4])
+opts_init.turb_adve_switch=True
+opts.turb_adve=True
+opts_init.turb_cond_switch=True
+opts.turb_cond=True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv, diss_rate=eps)
+prtcls.step_async(opts)
 
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
+
+opts_init.turb_adve_switch=False
+opts.turb_adve=False
+opts_init.turb_cond_switch=False
+opts.turb_cond=False
 
 # ----------
 # 2D (periodic horizontal domain)
@@ -440,6 +483,29 @@ for it in range(2):
 
 #TODO: test profile vs. 2D array
 
+print "2D turb"
+eps   = arr_t([[   1e-4,  1e-4], [   1e-4,  1e-4]])
+opts_init.turb_adve_switch=True
+opts.turb_adve=True
+opts_init.turb_cond_switch=True
+opts.turb_cond=True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv, diss_rate=eps)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc
+assert opts_init.nx == prtcls.opts_init.nx
+
+opts_init.turb_adve_switch=False
+opts.turb_adve=False
+opts_init.turb_cond_switch=False
+opts.turb_cond=False
 
 
 # ----------
@@ -476,6 +542,29 @@ for it in range(2):
   print frombuffer(prtcls.outbuf())
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+
+print "3D turb"
+eps   = arr_t([eps, eps])
+opts_init.turb_adve_switch=True
+opts.turb_adve=False
+opts_init.turb_cond_switch=True
+opts.turb_cond=True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv, diss_rate=eps)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+print frombuffer(prtcls.outbuf())
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+
+opts_init.turb_adve_switch=False
+opts.turb_adve=False
+opts_init.turb_cond_switch=False
+opts.turb_cond=False
 
 # 3D with large_tail option
 print "3D large tail"

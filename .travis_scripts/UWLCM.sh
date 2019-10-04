@@ -1,5 +1,13 @@
 #!/usr/bin/env sh
 set -ex
+
+if [ $# -ne 1 ]; then
+  echo "UWLCM.sh accepts exactly one argument"
+  exit 1
+fi
+
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install hdf5-tools; fi
+
 # libcloudph++ 
 mkdir build 
 cd build
@@ -12,13 +20,6 @@ cd ../..
 
 # libmpdata
 . $TRAVIS_BUILD_DIR/.travis_scripts/get_libmpdata_dependencies.sh
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libgnuplot-iostream-dev libhdf5-serial-dev hdf5-tools cmake; fi
-#if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
-#if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install hdf5 --with-cxx; fi
-#if [[ $TRAVIS_OS_NAME == 'osx' ]]; then git clone --depth=1 https://github.com/dstahlke/gnuplot-iostream.git; fi
-#if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -s `pwd`/gnuplot-iostream/gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h; fi
 
 git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
@@ -31,10 +32,5 @@ cd ../../..
 ## UWLCM
 git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
-make
-make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-cd ../..
+. .travis_scripts/$1.sh
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522

@@ -202,14 +202,14 @@ namespace libcloudphxx
 
       //ctor
       BOOST_GPU_ENABLED
-      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 2, r_max) {}
+      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 1, r_max) {}
       kernel_onishi() = default;
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
-        enum { rhod_ix, eta_ix };
+        enum { rhod_ix, eta_ix, diss_rate_ix };
 
 #if !defined(__NVCC__)
         using std::sqrt;
@@ -218,7 +218,7 @@ namespace libcloudphxx
         real_t rwb = sqrt( thrust::get<rw2_b_ix>(tpl_wrap.get_rw()));
         real_t onishi_nograv = detail::kernel_onishi_nograv<real_t>           // value of the turbulent onishi kernel that neglects gravitational settling
         (
-          rwa, rwb, kernel_base<real_t, n_t>::k_params[1], kernel_base<real_t, n_t>::k_params[0],                              // k_params[0] - epsilon, k_params[1] - Re_lambda
+          rwa, rwb, kernel_base<real_t, n_t>::k_params[0], thrust::get<diss_rate_ix>(tpl_wrap.get_ro_calc()),                  // k_params[0] - Re_lambda
           thrust::get<eta_ix>(tpl_wrap.get_ro_calc()) / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()),                          // kinetic viscosity 
           common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()) // ratio of water to air density
         );

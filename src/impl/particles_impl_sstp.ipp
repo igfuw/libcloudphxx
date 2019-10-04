@@ -140,5 +140,21 @@ namespace libcloudphxx
       	}
       }
     }
+
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::sstp_step_ssp(
+      const real_t &dt
+    )
+    {   
+      namespace arg = thrust::placeholders;
+ 
+      thrust::transform(
+        ssp.begin(), ssp.end(),  
+        dot_ssp.begin(),
+        ssp.begin(),
+        arg::_1 + arg::_2 * dt
+      );
+    }
   };  
 };

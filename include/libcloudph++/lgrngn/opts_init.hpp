@@ -10,6 +10,7 @@
 #include <libcloudph++/lgrngn/extincl.hpp>
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
+#include <libcloudph++/lgrngn/SGS_length_scale.hpp>
 #include <libcloudph++/lgrngn/advection_scheme.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
 #include <libcloudph++/lgrngn/chem.hpp>
@@ -87,6 +88,9 @@ namespace libcloudphxx
       // terminal velocity formula
       vt_t::vt_t terminal_velocity;
 
+      // SGS mixing length
+      SGS_length_scale_t::SGS_length_scale_t SGS_length_scale;
+
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
 
@@ -102,7 +106,10 @@ namespace libcloudphxx
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
-           exact_sstp_cond; // if true, use per-particle sstp_cond logic, if false, use per-cell
+           exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
+           turb_adve_switch,   // if true, turbulent motion of SDs is modeled
+           turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
+           turb_coal_switch;   // if true, turbulent coalescence kernels can be used
 
       int sstp_chem;
       real_t chem_rho;
@@ -122,6 +129,8 @@ namespace libcloudphxx
       // subsidence rate profile, positive downwards [m/s]
       std::vector<real_t> w_LS;
 
+      real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -140,10 +149,14 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),
+        turb_cond_switch(false),
+        turb_adve_switch(false),
+        turb_coal_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
+        SGS_length_scale(SGS_length_scale_t::geometric_mean),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),
@@ -151,7 +164,8 @@ namespace libcloudphxx
         dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
-        src_z1(0)
+        src_z1(0),
+        rd_min(0.)
       {}
 
       // dtor (just to silence -Winline warnings)

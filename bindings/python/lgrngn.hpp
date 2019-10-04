@@ -105,14 +105,15 @@ namespace libcloudphxx
       // 
       template <typename real_t>
       void step_sync(
-        lgr::particles_proto_t<real_t> *arg,
-        const lgr::opts_t<real_t> &opts,
-        const bp_array &th,
-        const bp_array &rv,
-        const bp_array &rhod,
-        const bp_array &Cx,
-        const bp_array &Cy,
-        const bp_array &Cz,
+      	lgr::particles_proto_t<real_t> *arg,
+      	const lgr::opts_t<real_t> &opts,
+      	const bp_array &th,
+      	const bp_array &rv,
+      	const bp_array &rhod,
+      	const bp_array &Cx,
+      	const bp_array &Cy,
+      	const bp_array &Cz,
+      	const bp_array &diss_rate,
         bp::dict &ambient_chem
       )
       {
@@ -124,7 +125,6 @@ namespace libcloudphxx
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
-
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -136,6 +136,7 @@ namespace libcloudphxx
           np2ai<real_t>(Cx, sz(*arg)),
           np2ai<real_t>(Cy, sz(*arg)),
           np2ai<real_t>(Cz, sz(*arg)),
+          np2ai<real_t>(diss_rate, sz(*arg)),
           map
         );
       }
@@ -150,6 +151,7 @@ namespace libcloudphxx
         const bp_array &Cx,
         const bp_array &Cy,
         const bp_array &Cz,
+        const bp_array &diss_rate,
         bp::dict &ambient_chem
       )
       {
@@ -161,7 +163,6 @@ namespace libcloudphxx
             bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
-
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -172,6 +173,7 @@ namespace libcloudphxx
           np2ai<real_t>(Cx, sz(*arg)),
           np2ai<real_t>(Cy, sz(*arg)),
           np2ai<real_t>(Cz, sz(*arg)),
+          np2ai<real_t>(diss_rate, sz(*arg)),
           map
         );
       }
