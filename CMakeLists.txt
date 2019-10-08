@@ -30,6 +30,8 @@ IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
+
+
 # clearing default config-specific flags
 set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS_RELEASE "")
@@ -37,8 +39,16 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
 
 ############################################################################################
 # see if CUDA is available
+
 include(CheckLanguage)
-check_language(CUDA)
+#check_language(CUDA)
+option(LIBCLOUD_DISABLE_CUDA "LIBCLOUD_DISABLE_CUDA" False)
+
+if (NOT LIBCLOUD_DISABLE_CUDA)
+  check_language(CUDA)
+endif()
+
+
 
 if (NOT CMAKE_CUDA_COMPILER)
   message(STATUS "CUDA not found. 
