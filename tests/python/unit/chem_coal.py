@@ -41,7 +41,6 @@ ambient_chem = dict((v, np.ones((1,)) ) for k,v in _Chem_g_id.iteritems())
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard77fast
-opts_init.sedi_switch = False
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
 except:

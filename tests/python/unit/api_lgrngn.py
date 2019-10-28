@@ -58,6 +58,7 @@ print "dt =", opts_init.dt
 print "chem_switch = ", opts_init.chem_switch
 print "coal_switch = ", opts_init.coal_switch
 print "sedi_switch = ", opts_init.sedi_switch
+print "subs_switch = ", opts_init.subs_switch
 print "src_switch = ", opts_init.src_switch
 
 print "exact_sstp_cond = ", opts_init.exact_sstp_cond
@@ -77,6 +78,7 @@ opts.cond=0
 opts.adve=1
 print "adve =", opts.adve
 print "sedi =", opts.sedi
+print "subs =", opts.subs
 print "cond =", opts.cond
 print "coal =", opts.coal
 print "src =", opts.src
@@ -98,7 +100,6 @@ print "chem_gas = ", opts.chem_gas
 # ----------
 # 0D (parcel)
 print "0D"
-opts_init.sedi_switch = False
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
@@ -449,7 +450,7 @@ opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
 
 opts_init.w_LS = zeros(opts_init.nz)
-opts_init.sedi_switch = True
+opts_init.subs_switch = True
 
 prtcls = lgrngn.factory(backend, opts_init)
 try:

@@ -19,7 +19,8 @@ Opts_init = lgrngn.opts_init_t()
 kappa = .61
 Opts_init.dry_distros = {kappa:lognormal}
 Opts_init.coal_switch = False
-Opts_init.sedi_switch = True
+Opts_init.sedi_switch = False
+Opts_init.subs_switch = True
 Opts_init.terminal_velocity = lgrngn.vt_t.beard76
 
 Opts_init.dt = 1
@@ -41,7 +42,8 @@ Backend = lgrngn.backend_t.serial
 
 Opts = lgrngn.opts_t()
 Opts.adve = False
-Opts.sedi = True
+Opts.sedi = False
+Opts.subs = True
 Opts.cond = False
 Opts.coal = False
 Opts.chem = False

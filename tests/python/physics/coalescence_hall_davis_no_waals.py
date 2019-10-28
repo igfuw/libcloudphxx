@@ -41,7 +41,6 @@ opts_init.nx = 1
 opts_init.nz = 1
 opts_init.x1 = 100
 opts_init.z1 = 1
-opts_init.sedi_switch = False
 
 rhod =   1. * np.ones((opts_init.nx, opts_init.nz))
 th   = 300. * np.ones((opts_init.nx, opts_init.nz))
