@@ -36,6 +36,7 @@ opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
 
 opts_init.chem_switch = True
+opts_init.sedi_switch = False
 opts_init.chem_rho = 1.8e-3
 ambient_chem = dict((v, np.ones((1,)) ) for k,v in _Chem_g_id.iteritems())
 

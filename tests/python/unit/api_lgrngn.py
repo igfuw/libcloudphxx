@@ -100,6 +100,7 @@ print "chem_gas = ", opts.chem_gas
 # ----------
 # 0D (parcel)
 print "0D"
+opts_init.sedi_switch = False
 rhod = arr_t([  1.])
 th   = arr_t([300.])
 rv   = arr_t([  0.01])
@@ -436,6 +437,7 @@ opts.turb_cond=False
 # ----------
 # 2D (periodic horizontal domain)
 print "2D"
+opts_init.sedi_switch = True
 rhod = arr_t([[  1.,    1.   ],     [   1.,     1.  ]])
 th   = arr_t([[300.,  300.   ],     [ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01 ],     [    .01,    .01]])

@@ -73,7 +73,7 @@ print "after 1s \n", tab_out
 # test results, note: some SDs may fall further than w_LS due to terminal velocities
 assert(tab_out[0][5] == 0.)
 assert(tab_out[0][4] == 0.)
-assert np.isclose(3000, tab_out[0][3], atol=3., rtol=0.)
-assert np.isclose(0, tab_out[0][2], atol=3., rtol=0.)
+assert(tab_out[0][3] == 3000.)
+assert(tab_out[0][2] == 0.)
 assert(tab_out[0][1] == 0.)
-assert np.isclose(3000, tab_out[0][0], atol=3., rtol=0.)
+assert(tab_out[0][0] == 3000.)
