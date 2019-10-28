@@ -12,11 +12,11 @@ namespace libcloudphxx
     namespace detail
     {
       template<class real_t>
-      struct sedi_with_vt
+      struct subsidence
       {
         const real_t dt;
 
-        sedi_with_vt(real_t _dt): dt(_dt) {}
+        subsidence(real_t _dt): dt(_dt) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t z, real_t v) const
@@ -27,16 +27,16 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::sedi()
+    void particles_t<real_t, device>::impl::subs()
     {   
       namespace arg = thrust::placeholders;
  
       // settling due to sedimentation + large-scale subsidence
       thrust::transform(
         z.begin(), z.end(),                    // position
-        vt.begin(),                                                    // terminal velocity 
+        thrust::make_permutation_iterator(w_LS.begin(), k.begin())     // large-scale subsidence velocity
         z.begin(),                         // output
-        detail::sedi_with_vt<real_t>(opts_init.dt)
+        detail::subsidence<real_t>(opts_init.dt)
       );
     }
   };  

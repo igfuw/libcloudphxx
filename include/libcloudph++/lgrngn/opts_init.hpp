@@ -105,6 +105,7 @@ namespace libcloudphxx
       bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
+           subs_switch,  // if false no subsidence throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
            exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
@@ -146,6 +147,7 @@ namespace libcloudphxx
         supstp_src(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
+        subs_switch(false),  // subsidence turned off by default
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),

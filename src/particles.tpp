@@ -87,6 +87,7 @@
 #include "impl/particles_impl_cond.ipp"
 #include "impl/particles_impl_cond_sstp.ipp"
 #include "impl/particles_impl_sedi.ipp"
+#include "impl/particles_impl_subs.ipp"
 #include "impl/particles_impl_coal.ipp"
 #include "impl/particles_impl_chem_ante.ipp"
 #include "impl/particles_impl_chem_henry.ipp"

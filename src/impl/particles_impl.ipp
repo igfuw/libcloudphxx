@@ -481,6 +481,7 @@ namespace libcloudphxx
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi();
+      void subs();
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
