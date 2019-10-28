@@ -34,7 +34,7 @@ namespace libcloudphxx
       // settling due to sedimentation + large-scale subsidence
       thrust::transform(
         z.begin(), z.end(),                    // position
-        thrust::make_permutation_iterator(w_LS.begin(), k.begin())     // large-scale subsidence velocity
+        thrust::make_permutation_iterator(w_LS.begin(), k.begin()),     // large-scale subsidence velocity
         z.begin(),                         // output
         detail::subsidence<real_t>(opts_init.dt)
       );
