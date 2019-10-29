@@ -9,23 +9,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {
-      template<class real_t>
-      struct subsidence
-      {
-        const real_t dt;
-
-        subsidence(real_t _dt): dt(_dt) {}
-
-        BOOST_GPU_ENABLED
-        real_t operator()(real_t z, real_t v) const
-        {
-          return z - dt * v;
-        };
-      };
-    };
-
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::subs()
     {   
@@ -36,7 +19,7 @@ namespace libcloudphxx
         z.begin(), z.end(),                    // position
         thrust::make_permutation_iterator(w_LS.begin(), k.begin()),     // large-scale subsidence velocity
         z.begin(),                         // output
-        detail::subsidence<real_t>(opts_init.dt)
+        arg::_1 - opts_init.dt * arg::_2   // Euler scheme (assuming w_LS positive for downoward motion!)
       );
     }
   };  
