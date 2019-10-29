@@ -1,6 +1,5 @@
 import sys
 sys.path.insert(0, "../../bindings/python/")
-sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
