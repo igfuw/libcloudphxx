@@ -36,6 +36,7 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   opts_init.terminal_velocity=lgrngn.vt_t.beard76
   opts_init.kernel = kernel
   opts_init.kernel_parameters = np.array([])
+  opts_init.sedi_switch = False
   if(kernel == lgrngn.kernel_t.onishi_hall_davis_no_waals or kernel == lgrngn.kernel_t.onishi_hall):
     opts_init.turb_coal_switch = True
     opts_init.kernel_parameters = np.array([100.]);

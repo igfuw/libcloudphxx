@@ -25,7 +25,6 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
-
       pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
       // is a constant pressure profile used?
@@ -55,8 +54,8 @@ namespace libcloudphxx
       if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
 
       if (pimpl->opts_init.chem_switch)
-	for (int i = 0; i < chem_gas_n; ++i)
-	  pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
+      for (int i = 0; i < chem_gas_n; ++i)
+        pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
 
       // feeding in Eulerian fields
       pimpl->sync(th,   pimpl->th);
@@ -69,8 +68,8 @@ namespace libcloudphxx
       if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
 
       if (pimpl->opts_init.chem_switch)
-	for (int i = 0; i < chem_gas_n; ++i)
-	  pimpl->sync(
+      for (int i = 0; i < chem_gas_n; ++i)
+        pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
