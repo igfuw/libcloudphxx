@@ -141,9 +141,9 @@ install:
     - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
 
 # get latest FindBoost.cmake
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake -P MyCmakeModules; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}:${PWD}/MyCmakeModules; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake -P MyCmakeModules; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}:${PWD}/MyCmakeModules; fi
 
 # get blitz and python+packages
 #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
