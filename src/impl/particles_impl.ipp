@@ -152,6 +152,8 @@ namespace libcloudphxx
 
       real_t lambda;
 
+      thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
+
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
@@ -290,6 +292,7 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
+        w_LS(opts_init.w_LS),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
@@ -478,6 +481,7 @@ namespace libcloudphxx
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi();
+      void subs();
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);

@@ -302,16 +302,11 @@ namespace libcloudphxx
 
       //sanity checks
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
-      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("all coalescence was switched off in opts_init");
-      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("all sedimentation was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("sedimentation was switched off in opts_init");
+      if(opts.subs && !pimpl->opts_init.subs_switch) throw std::runtime_error("subsidence was switched off in opts_init");
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
         throw std::runtime_error("all chemistry was switched off in opts_init");
-
-      if(opts.coal && !pimpl->opts_init.coal_switch) 
-        throw std::runtime_error("all coalescence was switched off in opts_init");
-
-      if(opts.sedi && !pimpl->opts_init.sedi_switch) 
-        throw std::runtime_error("all sedimentation was switched off in opts_init");
 
       if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
         throw std::runtime_error("turb_adve_switch=False, but turb_adve==True");
@@ -385,11 +380,16 @@ namespace libcloudphxx
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
       if (opts.turb_adve) pimpl->turb_adve();
 
-      // sedimentation has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
+      // sedimentation/subsidence has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
       {
         // advection with terminal velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
         pimpl->sedi();
+      }
+      if (opts.subs) 
+      {
+        // advection with subsidence velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
+        pimpl->subs();
       }
 
       // boundary condition + accumulated rainfall to be returned

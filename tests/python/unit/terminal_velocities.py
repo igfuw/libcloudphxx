@@ -28,6 +28,7 @@ opts_init.sd_conc = 50
 opts_init.n_sd_max = 50
 
 opts_init.kernel = lgrngn.kernel_t.geometric
+opts_init.sedi_switch = False
 
 Opts = lgrngn.opts_t()
 Opts.adve = False
