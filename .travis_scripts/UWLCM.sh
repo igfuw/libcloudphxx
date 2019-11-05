@@ -30,8 +30,7 @@ sudo make install
 cd ../../..
 
 ## UWLCM
-#TODO: rico branch is used, switch back to master once its merged
-git clone --branch=rico --depth=1 git://github.com/pdziekan/UWLCM.git
+git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
 . .travis_scripts/$1.sh
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
