@@ -37,9 +37,9 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
 ############################################################################################
 # see if CUDA is available
 
-option(LIBCLOUD_DISABLE_CUDA "LIBCLOUD_DISABLE_CUDA" False)
+option(LIBCLOUDPHXX_DISABLE_CUDA "LIBCLOUDPHXX_DISABLE_CUDA" False)
 
-if (NOT LIBCLOUD_DISABLE_CUDA)
+if (NOT LIBCLOUDPHXX_DISABLE_CUDA)
   include(CheckLanguage)
   check_language(CUDA)
 endif()

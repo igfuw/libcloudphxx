@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/libcloudph++/common/detail/toms748.hpp
+boost/math/tools/config.hpp
+-
+cfloat
+-
+cassert
+-
+
+/mnt/local/pzmij/UWLCM_singu/singularity/libcloudphxx/tests/toms748/test_toms748.cpp
+libcloudph++/common/detail/toms748.hpp
+-
+iostream
+-
+
