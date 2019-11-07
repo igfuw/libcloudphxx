@@ -56,6 +56,7 @@ def golovin(v,t,n0,v0,b):
 opts_init = lgrngn.opts_init_t()
 opts_init.dt = simulation_time
 opts_init.sstp_coal = simulation_time
+opts_init.sedi_switch = False
 
 rhod = 1. * np.ones((1,))
 th = 300. * np.ones((1,))

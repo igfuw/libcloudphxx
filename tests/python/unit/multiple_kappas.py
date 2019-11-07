@@ -43,6 +43,7 @@ opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.sedi_switch = False
 
 backend = lgrngn.backend_t.serial
 

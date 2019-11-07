@@ -10,16 +10,16 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::sedi()
+    void particles_t<real_t, device>::impl::subs()
     {   
       namespace arg = thrust::placeholders;
  
       // settling due to sedimentation + large-scale subsidence
       thrust::transform(
         z.begin(), z.end(),                    // position
-        vt.begin(),                                                    // terminal velocity 
+        thrust::make_permutation_iterator(w_LS.begin(), k.begin()),     // large-scale subsidence velocity
         z.begin(),                         // output
-        arg::_1 - opts_init.dt * arg::_2   // Euler scheme (assuming vt positive!)
+        arg::_1 - opts_init.dt * arg::_2   // Euler scheme (assuming w_LS positive for downoward motion!)
       );
     }
   };  

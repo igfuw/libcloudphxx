@@ -34,7 +34,7 @@ namespace libcloudphxx
 	quantity<si::dimensionless, real_t> RH
       )   
       {   
-        assert(RH > .1); // kappa-koehler assumes well dissolved matter
+        assert(RH > .05); // kappa-koehler assumes well dissolved matter
         assert(RH < 1.); // no equilibrium over RH=100%
         assert(kappa > 0); // pure-water case left out
 	return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
