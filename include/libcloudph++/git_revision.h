@@ -1,1 +1,0 @@
-#define LIBCLOUDPHXX_GIT_REVISION "a36bd97ba60c96918efdbc5ebfc7fc28e40a3ea6"

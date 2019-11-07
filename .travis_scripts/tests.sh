@@ -5,11 +5,7 @@ set -ex
 mkdir build 
 cd build
 # if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then cmake ../; fi 
-<<<<<<< HEAD
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
-=======
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC} -DBoost_NO_BOOST_CMAKE=ON; fi
->>>>>>> 305ab47a2923086d46c24bbba81c7be3ae1bfdd4
 cmake -DCMAKE_BUILD_TYPE=Debug ../
 VERBOSE=1 make
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
