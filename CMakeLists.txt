@@ -16,7 +16,6 @@ project(libcloudph++ LANGUAGES CXX)
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 
 #set(CMAKE_MACOSX_RPATH ON) # explicit, since policy CMP0042 didn't work...
-
 # using include() istead of find_package(libcloudph++) to use local CMake code
 # and not the system-installed one
 #include(${CMAKE_SOURCE_DIR}/libcloudph++-config.cmake)
@@ -37,8 +36,13 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
 
 ############################################################################################
 # see if CUDA is available
-include(CheckLanguage)
-check_language(CUDA)
+
+option(LIBCLOUDPHXX_DISABLE_CUDA "LIBCLOUDPHXX_DISABLE_CUDA" False)
+
+if (NOT LIBCLOUDPHXX_DISABLE_CUDA)
+  include(CheckLanguage)
+  check_language(CUDA)
+endif()
 
 if (NOT CMAKE_CUDA_COMPILER)
   message(STATUS "CUDA not found. 
