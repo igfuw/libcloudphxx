@@ -43,8 +43,7 @@ namespace libcloudphxx
       ) {
         if(ran_with_mpi())
           throw std::runtime_error("The Python bindings of libcloudph++ Lagrangian microphysics can't be used in MPI runs.");
-        auto ret = lgr::factory(backend, opts_init);
-        return ret;
+        return lgr::factory(backend, opts_init);
       }
 
       template <typename real_t>
@@ -330,6 +329,26 @@ namespace libcloudphxx
       )
       {
         throw std::runtime_error("kernel_paramteres does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void set_w_LS(
+        lgr::opts_init_t<real_t> *arg,
+        const bp_array &vec
+      )
+      {
+        sanity_checks(vec);
+        arg->w_LS.resize(0);
+        for (int i = 0; i < len(vec); ++i)
+          arg->w_LS.push_back(bp::extract<real_t>(vec[i]));
+      }
+
+      template <typename real_t>
+      bp_array get_w_LS(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("w_LS profile does not feature a getter yet - TODO");
       }
     };
   };

@@ -43,6 +43,7 @@ opts_init.dry_distros = {kappa:expvolumelnr}
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
 opts_init.chem_switch = True
+opts_init.sedi_switch = False
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76

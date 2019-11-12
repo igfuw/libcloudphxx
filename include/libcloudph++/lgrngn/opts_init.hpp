@@ -105,6 +105,7 @@ namespace libcloudphxx
       bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
+           subs_switch,  // if false no subsidence throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
            exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
@@ -126,8 +127,8 @@ namespace libcloudphxx
       // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
       int dev_id;
 
-      // large-scale horizontal wind divergence [1/s], used to calculate subsidence rate as -div_LS*z
-      real_t div_LS;
+      // subsidence rate profile, positive downwards [m/s]
+      std::vector<real_t> w_LS;
 
       real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
 
@@ -146,6 +147,7 @@ namespace libcloudphxx
         supstp_src(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
+        subs_switch(false),  // subsidence turned off by default
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),
@@ -165,7 +167,6 @@ namespace libcloudphxx
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0),
-        div_LS(0.),
         rd_min(0.)
       {}
 
