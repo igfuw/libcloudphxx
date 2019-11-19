@@ -211,7 +211,7 @@ namespace libcloudphxx
       template <typename real_t>
       bp::dict diag_puddle(lgr::particles_proto_t<real_t> *arg)
       {
-        typedef std::map<enum lgr::output_t, real_t> map_t;
+        typedef std::map<enum cmn::output_t, real_t> map_t;
         map_t map = arg->diag_puddle();
         bp::dict dict;
         for(auto& x : map)

@@ -174,7 +174,7 @@ namespace libcloudphxx
               );
 
               // add total liquid water volume that fell out in this step
-              output_puddle[outliq_vol] += 
+              output_puddle[libcloudphxx::common::outliq_vol] += 
                 thrust::transform_reduce(
                   thrust::make_zip_iterator(thrust::make_tuple(
                     n_filtered.begin(), rw2.begin())),           // input start
@@ -186,7 +186,7 @@ namespace libcloudphxx
                 );
 
               // add total dry volume that fell out in this step
-              output_puddle[outdry_vol] += 
+              output_puddle[libcloudphxx::common::outdry_vol] += 
                 thrust::transform_reduce(
                   thrust::make_zip_iterator(thrust::make_tuple(
                     n_filtered.begin(), rd3.begin())),           // input start
@@ -200,7 +200,7 @@ namespace libcloudphxx
               if(opts_init.chem_switch)
               {
                 for (int i = 0; i < chem_all; ++i)
-                  output_puddle[static_cast<output_t>(i)] += 
+                  output_puddle[static_cast<libcloudphxx::common::output_t>(i)] += 
                     thrust::transform_reduce(
                       thrust::make_zip_iterator(thrust::make_tuple(
                         n_filtered.begin(), chem_bgn[i])),           // input start

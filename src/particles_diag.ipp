@@ -425,7 +425,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    std::map<output_t, real_t> particles_t<real_t, device>::diag_puddle()
+    std::map<libcloudphxx::common::output_t, real_t> particles_t<real_t, device>::diag_puddle()
     {
       return pimpl->output_puddle;
     }

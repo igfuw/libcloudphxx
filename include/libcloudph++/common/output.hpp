@@ -3,7 +3,7 @@
 
 namespace libcloudphxx
 {
-  namespace lgrngn
+  namespace common
   {
     enum output_t // chem has to be first!
     {

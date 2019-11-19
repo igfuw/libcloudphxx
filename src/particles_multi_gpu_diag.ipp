@@ -16,11 +16,11 @@ namespace libcloudphxx
     namespace detail
     {
       template <class real_t>
-      std::map<output_t, real_t> empty_out_map()
+      std::map<libcloudphxx::common::output_t, real_t> empty_out_map()
       {
-        std::map<output_t, real_t> res;
+        std::map<libcloudphxx::common::output_t, real_t> res;
         for(int i=0; i < chem_all+2; ++i) 
-          res[static_cast<output_t>(i)] = 0.;
+          res[static_cast<libcloudphxx::common::output_t>(i)] = 0.;
         return res;
       }
     }
@@ -157,17 +157,17 @@ namespace libcloudphxx
     }
 
     template<class real_t>
-    std::map<output_t, real_t> add_puddle(std::map<output_t, real_t> x, std::map<output_t, real_t> y){
-      std::map<output_t, real_t> res;
+    std::map<libcloudphxx::common::output_t, real_t> add_puddle(std::map<libcloudphxx::common::output_t, real_t> x, std::map<libcloudphxx::common::output_t, real_t> y){
+      std::map<libcloudphxx::common::output_t, real_t> res;
       for(int i=0; i < chem_all+2; ++i) 
-        res[static_cast<output_t>(i)] = x[static_cast<output_t>(i)] + y[static_cast<output_t>(i)];
+        res[static_cast<libcloudphxx::common::output_t>(i)] = x[static_cast<libcloudphxx::common::output_t>(i)] + y[static_cast<libcloudphxx::common::output_t>(i)];
       return res;
     }
 
     template <typename real_t>
-    std::map<output_t, real_t> particles_t<real_t, multi_CUDA>::diag_puddle()
+    std::map<libcloudphxx::common::output_t, real_t> particles_t<real_t, multi_CUDA>::diag_puddle()
     {
-      using pudmap_t = std::map<output_t, real_t>;
+      using pudmap_t = std::map<libcloudphxx::common::output_t, real_t>;
       pudmap_t res = detail::empty_out_map<real_t>();
 
       std::vector<std::future<pudmap_t>> futures(this->opts_init->dev_count);
