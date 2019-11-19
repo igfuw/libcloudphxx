@@ -57,7 +57,7 @@ namespace libcloudphxx
 
       // init output map to 0
       for(int i=0; i < chem_all+2; ++i)
-        pimpl->output_puddle[static_cast<output_t>(i)] = 0.;
+        pimpl->output_puddle[static_cast<libcloudphxx::common::output_t>(i)] = 0.;
     }
 
     // dtor

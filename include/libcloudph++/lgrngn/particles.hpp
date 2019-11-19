@@ -3,7 +3,7 @@
 #include <libcloudph++/lgrngn/extincl.hpp>
 
 #include "opts.hpp"
-#include "output.hpp"
+#include "../common/output.hpp"
 #include "opts_init.hpp"
 #include "arrinfo.hpp"
 #include "backend.hpp"
@@ -93,7 +93,7 @@ namespace libcloudphxx
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
       virtual void diag_max_rw()                                    { assert(false); }
       virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<output_t, real_t> diag_puddle()              { assert(false); return std::map<output_t, real_t>(); }
+      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()              { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                      { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
@@ -182,7 +182,7 @@ namespace libcloudphxx
       void diag_kappa(const int&);
       void diag_max_rw();
       void diag_vel_div();
-      std::map<output_t, real_t> diag_puddle();
+      std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
 
       struct impl;
@@ -274,7 +274,7 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
-      std::map<output_t, real_t> diag_puddle();
+      std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
 
       struct impl;
       std::unique_ptr<impl> pimpl;

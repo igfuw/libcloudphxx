@@ -2,7 +2,7 @@
 
 namespace libcloudphxx
 {
-  namespace lgrngn
+  namespace common
   {
     enum chem_species_t 
     {
