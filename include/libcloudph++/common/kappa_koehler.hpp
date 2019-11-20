@@ -1,9 +1,9 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/kelvin_term.hpp>
-#include <libcloudph++/common/detail/toms748.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "kelvin_term.hpp"
+#include "detail/toms748.hpp"
 
 namespace libcloudphxx
 {

@@ -6,9 +6,9 @@
  *    GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 #pragma once
-#include <libcloudph++/common/units.hpp> // TODO: do detail?
-#include <libcloudph++/common/macros.hpp> // TODO: do detail?
-#include <libcloudph++/common/moist_air.hpp> // TODO: do detail?
+#include "units.hpp" // TODO: do detail?
+#include "macros.hpp" // TODO: do detail?
+#include "moist_air.hpp" // TODO: do detail?
 
 namespace libcloudphxx
 {

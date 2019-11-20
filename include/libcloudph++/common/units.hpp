@@ -21,7 +21,7 @@
    using boost::units::power_typeof_helper;
    using boost::units::static_rational;
 #else
-#  include <libcloudph++/common/detail/fake_units.hpp>  
+#  include "detail/fake_units.hpp"  
    namespace si = libcloudphxx::common::detail::fake_units::si;
    using libcloudphxx::common::detail::fake_units::quantity;
    using libcloudphxx::common::detail::fake_units::divide_typeof_helper;
