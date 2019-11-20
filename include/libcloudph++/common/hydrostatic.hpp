@@ -1,9 +1,9 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/earth.hpp>
-#include <libcloudph++/common/theta_std.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "earth.hpp"
+#include "theta_std.hpp"
 
 namespace libcloudphxx
 {
