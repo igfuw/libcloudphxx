@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <libcloudph++/lgrngn/extincl.hpp>
+#include "extincl.hpp"
 
 #include "opts.hpp"
 #include "../common/output.hpp"
