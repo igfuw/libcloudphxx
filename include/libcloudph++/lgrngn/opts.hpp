@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <libcloudph++/lgrngn/extincl.hpp>
-#include <libcloudph++/lgrngn/chem.hpp>
+#include "extincl.hpp"
+#include "../common/chem.hpp"
 
 namespace libcloudphxx
 {
