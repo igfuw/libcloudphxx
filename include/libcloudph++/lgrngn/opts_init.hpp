@@ -13,7 +13,7 @@
 #include <libcloudph++/lgrngn/SGS_length_scale.hpp>
 #include <libcloudph++/lgrngn/advection_scheme.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
-#include <libcloudph++/lgrngn/chem.hpp>
+#include "../common/chem.hpp"
 
 namespace libcloudphxx
 {
