@@ -84,12 +84,12 @@ namespace libcloudphxx
         const bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, const lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, const lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -120,12 +120,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -159,12 +159,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -193,12 +193,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
