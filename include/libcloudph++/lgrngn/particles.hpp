@@ -12,7 +12,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace cmn = libcloudphxx::common;
     // to allow storing instances for multiple backends in one container/pointer
     template <typename real_t>
     struct particles_proto_t 
@@ -26,7 +25,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        const std::map<enum cmn::chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, const arrinfo_t<real_t> >()
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, const arrinfo_t<real_t> >()
       ) { 
         assert(false);
       }  
@@ -41,7 +40,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(), // TKE dissipation rate (epsilon)
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, arrinfo_t<real_t> >()
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
       }  
@@ -54,7 +53,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(),
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, arrinfo_t<real_t> >()
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
       }  
@@ -63,7 +62,7 @@ namespace libcloudphxx
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, arrinfo_t<real_t> >()
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
       }  
@@ -88,7 +87,7 @@ namespace libcloudphxx
       virtual void diag_dry_mom(const int&)                         { assert(false); }
       virtual void diag_wet_mom(const int&)                         { assert(false); }
       virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
-      virtual void diag_chem(const enum cmn::chem_species_t&)            { assert(false); }
+      virtual void diag_chem(const enum chem_species_t&)            { assert(false); }
       virtual void diag_precip_rate()                               { assert(false); }
       virtual void diag_kappa_mom(const int&)                       { assert(false); }
       virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
@@ -119,7 +118,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y, 
         const arrinfo_t<real_t> courant_z,
-        const std::map<enum cmn::chem_species_t, const arrinfo_t<real_t> > ambient_chem
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
       );
       // time-stepping methods
       void step_sync(
@@ -131,7 +130,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> diss_rate,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
 
       void sync_in(
@@ -142,14 +141,14 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> diss_rate,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
       );
 
       void step_cond(
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, arrinfo_t<real_t> >()
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       );
 
       void step_async(
@@ -175,7 +174,7 @@ namespace libcloudphxx
       void diag_kappa_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
-      void diag_chem(const enum cmn::chem_species_t&);
+      void diag_chem(const enum chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
@@ -214,7 +213,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y, 
         const arrinfo_t<real_t> courant_z,
-        const std::map<enum cmn::chem_species_t, const arrinfo_t<real_t> > ambient_chem 
+        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem 
       );
 
       // time-stepping methods
@@ -227,7 +226,7 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> diss_rate,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem 
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
 
       void sync_in(
@@ -238,14 +237,14 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
         const arrinfo_t<real_t> diss_rate,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem 
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
 
       void step_cond(
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        std::map<enum cmn::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum cmn::chem_species_t, arrinfo_t<real_t> >()
+        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
       );
 
       void step_async(
@@ -268,7 +267,7 @@ namespace libcloudphxx
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 
-      void diag_chem(const enum cmn::chem_species_t&);
+      void diag_chem(const enum chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
