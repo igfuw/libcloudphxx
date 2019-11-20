@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <libcloudph++/lgrngn/extincl.hpp>
-#include <libcloudph++/lgrngn/kernel.hpp>
-#include <libcloudph++/lgrngn/terminal_velocity.hpp>
-#include <libcloudph++/lgrngn/SGS_length_scale.hpp>
-#include <libcloudph++/lgrngn/advection_scheme.hpp>
-#include <libcloudph++/lgrngn/RH_formula.hpp>
+#include "extincl.hpp"
+#include "kernel.hpp"
+#include "terminal_velocity.hpp"
+#include "SGS_length_scale.hpp"
+#include "advection_scheme.hpp"
+#include "RH_formula.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
