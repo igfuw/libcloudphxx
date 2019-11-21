@@ -85,12 +85,12 @@ namespace libcloudphxx
         const bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, const lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, const lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -121,12 +121,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -160,12 +160,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -194,12 +194,12 @@ namespace libcloudphxx
         bp::dict &ambient_chem
       )
       {
-        typedef std::map<enum lgr::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
+        typedef std::map<enum cmn::chem::chem_species_t, lgr::arrinfo_t<real_t> > map_t;
         map_t map;
 
         for (int i = 0; i < len(ambient_chem.keys()); ++i)
           map.insert(typename map_t::value_type(
-            bp::extract<enum lgr::chem_species_t>(ambient_chem.keys()[i]),
+            bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
 
@@ -217,7 +217,7 @@ namespace libcloudphxx
       template <typename real_t>
       bp::dict diag_puddle(lgr::particles_proto_t<real_t> *arg)
       {
-        typedef std::map<enum lgr::output_t, real_t> map_t;
+        typedef std::map<enum cmn::output_t, real_t> map_t;
         map_t map = arg->diag_puddle();
         bp::dict dict;
         for(auto& x : map)

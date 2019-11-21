@@ -151,7 +151,7 @@ namespace libcloudphxx
       std::map<enum chem_species_t, thrust_device::vector<real_t> > ambient_chem;
 
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
-      std::map<enum output_t, real_t> output_puddle;
+      std::map<enum common::output_t, real_t> output_puddle;
   
       thrust_device::vector<real_t> 
         T,  // temperature [K]

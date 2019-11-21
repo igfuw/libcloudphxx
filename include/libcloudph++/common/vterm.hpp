@@ -1,10 +1,10 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/earth.hpp>
-#include <libcloudph++/common/const_cp.hpp>
-#include <libcloudph++/common/kelvin_term.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "earth.hpp"
+#include "const_cp.hpp"
+#include "kelvin_term.hpp"
 
 // TODO: rename all such files to paper labels?
 

@@ -20,6 +20,8 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    using namespace common::chem;
+
     // ctor
     template <typename real_t, backend_t device>
     particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, int n_x_tot)
@@ -57,7 +59,7 @@ namespace libcloudphxx
 
       // init output map to 0
       for(int i=0; i < chem_all+2; ++i)
-        pimpl->output_puddle[static_cast<output_t>(i)] = 0.;
+        pimpl->output_puddle[static_cast<common::output_t>(i)] = 0.;
     }
 
     // dtor

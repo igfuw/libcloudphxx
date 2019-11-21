@@ -1,8 +1,8 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/const_cp.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "const_cp.hpp"
 
 namespace libcloudphxx
 {

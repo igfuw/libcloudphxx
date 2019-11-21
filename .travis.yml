@@ -168,11 +168,11 @@ install:
       #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
       # https://github.com/pypa/pip/issues/3165
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U matplotlib --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install --only-binary=numpy,scipy numpy scipy --ignore-installed six; fi
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then \curl -sSL https://get.rvm.io | bash -s -- --branch stable; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm reload; fi
