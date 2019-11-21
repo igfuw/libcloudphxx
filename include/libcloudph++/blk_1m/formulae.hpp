@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <libcloudph++/common/moist_air.hpp>
+#include "../common/moist_air.hpp"
 
 namespace libcloudphxx
 {

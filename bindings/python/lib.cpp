@@ -228,15 +228,15 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("euler", lgr::as_t::euler)
       .value("pred_corr", lgr::as_t::pred_corr);
 
-    bp::enum_<lgr::chem_species_t>("chem_species_t")
-      .value("H",    lgr::H)
-      .value("SO2",  lgr::SO2)
-      .value("O3",   lgr::O3)
-      .value("H2O2", lgr::H2O2)
-      .value("CO2",  lgr::CO2)
-      .value("NH3",  lgr::NH3)
-      .value("HNO3", lgr::HNO3)
-      .value("S_VI", lgr::S_VI);
+    bp::enum_<cmn::chem::chem_species_t>("chem_species_t")
+      .value("H",    cmn::chem::H)
+      .value("SO2",  cmn::chem::SO2)
+      .value("O3",   cmn::chem::O3)
+      .value("H2O2", cmn::chem::H2O2)
+      .value("CO2",  cmn::chem::CO2)
+      .value("NH3",  cmn::chem::NH3)
+      .value("HNO3", cmn::chem::HNO3)
+      .value("S_VI", cmn::chem::S_VI);
     // classes
     bp::class_<lgr::opts_t<real_t>>("opts_t")
       .def_readwrite("adve", &lgr::opts_t<real_t>::adve)

@@ -5,7 +5,9 @@
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
-#include <libcloudph++/lgrngn/chem.hpp>
+#include <libcloudph++/common/chem.hpp>
+
+using namespace libcloudphxx::common::chem;
 
 // @brief a minimalistic kinematic cloud model with lagrangian microphysics
 //        built on top of the mpdata_2d solver (by extending it with
@@ -34,10 +36,10 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         parent_t::prtcls->diag_wet_rng(rng.first / si::metres, rng.second / si::metres);
         for (auto &mom : rng_moms.second)
         {
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::S_VI);
+          parent_t::prtcls->diag_chem(chem_species_t::S_VI);
           this->record_aux(this->aux_name("chem_S_VI_rw", rng_num, mom), parent_t::prtcls->outbuf());
  
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::H);
+          parent_t::prtcls->diag_chem(chem_species_t::H);
           this->record_aux(this->aux_name("chem_H_rw", rng_num, mom), parent_t::prtcls->outbuf());
         }
         rng_num++;
@@ -55,28 +57,28 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         auto &rng(rng_moms.first);
         parent_t::prtcls->diag_dry_rng(rng.first / si::metres, rng.second / si::metres);
          
-        //TODO: for (auto &chem_enum : libcloudphxx::lgrngn::chem_species_t)
+        //TODO: for (auto &chem_enum : chem_species_t)
         {
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::SO2);
+          parent_t::prtcls->diag_chem(chem_species_t::SO2);
           this->record_aux("chem_S_IV_aq", parent_t::prtcls->outbuf());
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::S_VI);
+          parent_t::prtcls->diag_chem(chem_species_t::S_VI);
           this->record_aux("chem_S_VI_aq", parent_t::prtcls->outbuf());
 
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::O3);
+          parent_t::prtcls->diag_chem(chem_species_t::O3);
           this->record_aux("chem_O3_aq", parent_t::prtcls->outbuf());
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::H2O2);
+          parent_t::prtcls->diag_chem(chem_species_t::H2O2);
           this->record_aux("chem_H2O2_aq", parent_t::prtcls->outbuf());
 
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::H);
+          parent_t::prtcls->diag_chem(chem_species_t::H);
           this->record_aux("chem_H_aq", parent_t::prtcls->outbuf());
 
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::CO2);
+          parent_t::prtcls->diag_chem(chem_species_t::CO2);
           this->record_aux("chem_C_IV_aq", parent_t::prtcls->outbuf());
 
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::NH3);
+          parent_t::prtcls->diag_chem(chem_species_t::NH3);
           this->record_aux("chem_N_III_aq", parent_t::prtcls->outbuf());
 
-          parent_t::prtcls->diag_chem(libcloudphxx::lgrngn::chem_species_t::HNO3);
+          parent_t::prtcls->diag_chem(chem_species_t::HNO3);
           this->record_aux("chem_N_V_aq", parent_t::prtcls->outbuf());
         }
       }
@@ -176,14 +178,14 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
 
         assert(parent_t::params.cloudph_opts_init.chem_switch == true);
 
-        std::map<enum libcloudphxx::lgrngn::chem_species_t, const libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem_init;
+        std::map<enum chem_species_t, const libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem_init;
         boost::assign::insert(ambient_chem_init)
-          (libcloudphxx::lgrngn::chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-          (libcloudphxx::lgrngn::chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-          (libcloudphxx::lgrngn::chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-          (libcloudphxx::lgrngn::chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-          (libcloudphxx::lgrngn::chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-          (libcloudphxx::lgrngn::chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
+          (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
+          (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
+          (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
+          (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
+          (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
+          (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
 
         // TODO!!! 
         // why we need those is beyond me, but apparently without it
@@ -241,14 +243,14 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
 
       assert(parent_t::params.cloudph_opts_init.chem_switch == true);
 
-      std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem;
+      std::map<enum chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem;
       boost::assign::insert(ambient_chem)
-        (libcloudphxx::lgrngn::chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-        (libcloudphxx::lgrngn::chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-        (libcloudphxx::lgrngn::chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-        (libcloudphxx::lgrngn::chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-        (libcloudphxx::lgrngn::chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-        (libcloudphxx::lgrngn::chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
+        (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
+        (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
+        (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
+        (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
+        (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
+        (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
 
       // running synchronous stuff
       parent_t::prtcls->step_sync(

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libcloudph++/common/const_cp.hpp>
+#include "const_cp.hpp"
 
 // theta dry: \theta = (p_1000 / p_dry)^{R_d / c_{pd}}
 // theta std: \theta = (p_1000 / p)^{R_d / c_{pd}}

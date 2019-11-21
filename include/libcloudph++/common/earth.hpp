@@ -1,8 +1,8 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/moist_air.hpp>//TODO better name
+#include "units.hpp"
+#include "macros.hpp"
+#include "moist_air.hpp"//TODO better name
 
 namespace libcloudphxx
 {
