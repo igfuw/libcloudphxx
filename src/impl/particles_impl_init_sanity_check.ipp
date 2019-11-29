@@ -74,39 +74,47 @@ namespace libcloudphxx
       if(opts_init.sd_const_multi > 0 && opts_init.src_switch)
         throw std::runtime_error("aerosol source and constant multiplicity option are not compatible");
 
-        if (n_dims > 0)
-        {
-          if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
-            throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)");
-          if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)");
-          if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)");
-          // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
-//        if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
-//            throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
-          if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
-            throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
-          if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
-            throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
-        }
+      if (n_dims > 0)
+      {
+        if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
+          throw std::runtime_error("!(x0 >= 0 & x0 < min(1,nx)*dz)");
+        if (!(opts_init.y0 >= 0 && opts_init.y0 < m1(opts_init.ny) * opts_init.dy))
+          throw std::runtime_error("!(y0 >= 0 & y0 < min(1,ny)*dy)");
+        if (!(opts_init.z0 >= 0 && opts_init.z0 < m1(opts_init.nz) * opts_init.dz))
+          throw std::runtime_error("!(z0 >= 0 & z0 < min(1,nz)*dz)");
+        // check temporarily disabled since dewv_id is not passed anymore, TODO: fix it
+//      if (!(opts_init.x1 > opts_init.x0 && opts_init.x1 <= m1(opts_init.nx) * opts_init.dx) && dev_id == -1) // only for single device runs, since on multi_CUDA x1 is not yet adjusted to local domain
+//          throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+        if (!(opts_init.y1 > opts_init.y0 && opts_init.y1 <= m1(opts_init.ny) * opts_init.dy))
+          throw std::runtime_error("!(y1 > y0 & y1 <= min(1,ny)*dy)");
+        if (!(opts_init.z1 > opts_init.z0 && opts_init.z1 <= m1(opts_init.nz) * opts_init.dz))
+          throw std::runtime_error("!(z1 > z0 & z1 <= min(1,nz)*dz)");
+      }
 
-        if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
-        if (opts_init.sd_conc * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc or opts_init.sd_const_multi, not both");
-        if (opts_init.sd_conc == 0 && opts_init.sd_const_multi == 0 && opts_init.dry_sizes.size() == 0) throw std::runtime_error("please specify opts_init.sd_conc, opts_init.sd_const_multi or opts_init.dry_sizes");
-        if (opts_init.coal_switch)
-        {
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
-          if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
-        }
-        if (opts_init.sedi_switch)
-          if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
-        if (opts_init.sedi_switch && opts_init.nz == 0)
-          throw std::runtime_error("opts_init.sedi_switch can be True only if n_dims > 1");
-        if (opts_init.subs_switch && opts_init.nz == 0)
-          throw std::runtime_error("opts_init.subs_switch can be True only if n_dims > 1");
-        if (opts_init.subs_switch && opts_init.nz != w_LS.size())
-          throw std::runtime_error("opts_init.subs_switch == True, but subsidence velocity profile size != nz");
+      if (opts_init.dt == 0) throw std::runtime_error("please specify opts_init.dt");
+      if (opts_init.sd_conc * opts_init.sd_const_multi != 0) throw std::runtime_error("specify either opts_init.sd_conc or opts_init.sd_const_multi, not both");
+      if (opts_init.sd_conc == 0 && opts_init.sd_const_multi == 0 && opts_init.dry_sizes.size() == 0) throw std::runtime_error("please specify opts_init.sd_conc, opts_init.sd_const_multi or opts_init.dry_sizes");
+      if (opts_init.coal_switch)
+      {
+        if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.coal_switch");
+        if(opts_init.kernel == kernel_t::undefined) throw std::runtime_error("please specify opts_init.kernel");
+      }
+      if (opts_init.sedi_switch)
+        if(opts_init.terminal_velocity == vt_t::undefined) throw std::runtime_error("please specify opts_init.terminal_velocity or turn off opts_init.sedi_switch");
+      if (opts_init.sedi_switch && opts_init.nz == 0)
+        throw std::runtime_error("opts_init.sedi_switch can be True only if n_dims > 1");
+      if (opts_init.subs_switch && opts_init.nz == 0)
+        throw std::runtime_error("opts_init.subs_switch can be True only if n_dims > 1");
+      if (opts_init.turb_adve_switch && opts_init.nz == 0)
+        throw std::runtime_error("opts_init.turb_adve_switch can be True only if n_dims > 1");
+      if (opts_init.turb_cond_switch && opts_init.nz == 0)
+        throw std::runtime_error("opts_init.turb_cond_switch can be True only if n_dims > 1");
+      if (opts_init.subs_switch && opts_init.nz != w_LS.size())
+        throw std::runtime_error("opts_init.subs_switch == True, but subsidence velocity profile size != nz");
+      if ((opts_init.turb_adve_switch || opts_init.turb_cond_switch) && opts_init.nz != SGS_mix_len.size())
+        throw std::runtime_error("at least one of opts_init.turb_adve_switch, opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
+      if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
+        throw std::runtime_error("SGS_mix_len <= 0");
     }
   };
 };
