@@ -180,7 +180,7 @@ namespace libcloudphxx
         quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
 
         return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
-          cbrt(real_t(rw3 / si::cubic_metres)) * si::metres, 
+          real_t(cbrt(real_t(rw3 / si::cubic_metres))) * si::metres, 
           T
         );
       }
