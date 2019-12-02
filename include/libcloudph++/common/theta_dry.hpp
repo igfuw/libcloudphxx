@@ -27,7 +27,7 @@ namespace libcloudphxx
       ) {
         return si::kelvins * pow(
           th / si::kelvins
-          * pow(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins, R_d<real_t>() / c_pd<real_t>()), 
+          * pow(real_t(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins), real_t(R_d<real_t>() / c_pd<real_t>())), 
           c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
         );
       }

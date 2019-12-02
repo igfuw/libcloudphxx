@@ -40,22 +40,29 @@ namespace libcloudphxx
           // cast to real_t
           BOOST_GPU_ENABLED inline operator real_t() const { return value; }
       };
-/*
-        // pow function
+
+      // pow function
+#if !defined(__NVCC__)
       template <typename qntt_t, typename real_t>
         BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> pow(
           const quantity<qntt_t, real_t> &a,
           const quantity<qntt_t, real_t> &b
         )
         {
-#if !defined(__NVCC__)
           return quantity<qntt_t, real_t>(std::pow(a.value, b.value));
-#else
-          return quantity<qntt_t, real_t>(pow(a.value, b.value));
-#endif
         }
+#else
+      template <typename real_t>
+        BOOST_GPU_ENABLED inline real_t pow(
+          const real_t &a,
+          const real_t &b
+        )
+        {
+          return pow(a, b);
+        }
+#endif
 
-
+/*
         // sqrt function
       template <typename qntt_t, typename real_t>
         BOOST_GPU_ENABLED inline quantity<qntt_t, real_t> sqrt(

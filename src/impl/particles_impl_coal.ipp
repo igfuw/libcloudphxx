@@ -92,12 +92,12 @@ namespace libcloudphxx
 	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
 
 	// wet radius change (eq. 13 in Shima et al. 2009)
-	thrust::get<rw2_b>(tpl) = pow(
-	  col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
-	  pow(thrust::get<rw2_b>(tpl), real_t(3./2))
-	  ,
-	  real_t(2./3)
-	);
+  const real_t rw_b = cbrt(
+	  col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+	  thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
+  );
+
+	thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
 	// dry radius change (eq. 13 in Shima et al. 2009)
 	thrust::get<rd3_b>(tpl) 
