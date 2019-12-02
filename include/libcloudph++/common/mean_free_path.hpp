@@ -19,15 +19,14 @@ namespace libcloudphxx
       {
         using moist_air::R_v;
         using moist_air::D_0; // TODO: perhaps D as a parameter to allow it to vary with T,p?
-using std::pow;
-
-        return real_t(2) * D_0<real_t>() / (
-          pow(
-            real_t(2) * R_v<real_t>() * T
-            / si::metres_per_second / si::metres_per_second, // boost::pow works for double only :(
-            real_t(.5)
-          ) * si::metres_per_second
-        );
+#if !defined(__NVCC__)
+        //using std::sqrt;
+#endif
+        return real_t(2) * (D_0<real_t>() / si::metres_per_second) / (
+          sqrt(
+            real_t(2) * real_t((R_v<real_t>() / si::joules * si::kilograms) * T
+          ) )
+          );
       }
 
       // eq. 6.33 in Williams and Loyalka 1991
@@ -40,15 +39,13 @@ using std::pow;
       {
         using moist_air::R_d;
         using moist_air::K_0;
-using std::pow;
+//using std::pow;
 
-        return real_t(4./5) * K_0<real_t>() * T / p / (
-          pow(
-            real_t(2) * R_d<real_t>() * T
-            / si::metres_per_second / si::metres_per_second, 
-            real_t(.5)
-          ) * si::metres_per_second
-        );
+        return real_t(.8) * (K_0<real_t>() * T / p / si::metres_per_second) / (
+          sqrt(
+            real_t(2) * real_t((R_d<real_t>() / si::joules * si::kilograms) * T
+          ) )
+          );
       }
     };
   };

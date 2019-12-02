@@ -24,9 +24,10 @@ namespace libcloudphxx
       ) 
       {  
         using const_cp::T_tri;
+        const real_t T_over_T_tri = T/T_tri<real_t>();
  
         return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
-          * real_t(pow(T/T_tri<real_t>(), real_t(3./2))) * si::kilograms / si::metres / si::seconds;
+          * T_over_T_tri * sqrt(T_over_T_tri) * si::kilograms / si::metres / si::seconds;
       }
 
       // terminal fall velocity of spherical droplets 
@@ -56,11 +57,12 @@ namespace libcloudphxx
 
         /// terminal velocity parametrisation coeffs 
         /// eqs 2.12, 2.13 in @copydetails Khvorostyanov_and_Curry_2002 J. Atmos. Sci 
-        quantity<si::dimensionless, double> b = double(.0902/2) * sqrt(X)
-          * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), -1)
-          * pow(sqrt(double(1)+double(.0902)*sqrt(X)), -1) ;
+        quantity<si::dimensionless, double> b = double(.0902/2) * sqrt(X) / 
+          ( (sqrt(double(1)+double(.0902)*sqrt(X))-double(1))
+          * (sqrt(double(1)+double(.0902)*sqrt(X)))) ;
+        const double pow_hlpr = sqrt(double(1)+double(.0902)*sqrt(X))-double(1);
         quantity<si::dimensionless, double> a = double(9.06 * 9.06 / 4)
-          * pow(sqrt(double(1)+double(.0902)*sqrt(X))-double(1), 2) / pow(X,b) ;
+          * pow_hlpr * pow_hlpr / pow(X,b) ;
 
         quantity<si::dimensionless, double> Av;
         quantity<si::dimensionless, double> Bv;
@@ -143,13 +145,13 @@ namespace libcloudphxx
           using earth::p_stp;
           quantity<si::length, real_t> l_0(6.62e-8 * si::metres);
           quantity<si::length, real_t> l(l_0 * (eta / eta_0) * sqrt(p_stp<real_t>() / p * rho_stp<real_t>() / rhoa));
-          return (eta_0 / eta) * (1 + 1.255 * (l / r)) / (1 + 1.255 * (l_0 / r));
+          return (eta_0 / eta) * (1 + real_t(1.255) * (l / r)) / (1 + real_t(1.255) * (l_0 / r));
         }
         else
         {
-          real_t eps_s = (eta_0 / eta) - 1.;
-          real_t eps_c = sqrt(rho_stp<real_t>() / rhoa) - 1.;
-          return 1.104 * eps_s + ( (1.058*eps_c - 1.104*eps_s) * (5.52 + log(2*100 * (r / si::metres)))/5.01) +1.;
+          real_t eps_s = (eta_0 / eta) - 1;
+          real_t eps_c = sqrt(rho_stp<real_t>() / rhoa) - 1;
+          return real_t(1.104) * eps_s + ( (real_t(1.058)*eps_c - real_t(1.104)*eps_s) * (real_t(5.52) + log(2*100 * (r / si::metres)))/real_t(5.01)) +1;
         }
       }
  
@@ -171,7 +173,7 @@ namespace libcloudphxx
 
         if(r <= quantity<si::length, real_t>(real_t(9.5e-6) * si::meters)) //TODO: < 0.5um
         {
-          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
+          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  sqrt(real_t(T / si::kelvins) / real_t(293.15)) );
           quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
           return ( (rho_w<real_t>()-rhoa) * g<real_t>() / ( real_t(4.5) * eta) * C_ac * r *r);
         } 
@@ -179,7 +181,7 @@ namespace libcloudphxx
         else if(r <= quantity<si::length, real_t>(real_t(5.035e-4) * si::meters))
         {
           const double b[7] = { -0.318657e1, 0.992696, -0.153193e-2, -0.987059e-3, -0.578878e-3, 0.855176e-4,-0.327815e-5};
-          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  pow(T / si::kelvins / real_t(293.15), real_t(1./2.)) );
+          quantity<si::dimensionless, real_t> l = ( real_t(6.62e-8)  * (eta / si::pascals / si::seconds/ real_t(1.818e-5) )  * (p_stp<real_t>() / p)  *  sqrt(real_t(T / si::kelvins) / real_t(293.15)) );
           quantity<si::dimensionless, real_t> C_ac = real_t(1.) + real_t(1.255) * l * si::meters / r;
           quantity<si::dimensionless, real_t> log_N_Da = log( real_t(32./3.) * r * r * r * rhoa * (rho_w<real_t>() - rhoa) * g<real_t>() / eta / eta );
           quantity<si::dimensionless, real_t> Y = 0.;

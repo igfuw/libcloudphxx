@@ -78,11 +78,11 @@ namespace libcloudphxx
 	  real_t operator()(real_t rw3) const
 	  {
 #if !defined(__NVCC__)
-	    using std::pow;
+	    //using std::pow;
 #endif
 	    return this->RH
 	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
-	      * kelvin::klvntrm(pow(rw3, real_t(1./3)) * si::metres, this->T); 
+	      * kelvin::klvntrm(cbrt(rw3) * si::metres, this->T); 
 	  }
 	};  
 
@@ -106,12 +106,12 @@ namespace libcloudphxx
           real_t operator()(real_t rw3) const
           {
 #if !defined(__NVCC__)
-	    using std::pow;
+	    //using std::pow;
 #endif
             return (kelvin::A(T) 
               * (rd3 - rw3 * si::cubic_metres) 
               * ((kappa - 1) * rd3 + rw3 * si::cubic_metres) 
-              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * si::cubic_metres * si::metres
+              + 3 * kappa * rd3 * rw3 * cbrt(rw3) * si::cubic_metres * si::metres
             ) / si::cubic_metres / si::cubic_metres / si::metres;
           }
         };
@@ -175,12 +175,12 @@ namespace libcloudphxx
       {
         assert(kappa > 0); // pure-water case left out
 #if !defined(__NVCC__)
-        using std::pow;
+        //using std::pow;
 #endif
         quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
 
         return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
-          pow(rw3 / si::cubic_metres, real_t(1./3)) * si::metres, 
+          cbrt(rw3 / si::cubic_metres) * si::metres, 
           T
         );
       }
