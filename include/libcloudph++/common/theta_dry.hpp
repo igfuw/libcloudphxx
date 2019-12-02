@@ -25,11 +25,11 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &th, // theta dry!!!
         const quantity<si::mass_density, real_t> &rhod
       ) {
-        return si::kelvins * pow(
-          th / si::kelvins
+        return pow(
+          real_t(th / si::kelvins)
           * pow(real_t(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins), real_t(R_d<real_t>() / c_pd<real_t>())), 
-          c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
-        );
+          real_t(c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>()))
+        ) * si::kelvins;
       }
 
       template <typename real_t>
