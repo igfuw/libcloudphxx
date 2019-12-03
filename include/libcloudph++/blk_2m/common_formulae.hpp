@@ -75,7 +75,7 @@ namespace libcloudphxx
       // intercept
       template<typename real_t>
       inline quantity<divide_typeof_helper<
-        std::power_typeof_helper<si::length, static_rational<-3>>::type,
+        power_typeof_helper<si::length, static_rational<-3>>::type,
         si::mass
       >, real_t> N0_c(
          const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nc,
@@ -110,7 +110,7 @@ namespace libcloudphxx
       // intercept
       template<typename real_t>
       inline quantity<divide_typeof_helper<
-        std::power_typeof_helper<si::length, static_rational<-1>>::type,
+        power_typeof_helper<si::length, static_rational<-1>>::type,
         si::mass
       >::type, real_t> N0_r(
          const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &n,
