@@ -6,7 +6,7 @@
   */
 
 #pragma once
-//#include <cmath> // std::pow
+#include <cmath> // std::pow
 #include <boost/config.hpp> // BOOST_GPU_ENABLED
 
 // TODO: CUDA's _forceinline_?
@@ -48,7 +48,11 @@ namespace libcloudphxx
           const quantity<qntt_t, real_t> &b
         )
         {
+#if !defined(__NVCC__)
+          return quantity<qntt_t, real_t>(std::pow(a.value, b.value)); // pow from the parent namespace, hopefuly this will be built-in CUDA pow
+#else
           return quantity<qntt_t, real_t>(::pow(a.value, b.value)); // pow from the parent namespace, hopefuly this will be built-in CUDA pow
+#endif
         }
 
         // ...
