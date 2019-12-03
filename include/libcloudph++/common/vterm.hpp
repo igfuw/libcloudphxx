@@ -26,7 +26,7 @@ namespace libcloudphxx
         using const_cp::T_tri;
         const real_t T_over_T_tri = T/T_tri<real_t>();
  
-        return real_t(1.72 * 1e-5) * (real_t(393) / ( (T / si::kelvins) + real_t(120)) ) 
+        return real_t(1.72 * 1e-5) * (real_t(393) / ( real_t(T / si::kelvins) + real_t(120)) ) 
           * T_over_T_tri * sqrt(T_over_T_tri) * si::kilograms / si::metres / si::seconds;
       }
 
