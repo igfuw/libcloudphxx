@@ -6,7 +6,7 @@
   */
 
 #pragma once
-#include <cmath> // std::pow
+//#include <cmath> // std::pow
 #include <boost/config.hpp> // BOOST_GPU_ENABLED
 
 // TODO: CUDA's _forceinline_?

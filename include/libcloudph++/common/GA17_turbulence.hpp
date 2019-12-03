@@ -7,6 +7,13 @@ namespace libcloudphxx
     // Grabowski and Abade 2017
     namespace GA17_turbulence
     {
+
+#if !defined(__NVCC__)
+      using std::pow;
+      using std::cbrt;
+      using std::sqrt;
+#endif
+
       libcloudphxx_const_derived(si::dimensionless, C_E, real_t(0.845));
       libcloudphxx_const_derived(si::dimensionless, C_tau, real_t(1.5));
       libcloudphxx_const_derived(si::dimensionless, cube_root_of_two_pi, pow(real_t(2) *
@@ -18,13 +25,6 @@ namespace libcloudphxx
         , real_t(1./3.))
       );
 
-/*
-#if !defined(__NVCC__)
-      //using std::pow;
-      using std::cbrt;
-      //using std::sqrt;
-#endif
-*/
       typedef divide_typeof_helper<
         si::dimensionless,  
         si::length

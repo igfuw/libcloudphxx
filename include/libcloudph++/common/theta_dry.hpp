@@ -25,6 +25,9 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &th, // theta dry!!!
         const quantity<si::mass_density, real_t> &rhod
       ) {
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
           return si::kelvins * pow(
             th / si::kelvins
             * pow(rhod * R_d<real_t>() / p_1000<real_t>()  * si::kelvins, R_d<real_t>() / c_pd<real_t>()),
@@ -67,7 +70,7 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &r
       ) {
 #if !defined(__NVCC__)
-        //using std::pow;
+        using std::pow;
 #endif
         return th_std * pow(
           1 + r * R_v<real_t>() / R_d<real_t>(), 
@@ -82,7 +85,7 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &r
       ) {
 #if !defined(__NVCC__)
-        //using std::pow;
+        using std::pow;
 #endif
         return th_dry / pow(
           1 + r * R_v<real_t>() / R_d<real_t>(), 

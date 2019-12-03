@@ -20,7 +20,7 @@ namespace libcloudphxx
         using moist_air::R_v;
         using moist_air::D_0; // TODO: perhaps D as a parameter to allow it to vary with T,p?
 #if !defined(__NVCC__)
-        //using std::sqrt;
+        using std::sqrt;
 #endif
         return real_t(2) * (D_0<real_t>() / si::metres_per_second) / (
           real_t(sqrt(
@@ -39,7 +39,9 @@ namespace libcloudphxx
       {
         using moist_air::R_d;
         using moist_air::K_0;
-//using std::pow;
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
 
         return real_t(.8) * (K_0<real_t>() * T / p / si::metres_per_second) / (
           real_t(sqrt(

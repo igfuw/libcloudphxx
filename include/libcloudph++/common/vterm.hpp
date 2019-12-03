@@ -42,6 +42,10 @@ namespace libcloudphxx
         quantity<si::dynamic_viscosity, real_t> eta,
         bool spherical // flag if we include nonsphericity (0) or not (1)
       ) {
+#if !defined(__NVCC__)
+        using std::pow;
+        using std::sqrt;
+#endif
         using moist_air::rho_w;
         using earth::g;
 
@@ -109,6 +113,9 @@ namespace libcloudphxx
         quantity<si::length, real_t> r //radius
       ) 
       {
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
         // use 3rd degree polynominal for r<20um
         double m_s[4] = {0.105035e2, 0.108750e1, -0.133245, -0.659969e-2};
         // use 7th degree polynominal for r>20um
@@ -137,6 +144,9 @@ namespace libcloudphxx
         quantity<si::dynamic_viscosity, real_t> eta
       ) 
       {
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
         using earth::rho_stp; //note: our rho_stp is ca. 1.225 kg/m^3, while Beard uses 1.204
         quantity<si::dynamic_viscosity, real_t> eta_0(1.818e-5 * si::pascals * si::seconds);
 
@@ -167,6 +177,10 @@ namespace libcloudphxx
         quantity<si::dynamic_viscosity, real_t> eta
       ) 
       {
+#if !defined(__NVCC__)
+        using std::pow;
+        using std::sqrt;
+#endif
         using earth::p_stp;
         using earth::g;
         using moist_air::rho_w;
