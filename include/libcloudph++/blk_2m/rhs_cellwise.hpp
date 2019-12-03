@@ -215,7 +215,8 @@ namespace libcloudphxx
 
               // sink of N for cloud droplets is combined with the sink due to accretion
               // source of N for drizzle assumes that all the drops have the same radius
-              local_dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() * pow<3>(drizzle_radius<real_t>()))
+              local_dot_nr += tmp / (real_t(4)/3 * pi<real_t>() * rho_w<real_t>() *
+                (drizzle_radius<real_t>() * drizzle_radius<real_t>() * drizzle_radius<real_t>())
                 * si::kilograms * si::seconds; // to make it dimensionless
 
               if(tmp == rc / (dt * si::seconds)) // all cloud water turned into rain
