@@ -33,11 +33,11 @@ namespace libcloudphxx
       ) 
       {
 #if !defined(__NVCC__)
-	//using std::pow;
+	using std::pow;
 	using std::max;
 #endif
 
-        return real_t(1) + cbrt(real_t(1) + Re * Pr) * max(real_t(1), real_t(pow(real_t(Re), real_t(.077))));
+        return real_t(1) + cbrt(real_t(1) + Re * Pr) * max(real_t(1), pow(Re, real_t(.077)));
         //                                  ^^^^^^^ 
         //                      Peclet number /
       }
