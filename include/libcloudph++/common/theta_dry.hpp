@@ -26,8 +26,8 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod
       ) {
           return si::kelvins * pow(
-            th // / si::kelvins
-            * pow(rhod * R_d<real_t>() / p_1000<real_t>() /* * si::kelvins*/, R_d<real_t>() / c_pd<real_t>()),
+            th / si::kelvins
+            * pow(rhod * R_d<real_t>() / p_1000<real_t>()  * si::kelvins, R_d<real_t>() / c_pd<real_t>()),
             c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
           );
                 /*
