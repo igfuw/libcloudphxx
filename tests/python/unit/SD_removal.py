@@ -1,5 +1,5 @@
 import sys 
-sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 from math import exp, log, sqrt, pi
@@ -48,7 +48,7 @@ for vt_t in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.beard77fast, 
   #  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
   #except:
   #  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
-  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  prtcls = lgrngn.factory(lgrngn.backend_t.CUDA, opts_init)
   
   prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
   
