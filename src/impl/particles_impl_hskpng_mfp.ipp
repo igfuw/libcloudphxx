@@ -20,24 +20,20 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__mean_free_path__lambda_D 
       {
-        using common::mean_free_path::lambda_D;
-
         BOOST_GPU_ENABLED 
         real_t operator()(const real_t &T)
         {   
-          return lambda_D<real_t>(T  * si::kelvins) / si::meters;
+          return common::mean_free_path::lambda_D<real_t>(T  * si::kelvins) / si::meters;
         }   
       }; 
 
       template <typename real_t>
       struct common__mean_free_path__lambda_K 
       {
-        using common::mean_free_path::lambda_K;
-
         BOOST_GPU_ENABLED 
         real_t operator()(const real_t &T, const real_t &p)
         {   
-          return lambda_K<real_t>(T  * si::kelvins, p * si::pascals) / si::meters;
+          return common::mean_free_path::lambda_K<real_t>(T  * si::kelvins, p * si::pascals) / si::meters;
         }   
       }; 
     }
