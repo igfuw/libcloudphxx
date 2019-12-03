@@ -48,7 +48,8 @@ namespace libcloudphxx
       inline quantity<si::dimensionless, real_t> miu_c(
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &n
       ) {
-        auto tmp = real_t(1) / pow<2>(eta(n)) - real_t(1);
+        auto eta_n = eta(n);
+        auto tmp = real_t(1) / (eta_n * eta_n) - real_t(1);
         assert(finite(tmp) && "spectral index n is finite failed");
         return tmp;
       }
