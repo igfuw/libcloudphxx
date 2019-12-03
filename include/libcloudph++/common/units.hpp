@@ -14,8 +14,8 @@
    namespace si = boost::units::si;
    using boost::units::quantity;
    using boost::units::one;
-   using boost::units::pow;
-   using boost::units::sqrt;
+//   using boost::units::pow;
+//   using boost::units::sqrt;
    using boost::units::root;
    using boost::units::multiply_typeof_helper;
    using boost::units::divide_typeof_helper;
