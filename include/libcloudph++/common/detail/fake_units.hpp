@@ -48,7 +48,7 @@ namespace libcloudphxx
           const quantity<qntt_t, real_t> &b
         )
         {
-          return quantity<qntt_t, real_t>(std::pow(a.value, b.value));
+          return quantity<qntt_t, real_t>(pow(a.value, b.value));
         }
 
       // ...
