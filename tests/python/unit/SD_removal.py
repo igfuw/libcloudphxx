@@ -41,47 +41,49 @@ opts_init.chem_switch = True
 opts_init.sedi_switch = False
 
 opts_init.kernel = lgrngn.kernel_t.geometric
-opts_init.terminal_velocity = lgrngn.vt_t.beard76
-#try:
-#  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
-#except:
-#  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
-prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
-
-prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
-
-Opts = lgrngn.opts_t()
-Opts.adve = False
-Opts.sedi = False
-Opts.cond = False
-Opts.coal = True
-Opts.chem_dsl = True
-Opts.chem_dsc = False
-Opts.chem_rct = False
-Opts.rcyc = True
-
-print 'before loop'
-for i in range(900):
-  print 'start of step no ', i
+for vt_t in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.beard77fast, lgrngn.vt_t.khvorostyanov_spherical, lgrngn.vt_t.khvorostyanov_nonspherical]:
+  print "vt_t: ", vt_t
+  opts_init.terminal_velocity = vt_t
+  #try:
+  #  prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
+  #except:
+  #  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
+  
+  prtcls.init(th, rv, rhod, ambient_chem = ambient_chem)
+  
+  Opts = lgrngn.opts_t()
+  Opts.adve = False
+  Opts.sedi = False
+  Opts.cond = False
+  Opts.coal = True
+  Opts.chem_dsl = True
+  Opts.chem_dsc = False
+  Opts.chem_rct = False
+  Opts.rcyc = True
+  
+  print 'before loop'
+  for i in range(900):
+#    print 'start of step no ', i
+    prtcls.diag_all()
+    prtcls.diag_sd_conc()
+    sd_conc = np.frombuffer(prtcls.outbuf())[0]
+ #   print 'sd conc pre ', sd_conc
+    prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
+ #   print 'post step sync ', i
+    prtcls.step_async(Opts)
+  #  print 'post step async ', i
+  
   prtcls.diag_all()
   prtcls.diag_sd_conc()
   sd_conc = np.frombuffer(prtcls.outbuf())[0]
-  print 'sd conc pre ', sd_conc
-  prtcls.step_sync(Opts,th,rv,rhod, ambient_chem=ambient_chem)
-  print 'post step sync ', i
-  prtcls.step_async(Opts)
-  print 'post step async ', i
-
-prtcls.diag_all()
-prtcls.diag_sd_conc()
-sd_conc = np.frombuffer(prtcls.outbuf())[0]
-print 'final no of SDs: ', sd_conc
-if(sd_conc > 10 or sd_conc == 0):
-  raise Exception("wrong amount of SDs were removed")
-
-prtcls.diag_all()
-prtcls.diag_wet_mom(0)
-prtcls_no = np.frombuffer(prtcls.outbuf())[0]
-print 'final no of particles: ', prtcls_no
-if(sd_conc != prtcls_no):
-  raise Exception("with rcyc on, droplets were removed while some others had multiplicity > 1")
+  print 'final no of SDs: ', sd_conc
+  if(sd_conc > 10 or sd_conc == 0):
+    raise Exception("wrong amount of SDs were removed")
+  
+  prtcls.diag_all()
+  prtcls.diag_wet_mom(0)
+  prtcls_no = np.frombuffer(prtcls.outbuf())[0]
+  print 'final no of particles: ', prtcls_no
+  if(sd_conc != prtcls_no):
+    raise Exception("with rcyc on, droplets were removed while some others had multiplicity > 1")
