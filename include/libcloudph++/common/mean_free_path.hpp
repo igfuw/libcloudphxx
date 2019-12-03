@@ -23,9 +23,9 @@ namespace libcloudphxx
         //using std::sqrt;
 #endif
         return real_t(2) * (D_0<real_t>() / si::metres_per_second) / (
-          sqrt(
+          real_t(sqrt(
             real_t(2) * real_t((R_v<real_t>() / si::joules * si::kilograms) * T
-          ) )
+          ) ))
           );
       }
 
