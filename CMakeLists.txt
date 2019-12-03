@@ -78,10 +78,10 @@ set(files "")
 
 set(files "${files};src/lib.cpp")
 
-#set(files "${files};src/lib_cpp.cpp")
+set(files "${files};src/lib_cpp.cpp")
 
 if (OPENMP_CXX_FOUND)
-#  set(files "${files};src/lib_omp.cpp")
+  set(files "${files};src/lib_omp.cpp")
 endif()
 
 if (CMAKE_CUDA_COMPILER)

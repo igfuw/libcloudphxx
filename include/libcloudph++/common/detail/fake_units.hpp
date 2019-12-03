@@ -51,26 +51,6 @@ namespace libcloudphxx
           return quantity<qntt_t, real_t>(::pow(a.value, b.value)); // pow from the parent namespace, hopefuly this will be built-in CUDA pow
         }
 
-/*
-        template <typename real_t>
-        BOOST_GPU_ENABLED inline real_t pow(
-          real_t a,
-          real_t b
-        )
-        {
-          return pow(a, b);
-        }
-        */
-/*
-        template <typename real_t>
-        BOOST_GPU_ENABLED inline real_t pow(
-          const real_t &a,
-          const real_t &b
-        )
-        {
-          return pow(a, b);
-        }
-*/
         // ...
         namespace detail
         {
