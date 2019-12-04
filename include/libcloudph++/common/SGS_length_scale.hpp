@@ -48,7 +48,7 @@ namespace libcloudphxx
         quantity<si::length, real_t> dy,
         quantity<si::length, real_t> dz
       )
-      { return quantity<si::length, real_t>(pow((dx/si::metres)*(dy/si::metres)*(dz/si::metres), real_t(1./3.)) * si::metres);}
+      { return quantity<si::length, real_t>(cbrt((dx/si::metres)*(dy/si::metres)*(dz/si::metres)) * si::metres);}
 
       // lambda = (dx+dy+dz) / 3
       template <typename real_t>

@@ -44,7 +44,11 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)
         {
-          return pow(rw2, real_t(3./2));
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
+          const real_t rw = sqrt(rw2);
+          return rw2 * rw;
         }
       };
         
@@ -159,10 +163,11 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::min;
           using std::max;
-          using std::pow;
-          using std::abs;
-          using std::isnan;
-          using std::isinf;
+          using std::cbrt;
+//          using std::pow;
+//          using std::abs;
+//          using std::isnan;
+//          using std::isinf;
 #endif
 
           auto& tpl_in = thrust::get<0>(tpl);
@@ -196,7 +201,8 @@ namespace libcloudphxx
 
           if (drw2 == 0) return rw2_old;
 
-          const real_t rd2 = pow(thrust::get<4>(tpl_in), real_t(2./3));
+          const real_t rd = cbrt(thrust::get<4>(tpl_in));
+          const real_t rd2 = rd*rd;
  
           const real_t 
             a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),

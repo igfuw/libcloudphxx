@@ -15,8 +15,6 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
-#include <libcloudph++/common/SGS_length_scale.hpp>
-
 #include <map>
 #include <set>
 
@@ -150,9 +148,8 @@ namespace libcloudphxx
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      real_t lambda;
-
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
+      thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -326,6 +323,7 @@ namespace libcloudphxx
                         halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
         w_LS(_opts_init.w_LS),
+        SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
@@ -341,29 +339,6 @@ namespace libcloudphxx
         increase_sstp_coal = new bool();
 #endif
         *increase_sstp_coal = false;
-
-        switch (opts_init.SGS_length_scale)
-        {
-          case SGS_length_scale_t::vertical:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          case SGS_length_scale_t::arithmetic_mean:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          case SGS_length_scale_t::geometric_mean:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          default: assert(false && "unrecognized value of opts_init.SGS_length_scale"); 
-        }
 
         // initialising host temporary arrays
         {

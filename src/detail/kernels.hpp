@@ -53,10 +53,13 @@ namespace libcloudphxx
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
-        using std::abs;
-        using std::pow;
         using std::max;
+        using std::sqrt;
 #endif
+
+        const real_t rw2_a = thrust::get<rw2_a_ix>(tpl_wrap.get_rw());
+        const real_t rw2_b = thrust::get<rw2_b_ix>(tpl_wrap.get_rw());
+
         real_t res =
 #if !defined(__NVCC__)
         pi<real_t>()
@@ -70,8 +73,8 @@ namespace libcloudphxx
             thrust::get<n_b_ix>(tpl_wrap.get_rw())
           )
         * (
-            pow(thrust::get<rw2_a_ix>(tpl_wrap.get_rw()),real_t(3./2.)) +
-            pow(thrust::get<rw2_b_ix>(tpl_wrap.get_rw()),real_t(3./2.))
+            rw2_a * sqrt(rw2_a) +
+            rw2_b * sqrt(rw2_b) 
           );
         return res;
       }
@@ -97,8 +100,8 @@ namespace libcloudphxx
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
         using std::abs;
-        using std::pow;
         using std::max;
+        using std::sqrt;
 #endif
         return 
 #if !defined(__NVCC__)
@@ -155,9 +158,9 @@ namespace libcloudphxx
       {
 #if !defined(__NVCC__)
         using std::abs;
-        using std::pow;
         using std::max;
         using std::min;
+        using std::sqrt;
 #endif
         real_t res = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
 
@@ -238,12 +241,13 @@ namespace libcloudphxx
           common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres / thrust::get<rhod_ix>(tpl_wrap.get_ro_calc()) // ratio of water to air density
         );
 
+        real_t geometric = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         real_t res = 
           kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *             // stagnant air collision efficiency
           wang_collision_enhancement(rwa, rwb, kernel_base<real_t, n_t>::k_params[0]) *  // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
           sqrt(
-            pow(kernel_geometric<real_t, n_t>::calc(tpl_wrap),2) +                       // geometric kernel 
-            pow(onishi_nograv,2)
+            geometric * geometric +  // geometric kernel 
+            onishi_nograv * onishi_nograv
           );
 
         return res;

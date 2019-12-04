@@ -16,7 +16,7 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> Kn // Knudsen number
       ) 
       {
-        return (1 + Kn) / (1 + real_t(1.71) * Kn + 1.33 * Kn*Kn);
+        return (1 + Kn) / (1 + real_t(1.71) * Kn + real_t(1.33) * Kn*Kn);
       }
     };
   };
