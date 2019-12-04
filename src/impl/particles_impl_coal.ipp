@@ -88,25 +88,29 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       void collide(tup_t tpl, const n_t &col_no)
       {
-	// multiplicity change (eq. 12 in Shima et al. 2009)
-	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+#if !defined(__NVCC__)
+        using std::cbrt;
+        using std::sqrt;
+#endif
+        // multiplicity change (eq. 12 in Shima et al. 2009)
+        thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
 
-	// wet radius change (eq. 13 in Shima et al. 2009)
-  const real_t rw_b = cbrt(
-	  col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
-	  thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
-  );
+        // wet radius change (eq. 13 in Shima et al. 2009)
+        const real_t rw_b = cbrt(
+          col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+          thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
+        );
 
-	thrust::get<rw2_b>(tpl) = rw_b * rw_b;
+        thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
-	// dry radius change (eq. 13 in Shima et al. 2009)
-	thrust::get<rd3_b>(tpl) 
-	  = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+        // dry radius change (eq. 13 in Shima et al. 2009)
+        thrust::get<rd3_b>(tpl) 
+          = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
 
-	// invalidating vt
-	thrust::get<vt_b>(tpl) = detail::invalid;
+        // invalidating vt
+        thrust::get<vt_b>(tpl) = detail::invalid;
 
-	// TODO: kappa, chemistry (only if enabled)
+        // TODO: kappa, chemistry (only if enabled)
       }
 
       template <typename real_t, typename n_t>

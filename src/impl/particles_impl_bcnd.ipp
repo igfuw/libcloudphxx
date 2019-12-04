@@ -30,6 +30,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const tuple &tup)
         {
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
           return 4./3. 
 #if !defined(__NVCC__)
             * pi<real_t>()

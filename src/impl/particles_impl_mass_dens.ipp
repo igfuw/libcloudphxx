@@ -79,6 +79,9 @@ namespace libcloudphxx
         // output - values
         count_mom.begin()
       );
+#if !defined(__NVCC__)
+      using std::sqrt;
+#endif
 
       real_t prefactor = 4. / 3. * ( common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres ) *
 #if !defined(__NVCC__)

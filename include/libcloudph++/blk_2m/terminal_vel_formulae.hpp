@@ -60,8 +60,8 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp =  - pow(lbd * si::metres, -6) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 5) + 5 * pow(real_t(lbd * D), 4) * 20 * pow(real_t(lbd * D), 3) + 60 * pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
+          auto tmp =  - std::pow(lbd * si::metres, -6) * exp(-lbd * D) *
+            (pow(real_t(lbd * D), 5) + 5 * std::pow(real_t(lbd * D), 4) * 20 * std::pow(real_t(lbd * D), 3) + 60 * std::pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
 
           assert(finite(tmp) && "mint_1 is finite failed");
           return tmp;
@@ -72,8 +72,8 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = - pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 4) + 4 * pow(real_t(lbd * D), 3) * 12 * pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
+          auto tmp = - std::pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) *
+            (pow(real_t(lbd * D), 4) + 4 * std::pow(real_t(lbd * D), 3) * 12 * std::pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
 
           assert(finite(tmp) && "mint_2 is finite failed");
           return tmp;
@@ -84,9 +84,9 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, // slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = real_t(1./16) / pow(real_t(lbd * si::metres), real_t(9./2))
-                   * (105 * sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D))
-                      - 2 * sqrt(lbd * D) * exp(-lbd * D) * (8 * pow(real_t(lbd * D), 3) + 28 * pow(real_t(lbd * D), 2) + 70 * real_t(lbd * D) + 105)
+          auto tmp = real_t(1./16) / std::pow(real_t(lbd * si::metres), real_t(9./2))
+                   * (105 * std::sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D))
+                      - 2 * std::sqrt(lbd * D) * exp(-lbd * D) * (8 * std::pow(real_t(lbd * D), 3) + 28 * std::pow(real_t(lbd * D), 2) + 70 * real_t(lbd * D) + 105)
                    );
 
           assert(finite(tmp) && "mint_3 is finite failed");
@@ -99,7 +99,7 @@ namespace libcloudphxx
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = - pow(real_t(lbd * si::metres), -1) * exp(-lbd * D);
+          auto tmp = - std::pow(real_t(lbd * si::metres), -1) * exp(-lbd * D);
 
           assert(finite(tmp) && "int_4 is finite failed");
           return tmp;
@@ -112,7 +112,7 @@ namespace libcloudphxx
          const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, // slope of assumed exponential size distribution
          const quantity<si::length, real_t> &D // diameter
        ) {
-         auto tmp = pow(real_t(lbd * si::metres), -3) * exp(-lbd * D) * (- real_t(lbd * D) * (real_t(lbd * D) + 2) - 2);
+         auto tmp = std::pow(real_t(lbd * si::metres), -3) * exp(-lbd * D) * (- real_t(lbd * D) * (real_t(lbd * D) + 2) - 2);
 
          assert(finite(tmp) && "nint_1 is finite failed");
          return tmp;
@@ -124,7 +124,7 @@ namespace libcloudphxx
          const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
          const quantity<si::length, real_t> &D // diameter
        ) {
-         auto tmp =  - pow(real_t(lbd * si::metres), -2) * exp(-lbd * D) * (lbd * D + 1);
+         auto tmp =  - std::pow(real_t(lbd * si::metres), -2) * exp(-lbd * D) * (lbd * D + 1);
 
          assert(finite(tmp) && "nint_2 is finite failed");
          return tmp;
@@ -136,8 +136,8 @@ namespace libcloudphxx
          const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
          const quantity<si::length, real_t> &D //diameter
        ) {
-         auto tmp = sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D)) / 2 / pow(real_t(lbd * si::metres), 3./2)
-           - sqrt(D / si::metres) * exp(-lbd*D) / (lbd * si::metres);
+         auto tmp = std::sqrt(pi<real_t>()) * std::erf(sqrt(lbd * D)) / 2 / std::pow(real_t(lbd * si::metres), 3./2)
+           - std::sqrt(D / si::metres) * exp(-lbd*D) / (lbd * si::metres);
 
          assert(finite(tmp) && "nint_3 is finite failed");
          return tmp;
@@ -161,15 +161,15 @@ namespace libcloudphxx
           * real_t(1000) // mass of the drop in grams
           * (
 	    alpha_fall(d1<real_t>() / real_t(2))
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
 	    * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
 	    +
 	    alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
 	    * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
 	    +
 	    alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
-            * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
 	    * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
 	    +
 	    alpha_fall(real_t(2) * d3<real_t>())
@@ -197,15 +197,15 @@ namespace libcloudphxx
         auto tmp = rho_stp<real_t>() / rhod
           * (
 	   alpha_fall(d1<real_t>() / real_t(2))
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
            * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
 	   +
            alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
            * (nint_2(lbd, d2<real_t>()) - nint_2(lbd, d1<real_t>()))
            +
            alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
-           * pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
            * (nint_3(lbd, d3<real_t>()) - nint_3(lbd, d2<real_t>()))
            +
            alpha_fall(real_t(2) * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))

@@ -140,6 +140,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl)
         {
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
           const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
 #if !defined(NDEBUG)

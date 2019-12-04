@@ -47,9 +47,8 @@ namespace libcloudphxx
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
-//        using std::abs;
-//        using std::pow;
         using std::max;
+        using std::sqrt;
 #endif
 
         const real_t rw2_a = thrust::get<rw2_a_ix>(tpl_wrap.get_rw());
@@ -94,9 +93,9 @@ namespace libcloudphxx
       {
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix };
 #if !defined(__NVCC__)
-//        using std::abs;
-//        using std::pow;
+        using std::abs;
         using std::max;
+        using std::sqrt;
 #endif
         return 
 #if !defined(__NVCC__)
@@ -149,10 +148,10 @@ namespace libcloudphxx
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
       {
 #if !defined(__NVCC__)
-//        using std::abs;
-//        using std::pow;
+        using std::abs;
         using std::max;
         using std::min;
+        using std::sqrt;
 #endif
         real_t res = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
 

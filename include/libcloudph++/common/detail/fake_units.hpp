@@ -48,7 +48,11 @@ namespace libcloudphxx
           const quantity<qntt_t, real_t> &b
         )
         {
+#if !defined(__NVCC__)
+          return quantity<qntt_t, real_t>(std::pow(a.value, b.value)); // pow from the parent namespace, hopefuly this will be built-in CUDA pow
+#else
           return quantity<qntt_t, real_t>(::pow(a.value, b.value)); // pow from the parent namespace, hopefuly this will be built-in CUDA pow
+#endif
         }
 
         // ...

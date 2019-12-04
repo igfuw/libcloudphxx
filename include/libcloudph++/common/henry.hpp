@@ -73,6 +73,9 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<mass_over_amount, real_t> &M
       ) {
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
         return (
           real_t(  //bug in boost #6957
             sqrt(
@@ -99,6 +102,9 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<mass_over_amount, real_t> &M
       ) {
+#if !defined(__NVCC__)
+        using std::sqrt;
+#endif
         return(
           real_t(1.) / (
             rw2 / real_t(3.) / D 

@@ -33,7 +33,10 @@ namespace libcloudphxx
 
 #if !defined(__NVCC__)
         using std::max;
-//        using std::pow;
+        using std::pow;
+        using std::sqrt;
+        using std::cbrt;
+        using std::exp;
 #endif
 
         real_t PI = 

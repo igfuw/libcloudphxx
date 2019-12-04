@@ -44,6 +44,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)
         {
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
           const real_t rw = sqrt(rw2);
           return rw2 * rw;
         }
@@ -162,6 +165,7 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::min;
           using std::max;
+          using std::cbrt;
 //          using std::pow;
 //          using std::abs;
 //          using std::isnan;

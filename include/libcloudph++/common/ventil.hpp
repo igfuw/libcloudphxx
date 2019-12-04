@@ -34,6 +34,7 @@ namespace libcloudphxx
       {
 #if !defined(__NVCC__)
 	using std::pow;
+	using std::cbrt;
 	using std::max;
 #endif
 
