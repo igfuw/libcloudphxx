@@ -15,8 +15,6 @@
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
-#include <libcloudph++/common/SGS_length_scale.hpp>
-
 #include <map>
 #include <set>
 
@@ -169,9 +167,8 @@ namespace libcloudphxx
         acnv32,
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      real_t lambda;
-
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
+      thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -231,6 +228,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
+        tmp_device_real_cell2,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -343,10 +341,10 @@ namespace libcloudphxx
                         halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
         ),
         w_LS(opts_init.w_LS),
+        SGS_mix_len(opts_init.SGS_mix_len),
         adve_scheme(opts_init.adve_scheme),
         pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
-
         // set 0 dev_count to mark that its not a multi_CUDA spawn
         // if its a spawn, multi_CUDA ctor will alter it
         opts_init.dev_count = 0; 
@@ -358,29 +356,6 @@ namespace libcloudphxx
         increase_sstp_coal = new bool();
 #endif
         *increase_sstp_coal = false;
-
-        switch (opts_init.SGS_length_scale)
-        {
-          case SGS_length_scale_t::vertical:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::vertical(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          case SGS_length_scale_t::arithmetic_mean:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::arithmetic_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          case SGS_length_scale_t::geometric_mean:
-            lambda =  
-              n_dims == 1 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres)                                                      / si::metres: // 1D
-              n_dims == 2 ? common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dz * si::metres)                           / si::metres: // 2D
-                            common::SGS_length_scale::geometric_mean(opts_init.dx * si::metres, opts_init.dy * si::metres, opts_init.dz * si::metres)/ si::metres; // 3D
-            break;
-          default: assert(false && "unrecognized value of opts_init.SGS_length_scale"); 
-        }
 
         // initialising host temporary arrays
         {
@@ -513,6 +488,7 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+      void hskpng_mfp();
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();

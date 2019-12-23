@@ -18,6 +18,9 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
+      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
+      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
@@ -43,7 +46,9 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
         rd3.begin(),
         kpa.begin(),
-        vt.begin()
+        vt.begin(),
+        thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
       // calculating drop growth in a timestep using backward Euler 

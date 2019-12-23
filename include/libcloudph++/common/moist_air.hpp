@@ -97,8 +97,12 @@ namespace libcloudphxx
           p_0 = real_t(100000) * si::pascal;
         const quantity<si::temperature, real_t> 
           T_0 = real_t(273.15) * si::kelvin;
+
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
  
-        return D_0<real_t>() * std::pow(T / T_0, real_t(1.81)) * (p_0 / p); 
+        return D_0<real_t>() * pow(T / T_0, real_t(1.81)) * (p_0 / p); 
       }   
 
       // thermal conductivity of air

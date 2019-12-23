@@ -10,7 +10,6 @@
 #include "extincl.hpp"
 #include "kernel.hpp"
 #include "terminal_velocity.hpp"
-#include "SGS_length_scale.hpp"
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
 #include "../common/chem.hpp"
@@ -88,9 +87,6 @@ namespace libcloudphxx
       // terminal velocity formula
       vt_t::vt_t terminal_velocity;
 
-      // SGS mixing length
-      SGS_length_scale_t::SGS_length_scale_t SGS_length_scale;
-
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
 
@@ -130,6 +126,9 @@ namespace libcloudphxx
       // subsidence rate profile, positive downwards [m/s]
       std::vector<real_t> w_LS;
 
+      // SGS mixing length profile [m]
+      std::vector<real_t> SGS_mix_len;
+
       real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
 
       // ctor with defaults (C++03 compliant) ...
@@ -158,7 +157,6 @@ namespace libcloudphxx
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
-        SGS_length_scale(SGS_length_scale_t::geometric_mean),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),

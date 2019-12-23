@@ -78,6 +78,7 @@
 #include "impl/particles_impl_update_th_rv.ipp"
 #include "impl/particles_impl_hskpng_ijk.ipp"
 #include "impl/particles_impl_hskpng_Tpr.ipp"
+#include "impl/particles_impl_hskpng_mfp.ipp"
 #include "impl/particles_impl_hskpng_vterm.ipp"
 #include "impl/particles_impl_hskpng_turb_vel.ipp"
 #include "impl/particles_impl_hskpng_turb_ss.ipp"

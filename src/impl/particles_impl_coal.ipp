@@ -92,6 +92,10 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       void collide(tup_t tpl, const n_t &col_no, tup_accr_acnv_t tpl_accr_acnv)
       {
+#if !defined(__NVCC__)
+        using std::cbrt;
+        using std::sqrt;
+#endif
         if(thrust::get<rw2_a>(tpl) < thrust::get<rw2_b>(tpl)) // ugly if only for accretion
         {
           bool acnv20_flag = thrust::get<rw2_a>(tpl) < 4e-10 && thrust::get<rw2_b>(tpl) < 4e-10;
@@ -111,14 +115,14 @@ namespace libcloudphxx
 
           // multiplicity change (eq. 12 in Shima et al. 2009)
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
-          
+
           // wet radius change (eq. 13 in Shima et al. 2009)
-          thrust::get<rw2_b>(tpl) = pow(
-            col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
-            pow(thrust::get<rw2_b>(tpl), real_t(3./2))
-            ,
-            real_t(2./3)
+          const real_t rw_b = cbrt(
+            col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+            thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
           );
+
+          thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
           acnv20_flag = acnv20_flag && thrust::get<rw2_b>(tpl) >= 4e-10;
           acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
@@ -161,12 +165,12 @@ namespace libcloudphxx
           thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
           
           // wet radius change (eq. 13 in Shima et al. 2009)
-          thrust::get<rw2_b>(tpl) = pow(
-            col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
-            pow(thrust::get<rw2_b>(tpl), real_t(3./2))
-            ,
-            real_t(2./3)
+          const real_t rw_b = cbrt(
+            col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+            thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
           );
+
+          thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
           acnv20_flag = acnv20_flag && thrust::get<rw2_b>(tpl) >= 4e-10;
           acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
@@ -188,7 +192,6 @@ namespace libcloudphxx
           
           // TODO: kappa, chemistry (only if enabled)
         }
-
       }
 
       template <typename real_t, typename n_t>

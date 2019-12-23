@@ -193,6 +193,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max)
     {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
       pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin());
     }
 
@@ -200,6 +203,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
     }
 

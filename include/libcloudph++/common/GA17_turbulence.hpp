@@ -7,6 +7,13 @@ namespace libcloudphxx
     // Grabowski and Abade 2017
     namespace GA17_turbulence
     {
+
+#if !defined(__NVCC__)
+      using std::pow;
+      using std::cbrt;
+      using std::sqrt;
+#endif
+
       libcloudphxx_const_derived(si::dimensionless, C_E, real_t(0.845));
       libcloudphxx_const_derived(si::dimensionless, C_tau, real_t(1.5));
       libcloudphxx_const_derived(si::dimensionless, cube_root_of_two_pi, pow(real_t(2) *
@@ -17,11 +24,6 @@ namespace libcloudphxx
 #endif
         , real_t(1./3.))
       );
-
-#if !defined(__NVCC__)
-      using std::pow;
-      using std::sqrt;
-#endif
 
       typedef divide_typeof_helper<
         si::dimensionless,  
@@ -62,7 +64,8 @@ namespace libcloudphxx
         const quantity<si::length, real_t> &L // characteristic length-scale
       )
       {
-        return quantity<area_over_time_squared, real_t>(pow((L * diss_rate) / si::cubic_metres * si::seconds * si::seconds * si::seconds / C_E<real_t>(), real_t(2./3.)) * si::metres * si::metres / si::seconds / si::seconds);
+        const real_t ret = cbrt( (L * diss_rate) / si::cubic_metres * si::seconds * si::seconds * si::seconds / C_E<real_t>());
+        return quantity<area_over_time_squared, real_t>(ret * ret * si::metres * si::metres / si::seconds / si::seconds);
       };
 
       template <typename real_t>

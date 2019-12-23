@@ -48,7 +48,8 @@ namespace libcloudphxx
       inline quantity<si::dimensionless, real_t> miu_c(
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &n
       ) {
-        auto tmp = real_t(1) / pow<2>(eta(n)) - real_t(1);
+        auto eta_n = eta(n);
+        auto tmp = real_t(1) / (eta_n * eta_n) - real_t(1);
         assert(finite(tmp) && "spectral index n is finite failed");
         return tmp;
       }
@@ -60,7 +61,7 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> &rc,
         const quantity<si::mass_density, real_t> &rhod
       ) {
-        auto tmp = pow(
+        auto tmp = std::pow(
 	  c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1))
           /
 	  (rc * std::tgamma(miu_c(n*rhod) + real_t(1))) * si::cubic_metres
@@ -82,7 +83,7 @@ namespace libcloudphxx
          const quantity<si::mass_density, real_t> &rhod
       ) {
         auto tmp = nc
-          * pow(lambda_c(nc, rc, rhod) * si::metres, miu_c(nc * rhod) + real_t(1))
+          * std::pow(lambda_c(nc, rc, rhod) * si::metres, miu_c(nc * rhod) + real_t(1))
           / std::tgamma(miu_c(nc * rhod) + real_t(1))
           / si::metres;
         assert(finite(tmp * si::metres * si::cubic_metres) && "intercept N0_c is finite failed");
@@ -97,7 +98,7 @@ namespace libcloudphxx
          const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nr,
          const quantity<si::dimensionless, real_t> &rr
       ) {
-        auto tmp = pow(
+        auto tmp = std::pow(
 	  c_md<real_t>() * nr * std::tgamma(d_md<real_t>() + real_t(1)) / rr * si::cubic_metres
           ,
 	  real_t(1) / d_md<real_t>()

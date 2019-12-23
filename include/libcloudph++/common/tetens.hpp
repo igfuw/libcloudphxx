@@ -18,7 +18,7 @@ namespace libcloudphxx
       {
         const real_t T_in_celsius(T / si::kelvins - 273.15);
         assert(T_in_celsius > 0.);
-	return real_t(6.1078e2 * exp( (17.27 * T_in_celsius) / ( T_in_celsius + 237.3))) * si::pascals;
+	return real_t(real_t(6.1078e2) * exp( (real_t(17.27) * T_in_celsius) / ( T_in_celsius + real_t(237.3)))) * si::pascals;
       }
 
       template <typename real_t>
@@ -28,10 +28,10 @@ namespace libcloudphxx
         const quantity<si::pressure, real_t> &p // total pressure
       ) 
       {
-        const real_t T_in_celsius(T / si::kelvins - 273.15);
+        const real_t T_in_celsius(T / si::kelvins - real_t(273.15));
         assert(T_in_celsius > 0.);
         // r_vs=3.8/(p*exp(-17.2693882*(T-273.15)/(T-35.86))-6.109)  p in mb, T in Kelvins
-	return real_t(380. / (p / si::pascals * exp(-17.2693882 * (T_in_celsius) / (T / si::kelvins - 35.86)) - 610.9));
+	return real_t(real_t(380) / (p / si::pascals * exp(real_t(-17.2693882) * (T_in_celsius) / (T / si::kelvins - real_t(35.86))) - real_t(610.9)));
       }
     };
   };

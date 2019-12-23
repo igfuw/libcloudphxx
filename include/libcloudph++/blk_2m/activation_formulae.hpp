@@ -36,8 +36,8 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &chem_b,
         const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return pow(mean_rd / si::metres, -(1+beta)) * sqrt(4 * pow(common::kelvin::A<real_t>(T) / si::metres, 3) / 27 / chem_b);
-      }           // can't have pow<3/2>(si:: )
+        return std::pow(mean_rd / si::metres, -(1+beta)) * std::sqrt(4 * std::pow(common::kelvin::A<real_t>(T) / si::metres, 3) / 27 / chem_b);
+      }           // can't have std::pow<3/2>(si:: )
 
       // helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
       template <typename real_t>
@@ -55,7 +55,7 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &sdev_rd,
         const quantity<si::dimensionless, real_t> beta = beta_default<real_t>()
       ) {
-        return pow(sdev_rd, 1+beta);
+        return std::pow(sdev_rd, 1+beta);
       }
 
       //helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
@@ -73,7 +73,7 @@ namespace libcloudphxx
         return log(
           s_0(T, mean_rd, chem_b) / 
           std::min(real_t(s(p, T, rv)), real_t(RH_max - 1))
-        ) / sqrt(2) / log(sdev_rd_s(sdev_rd));
+        ) / std::sqrt(2) / log(sdev_rd_s(sdev_rd));
       }
 
       // helper for activation formulae (see eq. 10 in Morrison and Grabowski 2007)
