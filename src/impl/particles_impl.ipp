@@ -209,6 +209,7 @@ namespace libcloudphxx
         tmp_device_real_part5,
         tmp_device_real_cell,
         tmp_device_real_cell1,
+        tmp_device_real_cell2,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -299,6 +300,7 @@ namespace libcloudphxx
         // initialising device temporary arrays
         tmp_device_real_cell.resize(n_cell);
         tmp_device_real_cell1.resize(n_cell);
+        tmp_device_real_cell2.resize(n_cell);
         tmp_device_size_cell.resize(n_cell);
 
         // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
@@ -409,6 +411,7 @@ namespace libcloudphxx
       void hskpng_count();
       void hskpng_ijk();
       void hskpng_Tpr();
+      void hskpng_mfp();
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();

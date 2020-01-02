@@ -169,6 +169,11 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
+        // calculate mean free path needed for molecular correction
+        // NOTE: this should be don per each substep, but right now there is no logic
+        //       that would make it easy to do in exact (per-cell) substepping
+        pimpl->hskpng_mfp(); 
+
         if(pimpl->opts_init.exact_sstp_cond && pimpl->opts_init.sstp_cond > 1)
         // apply substeps per-particle logic
         {
