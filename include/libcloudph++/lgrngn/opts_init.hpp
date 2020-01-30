@@ -65,7 +65,7 @@ namespace libcloudphxx
       bool aerosol_independent_of_rhod;
 
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
-      int sd_const_multi;
+      unsigned long long  sd_const_multi;
 
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
