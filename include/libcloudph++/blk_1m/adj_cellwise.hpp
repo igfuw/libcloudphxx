@@ -106,7 +106,6 @@ namespace libcloudphxx
           &rc = std::get<3>(tup);
 
         // double-checking....
-	assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
 
@@ -118,6 +117,7 @@ namespace libcloudphxx
         auto exner_p = theta_std::exner(p);
 
         quantity<si::temperature, real_t> T = th_tmp * exner_p;
+	assert(T >= 273.15 * si::kelvins);
 
         // constant l_v used in theta update
         auto L0 = const_cp::l_v(T);
