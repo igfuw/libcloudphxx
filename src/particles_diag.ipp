@@ -291,6 +291,13 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->kpa.begin(), n);
     }   
 
+    // compute n-th moment of incloud_time for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->incloud_time.begin(), n);
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)

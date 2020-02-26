@@ -471,6 +471,7 @@ namespace libcloudphxx
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_incloud_time();
 
       void coal(const real_t &dt, const bool &turb_coal);
 

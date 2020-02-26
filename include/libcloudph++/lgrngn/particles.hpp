@@ -75,26 +75,27 @@ namespace libcloudphxx
       }  
 
       // method for accessing super-droplet statistics
-      virtual void diag_sd_conc()                                   { assert(false); }
-      virtual void diag_pressure()                                   { assert(false); }
-      virtual void diag_temperature()                                   { assert(false); }
-      virtual void diag_RH()                                   { assert(false); }
-      virtual void diag_all()                                       { assert(false); }
-      virtual void diag_rw_ge_rc()                                  { assert(false); }
-      virtual void diag_RH_ge_Sc()                                  { assert(false); }
-      virtual void diag_dry_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_wet_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_dry_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
-      virtual void diag_chem(const enum common::chem::chem_species_t&)            { assert(false); }
-      virtual void diag_precip_rate()                               { assert(false); }
-      virtual void diag_kappa_mom(const int&)                       { assert(false); }
-      virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
-      virtual void diag_max_rw()                                    { assert(false); }
-      virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()              { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
-      virtual real_t *outbuf()                                      { assert(false); return NULL; }
+      virtual void diag_sd_conc()                                               { assert(false); }
+      virtual void diag_pressure()                                              { assert(false); }
+      virtual void diag_temperature()                                           { assert(false); }
+      virtual void diag_RH()                                                    { assert(false); }
+      virtual void diag_all()                                                   { assert(false); }
+      virtual void diag_rw_ge_rc()                                              { assert(false); }
+      virtual void diag_RH_ge_Sc()                                              { assert(false); }
+      virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_dry_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
+      virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
+      virtual void diag_precip_rate()                                           { assert(false); }
+      virtual void diag_kappa_mom(const int&)                                   { assert(false); }
+      virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
+      virtual void diag_incloud_time_mom(const int&)                            { assert(false); }
+      virtual void diag_max_rw()                                                { assert(false); }
+      virtual void diag_vel_div()                                               { assert(false); }
+      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
+      virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
@@ -172,6 +173,7 @@ namespace libcloudphxx
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int &k);
+      void diag_incloud_time_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
       void diag_chem(const enum common::chem::chem_species_t&);

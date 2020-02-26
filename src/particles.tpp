@@ -100,4 +100,5 @@
 #include "impl/particles_impl_sstp.ipp"
 #include "impl/particles_impl_sstp_chem.ipp"
 #include "impl/particles_impl_src.ipp"
+#include "impl/particles_impl_update_incloud_time.ipp"
 
