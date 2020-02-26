@@ -50,6 +50,7 @@
 #include "impl/particles_impl_init_dry_const_multi.ipp"
 #include "impl/particles_impl_init_dry_dry_sizes.ipp"
 #include "impl/particles_impl_init_kappa.ipp"
+#include "impl/particles_impl_init_incloud_time.ipp"
 #include "impl/particles_impl_init_n.ipp"
 #include "impl/particles_impl_init_wet.ipp"
 #include "impl/particles_impl_init_xyz.ipp"

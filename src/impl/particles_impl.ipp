@@ -85,10 +85,11 @@ namespace libcloudphxx
         sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
-        sstp_tmp_p; // ditto for pressure
+        sstp_tmp_p, // ditto for pressure
+        incloud_time; // time this SD has been within a cloud
 
       const int no_of_n_vctrs_copied = 1;
-      const int no_of_real_vctrs_copied = 15;
+      const int no_of_real_vctrs_copied = 16;
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -382,6 +383,7 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
+      void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);

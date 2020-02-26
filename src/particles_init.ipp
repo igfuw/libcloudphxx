@@ -86,6 +86,8 @@ namespace libcloudphxx
       if(pimpl->opts_init.dry_sizes.size() > 0)
         pimpl->init_SD_with_sizes();
 
+      pimpl->init_incloud_time();
+
       // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
