@@ -275,6 +275,7 @@ namespace libcloudphxx
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int&);
+      void diag_incloud_time_mom(const int&);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 

@@ -96,6 +96,12 @@ namespace libcloudphxx
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_kappa_mom, k);
     }   
+ 
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_incloud_time_mom(const int &k)
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_incloud_time_mom, k);
+    }   
 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_wet_mass_dens(const real_t &a, const real_t &b)
