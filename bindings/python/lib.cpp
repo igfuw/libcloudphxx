@@ -351,11 +351,11 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_temperature",&lgr::particles_proto_t<real_t>::diag_temperature)
       .def("diag_vel_div",&lgr::particles_proto_t<real_t>::diag_vel_div)
       .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng, 
-            diag_dry_rng_overloads((bp::arg("r_min"), bp::arg("r_max"), bp::arg("cons")=false)))
+            diag_dry_rng_overloads(bp::args("r_min", "r_max", "cons")))
       .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng, 
-            diag_wet_rng_overloads((bp::arg("r_min"), bp::arg("r_max"), bp::arg("cons")=false)))
+            diag_wet_rng_overloads(bp::args("r_min", "r_max", "cons")))
       .def("diag_kappa_rng", &lgr::particles_proto_t<real_t>::diag_kappa_rng, 
-            diag_kappa_rng_overloads((bp::arg("kpa_min"), bp::arg("kpa_max"), bp::arg("cons")=false)))
+            diag_kappa_rng_overloads(bp::args("kpa_min", "kpa_max", "cons")))
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_kappa_mom",    &lgr::particles_proto_t<real_t>::diag_kappa_mom)
       .def("diag_incloud_time_mom",    &lgr::particles_proto_t<real_t>::diag_incloud_time_mom)
