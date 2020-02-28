@@ -89,7 +89,7 @@ namespace libcloudphxx
         incloud_time; // time this SD has been within a cloud
 
       const int no_of_n_vctrs_copied = 1;
-      const int no_of_real_vctrs_copied = 16;
+      const int no_of_real_vctrs_copied = opts_init.diag_incloud_time ? 16 : 15;
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr

@@ -51,7 +51,9 @@ namespace libcloudphxx
       rw2.reserve(opts_init.n_sd_max);
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
-      incloud_time.reserve(opts_init.n_sd_max);
+
+      if(opts_init.diag_incloud_time)
+        incloud_time.reserve(opts_init.n_sd_max);
 
       if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
       {

@@ -295,7 +295,10 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
     {   
-      pimpl->moms_calc(pimpl->incloud_time.begin(), n);
+      if(pimpl->opts_init.diag_incloud_time)
+        pimpl->moms_calc(pimpl->incloud_time.begin(), n);
+      else
+        assert(0 && "diag_incloud_time_mom called, but opts_init.diag_incloud_time==false");
     }   
 
     // computes mass density function for wet radii using estimator from Shima et al. (2009)

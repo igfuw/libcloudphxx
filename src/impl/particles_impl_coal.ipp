@@ -484,22 +484,25 @@ namespace libcloudphxx
       }
 
       // update incloud time
-      thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(
-          thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),   
-          thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
-          col.begin(),                                                        
-          col.begin()+1
-        )),
-        thrust::make_zip_iterator(thrust::make_tuple(
-          thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),
-          thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
-          col.begin(),
-          col.begin()+1
-        )) + n_part -1,
-        detail::selector()
-      );
-      nancheck(incloud_time, "incloud_time - post coalescence");
+      if(opts_init.diag_incloud_time)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),   
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),                                                        
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::selector()
+        );
+        nancheck(incloud_time, "incloud_time - post coalescence");
+      }
     }
   };  
 };

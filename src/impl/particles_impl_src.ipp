@@ -258,7 +258,8 @@ namespace libcloudphxx
             opts_init.src_dry_distros.begin()->first
           ); 
 
-          init_incloud_time();
+          if(opts_init.diag_incloud_time)
+            init_incloud_time();
 
           init_n_sd_conc(
             *(opts_init.src_dry_distros.begin()->second)
