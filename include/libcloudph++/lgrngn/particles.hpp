@@ -168,13 +168,13 @@ namespace libcloudphxx
       void diag_temperature();
       void diag_RH();
       void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
@@ -264,13 +264,13 @@ namespace libcloudphxx
       void diag_temperature();
       void diag_RH();
       void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool=false
+        const real_t &r_mi, const real_t &r_mx, const bool cons=false
       );
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
