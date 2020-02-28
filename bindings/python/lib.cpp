@@ -23,18 +23,13 @@
   #define BP_ARR_FROM_BP_OBJ  bp_array(bp::numpy::array(bp::object()))
 #endif
 
-using namespace libcloudphxx::python;
-using real_t = double;
-
-// overloads for functions with default argument values
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(diag_dry_rng_overloads,   lgr::particles_proto_t<real_t>::diag_dry_rng, 2, 3)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(diag_wet_rng_overloads,   lgr::particles_proto_t<real_t>::diag_wet_rng, 2, 3)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(diag_kappa_rng_overloads, lgr::particles_proto_t<real_t>::diag_kappa_rng, 2, 3)
 
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   namespace bp = boost::python;
   using arr_t = blitz::Array<real_t, 1>;
+  using namespace libcloudphxx::python;
+  using real_t = double;
 
 #ifdef BPNUMERIC
   bp_array::set_module_and_type("numpy", "ndarray");
@@ -350,12 +345,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_pressure",&lgr::particles_proto_t<real_t>::diag_pressure)
       .def("diag_temperature",&lgr::particles_proto_t<real_t>::diag_temperature)
       .def("diag_vel_div",&lgr::particles_proto_t<real_t>::diag_vel_div)
-      .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng, 
-            diag_dry_rng_overloads(bp::args("r_min", "r_max", "cons")))
-      .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng, 
-            diag_wet_rng_overloads(bp::args("r_min", "r_max", "cons")))
-      .def("diag_kappa_rng", &lgr::particles_proto_t<real_t>::diag_kappa_rng, 
-            diag_kappa_rng_overloads(bp::args("kpa_min", "kpa_max", "cons")))
+      .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng) 
+      .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng) 
+      .def("diag_kappa_rng", &lgr::particles_proto_t<real_t>::diag_kappa_rng)
+      .def("diag_dry_rng_cons", &lgr::particles_proto_t<real_t>::diag_dry_rng_cons) 
+      .def("diag_wet_rng_cons", &lgr::particles_proto_t<real_t>::diag_wet_rng_cons) 
+      .def("diag_kappa_rng_cons", &lgr::particles_proto_t<real_t>::diag_kappa_rng_cons)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_kappa_mom",    &lgr::particles_proto_t<real_t>::diag_kappa_mom)
       .def("diag_incloud_time_mom",    &lgr::particles_proto_t<real_t>::diag_incloud_time_mom)

@@ -191,29 +191,56 @@ namespace libcloudphxx
 
     // selects particles with (r_d >= r_min && r_d < r_max)
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max, const bool cons)
+    void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max)
     {
 #if !defined(__NVCC__)
       using std::pow;
 #endif
-      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), cons);
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), false);
     }
 
     // selects particles with (r_w >= r_min && r_w < r_max)
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max, const bool cons)
+    void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
 #if !defined(__NVCC__)
       using std::pow;
 #endif
-      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), cons);
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), false);
     }
 
     // selects particles with (kpa >= kpa_min && kpa < kpa_max)
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max, const bool cons)
+    void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
     {
-      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), cons);
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
+    }
+
+    // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_dry_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), true);
+    }
+
+    // selects particles with (r_w >= r_min && r_w < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wet_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), true);
+    }
+
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)

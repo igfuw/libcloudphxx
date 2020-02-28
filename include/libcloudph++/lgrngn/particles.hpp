@@ -82,14 +82,19 @@ namespace libcloudphxx
       virtual void diag_all()                                                   { assert(false); }
       virtual void diag_rw_ge_rc()                                              { assert(false); }
       virtual void diag_RH_ge_Sc()                                              { assert(false); }
-      // In the 3 following functions, the 3rd argument is a flag for consecutive selection of SDs.
+      virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
+      // The 3 following functions are for consecutive selection of SDs.
       // It allows the user to select SDs based on multiple characteristics, e.g. wet radius (0.5, 1) and kappa (0.1, 0.2):
-      // diag_wet_rng(0.5, 1); diag_kappa_rng(0.1, 0.2, true);
-      // NOTE: the call with "const=true" needs to be right after the previous call to diag_X_rng!
+      // diag_wet_rng(0.5, 1); diag_kappa_rng_cons(0.1, 0.2);
+      // NOTE: the call with "cons" needs to be right after the previous call to diag_X_rng!
       //       otherwise some other function used in between can overwrite n_filtered used for selection of moments
-      virtual void diag_dry_rng(const real_t&, const real_t&, const bool cons=false)                   { assert(false); }
-      virtual void diag_wet_rng(const real_t&, const real_t&, const bool cons=false)                   { assert(false); }
-      virtual void diag_kappa_rng(const real_t&, const real_t&, const bool cons=false)                 { assert(false); }
+      // NOTE2: We cannot implement this as an argument to diag_X_rng, because we would like it to default to null 
+      //        and Boost Python does not work well with virtual member functions that have default arguments
+      virtual void diag_dry_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_wet_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_kappa_rng_cons(const real_t&, const real_t&)            { assert(false); }
 
       virtual void diag_dry_mom(const int&)                                     { assert(false); }
       virtual void diag_wet_mom(const int&)                                     { assert(false); }
@@ -167,15 +172,12 @@ namespace libcloudphxx
       void diag_pressure();
       void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
-      void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int &k);
@@ -263,15 +265,12 @@ namespace libcloudphxx
       void diag_pressure();
       void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
-      void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx, const bool cons=false
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int&);
