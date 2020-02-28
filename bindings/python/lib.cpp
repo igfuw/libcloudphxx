@@ -27,9 +27,9 @@
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   namespace bp = boost::python;
+  using real_t = double;
   using arr_t = blitz::Array<real_t, 1>;
   using namespace libcloudphxx::python;
-  using real_t = double;
 
 #ifdef BPNUMERIC
   bp_array::set_module_and_type("numpy", "ndarray");
