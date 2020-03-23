@@ -36,6 +36,7 @@ opts_init.rng_seed = 396
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.diag_incloud_time = True
 
 print "nx = ", opts_init.nx
 print "ny = ", opts_init.ny
@@ -71,6 +72,7 @@ print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
+print "diag_incloud_time = ", opts_init.diag_incloud_time
 print "n_sd_max =", opts_init.n_sd_max
 print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
@@ -127,9 +129,12 @@ prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
+prtcls.diag_kappa_rng(0.,2.)
+prtcls.diag_kappa_rng_cons(.5,1.5)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
@@ -166,6 +171,7 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
@@ -359,8 +365,8 @@ opts_init.dry_sizes = dict()
 # 0D turb
 print "0D turb"
 eps = arr_t([  1e-4])
-opts_init.turb_cond_switch=True
-opts.turb_cond=True
+opts_init.turb_coal_switch=True
+opts.turb_coal=True
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.step_sync(opts, th, rv, diss_rate=eps)
@@ -373,8 +379,8 @@ print frombuffer(prtcls.outbuf())
 assert (frombuffer(prtcls.outbuf()) > 0).all()
 assert sum(frombuffer(prtcls.outbuf())) == 64
 
-opts_init.turb_cond_switch=False
-opts.turb_cond=False
+opts_init.turb_coal_switch=False
+opts.turb_coal=False
 
 
 
@@ -416,29 +422,6 @@ for it in range(2):
   assert (frombuffer(prtcls.outbuf()) > 0).all()
   assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
 
-print "1D turb"
-eps   = arr_t([   1e-4,  1e-4,  1e-4])
-opts_init.turb_adve_switch=True
-opts.turb_adve=True
-opts_init.turb_cond_switch=True
-opts.turb_cond=True
-prtcls = lgrngn.factory(backend, opts_init)
-prtcls.init(th, rv, rhod)
-prtcls.step_sync(opts, th, rv, diss_rate=eps)
-prtcls.step_async(opts)
-
-prtcls.diag_all()
-prtcls.diag_sd_conc()
-assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
-print frombuffer(prtcls.outbuf())
-assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
-
-opts_init.turb_adve_switch=False
-opts.turb_adve=False
-opts_init.turb_cond_switch=False
-opts.turb_cond=False
-
 # ----------
 # 2D (periodic horizontal domain)
 print "2D"
@@ -457,6 +440,7 @@ opts_init.z1 = opts_init.nz * opts_init.dz
 opts_init.x1 = opts_init.nx * opts_init.dx
 
 opts_init.w_LS = zeros(opts_init.nz)
+opts_init.SGS_mix_len = ones(opts_init.nz)
 opts_init.subs_switch = True
 
 prtcls = lgrngn.factory(backend, opts_init)

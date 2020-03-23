@@ -45,6 +45,8 @@ def test(turb_cond):
   opts_init.nz = 1
   opts_init.dz = 1
   opts_init.z1 = opts_init.nz * opts_init.dz
+
+  opts_init.SGS_mix_len = opts_init.dz * ones(opts_init.nz) 
   
   rhod =   1. * ones((opts_init.nx, opts_init.nz))
   Cx =   1. * ones((opts_init.nx+1, opts_init.nz))

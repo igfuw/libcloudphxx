@@ -75,26 +75,38 @@ namespace libcloudphxx
       }  
 
       // method for accessing super-droplet statistics
-      virtual void diag_sd_conc()                                   { assert(false); }
-      virtual void diag_pressure()                                   { assert(false); }
-      virtual void diag_temperature()                                   { assert(false); }
-      virtual void diag_RH()                                   { assert(false); }
-      virtual void diag_all()                                       { assert(false); }
-      virtual void diag_rw_ge_rc()                                  { assert(false); }
-      virtual void diag_RH_ge_Sc()                                  { assert(false); }
-      virtual void diag_dry_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_wet_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_dry_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
-      virtual void diag_chem(const enum common::chem::chem_species_t&)            { assert(false); }
-      virtual void diag_precip_rate()                               { assert(false); }
-      virtual void diag_kappa_mom(const int&)                       { assert(false); }
-      virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
-      virtual void diag_max_rw()                                    { assert(false); }
-      virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()              { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
-      virtual real_t *outbuf()                                      { assert(false); return NULL; }
+      virtual void diag_sd_conc()                                               { assert(false); }
+      virtual void diag_pressure()                                              { assert(false); }
+      virtual void diag_temperature()                                           { assert(false); }
+      virtual void diag_RH()                                                    { assert(false); }
+      virtual void diag_all()                                                   { assert(false); }
+      virtual void diag_rw_ge_rc()                                              { assert(false); }
+      virtual void diag_RH_ge_Sc()                                              { assert(false); }
+      virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
+      // The 3 following functions are for consecutive selection of SDs.
+      // It allows the user to select SDs based on multiple characteristics, e.g. wet radius (0.5, 1) and kappa (0.1, 0.2):
+      // diag_wet_rng(0.5, 1); diag_kappa_rng_cons(0.1, 0.2);
+      // NOTE: the call with "cons" needs to be right after the previous call to diag_X_rng!
+      //       otherwise some other function used in between can overwrite n_filtered used for selection of moments
+      // NOTE2: We cannot implement this as an argument to diag_X_rng, because we would like it to default to null 
+      //        and Boost Python does not work well with virtual member functions that have default arguments
+      virtual void diag_dry_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_wet_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_kappa_rng_cons(const real_t&, const real_t&)            { assert(false); }
+
+      virtual void diag_dry_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
+      virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
+      virtual void diag_precip_rate()                                           { assert(false); }
+      virtual void diag_kappa_mom(const int&)                                   { assert(false); }
+      virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
+      virtual void diag_max_rw()                                                { assert(false); }
+      virtual void diag_vel_div()                                               { assert(false); }
+      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
+      virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
@@ -160,18 +172,16 @@ namespace libcloudphxx
       void diag_pressure();
       void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int &k);
+      void diag_incloud_time_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
       void diag_chem(const enum common::chem::chem_species_t&);
@@ -179,7 +189,6 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
-      void diag_kappa(const int&);
       void diag_max_rw();
       void diag_vel_div();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
@@ -256,14 +265,16 @@ namespace libcloudphxx
       void diag_pressure();
       void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_kappa_mom(const int&);
+      void diag_incloud_time_mom(const int&);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 

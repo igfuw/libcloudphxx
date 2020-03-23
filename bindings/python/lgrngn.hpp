@@ -350,6 +350,26 @@ namespace libcloudphxx
       {
         throw std::runtime_error("w_LS profile does not feature a getter yet - TODO");
       }
+
+      template <typename real_t>
+      void set_SGS_mix_len(
+        lgr::opts_init_t<real_t> *arg,
+        const bp_array &vec
+      )
+      {
+        sanity_checks(vec);
+        arg->SGS_mix_len.resize(0);
+        for (int i = 0; i < len(vec); ++i)
+          arg->SGS_mix_len.push_back(bp::extract<real_t>(vec[i]));
+      }
+
+      template <typename real_t>
+      bp_array get_SGS_mix_len(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("SGS_mix_len profile does not feature a getter yet - TODO");
+      }
     };
   };
 };

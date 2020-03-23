@@ -14,6 +14,22 @@ namespace libcloudphxx
     {
       enum{na_ge_nb = -2, nb_gt_na = -1};
 
+      struct selector // keep the max value of some parameter in the SD that represents droplets that collided
+      {
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+#if !defined(__NVCC__)
+          using std::max;
+#endif
+          if(thrust::get<2>(tpl) <= 0) return; // do nothing if no collisions or first one passed was a SD with an uneven number in the cell
+          thrust::get<3>(tpl) == na_ge_nb ?    // does the first SD of the pair have greater multiplicity?
+            thrust::get<1>(tpl) = max(thrust::get<0>(tpl), thrust::get<1>(tpl)): // set val = max(val_SD_A, val_SD_B) in the one with smaller multiplicity
+            thrust::get<0>(tpl) = max(thrust::get<0>(tpl), thrust::get<1>(tpl)); // set val = max(val_SD_A, val_SD_B) in the one with smaller multiplicity
+        }
+      };
+
       struct summator
       {
         template<class tpl_t>
@@ -88,25 +104,29 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       void collide(tup_t tpl, const n_t &col_no)
       {
-	// multiplicity change (eq. 12 in Shima et al. 2009)
-	thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+#if !defined(__NVCC__)
+        using std::cbrt;
+        using std::sqrt;
+#endif
+        // multiplicity change (eq. 12 in Shima et al. 2009)
+        thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
 
-	// wet radius change (eq. 13 in Shima et al. 2009)
-	thrust::get<rw2_b>(tpl) = pow(
-	  col_no * pow(thrust::get<rw2_a>(tpl), real_t(3./2)) + 
-	  pow(thrust::get<rw2_b>(tpl), real_t(3./2))
-	  ,
-	  real_t(2./3)
-	);
+        // wet radius change (eq. 13 in Shima et al. 2009)
+        const real_t rw_b = cbrt(
+          col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+          thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
+        );
 
-	// dry radius change (eq. 13 in Shima et al. 2009)
-	thrust::get<rd3_b>(tpl) 
-	  = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+        thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
-	// invalidating vt
-	thrust::get<vt_b>(tpl) = detail::invalid;
+        // dry radius change (eq. 13 in Shima et al. 2009)
+        thrust::get<rd3_b>(tpl) 
+          = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
 
-	// TODO: kappa, chemistry (only if enabled)
+        // invalidating vt
+        thrust::get<vt_b>(tpl) = detail::invalid;
+
+        // TODO: kappa, chemistry (only if enabled)
       }
 
       template <typename real_t, typename n_t>
@@ -461,6 +481,27 @@ namespace libcloudphxx
           detail::weighted_summator<real_t>()
         );
         nancheck(kpa, "kpa - post coalescence");
+      }
+
+      // update incloud time
+      if(opts_init.diag_incloud_time)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),   
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),                                                        
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::selector()
+        );
+        nancheck(incloud_time, "incloud_time - post coalescence");
       }
     }
   };  

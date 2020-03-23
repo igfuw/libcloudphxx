@@ -193,21 +193,54 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max)
     {
-      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin());
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), false);
     }
 
     // selects particles with (r_w >= r_min && r_w < r_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
-      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), false);
     }
 
     // selects particles with (kpa >= kpa_min && kpa < kpa_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
     {
-      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin());
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
+    }
+
+    // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_dry_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), true);
+    }
+
+    // selects particles with (r_w >= r_min && r_w < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wet_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), true);
+    }
+
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -283,6 +316,16 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_kappa_mom(const int &n)
     {   
       pimpl->moms_calc(pimpl->kpa.begin(), n);
+    }   
+
+    // compute n-th moment of incloud_time for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
+    {   
+      if(pimpl->opts_init.diag_incloud_time)
+        pimpl->moms_calc(pimpl->incloud_time.begin(), n);
+      else
+        assert(0 && "diag_incloud_time_mom called, but opts_init.diag_incloud_time==false");
     }   
 
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
@@ -371,7 +414,7 @@ namespace libcloudphxx
         detail::precip_rate<real_t>()
       );  
 
-      pimpl->moms_all();
+      pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
       pimpl->moms_calc(pimpl->vt.begin(), 1., false);
  
       // copy back stored vterm

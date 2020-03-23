@@ -16,6 +16,11 @@ namespace libcloudphxx
   {
     namespace lognormal
     {
+#if !defined(__NVCC__)
+      using std::pow;
+      using std::exp;
+      using std::sqrt;
+#endif
       // lognormal distribution as a function of ln(r) (Seinfeld & Pandis 1997 eq 7.33)
       template <typename real_t>
       quantity<power_typeof_helper<si::length,static_rational<-3>>::type, real_t> n_e(

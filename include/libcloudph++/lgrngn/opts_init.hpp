@@ -10,7 +10,6 @@
 #include "extincl.hpp"
 #include "kernel.hpp"
 #include "terminal_velocity.hpp"
-#include "SGS_length_scale.hpp"
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
 #include "../common/chem.hpp"
@@ -66,7 +65,7 @@ namespace libcloudphxx
       bool aerosol_independent_of_rhod;
 
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
-      int sd_const_multi;
+      unsigned long long  sd_const_multi;
 
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
@@ -87,9 +86,6 @@ namespace libcloudphxx
 
       // terminal velocity formula
       vt_t::vt_t terminal_velocity;
-
-      // SGS mixing length
-      SGS_length_scale_t::SGS_length_scale_t SGS_length_scale;
 
       // super-droplet advection scheme
       as_t::as_t adve_scheme;
@@ -115,6 +111,9 @@ namespace libcloudphxx
       int sstp_chem;
       real_t chem_rho;
 
+      // do we want to track the time SDs spend inside clouds
+      bool diag_incloud_time;
+
       // RH threshold for calculating equilibrium condition at t=0
       real_t RH_max;
 
@@ -129,6 +128,9 @@ namespace libcloudphxx
 
       // subsidence rate profile, positive downwards [m/s]
       std::vector<real_t> w_LS;
+
+      // SGS mixing length profile [m]
+      std::vector<real_t> SGS_mix_len;
 
       real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
 
@@ -158,7 +160,6 @@ namespace libcloudphxx
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         terminal_velocity(vt_t::undefined),
-        SGS_length_scale(SGS_length_scale_t::geometric_mean),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),
@@ -167,7 +168,8 @@ namespace libcloudphxx
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0),
-        rd_min(0.)
+        rd_min(0.),
+        diag_incloud_time(false)
       {}
 
       // dtor (just to silence -Winline warnings)

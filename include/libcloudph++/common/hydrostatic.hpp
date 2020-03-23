@@ -11,6 +11,9 @@ namespace libcloudphxx
   {
     namespace hydrostatic
     {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
       using theta_std::p_1000;
       using moist_air::R; 
       using moist_air::c_pd;
