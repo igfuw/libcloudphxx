@@ -69,7 +69,7 @@ namespace libcloudphxx
 	  const thrust_size_t n
 	) {
           // note: generate_n copies the third argument!!!
-	  std::generate_n(normal01.begin(), n, fnctr_normal01({.engine = engine, .dist_normal01 = dist_normal01})); 
+	  std::generate_n(normal01.begin(), n, fnctr_normal01({engine, dist_normal01})); 
 	}
 
 	void generate_n(

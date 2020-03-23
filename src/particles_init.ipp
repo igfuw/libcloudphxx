@@ -44,18 +44,18 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
       using std::max;
 #endif
-      /*
       if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
       if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
       if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
-      */
+      /*
       if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
       if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
       if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
+      */
 
       if (pimpl->opts_init.chem_switch)
-      for (int i = 0; i < chem_gas_n; ++i)
-        pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->init_e2l(ambient_chem.at((chem_species_t)i), &pimpl->ambient_chem[(chem_species_t)i]);
 
       // feeding in Eulerian fields
       pimpl->sync(th,   pimpl->th);
@@ -63,13 +63,16 @@ namespace libcloudphxx
       pimpl->sync(rhod, pimpl->rhod);
       pimpl->sync(p,   pimpl->p);
 
-      if (!courant_x.is_null()) pimpl->sync(courant_x, pimpl->courant_x);
-      if (!courant_y.is_null()) pimpl->sync(courant_y, pimpl->courant_y);
-      if (!courant_z.is_null()) pimpl->sync(courant_z, pimpl->courant_z);
+      pimpl->sync(courant_x,      pimpl->courant_x);
+      pimpl->sync(courant_y,      pimpl->courant_y);
+      pimpl->sync(courant_z,      pimpl->courant_z);
+
+      // fill in mpi courant halos
+      pimpl->xchng_courants();
 
       if (pimpl->opts_init.chem_switch)
-      for (int i = 0; i < chem_gas_n; ++i)
-        pimpl->sync(
+        for (int i = 0; i < chem_gas_n; ++i)
+          pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
@@ -93,6 +96,9 @@ namespace libcloudphxx
         pimpl->init_SD_with_distros();
       if(pimpl->opts_init.dry_sizes.size() > 0)
         pimpl->init_SD_with_sizes();
+
+      if(pimpl->opts_init.diag_incloud_time)
+        pimpl->init_incloud_time();
 
       // --------  other inits  --------
       //initialising collision kernel

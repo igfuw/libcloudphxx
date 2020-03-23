@@ -19,6 +19,8 @@ namespace libcloudphxx
     {   
       if (from.is_null()) return;
 
+      assert(to.size() >= l2e[&to].size());
+
       thrust::transform(
         l2e[&to].begin(), l2e[&to].end(),
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
@@ -30,7 +32,6 @@ namespace libcloudphxx
       );
 
 #if defined(__NVCC__)
-      assert(to.size() >= l2e[&to].size());
       thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + l2e[&to].size(), to.begin());
 #endif
     }   

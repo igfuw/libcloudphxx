@@ -14,8 +14,10 @@ namespace libcloudphxx
       struct periodic_cellno
       {
         const long int n_tot;                     // size of the input array
+
         periodic_cellno(const long int &n_tot):
           n_tot(n_tot) {}
+
         BOOST_GPU_ENABLED
         long int operator()(long int cell_idx)
         {
@@ -41,17 +43,17 @@ namespace libcloudphxx
 
       long int shift =    // index of element of arr copied to 0-th position in key
         + n_cell_bfr // for multi_CUDA: cells in memory of GPUs to the left of this one (only on this node - arrinfo.data points to first occupied memory, not (0,0,0))
-        + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers),
+        + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers), or halo shift for courant numbers
 
       switch (n_dims)
       {
-	namespace arg = thrust::placeholders;
-	case 0:  
-	  l2e[key][0] = 0;  
-	  break;
-	case 1:
+        namespace arg = thrust::placeholders;
+        case 0:  
+          l2e[key][0] = 0;  
+          break;
+        case 1:
           assert(arr.strides[0] == 1);
-	  thrust::transform(
+          thrust::transform(
             // input
             thrust::make_counting_iterator<int>(0) + shift,                   // long int didnt work
             thrust::make_counting_iterator<int>(0) + shift + l2e[key].size(), 
@@ -59,22 +61,22 @@ namespace libcloudphxx
             l2e[key].begin(), 
             // op
             arg::_1
-	  );
-	  break;
-	case 2:
+          );
+          break;
+        case 2:
           // assume z changes first
           assert(arr.strides[1] == 1);
-	  thrust::transform(
+          thrust::transform(
             // input
             thrust::make_counting_iterator<int>(0) + shift,
             thrust::make_counting_iterator<int>(0) + shift + l2e[key].size(), 
             // output
             l2e[key].begin(), 
             // op
-	    arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
-	    arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
-	  );
-	  break;
+            arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
+            arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
+          );
+          break;
         case 3:
           assert(arr.strides[2] == 1);
           thrust::transform(
@@ -84,22 +86,21 @@ namespace libcloudphxx
             // output
             l2e[key].begin(),
             // op
-	    arr.strides[0] * /* i = */ (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) +  
+            arr.strides[0] * /* i = */ (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) +  
             arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
-	    arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
+            arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
           );
           break;
-	default: assert(false);
+        default: assert(false);
       }
 
-      // apply bcnd for halo
-      /*
+      // apply cyclic bcnd for halo
+      // halos over mpi boundaries are filled after sync()
       thrust::transform(
         l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
         l2e[key].begin(), // in place 
         detail::periodic_cellno((n_x_tot + ext_x) * arr.strides[0])
       );
-      */
     }
   };
 };

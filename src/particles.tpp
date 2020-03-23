@@ -59,6 +59,7 @@
 #include "impl/particles_impl_init_dry_const_multi.ipp"
 #include "impl/particles_impl_init_dry_dry_sizes.ipp"
 #include "impl/particles_impl_init_kappa.ipp"
+#include "impl/particles_impl_init_incloud_time.ipp"
 #include "impl/particles_impl_init_n.ipp"
 #include "impl/particles_impl_init_wet.ipp"
 #include "impl/particles_impl_init_xyz.ipp"
@@ -75,6 +76,7 @@
 #include "impl/particles_impl_init_vterm.ipp"
 #include "impl/particles_impl_init_sanity_check.ipp"
 #include "impl/particles_impl_xchng_domains.ipp"
+#include "impl/particles_impl_xchng_courants.ipp"
 #include "impl/particles_impl_update_th_rv.ipp"
 #include "impl/particles_impl_hskpng_ijk.ipp"
 #include "impl/particles_impl_hskpng_Tpr.ipp"
@@ -110,6 +112,7 @@
 #include "impl/particles_impl_sstp.ipp"
 #include "impl/particles_impl_sstp_chem.ipp"
 #include "impl/particles_impl_src.ipp"
+#include "impl/particles_impl_update_incloud_time.ipp"
 
 // MPI copy
 #include "impl/particles_impl_pack.ipp"

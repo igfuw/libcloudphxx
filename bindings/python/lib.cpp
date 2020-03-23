@@ -23,13 +23,13 @@
   #define BP_ARR_FROM_BP_OBJ  bp_array(bp::numpy::array(bp::object()))
 #endif
 
+
 BOOST_PYTHON_MODULE(libcloudphxx)
 {
   namespace bp = boost::python;
-  using namespace libcloudphxx::python;
-
   using real_t = double;
   using arr_t = blitz::Array<real_t, 1>;
+  using namespace libcloudphxx::python;
 
 #ifdef BPNUMERIC
   bp_array::set_module_and_type("numpy", "ndarray");
@@ -296,6 +296,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("chem_rho", &lgr::opts_init_t<real_t>::chem_rho)
       .def_readwrite("RH_max", &lgr::opts_init_t<real_t>::RH_max)
       .def_readwrite("rng_seed", &lgr::opts_init_t<real_t>::rng_seed)
+      .def_readwrite("diag_incloud_time", &lgr::opts_init_t<real_t>::diag_incloud_time)
       .add_property("w_LS", &lgrngn::get_w_LS<real_t>, &lgrngn::set_w_LS<real_t>)
       .add_property("SGS_mix_len", &lgrngn::get_SGS_mix_len<real_t>, &lgrngn::set_SGS_mix_len<real_t>)
       .add_property("kernel_parameters", &lgrngn::get_kp<real_t>, &lgrngn::set_kp<real_t>)
@@ -345,12 +346,16 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_pressure",&lgr::particles_proto_t<real_t>::diag_pressure)
       .def("diag_temperature",&lgr::particles_proto_t<real_t>::diag_temperature)
       .def("diag_vel_div",&lgr::particles_proto_t<real_t>::diag_vel_div)
-      .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng)
-      .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng)
+      .def("diag_dry_rng", &lgr::particles_proto_t<real_t>::diag_dry_rng) 
+      .def("diag_wet_rng", &lgr::particles_proto_t<real_t>::diag_wet_rng) 
       .def("diag_kappa_rng", &lgr::particles_proto_t<real_t>::diag_kappa_rng)
+      .def("diag_dry_rng_cons", &lgr::particles_proto_t<real_t>::diag_dry_rng_cons) 
+      .def("diag_wet_rng_cons", &lgr::particles_proto_t<real_t>::diag_wet_rng_cons) 
+      .def("diag_kappa_rng_cons", &lgr::particles_proto_t<real_t>::diag_kappa_rng_cons)
       .def("diag_dry_mom", &lgr::particles_proto_t<real_t>::diag_dry_mom)
       .def("diag_wet_mom", &lgr::particles_proto_t<real_t>::diag_wet_mom)
       .def("diag_kappa_mom",    &lgr::particles_proto_t<real_t>::diag_kappa_mom)
+      .def("diag_incloud_time_mom",    &lgr::particles_proto_t<real_t>::diag_incloud_time_mom)
       .def("diag_wet_mass_dens", &lgr::particles_proto_t<real_t>::diag_wet_mass_dens)
       .def("diag_chem",    &lgr::particles_proto_t<real_t>::diag_chem)
       .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)

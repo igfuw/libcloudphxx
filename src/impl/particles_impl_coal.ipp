@@ -14,6 +14,22 @@ namespace libcloudphxx
     {
       enum{na_ge_nb = -2, nb_gt_na = -1};
 
+      struct selector // keep the max value of some parameter in the SD that represents droplets that collided
+      {
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+#if !defined(__NVCC__)
+          using std::max;
+#endif
+          if(thrust::get<2>(tpl) <= 0) return; // do nothing if no collisions or first one passed was a SD with an uneven number in the cell
+          thrust::get<3>(tpl) == na_ge_nb ?    // does the first SD of the pair have greater multiplicity?
+            thrust::get<1>(tpl) = max(thrust::get<0>(tpl), thrust::get<1>(tpl)): // set val = max(val_SD_A, val_SD_B) in the one with smaller multiplicity
+            thrust::get<0>(tpl) = max(thrust::get<0>(tpl), thrust::get<1>(tpl)); // set val = max(val_SD_A, val_SD_B) in the one with smaller multiplicity
+        }
+      };
+
       struct summator
       {
         template<class tpl_t>
@@ -574,6 +590,27 @@ namespace libcloudphxx
           detail::weighted_summator<real_t>()
         );
         nancheck(kpa, "kpa - post coalescence");
+      }
+
+      // update incloud time
+      if(opts_init.diag_incloud_time)
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),   
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),                                                        
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin()),
+            thrust::make_permutation_iterator(incloud_time.begin(), sorted_id.begin())+1,
+            col.begin(),
+            col.begin()+1
+          )) + n_part -1,
+          detail::selector()
+        );
+        nancheck(incloud_time, "incloud_time - post coalescence");
       }
     }
   };  

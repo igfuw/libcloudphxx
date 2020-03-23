@@ -36,6 +36,7 @@ opts_init.rng_seed = 396
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.diag_incloud_time = True
 
 print "nx = ", opts_init.nx
 print "ny = ", opts_init.ny
@@ -71,6 +72,7 @@ print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
+print "diag_incloud_time = ", opts_init.diag_incloud_time
 print "n_sd_max =", opts_init.n_sd_max
 print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
@@ -127,9 +129,12 @@ prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
+prtcls.diag_kappa_rng(0.,2.)
+prtcls.diag_kappa_rng_cons(.5,1.5)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
@@ -166,6 +171,7 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
@@ -384,7 +390,7 @@ print "1D"
 rhod = arr_t([  1.,   1.,   1.])
 th   = arr_t([300., 300., 300.])
 rv   = arr_t([   .01,  .01,  .01])
-C    = arr_t([   .5,   .5,   .5,  .5, .5, .5, .5, .5]) # 3 cells = 4 edges on which C needs to be defined + halo of 2 in each direction
+C    = arr_t([   .5, .5, .5, .5]) # 3 cells = 4 edges on which C needs to be defined
 
 opts_init.nx = 3 
 opts_init.dx = 10
@@ -423,8 +429,8 @@ opts_init.sedi_switch = True
 rhod = arr_t([[  1.,    1.   ],     [   1.,     1.  ]])
 th   = arr_t([[300.,  300.   ],     [ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01 ],     [    .01,    .01]])
-Cx   = arr_t([[   .5,    .5], [    .5,     .5], [    .5,     .5], [   .5,    .5], [    .5,     .5], [    .5,     .5], [   .5,    .5]])
-Cz   = arr_t([[   .0,    .0,   .0], [   .0,      .0,  .0], [   .0,    .0,   .0], [   .0,      .0,  .0], [   .0,    .0,   .0], [   .0,      .0,  .0]])
+Cx   = arr_t([[    .5,     .5], [    .5,     .5], [   .5,    .5]])
+Cz   = arr_t([[   .0,    .0,   .0], [   .0,      .0,  .0]])
 
 opts_init.nz = 2
 opts_init.nx = 2
@@ -505,9 +511,9 @@ opts_init.ny = 2
 opts_init.dy = 10
 opts_init.y1 = opts_init.ny * opts_init.dy
 
-Cx = 0.5 * ones((opts_init.nx+1+4, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
-Cy = 0.5 * ones((opts_init.nx+4,   opts_init.ny+1, opts_init.nz+0), dtype=float64)
-Cz =      zeros((opts_init.nx+4,   opts_init.ny+0, opts_init.nz+1), dtype=float64)
+Cx = 0.5 * ones((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
+Cy = 0.5 * ones((opts_init.nx,   opts_init.ny+1, opts_init.nz+0), dtype=float64)
+Cz =      zeros((opts_init.nx,   opts_init.ny+0, opts_init.nz+1), dtype=float64)
 
 for it in range(2):
   prtcls = lgrngn.factory(backend, opts_init)

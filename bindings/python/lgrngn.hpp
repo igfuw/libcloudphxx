@@ -43,8 +43,7 @@ namespace libcloudphxx
       ) {
         if(ran_with_mpi())
           throw std::runtime_error("The Python bindings of libcloudph++ Lagrangian microphysics can't be used in MPI runs.");
-        auto ret = lgr::factory(backend, opts_init);
-        return ret;
+        return lgr::factory(backend, opts_init);
       }
 
       template <typename real_t>

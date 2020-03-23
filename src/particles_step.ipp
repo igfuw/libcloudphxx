@@ -85,14 +85,14 @@ namespace libcloudphxx
         using std::max;
 #endif
         // TODO: copy-pasted from init
-        /*
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
-        */
+        /*
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
+        */
       }
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
@@ -104,11 +104,14 @@ namespace libcloudphxx
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
+      pimpl->sync(diss_rate,      pimpl->diss_rate);
+      pimpl->sync(rhod,           pimpl->rhod);
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
-      pimpl->sync(diss_rate,      pimpl->diss_rate);
-      pimpl->sync(rhod,           pimpl->rhod);
+
+      // fill in mpi courant halos
+      pimpl->xchng_courants();
 
       nancheck(pimpl->th, " th after sync-in");
       nancheck(pimpl->rv, " rv after sync-in");
@@ -170,6 +173,9 @@ namespace libcloudphxx
         throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
 
       pimpl->should_now_run_cond = false;
+
+      if (pimpl->opts_init.diag_incloud_time)
+        pimpl->update_incloud_time();
 
       // condensation/evaporation 
       if (opts.cond) 

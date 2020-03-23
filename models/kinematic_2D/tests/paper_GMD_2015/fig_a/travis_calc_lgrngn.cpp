@@ -35,7 +35,7 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=10 --nt=20 --spinup=10 --nx=60 --nz=60 --relax_th_rv=false";
   set<string> opts_micro({
-    "--micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=64 --sstp_cond=10 --sstp_coal=10"  
+    "--micro=lgrngn --outdir=travis_out_lgrngn --backend=serial --sd_conc=64 --sstp_cond=10 --sstp_coal=10"  
       " --out_wet=\""
         ".5e-6:25e-6|0,1,2,3;" // FSSP
         "25e-6:1|0,3;"         // "rain"

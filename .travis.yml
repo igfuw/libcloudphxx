@@ -25,6 +25,7 @@ env:
     - TEST_SUITE=UWLCM_unit_iles
     - TEST_SUITE=UWLCM_unit_smg
     - TEST_SUITE=MPI_tests
+    - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
 
@@ -32,6 +33,8 @@ env:
 cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+    - ${TRAVIS_BUILD_DIR}/deps/boost
+    - ${TRAVIS_BUILD_DIR}/deps/hdf5
 
 matrix:
     exclude:
@@ -47,6 +50,9 @@ matrix:
         - compiler: clang
           env: TEST_SUITE=cuda
 
+        - compiler: clang
+          env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+
         # UWLCM is not tested on clang yet
         - compiler: clang
           env: TEST_SUITE=UWLCM_MT
@@ -60,7 +66,7 @@ addons:
 #      - g++-7
 #      - gcc-7
       - clang-4.0
-      - boost1.61
+#      - boost1.61
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
 #      - ubuntu-toolchain-r-test
@@ -123,6 +129,7 @@ before_install:
 
 install:
     - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
+    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh; fi
 
     # redefine CXX to the actual version used
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
@@ -147,7 +154,8 @@ install:
 
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
 
-    # recent boost is installed using addons functionality
+    # boost
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
 
     # cmake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
@@ -215,6 +223,16 @@ job_info: &precache_default
     - . ./.travis_scripts/install_mpi_dependencies.sh
   script: echo "Preparing cache finished"
 
+job_info: &precache_uwlcm_mpi
+  stage: precache
+  os: linux
+  dist: xenial
+  language: cpp
+  compiler: gcc
+  install: 
+    - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
+  script: echo "Preparing cache finished"
+
 jobs:
   include:
     - <<: *precache_default
@@ -223,3 +241,5 @@ jobs:
     - <<: *precache_default
       env: TEST_SUITE=MPI_tests
       compiler: clang
+    - <<: *precache_uwlcm_mpi
+      env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2

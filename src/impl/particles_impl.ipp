@@ -89,6 +89,7 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
+        incloud_time, // time this SD has been within a cloud
         delta_revp20, // change of n * r_w^3 due to rain evaporation
         delta_revp25, // change of n * r_w^3 due to rain evaporation
         delta_revp32, // change of n * r_w^3 due to rain evaporation
@@ -98,7 +99,6 @@ namespace libcloudphxx
         delta_acnv20, // change of n * r_w^3 due to autoconversion
         delta_acnv25, // change of n * r_w^3 due to autoconversion
         delta_acnv32; // change of n * r_w^3 due to autoconversion
-
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -254,12 +254,13 @@ namespace libcloudphxx
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
-                   n_x_tot; // total number of cells in x in all devices
+                   n_x_tot; // total number of cells in x in all devices of this process
 
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
 
-      const int halo_size = 2,
+      const int halo_size, // NOTE:  halo_size = 0 means that both x courant numbers in edge cells are known, what is equivalent to halo = 1 in libmpdata++
+                           // NOTE2: halo means that some values of the Eulerian courant array are pointed to by more than one e2l, what could lead to race conditions if we wanted to sync out courants
                 halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
@@ -303,22 +304,22 @@ namespace libcloudphxx
         var_rho(false),
         opts_init(_opts_init),
         n_dims( // 0, 1, 2 or 3
-          opts_init.nx/m1(opts_init.nx) + 
-          opts_init.ny/m1(opts_init.ny) + 
-          opts_init.nz/m1(opts_init.nz)
+          _opts_init.nx/m1(_opts_init.nx) + 
+          _opts_init.ny/m1(_opts_init.ny) + 
+          _opts_init.nz/m1(_opts_init.nz)
         ), 
         n_cell(
-          m1(opts_init.nx) * 
-          m1(opts_init.ny) *
-          m1(opts_init.nz)
+          m1(_opts_init.nx) * 
+          m1(_opts_init.ny) *
+          m1(_opts_init.nz)
         ),
         zero(0),
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(opts_init.kernel_parameters.size()),
+        n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        rng(opts_init.rng_seed),
+        rng(_opts_init.rng_seed),
         stp_ctr(0),
 	bcond(bcond),
         n_x_bfr(0),
@@ -330,21 +331,23 @@ namespace libcloudphxx
         lft_id(i),   // note: reuses i vector
         rgt_id(tmp_device_size_part),
         n_x_tot(n_x_tot),
+        halo_size(_opts_init.adve_scheme == as_t::pred_corr ? 2 : 0), 
         halo_x( 
           n_dims == 1 ? halo_size:                                      // 1D
-          n_dims == 2 ? halo_size * opts_init.nz:                       // 2D
-                        halo_size * opts_init.nz * opts_init.ny         // 3D
+          n_dims == 2 ? halo_size * _opts_init.nz:                       // 2D
+                        halo_size * _opts_init.nz * _opts_init.ny         // 3D
         ),
-        halo_y(         halo_size * (opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_y(         halo_size * (_opts_init.ny + 1) * _opts_init.nz), // 3D
         halo_z( 
-          n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
-                        halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
+          n_dims == 2 ? halo_size * (_opts_init.nz + 1):                 // 2D
+                        halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
-        w_LS(opts_init.w_LS),
-        SGS_mix_len(opts_init.SGS_mix_len),
-        adve_scheme(opts_init.adve_scheme),
-        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        w_LS(_opts_init.w_LS),
+        SGS_mix_len(_opts_init.SGS_mix_len),
+        adve_scheme(_opts_init.adve_scheme),
+        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
+
         // set 0 dev_count to mark that its not a multi_CUDA spawn
         // if its a spawn, multi_CUDA ctor will alter it
         opts_init.dev_count = 0; 
@@ -419,6 +422,9 @@ namespace libcloudphxx
           distmem_real_vctrs.insert(&ssp);
           distmem_real_vctrs.insert(&dot_ssp);
         }
+         
+        if(opts_init.diag_incloud_time)
+          distmem_real_vctrs.insert(&incloud_time);
       }
 
       void sanity_checks();
@@ -458,6 +464,7 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
+      void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
@@ -509,7 +516,8 @@ namespace libcloudphxx
       );
       void moms_rng(
         const real_t &min, const real_t &max, 
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const bool cons
       ); 
       void moms_calc(
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
@@ -528,7 +536,7 @@ namespace libcloudphxx
       );
       void sync(
         const thrust_device::vector<real_t> &, // from
-        arrinfo_t<real_t> &// to
+        arrinfo_t<real_t> &
       );
 
       void adve();
@@ -546,6 +554,7 @@ namespace libcloudphxx
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_incloud_time();
 
       void coal(const real_t &dt, const bool &turb_coal);
 
@@ -572,6 +581,7 @@ namespace libcloudphxx
 
       // distmem stuff
       void xchng_domains();
+      void xchng_courants();
       bool distmem_mpi();
       bool distmem_cuda();
       bool distmem();

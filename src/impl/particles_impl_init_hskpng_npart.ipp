@@ -61,6 +61,9 @@ namespace libcloudphxx
       delta_acnv25.reserve(opts_init.n_sd_max);
       delta_acnv32.reserve(opts_init.n_sd_max);
 
+      if(opts_init.diag_incloud_time)
+        incloud_time.reserve(opts_init.n_sd_max);
+
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
