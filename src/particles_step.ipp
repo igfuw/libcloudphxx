@@ -166,6 +166,9 @@ namespace libcloudphxx
 
       pimpl->should_now_run_cond = false;
 
+      if (pimpl->opts_init.diag_incloud_time)
+        pimpl->update_incloud_time();
+
       // condensation/evaporation 
       if (opts.cond) 
       {

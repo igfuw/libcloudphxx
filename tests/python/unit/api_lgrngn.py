@@ -31,6 +31,7 @@ opts_init.rng_seed = 396
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.diag_incloud_time = True
 
 print "nx = ", opts_init.nx
 print "ny = ", opts_init.ny
@@ -66,6 +67,7 @@ print "sstp_cond =", opts_init.sstp_cond
 print "sstp_coal =", opts_init.sstp_coal
 print "sstp_chem =", opts_init.sstp_chem 
 
+print "diag_incloud_time = ", opts_init.diag_incloud_time
 print "n_sd_max =", opts_init.n_sd_max
 print lgrngn.backend_t.OpenMP
 print lgrngn.backend_t.CUDA
@@ -122,9 +124,12 @@ prtcls.step_async(opts)
 prtcls.step_sync(opts, th, rv)
 prtcls.diag_dry_rng(0.,1.)
 prtcls.diag_wet_rng(0.,1.)
+prtcls.diag_kappa_rng(0.,2.)
+prtcls.diag_kappa_rng_cons(.5,1.5)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)
@@ -161,6 +166,7 @@ prtcls.diag_wet_rng(0.,1.)
 prtcls.diag_dry_mom(1)
 prtcls.diag_wet_mom(1)
 prtcls.diag_kappa_mom(1)
+prtcls.diag_incloud_time_mom(1)
 puddle = prtcls.diag_puddle()
 print 'puddle: ', puddle
 #prtcls.diag_chem(lgrngn.chem_species_t.OH)

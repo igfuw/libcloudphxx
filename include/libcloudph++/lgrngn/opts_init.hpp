@@ -111,6 +111,9 @@ namespace libcloudphxx
       int sstp_chem;
       real_t chem_rho;
 
+      // do we want to track the time SDs spend inside clouds
+      bool diag_incloud_time;
+
       // RH threshold for calculating equilibrium condition at t=0
       real_t RH_max;
 
@@ -165,7 +168,8 @@ namespace libcloudphxx
         n_sd_max(0),
         src_sd_conc(0),
         src_z1(0),
-        rd_min(0.)
+        rd_min(0.),
+        diag_incloud_time(false)
       {}
 
       // dtor (just to silence -Winline warnings)

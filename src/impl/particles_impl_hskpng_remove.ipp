@@ -56,6 +56,9 @@ namespace libcloudphxx
           real_t_vctrs.insert(&sstp_tmp_p);
       }
 
+      if(opts_init.diag_incloud_time)
+        real_t_vctrs.insert(&incloud_time);
+
       namespace arg = thrust::placeholders;
 
       // remove chemical stuff
