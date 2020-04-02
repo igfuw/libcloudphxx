@@ -134,6 +134,8 @@ namespace libcloudphxx
 
       real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
 
+      bool no_ccn_at_init; // if true, no ccn / SD are put at the start of the simulation
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -169,7 +171,8 @@ namespace libcloudphxx
         src_sd_conc(0),
         src_z1(0),
         rd_min(0.),
-        diag_incloud_time(false)
+        diag_incloud_time(false),
+        no_ccn_at_init(false)
       {}
 
       // dtor (just to silence -Winline warnings)
