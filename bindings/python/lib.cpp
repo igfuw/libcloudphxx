@@ -131,6 +131,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
     bp::def("r_vs", &common::r_vs<real_t>);
+    bp::def("p_vs_tet", &common::p_vs_tet<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
