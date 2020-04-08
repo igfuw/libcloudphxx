@@ -48,11 +48,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src(const real_t &dt)
     {   
-      // sanity checks
-      if(n_dims < 2)            throw std::runtime_error("Source only works in 2D and 3D");
-      if(opts_init.chem_switch) throw std::runtime_error("Source is not yet compatible with chemistry.");
-      if(opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
-
       // --- calc liquid water content before src ---
       hskpng_sort(); 
       thrust_device::vector<real_t> &drv(tmp_device_real_cell);
@@ -94,8 +89,6 @@ namespace libcloudphxx
           real_t(opts_init.src_sd_conc) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
         ); 
       }
-
-      // TODO: assert that we do not introduce particles into supersaturated cells?
 
       // -------- TODO: match not only sizes of old particles, but also kappas and chemical composition... --------
 

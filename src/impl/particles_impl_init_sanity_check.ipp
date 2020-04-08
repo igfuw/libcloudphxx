@@ -58,6 +58,15 @@ namespace libcloudphxx
       if (opts_init.chem_switch && opts_init.src_switch)
         throw std::runtime_error("chemistry and aerosol source are not compatible");
 
+      if (opts_init.src_switch && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
+        throw std::runtime_error("src_switch==True, but src_dry_distros and src_dry_sizes are empty");
+
+      if (opts_init.src_switch && n_dims<2)
+        throw std::runtime_error("src_switch==True and n_dims<2. Source only works in 2D and 3D.");
+
+      if (opts_init.src_switch && !opts_init.src_dry_distros.empty() &&
+          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
+
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
 
@@ -72,7 +81,7 @@ namespace libcloudphxx
         throw std::runtime_error("Sd_conc_large_tail make sense only with sd_conc init (i.e. sd_conc>0)");
 
       if(opts_init.sd_const_multi > 0 && opts_init.src_switch)
-        throw std::runtime_error("aerosol source and constant multiplicity option are not compatible");
+        throw std::runtime_error("aerosol source and constant multiplicity option are not compatible"); // NOTE: why not?
 
       if (n_dims > 0)
       {

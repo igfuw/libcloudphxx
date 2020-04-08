@@ -74,8 +74,11 @@ namespace libcloudphxx
       // source distro per unit time
       dry_distros_t src_dry_distros;
 
-      // number of SDs created per cell per source iteration
+      // number of SDs created from src_dry_distros per cell per source iteration
       unsigned long long src_sd_conc;
+
+      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
+      dry_sizes_t src_dry_sizes;
 
       // height up to which aerosol will be created
       // will be rounded to cell number - cells are supposed to be uniform
