@@ -389,6 +389,7 @@ namespace libcloudphxx
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
+      void init_count_num_src(const thrust_size_t &);
       template <class arr_t>
       void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);

@@ -49,20 +49,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::src_dry_distros(const real_t &dt)
     {   
       // set number of SDs to init; use count_num as storage
-      {
-        namespace arg = thrust::placeholders;
-        thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5; // k index of the heighest cell we create SDs in
-        // NOTE: some cells may be used only partially in thr super-droplet method
-        // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the 
-        // Eulerian domain (0, nx*dx, etc...)
-        // TODO: fix for the case when x0>dx or x1<(n-1)*dx (same in the y direction, z maybe too)
-        thrust::transform(
-          zero,
-          zero + n_cell,
-          count_num.begin(), 
-          real_t(opts_init.src_sd_conc) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
-        ); 
-      }
+      init_count_num_src(opts_init.src_sd_conc);
 
       // -------- TODO: match not only sizes of old particles, but also kappas and chemical composition... --------
 

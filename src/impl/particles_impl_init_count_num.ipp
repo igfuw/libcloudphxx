@@ -102,5 +102,23 @@ namespace libcloudphxx
       const real_t integral = detail::integrate(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
       init_count_num_hlpr(integral, const_multi);
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::init_count_num_src(const thrust_size_t &number)
+    {
+      // init count_num to number, but only in cells within the source area
+      namespace arg = thrust::placeholders;
+      thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5; // k index of the heighest cell we create SDs in
+      // NOTE: some cells may be used only partially in thr super-droplet method
+      // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the
+      // Eulerian domain (0, nx*dx, etc...)
+      // TODO: fix for the case when x0>dx or x1<(n-1)*dx (same in the y direction, z maybe too)
+      thrust::transform(
+        zero,
+        zero + n_cell,
+        count_num.begin(),
+        real_t(number) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
+      );
+    }
   };
 };
