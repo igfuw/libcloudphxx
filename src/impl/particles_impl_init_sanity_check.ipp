@@ -61,6 +61,12 @@ namespace libcloudphxx
       if (opts_init.src_switch && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
         throw std::runtime_error("src_switch==True, but src_dry_distros and src_dry_sizes are empty");
 
+      if (opts_init.src_switch && opts_init.src_dry_sizes.size() > 1)
+        throw std::runtime_error("src_dry_sizes can only have a single kappa value.");
+
+      if (opts_init.src_switch && opts_init.src_dry_distros.size() > 1)
+        throw std::runtime_error("src_dry_distros can only have a single kappa value.");
+
       if (opts_init.src_switch && n_dims<2)
         throw std::runtime_error("src_switch==True and n_dims<2. Source only works in 2D and 3D.");
 
