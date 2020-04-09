@@ -284,11 +284,49 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
+      void set_sds( // src_dry_sizes
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func
+      )
+      {
+        arg->src_dry_sizes.clear();
+        if(len(kappa_func.keys()) == 0)
+          return;
+
+        // loop over kappas
+        for (int j = 0; j < len(kappa_func.keys()); ++j)
+        {
+          const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
+          std::map<real_t, std::pair<real_t, int>> size_conc_map;
+
+          // turn the size : {conc, multi} dict into a size : {conc, multi} map
+          for (int i = 0; i < len(size_conc.keys()); ++i)
+          {
+            const bp::list conc_multi_list = bp::extract<bp::list>(size_conc.values()[i]);
+            assert(len(conc_multi_list) == 2);
+            const real_t conc = bp::extract<real_t>(conc_multi_list[0]);
+            const int multi   = bp::extract<int>   (conc_multi_list[1]);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, multi);
+          }
+          const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
+          arg->src_dry_sizes[kappa] = size_conc_map;
+        }
+      }
+
+      template <typename real_t>
       void get_ds(
         lgr::opts_init_t<real_t> *arg
       )
       {
         throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void get_sds(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("src_dry_sizes does not feature a getter yet - TODO");
       }
 
       template <typename real_t>
