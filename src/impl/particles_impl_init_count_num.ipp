@@ -150,7 +150,7 @@ namespace libcloudphxx
               * ((arg::_1 / (opts_init.nz * opts_init.ny)) < i1)
               * ((arg::_1 / (opts_init.nz * opts_init.ny)) > i0)
               * (((arg::_1 / opts_init.nz) % opts_init.ny) < j1)
-              * (((arg::_1 / opts_init.nz) % opts_init.ny) > j1)
+              * (((arg::_1 / opts_init.nz) % opts_init.ny) > j0)
           );
           break;
       }
