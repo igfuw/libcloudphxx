@@ -55,12 +55,12 @@ namespace libcloudphxx
       thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
 
       thrust::copy(
-	rhod.begin(), rhod.end(), // from
-	tmp_rhod.begin()          // to
+      rhod.begin(), rhod.end(), // from
+      tmp_rhod.begin()          // to
       );
       thrust::copy(
-	ijk.begin()+n_part_old, ijk.end(), // from
-	tmp_ijk.begin()         // to
+      ijk.begin()+n_part_old, ijk.end(), // from
+      tmp_ijk.begin()         // to
       );
 
       // filling n with multiplicities
@@ -112,8 +112,8 @@ namespace libcloudphxx
           );
         }
 
-	// host -> device (includes casting from real_t to uint! and rounding)
-	thrust::copy(
+      // host -> device (includes casting from real_t to uint! and rounding)
+      thrust::copy(
           thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
           thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
           n.begin() + n_part_old
@@ -137,11 +137,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
       thrust::fill(concentration.begin(), concentration.end(), conc);
-      std::cerr << "init n dry sizes. concentration: " << std::endl;
-      debug::print(concentration);
       conc_to_number(concentration);
-      std::cerr << "init n dry sizes. number: " << std::endl;
-      debug::print(concentration);
       thrust::transform(
         thrust::make_permutation_iterator(concentration.begin(), ijk.begin() + n_part_old),
         thrust::make_permutation_iterator(concentration.begin(), ijk.end()),
