@@ -41,9 +41,6 @@ namespace libcloudphxx
   
           // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();
-
-          // init _old values in per-particle substepping, requires ijk
-          init_sstp();
   
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);

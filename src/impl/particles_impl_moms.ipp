@@ -205,9 +205,14 @@ namespace libcloudphxx
         // output - values
         count_mom.begin()
       );  
+      std::cerr << "count ijk: " << std::endl;
+      debug::print(count_ijk);
+      std::cerr << "count mom: " << std::endl;
+      debug::print(count_mom);
 
 
       count_n = n.first - count_ijk.begin();
+      std::cerr << "count n: " << count_n << std::endl;
 #if !defined(NDEBUG)
       {
         int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());

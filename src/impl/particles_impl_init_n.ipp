@@ -137,7 +137,11 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
       thrust::fill(concentration.begin(), concentration.end(), conc);
+      std::cerr << "init n dry sizes. concentration: " << std::endl;
+      debug::print(concentration);
       conc_to_number(concentration);
+      std::cerr << "init n dry sizes. number: " << std::endl;
+      debug::print(concentration);
       thrust::transform(
         thrust::make_permutation_iterator(concentration.begin(), ijk.begin() + n_part_old),
         thrust::make_permutation_iterator(concentration.begin(), ijk.end()),

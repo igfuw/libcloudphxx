@@ -260,24 +260,23 @@ namespace libcloudphxx
         // sanity check
         if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
 
-        // update the step counter since src was turned on
-        ++pimpl->stp_ctr;
-
         // introduce new particles with the given time interval
-        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        if(pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0) 
         {
           pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
         }
       }
-      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
-      if(opts.cond || pimpl->stp_ctr == pimpl->opts_init.supstp_src)
+      if(opts.cond || (opts.src && pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
-        pimpl->stp_ctr = 0; //reset the counter
       }
+
+      // update the step counter since src was turned on
+      if (opts.src) ++pimpl->stp_ctr;
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       if (opts.chem_dsl == true)
       {

@@ -14,7 +14,7 @@ namespace libcloudphxx
     {   
       // --- calc liquid water content before src ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      thrust_device::vector<real_t> &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called in src.....
       thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
       moms_all();
@@ -77,8 +77,8 @@ namespace libcloudphxx
       // update count_ijk and count_num
       hskpng_count();
 
-      // store sstp_old
-      sstp_save();
+      // init _old values in per-particle substepping
+      init_sstp();
     }
   };  
 };
