@@ -108,17 +108,52 @@ namespace libcloudphxx
     {
       // init count_num to number, but only in cells within the source area
       namespace arg = thrust::placeholders;
-      thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5; // k index of the heighest cell we create SDs in
+
+      // indices of cells on edges of the box in which aerosol is created
+      thrust_size_t i0 = opts_init.src_x0 / opts_init.dx + 0.5;
+      thrust_size_t i1 = opts_init.src_x1 / opts_init.dx + 0.5;
+      thrust_size_t j0 = opts_init.src_y0 / opts_init.dy + 0.5;
+      thrust_size_t j1 = opts_init.src_y1 / opts_init.dy + 0.5;
+      thrust_size_t k0 = opts_init.src_z0 / opts_init.dz + 0.5;
+      thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5;
+
+
       // NOTE: some cells may be used only partially in thr super-droplet method
       // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the
       // Eulerian domain (0, nx*dx, etc...)
       // TODO: fix for the case when x0>dx or x1<(n-1)*dx (same in the y direction, z maybe too)
-      thrust::transform(
-        zero,
-        zero + n_cell,
-        count_num.begin(),
-        real_t(number) *  ((arg::_1 % opts_init.nz) < k1)   // no of SDs to create
-      );
+
+      switch(n_dims)
+      {
+        case 0 : throw std::runtime_error("init_count_num_src called in 0D"); break;
+        case 1 : throw std::runtime_error("init_count_num_src called in 1D"); break;
+        case 2:
+          thrust::transform(
+            zero,
+            zero + n_cell,
+            count_num.begin(),
+            real_t(number)    // no of SDs to create
+              * ((arg::_1 % opts_init.nz) < k1)
+              * ((arg::_1 % opts_init.nz) > k0)
+              * ((arg::_1 / opts_init.nz) < i1)
+              * ((arg::_1 / opts_init.nz) > i0)
+          );
+          break;
+        case 3:
+          thrust::transform(
+            zero,
+            zero + n_cell,
+            count_num.begin(),
+            real_t(number)    // no of SDs to create
+              * ((arg::_1 % opts_init.nz) < k1)
+              * ((arg::_1 % opts_init.nz) > k0)
+              * ((arg::_1 / (opts_init.nz * opts_init.ny)) < i1)
+              * ((arg::_1 / (opts_init.nz * opts_init.ny)) > i0)
+              * (((arg::_1 / opts_init.nz) % opts_init.ny) < j1)
+              * (((arg::_1 / opts_init.nz) % opts_init.ny) > j1)
+          );
+          break;
+      }
     }
   };
 };

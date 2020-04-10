@@ -80,9 +80,9 @@ namespace libcloudphxx
       // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
       dry_sizes_t src_dry_sizes;
 
-      // height up to which aerosol will be created
+      // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
-      real_t src_z1;
+      real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
 
       // coalescence Kernel type
       kernel_t::kernel_t kernel;
