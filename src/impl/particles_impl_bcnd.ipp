@@ -82,20 +82,31 @@ namespace libcloudphxx
         case 2:
         case 1:
         {
-          // hardcoded periodic boundary in x! (TODO - as an option)
           // when working on a single GPU simply apply bcond
           if(opts_init.dev_count < 2)
           {
-            thrust::transform(
-              x.begin(), x.end(),
-              x.begin(),
-              detail::periodic<real_t>(opts_init.x0, opts_init.x1)
-            );
+            if(!opts_init.open_side_walls) // default, periodic side walls
+              thrust::transform(
+                x.begin(), x.end(),
+                x.begin(),
+                detail::periodic<real_t>(opts_init.x0, opts_init.x1)
+              );
+            else // open side walls
+            {
+              namespace arg = thrust::placeholders;
+              thrust::transform_if(
+                x.begin(), x.end(),                                    // input - arg
+                n.begin(),                                             // output
+                detail::flag<n_t, real_t>(),                           // operation (zero-out, so recycling will take care of it)
+                arg::_1 >= opts_init.x1 || arg::_1 < opts_init.x0      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+              );
+            }
           }
           // more than one GPU - save ids of particles that need to be copied left/right
+          // NOTE: multiple GPUs are not compatible with open side walls
           else
           {
-	    namespace arg = thrust::placeholders;
+            namespace arg = thrust::placeholders;
             // use i and k as temp storage - after bcond they are invalid anyway
             // multi_CUDA works only for 2D and 3D
             thrust_device::vector<thrust_size_t> &lft_id(i);
@@ -135,33 +146,33 @@ namespace libcloudphxx
           // hardcoded periodic boundary in y! (TODO - as an option)
           if (n_dims == 3)
           {
-	    thrust::transform(
-	      y.begin(), y.end(),
-	      y.begin(),
-	      detail::periodic<real_t>(opts_init.y0, opts_init.y1)
-	    );
+            thrust::transform(
+              y.begin(), y.end(),
+              y.begin(),
+              detail::periodic<real_t>(opts_init.y0, opts_init.y1)
+            );
           }
 
           if (n_dims > 1)
           {
-	    // hardcoded "open" boudary at the top of the domain 
-	    // (just for numerical-error-sourced out-of-domain particles)
-	    {
-	      namespace arg = thrust::placeholders;
-	      thrust::transform_if(
-		z.begin(), z.end(),          // input - arg
-		n.begin(),                   // output
-		detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
-		arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-	      );
-	    }
+            // hardcoded "open" boudary at the top of the domain 
+            // (just for numerical-error-sourced out-of-domain particles)
+            {
+              namespace arg = thrust::placeholders;
+              thrust::transform_if(
+                z.begin(), z.end(),          // input - arg
+                n.begin(),                   // output
+                detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+                arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+              );
+            }
 
-	    // precipitation on the bottom edge of the domain
-	    //// first: count the volume of particles below the domain
-	    // TODO! (using tranform_reduce?)
-	    //// second: zero-out multiplicities so they will be recycled
-	    {
-	      namespace arg = thrust::placeholders;
+            // precipitation on the bottom edge of the domain
+            //// first: count the volume of particles below the domain
+            // TODO! (using tranform_reduce?)
+            //// second: zero-out multiplicities so they will be recycled
+            {
+              namespace arg = thrust::placeholders;
 
               thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
@@ -216,13 +227,13 @@ namespace libcloudphxx
               }
 
               // zero-out multiplicities
-	      thrust::transform_if(   
-		z.begin(), z.end(),          // input 
-		n.begin(),                   // output
-		detail::flag<n_t, real_t>(), // operation (zero-out)
-		arg::_1 < opts_init.z0       // condition
-	      );
-	    }
+              thrust::transform_if(   
+                z.begin(), z.end(),          // input 
+                n.begin(),                   // output
+                detail::flag<n_t, real_t>(), // operation (zero-out)
+                arg::_1 < opts_init.z0       // condition
+              );
+            }
           }
           break; 
         }
