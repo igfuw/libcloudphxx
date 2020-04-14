@@ -380,6 +380,7 @@ namespace libcloudphxx
       void dist_analysis_const_multi(
         const common::unary_function<real_t> &n_of_lnrd 
       );
+      void reserve_hskpng_npart();
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
@@ -397,7 +398,6 @@ namespace libcloudphxx
       void init_sync();
       void init_grid();
       void init_hskpng_ncell();
-      void init_hskpng_npart();
       void init_chem();
       void init_chem_aq();
       void init_sstp();

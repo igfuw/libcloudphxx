@@ -41,6 +41,7 @@
 // details
 #include "impl/particles_impl.ipp"
 #include "impl/particles_impl_dist_analysis.ipp"
+#include "impl/particles_impl_reserve_hskpng_npart.ipp"
 #include "impl/particles_impl_init_SD_with_distros_sd_conc.ipp"
 #include "impl/particles_impl_init_SD_with_distros_tail.ipp"
 #include "impl/particles_impl_init_SD_with_distros_const_multi.ipp"
@@ -59,7 +60,6 @@
 #include "impl/particles_impl_init_e2l.ipp"
 #include "impl/particles_impl_init_grid.ipp"
 #include "impl/particles_impl_init_sync.ipp"
-#include "impl/particles_impl_init_hskpng_npart.ipp"
 #include "impl/particles_impl_init_hskpng_ncell.ipp"
 #include "impl/particles_impl_init_chem.ipp"
 #include "impl/particles_impl_init_kernel.ipp"

@@ -77,6 +77,9 @@ namespace libcloudphxx
       // update count_ijk and count_num
       hskpng_count();
 
+      // update vt of new SD
+      hskpng_vterm_invalid();
+
       // init _old values in per-particle substepping
       init_sstp();
     }

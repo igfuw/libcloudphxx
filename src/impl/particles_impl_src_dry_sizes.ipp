@@ -38,7 +38,7 @@ namespace libcloudphxx
           n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
           n_part += n_part_to_init;
           hskpng_resize_npart(); 
-  
+
           // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();
   

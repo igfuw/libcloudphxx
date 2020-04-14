@@ -332,7 +332,7 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       // updating terminal velocities
-      if (opts.sedi || opts.coal)
+      if (opts.sedi || opts.coal || opts.cond)
         pimpl->hskpng_vterm_all();
 
       // coalescence
