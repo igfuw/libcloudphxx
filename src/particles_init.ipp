@@ -77,11 +77,11 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       // --------  init super-droplets --------
+      // reserve memory for data of the size of the max number of SDs
+      pimpl->init_hskpng_npart(); 
+
       if(!pimpl->opts_init.no_ccn_at_init)
       {
-        // reserve memory for data of the size of the max number of SDs
-        pimpl->init_hskpng_npart(); 
-
         // initial parameters (from dry distribution or dry radius-concentration pairs)
         if(pimpl->opts_init.dry_distros.size() > 0)
           pimpl->init_SD_with_distros();
