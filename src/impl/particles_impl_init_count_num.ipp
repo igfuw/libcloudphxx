@@ -117,7 +117,6 @@ namespace libcloudphxx
       thrust_size_t k0 = opts_init.src_z0 / opts_init.dz + 0.5;
       thrust_size_t k1 = opts_init.src_z1 / opts_init.dz + 0.5;
 
-
       // NOTE: some cells may be used only partially in thr super-droplet method
       // e.g. when Lagrangian domain (x0, x1, etc...) is smaller than the
       // Eulerian domain (0, nx*dx, etc...)
@@ -134,9 +133,9 @@ namespace libcloudphxx
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)
-              * ((arg::_1 % opts_init.nz) > k0)
+              * ((arg::_1 % opts_init.nz) >= k0)
               * ((arg::_1 / opts_init.nz) < i1)
-              * ((arg::_1 / opts_init.nz) > i0)
+              * ((arg::_1 / opts_init.nz) >= i0)
           );
           break;
         case 3:
@@ -146,11 +145,11 @@ namespace libcloudphxx
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)
-              * ((arg::_1 % opts_init.nz) > k0)
+              * ((arg::_1 % opts_init.nz) >= k0)
               * ((arg::_1 / (opts_init.nz * opts_init.ny)) < i1)
-              * ((arg::_1 / (opts_init.nz * opts_init.ny)) > i0)
+              * ((arg::_1 / (opts_init.nz * opts_init.ny)) >= i0)
               * (((arg::_1 / opts_init.nz) % opts_init.ny) < j1)
-              * (((arg::_1 / opts_init.nz) % opts_init.ny) > j0)
+              * (((arg::_1 / opts_init.nz) % opts_init.ny) >= j0)
           );
           break;
       }
