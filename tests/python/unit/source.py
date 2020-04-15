@@ -36,9 +36,10 @@ def test(opts_init):
   opts_init.z0=0.;
   opts_init.x1=opts_init.nx * opts_init.dx;
   opts_init.z1=opts_init.nz * opts_init.dz;
+  opts_init.src_z0 = 0;
   opts_init.src_z1 = opts_init.dz; #create aerosol only in the lower cells
-  
-  opts_init.n_sd_max = int((opts_init.sd_conc * opts_init.nz + opts_init.src_sd_conc * 2) * opts_init.nx)
+  opts_init.src_x0 = 0;
+  opts_init.src_x1 = opts_init.dx*opts_init.nx;
   
   opts_init.chem_switch = 0;
   opts_init.coal_switch = 0;
@@ -74,15 +75,15 @@ def test(opts_init):
   
   prtcls.diag_all()
   prtcls.diag_sd_conc()
-  sd_conc = frombuffer(prtcls.outbuf())
+  sd_conc = frombuffer(prtcls.outbuf()).copy()
   
   prtcls.diag_all()
   prtcls.diag_wet_mom(0)
-  wet_mom0 = frombuffer(prtcls.outbuf())
+  wet_mom0 = frombuffer(prtcls.outbuf()).copy()
   
   prtcls.diag_all()
   prtcls.diag_wet_mom(1)
-  wet_mom1 = frombuffer(prtcls.outbuf())
+  wet_mom1 = frombuffer(prtcls.outbuf()).copy()
 
   return sd_conc, wet_mom0, wet_mom1
 
@@ -93,9 +94,11 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.src_dry_distros = {kappa:lognormal_src}
 opts_init.sd_conc = 1024
 opts_init.src_sd_conc = 512
-sd_conc, wet_mom0, wet_mom1 = test(opts_init)
+opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=2 and nz=2 
 
 print ' --- dry_distros src ---'
+
+sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
 print 'diag_sd_conc', sd_conc
 if not((sd_conc[0] == 1164 or sd_conc[0] == 1165) and (sd_conc[2] == 1164 or sd_conc[2] == 1165)):
@@ -115,10 +118,12 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 kappa = .61
 opts_init = lgrngn.opts_init_t()
 opts_init.dry_sizes = {kappa : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
-opts_init.src_dry_sizes = {kappa : {1.e-6  : [30., 0.2], 15.e-6 : [10., 0.1]}}
-sd_conc, wet_mom0, wet_mom1 = test(opts_init)
+opts_init.src_dry_sizes = {kappa : {1.e-6  : [0.3, 10], 15.e-6 : [0.1, 5]}}
+opts_init.n_sd_max=240
 
 print ' --- dry_sizes src ---'
+
+sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
 print 'diag_sd_conc', sd_conc
 if not((sd_conc[0] == 60) and (sd_conc[2] == 60)):
