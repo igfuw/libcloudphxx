@@ -74,8 +74,8 @@ def initial_state():
     return rhod, th, rv, p
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp):
-    print "[RH_formula = ", RH_formula,"]"
-    print "step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp
+    print("[RH_formula = ", RH_formula,"]")
+    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
@@ -97,7 +97,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     else:
       prtcls.init(th, rv, rhod, p)
     ss = supersaturation(prtcls)
-    print "initial supersaturation", ss
+    print("initial supersaturation", ss)
 
     exectime = 0
     # first step without condesnation just to see diag output
@@ -110,7 +110,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
   #    print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
 
     ss_post_cond = supersaturation(prtcls)
-    print "supersaturation after condensation", ss_post_cond, th[0], rv[0]
+    print("supersaturation after condensation", ss_post_cond, th[0], rv[0])
 
     assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
     assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
@@ -127,8 +127,8 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 #      print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
 
     ss_post_evap = supersaturation(prtcls)
-    print "supersaturation after evaporation", ss_post_evap, th[0], rv[0]
-    print 'execution time: ', exectime
+    print("supersaturation after evaporation", ss_post_evap, th[0], rv[0])
+    print('execution time: ', exectime)
     
     return ss_post_cond, th[0] - th_init[0], rv[0] - rv_init[0] - rv_diff[0]
 
@@ -137,17 +137,17 @@ for constp in [False, True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
       ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp)
-      print ss, th_diff_1  , rv_diff
+      print(ss, th_diff_1  , rv_diff)
       assert(abs(ss) < 4.5e-3)
       assert(abs(rv_diff) < 1e-9)
 
       ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp)
-      print ss, th_diff_10 , rv_diff
+      print(ss, th_diff_10 , rv_diff)
       assert(abs(ss) < 4.5e-3)
       assert(abs(rv_diff) < 1e-9)
 
       ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp)
-      print ss, th_diff_100, rv_diff
+      print(ss, th_diff_100, rv_diff)
       assert(abs(ss) < 4.5e-3)
       assert(abs(rv_diff) < 1e-9)
 

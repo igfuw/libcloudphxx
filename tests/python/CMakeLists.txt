@@ -2,7 +2,7 @@
 #TODO: local search path for python modules (to make it work before make install)
 
 # find_interp first, find_libs should find a matching version of libs
-find_package(PythonInterp 2.7 REQUIRED)
+find_package(PythonInterp 3)
 find_package(PythonLibs)
 
 

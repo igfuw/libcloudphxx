@@ -81,7 +81,7 @@ for i in range(100):
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 tmp = frombuffer(prtcls.outbuf())
-print 'diag_sd_conc', tmp
+print('diag_sd_conc', tmp)
 
 if not((tmp[0] == 1164 or tmp[0] == 1165) and (tmp[2] == 1164 or tmp[2] == 1165)):
   raise Exception("wrong amount of SDs were added")
@@ -92,13 +92,13 @@ if not(tmp[1] == 1024 and tmp[3] == 1024):
 prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 tmp = frombuffer(prtcls.outbuf())
-print 'wet mom0', tmp
+print('wet mom0', tmp)
 if (abs( 2 - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
   raise Exception("incorrect multiplicity after source")
 
 prtcls.diag_all()
 prtcls.diag_wet_mom(1)
 tmp = frombuffer(prtcls.outbuf())
-print 'wet mom1', tmp
+print('wet mom1', tmp)
 if (abs( (7.84 / 2.12) - (tmp[0] + tmp[2]) / (tmp[1] + tmp[3]) ) > 0.015):
   raise Exception("incorrect radius after source")

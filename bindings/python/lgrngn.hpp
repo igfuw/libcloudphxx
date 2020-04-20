@@ -47,12 +47,13 @@ namespace libcloudphxx
       bp::object outbuf(
         lgr::particles_proto_t<real_t> *arg
       ) {
-        return bp::object(bp::handle<>(PyBuffer_FromMemory(
-          arg->outbuf(), 
+        return bp::object(bp::handle<>(PyMemoryView_FromMemory(
+          reinterpret_cast<char *>(arg->outbuf()), 
           sizeof(real_t)
           * std::max(1, arg->opts_init->nx) 
           * std::max(1, arg->opts_init->ny) 
-          * std::max(1, arg->opts_init->nz) 
+          * std::max(1, arg->opts_init->nz), 
+          PyBUF_READ
         ))); // TODO: this assumes Python 2 -> make it compatible with P3 or require P2 in CMake
       }
 

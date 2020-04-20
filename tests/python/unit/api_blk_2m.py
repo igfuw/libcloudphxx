@@ -7,12 +7,12 @@ from libcloudphxx import blk_2m
 
 opts = blk_2m.opts_t()
 
-print "acti =", opts.acti 
-print "cond =", opts.cond 
-print "acnv =", opts.acnv 
-print "accr =", opts.accr
-print "sedi =", opts.sedi
-print "RH_max =", opts.RH_max
+print("acti =", opts.acti) 
+print("cond =", opts.cond) 
+print("acnv =", opts.acnv) 
+print("accr =", opts.accr)
+print("sedi =", opts.sedi)
+print("RH_max =", opts.RH_max)
 
 opts.dry_distros = [
   {"mean_rd":.04e-6 / 2, "sdev_rd":1.4, "N_stp":60e6, "chem_b":.55},
