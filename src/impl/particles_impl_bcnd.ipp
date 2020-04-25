@@ -82,6 +82,7 @@ namespace libcloudphxx
         case 2:
         case 1:
         {
+          // z boundary
           // when working on a shared memory system, simply apply bcond
           if(!distmem())
           {
@@ -141,16 +142,28 @@ namespace libcloudphxx
             }
           }
 
-          // hardcoded periodic boundary in y! (TODO - as an option)
+          // y boundary, no distmem in this direction
           if (n_dims == 3)
           {
-            thrust::transform(
-              y.begin(), y.end(),
-              y.begin(),
-              detail::periodic<real_t>(opts_init.y0, opts_init.y1)
-            );
+            if(!opts_init.open_side_walls) // default, periodic side walls
+              thrust::transform(
+                y.begin(), y.end(),
+                y.begin(),
+                detail::periodic<real_t>(opts_init.y0, opts_init.y1)
+              );
+            else // open side walls
+            {
+              namespace arg = thrust::placeholders;
+              thrust::transform_if(
+                y.begin(), y.end(),                                    // input - arg
+                n.begin(),                                             // output
+                detail::flag<n_t, real_t>(),                           // operation (zero-out, so recycling will take care of it)
+                arg::_1 >= opts_init.y1 || arg::_1 < opts_init.y0      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+              );
+            }
           }
 
+          // z boundary, no distmem here
           if (n_dims > 1)
           {
             // hardcoded "open" boudary at the top of the domain 
