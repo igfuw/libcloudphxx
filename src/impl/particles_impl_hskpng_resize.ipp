@@ -69,6 +69,9 @@ namespace libcloudphxx
           sstp_tmp_p.resize(n_part);
         }
       }
+
+      if(opts_init.diag_incloud_time)
+        incloud_time.resize(n_part);
     }
   };
 };

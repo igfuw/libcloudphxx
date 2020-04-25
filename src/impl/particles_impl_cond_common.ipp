@@ -67,13 +67,15 @@ namespace libcloudphxx
         const quantity<si::dimensionless,     real_t> kpa;
         const quantity<si::velocity,          real_t> vt;
         const quantity<si::dimensionless,     real_t> RH_max;
+        const quantity<si::length,            real_t> lambda_D;
+        const quantity<si::length,            real_t> lambda_K;
 
         // ctor
         BOOST_GPU_ENABLED
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
@@ -87,6 +89,8 @@ namespace libcloudphxx
           vt(      thrust::get<6>(thrust::get<0>(tpl)) * si::metres_per_second),
           p(       thrust::get<1>(tpl) * si::pascals),
           RH(      thrust::get<2>(tpl)),
+          lambda_D(thrust::get<7>(thrust::get<0>(tpl)) * si::metres),
+          lambda_K(thrust::get<8>(thrust::get<0>(tpl)) * si::metres),
           RH_max(RH_max)
         {}
 
@@ -100,8 +104,6 @@ namespace libcloudphxx
           using common::moist_air::K_0;
           using common::moist_air::c_pd;
           using common::transition_regime::beta;
-          using common::mean_free_path::lambda_D;
-          using common::mean_free_path::lambda_K;
           using common::ventil::Sh;
           using common::ventil::Nu;
 #if !defined(__NVCC__)
@@ -119,10 +121,10 @@ namespace libcloudphxx
             Pr = common::ventil::Pr(eta, c_pd<real_t>(), K_0<real_t>()); // TODO? cache
 
           const quantity<common::diffusivity, real_t> 
-            D = D_0<real_t>() * beta(lambda_D(T)    / rw) * (Sh(Sc, Re) / 2); // TODO: cache lambdas
+            D = D_0<real_t>() * beta(lambda_D / rw) * (Sh(Sc, Re) / 2);
 
           const quantity<common::thermal_conductivity, real_t> 
-            K = K_0<real_t>() * beta(lambda_K(T, p) / rw) * (Nu(Pr, Re) / 2);
+            K = K_0<real_t>() * beta(lambda_K / rw) * (Nu(Pr, Re) / 2);
 
           return real_t(2) * rdrdt( 
             D,
@@ -158,7 +160,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -190,10 +192,21 @@ namespace libcloudphxx
               "eta: %g  "
               "rd3: %g  "
               "kpa: %g  "
-              "vt: %g\n",
-               drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
-               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
-               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
+              "vt: %g  "
+              "lambda_D: %g  "
+              "lambda_K: %g\n",
+               drw2, rw2_old, dt, RH_max, 
+               thrust::get<0>(tpl_in), // rhod
+               thrust::get<1>(tpl_in), // rv
+               thrust::get<2>(tpl_in), // T
+               thrust::get<1>(tpl),    // p
+               thrust::get<2>(tpl),    // RH
+               thrust::get<3>(tpl_in), // eta
+               thrust::get<4>(tpl_in), // rd3
+               thrust::get<5>(tpl_in), // kpa
+               thrust::get<6>(tpl_in), // vt
+               thrust::get<7>(tpl_in), // lambda_D
+               thrust::get<8>(tpl_in)  // lambda_K
             );
             assert(0);
           }

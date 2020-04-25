@@ -37,6 +37,10 @@ namespace libcloudphxx
       const pres_iter &pi,
       const RH_iter &rhi
     ) { 
+
+      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
+      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
         sstp_tmp_rv.begin(),
@@ -48,7 +52,9 @@ namespace libcloudphxx
         ),
         rd3.begin(),
         kpa.begin(),
-        vt.begin()
+        vt.begin(),
+        thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
       // calculating drop growth in a timestep using backward Euler 
@@ -73,6 +79,7 @@ namespace libcloudphxx
       const real_t &RH_max,
       const bool turb_cond
     ) { 
+
       namespace arg = thrust::placeholders;
 
       // prerequisite

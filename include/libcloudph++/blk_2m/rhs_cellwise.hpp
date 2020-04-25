@@ -10,6 +10,7 @@
 #include <libcloudph++/blk_2m/extincl.hpp>
 
 #include <libcloudph++/common/theta_dry.hpp>
+#include <libcloudph++/common/theta_std.hpp>
 
 namespace libcloudphxx
 {
@@ -26,13 +27,15 @@ namespace libcloudphxx
       cont_t &dot_rr_cont,
       cont_t &dot_nr_cont,
       const cont_t &rhod_cont,
-      const cont_t &th_cont,
+      const cont_t &th_cont,              // dry potential temperature (if const_p == false) or "standard" potential temperature (if const_p == true)
       const cont_t &rv_cont,
       const cont_t &rc_cont,
       const cont_t &nc_cont,
       const cont_t &rr_cont,
       const cont_t &nr_cont,
-      const real_t &dt
+      const real_t &dt,
+      const bool const_p = false,         // is pressure constant (e.g. anelastic approximation on UWLCM)?
+      const cont_t &p_cont = cont_t()     // pressure, required if const_p == true
     )
 //</listing>
     {
@@ -43,10 +46,13 @@ namespace libcloudphxx
       assert(min(rr_cont) >= 0);
       assert(min(nc_cont) >= 0);
       assert(min(nr_cont) >= 0);
+      assert(!const_p || p_cont.size() == th_cont.size());
+      assert(!const_p || min(p_cont) > 0);
 
       using namespace formulae;
       using namespace common::moist_air;
       using namespace common::theta_dry;
+      using namespace common::theta_std;
 
       for (auto tup : zip(
         dot_th_cont,
@@ -61,7 +67,8 @@ namespace libcloudphxx
         rc_cont,
         nc_cont,
         rr_cont,
-        nr_cont
+        nr_cont,
+        p_cont           // NOTE: for const_p == false, is zipping an empty p_cont safe?
       ))
       {
         real_t
@@ -86,8 +93,19 @@ namespace libcloudphxx
         const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> nr_dim = nr / si::kilograms;
 
         //helper temperature and pressure
-        const quantity<si::temperature, real_t> T = common::theta_dry::T<real_t>(th, rhod);
-        const quantity<si::pressure, real_t>    p = common::theta_dry::p<real_t>(rhod, rv, T);
+        quantity<si::temperature, real_t> T;
+        quantity<si::pressure, real_t>    p;
+
+        if(!const_p)
+        {
+          T = common::theta_dry::T<real_t>(th, rhod);
+          p = common::theta_dry::p<real_t>(rhod, rv, T);
+        }
+        else
+        {
+          p = std::get<13>(tup) * si::pascals;
+          T = th * common::theta_std::exner(p);
+        }
 
         // rhs only due to rhs_cellwise microphysics functions (needed for limiting)
         real_t local_dot_rc = 0,
@@ -180,7 +198,10 @@ namespace libcloudphxx
         }
 
         dot_rv -= (local_dot_rc + local_dot_rr);
-        dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
+        if(!const_p)
+          dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
+        else
+          dot_th += common::const_cp::l_v(T) / (common::moist_air::c_pd<real_t>() * common::theta_std::exner(p)) * (local_dot_rc + local_dot_rr) / si::kelvins;
         dot_rc += local_dot_rc;
         dot_rr += local_dot_rr;
         dot_nc += local_dot_nc;

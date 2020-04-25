@@ -31,7 +31,7 @@ find_package(libmpdata++)
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   # make the Release flags the default
-  set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}${libmpdataxx_CXX_FLAGS_RELEASE})
   # ignore CMake defaults
   set(CMAKE_CXX_FLAGS_RELEASE "")
 else()

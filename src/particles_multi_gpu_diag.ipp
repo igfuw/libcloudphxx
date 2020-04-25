@@ -72,6 +72,38 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_kappa_rng(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_kappa_rng, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_dry_rng_cons(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_dry_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_wet_rng_cons(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_wet_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_kappa_rng_cons(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_kappa_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_dry_mom(const int &k)
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_dry_mom, k);
@@ -82,6 +114,18 @@ namespace libcloudphxx
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_wet_mom, k);
     }
+ 
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_kappa_mom(const int &k)
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_kappa_mom, k);
+    }   
+ 
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_incloud_time_mom(const int &k)
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_incloud_time_mom, k);
+    }   
 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_wet_mass_dens(const real_t &a, const real_t &b)

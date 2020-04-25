@@ -64,7 +64,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_rng(
       const real_t &min, const real_t &max, 
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons // is it a consecutive selection after previous one
     )
     {
       hskpng_sort(); 
@@ -72,12 +73,20 @@ namespace libcloudphxx
       // transforming n -> n if within range, else 0
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
-      thrust::transform(
-        n.begin(), n.end(),   // input - 1st arg
-        vec_bgn,              // input - 2nd arg
-        n_filtered.begin(),   // output
-        detail::range_filter<real_t>(min, max) 
-      );
+      if(!cons)
+        thrust::transform(
+          n.begin(), n.end(),   // input - 1st arg
+          vec_bgn,              // input - 2nd arg
+          n_filtered.begin(),   // output
+          detail::range_filter<real_t>(min, max) 
+        );
+      else
+        thrust::transform(
+          n_filtered.begin(), n_filtered.end(),   // input - 1st arg
+          vec_bgn,                                // input - 2nd arg
+          n_filtered.begin(),                     // output
+          detail::range_filter<real_t>(min, max) 
+        );
 
       selected_before_counting = true;
     }
