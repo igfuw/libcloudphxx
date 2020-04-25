@@ -5,10 +5,11 @@
 // copyright: University of Warsaw
 
 #include "error.hpp" 
-
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
-
 #include <libcloudph++/lgrngn/factory.hpp>
+
+#include "../../src/detail/ran_with_mpi.hpp"
+
 
 namespace libcloudphxx
 {
@@ -40,6 +41,8 @@ namespace libcloudphxx
         const lgr::backend_t &backend,
         lgr::opts_init_t<real_t> opts_init
       ) {
+        if(ran_with_mpi())
+          throw std::runtime_error("The Python bindings of libcloudph++ Lagrangian microphysics can't be used in MPI runs.");
         return lgr::factory(backend, opts_init);
       }
 
@@ -105,15 +108,15 @@ namespace libcloudphxx
       // 
       template <typename real_t>
       void step_sync(
-      	lgr::particles_proto_t<real_t> *arg,
-      	const lgr::opts_t<real_t> &opts,
-      	const bp_array &th,
-      	const bp_array &rv,
-      	const bp_array &rhod,
-      	const bp_array &Cx,
-      	const bp_array &Cy,
-      	const bp_array &Cz,
-      	const bp_array &diss_rate,
+        lgr::particles_proto_t<real_t> *arg,
+        const lgr::opts_t<real_t> &opts,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
+        const bp_array &diss_rate,
         bp::dict &ambient_chem
       )
       {
@@ -125,6 +128,7 @@ namespace libcloudphxx
             bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
+
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -163,6 +167,7 @@ namespace libcloudphxx
             bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
+
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));

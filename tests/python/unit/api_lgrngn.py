@@ -1,5 +1,10 @@
 import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
@@ -385,7 +390,7 @@ print "1D"
 rhod = arr_t([  1.,   1.,   1.])
 th   = arr_t([300., 300., 300.])
 rv   = arr_t([   .01,  .01,  .01])
-C    = arr_t([   .5,   .5,   .5,  .5])
+C    = arr_t([   .5, .5, .5, .5]) # 3 cells = 4 edges on which C needs to be defined
 
 opts_init.nx = 3 
 opts_init.dx = 10
@@ -424,7 +429,7 @@ opts_init.sedi_switch = True
 rhod = arr_t([[  1.,    1.   ],     [   1.,     1.  ]])
 th   = arr_t([[300.,  300.   ],     [ 300.,   300.  ]])
 rv   = arr_t([[   .01,   .01 ],     [    .01,    .01]])
-Cx   = arr_t([[   .5,    .5], [    .5,     .5], [    .5,     .5]])
+Cx   = arr_t([[    .5,     .5], [    .5,     .5], [   .5,    .5]])
 Cz   = arr_t([[   .0,    .0,   .0], [   .0,      .0,  .0]])
 
 opts_init.nz = 2
@@ -507,8 +512,8 @@ opts_init.dy = 10
 opts_init.y1 = opts_init.ny * opts_init.dy
 
 Cx = 0.5 * ones((opts_init.nx+1, opts_init.ny+0, opts_init.nz+0), dtype=float64) #TODO: these dimensions are not checked...
-Cy = 0.5 * ones((opts_init.nx+0, opts_init.ny+1, opts_init.nz+0), dtype=float64)
-Cz = zeros((opts_init.nx+0, opts_init.ny+0, opts_init.nz+1), dtype=float64)
+Cy = 0.5 * ones((opts_init.nx,   opts_init.ny+1, opts_init.nz+0), dtype=float64)
+Cz =      zeros((opts_init.nx,   opts_init.ny+0, opts_init.nz+1), dtype=float64)
 
 for it in range(2):
   prtcls = lgrngn.factory(backend, opts_init)

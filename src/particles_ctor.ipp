@@ -24,8 +24,27 @@ namespace libcloudphxx
 
     // ctor
     template <typename real_t, backend_t device>
-    particles_t<real_t, device>::particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot) 
+    particles_t<real_t, device>::particles_t(opts_init_t<real_t> opts_init, int n_x_tot)
     {
+      int rank, size;
+
+      // handle MPI init
+#if defined(USE_MPI)
+      detail::mpi_init(MPI_THREAD_FUNNELED, rank, size); 
+#else
+      rank = 0;
+      size = 1;
+      // throw an error if ran with mpi, but not compiled for mpi
+      if ( ran_with_mpi() )
+        throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
+#endif
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+      if(size > 1)
+        bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
+      else
+        bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
+
+      // use the desired GPU card, TODO: remove it? can be done using CUDA_VISIBLE_DEVICES
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
         cudaSetDevice(opts_init.dev_id);
@@ -33,8 +52,8 @@ namespace libcloudphxx
       if(opts_init.dev_count < 2) // no distmem
         n_x_tot = opts_init.nx;
 
-      pimpl.reset(new impl(opts_init, n_x_bfr, n_x_tot));
-
+      // create impl instance
+      pimpl.reset(new impl(opts_init, bcond, rank, size, n_x_tot));
       this->opts_init = &pimpl->opts_init;
       pimpl->sanity_checks();
 

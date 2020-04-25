@@ -53,7 +53,6 @@ namespace libcloudphxx
       if(opts_init.diag_incloud_time)
         incloud_time.reserve(opts_init.n_sd_max);
 
-      if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
@@ -75,13 +74,17 @@ namespace libcloudphxx
         }
       }
       // reserve memory for in/out buffers
+      // for courant_x = 0.1 and n_sd_max, overkill?
       // done using resize, because _bfr.end() is never used and we want to assert that buffer is large enough using the .size() function
-      if(opts_init.dev_count > 1)
+      if(distmem())
       {
+        const auto no_of_n_vctrs_copied(int(1));
+        const auto no_of_real_vctrs_copied(distmem_real_vctrs.size());
+
         in_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
         out_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
 
-        in_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p
+        in_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p, etc.
         out_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
 

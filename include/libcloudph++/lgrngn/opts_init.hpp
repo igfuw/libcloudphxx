@@ -123,7 +123,7 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
-      // no of GPUs to use, 0 for all available
+      // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
       // GPU number to use, only used in CUDA backend (and not in multi_CUDA)

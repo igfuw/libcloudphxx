@@ -179,21 +179,35 @@ namespace libcloudphxx
 #if !defined(NDEBUG)
           if(isnan(drw2) || isinf(drw2))
           {
-            printf("nan/inf drw2 in cond: %g\n",drw2);
-            printf("rw2_old: %g\n",rw2_old);
-            printf("dt: %g\n",dt);
-            printf("RH_max: %g\n",RH_max);
-            printf("rhod: %g\n",thrust::get<0>(tpl_in));
-            printf("rv: %g\n",thrust::get<1>(tpl_in));
-            printf("T: %g\n",thrust::get<2>(tpl_in));
-            printf("eta: %g\n",thrust::get<3>(tpl_in));
-            printf("rd3: %g\n",thrust::get<4>(tpl_in));
-            printf("kpa: %g\n",thrust::get<5>(tpl_in));
-            printf("vt: %g\n",thrust::get<6>(tpl_in));
-            printf("p: %g\n",thrust::get<1>(tpl));
-            printf("RH: %g\n",thrust::get<2>(tpl));
-            printf("lambda_D: %g\n",thrust::get<7>(tpl_in));
-            printf("lambda_K: %g\n",thrust::get<8>(tpl_in));
+            // as a single command to make sure the output from parallel cuda kernels is ordered
+            printf("nan/inf drw2 in cond: %g  "
+              "rw2_old: %g  "
+              "dt: %g  "
+              "RH_max: %g  "
+              "rhod: %g  "
+              "rv: %g  "
+              "T: %g  "
+              "p: %g  "
+              "RH: %g  "
+              "eta: %g  "
+              "rd3: %g  "
+              "kpa: %g  "
+              "vt: %g  "
+              "lambda_D: %g  "
+              "lambda_K: %g\n",
+               drw2, rw2_old, dt, RH_max, 
+               thrust::get<0>(tpl_in), // rhod
+               thrust::get<1>(tpl_in), // rv
+               thrust::get<2>(tpl_in), // T
+               thrust::get<1>(tpl),    // p
+               thrust::get<2>(tpl),    // RH
+               thrust::get<3>(tpl_in), // eta
+               thrust::get<4>(tpl_in), // rd3
+               thrust::get<5>(tpl_in), // kpa
+               thrust::get<6>(tpl_in), // vt
+               thrust::get<7>(tpl_in), // lambda_D
+               thrust::get<8>(tpl_in)  // lambda_K
+            );
             assert(0);
           }
 #endif
@@ -211,6 +225,32 @@ namespace libcloudphxx
           if (a == b) return rw2_old;
 
           real_t fa, fb;
+
+#if !defined(NDEBUG)
+          if(a>=b)
+          {
+            printf("a>=b a: %g b: %g  "
+              "drw2: %g  "
+              "rw2_old: %g  "
+              "rd2: %g  "
+              "dt: %g  "
+              "RH_max: %g  "
+              "rhod: %g  "
+              "rv: %g  "
+              "T: %g  "
+              "p: %g  "
+              "RH: %g  "
+              "eta: %g  "
+              "rd3: %g  "
+              "kpa: %g  "
+              "vt: %g\n",
+               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
+               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
+               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
+            );
+            assert(0);
+          }
+#endif
 
           if (drw2 > 0) 
           {
@@ -240,11 +280,13 @@ namespace libcloudphxx
 #if !defined(NDEBUG)
           if(isnan(rw2_new) || isinf(rw2_new))
           {
-            printf("nan/inf root in cond: %g\n",rw2_new);
-            printf("a: %g\n",a);
-            printf("b: %g\n",b);
-            printf("fa: %g\n",fa);
-            printf("fb: %g\n",fb);
+            printf("nan/inf root in cond: %g  "
+              "a: %g  "
+              "b: %g  "
+              "fa: %g  "
+              "fb: %g\n",
+              rw2_new, a, b, fa, fb
+            );
             assert(0);
           }
 #endif

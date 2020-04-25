@@ -10,9 +10,9 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../
 VERBOSE=1 make
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
 VERBOSE=1 make 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-sudo make install
+make install
 cd ../..
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522

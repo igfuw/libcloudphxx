@@ -11,6 +11,7 @@
 
 #include <cfloat>
 #include <cassert>
+#include <stdio.h>
 
 namespace libcloudphxx {
 namespace common {
@@ -294,8 +295,15 @@ T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol t
 
    a = ax;
    b = bx;
+
+#if !defined(NDEBUG)
+   if(a >= b)
+   {
+     printf("toms a >= b; a = %g b = %g fa = %g fb = %g\n", a, b, fa, fb);
+     assert(0);
+   }
+#endif
    
-   assert(a < b);
 
    fa = fax;
    fb = fbx;

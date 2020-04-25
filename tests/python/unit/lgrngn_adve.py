@@ -1,5 +1,10 @@
 #TODO: also test adve in 1D and 3D
 import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn

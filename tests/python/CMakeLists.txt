@@ -23,6 +23,19 @@ if (NUMPY_FOUND GREATER 0)
   ")
 endif()
 
+# if compiled with MPI support, we need Boost.MPI for python tests to work
+if(USE_MPI)
+  find_package(Boost COMPONENTS mpi QUIET)
+  if(Boost_FOUND)
+    target_link_libraries(cloudphxx_lgrngn
+      PUBLIC 
+        Boost::mpi
+    )
+  else()
+  message(FATAL_ERROR "For Python tests to work in an MPI build, Boost.mpi is required, but it was not found.")
+  endif()
+endif()
+
 add_subdirectory(unit)
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
   add_subdirectory(physics)

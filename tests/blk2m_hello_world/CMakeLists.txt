@@ -1,4 +1,5 @@
 add_executable(blk2m_hello_world blk2m_hello_world.cpp)
+target_compile_features(blk2m_hello_world PRIVATE cxx_std_14)
 target_link_libraries(blk2m_hello_world blitz)
 target_link_libraries(blk2m_hello_world cloudphxx_lgrngn)
 add_test(blk2m_hello_world blk2m_hello_world)
