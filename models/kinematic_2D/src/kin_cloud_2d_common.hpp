@@ -70,8 +70,8 @@ class kin_cloud_2d_common : public
         blitz::TinyVector<int,2> upperBounds(this->i.last(), j);
         libmpdataxx::idx_t<2> subdomain(lowerBounds, upperBounds);
 
-        th_eq(j) = this->mem->sum(this->state(ix::th), subdomain, false)  /  (this->mem->grid_size[0].length());
-        rv_eq(j) = this->mem->sum(this->state(ix::rv), subdomain, false)  /  (this->mem->grid_size[0].length());
+        th_eq(j) = this->mem->sum(this->rank, this->state(ix::th), subdomain, false)  /  (this->mem->grid_size[0].length());
+        rv_eq(j) = this->mem->sum(this->rank, this->state(ix::rv), subdomain, false)  /  (this->mem->grid_size[0].length());
       }
     }
 
