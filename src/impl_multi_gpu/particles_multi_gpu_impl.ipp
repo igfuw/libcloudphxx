@@ -43,7 +43,6 @@ namespace libcloudphxx
         int dev_count;
         // TODO: move these sanity checks to sanity_checks?
         
-        if(glob_opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
         if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
         if(glob_opts_init.open_side_walls) throw std::runtime_error("multi_CUDA is not yet compatible with open side walls. Use other backend or turn off opts_init.open_side_walls.");
   
