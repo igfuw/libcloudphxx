@@ -89,23 +89,30 @@ namespace libcloudphxx
 
       // --------  init super-droplets --------
       // reserve memory for data of the size of the max number of SDs
-      pimpl->init_hskpng_npart(); 
+      pimpl->reserve_hskpng_npart(); 
 
-      // initial parameters (from dry distribution or dry radius-concentration pairs)
-      if(pimpl->opts_init.dry_distros.size() > 0)
-        pimpl->init_SD_with_distros();
-      if(pimpl->opts_init.dry_sizes.size() > 0)
-        pimpl->init_SD_with_sizes();
+      if(!pimpl->opts_init.no_ccn_at_init)
+      {
+        // initial parameters (from dry distribution or dry radius-concentration pairs)
+        if(pimpl->opts_init.dry_distros.size() > 0)
+          pimpl->init_SD_with_distros();
+        if(pimpl->opts_init.dry_sizes.size() > 0)
+          pimpl->init_SD_with_sizes();
 
-      if(pimpl->opts_init.diag_incloud_time)
-        pimpl->init_incloud_time();
+        if(pimpl->opts_init.diag_incloud_time)
+          pimpl->init_incloud_time();
+      }
 
       // --------  other inits  --------
       //initialising collision kernel
       if(pimpl->opts_init.coal_switch) pimpl->init_kernel();
 
-      //initialising vterm
-      if(pimpl->opts_init.coal_switch || pimpl->opts_init.sedi_switch) pimpl->init_vterm();
+      //initialising vterm, needed for coal, sedi and cond
+      pimpl->init_vterm(); // init cached vt0 for the Beard fast vt formula
+      pimpl->hskpng_vterm_invalid(); // init vt of SD
+
+      // save _old for cond substepping
+      pimpl->sstp_save();
 
       // initialising neighbouring node's domain sizes
       //if(!pimpl->opts_init.dev_count)

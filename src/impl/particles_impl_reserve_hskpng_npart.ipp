@@ -10,35 +10,33 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_hskpng_npart()
+    void particles_t<real_t, device>::impl::reserve_hskpng_npart()
     {
       // memory allocation
       if (opts_init.nx != 0) i.reserve(opts_init.n_sd_max); //
       if (opts_init.ny != 0) j.reserve(opts_init.n_sd_max); //  > TODO: are they needed at all?
       if (opts_init.nz != 0) k.reserve(opts_init.n_sd_max); //
       ijk.reserve(opts_init.n_sd_max);
-      if (n_dims == 0) thrust::fill(ijk.begin(), ijk.end(), 0);
 
       if (opts_init.nx != 0) x.reserve(opts_init.n_sd_max); 
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 
       if (opts_init.nz != 0) z.reserve(opts_init.n_sd_max); 
 
-      // using resize instead of reserve is ok, because hskpng_resize is called right after this init
       if(opts_init.turb_adve_switch)
       {
-        if (opts_init.nx != 0) up.resize(opts_init.n_sd_max, 0.); // init with no perturbation 
-        if (opts_init.ny != 0) vp.resize(opts_init.n_sd_max, 0.); 
-        if (opts_init.nz != 0) wp.resize(opts_init.n_sd_max, 0.); 
+        if (opts_init.nx != 0) up.reserve(opts_init.n_sd_max);
+        if (opts_init.ny != 0) vp.reserve(opts_init.n_sd_max); 
+        if (opts_init.nz != 0) wp.reserve(opts_init.n_sd_max); 
       }
 
       if(opts_init.turb_cond_switch)
       {
-        wp.resize(opts_init.n_sd_max, 0.);
-        ssp.resize(opts_init.n_sd_max, 0.);
-        dot_ssp.resize(opts_init.n_sd_max, 0.);
+        wp.reserve(opts_init.n_sd_max);
+        ssp.reserve(opts_init.n_sd_max);
+        dot_ssp.reserve(opts_init.n_sd_max);
       }
 
-      vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
+      vt.reserve(opts_init.n_sd_max);
 
       sorted_id.reserve(opts_init.n_sd_max);
       sorted_ijk.reserve(opts_init.n_sd_max);
@@ -75,19 +73,18 @@ namespace libcloudphxx
       {
         tmp_device_real_part3.reserve(opts_init.n_sd_max); 
         tmp_device_real_part4.reserve(opts_init.n_sd_max);  
-        sstp_tmp_rv.resize(opts_init.n_sd_max);
-        sstp_tmp_th.resize(opts_init.n_sd_max);
-        sstp_tmp_rh.resize(opts_init.n_sd_max);
+        sstp_tmp_rv.reserve(opts_init.n_sd_max);
+        sstp_tmp_th.reserve(opts_init.n_sd_max);
+        sstp_tmp_rh.reserve(opts_init.n_sd_max);
         if(const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
         {
-          sstp_tmp_p.resize(opts_init.n_sd_max);
+          sstp_tmp_p.reserve(opts_init.n_sd_max);
           tmp_device_real_part5.reserve(opts_init.n_sd_max);  
         }
       }
       // reserve memory for in/out buffers
-      // reserve memory for in/out buffers
-      // for courant_x = 0.1 and n_sd_max
-      // overkill?
+      // for courant_x = 0.1 and n_sd_max, overkill?
+      // done using resize, because _bfr.end() is never used and we want to assert that buffer is large enough using the .size() function
       if(distmem())
       {
         const auto no_of_n_vctrs_copied(int(1));
@@ -99,6 +96,37 @@ namespace libcloudphxx
         in_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for rd3 rw2 kpa vt x y z  sstp_tmp_th/rv/rh/p, etc.
         out_real_bfr.resize(no_of_real_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);
       }
+
+    // -------- inits done here before resize and reserve were separated. Left for debugging reasons. -----------
+
+//      if (n_dims == 0) thrust::fill(ijk.begin(), ijk.end(), 0);
+//
+//      // using resize instead of reserve is ok, because hskpng_resize is called right after this init
+//      if(opts_init.turb_adve_switch)
+//      {
+//        if (opts_init.nx != 0) up.resize(opts_init.n_sd_max, 0.); // init with no perturbation 
+//        if (opts_init.ny != 0) vp.resize(opts_init.n_sd_max, 0.); 
+//        if (opts_init.nz != 0) wp.resize(opts_init.n_sd_max, 0.); 
+//      }
+//      if(opts_init.turb_cond_switch)
+//      {
+//        wp.resize(opts_init.n_sd_max, 0.);
+//        ssp.resize(opts_init.n_sd_max, 0.);
+//        dot_ssp.resize(opts_init.n_sd_max, 0.);
+//      }
+//      vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
+//
+//      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+//      {
+//        sstp_tmp_rv.resize(opts_init.n_sd_max);
+//        sstp_tmp_th.resize(opts_init.n_sd_max);
+//        sstp_tmp_rh.resize(opts_init.n_sd_max);
+//        if(const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
+//        {
+//          sstp_tmp_p.resize(opts_init.n_sd_max);
+//          tmp_device_real_part5.reserve(opts_init.n_sd_max);  
+//        }
+//      }
     }
   };
 };

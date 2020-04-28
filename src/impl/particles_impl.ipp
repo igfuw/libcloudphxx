@@ -246,7 +246,7 @@ namespace libcloudphxx
       const int mpi_rank,
                 mpi_size;
 
-      // boundary type (shared mem/distmem)
+      // boundary type in x direction (shared mem/distmem/open/periodic)
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
       // number of particles to be copied left/right in distmem setup
@@ -461,6 +461,7 @@ namespace libcloudphxx
       void dist_analysis_const_multi(
         const common::unary_function<real_t> &n_of_lnrd 
       );
+      void reserve_hskpng_npart();
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
@@ -470,6 +471,7 @@ namespace libcloudphxx
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
+      void init_count_num_src(const thrust_size_t &);
       template <class arr_t>
       void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
@@ -477,7 +479,6 @@ namespace libcloudphxx
       void init_sync();
       void init_grid();
       void init_hskpng_ncell();
-      void init_hskpng_npart();
       void init_chem();
       void init_chem_aq();
       void init_sstp();
@@ -569,6 +570,8 @@ namespace libcloudphxx
       void bcnd();
 
       void src(const real_t &dt);
+      void src_dry_distros(const real_t &dt);
+      void src_dry_sizes(const real_t &dt);
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);

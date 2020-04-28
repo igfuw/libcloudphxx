@@ -54,9 +54,6 @@ namespace libcloudphxx
     {
       // init kappa
       init_kappa(kappa);
-
-      // save initial th/rv/rhod for substepping
-      init_sstp();
       
       // initialising wet radii
       init_wet();

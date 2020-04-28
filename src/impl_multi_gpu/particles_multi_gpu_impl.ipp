@@ -43,7 +43,6 @@ namespace libcloudphxx
         int dev_count;
         // TODO: move these sanity checks to sanity_checks?
         
-        if(glob_opts_init.src_switch) throw std::runtime_error("multi_CUDA is not yet compatible with source. Use other backend or turn off opts_init.src_switch.");
         if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
   
         if(glob_opts_init.nx == 0)
@@ -148,19 +147,25 @@ namespace libcloudphxx
           // set n_x_bfr and n_cell_bfr and bcond type for this device 
           particles[dev_id]->pimpl->n_x_bfr = n_x_bfr;
           particles[dev_id]->pimpl->n_cell_bfr = n_x_bfr * detail::m1(opts_init_tmp.ny) * detail::m1(opts_init_tmp.nz);
-          // set distmem types
+
+          // set distmem types: intra-node boundaries between devices to distmem_cuda
           if(dev_count > 1)
           {
-            if(!particles[dev_id]->pimpl->distmem_mpi()) // if there is no MPI copy, set all boundaries to cuda
+            if(dev_id == 0)
+              particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
+            else if(dev_id == dev_count - 1)
+              particles[dev_id]->pimpl->bcond.first = detail::distmem_cuda;
+            else
               particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
-            else // if there is MPI, set in-node boundaries between devices to cuda
+
+            // if there is no mpi and the boundary is periodic, set outside boundaries to distmem_cuda, since SDs will be copied between different devices on the same node
+            // NOTE: we might as well achieve this by replacing all sharedmem boundaries with distmem_cuda?
+            if(!particles[dev_id]->pimpl->distmem_mpi() && !opts_init_tmp.open_side_walls)
             {
               if(dev_id == 0)
-                particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
-              else if(dev_id == dev_count - 1)
                 particles[dev_id]->pimpl->bcond.first = detail::distmem_cuda;
-              else
-                particles[dev_id]->pimpl->bcond = std::make_pair(detail::distmem_cuda, detail::distmem_cuda);
+              else if(dev_id == dev_count - 1)
+                particles[dev_id]->pimpl->bcond.second = detail::distmem_cuda;
             }
           }
           // store dev_count in the thread; regular ctor zeroes it

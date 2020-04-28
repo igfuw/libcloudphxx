@@ -82,17 +82,29 @@ namespace libcloudphxx
         case 2:
         case 1:
         {
-          // hardcoded periodic boundary in x! (TODO - as an option)
+          // x boundary
           // when working on a shared memory system, simply apply bcond
           if(!distmem())
           {
-            thrust::transform(
-              x.begin(), x.end(),
-              x.begin(),
-              detail::periodic<real_t>(opts_init.x0, opts_init.x1)
-            );
+            if(!opts_init.open_side_walls) // default, periodic side walls
+              thrust::transform(
+                x.begin(), x.end(),
+                x.begin(),
+                detail::periodic<real_t>(opts_init.x0, opts_init.x1)
+              );
+            else // open side walls
+            {
+              namespace arg = thrust::placeholders;
+              thrust::transform_if(
+                x.begin(), x.end(),                                    // input - arg
+                n.begin(),                                             // output
+                detail::flag<n_t, real_t>(),                           // operation (zero-out, so recycling will take care of it)
+                arg::_1 >= opts_init.x1 || arg::_1 < opts_init.x0      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+              );
+            }
           }
-          // distributed memory - save ids of particles that need to be copied left/right
+          // distributed memory - save ids of particles that need to be copied left/right,
+          //                      or remove them if it is an open boundary
           else
           {
 	          namespace arg = thrust::placeholders;
@@ -129,49 +141,67 @@ namespace libcloudphxx
               in_real_bfr.resize(no_of_real_vctrs_copied * new_size);
               out_real_bfr.resize(no_of_real_vctrs_copied * new_size);
             }
+
+            // open boundary -> flag out of domain SDs for removal
+            if(bcond.first == detail::open)
+              flag_lft();
+            if(bcond.second == detail::open)
+              flag_rgt();
           }
 
-          // hardcoded periodic boundary in y! (TODO - as an option)
+          // y boundary, no distmem in this direction
           if (n_dims == 3)
           {
-	    thrust::transform(
-	      y.begin(), y.end(),
-	      y.begin(),
-	      detail::periodic<real_t>(opts_init.y0, opts_init.y1)
-	    );
+            if(!opts_init.open_side_walls) // default, periodic side walls
+              thrust::transform(
+                y.begin(), y.end(),
+                y.begin(),
+                detail::periodic<real_t>(opts_init.y0, opts_init.y1)
+              );
+            else // open side walls
+            {
+              namespace arg = thrust::placeholders;
+              thrust::transform_if(
+                y.begin(), y.end(),                                    // input - arg
+                n.begin(),                                             // output
+                detail::flag<n_t, real_t>(),                           // operation (zero-out, so recycling will take care of it)
+                arg::_1 >= opts_init.y1 || arg::_1 < opts_init.y0      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+              );
+            }
           }
 
+          // z boundary, no distmem here
           if (n_dims > 1)
           {
-//	    // hardcoded "open" boudary at the top of the domain 
-//	    // (just for numerical-error-sourced out-of-domain particles)
-//	    {
-//	      namespace arg = thrust::placeholders;
-//	      thrust::transform_if(
-//		z.begin(), z.end(),          // input - arg
-//		n.begin(),                   // output
-//		detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
-//		arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-//	      );
-//	    }
+            // hardcoded "open" boudary at the top of the domain 
+            // (just for numerical-error-sourced out-of-domain particles)
+//            {
+//              namespace arg = thrust::placeholders;
+//              thrust::transform_if(
+//                z.begin(), z.end(),          // input - arg
+//                n.begin(),                   // output
+//                detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+//                arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+//              );
+//            }
 
-// hardcoded perdiodic boundary at the top of the domain in ther vertical just for KiD 1D
-	    {
-	      namespace arg = thrust::placeholders;
-	      thrust::transform_if(
-    		z.begin(), z.end(),          // input - arg
-    		z.begin(),                   // output
-    		arg::_1 - opts_init.z1 + opts_init.z0, // operation
-    		arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-	      );
-	    }
+            // hardcoded perdiodic boundary at the top of the domain in ther vertical just for KiD 1D
+	          {
+	            namespace arg = thrust::placeholders;
+	            thrust::transform_if(
+            	z.begin(), z.end(),          // input - arg
+            	z.begin(),                   // output
+            	arg::_1 - opts_init.z1 + opts_init.z0, // operation
+            	arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+	            );
+	          }
 
-	    // precipitation on the bottom edge of the domain
-	    //// first: count the volume of particles below the domain
-	    // TODO! (using tranform_reduce?)
-	    //// second: zero-out multiplicities so they will be recycled
-	    {
-	      namespace arg = thrust::placeholders;
+            // precipitation on the bottom edge of the domain
+            //// first: count the volume of particles below the domain
+            // TODO! (using tranform_reduce?)
+            //// second: zero-out multiplicities so they will be recycled
+            {
+              namespace arg = thrust::placeholders;
 
               thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
@@ -226,13 +256,13 @@ namespace libcloudphxx
               }
 
               // zero-out multiplicities
-	      thrust::transform_if(   
-		z.begin(), z.end(),          // input 
-		n.begin(),                   // output
-		detail::flag<n_t, real_t>(), // operation (zero-out)
-		arg::_1 < opts_init.z0       // condition
-	      );
-	    }
+              thrust::transform_if(   
+                z.begin(), z.end(),          // input 
+                n.begin(),                   // output
+                detail::flag<n_t, real_t>(), // operation (zero-out)
+                arg::_1 < opts_init.z0       // condition
+              );
+            }
           }
           break; 
         }
