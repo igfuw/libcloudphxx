@@ -263,7 +263,7 @@ namespace libcloudphxx
       }
 
       // aerosol source, in sync since it changes th/rv
-      if (opts.src) 
+      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
       {
         // sanity check
         if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
