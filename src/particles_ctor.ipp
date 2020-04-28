@@ -40,9 +40,26 @@ namespace libcloudphxx
 #endif
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
       if(size > 1)
-        bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
-      else
-        bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
+      {
+        if(!opts_init.open_side_walls) // periodic bcond in x
+          bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
+        else // open bcond in x
+        {
+          if(rank == 0)
+            bcond = std::make_pair(detail::open, detail::distmem_mpi);
+          else if(rank == size-1)
+            bcond = std::make_pair(detail::distmem_mpi, detail::open);
+          else
+            bcond = std::make_pair(detail::distmem_mpi, detail::distmem_mpi);
+        }
+      }
+      else // only one process
+      {
+        if(!opts_init.open_side_walls) // periodic bcond in x
+          bcond = std::make_pair(detail::sharedmem, detail::sharedmem);
+        else
+          bcond = std::make_pair(detail::open, detail::open);
+      }
 
       // use the desired GPU card, TODO: remove it? can be done using CUDA_VISIBLE_DEVICES
 #if defined(__NVCC__)

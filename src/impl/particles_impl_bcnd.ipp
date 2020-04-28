@@ -82,7 +82,7 @@ namespace libcloudphxx
         case 2:
         case 1:
         {
-          // z boundary
+          // x boundary
           // when working on a shared memory system, simply apply bcond
           if(!distmem())
           {
@@ -103,7 +103,8 @@ namespace libcloudphxx
               );
             }
           }
-          // distributed memory - save ids of particles that need to be copied left/right
+          // distributed memory - save ids of particles that need to be copied left/right,
+          //                      or remove them if it is an open boundary
           else
           {
 	          namespace arg = thrust::placeholders;
@@ -140,6 +141,12 @@ namespace libcloudphxx
               in_real_bfr.resize(no_of_real_vctrs_copied * new_size);
               out_real_bfr.resize(no_of_real_vctrs_copied * new_size);
             }
+
+            // open boundary -> flag out of domain SDs for removal
+            if(bcond.first == detail::open)
+              flag_lft();
+            if(bcond.second == detail::open)
+              flag_rgt();
           }
 
           // y boundary, no distmem in this direction

@@ -228,7 +228,7 @@ namespace libcloudphxx
       const int mpi_rank,
                 mpi_size;
 
-      // boundary type (shared mem/distmem)
+      // boundary type in x direction (shared mem/distmem/open/periodic)
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
       // number of particles to be copied left/right in distmem setup
