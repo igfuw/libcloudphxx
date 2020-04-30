@@ -21,9 +21,7 @@ cd ../..
 # libmpdata
 . $TRAVIS_BUILD_DIR/.travis_scripts/get_libmpdata_dependencies.sh
 
-# TEMP: use mpi branch from pdziekan
-git clone --depth=1 --branch=distmem_merge_master git://github.com/pdziekan/libmpdataxx.git
-#git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
+git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
@@ -33,7 +31,8 @@ cd ../../..
 
 ## UWLCM
 # TEMP: use mpi branch from pdziekan
-git clone --depth=1 --branch=mpi_up_to_date git://github.com/pdziekan/UWLCM.git
+git clone --depth=1 --branch=pi_chamber git://github.com/pdziekan/UWLCM.git
+#git clone --depth=1 --branch=mpi_up_to_date git://github.com/pdziekan/UWLCM.git
 #git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
 . .travis_scripts/$1.sh
