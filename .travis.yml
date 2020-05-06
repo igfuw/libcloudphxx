@@ -36,6 +36,20 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/boost
     - ${TRAVIS_BUILD_DIR}/deps/hdf5
 
+aliases:
+    # YAML alias for the options common to precache jobs
+    - &precache_default
+      stage: precache
+      install: 
+        - . ./.travis_scripts/install_mpi_dependencies.sh
+      script: echo "Preparing cache finished"
+
+    - &precache_uwlcm_mpi
+      stage: precache
+      install: 
+        - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
+      script: echo "Preparing cache finished"
+
 jobs:
     include:
       # define the precache stage
@@ -43,27 +57,14 @@ jobs:
       # TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
       #       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
 
-      # YAML alias for the options common to precache jobs
-      - &precache_default
-        stage: precache
-        install: 
-          - . ./.travis_scripts/install_mpi_dependencies.sh
-        script: echo "Preparing cache finished"
-
-      - &precache_uwlcm_mpi
-        stage: precache
-        install: 
-          - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
-        script: echo "Preparing cache finished"
-
-#      - <<: *precache_default
-#        env: TEST_SUITE=MPI_tests
-#        compiler: gcc
-#      - <<: *precache_default
-#        env: TEST_SUITE=MPI_tests
-#        compiler: clang
-#      - <<: *precache_uwlcm_mpi
-#        env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+      - <<: *precache_default
+        env: TEST_SUITE=MPI_tests
+        compiler: gcc
+      - <<: *precache_default
+        env: TEST_SUITE=MPI_tests
+        compiler: clang
+      - <<: *precache_uwlcm_mpi
+        env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
     exclude:
         - os: osx
