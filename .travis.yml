@@ -56,14 +56,14 @@ jobs:
           - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
         script: echo "Preparing cache finished"
 
-      - <<: *precache_default
-        env: TEST_SUITE=MPI_tests
-        compiler: gcc
-      - <<: *precache_default
-        env: TEST_SUITE=MPI_tests
-        compiler: clang
-      - <<: *precache_uwlcm_mpi
-        env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+#      - <<: *precache_default
+#        env: TEST_SUITE=MPI_tests
+#        compiler: gcc
+#      - <<: *precache_default
+#        env: TEST_SUITE=MPI_tests
+#        compiler: clang
+#      - <<: *precache_uwlcm_mpi
+#        env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
     exclude:
         - os: osx
