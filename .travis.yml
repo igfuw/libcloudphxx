@@ -13,7 +13,7 @@ os:
     - linux
 #    - osx
 compiler:
-    - gcc
+#    - gcc
     - clang
 env:
     - TEST_SUITE=cuda
