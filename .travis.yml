@@ -36,6 +36,10 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/boost
     - ${TRAVIS_BUILD_DIR}/deps/hdf5
 
+# define the precache stage
+# empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
+# TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
+#       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
 aliases:
     # YAML alias for the options common to precache jobs
     - &precache_default
@@ -52,11 +56,6 @@ aliases:
 
 jobs:
     include:
-      # define the precache stage
-      # empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
-      # TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
-      #       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
-
       - <<: *precache_default
         env: TEST_SUITE=MPI_tests
         compiler: gcc
