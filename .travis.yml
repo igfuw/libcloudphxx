@@ -44,21 +44,14 @@ jobs:
       #       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
 
       # YAML alias for the options common to precache jobs
-      - job_info: &precache_default
+      - &precache_default
         stage: precache
-        #  os: linux
-        #  dist: xenial
-        #  language: cpp
         install: 
           - . ./.travis_scripts/install_mpi_dependencies.sh
         script: echo "Preparing cache finished"
 
-      - job_info: &precache_uwlcm_mpi
+      - &precache_uwlcm_mpi
         stage: precache
-        #  os: linux
-        #  dist: xenial
-        #  language: cpp
-        #  compiler: gcc
         install: 
           - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
         script: echo "Preparing cache finished"
