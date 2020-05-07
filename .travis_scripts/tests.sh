@@ -12,6 +12,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../
 ldd //usr/lib/libmpi_cxx.so
 ldd /usr/local/clang-7.0.0/lib/libomp.so
 ldd /usr/lib/x86_64-linux-gnu/libboost_mpi.so
+ldd /home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/lib/libmpi.so
 
 VERBOSE=1 make
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
