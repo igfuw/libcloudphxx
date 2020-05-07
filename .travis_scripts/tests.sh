@@ -30,8 +30,8 @@ cd /home/travis/build/igfuw/libcloudphxx/build/tests/particles && /home/travis/b
 # link
 # from cmake
 #/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles -Wl,-rpath,/home/travis/build/igfuw/libcloudphxx/build ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread /usr/lib/x86_64-linux-gnu/libboost_mpi.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so
-# with modified -Wl
-/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread /usr/lib/x86_64-linux-gnu/libboost_mpi.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+# with modified -Wl and no boost lib linking
+/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread
 
 
 
