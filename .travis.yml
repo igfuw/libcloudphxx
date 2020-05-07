@@ -17,7 +17,7 @@ compiler:
     - clang
 env:
 #    - TEST_SUITE=cuda
-#    - TEST_SUITE=tests
+    - TEST_SUITE=tests
 #    - TEST_SUITE=parcel
 #    - TEST_SUITE=icicle
 #    - TEST_SUITE=KidA
