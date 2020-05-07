@@ -13,7 +13,7 @@ project(libcloudph++ LANGUAGES CXX)
 #  cmake_policy(VERSION 3.0)
 #endif()
 
-cmake_policy(SET CMP0079 NEW)
+#cmake_policy(SET CMP0079 NEW)
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
@@ -273,10 +273,14 @@ target_include_directories(cloudphxx_lgrngn PRIVATE ${THRUST_INCLUDE_DIR})
 # Boost libraries
 find_package(Boost COMPONENTS) # we only need header-only boost libs
 if(Boost_FOUND)
-  target_link_libraries(cloudphxx_lgrngn
-    PUBLIC 
-      Boost::boost
-  )
+#  target_link_libraries(cloudphxx_lgrngn
+#    PUBLIC 
+#      Boost::boost
+#  )
+
+# target-based linking of boost is disabled, because it caused boost libs to be linked, while we only want the header libraries.
+# linking of boost libs caused errors on travis, where MPI_TESTS ran on clang++ failed on linking with boost_mpi from ppa:rakhimov boost.1.61
+  target_include_directories(cloudphxx_lgrngn ${Boost_INCLUDE_DIRS})
 else()
 #TODO: check separately for optional and mandatory components
 message(FATAL_ERROR "Boost (or some of its components) not found.
