@@ -16,6 +16,7 @@ compiler:
 #    - gcc
     - clang
 env:
+    - TEST_SUITE=MPI_tests
 #    - TEST_SUITE=cuda
 #    - TEST_SUITE=tests
 #    - TEST_SUITE=parcel
@@ -24,7 +25,6 @@ env:
 #    - TEST_SUITE=UWLCM_MT
 #    - TEST_SUITE=UWLCM_unit_iles
 #    - TEST_SUITE=UWLCM_unit_smg
-    - TEST_SUITE=MPI_tests
 #    - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
