@@ -28,7 +28,10 @@ ldd libcloudphxx_lgrngn_dbg.so
 # manual build of tests particles
 cd /home/travis/build/igfuw/libcloudphxx/build/tests/particles && /home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++   -I/usr/local/include -I/home/travis/build/igfuw/libcloudphxx/include  -fopenmp=libomp -std=gnu++11 -o CMakeFiles/test_particles.dir/tests_particles.cpp.o -c /home/travis/build/igfuw/libcloudphxx/tests/particles/tests_particles.cpp
 # link
-/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles -Wl,-rpath,/home/travis/build/igfuw/libcloudphxx/build ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread /usr/lib/x86_64-linux-gnu/libboost_mpi.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+# from cmake
+#/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles -Wl,-rpath,/home/travis/build/igfuw/libcloudphxx/build ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread /usr/lib/x86_64-linux-gnu/libboost_mpi.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+# with modified -Wl
+/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++     CMakeFiles/test_particles.dir/tests_particles.cpp.o  -o test_particles ../../libcloudphxx_lgrngn_dbg.so /usr/local/clang-7.0.0/lib/libomp.so -lpthread /usr/lib/x86_64-linux-gnu/libboost_mpi.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so
 
 
 
