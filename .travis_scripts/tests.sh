@@ -15,6 +15,9 @@ ldd /usr/lib/x86_64-linux-gnu/libboost_mpi.so
 ldd /home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/lib/libmpi.so
 
 VERBOSE=1 make
+
+ldd libcloudphxx_lgrngn_dbg.so
+
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
