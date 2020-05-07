@@ -44,7 +44,7 @@ namespace libcloudphxx
         pack_n_lft();
 
         // start async copy of n buffer to the left
-        MPI_Isend(
+        MPI_CHECK(MPI_Isend(
           out_n_bfr.data().get(),       // raw pointer to the buffer
           lft_count,                    // no of values to send
           detail::get_mpi_type<n_t>(),    // type
@@ -52,12 +52,12 @@ namespace libcloudphxx
           detail::tag_n_lft,              // message tag
           detail::MPI_COMM_LIBCLOUD,
           &req_send_n_t
-        );
+        ));
       }
       // start async receiving of n buffer from right
       if(bcond.second == detail::distmem_mpi)
       {
-        MPI_Irecv(
+        MPI_CHECK(MPI_Irecv(
           in_n_bfr.data().get(),        // raw pointer to the buffer
           in_n_bfr.size(),              // max no of values to recv
           detail::get_mpi_type<n_t>(),    // type
@@ -65,7 +65,7 @@ namespace libcloudphxx
           detail::tag_n_lft,              // message tag
           detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_n_t
-        );
+        ));
       }
 
       if(bcond.first == detail::distmem_mpi)
@@ -77,7 +77,7 @@ namespace libcloudphxx
         pack_real_lft();
 
         // start async copy of real buffer to the left
-        MPI_Isend(
+        MPI_CHECK(MPI_Isend(
           out_real_bfr.data().get(),       // raw pointer to the buffer
           lft_count * distmem_real_vctrs.size(),                    // no of values to send
           detail::get_mpi_type<real_t>(),    // type
@@ -85,13 +85,13 @@ namespace libcloudphxx
           detail::tag_real_lft,              // message tag
           detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_real_t
-        );
+        ));
       }
 
       if(bcond.second == detail::distmem_mpi)
       {
         // start async receiving of real buffer from right
-        MPI_Irecv(
+        MPI_CHECK(MPI_Irecv(
           in_real_bfr.data().get(),        // raw pointer to the buffer
           in_real_bfr.size(),              // max no of values to recv
           detail::get_mpi_type<real_t>(),    // type
@@ -99,13 +99,13 @@ namespace libcloudphxx
           detail::tag_real_lft,              // message tag
           detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_real_t
-        );
+        ));
 
         // check if n buffer from right arrived
-        MPI_Wait(&req_recv_n_t, &status);
+        MPI_CHECK(MPI_Wait(&req_recv_n_t, &status));
 
         // unpack the n buffer sent to this device from right
-        MPI_Get_count(&status, detail::get_mpi_type<n_t>(), &n_copied);
+        MPI_CHECK(MPI_Get_count(&status, detail::get_mpi_type<n_t>(), &n_copied));
         unpack_n(n_copied);
       }
 
@@ -114,7 +114,7 @@ namespace libcloudphxx
       {
         // check if out_n_bfr sent left has been received
         if(bcond.first == detail::distmem_mpi)
-          MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
+          MPI_CHECK(MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE));
         // prepare buffer with n_t to be copied right
         pack_n_rgt();
 
@@ -123,13 +123,13 @@ namespace libcloudphxx
         bcnd_remote_rgt(opts_init.x1, rgt_x0);
 
         // wait for the copy of real from right into current device to finish
-        MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
+        MPI_CHECK(MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE));
 
         // unpack the real buffer sent to this device from right
         unpack_real(n_copied);
 
         // start async copy of n buffer to the right
-        MPI_Isend(
+        MPI_CHECK(MPI_Isend(
           out_n_bfr.data().get(),       // raw pointer to the buffer
           rgt_count,                    // no of values to send
           detail::get_mpi_type<n_t>(),    // type
@@ -137,13 +137,13 @@ namespace libcloudphxx
           detail::tag_n_rgt,              // message tag
           detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_n_t
-        );
+        ));
       }
 
       // start async receiving of n buffer from left
       if(bcond.first == detail::distmem_mpi)
       {
-        MPI_Irecv(
+        MPI_CHECK(MPI_Irecv(
           in_n_bfr.data().get(),        // raw pointer to the buffer
           in_n_bfr.size(),              // max no of values to recv
           detail::get_mpi_type<n_t>(),    // type
@@ -151,7 +151,7 @@ namespace libcloudphxx
           detail::tag_n_rgt,              // message tag
           detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_n_t
-        );
+        ));
       }
 
       // prepare the real_t buffer for copy to the right
@@ -160,7 +160,7 @@ namespace libcloudphxx
         // check if real_t buffer sent left has been received
         if(bcond.first == detail::distmem_mpi)
         {
-          MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
+          MPI_CHECK(MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE));
         }
         pack_real_rgt();
       }
@@ -168,17 +168,17 @@ namespace libcloudphxx
       // check if n buffer from left arrived
       if(bcond.first == detail::distmem_mpi)
       {
-        MPI_Wait(&req_recv_n_t, &status);
+        MPI_CHECK(MPI_Wait(&req_recv_n_t, &status));
 
         // unpack the n buffer sent to this device from left
-        MPI_Get_count(&status, detail::get_mpi_type<n_t>(), &n_copied);
+        MPI_CHECK(MPI_Get_count(&status, detail::get_mpi_type<n_t>(), &n_copied));
         unpack_n(n_copied);
       }
 
       // start async copy of real buffer to the right
       if(bcond.second == detail::distmem_mpi)
       {
-        MPI_Isend(
+        MPI_CHECK(MPI_Isend(
           out_real_bfr.data().get(),       // raw pointer to the buffer
           rgt_count * distmem_real_vctrs.size(),                    // no of values to send
           detail::get_mpi_type<real_t>(),    // type
@@ -186,13 +186,13 @@ namespace libcloudphxx
           detail::tag_real_rgt,              // message tag
           detail::MPI_COMM_LIBCLOUD,                // communicator
           &req_send_real_t
-        );
+        ));
       }
 
       // start async receiving of real buffer from left
       if(bcond.first == detail::distmem_mpi)
       {
-        MPI_Irecv(
+        MPI_CHECK(MPI_Irecv(
           in_real_bfr.data().get(),        // raw pointer to the buffer
           in_real_bfr.size(),              // max no of values to recv
           detail::get_mpi_type<real_t>(),    // type
@@ -200,7 +200,7 @@ namespace libcloudphxx
           detail::tag_real_rgt,              // message tag
           detail::MPI_COMM_LIBCLOUD,               // communicator
           &req_recv_real_t
-        );
+        ));
       }
 
       // flag SDs sent left/right for removal
@@ -213,7 +213,7 @@ namespace libcloudphxx
       // wait for the copy of real from left into current device to finish
       if(bcond.first == detail::distmem_mpi)
       {
-        MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE);
+        MPI_CHECK(MPI_Wait(&req_recv_real_t, MPI_STATUS_IGNORE));
 
         // unpack the real buffer sent to this device from left
         unpack_real(n_copied);
@@ -226,8 +226,8 @@ namespace libcloudphxx
       sorted = false;          
 
       // wait for all sends to finish to avoid external overwriting of the send buffer (e.g. multi_CUDA intra-node communications)
-      MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE);
-      MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE);
+      MPI_CHECK(MPI_Wait(&req_send_n_t, MPI_STATUS_IGNORE));
+      MPI_CHECK(MPI_Wait(&req_send_real_t, MPI_STATUS_IGNORE));
       
 #endif
     }
