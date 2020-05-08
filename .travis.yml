@@ -111,7 +111,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export COMPILER=clang++; fi # only clang on osx
 
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
@@ -169,7 +169,7 @@ install:
 #    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CC=gcc-6; fi
 #    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CXX=g++-6; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python3-numpy python3-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
 
@@ -180,7 +180,7 @@ install:
 #    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
-    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
+    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
     # boost
     - if [[ $TEST_SUITE != 'MPI_UWLCM_MT'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
