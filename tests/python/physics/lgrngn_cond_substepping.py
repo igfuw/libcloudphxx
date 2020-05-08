@@ -131,8 +131,8 @@ def supersat_state():
     return rhod, th, rv, p
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp):
-    print "[RH_formula = ", RH_formula,"]"
-    print "step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp
+    print("[RH_formula = ", RH_formula,"]")
+    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
@@ -175,12 +175,12 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
         second_r_post_cond = second_r(prtcls)
         third_r_post_cond = third_r(prtcls)
       if step == 0:
-        print "initial supersaturation", supersaturation(prtcls)
+        print("initial supersaturation", supersaturation(prtcls))
         opts.cond = 1
 #      print step, supersaturation(prtcls), th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
     
     ss_post_cond = supersaturation(prtcls)
-    print "supersaturation after condensation", ss_post_cond, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
+    print("supersaturation after condensation", ss_post_cond, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls))
 
     assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
     assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
@@ -201,10 +201,10 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
  #     print step, supersaturation(prtcls), th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
 
     ss_post_evap = supersaturation(prtcls)
-    print "supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls), gccn_conc(prtcls)
+    print("supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls), gccn_conc(prtcls))
     # after evaporation, only larger mode particles should have r > 0.5 microns
     assert(act_conc(prtcls) == gccn_conc(prtcls))
-    print 'execution time: ', exectime
+    print('execution time: ', exectime)
     
     return ss_post_cond, th[0] - th_init[0] - th_diff[0], rv[0] - rv_init[0] - rv_diff[0], act_conc_post_cond, mean_r_post_cond, second_r_post_cond, third_r_post_cond
 
@@ -214,7 +214,7 @@ for constp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
 
       ss, th_diff_1  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 1, exact_sstp, constp)
-      print ss, th_diff_1  , rv_diff, act, mr, sr, tr
+      print(ss, th_diff_1  , rv_diff, act, mr, sr, tr)
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
       assert(abs(th_diff_1) < 7e-3)
@@ -285,7 +285,7 @@ for constp in [False, True]:
 
 
       ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp)
-      print ss, th_diff_10  , rv_diff, act, mr, sr, tr
+      print(ss, th_diff_10  , rv_diff, act, mr, sr, tr)
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
       assert(abs(th_diff_10) < 5e-3)
@@ -353,7 +353,7 @@ for constp in [False, True]:
       assert(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
       ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp)
-      print ss, th_diff_100  , rv_diff, act, mr, sr, tr
+      print(ss, th_diff_100  , rv_diff, act, mr, sr, tr)
       assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
       assert(abs(rv_diff) < exp_rv_diff[constp])
       assert(abs(th_diff_100) < 5e-3)

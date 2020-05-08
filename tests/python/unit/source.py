@@ -99,9 +99,9 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.src_dry_distros = {kappa:lognormal_src}
 opts_init.sd_conc = 1024
 opts_init.src_sd_conc = 512
-opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=2 and nz=2 
+opts_init.n_sd_max = int((opts_init.sd_conc * opts_init.nz + opts_init.src_sd_conc * 2) * opts_init.nx)
 
-print ' --- dry_distros src ---'
+print(' --- dry_distros src ---')
 
 sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
@@ -111,11 +111,11 @@ if not((sd_conc[0] == 1164 or sd_conc[0] == 1165) and (sd_conc[2] == 1164 or sd_
 if not(sd_conc[1] == 1024 and sd_conc[3] == 1024):
   raise Exception("SDs were added in wrong cells")
 
-print 'wet mom0', wet_mom0
+print('wet mom0', wet_mom0)
 if (abs( 2 - (wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) ) > 0.015):
   raise Exception("incorrect multiplicity after source")
 
-print 'wet mom1', wet_mom1
+print('wet mom1', wet_mom1)
 if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) ) > 0.015):
   raise Exception("incorrect radius after source")
 
