@@ -22,7 +22,7 @@ target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 #  find_package(Boost COMPONENTS python27)
 #endif()
 
-find_package(Boost COMPONENTS python)
+find_package(Boost COMPONENTS python3)
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "
     Boost.Python not found. 
