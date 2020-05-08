@@ -57,7 +57,7 @@ export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc
 
 # numpy needs to be installed before building boost python in order to build boost numpy
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-numpy; fi
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python3-numpy; fi
 
 # for MPI we need boost>=1.59 with mpi support, boost installation based on https://github.com/boostorg/compute/blob/master/.travis.yml
   if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then 
@@ -67,6 +67,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-numpy; fi
       tar xf boost_1_65_1.tar.gz
       cd boost_1_65_1
       # configure and install
+      echo "using python : 3.5 ;" >> $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then echo "using gcc : 5.4 : g++ ;" > $HOME/user-config.jam; fi
       echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
