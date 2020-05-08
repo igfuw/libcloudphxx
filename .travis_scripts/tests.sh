@@ -22,7 +22,8 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../
 ## link
 #/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++ -fPIC   -shared -Wl,-soname,libcloudphxx_lgrngn_dbg.so -o libcloudphxx_lgrngn_dbg.so CMakeFiles/cloudphxx_lgrngn.dir/src/lib.cpp.o CMakeFiles/cloudphxx_lgrngn.dir/src/lib_cpp.cpp.o CMakeFiles/cloudphxx_lgrngn.dir/src/lib_omp.cpp.o /usr/local/clang-7.0.0/lib/libomp.so -lpthread
 #
-#ldd libcloudphxx_lgrngn_dbg.so
+ldd libcloudphxx_lgrngn_dbg.so
+ldd bindings/python/libcloudphxx_lgrngn_dbg.so
 #
 ## manual build of tests particles
 #cd /home/travis/build/igfuw/libcloudphxx/build/tests/particles && /home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++   -I/usr/local/include -I/home/travis/build/igfuw/libcloudphxx/include  -fopenmp=libomp -std=gnu++11 -o CMakeFiles/test_particles.dir/tests_particles.cpp.o -c /home/travis/build/igfuw/libcloudphxx/tests/particles/tests_particles.cpp
