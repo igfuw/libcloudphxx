@@ -27,8 +27,8 @@ if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/setup_local_
 #if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXXFLAGS="-DBOOST_HAS_INT128=1 ${CXXFLAGS}"; fi
 
 # cmake 
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
 # MPI - mvapich2-2.3b
 ls -A ${DEPS_DIR}/mvapich2-2.3b
@@ -56,8 +56,8 @@ export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc
 
 
 # numpy needs to be installed before building boost python in order to build boost numpy
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python3-numpy; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python3-numpy; fi
 
 # for MPI we need boost>=1.59 with mpi support, boost installation based on https://github.com/boostorg/compute/blob/master/.travis.yml
   if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then 
