@@ -35,7 +35,7 @@ VERBOSE=1 make
 
 ldd libcloudphxx_lgrngn_dbg.so
 ldd bindings/python/libcloudphxx.so
-
+nm -g /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 | grep _ZN5boost6python7objects15function_objectERKNS1_11py_functionERKSt4pairIPKNS0_6detail7keywordES9_E
 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on

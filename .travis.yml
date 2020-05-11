@@ -147,7 +147,8 @@ install:
 
     # boost
     - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L boost1.61; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
     - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
