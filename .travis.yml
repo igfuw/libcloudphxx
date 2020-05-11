@@ -106,7 +106,7 @@ addons:
       - python3-scipy
       - libblitz0-dev
       - libthrust-dev
-      - cmake
+      - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake)
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
