@@ -98,7 +98,8 @@ addons:
       - libthrust-dev
       - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
     sources: &sources
-      - sourceline: 'ppa:rakhimov/boost'
+      - sourceline: 'ppa:mhier/libboost-latest'
+      - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
 #      - ubuntu-toolchain-r-test
@@ -110,10 +111,9 @@ before_install:
 #    - if [[ $TEST_SUITE != 'cuda'     ]];  then sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"; fi
 
     # define a compiler variable for use in if statements
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export COMPILER=g++; fi
+    - if [[ $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
+    - if [[ $CXX == 'g++'     ]]; then export COMPILER=g++; fi
 
-    - sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"
     - export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
 
     - export cmake="/usr/bin/cmake"
@@ -145,7 +145,7 @@ install:
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
     # boost
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install libboost; fi
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
