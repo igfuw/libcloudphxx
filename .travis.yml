@@ -31,6 +31,8 @@ env:
 
 
 cache:
+  packages: true
+  pip: true
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
     - ${TRAVIS_BUILD_DIR}/deps/boost
@@ -137,7 +139,7 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
 
 # based on https://github.com/daggerok/pip3-travis/blob/master/xenial.travis.yml
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip3 install --user $(whoami) --upgrade pip; fi # pip3 -> pip
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip3 install --user $(whoami) --upgrade pip; fi # pip3 -> pip
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
