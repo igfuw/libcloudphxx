@@ -1,6 +1,6 @@
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR) # 3.9 for OpenMP targets-based build
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR) # 3.13 for CMP0079
 
 project(libcloudph++ LANGUAGES CXX)
 
