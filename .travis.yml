@@ -96,6 +96,7 @@ addons:
       - python3-scipy
       - libblitz0-dev
       - libthrust-dev
+      - libboost # not needed in mpi
       - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
     sources: &sources
       - sourceline: 'ppa:mhier/libboost-latest'
@@ -145,7 +146,7 @@ install:
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
     # boost
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install libboost; fi
+#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install libboost; fi
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
