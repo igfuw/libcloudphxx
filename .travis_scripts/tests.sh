@@ -5,7 +5,6 @@ set -ex
 mkdir build 
 cd build
 # if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then /usr/bin/cmake ../; fi 
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then /usr/bin/cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC} -DBoost_NO_BOOST_CMAKE=ON; fi
 /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug ../
 
 #/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++ -show

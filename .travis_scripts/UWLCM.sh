@@ -6,12 +6,11 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install hdf5-tools; fi
+sudo $apt_get_install hdf5-tools
 
 # libcloudph++ 
 mkdir build 
 cd build
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC}; fi
 # make with RelWithDebInfo to have high optimization with asserts on
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make 

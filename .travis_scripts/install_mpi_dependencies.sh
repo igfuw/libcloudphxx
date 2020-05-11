@@ -12,23 +12,6 @@ if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then sudo $apt_ge
 # redefine CXX to the actual version used
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++; fi
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++; fi
-# downloads and setups local clang on osx
-if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/setup_local_clang.sh; fi
-
-#<<<<<<< HEAD
-    # add a definition -DBOOST_HAS_INT128=1 to clang calls on linux to avoid errors with boost.atomic (https://svn.boost.org/trac/boost/ticket/9610)
-#    if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then mkdir /tmp/bin; fi
-#    if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then printf "#!/bin/sh\nexec /usr/bin/clang++ -DBOOST_HAS_INT128=1 \"\$@\"" > /tmp/bin/clang++; fi
-#    if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then chmod +x /tmp/bin/clang++; fi
-#    if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then sudo ln -sf /tmp/bin/clang++ /usr/bin/clang++; fi
-    # put /usr/bin first to use clang++-3.5 instead of the default 3.4
-    #if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export PATH=/usr/bin:$PATH; fi
-
-#if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export CXXFLAGS="-DBOOST_HAS_INT128=1 ${CXXFLAGS}"; fi
-
-# cmake 
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
 # MPI - mvapich2-2.3b
 ls -A ${DEPS_DIR}/mvapich2-2.3b
@@ -53,11 +36,6 @@ export LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LIBRARY_PATH}
 
 export CXX=${DEPS_DIR}/mvapich2-2.3b/bin/mpic++  # full path, since libtool in hdf5 installation does not understand PATH set above (?)
 export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc 
-
-
-# numpy needs to be installed before building boost python in order to build boost numpy
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python3-numpy; fi
 
 # for MPI we need boost>=1.59 with mpi support, boost installation based on https://github.com/boostorg/compute/blob/master/.travis.yml
   if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then 

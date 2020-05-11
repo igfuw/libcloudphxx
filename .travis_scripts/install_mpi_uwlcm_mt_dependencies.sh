@@ -8,7 +8,7 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 . ${PWD}/.travis_scripts/install_mpi_dependencies.sh
 
 # Ubuntu dependency issue fix
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
+sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0
 
 # C++ support missing in Debian package ...
 #if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then sudo $apt_get_install libhdf5-openmpi-dev; fi 
