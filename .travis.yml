@@ -90,11 +90,20 @@ jobs:
           env: TEST_SUITE=UWLCM_unit_smg
 addons:
   apt:
+    update: true
     packages:
 #      - g++-7
 #      - gcc-7
 #      - clang-4.0
 #      - boost1.61
+      - python3-dev
+      - python3-pip
+      - python3-six
+      - python3-setuptools
+      - python3-numpy
+      - python3-scipy
+      - libblitz0-dev
+      - libthrust-dev
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
 #      - ubuntu-toolchain-r-test
@@ -126,6 +135,9 @@ before_install:
     - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
+
+# based on https://github.com/daggerok/pip3-travis/blob/master/xenial.travis.yml
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip3 install --user $(whoami) --upgrade pip; fi # pip3 -> pip
 
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
@@ -169,7 +181,7 @@ install:
 #    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CC=gcc-6; fi
 #    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CXX=g++-6; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python3-numpy python3-scipy libthrust-dev; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python3-numpy python3-scipy libthrust-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip install -U pytest --ignore-installed six; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
 
