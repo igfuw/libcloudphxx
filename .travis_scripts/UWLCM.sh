@@ -12,7 +12,7 @@ sudo $apt_get_install hdf5-tools
 mkdir build 
 cd build
 # make with RelWithDebInfo to have high optimization with asserts on
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make 
 sudo make install
 cd ../..
@@ -24,7 +24,7 @@ git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
-cmake ..
+$cmake ..
 sudo make install
 cd ../../..
 

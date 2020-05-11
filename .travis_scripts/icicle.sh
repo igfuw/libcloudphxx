@@ -5,7 +5,7 @@ set -ex
 mkdir build 
 cd build
 # make with RelWithDebInfo to have high optimization with asserts on
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make 
 sudo make install
 cd ../..
@@ -20,7 +20,7 @@ git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
 mkdir build
 cd build
-cmake ..
+$cmake ..
 sudo make install
 cd ../../..
 
@@ -28,7 +28,7 @@ cd ../../..
 cd libcloudphxx/models/kinematic_2D
 mkdir -p build 
 cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 if [[ $COMPILER == 'clang++' ]]; then make; fi # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
 if [[ $COMPILER == 'clang++' ]]; then ctest -VV -R travis; fi # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 if [[ $COMPILER == 'clang++' ]]; then cat Testing/Temporary/LastTest.log; fi

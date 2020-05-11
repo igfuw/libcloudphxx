@@ -16,16 +16,16 @@ compiler:
 #    - gcc
     - clang
 env:
-#    - TEST_SUITE=cuda
+    - TEST_SUITE=cuda
     - TEST_SUITE=tests
-#    - TEST_SUITE=parcel
-#    - TEST_SUITE=icicle
-#    - TEST_SUITE=KidA
-#    - TEST_SUITE=UWLCM_MT
-#    - TEST_SUITE=UWLCM_unit_iles
-#    - TEST_SUITE=UWLCM_unit_smg
+    - TEST_SUITE=parcel
+    - TEST_SUITE=icicle
+    - TEST_SUITE=KidA
+    - TEST_SUITE=UWLCM_MT
+    - TEST_SUITE=UWLCM_unit_iles
+    - TEST_SUITE=UWLCM_unit_smg
     - TEST_SUITE=MPI_tests
-#    - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+    - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
 
@@ -96,7 +96,7 @@ addons:
       - python3-scipy
       - libblitz0-dev
       - libthrust-dev
-      - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake)
+      - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
@@ -115,6 +115,8 @@ before_install:
 
     - sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"
     - export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
+
+    - export cmake="/usr/bin/cmake"
 
 # cuda 10 installation, requires Boost >= 1.65.1
 #    - if [[ $TEST_SUITE == 'cuda'     ]];  then wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi

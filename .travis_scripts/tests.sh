@@ -4,8 +4,8 @@ set -ex
 # libcloudph++ 
 mkdir build 
 cd build
-# if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then /usr/bin/cmake ../; fi 
-/usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug ../
+# if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then $cmake ../; fi 
+$cmake -DCMAKE_BUILD_TYPE=Debug ../
 
 #/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++ -show
 #ldd //usr/lib/libmpi_cxx.so
@@ -39,7 +39,7 @@ ldd bindings/python/libcloudphxx.so
 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
-/usr/bin/cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
+$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
 VERBOSE=1 make 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 make install
