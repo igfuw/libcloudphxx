@@ -166,10 +166,8 @@ namespace libcloudphxx
           using std::min;
           using std::max;
           using std::cbrt;
-//          using std::pow;
-//          using std::abs;
-//          using std::isnan;
-//          using std::isinf;
+          using std::isnan;
+          using std::isinf;
 #endif
 
           auto& tpl_in = thrust::get<0>(tpl);
