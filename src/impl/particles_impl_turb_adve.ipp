@@ -13,7 +13,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::turb_adve()
     {   
-      thrust_device::vector<real_t> * vel_pos_a[] = {&x, &y, &z};
+      thrust_device::vector<real_t> * vel_pos_a[] = {&x, &z, &y};
       std::vector<thrust_device::vector<real_t>*> vel_pos(&vel_pos_a[0], &vel_pos_a[0]+n_dims);
 
       thrust_device::vector<real_t> * vel_turbs_vctrs_a[] = {&up, &wp, &vp};
