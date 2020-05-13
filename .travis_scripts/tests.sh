@@ -38,11 +38,6 @@ ldd bindings/python/libcloudphxx.so
 nm -gDC /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
 nm -gD /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
 
-# jest:
-# _ZN5boost6python7objects15function_objectERKNS1_11py_functionERKNSt3__14pairIPKNS0_6detail7keywordESA_EE - z kompilacji z libc++?
-# potrzeba:
-# _ZN5boost6python7objects15function_objectERKNS1_11py_functionERKSt4pairIPKNS0_6detail7keywordES9_E - to by bralo kompilacje z libstdc++?
-
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
 $cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
