@@ -57,8 +57,8 @@ export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc
         #clang installation taken from https://gist.github.com/jimporter/10442880
         ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python --with-toolset=clang
         ./b2 clean
-        ./b2 toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/ -j 4 stage release
-        ./b2 install toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/
+        ./b2 toolset=clang cxxflags="-std=c++14 -stdlib=libstdc++" linkflags="-stdlib=libstdc++" --prefix=${DEPS_DIR}/boost/ -j 4 stage release
+        ./b2 install toolset=clang cxxflags="-std=c++14 -stdlib=libstdc++" linkflags="-stdlib=libstdc++" --prefix=${DEPS_DIR}/boost/
       fi
       cd ..
     else
