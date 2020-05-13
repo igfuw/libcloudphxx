@@ -60,15 +60,19 @@ jobs:
       - <<: *precache_default
         env: TEST_SUITE=MPI_tests
         compiler: gcc
-      - <<: *precache_default
-        env: TEST_SUITE=MPI_tests
-        compiler: clang
+#     clang MPI_tests disabled due to issues with manually built boost python libstdc++ / libc++ issues
+#      - <<: *precache_default
+#        env: TEST_SUITE=MPI_tests
+#        compiler: clang
       - <<: *precache_uwlcm_mpi
         env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
     exclude:
         - compiler: clang
           env: TEST_SUITE=cuda
+
+        - compiler: clang
+          env: TEST_SUITE=MPI_tests
 
         - compiler: clang
           env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2

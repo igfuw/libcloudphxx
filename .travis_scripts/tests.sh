@@ -33,10 +33,11 @@ $cmake -DCMAKE_BUILD_TYPE=Debug ../
 
 VERBOSE=1 make
 
-ldd libcloudphxx_lgrngn_dbg.so
-ldd bindings/python/libcloudphxx.so
-nm -gDC /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
-nm -gD /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
+# clang++ boost python libstdc++ / libc++ debugging stuff
+#ldd libcloudphxx_lgrngn_dbg.so
+#ldd bindings/python/libcloudphxx.so
+#nm -gDC /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
+#nm -gD /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
