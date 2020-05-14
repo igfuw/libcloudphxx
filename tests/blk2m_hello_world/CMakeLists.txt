@@ -1,4 +1,4 @@
 add_executable(blk2m_hello_world blk2m_hello_world.cpp)
-target_link_libraries(blk2m_hello_world /usr/local/lib/libblitz.dylib)
+target_link_libraries(blk2m_hello_world blitz)
 target_link_libraries(blk2m_hello_world cloudphxx_lgrngn)
 add_test(blk2m_hello_world blk2m_hello_world)
