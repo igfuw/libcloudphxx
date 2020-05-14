@@ -102,8 +102,8 @@ addons:
       - libthrust-dev
       - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
     sources: &sources
-      - sourceline: 'ppa:mhier/libboost-latest'
-#      - sourceline: 'ppa:rakhimov/boost'
+#      - sourceline: 'ppa:mhier/libboost-latest'
+      - sourceline: 'ppa:rakhimov/boost'
       - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
@@ -151,12 +151,12 @@ install:
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
     # boost
-    #- if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install libboost1.70-dev; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost1.70-dev; fi
-#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_numpy-py35.so /usr/lib/x86_64-linux-gnu/libboost_numpy3.so; fi # different naming conventions for boost python with python 3
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
+    #- if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install libboost1.70-dev; fi
+    #- if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost1.70-dev; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L boost1.61; fi
+#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_numpy-py35.so /usr/lib/x86_64-linux-gnu/libboost_numpy3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
