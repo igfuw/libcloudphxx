@@ -26,7 +26,7 @@ env:
     - TEST_SUITE=UWLCM_unit_smg MPI=none
 
     - TEST_SUITE=tests MPI=mvapich2
-    - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+    - TEST_SUITE=UWLCM_MT MPI=mvapich2
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
 
@@ -75,7 +75,7 @@ jobs:
 #        env: TEST_SUITE=MPI_tests
 #        compiler: clang
       - <<: *precache_uwlcm_mpi
-        env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+        env: TEST_SUITE=UWLCM_MT MPI=mvapich2
 
       - <<: *precache_tests
         env: TEST_SUITE=tests MPI=none
@@ -88,7 +88,7 @@ jobs:
           env: TEST_SUITE=MPI_tests MPI=none
 
         - compiler: clang
-          env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
+          env: TEST_SUITE=UWLCM_MT MPI=mvapich2
 
         # UWLCM is not tested on clang yet
         - compiler: clang
@@ -155,9 +155,9 @@ install:
     - if [[ $TEST_SUITE == 'tests' && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
 
     # order matters!
-    - if [[ $MPI != 'none'                ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
-    - if [[ $MPI != 'none'                ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
+    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
     - sudo pip3 install -U pytest --ignore-installed six
 
@@ -167,11 +167,11 @@ install:
 
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
-    # boost
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests' && $TEST_SUITE != 'tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
+    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel
+    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo $apt_get_install boost1.61; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests' && $TEST_SUITE != 'tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
