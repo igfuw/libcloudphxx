@@ -105,17 +105,17 @@ print(' --- dry_distros src ---')
 
 sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
-print 'diag_sd_conc', sd_conc
+print('diag_sd_conc', sd_conc)
 if not((sd_conc[0] == 1164 or sd_conc[0] == 1165) and (sd_conc[2] == 1164 or sd_conc[2] == 1165)):
   raise Exception("wrong amount of SDs were added")
 if not(sd_conc[1] == 1024 and sd_conc[3] == 1024):
   raise Exception("SDs were added in wrong cells")
 
-print('wet mom0', wet_mom0)
+print(('wet mom0', wet_mom0))
 if (abs( 2 - (wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) ) > 0.015):
   raise Exception("incorrect multiplicity after source")
 
-print('wet mom1', wet_mom1)
+print(('wet mom1', wet_mom1))
 if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) ) > 0.015):
   raise Exception("incorrect radius after source")
 
@@ -126,16 +126,16 @@ opts_init.dry_sizes = {kappa : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
 opts_init.src_dry_sizes = {kappa : {1.e-6  : [0.3, 10], 15.e-6 : [0.1, 5]}}
 opts_init.n_sd_max=240
 
-print ' --- dry_sizes src ---'
+print(' --- dry_sizes src ---')
 
 sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
-print 'diag_sd_conc', sd_conc
+print('diag_sd_conc', sd_conc)
 if not((sd_conc[0] == 60) and (sd_conc[2] == 60)):
   raise Exception("wrong amount of SDs were added")
 if not(sd_conc[1] == 30 and sd_conc[3] == 30):
   raise Exception("SDs were added in wrong cells")
 
-print 'wet mom0', wet_mom0
+print('wet mom0', wet_mom0)
 if (abs( 2 - (wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) ) > 0.001):
   raise Exception("incorrect multiplicity after source")
