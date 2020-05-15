@@ -55,6 +55,12 @@ aliases:
         - . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh
       script: echo "Preparing cache finished"
 
+    - &precache_tests
+      stage: precache
+      install: 
+        - . ./.travis_scripts/deps_install/boost.sh
+      script: echo "Preparing cache finished"
+
 jobs:
     include:
       - <<: *precache_default
@@ -139,6 +145,7 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
+    - if [[ $TEST_SUITE == 'tests'     ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
     - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
     - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh; fi
 
@@ -151,10 +158,10 @@ install:
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
     # boost
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests' && $TEST_SUITE != 'tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo $apt_get_install boost1.61; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
-    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests' && $TEST_SUITE != 'tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
@@ -162,7 +169,7 @@ install:
     - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
  
 before_script:
-    - chmod +x ./.travis_scripts/*
+    - chmod -R +x ./.travis_scripts/
 
 script:
     # compile with nvcc
