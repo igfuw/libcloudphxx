@@ -13,8 +13,8 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
       tar xf boost_1_65_1.tar.gz
       cd boost_1_65_1
       # configure and install
-      echo "using python : 3.5 : /opt/pyenv/shims/python3 ;" >> $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then echo "using gcc : 5.4 : g++ ;" > $HOME/user-config.jam; fi
+      echo "using python : 3.5 : /opt/pyenv/shims/python3 ;" >> $HOME/user-config.jam
       echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
@@ -46,8 +46,8 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
       tar xf boost_1_65_1.tar.gz
       cd boost_1_65_1
       # configure and install
-      echo "using python : 3.5 : /opt/pyenv/shims/python3 ;" >> $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then echo "using gcc : 5.4 : g++ ;" > $HOME/user-config.jam; fi
+      echo "using python : 3.5 : /opt/pyenv/shims/python3 ;" >> $HOME/user-config.jam
       #echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
