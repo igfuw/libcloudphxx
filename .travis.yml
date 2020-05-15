@@ -16,15 +16,16 @@ compiler:
     - gcc
     - clang
 env:
-    - TEST_SUITE=cuda
-    - TEST_SUITE=tests
-    - TEST_SUITE=parcel
-    - TEST_SUITE=icicle
-    - TEST_SUITE=KidA
-    - TEST_SUITE=UWLCM_MT
-    - TEST_SUITE=UWLCM_unit_iles
-    - TEST_SUITE=UWLCM_unit_smg
-    - TEST_SUITE=MPI_tests # run tests suite, but with libcloudph++ compiled using mvapich2.
+    - TEST_SUITE=cuda MPI=none
+    - TEST_SUITE=tests MPI=none
+    - TEST_SUITE=parcel MPI=none
+    - TEST_SUITE=icicle MPI=none
+    - TEST_SUITE=KidA MPI=none
+    - TEST_SUITE=UWLCM_MT MPI=none
+    - TEST_SUITE=UWLCM_unit_iles MPI=none
+    - TEST_SUITE=UWLCM_unit_smg MPI=none
+
+    - TEST_SUITE=tests MPI=mvapich2
     - TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 #TODO: MPI icicle test once libmpdata++ has mpi
 #TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
@@ -43,16 +44,19 @@ cache:
 #       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
 aliases:
     # YAML alias for the options common to precache jobs
-    - &precache_default
+    - &precache_tests_mpi
       stage: precache
       install: 
         - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
       script: echo "Preparing cache finished"
 
     - &precache_uwlcm_mpi
       stage: precache
       install: 
-        - . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
       script: echo "Preparing cache finished"
 
     - &precache_tests
@@ -63,8 +67,8 @@ aliases:
 
 jobs:
     include:
-      - <<: *precache_default
-        env: TEST_SUITE=MPI_tests
+      - <<: *precache_tests_mpi
+        env: TEST_SUITE=MPI_tests MPI=mvapich2
         compiler: gcc
 #     clang MPI_tests disabled due to issues with manually built boost python libstdc++ / libc++ issues
 #      - <<: *precache_default
@@ -74,25 +78,25 @@ jobs:
         env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
       - <<: *precache_tests
-        env: TEST_SUITE=tests
+        env: TEST_SUITE=tests MPI=none
 
     exclude:
         - compiler: clang
-          env: TEST_SUITE=cuda
+          env: TEST_SUITE=cuda MPI=none
 
         - compiler: clang
-          env: TEST_SUITE=MPI_tests
+          env: TEST_SUITE=MPI_tests MPI=none
 
         - compiler: clang
           env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
         # UWLCM is not tested on clang yet
         - compiler: clang
-          env: TEST_SUITE=UWLCM_MT
+          env: TEST_SUITE=UWLCM_MT MPI=none
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_iles
+          env: TEST_SUITE=UWLCM_unit_iles MPI=none
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_smg
+          env: TEST_SUITE=UWLCM_unit_smg MPI=none
 addons:
   apt:
     update: true
@@ -148,9 +152,12 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    - if [[ $TEST_SUITE == 'tests'     ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh; fi
+    - if [[ $TEST_SUITE == 'tests' && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+
+    # order matters!
+    - if [[ $MPI != 'none'                ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $MPI != 'none'                ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
     - sudo pip3 install -U pytest --ignore-installed six
 

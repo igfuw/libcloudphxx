@@ -37,7 +37,7 @@ export LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LIBRARY_PATH}
 export CXX=${DEPS_DIR}/mvapich2-2.3b/bin/mpic++  # full path, since libtool in hdf5 installation does not understand PATH set above (?)
 export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc 
 
-. ${PWD}/.travis_scripts/deps_install/boost.sh
+#. ${PWD}/.travis_scripts/deps_install/boost.sh
 
 ## for MPI we need boost>=1.59 with mpi support, boost installation based on https://github.com/boostorg/compute/blob/master/.travis.yml
 #  if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then 
