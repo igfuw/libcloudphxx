@@ -73,6 +73,9 @@ jobs:
       - <<: *precache_uwlcm_mpi
         env: TEST_SUITE=MPI_UWLCM_MT MPI=mvapich2
 
+      - <<: *precache_tests
+        env: TEST_SUITE=tests
+
     exclude:
         - compiler: clang
           env: TEST_SUITE=cuda
