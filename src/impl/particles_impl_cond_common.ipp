@@ -166,8 +166,6 @@ namespace libcloudphxx
           using std::min;
           using std::max;
           using std::cbrt;
-//          using std::pow;
-//          using std::abs;
           using std::isnan;
           using std::isinf;
 #endif

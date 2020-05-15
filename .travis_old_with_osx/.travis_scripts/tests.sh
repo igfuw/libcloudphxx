@@ -4,8 +4,9 @@ set -ex
 # libcloudph++ 
 mkdir build 
 cd build
-# if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then $cmake ../; fi 
-$cmake -DCMAKE_BUILD_TYPE=Debug ../
+# if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then /usr/bin/cmake ../; fi 
+if [[ $TRAVIS_OS_NAME == 'osx' ]]; then /usr/bin/cmake .. -DPYTHON_LIBRARY=${PY_LIB} -DPYTHON_INCLUDE_DIR=${PY_INC} -DBoost_NO_BOOST_CMAKE=ON; fi
+/usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug ../
 
 #/home/travis/build/igfuw/libcloudphxx/deps/mvapich2-2.3b/bin/mpic++ -show
 #ldd //usr/lib/libmpi_cxx.so
@@ -33,15 +34,13 @@ $cmake -DCMAKE_BUILD_TYPE=Debug ../
 
 VERBOSE=1 make
 
-# clang++ boost python libstdc++ / libc++ debugging stuff
-#ldd libcloudphxx_lgrngn_dbg.so
-#ldd bindings/python/libcloudphxx.so
-#nm -gDC /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
-#nm -gD /home/travis/build/igfuw/libcloudphxx/deps/boost/lib/libboost_python3.so.1.65.1 
+ldd libcloudphxx_lgrngn_dbg.so
+ldd bindings/python/libcloudphxx.so
+
 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 # make with RelWithDebInfo to have high optimization with asserts on
-$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
+/usr/bin/cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=~/usr/local/ ../ 
 VERBOSE=1 make 
 OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 make install

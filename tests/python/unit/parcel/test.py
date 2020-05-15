@@ -50,5 +50,5 @@ for rhs in [
   rhs_lgrngn(dt, sd_conc, {kappa:lognormal}, chem_gas)
 ]:
   parcel(p_d, th_d, r_v, w, dt, nt, rhs)
-  print p_d, arr_t([th_dry2std(th_d[0], r_v[0])]), r_v
+  print(p_d, arr_t([th_dry2std(th_d[0], r_v[0])]), r_v)
 
