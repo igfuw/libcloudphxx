@@ -5,7 +5,7 @@ set -e
 #############################################################################
 DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 
-. ${PWD}/.travis_scripts/deps_install/install_mpi_dependencies.sh
+. ${PWD}/.travis_scripts/deps_install/mpi_dependencies.sh
 
 # Ubuntu dependency issue fix
 sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0
