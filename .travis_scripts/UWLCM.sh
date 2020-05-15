@@ -18,7 +18,7 @@ sudo make install
 cd ../..
 
 # libmpdata
-. $TRAVIS_BUILD_DIR/.travis_scripts/get_libmpdata_dependencies.sh
+. $TRAVIS_BUILD_DIR/.travis_scripts/deps_install/libmpdata_dependencies.sh
 
 git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++

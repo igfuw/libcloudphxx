@@ -46,13 +46,13 @@ aliases:
     - &precache_default
       stage: precache
       install: 
-        - . ./.travis_scripts/install_mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
       script: echo "Preparing cache finished"
 
     - &precache_uwlcm_mpi
       stage: precache
       install: 
-        - . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh
+        - . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh
       script: echo "Preparing cache finished"
 
 jobs:
@@ -139,8 +139,8 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
-    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/install_mpi_uwlcm_mt_dependencies.sh; fi
+    - if [[ $TEST_SUITE == 'MPI_tests'     ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $TEST_SUITE == 'MPI_UWLCM_MT'     ]]; then . ./.travis_scripts/deps_install/mpi_uwlcm_mt_dependencies.sh; fi
 
     - sudo pip3 install -U pytest --ignore-installed six
 
