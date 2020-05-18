@@ -7,7 +7,7 @@ cd build
 #if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then $cmake ../; fi 
 
 # make with RelWithDebInfo to have high optimization with asserts on
-$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ -DCMAKE_INSTALL_PREFIX=/usr
 VERBOSE=1 make
 sudo make install
 cd ../..
@@ -24,7 +24,7 @@ cd ..
 # make libcloudph++ in Debug mode
 sudo rm -rf libcloudphxx/build/*
 cd libcloudphxx/build
-$cmake -DCMAKE_BUILD_TYPE=Debug ../
+$cmake -DCMAKE_BUILD_TYPE=Debug ../ -DCMAKE_INSTALL_PREFIX=/usr
 VERBOSE=1 make
 sudo make install
 cd ../../
