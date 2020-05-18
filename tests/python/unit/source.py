@@ -99,7 +99,7 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.src_dry_distros = {kappa:lognormal_src}
 opts_init.sd_conc = 1024
 opts_init.src_sd_conc = 512
-opts_init.n_sd_max = int((opts_init.sd_conc * opts_init.nz + opts_init.src_sd_conc * 2) * opts_init.nx)
+opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=nz=2
 
 print(' --- dry_distros src ---')
 
