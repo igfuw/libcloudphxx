@@ -14,7 +14,7 @@ os:
 
 compiler:
     - gcc
-    - clang
+#    - clang
 env:
     - TEST_SUITE=cuda MPI=none
     - TEST_SUITE=tests MPI=none
