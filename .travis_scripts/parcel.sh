@@ -13,7 +13,7 @@ sudo make install
 cd ../..
 
 # parcel tests for Release mode of libcloudph++
-sudo $apt_get_install python-matplotlib python-gnuplot gnuplot-nox
+sudo $apt_get_install python3-matplotlib python3-gnuplot gnuplot-nox
 git clone --depth=1 git://github.com/igfuw/parcel.git
 cd parcel
 mkdir plots/outputs
