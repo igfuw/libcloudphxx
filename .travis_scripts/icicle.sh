@@ -29,7 +29,7 @@ cd libcloudphxx/models/kinematic_2D
 mkdir -p build 
 cd build
 $cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
-make # disable compilation on the CUDA machine with g++ - it has not enough memory to compile icicle
+VERBOSE=1 make
 ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 cat Testing/Temporary/LastTest.log
 cd ../../../..                                       
