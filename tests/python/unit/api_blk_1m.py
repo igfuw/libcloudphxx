@@ -6,14 +6,14 @@ from numpy import array as arr_t # ndarray dtype default to float64, while array
 from libcloudphxx import blk_1m
 
 opts = blk_1m.opts_t()
-print "cond =", opts.cond
-print "cevp =", opts.cevp
-print "revp =", opts.revp 
-print "conv =", opts.conv 
-print "accr =", opts.accr 
-print "sedi =", opts.sedi 
-print "r_c0 =", opts.r_c0
-print "r_eps =", opts.r_eps
+print("cond =", opts.cond)
+print("cevp =", opts.cevp)
+print("revp =", opts.revp) 
+print("conv =", opts.conv) 
+print("accr =", opts.accr) 
+print("sedi =", opts.sedi) 
+print("r_c0 =", opts.r_c0)
+print("r_eps =", opts.r_eps)
 
 rhod = arr_t([1.  ])
 p    = arr_t([1.e5])

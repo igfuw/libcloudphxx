@@ -13,7 +13,7 @@ git stash apply
 
 mkdir build 
 cd build
-$cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../ 
 VERBOSE=1 make 
 sudo make install
 cd ../..

@@ -99,7 +99,7 @@ for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.beard77fast]
   
   rmsd = RMSD(results,bott1800)
   
-  print 'RMSD = ' + str(rmsd);
+  print('RMSD = ' + str(rmsd));
   
   if(rmsd > 6e-2):
     raise Exception("Simulation result does not agree with analytic prediction")

@@ -1,6 +1,6 @@
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR) # 3.9 for OpenMP targets-based build
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR) # 3.13 for CMP0079
 
 project(libcloudph++ LANGUAGES CXX)
 
@@ -8,9 +8,12 @@ project(libcloudph++ LANGUAGES CXX)
 # - CMP0025 - make CMake distinguis between Apple and LLVM clang
 # - CMP0042 - make CMake use RPATHs on OSX
 # - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+# - CMP0079 - make CMake allow target_link_libraries on targets created in other directories
 #if(CMAKE_VERSION VERSION_GREATER 2.9)
 #  cmake_policy(VERSION 3.0)
 #endif()
+
+#cmake_policy(SET CMP0079 NEW)
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
