@@ -13,6 +13,9 @@ git stash apply
 
 mkdir build 
 cd build
+# /usr prefix is a hack for python3 to find libcloudphxx.so
+# CMake should find the proper installation path for python3 packages (?)
+# but what it finds is /usr/local/...
 $cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../  -DCMAKE_INSTALL_PREFIX=/usr
 VERBOSE=1 make 
 sudo make install
