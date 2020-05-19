@@ -110,7 +110,7 @@ addons:
       - python3-six
       - python3-setuptools
       - python3-numpy
-      - python3-scipy
+#      - python3-scipy
       - libblitz0-dev
       - libthrust-dev
       - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
@@ -160,6 +160,7 @@ install:
     - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
     - sudo pip3 install -U pytest --ignore-installed six
+    - sudo pip3 install -U scipy --ignore-installed six
 
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda; fi
