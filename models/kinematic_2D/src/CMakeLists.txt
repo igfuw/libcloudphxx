@@ -15,7 +15,7 @@ add_executable(icicle icicle.cpp)
 target_compile_features(icicle PRIVATE cxx_std_14)
 
 # bug fix, see https://github.com/boostorg/math/issues/272
-target_compile_options(icicle PRIVATE " -fext-numeric-literals ")
+target_compile_options(icicle PRIVATE -fext-numeric-literals)
 
 target_link_libraries(icicle PRIVATE ${libmpdataxx_LIBRARIES})
 target_include_directories(icicle PRIVATE ${libmpdataxx_INCLUDE_DIRS})
