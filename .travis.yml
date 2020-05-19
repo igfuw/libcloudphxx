@@ -59,7 +59,7 @@ aliases:
         - . ./.travis_scripts/deps_install/mpi_hdf5.sh
       script: echo "Preparing cache finished"
 
-    - &precache_tests
+    - &precache_boost
       stage: precache
       install: 
         - . ./.travis_scripts/deps_install/boost.sh
@@ -77,8 +77,11 @@ jobs:
       - <<: *precache_uwlcm_mpi
         env: TEST_SUITE=UWLCM_MT MPI=mvapich2
 
-      - <<: *precache_tests
+      - <<: *precache_boost
         env: TEST_SUITE=tests MPI=none
+
+      - <<: *precache_boost
+        env: TEST_SUITE=KidA MPI=none
 
     exclude:
         - compiler: clang
@@ -152,7 +155,7 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    - if [[ $TEST_SUITE == 'tests' && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ ($TEST_SUITE == 'tests' || $TEST_SUITE == 'KidA') && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
 
     # order matters!
     - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
@@ -168,11 +171,11 @@ install:
 
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
-    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel
-    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo $apt_get_install boost1.61; fi
+    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel and KidA
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo $apt_get_install boost1.61; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
-    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
