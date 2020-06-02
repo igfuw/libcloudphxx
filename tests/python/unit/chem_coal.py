@@ -1,4 +1,9 @@
-import sys 
+import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
@@ -38,7 +43,7 @@ opts_init.n_sd_max = 64
 opts_init.chem_switch = True
 opts_init.sedi_switch = False
 opts_init.chem_rho = 1.8e-3
-ambient_chem = dict((v, np.ones((1,)) ) for k,v in _Chem_g_id.iteritems())
+ambient_chem = dict((v, np.ones((1,)) ) for k,v in _Chem_g_id.items())
 
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard77fast

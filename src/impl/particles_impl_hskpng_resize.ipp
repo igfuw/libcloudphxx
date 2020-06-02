@@ -8,8 +8,8 @@ namespace libcloudphxx
     {
       if(n_part > opts_init.n_sd_max) throw std::runtime_error(detail::formatter() << "n_sd_max (" << opts_init.n_sd_max << ") < n_part (" << n_part << ")");
       {
-        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &vt, &tmp_device_real_part};
-        for(int i=0; i<5; ++i)
+        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &tmp_device_real_part};
+        for(int i=0; i<4; ++i)
         {
           vec[i]->resize(n_part);
         }
@@ -25,6 +25,8 @@ namespace libcloudphxx
       tmp_device_n_part.resize(n_part);
       tmp_device_size_part.resize(n_part);
 
+      vt.resize(n_part, detail::invalid);
+
       if (opts_init.nx != 0) i.resize(n_part); 
       if (opts_init.ny != 0) j.resize(n_part); 
       if (opts_init.nz != 0) k.resize(n_part); 
@@ -35,16 +37,16 @@ namespace libcloudphxx
 
       if(opts_init.turb_adve_switch) 
       {
-        if (opts_init.nx != 0) up.resize(n_part); 
-        if (opts_init.ny != 0) vp.resize(n_part); 
-        if (opts_init.nz != 0) wp.resize(n_part); 
+        if (opts_init.nx != 0) up.resize(n_part, 0); 
+        if (opts_init.ny != 0) vp.resize(n_part, 0); 
+        if (opts_init.nz != 0) wp.resize(n_part, 0); 
       }
 
       if(opts_init.turb_cond_switch)
       {
-        wp.resize(n_part);
-        ssp.resize(n_part);
-        dot_ssp.resize(n_part);
+        wp.resize(n_part, 0);
+        ssp.resize(n_part, 0);
+        dot_ssp.resize(n_part, 0);
       }
 
       if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)

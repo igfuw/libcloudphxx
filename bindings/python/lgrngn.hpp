@@ -5,10 +5,11 @@
 // copyright: University of Warsaw
 
 #include "error.hpp" 
-
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
-
 #include <libcloudph++/lgrngn/factory.hpp>
+
+#include "../../src/detail/ran_with_mpi.hpp"
+
 
 namespace libcloudphxx
 {
@@ -40,6 +41,8 @@ namespace libcloudphxx
         const lgr::backend_t &backend,
         lgr::opts_init_t<real_t> opts_init
       ) {
+        if(ran_with_mpi())
+          throw std::runtime_error("The Python bindings of libcloudph++ Lagrangian microphysics can't be used in MPI runs.");
         return lgr::factory(backend, opts_init);
       }
 
@@ -47,12 +50,13 @@ namespace libcloudphxx
       bp::object outbuf(
         lgr::particles_proto_t<real_t> *arg
       ) {
-        return bp::object(bp::handle<>(PyBuffer_FromMemory(
-          arg->outbuf(), 
+        return bp::object(bp::handle<>(PyMemoryView_FromMemory(
+          reinterpret_cast<char *>(arg->outbuf()), 
           sizeof(real_t)
           * std::max(1, arg->opts_init->nx) 
           * std::max(1, arg->opts_init->ny) 
-          * std::max(1, arg->opts_init->nz) 
+          * std::max(1, arg->opts_init->nz), 
+          PyBUF_READ
         ))); // TODO: this assumes Python 2 -> make it compatible with P3 or require P2 in CMake
       }
 
@@ -105,15 +109,15 @@ namespace libcloudphxx
       // 
       template <typename real_t>
       void step_sync(
-      	lgr::particles_proto_t<real_t> *arg,
-      	const lgr::opts_t<real_t> &opts,
-      	const bp_array &th,
-      	const bp_array &rv,
-      	const bp_array &rhod,
-      	const bp_array &Cx,
-      	const bp_array &Cy,
-      	const bp_array &Cz,
-      	const bp_array &diss_rate,
+        lgr::particles_proto_t<real_t> *arg,
+        const lgr::opts_t<real_t> &opts,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rhod,
+        const bp_array &Cx,
+        const bp_array &Cy,
+        const bp_array &Cz,
+        const bp_array &diss_rate,
         bp::dict &ambient_chem
       )
       {
@@ -125,6 +129,7 @@ namespace libcloudphxx
             bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
+
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -163,6 +168,7 @@ namespace libcloudphxx
             bp::extract<enum cmn::chem::chem_species_t>(ambient_chem.keys()[i]),
             np2ai<real_t>(bp::extract<bp_array>(ambient_chem.values()[i]), sz(*arg))
           ));
+
         lgr::arrinfo_t<real_t>
           np2ai_th(np2ai<real_t>(th, sz(*arg))),
           np2ai_rv(np2ai<real_t>(rv, sz(*arg)));
@@ -284,11 +290,49 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
+      void set_sds( // src_dry_sizes
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func
+      )
+      {
+        arg->src_dry_sizes.clear();
+        if(len(kappa_func.keys()) == 0)
+          return;
+
+        // loop over kappas
+        for (int j = 0; j < len(kappa_func.keys()); ++j)
+        {
+          const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
+          std::map<real_t, std::pair<real_t, int>> size_conc_map;
+
+          // turn the size : {conc, multi} dict into a size : {conc, multi} map
+          for (int i = 0; i < len(size_conc.keys()); ++i)
+          {
+            const bp::list conc_multi_list = bp::extract<bp::list>(size_conc.values()[i]);
+            assert(len(conc_multi_list) == 2);
+            const real_t conc = bp::extract<real_t>(conc_multi_list[0]);
+            const int multi   = bp::extract<int>   (conc_multi_list[1]);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, multi);
+          }
+          const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
+          arg->src_dry_sizes[kappa] = size_conc_map;
+        }
+      }
+
+      template <typename real_t>
       void get_ds(
         lgr::opts_init_t<real_t> *arg
       )
       {
         throw std::runtime_error("dry_sizes does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void get_sds(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("src_dry_sizes does not feature a getter yet - TODO");
       }
 
       template <typename real_t>

@@ -131,6 +131,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
     bp::def("r_vs", &common::r_vs<real_t>);
+    bp::def("p_vs_tet", &common::p_vs_tet<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
@@ -252,8 +253,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
-      .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
       .add_property("dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_ds<real_t>)
+      .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
+      .add_property("src_dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_sds<real_t>)
       .def_readwrite("nx", &lgr::opts_init_t<real_t>::nx)
       .def_readwrite("ny", &lgr::opts_init_t<real_t>::ny)
       .def_readwrite("nz", &lgr::opts_init_t<real_t>::nz)
@@ -268,8 +270,15 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("z1", &lgr::opts_init_t<real_t>::z1)
       .def_readwrite("dev_id", &lgr::opts_init_t<real_t>::dev_id)
       .def_readwrite("dev_count", &lgr::opts_init_t<real_t>::dev_count)
+      .def_readwrite("src_x0", &lgr::opts_init_t<real_t>::src_x0)
+      .def_readwrite("src_x1", &lgr::opts_init_t<real_t>::src_x1)
+      .def_readwrite("src_y0", &lgr::opts_init_t<real_t>::src_y0)
+      .def_readwrite("src_y1", &lgr::opts_init_t<real_t>::src_y1)
+      .def_readwrite("src_z0", &lgr::opts_init_t<real_t>::src_z0)
       .def_readwrite("src_z1", &lgr::opts_init_t<real_t>::src_z1)
       .def_readwrite("dt", &lgr::opts_init_t<real_t>::dt)
+      .def_readwrite("no_ccn_at_init", &lgr::opts_init_t<real_t>::no_ccn_at_init)
+      .def_readwrite("open_side_walls", &lgr::opts_init_t<real_t>::open_side_walls)
       .def_readwrite("chem_switch", &lgr::opts_init_t<real_t>::chem_switch)
       .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
       .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)

@@ -11,11 +11,9 @@ namespace libcloudphxx
   namespace lgrngn
   {
     // initialize SD parameters with dry_radius-concentration pairs (i.e. dry_sizes)
-    // TODO: many similarities with init_SD_with_distros
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_SD_with_sizes()
     {
-      // TODO: loop over size-number map for first kappa (as of now, there cant be more than 1 kappa in this case)
       using dry_sizes_t = typename opts_init_t<real_t>::dry_sizes_t;
       using kappa_t  = typename dry_sizes_t::key_type;
       using size_number_t = typename dry_sizes_t::mapped_type;
@@ -40,8 +38,6 @@ namespace libcloudphxx
           n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
           n_part += n_part_to_init;
           hskpng_resize_npart(); 
-
-          init_sstp();
   
           // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();

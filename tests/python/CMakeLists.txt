@@ -2,7 +2,7 @@
 #TODO: local search path for python modules (to make it work before make install)
 
 # find_interp first, find_libs should find a matching version of libs
-find_package(PythonInterp 2.7 REQUIRED)
+find_package(PythonInterp 3)
 find_package(PythonLibs)
 
 
@@ -21,6 +21,19 @@ if (NUMPY_FOUND GREATER 0)
     NumPy not found. 
     Please install it (e.g. sudo apt-get install python-numpy).
   ")
+endif()
+
+# if compiled with MPI support, we need Boost.MPI for python tests to work
+if(USE_MPI)
+  find_package(Boost COMPONENTS mpi QUIET)
+  if(Boost_FOUND)
+    target_link_libraries(cloudphxx_lgrngn
+      PUBLIC 
+        Boost::mpi
+    )
+  else()
+  message(FATAL_ERROR "For Python tests to work in an MPI build, Boost.mpi is required, but it was not found.")
+  endif()
 endif()
 
 add_subdirectory(unit)

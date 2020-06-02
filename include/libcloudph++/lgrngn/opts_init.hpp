@@ -74,12 +74,15 @@ namespace libcloudphxx
       // source distro per unit time
       dry_distros_t src_dry_distros;
 
-      // number of SDs created per cell per source iteration
+      // number of SDs created from src_dry_distros per cell per source iteration
       unsigned long long src_sd_conc;
 
-      // height up to which aerosol will be created
+      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
+      dry_sizes_t src_dry_sizes;
+
+      // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
-      real_t src_z1;
+      real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
 
       // coalescence Kernel type
       kernel_t::kernel_t kernel;
@@ -120,7 +123,7 @@ namespace libcloudphxx
       // rng seed
       int rng_seed;
 
-      // no of GPUs to use, 0 for all available
+      // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
       // GPU number to use, only used in CUDA backend (and not in multi_CUDA)
@@ -133,6 +136,10 @@ namespace libcloudphxx
       std::vector<real_t> SGS_mix_len;
 
       real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
+
+      bool no_ccn_at_init; // if true, no ccn / SD are put at the start of the simulation
+
+      bool open_side_walls; // if true, side walls are "open", i.e. SD are removed at contact.
 
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
@@ -167,9 +174,16 @@ namespace libcloudphxx
         dev_id(-1),
         n_sd_max(0),
         src_sd_conc(0),
+        src_x0(0),
+        src_x1(0),
+        src_y0(0),
+        src_y1(0),
+        src_z0(0),
         src_z1(0),
         rd_min(0.),
-        diag_incloud_time(false)
+        diag_incloud_time(false),
+        no_ccn_at_init(false),
+        open_side_walls(false)
       {}
 
       // dtor (just to silence -Winline warnings)

@@ -88,6 +88,11 @@ namespace libcloudphxx
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
+        /*
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
+        */
       }
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
@@ -99,11 +104,14 @@ namespace libcloudphxx
       // syncing in Eulerian fields (if not null)
       pimpl->sync(th,             pimpl->th);
       pimpl->sync(rv,             pimpl->rv);
+      pimpl->sync(diss_rate,      pimpl->diss_rate);
+      pimpl->sync(rhod,           pimpl->rhod);
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
-      pimpl->sync(diss_rate,      pimpl->diss_rate);
-      pimpl->sync(rhod,           pimpl->rhod);
+
+      // fill in mpi courant halos
+      pimpl->xchng_courants();
 
       nancheck(pimpl->th, " th after sync-in");
       nancheck(pimpl->rv, " rv after sync-in");
@@ -255,29 +263,28 @@ namespace libcloudphxx
       }
 
       // aerosol source, in sync since it changes th/rv
-      if (opts.src) 
+      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
       {
         // sanity check
         if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
 
-        // update the step counter since src was turned on
-        ++pimpl->stp_ctr;
-
         // introduce new particles with the given time interval
-        if(pimpl->stp_ctr == pimpl->opts_init.supstp_src) 
+        if(pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0) 
         {
           pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
         }
       }
-      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
-      if(opts.cond || pimpl->stp_ctr == pimpl->opts_init.supstp_src)
+      if(opts.cond || (opts.src && pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
-        pimpl->stp_ctr = 0; //reset the counter
       }
+
+      // update the step counter since src was turned on
+      if (opts.src) ++pimpl->stp_ctr;
+      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       if (opts.chem_dsl == true)
       {
@@ -333,7 +340,7 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       // updating terminal velocities
-      if (opts.sedi || opts.coal)
+      if (opts.sedi || opts.coal || opts.cond)
         pimpl->hskpng_vterm_all();
 
       // coalescence
@@ -401,17 +408,18 @@ namespace libcloudphxx
       }
 
       // boundary condition + accumulated rainfall to be returned
-      // multi_GPU version invalidates i and k;
-      // this has to be done last since i and k will be used by multi_gpu copy to other devices
-      // TODO: instead of using i and k define new vectors ?
-      // TODO: do this only if we advect/sediment?
+      // distmem version overwrites i and tmp_device_size_part
+      // and they both need to be unchanged untill distmem copies
       pimpl->bcnd();
+      
+      // copy advected SDs using asynchronous MPI;
+      if (opts.adve)
+        pimpl->mpi_exchange();
 
-      // some stuff to be done at the end of the step.
-      // if using more than 1 GPU
-      // has to be done after copy 
-      if (pimpl->opts_init.dev_count < 2)
-        pimpl->step_finalize(opts);
+      // stuff has to be done after distmem copy 
+      // if it is a spawn of multi_CUDA, multi_CUDA will handle finalize
+      if(!pimpl->opts_init.dev_count)
+        pimpl->post_copy(opts);
 
       pimpl->selected_before_counting = false;
     }

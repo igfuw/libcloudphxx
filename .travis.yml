@@ -1,52 +1,128 @@
 #TODO: container based build
 #      getting g++-4.9 in container build: http://stackoverflow.com/questions/29312015/building-with-more-than-one-version-of-a-compiler/32127147#32127147
 
+stages:
+  - precache
+  - test
+
 language: cpp
 dist: xenial
 sudo: required
 
 os: 
     - linux
-#    - osx
+
 compiler:
     - gcc
-    - clang
+#    - clang
 env:
-    - TEST_SUITE=cuda
-    - TEST_SUITE=tests
-    - TEST_SUITE=parcel
-    - TEST_SUITE=icicle
-    - TEST_SUITE=KidA
-    - TEST_SUITE=UWLCM_MT
-    - TEST_SUITE=UWLCM_unit_iles
-    - TEST_SUITE=UWLCM_unit_smg
-matrix:
-    exclude:
-        - os: osx
-          compiler: gcc
+    - TEST_SUITE=cuda MPI=none
+    - TEST_SUITE=tests MPI=none
+    - TEST_SUITE=parcel MPI=none
+    - TEST_SUITE=icicle MPI=none
+    - TEST_SUITE=KidA MPI=none
+    - TEST_SUITE=UWLCM_MT MPI=none
+    - TEST_SUITE=UWLCM_unit_iles MPI=none
+    - TEST_SUITE=UWLCM_unit_smg MPI=none
 
-        - os: osx
-          env: TEST_SUITE=KidA
+    - TEST_SUITE=tests MPI=mvapich2
+    - TEST_SUITE=UWLCM_MT MPI=mvapich2
+#TODO: MPI icicle test once libmpdata++ has mpi
+#TODO: MPI UWLCM test once libmpdata++ and UWLCM have mpi
+
+cache:
+  packages: true
+  pip: true
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+    - ${TRAVIS_BUILD_DIR}/deps/boost
+    - ${TRAVIS_BUILD_DIR}/deps/hdf5
+
+# define the precache stage
+# empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
+# TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
+#       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
+aliases:
+    # YAML alias for the options common to precache jobs
+    - &precache_tests_mpi
+      stage: precache
+      install: 
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+      script: echo "Preparing cache finished"
+
+    - &precache_uwlcm_mpi
+      stage: precache
+      install: 
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
+      script: echo "Preparing cache finished"
+
+    - &precache_boost
+      stage: precache
+      install: 
+        - . ./.travis_scripts/deps_install/boost.sh
+      script: echo "Preparing cache finished"
+
+jobs:
+    include:
+      - <<: *precache_tests_mpi
+        env: TEST_SUITE=MPI_tests MPI=mvapich2
+        compiler: gcc
+#     clang MPI_tests disabled due to issues with manually built boost python libstdc++ / libc++ issues
+#      - <<: *precache_default
+#        env: TEST_SUITE=MPI_tests
+#        compiler: clang
+      - <<: *precache_uwlcm_mpi
+        env: TEST_SUITE=UWLCM_MT MPI=mvapich2
+
+      - <<: *precache_boost
+        env: TEST_SUITE=tests MPI=none
+
+      - <<: *precache_boost
+        env: TEST_SUITE=KidA MPI=none
+
+    exclude:
+        - compiler: clang
+          env: TEST_SUITE=cuda MPI=none
 
         - compiler: clang
-          env: TEST_SUITE=cuda
+          env: TEST_SUITE=MPI_tests MPI=none
+
+        - compiler: clang
+          env: TEST_SUITE=UWLCM_MT MPI=mvapich2
 
         # UWLCM is not tested on clang yet
         - compiler: clang
-          env: TEST_SUITE=UWLCM_MT
+          env: TEST_SUITE=UWLCM_MT MPI=none
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_iles
+          env: TEST_SUITE=UWLCM_unit_iles MPI=none
         - compiler: clang
-          env: TEST_SUITE=UWLCM_unit_smg
+          env: TEST_SUITE=UWLCM_unit_smg MPI=none
 addons:
   apt:
+    update: true
     packages:
 #      - g++-7
 #      - gcc-7
-      - clang-4.0
-      - boost1.61
+#      - clang-4.0
+#      - boost1.61
+      - python3-dev
+      - python3-pip
+      - python3-six
+      - python3-setuptools
+      - python3-numpy
+#      - python3-scipy
+      - libblitz0-dev
+      - libthrust-dev
+      - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
     sources: &sources
+#      - sourceline: 'ppa:mhier/libboost-latest'
       - sourceline: 'ppa:rakhimov/boost'
+      - sourceline: 'deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted'
+      - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
+        key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
 #      - ubuntu-toolchain-r-test
 #      - llvm-toolchain-xenial-4.0
 
@@ -56,17 +132,13 @@ before_install:
 #    - if [[ $TEST_SUITE != 'cuda'     ]];  then sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"; fi
 
     # define a compiler variable for use in if statements
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export COMPILER=g++; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export COMPILER=clang++; fi # only clang on osx
+    - if [[ $CXX == 'clang++' ]]; then export COMPILER=clang++; fi
+    - if [[ $CXX == 'g++'     ]]; then export COMPILER=g++; fi
 
-# to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
+    - export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test" ; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
+    - export cmake="/usr/bin/cmake"
+
 # cuda 10 installation, requires Boost >= 1.65.1
 #    - if [[ $TEST_SUITE == 'cuda'     ]];  then wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
 #    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_10.1.168-1_amd64.deb; fi
@@ -74,30 +146,7 @@ before_install:
 # cuda 8 installation
     - if [[ $TEST_SUITE == 'cuda'     ]];  then wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
     - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb; fi
-
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
-
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew unlink python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew upgrade python@2; fi
-
-# first find brew python python-config
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export BREWPYCONFIG=`brew ls python2 | grep config | head -n1`; fi
-
-# find python paths, taken from 
-# https://github.com/breannansmith/scisim/blob/master/.travis.yml
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_INC=`$BREWPYCONFIG --includes | grep -o '\-I[^ ]*' | head -n 1 | cut -c 3-` ; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_LIB=`$BREWPYCONFIG --ldflags | grep -o '\-L[^ ]*' | head -n 1 | cut -c 3- | xargs -I % find % -name libpython*.dylib` ; fi
-    
-# also find brew python executable dir and prepend it to PATH
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PY_EXC=`$BREWPYCONFIG --exec-prefix`/bin; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then export PATH=$PY_EXC:$PATH; fi
-
-# leaving this for debug purposes, it's not like a few lines matter compared to the usual size of the log
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $BREWPYCONFIG; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_INC; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_LIB; fi
-    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then echo $PY_EXC; fi
+    - if [[ $TEST_SUITE == 'cuda'     ]];  then sudo apt-get update; fi
 
 # add runtime path to clang libomp
     - if [[ $CXX == 'clang++' ]]; then export LD_LIBRARY_PATH=/usr/local/clang/lib/:$LD_LIBRARY_PATH; fi
@@ -106,67 +155,35 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    # redefine CXX to the actual version used
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
-# the C compiler is used by nvcc (why?). it needs to support custom omp reductions 
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CC=gcc-5; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-5; fi
+    - if [[ ($TEST_SUITE == 'tests' || $TEST_SUITE == 'KidA') && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
 
-#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then sudo $apt_get_install gcc-6 g++-6; fi
-#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CC=gcc-6; fi
-#    - if [[ $TEST_SUITE != 'cuda' && $TRAVIS_OS_NAME == 'linux'    ]];  then export CXX=g++-6; fi
+    # order matters!
+    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
+    - sudo pip3 install -U pytest --ignore-installed six
+    - sudo pip3 install -U scipy --ignore-installed six
+
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
-
-#TODO: install only required parts of the toolkit to save time
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-drivers cuda-core-8-0 cuda-cudart-dev-8-0 cuda-cufft-dev-8-0; fi
-
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda; fi
-#    - if [[ $TEST_SUITE == 'cuda'     ]]; then export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export PATH=${CUDA_HOME}/bin:${PATH}; fi
 
-    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python-cffi; fi
+    - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
-    # recent boost is installed using addons functionality
-
-    # cmake 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
+    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel and KidA
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo $apt_get_install boost1.61; fi
+#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
+#    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
     - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
-
-# get latest FindBoost.cmake
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir MyCmakeModules; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then wget https://raw.githubusercontent.com/Kitware/CMake/master/Modules/FindBoost.cmake -P MyCmakeModules; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}:${PWD}/MyCmakeModules; fi
-
-# get blitz and python+packages
-#- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages; fi
-      #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then echo 'import sys; sys.path.insert(1, "/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
-      # https://github.com/pypa/pip/issues/3165
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U matplotlib --ignore-installed six; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install -U pytest --ignore-installed six; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install --only-binary=numpy,scipy numpy scipy --ignore-installed six; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip2 install http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download; fi
-
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then \curl -sSL https://get.rvm.io | bash -s -- --branch stable; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm reload; fi
-
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install blitz boost-python@1.59; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/include/* /usr/local/include/; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo ln -sf /usr/local/opt/boost@1.59/lib/* /usr/local/lib/; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BOOST_INCLUDEDIR=/usr/local/opt/boost@1.59/include ; fi
-#    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export BOOST_LIBRARYDIR=/usr/local/opt/boost@1.59/lib ; fi
  
 before_script:
-    - chmod +x ./.travis_scripts/*
+    - chmod -R +x ./.travis_scripts/
 
 script:
     # compile with nvcc
@@ -183,3 +200,6 @@ script:
     - if [[ $TEST_SUITE == 'UWLCM_unit_smg' ]]; then . ./.travis_scripts/UWLCM.sh unit_smg; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
+    # unit tests and drops.py with MPI (drop drops here?)
+    - if [[ $TEST_SUITE == 'MPI_tests' ]]; then . ./.travis_scripts/tests.sh; fi
+

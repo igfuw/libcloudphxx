@@ -176,8 +176,9 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
 
       {
         using libmpdataxx::arakawa_c::h;
+        using libmpdataxx::arakawa_c::operator^;
         // temporarily Cx & Cz are multiplied by rhod ...
-        auto 
+        auto
           Cx = this->mem->GC[0](
             this->mem->grid_size[0]^h, 
             this->mem->grid_size[1]
