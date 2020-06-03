@@ -93,8 +93,8 @@ for kernel_t in range(2):
 hall_mean = t10_arr[0].mean()
 onishi_mean = t10_arr[1].mean()
 
-print('Hall: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[0].mean()) + ' +/- ' +str(np.std(t10_arr[0])))
-print('Onishi: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[1].mean()) + ' +/- ' +str(np.std(t10_arr[1])))
+print(('Hall: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[0].mean()) + ' +/- ' +str(np.std(t10_arr[0]))))
+print(('Onishi: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[1].mean()) + ' +/- ' +str(np.std(t10_arr[1]))))
 if(hall_mean / onishi_mean > 1.62 or hall_mean / onishi_mean < 1.22):
   raise Exception("Onishi turbulent enhancement not corresct, ratio of t10% times: "+str(hall_mean / onishi_mean))
 

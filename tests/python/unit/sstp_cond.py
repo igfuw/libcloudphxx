@@ -16,7 +16,7 @@ def lognormal(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 def test(turb_cond):
-  print 'turb_cond = ', turb_cond
+  print('turb_cond = ', turb_cond)
   opts_init = lgrngn.opts_init_t()
   kappa = .61
   opts_init.dry_distros = {kappa:lognormal}
@@ -54,7 +54,7 @@ def test(turb_cond):
   eps =   1e-4 * ones((opts_init.nx, opts_init.nz))
   
   for sstp_cond in [1,2,5]:
-    print 'sstp_cond = ' + str(sstp_cond)
+    print('sstp_cond = ' + str(sstp_cond))
     opts.adve=0
     opts_init.sstp_cond = sstp_cond
     prtcls = lgrngn.factory(backend, opts_init)

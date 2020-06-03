@@ -12,8 +12,6 @@ namespace libcloudphxx
     template <typename real_t>
     particles_proto_t<real_t> *factory(const backend_t backend, opts_init_t<real_t> opts_init)
     {
-      if(backend != multi_CUDA) opts_init.dev_count = 0; // override user-defined dev_count if not using multi_CUDA
-
       switch (backend)
       {
 	case multi_CUDA:
@@ -24,18 +22,18 @@ namespace libcloudphxx
 #endif
 	case CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
-	  return new particles_t<real_t, CUDA>(opts_init, 0); // 0 cells to the left of this domain (i.e. it's not a distributed-memory run)
+	  return new particles_t<real_t, CUDA>(opts_init);
 #else
           throw std::runtime_error("CUDA backend was not compiled");
 #endif
 	case OpenMP:
 #if defined(_OPENMP)
-	  return new particles_t<real_t, OpenMP>(opts_init, 0); // see CUDA comment above
+	  return new particles_t<real_t, OpenMP>(opts_init);
 #else
           throw std::runtime_error("OpenMP backend was not compiled"); 
 #endif
 	case serial:
-	  return new particles_t<real_t, serial>(opts_init, 0); // see CUDA comment above
+	  return new particles_t<real_t, serial>(opts_init);
 	default:
           throw std::runtime_error("unknown backend"); 
       }

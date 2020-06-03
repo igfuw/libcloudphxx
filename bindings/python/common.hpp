@@ -12,6 +12,7 @@
 #include <libcloudph++/common/hydrostatic.hpp>
 #include <libcloudph++/common/henry.hpp>
 #include <libcloudph++/common/dissoc.hpp>
+#include <libcloudph++/common/tetens.hpp>
 
 namespace libcloudphxx
 {
@@ -55,6 +56,12 @@ namespace libcloudphxx
       real_t p_vs(const real_t &T)
       {
 	return cmn::const_cp::p_vs(T * si::kelvins) / si::pascals;
+      }
+
+      template <typename real_t>
+      real_t p_vs_tet(const real_t &T)
+      {
+	return cmn::tetens::p_vs(T * si::kelvins) / si::pascals;
       }
       
       template <typename real_t>

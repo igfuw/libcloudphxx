@@ -17,12 +17,14 @@
 #include "detail/kernel_utils.hpp"
 #include "detail/wang_collision_enhancement.hpp"
 #include "detail/kernel_onishi_nograv.hpp"
+#include "detail/bcond.hpp"
 #include "detail/checknan.hpp"
 #include "detail/formatter.cpp"
 #include "detail/tpl_calc_wrapper.hpp"
 #include "detail/kernels.hpp"
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
+#include "detail/ran_with_mpi.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"
@@ -31,6 +33,13 @@
 #include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
 #include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
+
+#if defined(USE_MPI)
+  #include <mpi.h>
+  // MPI init
+  #include "detail/mpi_init.hpp"
+  #include "detail/get_mpi_type.hpp"
+#endif
 
 // public API
 #include "particles_ctor.ipp"
@@ -41,6 +50,7 @@
 // details
 #include "impl/particles_impl.ipp"
 #include "impl/particles_impl_dist_analysis.ipp"
+#include "impl/particles_impl_reserve_hskpng_npart.ipp"
 #include "impl/particles_impl_init_SD_with_distros_sd_conc.ipp"
 #include "impl/particles_impl_init_SD_with_distros_tail.ipp"
 #include "impl/particles_impl_init_SD_with_distros_const_multi.ipp"
@@ -59,13 +69,14 @@
 #include "impl/particles_impl_init_e2l.ipp"
 #include "impl/particles_impl_init_grid.ipp"
 #include "impl/particles_impl_init_sync.ipp"
-#include "impl/particles_impl_init_hskpng_npart.ipp"
 #include "impl/particles_impl_init_hskpng_ncell.ipp"
 #include "impl/particles_impl_init_chem.ipp"
 #include "impl/particles_impl_init_kernel.ipp"
-#include "impl/particles_impl_step_finalize.ipp"
+#include "impl/particles_impl_post_copy.ipp"
 #include "impl/particles_impl_init_vterm.ipp"
 #include "impl/particles_impl_init_sanity_check.ipp"
+#include "impl/particles_impl_xchng_domains.ipp"
+#include "impl/particles_impl_xchng_courants.ipp"
 #include "impl/particles_impl_update_th_rv.ipp"
 #include "impl/particles_impl_hskpng_ijk.ipp"
 #include "impl/particles_impl_hskpng_Tpr.ipp"
@@ -81,6 +92,7 @@
 #include "impl/particles_impl_moms.ipp"
 #include "impl/particles_impl_mass_dens.ipp"
 #include "impl/particles_impl_fill_outbuf.ipp"
+#include "impl/particles_impl_distmem_access.ipp"
 #include "impl/particles_impl_sync.ipp"
 #include "impl/particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 #include "impl/particles_impl_adve.ipp"
@@ -100,5 +112,11 @@
 #include "impl/particles_impl_sstp.ipp"
 #include "impl/particles_impl_sstp_chem.ipp"
 #include "impl/particles_impl_src.ipp"
+#include "impl/particles_impl_src_dry_distros.ipp"
+#include "impl/particles_impl_src_dry_sizes.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
 
+// MPI copy
+#include "impl/particles_impl_pack.ipp"
+#include "impl/particles_impl_unpack.ipp"
+#include "impl/particles_impl_mpi_exchange.ipp"

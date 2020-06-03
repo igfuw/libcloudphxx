@@ -7,10 +7,10 @@
 
 int main(int ac, char** av)
 {
-  if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
+  if (ac != 2) error_macro("expecting 1 argument: CMAKE_CURRENT_BINARY_DIR")
 
   std::string
-    dir = string(av[1]) + "/paper_GMD_2015/fig_a/",
+    dir = string(av[1]) + "/",
     h5  = dir + "out_lgrngn",
     svg = dir + "out_lgrngn_spec.svg";
 

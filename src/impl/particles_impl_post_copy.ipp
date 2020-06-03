@@ -15,7 +15,7 @@ namespace libcloudphxx
     // if using more than 1 GPU
     // has to be done after copy 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::step_finalize(const opts_t<real_t> &opts)
+    void particles_t<real_t, device>::impl::post_copy(const opts_t<real_t> &opts)
     {
       // recycling out-of-domain/invalidated particles 
       if(opts.rcyc)

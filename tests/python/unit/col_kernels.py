@@ -1,4 +1,9 @@
 import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
@@ -22,7 +27,7 @@ kappa = .61
 
 count = 0
 for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin, lgrngn.kernel_t.onishi_hall, lgrngn.kernel_t.onishi_hall_davis_no_waals, lgrngn.kernel_t.vohl_davis_no_waals, lgrngn.kernel_t.hall_pinsky_cumulonimbus, lgrngn.kernel_t.hall_pinsky_stratocumulus]:
-  print kernel
+  print(kernel)
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
   opts_init.dry_distros = {kappa:lognormal}
@@ -50,7 +55,7 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   except:
     prtcls = lgrngn.factory(lgrngn.backend_t.serial, opts_init)
 
-  print opts_init.turb_coal_switch
+  print(opts_init.turb_coal_switch)
 
   prtcls.init(th, rv, rhod)
 
