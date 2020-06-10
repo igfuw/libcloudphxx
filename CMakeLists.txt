@@ -13,7 +13,7 @@ project(libcloudph++ LANGUAGES CXX)
 #  cmake_policy(VERSION 3.0)
 #endif()
 
-#cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0079 NEW)
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
