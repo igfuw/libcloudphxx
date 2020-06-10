@@ -59,7 +59,7 @@ prtcls.init(Th, Rv, Rhod)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 tab_in = np.copy(np.frombuffer(prtcls.outbuf()).reshape(Opts_init.nx, Opts_init.nz))
-print "at init \n", tab_in
+print("at init \n", tab_in)
 
 for it in range(100):
   prtcls.step_sync(Opts, Th, Rv, Rhod)
@@ -68,7 +68,7 @@ for it in range(100):
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(Opts_init.nx, Opts_init.nz))
-print "after 1s \n", tab_out
+print("after 1s \n", tab_out)
 
 # test results, note: some SDs may fall further than w_LS due to terminal velocities
 assert(tab_out[0][5] == 0.)

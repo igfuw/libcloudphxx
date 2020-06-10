@@ -1,10 +1,14 @@
 #!/usr/bin/env sh
 set -e
 
-# gnuplot-iostream
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install gnuplot-nox; fi
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gnuplot; fi
-sudo wget -O /usr/local/include/gnuplot-iostream.h https://raw.githubusercontent.com/dstahlke/gnuplot-iostream/master/gnuplot-iostream.h
+
+# gnuplot-iostream
+git clone -n https://github.com/dstahlke/gnuplot-iostream && cd gnuplot-iostream
+git checkout 8b6e30c6ea5ee4f07ccf90d858d35a10cf67a3e2 # later commits require c++17
+sudo cp gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h
+cd ..
 
 #if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi

@@ -87,21 +87,21 @@ for step in arange(400):
 
 prtcls.diag_all()
 all_mean_incloud_time = diag_incloud_time(prtcls)
-print "all: mean incloud time:", all_mean_incloud_time
+print("all: mean incloud time:", all_mean_incloud_time)
 prtcls.diag_dry_rng(0, 0.02e-6)
 rdlt2_mean_incloud_time = diag_incloud_time(prtcls)
-print "rd < 2um: mean incloud time:", rdlt2_mean_incloud_time
+print("rd < 2um: mean incloud time:", rdlt2_mean_incloud_time)
 prtcls.diag_dry_rng(0.02e-6, 1)
 rdgt2_mean_incloud_time = diag_incloud_time(prtcls)
-print "rd > 2um: mean incloud time:", rdgt2_mean_incloud_time
+print("rd > 2um: mean incloud time:", rdgt2_mean_incloud_time)
 prtcls.diag_dry_rng(0.02e-6, 1)
 prtcls.diag_kappa_rng_cons(1, 10)
 rdgt2_kpagt1_mean_incloud_time = diag_incloud_time(prtcls)
-print "rd > 2um and kappa > 1: mean incloud time:", rdgt2_kpagt1_mean_incloud_time
+print("rd > 2um and kappa > 1: mean incloud time:", rdgt2_kpagt1_mean_incloud_time)
 prtcls.diag_dry_rng(0.02e-6, 1)
 prtcls.diag_kappa_rng_cons(0, 1)
 rdgt2_kpalt1_mean_incloud_time = diag_incloud_time(prtcls)
-print "rd > 2um and kappa < 1: mean incloud time:", rdgt2_kpalt1_mean_incloud_time
+print("rd > 2um and kappa < 1: mean incloud time:", rdgt2_kpalt1_mean_incloud_time)
 
 assert(rdlt2_mean_incloud_time < all_mean_incloud_time)
 assert(all_mean_incloud_time < rdgt2_mean_incloud_time)

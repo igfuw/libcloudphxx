@@ -1,6 +1,6 @@
 # needed for the OpenMP test to work in C++-only project
 # (see http://public.kitware.com/Bug/view.php?id=11910)
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR) # 3.9 for OpenMP targets-based build
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR) # 3.13 for CMP0079
 
 project(libcloudph++ LANGUAGES CXX)
 
@@ -8,9 +8,12 @@ project(libcloudph++ LANGUAGES CXX)
 # - CMP0025 - make CMake distinguis between Apple and LLVM clang
 # - CMP0042 - make CMake use RPATHs on OSX
 # - CMP0060 - make CMake always keep absoult RPATHs, even if installing in implicit directory
+# - CMP0079 - make CMake allow target_link_libraries on targets created in other directories
 #if(CMAKE_VERSION VERSION_GREATER 2.9)
 #  cmake_policy(VERSION 3.0)
 #endif()
+
+#cmake_policy(SET CMP0079 NEW)
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
@@ -62,6 +65,7 @@ endif()
 
 #############################################################################################
 # see if OpenMP is available
+
 find_package(OpenMP)
 if(OPENMP_CXX_FOUND)
   message(STATUS " OpenMP found")
@@ -88,6 +92,7 @@ if (CMAKE_CUDA_COMPILER)
   set(files "${files};src/lib_cuda.cu")
 endif()
 
+set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # mpic++ will not work
 
 ############################################################################################
 # create the library target
@@ -125,6 +130,23 @@ if(OPENMP_CXX_FOUND)
   target_compile_options(cloudphxx_lgrngn PUBLIC $<$<COMPILE_LANGUAGE:CXX>: ${OpenMP_CXX_FLAGS}>)
   target_link_libraries(cloudphxx_lgrngn PUBLIC ${OpenMP_CXX_LIBRARIES})
 endif()
+
+############################################################################################
+# MPI - detecting if the C++ compiler is actually an MPI wrapper
+
+set(msg "Detecting if the compiler is an MPI wrapper...")
+message(STATUS "${msg}")
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-show" RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_QUIET)
+if (status EQUAL 0 AND output MATCHES "mpi")
+  set(USE_MPI TRUE)
+  target_compile_definitions(cloudphxx_lgrngn PRIVATE USE_MPI)
+else()
+  set(USE_MPI FALSE)
+endif()
+message(STATUS "${msg} - ${USE_MPI}")
+unset(msg)
+unset(status)
+unset(output)
 
 ############################################################################################
 # figure out CUDA nvcc flags
@@ -219,7 +241,15 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp>)
   endif()
 
+  if(USE_MPI)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler -DUSE_MPI>)
+  endif()
+
   target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
+
+  # why was this added in the MPI PR? commented-out for now
+  # set(CMAKE_REQUIRED_FLAGS " -fopenmp")
+
 endif()
 
 ############################################################################################
@@ -256,6 +286,7 @@ message(FATAL_ERROR "Boost (or some of its components) not found.
 *   Fedora: sudo yum install boost-devel
 ")
 endif()
+
 
 ############################################################################################
 # BOOST ODEINT VERSION TEST
@@ -297,7 +328,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       boost::numeric::odeint::thrust_operations 
     > chem_stepper;
   
-    thrust::cpp::vector<float> v(11);
+    thrust::cpp::vector<float> v(2);
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")

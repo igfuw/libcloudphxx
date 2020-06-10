@@ -9,12 +9,15 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
+#include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
 
 #include <map>
+#include <set>
+
 
 namespace libcloudphxx
 {
@@ -87,9 +90,6 @@ namespace libcloudphxx
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
-
-      const int no_of_n_vctrs_copied = 1;
-      const int no_of_real_vctrs_copied = opts_init.diag_incloud_time ? 16 : 15;
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -222,26 +222,51 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
-      // number of particles to be copied left/right in multi-GPU setup
-      thrust_size_t lft_count, rgt_count;
+      // -- distributed memory stuff --
+      // TODO: move to a separate struct?
+
+      const int mpi_rank,
+                mpi_size;
+
+      // boundary type in x direction (shared mem/distmem/open/periodic)
+      std::pair<detail::bcond_t, detail::bcond_t> bcond;
+
+      // number of particles to be copied left/right in distmem setup
+      unsigned int lft_count, rgt_count;
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
-                   n_x_tot; // total number of cells in x in all devices
+                   n_x_tot; // total number of cells in x in all devices of this process
 
       // number of cells in devices to the left of this one
       thrust_size_t n_cell_bfr;
 
-      const int halo_size = 2,
+      const int halo_size, // NOTE:  halo_size = 0 means that both x courant numbers in edge cells are known, what is equivalent to halo = 1 in libmpdata++
+                           // NOTE2: halo means that some values of the Eulerian courant array are pointed to by more than one e2l, what could lead to race conditions if we wanted to sync out courants
                 halo_x, // number of cells in the halo for courant_x before first "real" cell, halo only in x
                 halo_y, // number of cells in the halo for courant_y before first "real" cell, halo only in x
                 halo_z; // number of cells in the halo for courant_z before first "real" cell, halo only in x
 
 
+      // x0 of the process to the right
+      real_t rgt_x0;
+
+      // x1 of the process to the left
+      real_t lft_x1;
+
       // in/out buffers for SDs copied from other GPUs
       thrust_device::vector<n_t> in_n_bfr, out_n_bfr;
       // TODO: real buffers could be replaced with tmp_device_real_part1/2 if sstp_cond>1
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
+
+      // ids of sds to be copied with distmem
+      thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      // real_t vectors copied in distributed memory case
+      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
+
+
+      // methods
 
       // fills u01[0:n] with random numbers
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -253,7 +278,7 @@ namespace libcloudphxx
       int m1(int n) { return n == 0 ? 1 : n; }
 
       // ctor 
-      impl(const opts_init_t<real_t> &_opts_init, const int &n_x_bfr, const int &n_x_tot) : 
+      impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const int &n_x_tot) : 
         init_called(false),
         should_now_run_async(false),
         selected_before_counting(false),
@@ -261,48 +286,53 @@ namespace libcloudphxx
         var_rho(false),
         opts_init(_opts_init),
         n_dims( // 0, 1, 2 or 3
-          opts_init.nx/m1(opts_init.nx) + 
-          opts_init.ny/m1(opts_init.ny) + 
-          opts_init.nz/m1(opts_init.nz)
+          _opts_init.nx/m1(_opts_init.nx) + 
+          _opts_init.ny/m1(_opts_init.ny) + 
+          _opts_init.nz/m1(_opts_init.nz)
         ), 
         n_cell(
-          m1(opts_init.nx) * 
-          m1(opts_init.ny) *
-          m1(opts_init.nz)
+          m1(_opts_init.nx) * 
+          m1(_opts_init.ny) *
+          m1(_opts_init.nz)
         ),
         zero(0),
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(opts_init.kernel_parameters.size()),
+        n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
-        rng(opts_init.rng_seed),
+        rng(_opts_init.rng_seed),
         stp_ctr(0),
-        n_x_bfr(n_x_bfr),
+	bcond(bcond),
+        n_x_bfr(0),
+        n_cell_bfr(0),
+        mpi_rank(mpi_rank),
+        mpi_size(mpi_size),
+        lft_x1(-1),  // default to no
+        rgt_x0(-1),  // MPI boudanry
+        lft_id(i),   // note: reuses i vector
+        rgt_id(tmp_device_size_part),
         n_x_tot(n_x_tot),
-        n_cell_bfr(n_x_bfr * m1(opts_init.ny) * m1(opts_init.nz)),
+        halo_size(_opts_init.adve_scheme == as_t::pred_corr ? 2 : 0), 
         halo_x( 
           n_dims == 1 ? halo_size:                                      // 1D
-          n_dims == 2 ? halo_size * opts_init.nz:                       // 2D
-                        halo_size * opts_init.nz * opts_init.ny         // 3D
+          n_dims == 2 ? halo_size * _opts_init.nz:                       // 2D
+                        halo_size * _opts_init.nz * _opts_init.ny         // 3D
         ),
-        halo_y(         halo_size * (opts_init.ny + 1) * opts_init.nz), // 3D
+        halo_y(         halo_size * (_opts_init.ny + 1) * _opts_init.nz), // 3D
         halo_z( 
-          n_dims == 2 ? halo_size * (opts_init.nz + 1):                 // 2D
-                        halo_size * (opts_init.nz + 1) * opts_init.ny   // 3D
+          n_dims == 2 ? halo_size * (_opts_init.nz + 1):                 // 2D
+                        halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
-        w_LS(opts_init.w_LS),
-        SGS_mix_len(opts_init.SGS_mix_len),
-        adve_scheme(opts_init.adve_scheme),
-        pure_const_multi (((opts_init.sd_conc) == 0) && (opts_init.sd_const_multi > 0 || opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        w_LS(_opts_init.w_LS),
+        SGS_mix_len(_opts_init.SGS_mix_len),
+        adve_scheme(_opts_init.adve_scheme),
+        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
-        // note: there could be less tmp data spaces if _cell vectors
-        //       would point to _part vector data... but using.end() would not possible
-        // initialising device temporary arrays
-        tmp_device_real_cell.resize(n_cell);
-        tmp_device_real_cell1.resize(n_cell);
-        tmp_device_real_cell2.resize(n_cell);
-        tmp_device_size_cell.resize(n_cell);
+
+        // set 0 dev_count to mark that its not a multi_CUDA spawn
+        // if its a spawn, multi_CUDA ctor will alter it
+        opts_init.dev_count = 0; 
 
         // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
 #if defined(__NVCC__)
@@ -341,11 +371,44 @@ namespace libcloudphxx
           if (n_dims != 0) assert(n_grid > n_cell);
           tmp_host_real_grid.resize(n_grid);
         }
-        tmp_host_size_cell.resize(n_cell);
-        tmp_host_real_cell.resize(n_cell);
+
+        // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
+        // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
+        typedef thrust_device::vector<real_t>* ptr_t;
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
+        distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+
+        if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
+        if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
+        if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
+
+        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        {
+           distmem_real_vctrs.insert(&sstp_tmp_rv);
+           distmem_real_vctrs.insert(&sstp_tmp_th);
+           distmem_real_vctrs.insert(&sstp_tmp_rh);
+           // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
+        }
+
+        if(opts_init.turb_adve_switch)
+        {
+          if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
+          if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
+          if(opts_init.nz != 0) distmem_real_vctrs.insert(&wp);
+        }
+
+        if(opts_init.turb_cond_switch)
+        {
+          distmem_real_vctrs.insert(&wp);
+          distmem_real_vctrs.insert(&ssp);
+          distmem_real_vctrs.insert(&dot_ssp);
+        }
+         
+        if(opts_init.diag_incloud_time)
+          distmem_real_vctrs.insert(&incloud_time);
       }
 
-      // methods
       void sanity_checks();
       void init_SD_with_distros();
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
@@ -380,6 +443,7 @@ namespace libcloudphxx
       void dist_analysis_const_multi(
         const common::unary_function<real_t> &n_of_lnrd 
       );
+      void reserve_hskpng_npart();
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
@@ -389,6 +453,7 @@ namespace libcloudphxx
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
+      void init_count_num_src(const thrust_size_t &);
       template <class arr_t>
       void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
@@ -396,7 +461,6 @@ namespace libcloudphxx
       void init_sync();
       void init_grid();
       void init_hskpng_ncell();
-      void init_hskpng_npart();
       void init_chem();
       void init_chem_aq();
       void init_sstp();
@@ -405,6 +469,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      void mpi_exchange();
 
            // rename hskpng_ -> step_?
       void hskpng_sort_helper(bool);
@@ -454,7 +519,7 @@ namespace libcloudphxx
       );
       void sync(
         const thrust_device::vector<real_t> &, // from
-        arrinfo_t<real_t> &// to
+        arrinfo_t<real_t> &
       );
 
       void adve();
@@ -487,6 +552,8 @@ namespace libcloudphxx
       void bcnd();
 
       void src(const real_t &dt);
+      void src_dry_distros(const real_t &dt);
+      void src_dry_sizes(const real_t &dt);
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
@@ -495,7 +562,24 @@ namespace libcloudphxx
       void sstp_step_chem(const int &step);
       void sstp_save_chem();
 
-      void step_finalize(const opts_t<real_t>&);
+      void post_copy(const opts_t<real_t>&);
+
+      // distmem stuff
+      void xchng_domains();
+      void xchng_courants();
+      bool distmem_mpi();
+      bool distmem_cuda();
+      bool distmem();
+      void pack_n_lft();
+      void pack_n_rgt();
+      void pack_real_lft();
+      void pack_real_rgt();
+      void unpack_n(const int &);
+      void unpack_real(const int &);
+      void flag_lft();
+      void flag_rgt();
+      void bcnd_remote_lft(const real_t &, const real_t &);
+      void bcnd_remote_rgt(const real_t &, const real_t &);
     };
   };
 };

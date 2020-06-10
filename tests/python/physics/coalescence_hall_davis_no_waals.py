@@ -1,7 +1,12 @@
 # test coalescence algorithm for geometric kernel with Hall efficiencies for drops with r>30um and Davis&Rogers efficiencies for smaller ones
 # by comparing mass density function with results of EFM modeling
 
-import sys 
+import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
@@ -94,7 +99,7 @@ for vt_eq in [lgrngn.vt_t.beard76, lgrngn.vt_t.beard77, lgrngn.vt_t.beard77fast]
   
   rmsd = RMSD(results,bott1800)
   
-  print 'RMSD = ' + str(rmsd);
+  print('RMSD = ' + str(rmsd));
   
   if(rmsd > 6e-2):
     raise Exception("Simulation result does not agree with analytic prediction")

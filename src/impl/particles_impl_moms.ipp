@@ -206,7 +206,6 @@ namespace libcloudphxx
         count_mom.begin()
       );  
 
-
       count_n = n.first - count_ijk.begin();
 #if !defined(NDEBUG)
       {
@@ -217,7 +216,7 @@ namespace libcloudphxx
         }
       }
 #endif
-      assert(count_n > 0 && count_n <= n_cell);
+      assert(count_n >= 0 && count_n <= n_cell);
       if(specific)
       {
         // dividing by dv
