@@ -160,7 +160,7 @@ install:
     # order matters!
     - if [[ $MPI != 'none'                                       ]]; then . ./.travis_scripts/deps_install/mvapich2.sh; fi
     - if [[ $MPI != 'none'                                       ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
-    - if [[ $TEST_SUITE == 'UWLCM_MT' || $TEST_SUITE == "icicle" ]]; then . ./.travis_scripts/deps_install/libmpdata_dependencies.sh; fi # installs mpi-hdf5 if needed
+    - if [[ $TEST_SUITE == 'UWLCM_MT' || $TEST_SUITE == 'UWLCM_unit_iles' || $TEST_SUITE == 'UWLCM_unit_smg' || $TEST_SUITE == "icicle" ]]; then . ./.travis_scripts/deps_install/libmpdata_dependencies.sh; fi # installs mpi-hdf5 if needed
 
     - sudo pip3 install -U pytest --ignore-installed six
     - sudo pip3 install -U scipy --ignore-installed six
