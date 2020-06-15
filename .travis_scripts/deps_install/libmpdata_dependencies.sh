@@ -14,6 +14,8 @@ cd ..
 
 # hdf5
 if [[ $MPI == 'none' ]]; then sudo $apt_get_install libhdf5-dev; fi
-if [[ $MPI != 'none' ]]; then . ./mpi_hdf5.sh ; fi
+
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ $MPI != 'none' ]]; then source ${__dir}/mpi_hdf5.sh ; fi
 
 sudo $apt_get_install hdf5-tools
