@@ -47,14 +47,14 @@ aliases:
     - &precache_tests_mpi
       stage: precache
       install: 
-        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/mvapich2.sh
         - . ./.travis_scripts/deps_install/boost.sh
       script: echo "Preparing cache finished"
 
     - &precache_uwlcm_mpi
       stage: precache
       install: 
-        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/mvapich2.sh
         - . ./.travis_scripts/deps_install/boost.sh
         - . ./.travis_scripts/deps_install/mpi_hdf5.sh
       script: echo "Preparing cache finished"
@@ -158,9 +158,9 @@ install:
     - if [[ ($TEST_SUITE == 'tests' || $TEST_SUITE == 'KidA') && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
 
     # order matters!
-    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
-    - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
-    - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
+    - if [[ $MPI != 'none'                                       ]]; then . ./.travis_scripts/deps_install/mvapich2.sh; fi
+    - if [[ $MPI != 'none'                                       ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ $TEST_SUITE == 'UWLCM_MT' || $TEST_SUITE == "icicle" ]]; then . ./.travis_scripts/deps_install/libmpdata_dependencies.sh; fi # installs mpi-hdf5 if needed
 
     - sudo pip3 install -U pytest --ignore-installed six
     - sudo pip3 install -U scipy --ignore-installed six

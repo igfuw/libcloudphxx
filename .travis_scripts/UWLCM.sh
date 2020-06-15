@@ -6,8 +6,6 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-sudo $apt_get_install hdf5-tools
-
 # libcloudph++ 
 mkdir build 
 cd build
@@ -16,9 +14,6 @@ $cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
 VERBOSE=1 make 
 sudo make install
 cd ../..
-
-# libmpdata
-. $TRAVIS_BUILD_DIR/.travis_scripts/deps_install/libmpdata_dependencies.sh
 
 git clone --depth=1 git://github.com/igfuw/libmpdataxx.git
 cd libmpdataxx/libmpdata++
