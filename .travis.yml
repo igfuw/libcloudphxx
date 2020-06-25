@@ -162,8 +162,10 @@ install:
     - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
     - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
-    - sudo pip3 install -U pytest --ignore-installed six
-    - sudo pip3 install -U scipy --ignore-installed six
+    - sudo -H pip3 install --upgrade pip
+    - sudo -H pip3 install -U pytest --ignore-installed six
+    - sudo -H pip3 install -U numpy==1.18.5 --ignore-installed six # newer versions require python >= 3.6
+    - sudo -H pip3 install -U scipy==1.4.1 six  # ditto
 
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda; fi
