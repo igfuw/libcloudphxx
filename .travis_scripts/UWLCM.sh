@@ -29,9 +29,7 @@ sudo make install
 cd ../../..
 
 ## UWLCM
-# TEMP: use mpi branch from pdziekan
-git clone --depth=1 --branch=mpi_up_to_date git://github.com/pdziekan/UWLCM.git
-#git clone --depth=1 git://github.com/igfuw/UWLCM.git
+git clone --depth=1 git://github.com/igfuw/UWLCM.git
 cd UWLCM
 . .travis_scripts/$1.sh
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
