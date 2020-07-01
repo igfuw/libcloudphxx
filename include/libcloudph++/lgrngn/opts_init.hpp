@@ -139,7 +139,9 @@ namespace libcloudphxx
 
       bool no_ccn_at_init; // if true, no ccn / SD are put at the start of the simulation
 
-      bool open_side_walls; // if true, side walls are "open", i.e. SD are removed at contact.
+      bool open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
+           periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
+
 
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
@@ -183,7 +185,8 @@ namespace libcloudphxx
         rd_min(0.),
         diag_incloud_time(false),
         no_ccn_at_init(false),
-        open_side_walls(false)
+        open_side_walls(false),
+        periodic_topbot_walls(false)
       {}
 
       // dtor (just to silence -Winline warnings)

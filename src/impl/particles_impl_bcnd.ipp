@@ -173,83 +173,94 @@ namespace libcloudphxx
           // z boundary, no distmem here
           if (n_dims > 1)
           {
-            // hardcoded "open" boudary at the top of the domain 
-            // (just for numerical-error-sourced out-of-domain particles)
+            if(!opts_init.periodic_topbot_walls)
             {
-              namespace arg = thrust::placeholders;
-              thrust::transform_if(
-                z.begin(), z.end(),          // input - arg
-                n.begin(),                   // output
-                detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
-                arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-              );
-            }
-
-            // precipitation on the bottom edge of the domain
-            //// first: count the volume of particles below the domain
-            // TODO! (using tranform_reduce?)
-            //// second: zero-out multiplicities so they will be recycled
-            {
-              namespace arg = thrust::placeholders;
-
-              thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
-
-              thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
-
-              // copy n of SDs that are out of the domain (otherwise remains n_filtered=0)
-              thrust::transform_if(
-                n.begin(), n.end(),               // input 1
-                z.begin(),                        // stencil
-                n_filtered.begin(),               // output
-                thrust::identity<n_t>(),          // operation
-                arg::_1 < opts_init.z0            // condition
-              );
-
-              // add total liquid water volume that fell out in this step
-              output_puddle[common::outliq_vol] += 
-                thrust::transform_reduce(
-                  thrust::make_zip_iterator(thrust::make_tuple(
-                    n_filtered.begin(), rw2.begin())),           // input start
-                  thrust::make_zip_iterator(thrust::make_tuple(
-                    n_filtered.begin(), rw2.begin())) + n_part,  // input end
-                  detail::count_vol<real_t>(3./2.),              // operation
-                  real_t(0),                                     // init val
-                  thrust::plus<real_t>()
-                );
-
-              // add total dry volume that fell out in this step
-              output_puddle[common::outdry_vol] += 
-                thrust::transform_reduce(
-                  thrust::make_zip_iterator(thrust::make_tuple(
-                    n_filtered.begin(), rd3.begin())),           // input start
-                  thrust::make_zip_iterator(thrust::make_tuple(
-                    n_filtered.begin(), rd3.begin())) + n_part,  // input end
-                  detail::count_vol<real_t>(1.),                 // operation
-                  real_t(0),                                     // init val
-                  thrust::plus<real_t>()
-                );
-
-              if(opts_init.chem_switch)
+              // default "open" boudary at the top of the domain 
+              // (just for numerical-error-sourced out-of-domain particles)
               {
-                for (int i = 0; i < chem_all; ++i)
-                  output_puddle[static_cast<common::output_t>(i)] += 
-                    thrust::transform_reduce(
-                      thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.begin(), chem_bgn[i])),           // input start
-                      thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.end(), chem_end[i])),             // input end
-                      detail::count_mass<real_t>(),                  // operation
-                      real_t(0),                                     // init val
-                      thrust::plus<real_t>()
-                    );
+                namespace arg = thrust::placeholders;
+                thrust::transform_if(
+                  z.begin(), z.end(),          // input - arg
+                  n.begin(),                   // output
+                  detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+                  arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+                );
               }
 
-              // zero-out multiplicities
-              thrust::transform_if(   
-                z.begin(), z.end(),          // input 
-                n.begin(),                   // output
-                detail::flag<n_t, real_t>(), // operation (zero-out)
-                arg::_1 < opts_init.z0       // condition
+              // precipitation on the bottom edge of the domain
+              //// first: count the volume of particles below the domain
+              // TODO! (using tranform_reduce?)
+              //// second: zero-out multiplicities so they will be recycled
+              {
+                namespace arg = thrust::placeholders;
+
+                thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+
+                thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
+
+                // copy n of SDs that are out of the domain (otherwise remains n_filtered=0)
+                thrust::transform_if(
+                  n.begin(), n.end(),               // input 1
+                  z.begin(),                        // stencil
+                  n_filtered.begin(),               // output
+                  thrust::identity<n_t>(),          // operation
+                  arg::_1 < opts_init.z0            // condition
+                );
+
+                // add total liquid water volume that fell out in this step
+                output_puddle[common::outliq_vol] += 
+                  thrust::transform_reduce(
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rw2.begin())),           // input start
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rw2.begin())) + n_part,  // input end
+                    detail::count_vol<real_t>(3./2.),              // operation
+                    real_t(0),                                     // init val
+                    thrust::plus<real_t>()
+                  );
+
+                // add total dry volume that fell out in this step
+                output_puddle[common::outdry_vol] += 
+                  thrust::transform_reduce(
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rd3.begin())),           // input start
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rd3.begin())) + n_part,  // input end
+                    detail::count_vol<real_t>(1.),                 // operation
+                    real_t(0),                                     // init val
+                    thrust::plus<real_t>()
+                  );
+
+                if(opts_init.chem_switch)
+                {
+                  for (int i = 0; i < chem_all; ++i)
+                    output_puddle[static_cast<common::output_t>(i)] += 
+                      thrust::transform_reduce(
+                        thrust::make_zip_iterator(thrust::make_tuple(
+                          n_filtered.begin(), chem_bgn[i])),           // input start
+                        thrust::make_zip_iterator(thrust::make_tuple(
+                          n_filtered.end(), chem_end[i])),             // input end
+                        detail::count_mass<real_t>(),                  // operation
+                        real_t(0),                                     // init val
+                        thrust::plus<real_t>()
+                      );
+                }
+
+                // zero-out multiplicities
+                thrust::transform_if(   
+                  z.begin(), z.end(),          // input 
+                  n.begin(),                   // output
+                  detail::flag<n_t, real_t>(), // operation (zero-out)
+                  arg::_1 < opts_init.z0       // condition
+                );
+              }
+            }
+            else // periodic top/bot walls
+            {
+              thrust::transform(
+                z.begin(), z.end(),
+                z.begin(),
+                detail::periodic<real_t>(opts_init.z0, opts_init.z1)
               );
             }
           }
