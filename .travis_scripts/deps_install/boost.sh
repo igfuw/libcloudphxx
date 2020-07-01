@@ -18,12 +18,12 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
       echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
-        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python
+        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=chrono,regex,serialization,mpi,atomic,thread,date_time,system,iostreams,timer,filesystem,program_options,python
         ./b2 -d0 install
       fi
       if [[ $COMPILER == 'clang++' ]]; then 
         #clang installation taken from https://gist.github.com/jimporter/10442880
-        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python --with-toolset=clang
+        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=chrono,regex,serialization,mpi,atomic,thread,date_time,system,iostreams,timer,filesystem,program_options,python --with-toolset=clang
         ./b2 clean
         ./b2 toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/ -j 4 stage release
         ./b2 install toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/

@@ -14,7 +14,7 @@ os:
 
 compiler:
     - gcc
-    - clang
+#    - clang
 env:
     - TEST_SUITE=cuda MPI=none
     - TEST_SUITE=tests MPI=none
@@ -59,7 +59,7 @@ aliases:
         - . ./.travis_scripts/deps_install/mpi_hdf5.sh
       script: echo "Preparing cache finished"
 
-    - &precache_tests
+    - &precache_boost
       stage: precache
       install: 
         - . ./.travis_scripts/deps_install/boost.sh
@@ -77,8 +77,11 @@ jobs:
       - <<: *precache_uwlcm_mpi
         env: TEST_SUITE=UWLCM_MT MPI=mvapich2
 
-      - <<: *precache_tests
+      - <<: *precache_boost
         env: TEST_SUITE=tests MPI=none
+
+      - <<: *precache_boost
+        env: TEST_SUITE=KidA MPI=none
 
     exclude:
         - compiler: clang
@@ -110,7 +113,7 @@ addons:
       - python3-six
       - python3-setuptools
       - python3-numpy
-      - python3-scipy
+#      - python3-scipy
       - libblitz0-dev
       - libthrust-dev
       - cmake # installs new cmake from kitware repo, NOTE: the travis cmake (v. 3.12) is still the default, hence we need to call full path to get the new cmake (e.g. /usr/bin/cmake) - a cmake env var added for that
@@ -152,14 +155,17 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-    - if [[ $TEST_SUITE == 'tests' && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ ($TEST_SUITE == 'tests' || $TEST_SUITE == 'KidA') && $MPI == 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
 
     # order matters!
     - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
     - if [[ $MPI != 'none'                              ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
     - if [[ $MPI != 'none' && $TEST_SUITE == 'UWLCM_MT' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
-    - sudo pip3 install -U pytest --ignore-installed six
+    - sudo -H pip3 install --upgrade pip
+    - sudo -H pip3 install -U pytest --ignore-installed six
+    - sudo -H pip3 install -U numpy==1.18.5 --ignore-installed six # newer versions require python >= 3.6
+    - sudo -H pip3 install -U scipy==1.4.1 six  # ditto
 
     - if [[ $TEST_SUITE == 'cuda'     ]]; then sudo apt-get install -y cuda-toolkit-8-0; fi
     - if [[ $TEST_SUITE == 'cuda'     ]]; then export CUDA_HOME=/usr/local/cuda; fi
@@ -167,11 +173,11 @@ install:
 
     - if [[ $TEST_SUITE == 'KidA'     ]]; then sudo $apt_get_install gfortran nco libnetcdf-dev libnetcdff-dev python3-cffi; fi
 
-    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel
-    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo $apt_get_install boost1.61; fi
+    # boost from a package - only when no MPI and python bindings are not used (because of issues with boost_python3 pre 1.65) - definately in tests, not sure about parcel and KidA
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo $apt_get_install boost1.61; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61-dev; fi
 #    - if [[ $TEST_SUITE != 'MPI_UWLCM_MT' && $TEST_SUITE != 'MPI_tests'  && $TRAVIS_OS_NAME == 'linux'   ]]; then dpkg-query -L libboost-python1.61.0; fi
-    - if [[ $MPI == 'none' && $TEST_SUITE != 'tests' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+    - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;

@@ -13,7 +13,11 @@ sudo make install
 cd ../..
 
 # parcel tests for Release mode of libcloudph++
-sudo $apt_get_install python3-matplotlib python3-gnuplot gnuplot-nox
+sudo $apt_get_install python3-matplotlib gnuplot
+# python3-gnuplot
+wget http://ftp.pl.debian.org/debian/pool/main/p/python-gnuplot/python3-gnuplot_1.8-8_all.deb
+sudo dpkg -i python3-gnuplot_1.8-8_all.deb
+
 git clone --depth=1 git://github.com/igfuw/parcel.git
 cd parcel
 mkdir plots/outputs

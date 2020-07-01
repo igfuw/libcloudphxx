@@ -13,7 +13,7 @@ project(libcloudph++ LANGUAGES CXX)
 #  cmake_policy(VERSION 3.0)
 #endif()
 
-#cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0079 NEW)
 
 # put out custom find scripts first
 list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
@@ -332,7 +332,7 @@ file(WRITE "${tmpdir}/test.cpp" "
     chem_stepper.do_step(rhs(), v, 0, 1);
   }
 ")
-execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "test.cpp" "-I${Boost_INCLUDE_DIR}" "-I${THRUST_INCLUDE_DIR}" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
+execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "-std=c++11" "test.cpp" "-I${Boost_INCLUDE_DIR}" "-I${THRUST_INCLUDE_DIR}" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status ERROR_VARIABLE msg)
 if (NOT status EQUAL 0) 
   message(FATAL_ERROR "${pfx}: c++ compiler failed\n ${msg}")
 endif()
