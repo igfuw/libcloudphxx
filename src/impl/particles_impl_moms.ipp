@@ -216,7 +216,7 @@ namespace libcloudphxx
         }
       }
 #endif
-      assert(count_n >= 0 && count_n <= n_cell);
+      assert(count_n <= n_cell);
       if(specific)
       {
         // dividing by dv

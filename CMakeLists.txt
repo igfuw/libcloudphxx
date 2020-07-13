@@ -108,7 +108,7 @@ target_include_directories(cloudphxx_lgrngn
 )
 
 # enabling additional warnings
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -Wextra>)
+#target_compile_options(cloudphxx_lgrngn PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -Wextra>)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 
 # enabling c++11
