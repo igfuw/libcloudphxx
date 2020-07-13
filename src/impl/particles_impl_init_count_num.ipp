@@ -124,8 +124,8 @@ namespace libcloudphxx
 
       switch(n_dims)
       {
-        case 0 : throw std::runtime_error("init_count_num_src called in 0D"); break;
-        case 1 : throw std::runtime_error("init_count_num_src called in 1D"); break;
+        case 0 : throw std::runtime_error("init_count_num_src called in 0D");
+        case 1 : throw std::runtime_error("init_count_num_src called in 1D");
         case 2:
           thrust::transform(
             zero,
