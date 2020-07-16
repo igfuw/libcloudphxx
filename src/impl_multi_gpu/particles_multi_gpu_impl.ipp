@@ -170,6 +170,7 @@ namespace libcloudphxx
           }
           // store dev_count in the thread; regular ctor zeroes it
           particles[dev_id]->pimpl->opts_init.dev_count = dev_count;
+          gpuErrchk(cudaDeviceSynchronize());
         }
       }
 

@@ -8,8 +8,8 @@ namespace libcloudphxx
     {
       if(n_part > opts_init.n_sd_max) throw std::runtime_error(detail::formatter() << "n_sd_max (" << opts_init.n_sd_max << ") < n_part (" << n_part << ")");
       {
-        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &tmp_device_real_part};
-        for(int i=0; i<4; ++i)
+        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa};//, &tmp_device_real_part};
+        for(int i=0; i<3; ++i)
         {
           vec[i]->resize(n_part);
         }
@@ -21,8 +21,12 @@ namespace libcloudphxx
           vec[i]->resize(n_part);
         }
       }
-      n.resize(n_part);
+      // these two store random numbers from cuRand and for some reason with multi_CUDA backend
+      // generating to arrays of size n_part gives illegal memory access, hence +1 size
+      tmp_device_real_part.resize(n_part);
       tmp_device_n_part.resize(n_part);
+
+      n.resize(n_part);
       tmp_device_size_part.resize(n_part);
 
       vt.resize(n_part, detail::invalid);
