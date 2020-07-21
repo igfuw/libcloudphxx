@@ -99,6 +99,11 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(x.begin(), lft_id.begin()), // in place
         detail::remote<real_t>(x0, x1)
       );
+      assert(*thrust::min_element(
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count)
+        > x0 && "x <= x0 after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size"
+      );
     }
 
     template <typename real_t, backend_t device>
@@ -109,6 +114,11 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(x.begin(), rgt_id.begin()) + rgt_count,
         thrust::make_permutation_iterator(x.begin(), rgt_id.begin()), // in place
         detail::remote<real_t>(x1, x0)
+      );
+      assert(*thrust::max_element(
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
+        thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count)
+        < x1 && "x >= x1 after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size"
       );
     }
   };
