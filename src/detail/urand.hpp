@@ -119,32 +119,10 @@ namespace libcloudphxx
 	  const thrust_size_t n
 	)
 	{
-          int dev_id;
-          gpuErrchk(cudaGetDevice(&dev_id));
-std::cerr << "generate_n called on device " << dev_id << std::endl;
-          //thrust::fill(v.begin(), v.begin()+n, float(0.5));
-          //return;
-          gpuErrchk(cudaDeviceSynchronize());
-
-          float *devData;
-          gpuErrchk(cudaMalloc((void **)&devData, n*sizeof(float)));
-	  int status = curandGenerateUniform(gen, devData, n);
-	  //
-	  //thrust_device::vector<float> devData(n); 
-	  //int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(devData.data()), n);
-
-	  //int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+	  int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
+          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-          gpuErrchk(cudaDeviceSynchronize());
 
-//          thrust::copy(devData.begin(), devData.end(), v.begin());
-//
-std::cerr << "before copy in generate_n" << std::endl;
-          gpuErrchk(cudaMemcpy(thrust::raw_pointer_cast(v.data()), devData, n * sizeof(float), cudaMemcpyDeviceToDevice));
-std::cerr << "after copy in generate_n" << std::endl;
-          gpuErrchk(cudaFree(devData));
-          gpuErrchk(cudaDeviceSynchronize());
 	}
 
 	void generate_n(
@@ -155,7 +133,6 @@ std::cerr << "after copy in generate_n" << std::endl;
 	  int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-          gpuErrchk(cudaDeviceSynchronize());
 	}
 
 	void generate_normal_n(
@@ -166,7 +143,6 @@ std::cerr << "after copy in generate_n" << std::endl;
 	  int status = curandGenerateNormal(gen, thrust::raw_pointer_cast(v.data()), n, float(0), float(1));
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-          gpuErrchk(cudaDeviceSynchronize());
 	}
 
 	void generate_normal_n(
@@ -177,7 +153,6 @@ std::cerr << "after copy in generate_n" << std::endl;
 	  int status = curandGenerateNormalDouble(gen, thrust::raw_pointer_cast(v.data()), n, double(0), double(1));
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-          gpuErrchk(cudaDeviceSynchronize());
 	}
 
 	void generate_n(
@@ -188,7 +163,6 @@ std::cerr << "after copy in generate_n" << std::endl;
 	  int status = curandGenerate(gen, thrust::raw_pointer_cast(v.data()), n);
 	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-          gpuErrchk(cudaDeviceSynchronize());
 	}
 #endif
       };
