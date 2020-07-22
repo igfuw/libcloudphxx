@@ -45,9 +45,6 @@ namespace libcloudphxx
       tmp_device_n_part.reserve(opts_init.n_sd_max);
       tmp_device_size_part.reserve(opts_init.n_sd_max);
 
-      lft_id.reserve(opts_init.n_sd_max);
-      rgt_id.reserve(opts_init.n_sd_max);
-
       rd3.reserve(opts_init.n_sd_max);
       rw2.reserve(opts_init.n_sd_max);
       n.reserve(opts_init.n_sd_max);
