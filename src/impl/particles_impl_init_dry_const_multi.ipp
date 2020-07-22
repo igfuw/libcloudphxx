@@ -53,19 +53,14 @@ namespace libcloudphxx
       thrust::host_vector<real_t> cdf;
 
       detail::calc_CDF(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
-      std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
-      std::cerr << "u01.size(): " << u01.size() << std::endl;
-      std::cerr << "un.size(): " << un.size() << std::endl;
 
       // tossing random numbers [0,1] for dry radii
       rand_u01(n_part_to_init);
-      std::cerr << "after rand_u01 call" << std::endl;
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
 
       thrust::host_vector<real_t> host_u01(n_part_to_init); 
-      std::cerr << "host_u01.size(): " << host_u01.size() << std::endl;
       thrust::copy(u01.begin(), u01.begin()+n_part_to_init, host_u01.begin());
       thrust::host_vector<real_t> host_lnrd(n_part_to_init); 
       
