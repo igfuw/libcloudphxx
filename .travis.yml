@@ -180,7 +180,7 @@ install:
     - if [[ $MPI == 'none' && ($TEST_SUITE != 'tests' || $TEST_SUITE != 'KidA') ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 # thrust
-    - git clone --depth=1 git://github.com/thrust/thrust.git;
+    - git clone --depth=1 git://github.com/thrust/thrust.git --branch 1.9.10-1;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
     - if [[ $TEST_SUITE == 'cuda' ]];  then  sudo ln -s `pwd`/thrust/thrust /usr/local/cuda/include/thrust; fi
  
