@@ -68,7 +68,7 @@ aliases:
 jobs:
     include:
       - <<: *precache_tests_mpi
-        env: TEST_SUITE=MPI_tests MPI=mvapich2
+        env: TEST_SUITE=tests MPI=mvapich2
         compiler: gcc
 #     clang MPI_tests disabled due to issues with manually built boost python libstdc++ / libc++ issues
 #      - <<: *precache_default
@@ -88,7 +88,7 @@ jobs:
           env: TEST_SUITE=cuda MPI=none
 
         - compiler: clang
-          env: TEST_SUITE=MPI_tests MPI=none
+          env: TEST_SUITE=tests MPI=mvapich2
 
         - compiler: clang
           env: TEST_SUITE=UWLCM_MT MPI=mvapich2
@@ -202,6 +202,4 @@ script:
     - if [[ $TEST_SUITE == 'UWLCM_unit_smg' ]]; then . ./.travis_scripts/UWLCM.sh unit_smg; fi
     # KiD-A 1D
     - if [[ $TEST_SUITE == 'KidA' ]]; then . ./.travis_scripts/KidA.sh; fi
-    # unit tests and drops.py with MPI (drop drops here?)
-    - if [[ $TEST_SUITE == 'MPI_tests' ]]; then . ./.travis_scripts/tests.sh; fi
 
