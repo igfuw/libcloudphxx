@@ -105,7 +105,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count);
       if(*min_it < x0)
       {
-        std::cerr << "x (" << *min_it << ")  < x0 (" << x0 << ") after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size"
+        std::cerr << "x (" << *min_it << ")  < x0 (" << x0 << ") after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size" << std::endl;
         assert(0);
       }
 #endif
@@ -126,7 +126,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(x.begin(), lft_id.begin()) + lft_count);
       if(*max_it >= x1)
       {
-        std::cerr << "x (" << *max_it << ")  >= x1 (" << x1 << ") after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size"
+        std::cerr << "x (" << *max_it << ")  >= x1 (" << x1 << ") after adjustment for distmem copy, potentially SD moved by more than one process/GPU domain size" << std::endl;
         assert(0);
       }
 #endif
