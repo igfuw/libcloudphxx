@@ -68,7 +68,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
+          return a + fmod((x-a) + 10 * (b-a), b-a); // assuming that particles dont move more than 10 * domain size; this should call CUDA's fmod!
         }
       };
     };

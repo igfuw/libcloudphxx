@@ -69,6 +69,12 @@ namespace libcloudphxx
         // copy actual dev_count to glob_opts_init
         glob_opts_init.dev_count = dev_count;
      
+        if(glob_opts_init.dev_id >= 0)
+        {
+          std::cout << "Libcloudph++ warning: opts_init.dev_id is not compatible with the multi_CUDA backend, ignoring it's value." << std::endl;
+          glob_opts_init.dev_id = -1;
+        }
+     
         // check if all GPUs support UVA
         // TODO: other checks?, see CUDA samples 0_simple/simpleP2P
         for (int i = 0; i < dev_count; ++i)
@@ -170,6 +176,7 @@ namespace libcloudphxx
           }
           // store dev_count in the thread; regular ctor zeroes it
           particles[dev_id]->pimpl->opts_init.dev_count = dev_count;
+          gpuErrchk(cudaDeviceSynchronize());
         }
       }
 

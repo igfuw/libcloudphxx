@@ -120,8 +120,9 @@ namespace libcloudphxx
 	)
 	{
 	  int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
-	  assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
+          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
+
 	}
 
 	void generate_n(

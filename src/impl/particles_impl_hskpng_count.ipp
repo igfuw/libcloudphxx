@@ -21,13 +21,13 @@ namespace libcloudphxx
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         thrust_device::vector<n_t>::iterator
-      > n = thrust::reduce_by_key(
+      > it_pair = thrust::reduce_by_key(
         sorted_ijk.begin(), sorted_ijk.end(),   // input - keys
         thrust::make_constant_iterator(n_t(1)), // input - values
         count_ijk.begin(),                      // output - keys
         count_num.begin()                       // output - values
       );
-      count_n = n.first - count_ijk.begin();
+      count_n = it_pair.first - count_ijk.begin();
       assert(count_n <= n_cell);
     }   
   };  
