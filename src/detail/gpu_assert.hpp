@@ -16,7 +16,7 @@ namespace libcloudphxx
   {
     namespace detail
     {   
-      void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+      inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
       {   
          if (code != cudaSuccess) 
          {
@@ -26,10 +26,10 @@ namespace libcloudphxx
       }   
 
       // max(1, n)
-      int m1(int n) { return n == 0 ? 1 : n; }
+      inline int m1(int n) { return n == 0 ? 1 : n; }
 
       // run a function on a specific gpu
-      void set_device_and_run(int id, std::function<void()> fun)
+      inline void set_device_and_run(int id, std::function<void()> fun)
       {
         gpuErrchk(cudaSetDevice(id));
         fun();

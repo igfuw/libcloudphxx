@@ -64,7 +64,7 @@ namespace libcloudphxx
       // use the desired GPU card, TODO: remove it? can be done using CUDA_VISIBLE_DEVICES
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
-        cudaSetDevice(opts_init.dev_id);
+        gpuErrchk(cudaSetDevice(opts_init.dev_id));
 #endif
       if(opts_init.dev_count < 2) // no distmem
         n_x_tot = opts_init.nx;
