@@ -231,6 +231,13 @@ namespace libcloudphxx
                     thrust::plus<real_t>()
                   );
 
+                // add total number of particles that fell out in this step
+                output_puddle[common::outprtcl_num] += 
+                  thrust::reduce(
+                    n_filtered.begin(),            // input start
+                    n_filtered.begin() + n_part    // input end
+                  );
+
                 if(opts_init.chem_switch)
                 {
                   for (int i = 0; i < chem_all; ++i)
