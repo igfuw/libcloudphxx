@@ -68,7 +68,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return a + fmod((x-a) + (b-a), b-a); // this should call CUDA's fmod!
+          return a + fmod((x-a) + 10 * (b-a), b-a); // assuming that particles dont move more than 10 * domain size; this should call CUDA's fmod!
         }
       };
     };
@@ -240,6 +240,13 @@ namespace libcloudphxx
                     detail::count_vol<real_t>(1.),                 // operation
                     real_t(0),                                     // init val
                     thrust::plus<real_t>()
+                  );
+
+                // add total number of particles that fell out in this step
+                output_puddle[common::outprtcl_num] += 
+                  thrust::reduce(
+                    n_filtered.begin(),            // input start
+                    n_filtered.begin() + n_part    // input end
                   );
 
                 if(opts_init.chem_switch)

@@ -354,7 +354,7 @@ namespace libcloudphxx
 
         // if using nvcc, put increase_sstp_coal flag in host memory, but with direct access from device code
 #if defined(__NVCC__)
-        cudaMallocHost(&increase_sstp_coal, sizeof(bool));
+        gpuErrchk(cudaMallocHost(&increase_sstp_coal, sizeof(bool)));
 #else
         increase_sstp_coal = new bool();
 #endif

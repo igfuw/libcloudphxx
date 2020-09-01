@@ -3,6 +3,7 @@
 #include <thrust/system/cuda/vector.h>
 namespace thrust_device = ::thrust::cuda;
 
+#include "detail/gpu_assert.hpp"
 #include "particles.tpp"
 
 namespace libcloudphxx

@@ -295,6 +295,9 @@ T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol t
 
    a = ax;
    b = bx;
+   
+   fa = fax;
+   fb = fbx;
 
 #if !defined(NDEBUG)
    if(a >= b)
@@ -303,10 +306,6 @@ T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol t
      assert(0);
    }
 #endif
-   
-
-   fa = fax;
-   fb = fbx;
 
    if(tol(a, b) || (fa == 0) || (fb == 0))
    {

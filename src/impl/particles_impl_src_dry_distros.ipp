@@ -232,13 +232,13 @@ namespace libcloudphxx
             thrust::pair<
               thrust_device::vector<thrust_size_t>::iterator,
               typename thrust_device::vector<thrust_size_t>::iterator
-            > np =  thrust::reduce_by_key(
+            > it_pair =  thrust::reduce_by_key(
               sorted_ijk.begin(), sorted_ijk.begin() + count_bins, 
               thrust::make_constant_iterator<thrust_size_t>(1), 
               sorted_ijk.begin(), 
               tmp_bin_no.begin()
             );
-            count_bins = np.first - sorted_ijk.begin(); // now it counts no of cells that have any bins matched
+            count_bins = it_pair.first - sorted_ijk.begin(); // now it counts no of cells that have any bins matched
           }
 
           // set count_num to the number of SDs matched per cell
