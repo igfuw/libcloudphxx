@@ -28,7 +28,6 @@ namespace libcloudphxx
         k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
 
       // thrust requires that a default ctor exists
-      BOOST_GPU_ENABLED
       kernel_base() = default;
 
       BOOST_GPU_ENABLED
@@ -45,7 +44,6 @@ namespace libcloudphxx
       kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
 
       // thrust requires that a default ctor exists
-      BOOST_GPU_ENABLED
       kernel_golovin() = default;
 
       BOOST_GPU_ENABLED
@@ -134,7 +132,6 @@ namespace libcloudphxx
       kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
 
       // thrust requires that a default ctor exists
-      BOOST_GPU_ENABLED
       kernel_geometric_with_multiplier() = default;
 
       BOOST_GPU_ENABLED
@@ -186,7 +183,6 @@ namespace libcloudphxx
       kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
 
       // thrust requires that a default ctor exists
-      BOOST_GPU_ENABLED
       kernel_geometric_with_efficiencies() = default;
 
       BOOST_GPU_ENABLED
@@ -220,7 +216,6 @@ namespace libcloudphxx
       kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 1, r_max) {}
 
       // thrust requires that a default ctor exists
-      BOOST_GPU_ENABLED
       kernel_onishi() = default;
 
       BOOST_GPU_ENABLED
