@@ -352,7 +352,7 @@ namespace libcloudphxx
         thrust::pair<
           typename thrust_device::vector<thrust_size_t>::iterator,
           typename thrust_device::vector<real_t>::iterator
-        > np =
+        > it_pair =
         thrust::reduce_by_key(
           sorted_ijk.begin(), sorted_ijk.end(),
           thrust::transform_iterator<             // input - values
@@ -369,7 +369,7 @@ namespace libcloudphxx
           count_ijk.begin(),
           mass_new.begin()
         );
-        count_n = np.first - count_ijk.begin();
+        count_n = it_pair.first - count_ijk.begin();
         assert(count_n > 0 && count_n <= n_cell);
 
         // apply the change to the mixing ratios of trace gases

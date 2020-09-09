@@ -62,7 +62,7 @@ namespace libcloudphxx
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
-      > n = thrust::reduce_by_key(
+      > it_pair = thrust::reduce_by_key(
         // input - keys
         sorted_ijk.begin(), sorted_ijk.end(),
         // input - values
@@ -79,6 +79,10 @@ namespace libcloudphxx
         // output - values
         count_mom.begin()
       );
+
+      count_n = it_pair.first - count_ijk.begin();
+      assert(count_n > 0 && count_n <= n_cell);
+
 #if !defined(__NVCC__)
       using std::sqrt;
 #endif
@@ -89,11 +93,7 @@ namespace libcloudphxx
 #else
         sqrt(CUDART_PI / 2.);
 #endif
-
       namespace arg = thrust::placeholders;
-
-      count_n = n.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
 
       //multiply by prefactor and divide by dv
       thrust::transform(

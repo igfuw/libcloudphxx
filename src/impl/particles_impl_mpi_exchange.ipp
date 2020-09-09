@@ -66,7 +66,7 @@ namespace libcloudphxx
         // At least pre Thrust 1.9.4. 1.9.4 made all calls (that are not explicitly asynchronous) synchronous, see https://github.com/thrust/thrust/blob/master/doc/changelog.md#thrust-194-cuda-101
         // TODO: Test with Thurst >= 1.9.4 if this sync is still needed
 #if defined(__NVCC__)
-        cudaDeviceSynchronize();
+        gpuErrchk(cudaDeviceSynchronize());
 #endif
 
 //        std::cerr << "mpi exchange: sending n left, lft_count = " << lft_count << " sum of out_n_bfr = " << thrust::reduce(out_n_bfr.begin(), out_n_bfr.begin() + lft_count) << std::endl;
@@ -131,7 +131,7 @@ namespace libcloudphxx
 
 //      check comment for the previous device sync
 #if defined(__NVCC__)
-        cudaDeviceSynchronize();
+        gpuErrchk(cudaDeviceSynchronize());
 #endif
 
 //        std::cerr << "mpi exchange: sending real left, lft_count = " << lft_count << " sum of out_real_bfr = " << thrust::reduce(out_real_bfr.begin(), out_real_bfr.begin() + lft_count * distmem_real_vctrs.size()) << std::endl;

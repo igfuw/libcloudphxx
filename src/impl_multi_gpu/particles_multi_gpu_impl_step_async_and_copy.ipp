@@ -39,7 +39,7 @@ namespace libcloudphxx
       particles[dev_id]->step_async(opts);
 
       // --- copy advected SDs to other devices on the same node ---
-      if(opts.adve && glob_opts_init.dev_count>1)
+      if((opts.adve || opts.turb_adve) && glob_opts_init.dev_count>1)
       {
         namespace arg = thrust::placeholders;
         typedef unsigned long long n_t; // TODO: same typedef is in impl struct !! particles::impl::n_t ? 

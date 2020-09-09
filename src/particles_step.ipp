@@ -622,7 +622,7 @@ namespace libcloudphxx
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
-      if (opts.adve)
+      if (opts.adve || opts.turb_adve)
         pimpl->mpi_exchange();
 
       // stuff has to be done after distmem copy 

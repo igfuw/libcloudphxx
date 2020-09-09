@@ -19,7 +19,7 @@ DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
         ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=chrono,regex,serialization,mpi,atomic,thread,date_time,system,iostreams,timer,filesystem,program_options,python
-        ./b2 -d0 install
+        travis_wait 30 ./b2 -d0 install
       fi
       if [[ $COMPILER == 'clang++' ]]; then 
         #clang installation taken from https://gist.github.com/jimporter/10442880
