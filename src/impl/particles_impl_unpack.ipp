@@ -14,6 +14,10 @@ namespace libcloudphxx
     {
       n_part_old = n_part;
       n_part += n_copied;
+
+      if(n_copied==0)
+        return;
+
       assert(opts_init.n_sd_max >= n_part);
       n.resize(n_part);
       thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
@@ -22,6 +26,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unpack_real(const int &n_copied)
     {
+      if(n_copied==0)
+        return;
+
       auto it = distmem_real_vctrs.begin();
 
       while (it != distmem_real_vctrs.end())
