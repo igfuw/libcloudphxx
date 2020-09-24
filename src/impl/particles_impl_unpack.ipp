@@ -9,11 +9,32 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      template <typename real_t>
+      struct nextafter_to_zero
+      {
+        real_t from;
+
+        nextafter_to_zero(real_t from) : from(from) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return x < from ? x : nextafter(x, real_t(0.));
+        }
+      };
+    };
+
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unpack_n(const int &n_copied)
     {
       n_part_old = n_part;
       n_part += n_copied;
+
+      if(n_copied==0)
+        return;
+
       assert(opts_init.n_sd_max >= n_part);
       n.resize(n_part);
       thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
@@ -22,6 +43,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unpack_real(const int &n_copied)
     {
+      if(n_copied==0)
+        return;
+
       auto it = distmem_real_vctrs.begin();
 
       while (it != distmem_real_vctrs.end())
@@ -31,6 +55,10 @@ namespace libcloudphxx
         thrust::copy( in_real_bfr.begin() + distance * n_copied, in_real_bfr.begin() + (distance+1) * n_copied, (*it)->begin() + n_part_old);
         it++;
       }
+
+      // in single precision, bcnd_remote_lft (and potentially rgt) sometimes gives x=x1. we clean this up here
+      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::nextafter_to_zero<real_t>(opts_init.x1));
+
 #if !defined(NDEBUG)
       auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
       if(*min_it < opts_init.x0)
