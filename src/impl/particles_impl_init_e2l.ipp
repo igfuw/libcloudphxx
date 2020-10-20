@@ -46,8 +46,8 @@ namespace libcloudphxx
         + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers), or halo shift for courant numbers
 
       // different strides due to non-standard storage order in 3D libmpdata++
-      long int max_stride = 0;    // stride of the dimension with highest stride
-      long int max_stride_n_cell; // number of cells in that direction in this process (with halo)
+      long int max_stride = 0;        // stride of the dimension with highest stride
+      long int max_stride_n_cell = 0; // number of cells in that direction in this process (with halo)
 
       switch (n_dims)
       {
