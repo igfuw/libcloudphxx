@@ -45,6 +45,10 @@ namespace libcloudphxx
         + n_cell_bfr // for multi_CUDA: cells in memory of GPUs to the left of this one (only on this node - arrinfo.data points to first occupied memory, not (0,0,0))
         + offset;    // for multi_CUDA: additional cells in other memory (again, only GPUs on the same node) for arrays bigger than nx*ny*nz (like courant numbers), or halo shift for courant numbers
 
+      // different strides due to non-standard storage order in 3D libmpdata++
+      long int max_stride = 0;    // stride of the dimension with highest stride
+      long int max_stride_n_cell; // number of cells in that direction in this process (with halo)
+
       switch (n_dims)
       {
         namespace arg = thrust::placeholders;
@@ -62,6 +66,8 @@ namespace libcloudphxx
             // op
             arg::_1
           );
+          max_stride = 1;
+          max_stride_n_cell = n_x_tot + ext_x;
           break;
         case 2:
           // assume z changes first
@@ -76,6 +82,8 @@ namespace libcloudphxx
             arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
             arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
           );
+          max_stride = arr.strides[0];
+          max_stride_n_cell = n_x_tot + ext_x;
           break;
         case 3:
           assert(arr.strides[2] == 1);
@@ -90,6 +98,8 @@ namespace libcloudphxx
             arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
             arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
           );
+          max_stride = std::max(arr.strides[0], arr.strides[1]); // handles kji (C-style) and kij storage orders
+          max_stride_n_cell = max_stride == arr.strides[0] ? n_x_tot + ext_x : opts_init.ny + ext_y;
           break;
         default: assert(false);
       }
@@ -99,7 +109,7 @@ namespace libcloudphxx
       thrust::transform(
         l2e[key].begin(), l2e[key].begin() + l2e[key].size(),
         l2e[key].begin(), // in place 
-        detail::periodic_cellno((n_x_tot + ext_x) * arr.strides[0])
+        detail::periodic_cellno(max_stride_n_cell * max_stride)
       );
     }
   };
