@@ -12,16 +12,18 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct nextafter_to_zero
+      struct nextafter_away_from_bcond
       {
-        real_t from;
+        real_t lft,rgt;
 
-        nextafter_to_zero(real_t from) : from(from) {}
+        nextafter_away_from_bcond(real_t lft, real_t rgt) : lft(lft), rgt(rgt) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
         {
-          return x < from ? x : nextafter(x, real_t(0.));
+          return x >= rgt ? nextafter(x, real_t(0.)):
+                   x < lft ? nextafter(x, std::numeric_limits<real_t>::max()): 
+                     x;
         }
       };
     };
@@ -56,8 +58,8 @@ namespace libcloudphxx
         it++;
       }
 
-      // in single precision, bcnd_remote_lft (and potentially rgt) sometimes gives x=x1. we clean this up here
-      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::nextafter_to_zero<real_t>(opts_init.x1));
+      // in single precision, bcnd_remote sometimes gives x=x1 or x<x0. we clean this up here
+      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::nextafter_away_from_bcond<real_t>(opts_init.x0, opts_init.x1));
 
 #if !defined(NDEBUG)
       auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
