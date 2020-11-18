@@ -82,13 +82,11 @@ namespace libcloudphxx
         if(*min_it < opts_init.x0)
         {
           std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
-          assert(0);
         }
         auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
         if(*max_it >= opts_init.x1)
         {
           std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
-          assert(0);
         }
       }
 #endif
