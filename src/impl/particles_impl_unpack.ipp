@@ -12,6 +12,24 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
+      struct tolerance_away_from_bcond
+      {
+        const real_t bcond_tolerance = 2e-5; // [m]
+
+        real_t lft,rgt;
+
+        tolerance_away_from_bcond(real_t lft, real_t rgt) : lft(lft), rgt(rgt) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(real_t x)
+        {
+          return x >= rgt ? x-bcond_tolerance:
+                   x < lft ? x+bcond_tolerance: 
+                     x;
+        }
+      };
+
+      template <typename real_t>
       struct nextafter_away_from_bcond
       {
         real_t lft,rgt;
@@ -58,21 +76,40 @@ namespace libcloudphxx
         it++;
       }
 
+#if !defined(NDEBUG)
+      {
+        auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
+        if(*min_it < opts_init.x0)
+        {
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          assert(0);
+        }
+        auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
+        if(*max_it >= opts_init.x1)
+        {
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          assert(0);
+        }
+      }
+#endif
+
       // in single precision, bcnd_remote sometimes gives x=x1 or x<x0. we clean this up here
-      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::nextafter_away_from_bcond<real_t>(opts_init.x0, opts_init.x1));
+      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::tolerance_away_from_bcond<real_t>(opts_init.x0, opts_init.x1));
 
 #if !defined(NDEBUG)
-      auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
-      if(*min_it < opts_init.x0)
       {
-        std::cerr << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
-        assert(0);
-      }
-      auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
-      if(*max_it >= opts_init.x1)
-      {
-        std::cerr << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
-        assert(0);
+        auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
+        if(*min_it < opts_init.x0)
+        {
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          assert(0);
+        }
+        auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
+        if(*max_it >= opts_init.x1)
+        {
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          assert(0);
+        }
       }
 #endif
     }
