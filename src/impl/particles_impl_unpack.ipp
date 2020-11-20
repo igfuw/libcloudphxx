@@ -14,11 +14,11 @@ namespace libcloudphxx
       template <typename real_t>
       struct tolerance_away_from_bcond
       {
-        const real_t bcond_tolerance = 2e-5; // [m]
+        const real_t bcond_tolerance; // [m]
 
         real_t lft,rgt;
 
-        tolerance_away_from_bcond(real_t lft, real_t rgt) : lft(lft), rgt(rgt) {}
+        tolerance_away_from_bcond(real_t lft, real_t rgt) : lft(lft), rgt(rgt), bcond_tolerance(2e-4) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
@@ -81,12 +81,12 @@ namespace libcloudphxx
         auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
         if(*min_it < opts_init.x0)
         {
-          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") at: " << min_it - x.begin() << " n_part_old: " << n_part_old << " PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
         }
         auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
         if(*max_it >= opts_init.x1)
         {
-          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") at: " << min_it - x.begin() << " n_part_old: " << n_part_old << " PRE SANITIZE after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
         }
       }
 #endif
@@ -99,13 +99,13 @@ namespace libcloudphxx
         auto min_it = thrust::min_element(x.begin() + n_part_old, x.end());
         if(*min_it < opts_init.x0)
         {
-          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *min_it << ")  < opts_init.x0 (" << opts_init.x0 << ") at: " << min_it - x.begin() << " n_part_old: " << n_part_old << "  after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
           assert(0);
         }
         auto max_it = thrust::max_element(x.begin() + n_part_old, x.end());
         if(*max_it >= opts_init.x1)
         {
-          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
+          std::cerr <<  std::setprecision(std::numeric_limits<real_t>::max_digits10 + 1) << "x (" << *max_it << ")  >= opts_init.x1 (" << opts_init.x1 << ") at: " << min_it - x.begin() << " n_part_old: " << n_part_old << "  after unpacking, potentially SD moved by more than one process/GPU domain size" << std::endl;
           assert(0);
         }
       }
