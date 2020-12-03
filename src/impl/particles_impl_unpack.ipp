@@ -18,7 +18,7 @@ namespace libcloudphxx
 
         real_t lft,rgt;
 
-        tolerance_away_from_bcond(real_t lft, real_t rgt) : lft(lft), rgt(rgt), bcond_tolerance(2e-4) {}
+        tolerance_away_from_bcond(real_t lft, real_t rgt, real_t tolerance) : lft(lft), rgt(rgt), bcond_tolerance(tolerance) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(real_t x)
@@ -92,7 +92,7 @@ namespace libcloudphxx
 #endif
 
       // in single precision, bcnd_remote sometimes gives x=x1 or x<x0. we clean this up here
-      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::tolerance_away_from_bcond<real_t>(opts_init.x0, opts_init.x1));
+      thrust::transform(x.begin() + n_part_old, x.end(), x.begin() + n_part_old, detail::tolerance_away_from_bcond<real_t>(opts_init.x0, opts_init.x1, config.bcond_tolerance));
 
 #if !defined(NDEBUG)
       {
