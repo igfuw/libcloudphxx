@@ -136,7 +136,7 @@ for i in range(0,2):
   
   if(i==0):
     print('sd_conc RMSD = ' + str(rmsd));
-    limit = 1e-5;
+    limit = 1.1e-5;
   else:
     print('const_multi RMSD = ' + str(rmsd));
     limit = 3e-5; # constant multiplicity doesn't represent tails of the distribution so well and mass densty function depends on large tail?
