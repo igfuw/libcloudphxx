@@ -27,6 +27,9 @@ namespace libcloudphxx
     {
       pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
+      // set rng seed to be used during init
+      pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
+
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
@@ -120,6 +123,9 @@ namespace libcloudphxx
 
       // init count_num and count_ijk
       pimpl->hskpng_count();
+
+      // set rng seed to be used after init
+      pimpl->rng.reseed(pimpl->opts_init.rng_seed);
     }
   };
 };
