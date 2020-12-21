@@ -221,7 +221,7 @@ namespace libcloudphxx
     template<class real_t>
     std::map<common::output_t, real_t> add_puddle(std::map<common::output_t, real_t> x, std::map<common::output_t, real_t> y){
       std::map<common::output_t, real_t> res;
-      for(int i=0; i < chem_all+2; ++i) 
+      for(int i=0; i < common::output_names.size(); ++i) 
         res[static_cast<common::output_t>(i)] = x[static_cast<common::output_t>(i)] + y[static_cast<common::output_t>(i)];
       return res;
     }

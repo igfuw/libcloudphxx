@@ -197,7 +197,7 @@ namespace libcloudphxx
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
-      > n = thrust::reduce_by_key(
+      > it_pair = thrust::reduce_by_key(
         // input - keys
         sorted_ijk.begin(), sorted_ijk.end(),  
         // input - values
@@ -214,7 +214,7 @@ namespace libcloudphxx
         count_mom.begin()
       );  
 
-      count_n = n.first - count_ijk.begin();
+      count_n = it_pair.first - count_ijk.begin();
 #if !defined(NDEBUG)
       {
         int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
@@ -224,7 +224,7 @@ namespace libcloudphxx
         }
       }
 #endif
-      assert(count_n >= 0 && count_n <= n_cell);
+      assert(count_n <= n_cell);
       if(specific)
       {
         // dividing by dv

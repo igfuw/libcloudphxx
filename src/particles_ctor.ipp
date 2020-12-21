@@ -64,7 +64,7 @@ namespace libcloudphxx
       // use the desired GPU card, TODO: remove it? can be done using CUDA_VISIBLE_DEVICES
 #if defined(__NVCC__)
       if(opts_init.dev_id >= 0)
-        cudaSetDevice(opts_init.dev_id);
+        gpuErrchk(cudaSetDevice(opts_init.dev_id));
 #endif
       if(opts_init.dev_count < 2) // no distmem
         n_x_tot = opts_init.nx;
@@ -75,7 +75,7 @@ namespace libcloudphxx
       pimpl->sanity_checks();
 
       // init output map to 0
-      for(int i=0; i < chem_all+2; ++i)
+      for(int i=0; i < common::output_names.size(); ++i)
         pimpl->output_puddle[static_cast<common::output_t>(i)] = 0.;
     }
 
