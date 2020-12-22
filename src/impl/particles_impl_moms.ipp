@@ -155,14 +155,22 @@ namespace libcloudphxx
           const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
 #if !defined(NDEBUG)
-          real_t res = n * pow(x, xp); // TODO: check if xp=0 is optimised
+          real_t res;
+          if(x >= 0)
+            res = n * pow(x, xp);
+          else
+          {
+            int ixp = xp;
+            assert(ixp == xp);
+            res = n * pow(x, ixp);
+          }
           if(isnaninf()(res))
           {
             printf("nan/inf res in moment counter, n = %g x = %g res = %g xp = %g\n", n, x, res, xp);
           }
           return res;
 #else
-          return n * pow(x, xp); // TODO: check if xp=0 is optimised
+          return x >= 0 ? n * pow(x, xp) : n * pow(x, int(xp)); // for negative x and non-integer xp, pow = NaN
 #endif
         }
       };
