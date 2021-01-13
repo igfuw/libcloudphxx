@@ -483,7 +483,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
@@ -523,11 +523,11 @@ namespace libcloudphxx
       );
 
       void adve();
-      void turb_adve();
+      void turb_adve(const real_t &dt);
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
-      void sedi();
-      void subs();
+      void sedi(const real_t &dt);
+      void subs(const real_t &dt);
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
@@ -537,7 +537,7 @@ namespace libcloudphxx
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      void update_incloud_time();
+      void update_incloud_time(const real_t &dt);
 
       void coal(const real_t &dt, const bool &turb_coal);
 

@@ -175,7 +175,7 @@ namespace libcloudphxx
       pimpl->should_now_run_cond = false;
 
       if (pimpl->opts_init.diag_incloud_time)
-        pimpl->update_incloud_time();
+        pimpl->update_incloud_time(pimpl->opts_init.dt);
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -373,12 +373,12 @@ namespace libcloudphxx
       if (opts.turb_adve)
       {
         // calc turbulent perturbation of velocity
-        pimpl->hskpng_turb_vel();
+        pimpl->hskpng_turb_vel(pimpl->opts_init.dt);
       }
       else if (opts.turb_cond)
       {
         // calc turbulent perturbation only of vertical velocity
-        pimpl->hskpng_turb_vel(true);
+        pimpl->hskpng_turb_vel(pimpl->opts_init.dt, true);
       }
 
       if(opts.turb_cond)
@@ -393,18 +393,18 @@ namespace libcloudphxx
       pimpl->adve_scheme = pimpl->opts_init.adve_scheme;
 
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
-      if (opts.turb_adve) pimpl->turb_adve();
+      if (opts.turb_adve) pimpl->turb_adve(pimpl->opts_init.dt);
 
       // sedimentation/subsidence has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
       {
         // advection with terminal velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
-        pimpl->sedi();
+        pimpl->sedi(pimpl->opts_init.dt);
       }
       if (opts.subs) 
       {
         // advection with subsidence velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
-        pimpl->subs();
+        pimpl->subs(pimpl->opts_init.dt);
       }
 
       // boundary condition + accumulated rainfall to be returned
