@@ -134,7 +134,7 @@ for i in range(0,2): #loop to test sd_conc and const_multi options
       n_step = simulation_time / opts_dt
     
     #simulation loop
-    for step in range(n_step):
+    for step in range(int(n_step)):
       prtcls.step_sync(opts, th, rv, rhod)
       prtcls.step_async(opts)
         

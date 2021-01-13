@@ -75,7 +75,7 @@ def initial_state():
 
 def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt):
     print("[RH_formula = ", RH_formula,"]")
-    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "opts_dt = ", opts_dt)
+    print("step_count = ", _step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "opts_dt = ", opts_dt)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
@@ -110,7 +110,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     exectime = 0
     # first step without condesnation just to see diag output
     opts.cond = False
-    for step in arange(step_count):
+    for step in arange(int(step_count)):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
@@ -128,7 +128,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     rv[0]   = 0.002
     rv_init = rv.copy()
 
-    for step in arange(step_count):
+    for step in arange(int(step_count)):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
