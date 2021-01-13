@@ -250,6 +250,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("turb_adve", &lgr::opts_t<real_t>::turb_adve)
       .def_readwrite("turb_cond", &lgr::opts_t<real_t>::turb_cond)
       .def_readwrite("turb_coal", &lgr::opts_t<real_t>::turb_coal)
+      .def_readwrite("dt", &lgr::opts_t<real_t>::dt)
     ;
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
