@@ -152,6 +152,10 @@ namespace libcloudphxx
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
 
+      // time steps to be used, considering that opts.dt can override opts_init.dt
+      real_t dt;
+      int sstp_cond, sstp_coal, sstp_chem;
+
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
@@ -522,6 +526,7 @@ namespace libcloudphxx
         arrinfo_t<real_t> &
       );
 
+      void adjust_timesteps(const real_t &dt);
       void adve();
       void turb_adve(const real_t &dt);
       template<class adve_t>
