@@ -28,12 +28,16 @@ namespace libcloudphxx
       // process toggling for chemistry
       bool chem_dsl, chem_dsc, chem_rct;
 
+      // overriding dt from opts_init
+      real_t dt;
+
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 
         adve(true), sedi(true), subs(false), cond(true), coal(true), src(false), rcyc(false),
         chem_dsl(false), chem_dsc(false), chem_rct(false),
         turb_adve(false), turb_cond(false), turb_coal(false),
-        RH_max(44) // :) (anything greater than 1.1 would be enough
+        RH_max(44), // :) (anything greater than 1.1 would be enough
+        dt(-1) // negative means that we do not override dt in this step
       {
       }
     };

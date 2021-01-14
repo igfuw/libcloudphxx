@@ -49,7 +49,7 @@ namespace libcloudphxx
     };
     // calc the SGS turbulent velocity component
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::hskpng_turb_vel(const bool only_vertical)
+    void particles_t<real_t, device>::impl::hskpng_turb_vel(const real_t &dt, const bool only_vertical)
     {   
       namespace arg = thrust::placeholders;
 
@@ -86,7 +86,7 @@ namespace libcloudphxx
             r_normal.begin()
           )) + n_part,
           vel_turbs_vctrs_a[i]->begin(),
-          detail::common__turbulence__update_turb_vel<real_t>(opts_init.dt)
+          detail::common__turbulence__update_turb_vel<real_t>(dt)
         );
       }
     }
