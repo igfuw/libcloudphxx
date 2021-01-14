@@ -167,6 +167,9 @@ namespace libcloudphxx
       // is a constant, external pressure profile used? (e.g. anelastic model)
       bool const_p;
 
+      // is it allowed to do condensation substepping, if not, some memory can be saved
+      bool allow_sstp_cond;
+
       // timestep counter
       n_t stp_ctr;
 
@@ -331,6 +334,7 @@ namespace libcloudphxx
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
 
@@ -387,7 +391,7 @@ namespace libcloudphxx
         if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
         if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
 
-        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
            distmem_real_vctrs.insert(&sstp_tmp_rv);
            distmem_real_vctrs.insert(&sstp_tmp_th);

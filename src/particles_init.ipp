@@ -33,7 +33,7 @@ namespace libcloudphxx
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
-      if(pimpl->const_p && pimpl->opts_init.sstp_cond > 1 && pimpl->opts_init.exact_sstp_cond)
+      if(pimpl->const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
         pimpl->distmem_real_vctrs.insert(&pimpl->sstp_tmp_p);
 
       // initialising Eulerian-Lagrangian coupling
