@@ -488,6 +488,11 @@ namespace libcloudphxx
       void hskpng_remove_n0();
       void hskpng_resize_npart();
 
+      void remove_rng(
+        const real_t &min, const real_t &max, 
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      ); 
+
       void moms_all();
    
       void moms_cmp(

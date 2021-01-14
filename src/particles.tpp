@@ -115,6 +115,8 @@
 #include "impl/particles_impl_src_dry_distros.ipp"
 #include "impl/particles_impl_src_dry_sizes.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
+#include "impl/particles_impl_remove.ipp"
+
 
 // MPI copy
 #include "impl/particles_impl_pack.ipp"

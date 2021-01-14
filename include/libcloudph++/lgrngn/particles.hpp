@@ -111,6 +111,8 @@ namespace libcloudphxx
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
+      virtual void remove_wet_rng(const real_t&, const real_t&)                 { assert(false); }
+
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
       opts_init_t<real_t> *opts_init;
@@ -200,6 +202,8 @@ namespace libcloudphxx
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
 
+      void remove_wet_rng(const real_t&, const real_t&);
+
       struct impl;
       std::unique_ptr<impl> pimpl;
 
@@ -285,8 +289,6 @@ namespace libcloudphxx
       void diag_wp_mom(const int&);
       void diag_incloud_time_mom(const int&);
       void diag_wet_mass_dens(const real_t&, const real_t&);
-      real_t *outbuf();
-
       void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
@@ -295,6 +297,9 @@ namespace libcloudphxx
       void diag_max_rw();
       void diag_vel_div();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
+      real_t *outbuf();
+
+      void remove_wet_rng(const real_t&, const real_t&);
 
       struct impl;
       std::unique_ptr<impl> pimpl;
