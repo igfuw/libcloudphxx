@@ -46,6 +46,7 @@
 #include "particles_init.ipp"
 #include "particles_step.ipp"
 #include "particles_diag.ipp"
+#include "particles_remove.ipp"
 
 // details
 #include "impl/particles_impl.ipp"
