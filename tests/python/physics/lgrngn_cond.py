@@ -80,6 +80,8 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
     opts_init.RH_formula = RH_formula
+    if opts_dt > 0:
+      opts_init.variable_dt_switch=True
     opts.dt = opts_dt
 
     # adjust number of steps if opts_dt overrides opts_init.dt
