@@ -73,13 +73,23 @@ def initial_state():
 
     return rhod, th, rv, p
 
-def test(RH_formula, step_count, substep_count, exact_substep, constp):
+def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt):
     print("[RH_formula = ", RH_formula,"]")
-    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp)
+    print("step_count = ", _step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "opts_dt = ", opts_dt)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
     opts_init.RH_formula = RH_formula
+    if opts_dt > 0:
+      opts_init.variable_dt_switch=True
+    opts.dt = opts_dt
+
+    # adjust number of steps if opts_dt overrides opts_init.dt
+    if opts_dt > 0:
+      assert(opts_init.dt % opts_dt == 0)
+      step_count = _step_count * opts_init.dt / opts_dt
+    else:
+      step_count = _step_count
 
     rhod, th, rv, p = initial_state()
     rv_init = rv.copy()
@@ -102,7 +112,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     exectime = 0
     # first step without condesnation just to see diag output
     opts.cond = False
-    for step in arange(step_count):
+    for step in arange(int(step_count)):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
@@ -120,11 +130,11 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
     rv[0]   = 0.002
     rv_init = rv.copy()
 
-    for step in arange(step_count):
+    for step in arange(int(step_count)):
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-#      print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
+      print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
 
     ss_post_evap = supersaturation(prtcls)
     print("supersaturation after evaporation", ss_post_evap, th[0], rv[0])
@@ -136,32 +146,33 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
 for constp in [False, True]:
   for exact_sstp in [False, True]:
     for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
-      ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp)
-      print(ss, th_diff_1  , rv_diff)
-      assert(abs(ss) < 4.5e-3)
-      assert(abs(rv_diff) < 1e-9)
-
-      ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp)
-      print(ss, th_diff_10 , rv_diff)
-      assert(abs(ss) < 4.5e-3)
-      assert(abs(rv_diff) < 1e-9)
-
-      ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp)
-      print(ss, th_diff_100, rv_diff)
-      assert(abs(ss) < 4.5e-3)
-      assert(abs(rv_diff) < 1e-9)
-
-      if constp == False:
-        assert(abs(th_diff_1) < 4.2e-2)
-        assert(abs(th_diff_10) < 4.2e-3)
-        assert(abs(th_diff_100) < 4.2e-4)
-      else :
-        # TODO: why with constant pressure the error doesn't scale so well?
-        #       is there a systematic error caused by the fact that with constant pressure,
-        #       pressure doesnt agree with T, rv and rhod?
-        assert(abs(th_diff_1) < 1.1e-1)
-        assert(abs(th_diff_10) < 7.4e-2)
-        assert(abs(th_diff_100) < 7.3e-2)
+      for opts_dt in [-1, 0.5]: # -1 means opts_init.dt (==1) is used
+        ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp, opts_dt)
+        print(ss, th_diff_1  , rv_diff)
+        assert(abs(ss) < 4.5e-3)
+        assert(abs(rv_diff) < 1e-9)
+  
+        ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp, opts_dt)
+        print(ss, th_diff_10 , rv_diff)
+        assert(abs(ss) < 4.5e-3)
+        assert(abs(rv_diff) < 1e-9)
+  
+        ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp, opts_dt)
+        print(ss, th_diff_100, rv_diff)
+        assert(abs(ss) < 4.5e-3)
+        assert(abs(rv_diff) < 1e-9)
+  
+        if constp == False:
+          assert(abs(th_diff_1) < 4.2e-2)
+          assert(abs(th_diff_10) < 4.2e-3)
+          assert(abs(th_diff_100) < 4.2e-4)
+        else :
+          # TODO: why with constant pressure the error doesn't scale so well?
+          #       is there a systematic error caused by the fact that with constant pressure,
+          #       pressure doesnt agree with T, rv and rhod?
+          assert(abs(th_diff_1) < 1.1e-1)
+          assert(abs(th_diff_10) < 7.4e-2)
+          assert(abs(th_diff_100) < 7.3e-2)
 
 
 

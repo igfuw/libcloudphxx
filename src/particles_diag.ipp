@@ -318,6 +318,27 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->kpa.begin(), n);
     }   
 
+    // compute n-th moment of SGS velocity in x for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_up_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->up.begin(), n);
+    }   
+
+    // compute n-th moment of SGS velocity in y for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_vp_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->vp.begin(), n);
+    }   
+
+    // compute n-th moment of SGS velocity in z for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wp_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->wp.begin(), n);
+    }   
+
     // compute n-th moment of incloud_time for selected particles
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)

@@ -14,7 +14,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_save_chem()
     {
-      if (opts_init.sstp_chem == 1) return;
+      if (!allow_sstp_chem) return;
 
       const int n = 6;
       thrust_device::vector<real_t>
@@ -35,7 +35,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_sstp_chem()
     {   
-      if (opts_init.sstp_chem == 1) return;
+      if (!allow_sstp_chem) return;
 
       // memory allocation 
       sstp_tmp_chem_0.resize(n_cell);
@@ -54,7 +54,7 @@ namespace libcloudphxx
       const int &step
     )
     {   
-      if (opts_init.sstp_chem == 1) return;
+      if (!allow_sstp_chem) return;
 
       namespace arg = thrust::placeholders;
 
@@ -68,7 +68,7 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
       {
-        const real_t sstp = opts_init.sstp_chem;
+        const real_t sstp = sstp_chem;
 	if (step == 0)
 	{
 	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)

@@ -33,7 +33,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::update_incloud_time()
+    void particles_t<real_t, device>::impl::update_incloud_time(const real_t &dt)
     {   
       // tmp vector to store crit radius of each SD
       thrust_device::vector<real_t> &rc2(tmp_device_real_part);
@@ -60,7 +60,7 @@ namespace libcloudphxx
           incloud_time.begin()
         )),
         n_part,
-        detail::incloud_time_updater<real_t>(opts_init.dt)
+        detail::incloud_time_updater<real_t>(dt)
       );
     }
   };  
