@@ -152,6 +152,10 @@ namespace libcloudphxx
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
 
+      // time steps to be used, considering that opts.dt can override opts_init.dt
+      real_t dt;
+      int sstp_cond, sstp_coal, sstp_chem;
+
       // sorting needed only for diagnostics and coalescence
       bool sorted;
 
@@ -162,6 +166,10 @@ namespace libcloudphxx
 
       // is a constant, external pressure profile used? (e.g. anelastic model)
       bool const_p;
+
+      // is it allowed to do substepping, if not, some memory can be saved
+      bool allow_sstp_cond,
+           allow_sstp_chem;
 
       // timestep counter
       n_t stp_ctr;
@@ -327,6 +335,8 @@ namespace libcloudphxx
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
+        allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
 
@@ -383,7 +393,7 @@ namespace libcloudphxx
         if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
         if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
 
-        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
            distmem_real_vctrs.insert(&sstp_tmp_rv);
            distmem_real_vctrs.insert(&sstp_tmp_th);
@@ -483,7 +493,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel(const bool only_vertical = false);
+      void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
@@ -522,12 +532,13 @@ namespace libcloudphxx
         arrinfo_t<real_t> &
       );
 
+      void adjust_timesteps(const real_t &dt);
       void adve();
-      void turb_adve();
+      void turb_adve(const real_t &dt);
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
-      void sedi();
-      void subs();
+      void sedi(const real_t &dt);
+      void subs(const real_t &dt);
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
@@ -537,7 +548,7 @@ namespace libcloudphxx
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      void update_incloud_time();
+      void update_incloud_time(const real_t &dt);
 
       void coal(const real_t &dt, const bool &turb_coal);
 

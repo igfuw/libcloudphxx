@@ -11,7 +11,7 @@ namespace libcloudphxx
   {
     // calc the SGS turbulent velocity component
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::turb_adve()
+    void particles_t<real_t, device>::impl::turb_adve(const real_t &dt)
     {   
       thrust_device::vector<real_t> * vel_pos_a[] = {&x, &z, &y};
       std::vector<thrust_device::vector<real_t>*> vel_pos(&vel_pos_a[0], &vel_pos_a[0]+n_dims);
@@ -28,7 +28,7 @@ namespace libcloudphxx
           vel_pos[i]->end(),
           vel_turbs_vctrs[i]->begin(),
           vel_pos[i]->begin(),
-          arg::_1 + arg::_2 * opts_init.dt
+          arg::_1 + arg::_2 * dt
         );
       }
     }

@@ -64,6 +64,9 @@ namespace libcloudphxx
       // should aerosol concentration init be independent of rhod (assumed to be in cm^{-3} and not at STP)
       bool aerosol_independent_of_rhod;
 
+      // is it allowed to change dt during simulation through opts.dt
+      bool variable_dt_switch;
+
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       unsigned long long  sd_const_multi;
 
@@ -187,7 +190,8 @@ namespace libcloudphxx
         diag_incloud_time(false),
         no_ccn_at_init(false),
         open_side_walls(false),
-        periodic_topbot_walls(false)
+        periodic_topbot_walls(false),
+        variable_dt_switch(false)
       {}
 
       // dtor (just to silence -Winline warnings)

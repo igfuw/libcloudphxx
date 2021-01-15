@@ -14,7 +14,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::sstp_save()
     {
-      if (opts_init.sstp_cond == 1) return;
+      if (!allow_sstp_cond) return;
 
       const int n = 4;
       thrust_device::vector<real_t>
@@ -41,7 +41,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_sstp()
     {   
-      if (opts_init.sstp_cond == 1 || !opts_init.exact_sstp_cond) return;
+      if (!allow_sstp_cond || !opts_init.exact_sstp_cond) return;
 
       const int n = 4;
       thrust_device::vector<real_t>
@@ -62,7 +62,7 @@ namespace libcloudphxx
       const int &step
     )
     {   
-      if (opts_init.sstp_cond == 1) return;
+      if (sstp_cond == 1) return;
 
       namespace arg = thrust::placeholders;
 
@@ -73,7 +73,7 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
       {
-        const real_t sstp = opts_init.sstp_cond;
+        const real_t sstp = sstp_cond;
         if (step == 0)
         {
           // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
@@ -109,7 +109,7 @@ namespace libcloudphxx
       const int &step
     )
     {   
-      if (opts_init.sstp_cond == 1) return;
+      if (sstp_cond == 1) return;
 
       namespace arg = thrust::placeholders;
 
@@ -121,7 +121,7 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (const_p ? n : n-1); ++ix)
       {
-        const real_t sstp = opts_init.sstp_cond;
+        const real_t sstp = sstp_cond;
       	if (step == 0)
       	{
       	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
