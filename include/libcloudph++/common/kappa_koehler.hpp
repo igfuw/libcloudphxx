@@ -1,9 +1,9 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/kelvin_term.hpp>
-#include <libcloudph++/common/detail/toms748.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "kelvin_term.hpp"
+#include "detail/toms748.hpp"
 
 namespace libcloudphxx
 {
@@ -29,28 +29,28 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::volume, real_t> rw3_eq_nokelvin(
-	quantity<si::volume, real_t> rd3, 
-	quantity<si::dimensionless, real_t> kappa,
-	quantity<si::dimensionless, real_t> RH
+        quantity<si::volume, real_t> rd3, 
+        quantity<si::dimensionless, real_t> kappa,
+        quantity<si::dimensionless, real_t> RH
       )   
       {   
-        assert(RH > .1); // kappa-koehler assumes well dissolved matter
+        assert(RH > .03); // kappa-koehler assumes well dissolved matter
         assert(RH < 1.); // no equilibrium over RH=100%
         assert(kappa > 0); // pure-water case left out
-	return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
+        return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
       }   
 
       /// @brief activity of water in solution (eqs. 1,6) in @copydetails Petters_and_Kreidenweis_2007
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::dimensionless, real_t> a_w(
-	quantity<si::volume, real_t> rw3,
-	quantity<si::volume, real_t> rd3,
-	quantity<si::dimensionless, real_t> kappa
+        quantity<si::volume, real_t> rw3,
+        quantity<si::volume, real_t> rd3,
+        quantity<si::dimensionless, real_t> kappa
       )
       {
         assert(kappa > 0); // pure-water case left out
-	return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
+        return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
       }
 
       // functor to be passed to the minimisation functions used below
@@ -58,60 +58,62 @@ namespace libcloudphxx
       {
         // equilibrium radius
         template <typename real_t>
-	struct rw3_eq_minfun 
-	{   
-	  const quantity<si::dimensionless, real_t> RH;
-	  const quantity<si::volume, real_t> rd3;
-	  const quantity<si::dimensionless, real_t> kappa;
-	  const quantity<si::temperature, real_t> T;
+        struct rw3_eq_minfun 
+        {   
+          const quantity<si::dimensionless, real_t> RH;
+          const quantity<si::volume, real_t> rd3;
+          const quantity<si::dimensionless, real_t> kappa;
+          const quantity<si::temperature, real_t> T;
 
           // ctor
           BOOST_GPU_ENABLED
           rw3_eq_minfun(
-	    const quantity<si::dimensionless, real_t> &RH,
-	    const quantity<si::volume, real_t> &rd3,
-	    const quantity<si::dimensionless, real_t> &kappa,
-	    const quantity<si::temperature, real_t> &T
+            const quantity<si::dimensionless, real_t> &RH,
+            const quantity<si::volume, real_t> &rd3,
+            const quantity<si::dimensionless, real_t> &kappa,
+            const quantity<si::temperature, real_t> &T
           ) : RH(RH), rd3(rd3), kappa(kappa), T(T) {}
       
           BOOST_GPU_ENABLED
-	  real_t operator()(real_t rw3) const
-	  {
+          real_t operator()(real_t rw3) const
+          {
 #if !defined(__NVCC__)
-	    using std::pow;
+            using std::pow;
+            using std::cbrt;
 #endif
-	    return this->RH
-	      - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
-	      * kelvin::klvntrm(pow(rw3, real_t(1./3)) * si::metres, this->T); 
-	  }
-	};  
+            return this->RH
+              - a_w(rw3 * si::cubic_metres, this->rd3, this->kappa) 
+              * kelvin::klvntrm(real_t(cbrt(rw3)) * si::metres, this->T); 
+          }
+        };  
 
         // critical radius
         template <typename real_t>
         struct rw3_cr_minfun
         {
-	  const quantity<si::volume, real_t> rd3;
-	  const quantity<si::dimensionless, real_t> kappa;
-	  const quantity<si::temperature, real_t> T;
+          const quantity<si::volume, real_t> rd3;
+          const quantity<si::dimensionless, real_t> kappa;
+          const quantity<si::temperature, real_t> T;
 
           // ctor
           BOOST_GPU_ENABLED
           rw3_cr_minfun(
-	    const quantity<si::volume, real_t> &rd3,
-	    const quantity<si::dimensionless, real_t> &kappa,
-	    const quantity<si::temperature, real_t> &T
+            const quantity<si::volume, real_t> &rd3,
+            const quantity<si::dimensionless, real_t> &kappa,
+            const quantity<si::temperature, real_t> &T
           ) : rd3(rd3), kappa(kappa), T(T) {}
 
           BOOST_GPU_ENABLED
           real_t operator()(real_t rw3) const
           {
 #if !defined(__NVCC__)
-	    using std::pow;
+            using std::pow;
+            using std::cbrt;
 #endif
             return (kelvin::A(T) 
               * (rd3 - rw3 * si::cubic_metres) 
               * ((kappa - 1) * rd3 + rw3 * si::cubic_metres) 
-              + 3 * kappa * rd3 * pow(rw3, real_t(4./3)) * si::cubic_metres * si::metres
+              + 3 * kappa * rd3 * rw3 * cbrt(rw3) * si::cubic_metres * si::metres
             ) / si::cubic_metres / si::cubic_metres / si::metres;
           }
         };
@@ -125,20 +127,20 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::volume, real_t> rw3_eq(
-	quantity<si::volume, real_t> rd3, 
-	quantity<si::dimensionless, real_t> kappa,
-	quantity<si::dimensionless, real_t> RH,
-	quantity<si::temperature, real_t> T
+        quantity<si::volume, real_t> rd3, 
+        quantity<si::dimensionless, real_t> kappa,
+        quantity<si::dimensionless, real_t> RH,
+        quantity<si::temperature, real_t> T
       )   
       {   
         assert(RH < 1); // no equilibrium over RH=100%
         assert(kappa > 0); // pure-water case left out
 
         return common::detail::toms748_solve(
-	  detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
-	  real_t(rd3 / si::cubic_metres), // min
-	  real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres) // max
-	) * si::cubic_metres;
+          detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
+          real_t(rd3 / si::cubic_metres), // min
+          real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres) // max
+        ) * si::cubic_metres;
       }
 
       // critical radius, i.e. radius for which the Koehler curve reaches maximum
@@ -147,9 +149,9 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::volume, real_t> rw3_cr(
-	quantity<si::volume, real_t> rd3, 
-	quantity<si::dimensionless, real_t> kappa,
-	quantity<si::temperature, real_t> T
+        quantity<si::volume, real_t> rd3, 
+        quantity<si::dimensionless, real_t> kappa,
+        quantity<si::temperature, real_t> T
       )   
       {   
         assert(kappa > 0); // pure-water case left out
@@ -158,10 +160,10 @@ namespace libcloudphxx
         quantity<si::temperature, double> T_dbl = static_cast<quantity<si::temperature, double> >(T);
 
         return real_t(common::detail::toms748_solve(
-	  detail::rw3_cr_minfun<double>(rd3_dbl, double(kappa), T_dbl), // the above-defined functor
-	  double(1e0 * (rd3 / si::cubic_metres)), // min
-	  double(1e8 * (rd3 / si::cubic_metres))  // max
-	)) * si::cubic_metres;
+          detail::rw3_cr_minfun<double>(rd3_dbl, double(kappa), T_dbl), // the above-defined functor
+          double(1e0 * (rd3 / si::cubic_metres)), // min
+          double(1e8 * (rd3 / si::cubic_metres))  // max
+        )) * si::cubic_metres;
       }
 
       // critical supersaturation, i.e. S(r_cr)
@@ -176,11 +178,12 @@ namespace libcloudphxx
         assert(kappa > 0); // pure-water case left out
 #if !defined(__NVCC__)
         using std::pow;
+        using std::cbrt;
 #endif
         quantity<si::volume, real_t> rw3 = rw3_cr(rd3, kappa, T);
 
         return a_w(rw3, rd3, kappa) * kelvin::klvntrm(
-          pow(rw3 / si::cubic_metres, real_t(1./3)) * si::metres, 
+          real_t(cbrt(real_t(rw3 / si::cubic_metres))) * si::metres, 
           T
         );
       }

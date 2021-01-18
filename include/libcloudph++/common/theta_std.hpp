@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libcloudph++/common/const_cp.hpp>
+#include "const_cp.hpp"
 
 // theta dry: \theta = (p_1000 / p_dry)^{R_d / c_{pd}}
 // theta std: \theta = (p_1000 / p)^{R_d / c_{pd}}
@@ -21,6 +21,7 @@ namespace libcloudphxx
 
       // dry air density as a function of p, theta and rv
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::mass_density, real_t> rhod(
 	const quantity<si::pressure, real_t> &p,
 	const quantity<si::temperature, real_t> &th_std, 
@@ -28,6 +29,15 @@ namespace libcloudphxx
       ) {
 	return (p - p_v<real_t>(p, rv)) /
 	  (pow(p / p_1000<real_t>(), R_d<real_t>()/c_pd<real_t>()) * R_d<real_t>() * th_std);
+      }
+
+      // Exner pressure
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::dimensionless, real_t> exner(
+	const quantity<si::pressure, real_t> &p
+      ) {
+	return pow(p / p_1000<real_t>(), R_d<real_t>()/c_pd<real_t>());
       }
     };
   };

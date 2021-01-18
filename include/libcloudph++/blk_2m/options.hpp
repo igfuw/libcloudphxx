@@ -26,7 +26,15 @@ namespace libcloudphxx
 
       // RH limit for activation
       real_t RH_max = 44; 
-      
+ 
+      // default parameters in the autoconversion parameterization
+      // Khairoutdinov and Kogan 2000 (eq. 29)
+      // (note: a density-based formula in SI units is available in Wood 2005, table 1) 
+      real_t 
+        acnv_A = real_t(1350),
+        acnv_b = real_t(2.47),
+        acnv_c = real_t(-1.79);
+     
       // aerosol spectrum 
       struct lognormal_mode_t 
       { 

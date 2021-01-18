@@ -1,7 +1,7 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
+#include "units.hpp"
+#include "macros.hpp"
 
 namespace libcloudphxx
 {
@@ -34,6 +34,7 @@ namespace libcloudphxx
       {
 #if !defined(__NVCC__)
 	using std::pow;
+	using std::cbrt;
 	using std::max;
 #endif
 

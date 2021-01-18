@@ -1,9 +1,9 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp>
-#include <libcloudph++/common/earth.hpp>
-#include <libcloudph++/common/theta_std.hpp>
+#include "units.hpp"
+#include "macros.hpp"
+#include "earth.hpp"
+#include "theta_std.hpp"
 
 namespace libcloudphxx
 {
@@ -11,6 +11,9 @@ namespace libcloudphxx
   {
     namespace hydrostatic
     {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
       using theta_std::p_1000;
       using moist_air::R; 
       using moist_air::c_pd;

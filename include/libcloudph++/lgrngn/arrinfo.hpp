@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <libcloudph++/lgrngn/extincl.hpp>
+#include "extincl.hpp"
 
 namespace libcloudphxx
 {
@@ -12,31 +12,31 @@ namespace libcloudphxx
     {
       // member fields:
       const std::vector<ptrdiff_t> strvec; // see alt. ctor below
-      real_t * const dataZero;
+      real_t * const data;
       const ptrdiff_t *strides;
 
 
       // ctors
       arrinfo_t()
-        : dataZero(NULL), strides(NULL) 
+        : data(NULL), strides(NULL) 
       {} 
 
-      arrinfo_t(real_t * const dataZero, const ptrdiff_t *strides) 
-        : dataZero(dataZero), strides(strides) 
+      arrinfo_t(real_t * const data, const ptrdiff_t *strides) 
+        : data(data), strides(strides) 
       {} 
 
       // methods
-      bool is_null() const { return dataZero==NULL || strides==NULL; }
+      bool is_null() const { return data==NULL || strides==NULL; }
 
       // alternative usage with local storage of the strides
-      arrinfo_t(real_t * const dataZero, const std::vector<ptrdiff_t> &_strvec) :
-        strvec(_strvec), dataZero(dataZero), strides(&strvec[0])
+      arrinfo_t(real_t * const data, const std::vector<ptrdiff_t> &_strvec) :
+        strvec(_strvec), data(data), strides(&strvec[0])
       {}
 
       // non-default copy ctor handling both the original and alternative usage
       arrinfo_t(const arrinfo_t &ai) :
         strvec(ai.strvec), 
-        dataZero(ai.dataZero), 
+        data(ai.data), 
         strides(!strvec.empty() ? &strvec[0] : ai.strides)
       {}
     };

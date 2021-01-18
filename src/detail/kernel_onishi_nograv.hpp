@@ -29,9 +29,14 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       real_t kernel_onishi_nograv(const real_t &r1, const real_t &r2, const real_t &Re_l, const real_t &eps, real_t dnu, real_t ratio_den)
       {
+        if(eps < 1e-10) return 0.;
+
 #if !defined(__NVCC__)
         using std::max;
         using std::pow;
+        using std::sqrt;
+        using std::cbrt;
+        using std::exp;
 #endif
 
         real_t PI = 
@@ -56,9 +61,9 @@ namespace libcloudphxx
     
         urms  = sqrt(Re_l/sqrt(15./dnu/eps)); //RMS of u [m/s];
         CR    = r1+r2;               //collision radius [m];
-        taup1 = ratio_den * pow(2.*r1,2) /18. /dnu; //particle relaxation time [s];
-        taup2 = ratio_den * pow(2.*r2,2) /18. /dnu;
-        leta  = pow(dnu*dnu*dnu/eps,real_t(0.25));  //Kolmogorov scale [m];
+        taup1 = ratio_den * 4.*r1*r1 /18. /dnu; //particle relaxation time [s];
+        taup2 = ratio_den * 4.*r2*r2 /18. /dnu;
+        leta  = pow(dnu*dnu*dnu/eps,real_t(1/4));  //Kolmogorov scale [m];
         tauk  = leta*leta/dnu;         //Kolmogorov time  [s];
         Te    = Re_l*tauk/sqrt(15.);
   
@@ -67,10 +72,10 @@ namespace libcloudphxx
         theta2 =2.5*taup2/Te;
         phi = max(theta2/theta1,theta1/theta2);
         cw = 1.+0.6*exp(-pow(phi-1.,1.5));
-        gamma = 0.183*urms*urms/pow(dnu/leta,2);
+        gamma = 0.183*urms*urms/(dnu*dnu/leta/leta);
         gamma = phi * gamma;
   
-        WrS2 = pow(dnu*CR,2) /pow(leta,4) /15.;
+        WrS2 = (dnu*dnu*CR*CR) /(leta*leta*leta*leta) /15.;
         WrA2 = urms*urms * gamma/(gamma-1.)                           
              *( (theta1+theta2)-4.*theta1*theta2/(theta1+theta2)     
              *sqrt( (1.+theta1+theta2)/(1.+theta1)/(1.+theta2) ) ) 
@@ -100,7 +105,8 @@ namespace libcloudphxx
         CB = 0.4;
   
         StA = pow(A2/A1 * Re_l, real_t(0.25));
-        StB = pow(A2/A3, real_t(2./3.)) * pow(Re_l, real_t(1./3.));
+        const real_t hlpr = cbrt(A2/A3);
+        StB = hlpr*hlpr * cbrt(Re_l);
   
         St1 = taup1/ tauk; //Stokes number;
         St2 = taup2/ tauk;

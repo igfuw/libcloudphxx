@@ -43,6 +43,7 @@ v_zero = spherevol(r_zero)
 th   = 300 * np.ones((1,))       
 rv   = 1. * np.ones((1,))
 rhod  = 1.22419 * np.ones((1,))
+diss_rate = epsilon * np.ones((1,))
 
 opts_init.dry_distros = {0.:expvolumelnr}
 
@@ -58,7 +59,7 @@ for kernel_t in range(2):
     opts_init.kernel = lgrngn.kernel_t.hall
   else:
     opts_init.kernel = lgrngn.kernel_t.onishi_hall
-    opts_init.kernel_parameters = np.array([epsilon, re_lambda])
+    opts_init.kernel_parameters = np.array([re_lambda])
 
   for zz in range(n_runs):
     opts_init.rng_seed = int(time.time())
@@ -78,7 +79,10 @@ for kernel_t in range(2):
     t=0
     t10=0 
     while(t10 == 0):
-      prtcls.step_sync(Opts,th,rv,rhod)
+      if(kernel_t == 0):
+        prtcls.step_sync(Opts,th,rv,rhod)
+      else:
+        prtcls.step_sync(Opts,th,rv,rhod, diss_rate = diss_rate)
       prtcls.step_async(Opts)
       rain_volume = diag_rain_volume()
       t+=opts_init.dt
@@ -89,8 +93,8 @@ for kernel_t in range(2):
 hall_mean = t10_arr[0].mean()
 onishi_mean = t10_arr[1].mean()
 
-print('Hall: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[0].mean()) + ' +/- ' +str(np.std(t10_arr[0])))
-print('Onishi: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[1].mean()) + ' +/- ' +str(np.std(t10_arr[1])))
+print(('Hall: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[0].mean()) + ' +/- ' +str(np.std(t10_arr[0]))))
+print(('Onishi: Time to turn 10% of water into rain drops (r>40um) '+str(t10_arr[1].mean()) + ' +/- ' +str(np.std(t10_arr[1]))))
 if(hall_mean / onishi_mean > 1.62 or hall_mean / onishi_mean < 1.22):
   raise Exception("Onishi turbulent enhancement not corresct, ratio of t10% times: "+str(hall_mean / onishi_mean))
 

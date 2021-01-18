@@ -24,11 +24,11 @@ namespace libcloudphxx
       template <class arr_t>
       void adj_cellwise(
 	const b1m::opts_t<typename arr_t::T_numtype>& opts,
-	const bp::numeric::array &rhod,
-	bp::numeric::array &th,
-	bp::numeric::array &rv,
-	bp::numeric::array &rc,
-	bp::numeric::array &rr,
+	const bp_array &rhod,
+	bp_array &th,
+	bp_array &rv,
+	bp_array &rc,
+	bp_array &rr,
 	const typename arr_t::T_numtype &dt
       )
       {
@@ -49,12 +49,65 @@ namespace libcloudphxx
       }
 
       template <class arr_t>
+      void adj_cellwise_constp(
+	const b1m::opts_t<typename arr_t::T_numtype>& opts,
+	const bp_array &rhod,
+	const bp_array &p,
+	bp_array &th,
+	bp_array &rv,
+	bp_array &rc,
+	bp_array &rr,
+	const typename arr_t::T_numtype &dt
+      )
+      {
+	arr_t 
+	  np2bz_th(np2bz<arr_t>(th)), 
+	  np2bz_rv(np2bz<arr_t>(rv)),
+	  np2bz_rc(np2bz<arr_t>(rc)), 
+	  np2bz_rr(np2bz<arr_t>(rr));
+	b1m::adj_cellwise_constp(
+	  opts, 
+	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
+	  np2bz<arr_t>(p), 
+	  np2bz_th, 
+	  np2bz_rv, 
+	  np2bz_rc, 
+	  np2bz_rr, 
+	  dt
+	);
+      }
+      
+      template <class arr_t>
+      void adj_cellwise_nwtrph(
+	const b1m::opts_t<typename arr_t::T_numtype>& opts,
+	const bp_array &p,
+	bp_array &th,
+	bp_array &rv,
+	bp_array &rc,
+	const typename arr_t::T_numtype &dt
+      )
+      {
+	arr_t 
+	  np2bz_th(np2bz<arr_t>(th)), 
+	  np2bz_rv(np2bz<arr_t>(rv)),
+	  np2bz_rc(np2bz<arr_t>(rc));
+	b1m::adj_cellwise_nwtrph(
+	  opts, 
+	  np2bz<arr_t>(p), 
+	  np2bz_th, 
+	  np2bz_rv, 
+	  np2bz_rc, 
+	  dt
+	);
+      }
+      
+      template <class arr_t>
       void rhs_cellwise(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_rc,
-	bp::numeric::array &dot_rr,
-	const bp::numeric::array &rc,
-	const bp::numeric::array &rr
+	bp_array &dot_rc,
+	bp_array &dot_rr,
+	const bp_array &rc,
+	const bp_array &rr
       ) 
       {
 	arr_t
@@ -70,11 +123,48 @@ namespace libcloudphxx
       } 
 
       template <class arr_t>
+      void rhs_cellwise_nwtrph(
+	const b1m::opts_t<typename arr_t::T_numtype> &opts,
+	bp_array &dot_th,
+	bp_array &dot_rv,
+	bp_array &dot_rc,
+	bp_array &dot_rr,
+	const bp_array &rhod,
+	const bp_array &p,
+	const bp_array &th,
+	const bp_array &rv,
+	const bp_array &rc,
+	const bp_array &rr,
+	const typename arr_t::T_numtype &dt
+      ) 
+      {
+	arr_t
+	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
+	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+	  np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+	  np2bz_dot_th(np2bz<arr_t>(dot_th));
+	b1m::rhs_cellwise_nwtrph(
+	  opts,
+	  np2bz_dot_th,
+	  np2bz_dot_rv,
+	  np2bz_dot_rc,
+	  np2bz_dot_rr,
+	  np2bz<arr_t>(rhod),
+	  np2bz<arr_t>(p),
+	  np2bz<arr_t>(th),
+	  np2bz<arr_t>(rv),
+	  np2bz<arr_t>(rc),
+	  np2bz<arr_t>(rr),
+          dt
+	);
+      } 
+
+      template <class arr_t>
       typename arr_t::T_numtype rhs_columnwise(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp::numeric::array &dot_rr,
-	const bp::numeric::array &rhod,
-	const bp::numeric::array &rr,
+	bp_array &dot_rr,
+	const bp_array &rhod,
+	const bp_array &rr,
 	const typename arr_t::T_numtype &dz
       ) {
 	arr_t

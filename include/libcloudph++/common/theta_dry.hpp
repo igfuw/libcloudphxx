@@ -1,7 +1,7 @@
 #pragma once
 
-#include <libcloudph++/common/const_cp.hpp>
-#include <libcloudph++/common/theta_std.hpp>
+#include "const_cp.hpp"
+#include "theta_std.hpp"
 
 // theta dry: \theta = T * (p_1000 / p_dry)^{R_d / c_{pd}}
 // theta std: \theta = T * (p_1000 / p    )^{R_d / c_{pd}}
@@ -25,19 +25,29 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &th, // theta dry!!!
         const quantity<si::mass_density, real_t> &rhod
       ) {
-        return si::kelvins * pow(
-          th / si::kelvins
-          * pow(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins, R_d<real_t>() / c_pd<real_t>()), 
-          c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
-        );
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
+          return si::kelvins * pow(
+            th / si::kelvins
+            * pow(rhod * R_d<real_t>() / p_1000<real_t>()  * si::kelvins, R_d<real_t>() / c_pd<real_t>()),
+            c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>())
+          );
+                /*
+        return pow(
+          real_t(th / si::kelvins)
+          * pow(real_t(rhod * R_d<real_t>() / p_1000<real_t>() * si::kelvins), real_t(R_d<real_t>() / c_pd<real_t>())), 
+          real_t(c_pd<real_t>() / (c_pd<real_t>() - R_d<real_t>()))
+        ) * si::kelvins;
+        */
       }
 
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p(
         const quantity<si::mass_density, real_t> &rhod,
-	const quantity<si::dimensionless, real_t> &r,
-	const quantity<si::temperature, real_t> &T
+        const quantity<si::dimensionless, real_t> &r,
+        const quantity<si::temperature, real_t> &T
       ) {
         return rhod         * (R_d<real_t>() + r * R_v<real_t>()) * T;
         //     ^^^^           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   
@@ -47,10 +57,10 @@ namespace libcloudphxx
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> d_th_d_rv(
-	const quantity<si::temperature, real_t> &T,
-	const quantity<si::temperature, real_t> &th // theta dry!!!
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
-	return - th * const_cp::l_v<real_t>(T) / c_pd<real_t>() / T;
+        return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>

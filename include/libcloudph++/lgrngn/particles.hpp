@@ -1,9 +1,9 @@
 #pragma once 
 
-#include <libcloudph++/lgrngn/extincl.hpp>
+#include "extincl.hpp"
 
 #include "opts.hpp"
-#include "output.hpp"
+#include "../common/output.hpp"
 #include "opts_init.hpp"
 #include "arrinfo.hpp"
 #include "backend.hpp"
@@ -21,10 +21,11 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> p = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, const arrinfo_t<real_t> >()
+        const std::map<enum common::chem::chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, const arrinfo_t<real_t> >()
       ) { 
         assert(false);
       }  
@@ -38,7 +39,30 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
         const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
+        const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(), // TKE dissipation rate (epsilon)
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> >()
+      ) { 
+        assert(false); 
+      }  
+
+      virtual void sync_in(
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod      = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
+        const arrinfo_t<real_t> diss_rate = arrinfo_t<real_t>(),
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> >()
+      ) { 
+        assert(false); 
+      }  
+
+      virtual void step_cond(
+        const opts_t<real_t> &,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> >()
       ) { 
         assert(false); 
       }  
@@ -51,24 +75,41 @@ namespace libcloudphxx
       }  
 
       // method for accessing super-droplet statistics
-      virtual void diag_sd_conc()                                   { assert(false); }
-      virtual void diag_RH()                                   { assert(false); }
-      virtual void diag_all()                                       { assert(false); }
-      virtual void diag_rw_ge_rc()                                  { assert(false); }
-      virtual void diag_RH_ge_Sc()                                  { assert(false); }
-      virtual void diag_dry_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_wet_rng(const real_t&, const real_t&)       { assert(false); }
-      virtual void diag_dry_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mom(const int&)                         { assert(false); }
-      virtual void diag_wet_mass_dens(const real_t&, const real_t&) { assert(false); }
-      virtual void diag_chem(const enum chem_species_t&)            { assert(false); }
-      virtual void diag_precip_rate()                               { assert(false); }
-      virtual void diag_kappa_mom(const int&)                       { assert(false); }
-      virtual void diag_kappa_rng(const real_t&, const real_t&)     { assert(false); }
-      virtual void diag_max_rw()                                    { assert(false); }
-      virtual void diag_vel_div()                                   { assert(false); }
-      virtual std::map<output_t, real_t> diag_puddle()              { assert(false); }
-      virtual real_t *outbuf()                                      { assert(false); return NULL; }
+      virtual void diag_sd_conc()                                               { assert(false); }
+      virtual void diag_pressure()                                              { assert(false); }
+      virtual void diag_temperature()                                           { assert(false); }
+      virtual void diag_RH()                                                    { assert(false); }
+      virtual void diag_all()                                                   { assert(false); }
+      virtual void diag_rw_ge_rc()                                              { assert(false); }
+      virtual void diag_RH_ge_Sc()                                              { assert(false); }
+      virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
+      // The 3 following functions are for consecutive selection of SDs.
+      // It allows the user to select SDs based on multiple characteristics, e.g. wet radius (0.5, 1) and kappa (0.1, 0.2):
+      // diag_wet_rng(0.5, 1); diag_kappa_rng_cons(0.1, 0.2);
+      // NOTE: the call with "cons" needs to be right after the previous call to diag_X_rng!
+      //       otherwise some other function used in between can overwrite n_filtered used for selection of moments
+      // NOTE2: We cannot implement this as an argument to diag_X_rng, because we would like it to default to null 
+      //        and Boost Python does not work well with virtual member functions that have default arguments
+      virtual void diag_dry_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_wet_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_kappa_rng_cons(const real_t&, const real_t&)            { assert(false); }
+
+      virtual void diag_dry_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mom(const int&)                                     { assert(false); }
+      virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
+      virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
+      virtual void diag_precip_rate()                                           { assert(false); }
+      virtual void diag_kappa_mom(const int&)                                   { assert(false); }
+      virtual void diag_up_mom(const int&)                                      { assert(false); }
+      virtual void diag_vp_mom(const int&)                                      { assert(false); }
+      virtual void diag_wp_mom(const int&)                                      { assert(false); }
+      virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
+      virtual void diag_max_rw()                                                { assert(false); }
+      virtual void diag_vel_div()                                               { assert(false); }
+      virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
+      virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
@@ -88,12 +129,12 @@ namespace libcloudphxx
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> p,
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y, 
         const arrinfo_t<real_t> courant_z,
-        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
+        const std::map<enum common::chem::chem_species_t, const arrinfo_t<real_t> > ambient_chem
       );
-
       // time-stepping methods
       void step_sync(
         const opts_t<real_t> &,
@@ -103,7 +144,26 @@ namespace libcloudphxx
         const arrinfo_t<real_t> courant_x,
         const arrinfo_t<real_t> courant_y,
         const arrinfo_t<real_t> courant_z,
-        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem
+        const arrinfo_t<real_t> diss_rate,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem
+      );
+
+      void sync_in(
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem
+      );
+
+      void step_cond(
+        const opts_t<real_t> &,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> >()
       );
 
       void step_async(
@@ -112,37 +172,39 @@ namespace libcloudphxx
 
       // diagnostic methods
       void diag_sd_conc();
+      void diag_pressure();
+      void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_kappa_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
       void diag_kappa_mom(const int &k);
+      void diag_up_mom(const int&);
+      void diag_vp_mom(const int&);
+      void diag_wp_mom(const int&);
+      void diag_incloud_time_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
-      void diag_chem(const enum chem_species_t&);
+      void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
-      void diag_kappa(const int&);
       void diag_max_rw();
       void diag_vel_div();
-      std::map<output_t, real_t> diag_puddle();
+      std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
 
       struct impl;
-      std::auto_ptr<impl> pimpl;
+      std::unique_ptr<impl> pimpl;
 
       // constructor
-      particles_t(const opts_init_t<real_t> &opts_init, const int &n_x_bfr, int n_x_tot = 0); // n_x_bfr should have default=0, but python bindings fail if more than one default value...
+      particles_t(opts_init_t<real_t> opts_init, int n_x_tot = 0); // NOTE: python bindings fail if more than one default value...
 
       // declare destructor to delay it's definition until impl is defined
       ~particles_t();
@@ -152,29 +214,21 @@ namespace libcloudphxx
     };
 
 
-
     // specialization for the multi_GPU backend
-    // has the init, stepping and diag functions
-    // plus list of pointers to particles_t<CUDA> on each GPU
-    // TODO: more elegant way?
+    // the interface is the same as for other backends (above)
     template <typename real_t>
     struct particles_t<real_t, multi_CUDA>: particles_proto_t<real_t>
     {
-      // additional members
-      boost::ptr_vector<particles_t<real_t, CUDA> > particles; // pointer to particles_t on each GPU
-      opts_init_t<real_t> glob_opts_init; // global copy of opts_init (threads store their own in impl), 
-      const int n_cell_tot;               // total number of cells
-      std::vector<real_t> real_n_cell_tot; // vector of the size of the total number of cells to store output
-
       // initialisation 
       void init(
         const arrinfo_t<real_t> th,
         const arrinfo_t<real_t> rv,
         const arrinfo_t<real_t> rhod,
-        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(), 
-        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, const arrinfo_t<real_t> >()
+        const arrinfo_t<real_t> p,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y, 
+        const arrinfo_t<real_t> courant_z,
+        const std::map<enum common::chem::chem_species_t, const arrinfo_t<real_t> > ambient_chem 
       );
 
       // time-stepping methods
@@ -182,41 +236,71 @@ namespace libcloudphxx
         const opts_t<real_t> &,
         arrinfo_t<real_t> th,
         arrinfo_t<real_t> rv,
-        const arrinfo_t<real_t> rhod      = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_x = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_y = arrinfo_t<real_t>(),
-        const arrinfo_t<real_t> courant_z = arrinfo_t<real_t>(),
-        std::map<enum chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum chem_species_t, arrinfo_t<real_t> >()
+        const arrinfo_t<real_t> rhod     ,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem 
       );
+
+      void sync_in(
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        const arrinfo_t<real_t> rhod     ,
+        const arrinfo_t<real_t> courant_x,
+        const arrinfo_t<real_t> courant_y,
+        const arrinfo_t<real_t> courant_z,
+        const arrinfo_t<real_t> diss_rate,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem 
+      );
+
+      void step_cond(
+        const opts_t<real_t> &,
+        arrinfo_t<real_t> th,
+        arrinfo_t<real_t> rv,
+        std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> > ambient_chem = std::map<enum common::chem::chem_species_t, arrinfo_t<real_t> >()
+      );
+
       void step_async(
         const opts_t<real_t> &
       );
 
       // diagnostic methods
       void diag_sd_conc();
+      void diag_pressure();
+      void diag_temperature();
       void diag_RH();
-      void diag_dry_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
-      void diag_wet_rng(
-        const real_t &r_mi, const real_t &r_mx
-      );
+      void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_kappa_mom(const int&);
+      void diag_up_mom(const int&);
+      void diag_vp_mom(const int&);
+      void diag_wp_mom(const int&);
+      void diag_incloud_time_mom(const int&);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
 
-      void diag_chem(const enum chem_species_t&);
+      void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
-      std::map<output_t, real_t> diag_puddle();
+      std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
+
+      struct impl;
+      std::unique_ptr<impl> pimpl;
 
       // constructors
-      particles_t(const opts_init_t<real_t> &opts_init);
+      particles_t(opts_init_t<real_t> opts_init);
 
       // dtor
       ~particles_t();

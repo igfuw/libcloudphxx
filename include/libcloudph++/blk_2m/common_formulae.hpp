@@ -17,20 +17,30 @@ namespace libcloudphxx
     {
       using namespace common::moist_air;
 
+      // numerical epsilon
+      template<typename real_t>
+      real_t num_eps = std::numeric_limits<real_t>::epsilon();
+      // typical scale * numerical precission to get the limit
+      // below whitch microphysics variables should be treated as zero
+      libcloudphxx_const(si::dimensionless, rc_eps, 1e-3 * num_eps<real_t>, 1)
+      libcloudphxx_const(si::dimensionless, rr_eps, 1e-4 * num_eps<real_t>, 1)
+      libcloudphxx_const(si::dimensionless, nc_eps, 1e7  * num_eps<real_t>, 1) // #/kg
+      libcloudphxx_const(si::dimensionless, nr_eps, 1e6  * num_eps<real_t>, 1) // #/kg
+
       // eq.2 Morrison and Grabowski 2007
       template<typename real_t>
       inline quantity<si::dimensionless, real_t> eta(
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &n
       ) {
         return real_t(.0005714 * 1e-6) * n * si::cubic_metres + real_t(.2714);
-      }                        //^^^ convert N to 1/cm3 
+      }                        //^^^ convert N to 1/cm3
 
       // assumed mass-diametrer relationship coefficients (below A2 and A3 in Morrison 2005)
       // (mass of droplet = volume * density of water)
       libcloudphxx_const_derived(si::mass_density, c_md, pi<real_t>()/6 * rho_w<real_t>())
       libcloudphxx_const(si::dimensionless,        d_md, 3, 1)
 
-      // for cloud droplets gamma size distribution is assumed 
+      // for cloud droplets gamma size distribution is assumed
       // (notation as in Morrison and Grabowski 2007 eq.1)
 
       // spectral index
@@ -38,7 +48,8 @@ namespace libcloudphxx
       inline quantity<si::dimensionless, real_t> miu_c(
         const quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> &n
       ) {
-        auto tmp = real_t(1) / pow<2>(eta(n)) - real_t(1);
+        auto eta_n = eta(n);
+        auto tmp = real_t(1) / (eta_n * eta_n) - real_t(1);
         assert(finite(tmp) && "spectral index n is finite failed");
         return tmp;
       }
@@ -50,18 +61,18 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> &rc,
         const quantity<si::mass_density, real_t> &rhod
       ) {
-        auto tmp = pow(
-	  c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1)) 
-          / 
+        auto tmp = std::pow(
+	  c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1))
+          /
 	  (rc * std::tgamma(miu_c(n*rhod) + real_t(1))) * si::cubic_metres
-	  , 
+	  ,
 	  real_t(1) / d_md<real_t>()
         ) / si::metres;
         assert(finite(tmp * si::metres) && "slope lambda_c is finite failed");
         return tmp;
       }
 
-      // intercept  
+      // intercept
       template<typename real_t>
       inline quantity<divide_typeof_helper<
         power_typeof_helper<si::length, static_rational<-3>>::type,
@@ -71,9 +82,9 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> &rc,
          const quantity<si::mass_density, real_t> &rhod
       ) {
-        auto tmp = nc 
-          * pow(lambda_c(nc, rc, rhod) * si::metres, miu_c(nc * rhod) + real_t(1)) 
-          / std::tgamma(miu_c(nc * rhod) + real_t(1)) 
+        auto tmp = nc
+          * std::pow(lambda_c(nc, rc, rhod) * si::metres, miu_c(nc * rhod) + real_t(1))
+          / std::tgamma(miu_c(nc * rhod) + real_t(1))
           / si::metres;
         assert(finite(tmp * si::metres * si::cubic_metres) && "intercept N0_c is finite failed");
         return tmp;
@@ -87,16 +98,16 @@ namespace libcloudphxx
          const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nr,
          const quantity<si::dimensionless, real_t> &rr
       ) {
-        auto tmp = pow(
+        auto tmp = std::pow(
 	  c_md<real_t>() * nr * std::tgamma(d_md<real_t>() + real_t(1)) / rr * si::cubic_metres
-          , 
+          ,
 	  real_t(1) / d_md<real_t>()
 	) / si::metres;
         assert(finite(tmp * si::metres) && "slope lambda_r is finite failed");
         return tmp;
       }
 
-      // intercept  
+      // intercept
       template<typename real_t>
       inline quantity<divide_typeof_helper<
         power_typeof_helper<si::length, static_rational<-1>>::type,
@@ -109,21 +120,21 @@ namespace libcloudphxx
         assert(finite(tmp * si::kilograms * si::metres) && "intercept N0_r is finite failed");
         return tmp;
       }
-      
+
       // cloud droplet radius based on rc, N (mean of gamma size distribution)
       template<typename real_t>
       inline quantity<si::length, real_t> r_drop_c(
-        real_t &rc,
-        real_t &nc,
+        const real_t &rc,
+        const real_t &nc,
         const quantity<si::mass_density, real_t> &rhod
       ) {
         quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> n_c = nc / si::kilograms;
         quantity<si::dimensionless, real_t> r_c = rc * si::dimensionless();
-        if (rc > 0 && nc > 0) 
+        if (rc > 0 && nc > 0)
           return (miu_c(nc / si::kilograms * rhod) + real_t(1)) / lambda_c(n_c, r_c, rhod) / real_t(2);
-        else 
+        else
           return 0 * si::metres;
-      } 
+      }
 
       // rain drop radius based on rr, N (mean of exponential size dist.)
       template<typename real_t>
@@ -133,9 +144,9 @@ namespace libcloudphxx
       ) {
         if (rr > 0 && nr * si::kilograms > 0)
           return real_t(1) / lambda_r(nr, rr) / real_t(2);
-        else 
+        else
           return 0 * si::metres;
-      } 
+      }
     };
   };
 };

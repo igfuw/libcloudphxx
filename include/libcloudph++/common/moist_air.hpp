@@ -1,8 +1,8 @@
 #pragma once
 
-#include <libcloudph++/common/units.hpp>
-#include <libcloudph++/common/macros.hpp> 
-#include <libcloudph++/common/molar_mass.hpp> 
+#include "units.hpp"
+#include "macros.hpp" 
+#include "molar_mass.hpp" 
 
 namespace libcloudphxx
 {
@@ -76,6 +76,7 @@ namespace libcloudphxx
       
       // water vapour partial pressure as a function of mixing ratio
       template <typename real_t>
+      BOOST_GPU_ENABLED
       quantity<si::pressure, real_t> p_v(
 	const quantity<si::pressure, real_t> &p,
 	const quantity<si::dimensionless, real_t> &r
@@ -96,8 +97,12 @@ namespace libcloudphxx
           p_0 = real_t(100000) * si::pascal;
         const quantity<si::temperature, real_t> 
           T_0 = real_t(273.15) * si::kelvin;
+
+#if !defined(__NVCC__)
+        using std::pow;
+#endif
  
-        return D_0<real_t>() * std::pow(T / T_0, real_t(1.81)) * (p_0 / p); 
+        return D_0<real_t>() * pow(T / T_0, real_t(1.81)) * (p_0 / p); 
       }   
 
       // thermal conductivity of air

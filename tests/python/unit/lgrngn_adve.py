@@ -1,5 +1,10 @@
 #TODO: also test adve in 1D and 3D
 import sys
+#try:
+#  import boost.mpi
+#except:
+#  pass
+
 sys.path.insert(0, "../../bindings/python/")
 
 from libcloudphxx import lgrngn
@@ -32,8 +37,8 @@ Opts_init.dx = 1
 Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
-Opts_init.sd_conc = 50 / (Opts_init.nx * Opts_init.nz)
-Opts_init.n_sd_max = 50
+Opts_init.sd_conc = 10 
+Opts_init.n_sd_max = 10 * (Opts_init.nx * Opts_init.nz)
 
 Backend = lgrngn.backend_t.serial
 
@@ -67,31 +72,33 @@ def advection_1step(Cx_arg, Cz_arg, backend=Backend, opts_init=Opts_init, opts=O
   prtcls = lgrngn.factory(backend, opts_init)
   Cx = Cx_arg * np.ones((opts_init.nx + 1, opts_init.nz))
   Cz = Cz_arg * np.ones((opts_init.nx, opts_init.nz + 1))
-  prtcls.init(th, rv, rhod, Cx, Cz=Cz)
+  prtcls.init(th, rv, rhod, Cx=Cx, Cz=Cz)
 
   prtcls.step_sync(opts, th, rv, rhod)
 
   #prtcls.diag_wet_rng(0,1)
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   tab_in = np.copy(np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
-  print "tab_in \n", tab_in
+  print("tab_in \n", tab_in)
   
   prtcls.step_async(opts)
   prtcls.step_sync(opts, th, rv, rhod)
   
   #prtcls.diag_wet_rng(0,1)
+  prtcls.diag_all()
   prtcls.diag_sd_conc()
   tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
-  print "tab_out \n", tab_out, np.roll(tab_out, -1, 0)
+  print("tab_out \n", tab_out, np.roll(tab_out, -1, 0))
   return tab_in, tab_out
 
 
 @pytest.mark.parametrize("Cx, Cz, roll_st, roll_ax", [
                           (1., 0., -1, 0), (-1., 0., 1, 0),
-                          pytest.mark.xfail((0., 1., -1, 1)), 
-                          pytest.mark.xfail((0., -1., 1, 1))
+                          pytest.param(0., 1., -1, 1, marks = pytest.mark.xfail), 
+                          pytest.param(0., -1., 1, 1, marks = pytest.mark.xfail)
                           ])
 def test_advection(Cx, Cz, roll_st, roll_ax):
   tab_in, tab_out = advection_1step(Cx, Cz)
-  print "w tescie \n", tab_in, "\n", tab_out
+  print("w tescie \n", tab_in, "\n", tab_out)
   assert (tab_in == np.roll(tab_out, roll_st, roll_ax)).all()

@@ -28,6 +28,16 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct is_positive : public thrust::unary_function<real_t, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &a)
+        {
+          return a > 0. ? 1 : 0;
+        }
+      };
+
+      template <typename real_t>
       struct rw3_cr
       {
         BOOST_GPU_ENABLED
@@ -96,6 +106,40 @@ namespace libcloudphxx
       };
     }
 
+    // records pressure
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_pressure()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->p.begin(), 
+        pimpl->p.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // p defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+
+    // records temperature
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_temperature()
+    {
+      pimpl->hskpng_Tpr(); 
+
+      thrust::copy(
+        pimpl->T.begin(), 
+        pimpl->T.end(), 
+        pimpl->count_mom.begin()
+      );
+
+      // T defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+
     // records relative humidity
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_RH()
@@ -111,23 +155,31 @@ namespace libcloudphxx
       // RH defined in all cells
       pimpl->count_n = pimpl->n_cell;
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
-      // inform that count_n and count_ijk are invalid
-      pimpl->counted = false;
     }
 
     // records super-droplet concentration per grid cell
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
     {
-      // common code with coalescence, hence separated into a method
-      pimpl->hskpng_count(); 
+      namespace arg = thrust::placeholders;
+      assert(pimpl->selected_before_counting);
 
-      // n_t -> real_t cast
-      thrust::copy(
-        pimpl->count_num.begin(), 
-        pimpl->count_num.end(), 
-        pimpl->count_mom.begin()
+      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+
+      // similar to hskpng_count
+      pimpl->hskpng_sort();
+
+      // computing count_* - number of particles per grid cell
+      auto n = thrust::reduce_by_key(
+        pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),   // input - keys
+        thrust::make_permutation_iterator(
+          thrust::make_transform_iterator(n_filtered.begin(), detail::is_positive<real_t>()),
+          pimpl->sorted_id.begin()
+        ),
+        pimpl->count_ijk.begin(),                      // output - keys
+        pimpl->count_mom.begin()                      // output - values
       );
+      pimpl->count_n = n.first - pimpl->count_ijk.begin();
     }
 
     // selected all particles
@@ -141,21 +193,54 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng(const real_t &r_min, const real_t &r_max)
     {
-      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin());
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), false);
     }
 
     // selects particles with (r_w >= r_min && r_w < r_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_rng(const real_t &r_min, const real_t &r_max)
     {
-      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin());
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), false);
     }
 
     // selects particles with (kpa >= kpa_min && kpa < kpa_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
     {
-      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin());
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
+    }
+
+    // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_dry_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 3), pow(r_max, 3), pimpl->rd3.begin(), true);
+    }
+
+    // selects particles with (r_w >= r_min && r_w < r_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wet_rng_cons(const real_t &r_min, const real_t &r_max)
+    {
+#if !defined(__NVCC__)
+      using std::pow;
+#endif
+      pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), true);
+    }
+
+    // selects particles with (kpa >= kpa_min && kpa < kpa_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
+    {
+      pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -233,6 +318,37 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->kpa.begin(), n);
     }   
 
+    // compute n-th moment of SGS velocity in x for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_up_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->up.begin(), n);
+    }   
+
+    // compute n-th moment of SGS velocity in y for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_vp_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->vp.begin(), n);
+    }   
+
+    // compute n-th moment of SGS velocity in z for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_wp_mom(const int &n)
+    {   
+      pimpl->moms_calc(pimpl->wp.begin(), n);
+    }   
+
+    // compute n-th moment of incloud_time for selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
+    {   
+      if(pimpl->opts_init.diag_incloud_time)
+        pimpl->moms_calc(pimpl->incloud_time.begin(), n);
+      else
+        assert(0 && "diag_incloud_time_mom called, but opts_init.diag_incloud_time==false");
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
@@ -251,7 +367,6 @@ namespace libcloudphxx
         typename thrust::counting_iterator<thrust_size_t>
       > pi;
 
-      namespace arg = thrust::placeholders;
 
       thrust::fill(
         pimpl->count_mom.begin(),
@@ -298,8 +413,6 @@ namespace libcloudphxx
       // divergence defined in all cells
       pimpl->count_n = pimpl->n_cell;
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
-      // inform that count_n and count_ijk are invalid
-      pimpl->counted = false;
     }
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs
@@ -322,7 +435,7 @@ namespace libcloudphxx
         detail::precip_rate<real_t>()
       );  
 
-      pimpl->moms_all();
+      pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
       pimpl->moms_calc(pimpl->vt.begin(), 1., false);
  
       // copy back stored vterm
@@ -376,7 +489,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    std::map<output_t, real_t> particles_t<real_t, device>::diag_puddle()
+    std::map<common::output_t, real_t> particles_t<real_t, device>::diag_puddle()
     {
       return pimpl->output_puddle;
     }

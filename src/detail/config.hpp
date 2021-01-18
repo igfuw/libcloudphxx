@@ -28,6 +28,8 @@ namespace libcloudphxx
         // range of beard77fast bins:
         const real_t vt0_ln_r_min, vt0_ln_r_max;
 
+        const real_t bcond_tolerance = 2e-4; // [m]; error tolerance for position near bcond after distmem copy  
+
         // ctor
         config():
           vt0_ln_r_min(log(5e-7)),

@@ -1,9 +1,10 @@
 #TODO: search pytest?
 #TODO: local search path for python modules (to make it work before make install)
 
-find_package(PythonLibs 2.7)
+# find_interp first, find_libs should find a matching version of libs
+find_package(PythonInterp 3)
+find_package(PythonLibs)
 
-find_package(PythonInterp REQUIRED)
 
 if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
   message(STATUS "PYTHON_EXECUTABLE: " ${PYTHON_EXECUTABLE})
@@ -22,7 +23,20 @@ if (NUMPY_FOUND GREATER 0)
   ")
 endif()
 
+# if compiled with MPI support, we need Boost.MPI for python tests to work
+if(USE_MPI)
+  find_package(Boost COMPONENTS mpi QUIET)
+  if(Boost_FOUND)
+    target_link_libraries(cloudphxx_lgrngn
+      PUBLIC 
+        Boost::mpi
+    )
+  else()
+  message(FATAL_ERROR "For Python tests to work in an MPI build, Boost.mpi is required, but it was not found.")
+  endif()
+endif()
+
 add_subdirectory(unit)
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
   add_subdirectory(physics)
 endif()

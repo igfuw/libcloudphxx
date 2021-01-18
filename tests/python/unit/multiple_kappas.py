@@ -19,14 +19,14 @@ def check_kappa_conc(prtcls, eps):
   prtcls.diag_kappa_rng(0.,1.)
   prtcls.diag_wet_mom(0)
   res_n = mean(frombuffer(prtcls.outbuf()))
-  print res_n * rho_stp
+  print(res_n * rho_stp)
   assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
     "initialized number of particles of type kappa1 differs from the distribution"
   
   prtcls.diag_kappa_rng(1.,2.)
   prtcls.diag_wet_mom(0)
   res_n = mean(frombuffer(prtcls.outbuf()))
-  print res_n * rho_stp
+  print(res_n * rho_stp)
   assert isclose(res_n * rho_stp, n_tot, atol=0., rtol=eps),\
     "initialized number of particles of type kappa2 differs from the distribution"
 
@@ -43,6 +43,7 @@ opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
+opts_init.sedi_switch = False
 
 backend = lgrngn.backend_t.serial
 
