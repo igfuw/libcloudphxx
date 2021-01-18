@@ -66,6 +66,9 @@ namespace libcloudphxx
         }
       }
 
+      // thrust requires that a default ctor exists
+      kernel_with_efficiencies() = default;
+
       //bilinear interpolation of collision efficiencies
       BOOST_GPU_ENABLED
       real_t interpolated_efficiency(real_t, real_t) const;
