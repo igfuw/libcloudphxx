@@ -117,6 +117,14 @@ for i in range(0,2): #loop to test sd_conc and const_multi options
       opts_init.sd_conc = 0
       opts_init.sd_const_multi = 1000
       opts_init.n_sd_max = int(float(n_zero) / opts_init.sd_const_multi + 10)
+
+    opts.dt = opts_dt
+    if opts_dt < 0:
+      n_step = simulation_time / opts_init.dt
+    else:
+      assert(simulation_time % opts_dt == 0)
+      opts_init.variable_dt_switch=True
+      n_step = simulation_time / opts_dt
   
     try:
       prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
@@ -125,13 +133,6 @@ for i in range(0,2): #loop to test sd_conc and const_multi options
     
     prtcls.init(th, rv, rhod)
     init_number_of_particles = partno()
-
-    opts.dt = opts_dt
-    if opts_dt < 0:
-      n_step = simulation_time / opts_init.dt
-    else:
-      assert(simulation_time % opts_dt == 0)
-      n_step = simulation_time / opts_dt
     
     #simulation loop
     for step in range(int(n_step)):
@@ -144,7 +145,7 @@ for i in range(0,2): #loop to test sd_conc and const_multi options
     
     if(i==0):
       print('sd_conc RMSD = ' + str(rmsd));
-      limit = 1.1e-5;
+      limit = 1.2e-5;
     else:
       print('const_multi RMSD = ' + str(rmsd));
       limit = 3e-5; # constant multiplicity doesn't represent tails of the distribution so well and mass densty function depends on large tail?

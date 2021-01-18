@@ -56,11 +56,11 @@ namespace libcloudphxx
       {
         tmp_device_real_part1.reserve(opts_init.n_sd_max); 
       }
-      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+      if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
       {
         tmp_device_real_part2.reserve(opts_init.n_sd_max); 
       }
-      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+      if(allow_sstp_cond && opts_init.exact_sstp_cond)
       {
         tmp_device_real_part3.reserve(opts_init.n_sd_max); 
         tmp_device_real_part4.reserve(opts_init.n_sd_max);  
@@ -107,7 +107,7 @@ namespace libcloudphxx
 //      }
 //      vt.resize(opts_init.n_sd_max, 0.); // so that it may be safely used in condensation before first update
 //
-//      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+//      if(allow_sstp_cond && opts_init.exact_sstp_cond)
 //      {
 //        sstp_tmp_rv.resize(opts_init.n_sd_max);
 //        sstp_tmp_th.resize(opts_init.n_sd_max);
