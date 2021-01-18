@@ -15,23 +15,65 @@ namespace libcloudphxx
     {
       // pointer to kernel parameters device vector
       thrust_device::pointer<real_t> k_params;
-
-      // number of user-defined parameters
-      n_t n_user_params; 
-
-      // largest radius for which efficiency is defined, 0 - n/a
-      real_t r_max;
    
       //ctor
       BOOST_GPU_ENABLED
-      kernel_base(thrust_device::pointer<real_t> k_params, n_t n_user_params = 0, real_t r_max = 0.) : 
-        k_params(k_params), n_user_params(n_user_params), r_max(r_max) {}
-
-      // thrust requires that a default ctor exists
-      kernel_base() = default;
+      kernel_base(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>()) : 
+        k_params(k_params) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &) const {return 0;}
+    };
+
+
+    // helper for kernels with efficiencies
+    template <class real_t, class n_t>
+    struct kernel_with_efficiencies
+    {
+      // pointer to kernel collision efficiencies device vector
+      thrust_device::pointer<real_t> k_coll_eff;
+
+      // pointer to kernel collision efficiencies radii device vector
+      thrust_device::pointer<real_t> k_coll_eff_rad;
+      // number of radii for which efficiencies are defined
+      int n_rad;
+
+      // pointer to kernel collision efficiencies radii ratio device vector
+      thrust_device::pointer<real_t> k_coll_eff_rat;
+      // number of ratios for which efficiencies are defined
+      int n_rat;
+
+      // largest radius for which efficiency is defined, 0 - n/a
+      real_t r_max;
+
+      //ctor
+      BOOST_GPU_ENABLED
+      kernel_with_efficiencies(
+        thrust_device::pointer<real_t> k_coll_eff,
+        real_t r_max,
+        thrust_device::pointer<real_t> k_coll_eff_rad = thrust_device::pointer<real_t>(),
+        int n_rad = 0,
+        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>(),
+        int n_rat = 0
+      ) : 
+        k_coll_eff(k_coll_eff), r_max(r_max), k_coll_eff_rad(k_coll_eff_rad), n_rad(n_rad), k_coll_eff_rat(k_coll_eff_rat), n_rat(n_rat)
+      {
+        // ratio has to be defined for the whole range [0,1]
+        if(n_rat > 0)
+        {
+          assert(k_coll_eff_rat[0] == 0.);
+          assert(k_coll_eff_rat[n_rat-1] == 1.);
+        }
+      }
+
+      // thrust requires that a default ctor exists
+      kernel_with_efficiencies() = default;
+
+      //bilinear interpolation of collision efficiencies
+      BOOST_GPU_ENABLED
+      real_t interpolated_efficiency(real_t, real_t) const;
+      BOOST_GPU_ENABLED
+      real_t interpolated_efficiency_radrat(real_t, real_t) const;
     };
 
 
@@ -41,7 +83,7 @@ namespace libcloudphxx
     {
       //ctor
       BOOST_GPU_ENABLED
-      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params, 1) {}
+      kernel_golovin(thrust_device::pointer<real_t> k_params) : kernel_base<real_t, n_t>(k_params) {}
 
       // thrust requires that a default ctor exists
       kernel_golovin() = default;
@@ -83,14 +125,9 @@ namespace libcloudphxx
     template <typename real_t, typename n_t>
     struct kernel_geometric : kernel_base<real_t, n_t>
     {
-      //ctor (default one)
+      //ctor
       BOOST_GPU_ENABLED
-      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>(), n_t n_user_params = 0, real_t r_max = 0.) : 
-        kernel_base<real_t, n_t>(k_params, n_user_params, r_max) {}
-
-      //bilinear interpolation of collision efficiencies, required by dervied classes
-      BOOST_GPU_ENABLED
-      real_t interpolated_efficiency(real_t, real_t) const;
+      kernel_geometric(thrust_device::pointer<real_t> k_params = thrust_device::pointer<real_t>()) : kernel_base<real_t, n_t>(k_params) {}
 
       BOOST_GPU_ENABLED
       virtual real_t calc(const tpl_calc_wrap<real_t,n_t> &tpl_wrap) const
@@ -129,7 +166,7 @@ namespace libcloudphxx
     {
       //ctor
       BOOST_GPU_ENABLED
-      kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params, 1) {}
+      kernel_geometric_with_multiplier(thrust_device::pointer<real_t> k_params) : kernel_geometric<real_t, n_t>(k_params) {}
 
       // thrust requires that a default ctor exists
       kernel_geometric_with_multiplier() = default;
@@ -176,11 +213,18 @@ namespace libcloudphxx
     };
 
     template <typename real_t, typename n_t>
-    struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>
+    struct kernel_geometric_with_efficiencies : kernel_geometric<real_t, n_t>, kernel_with_efficiencies<real_t, n_t>
     {
       //ctor
       BOOST_GPU_ENABLED
-      kernel_geometric_with_efficiencies(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 0, r_max) {}
+      kernel_geometric_with_efficiencies(
+        thrust_device::pointer<real_t> k_coll_eff, 
+        real_t r_max,
+        thrust_device::pointer<real_t> k_coll_eff_rad = thrust_device::pointer<real_t>(),
+        int n_rad = 0,
+        thrust_device::pointer<real_t> k_coll_eff_rat = thrust_device::pointer<real_t>(),
+        int n_rat = 0
+      ) : kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max, k_coll_eff_rad, n_rad, k_coll_eff_rat, n_rat) {}
 
       // thrust requires that a default ctor exists
       kernel_geometric_with_efficiencies() = default;
@@ -194,7 +238,7 @@ namespace libcloudphxx
         using std::sqrt;
 #endif
 
-        return  kernel_geometric<real_t, n_t>::interpolated_efficiency(
+        return  kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency_radrat(
                   sqrt( thrust::get<rw2_a_ix>(tpl_wrap.get_rw())),
                   sqrt( thrust::get<rw2_b_ix>(tpl_wrap.get_rw()))
                 ) * kernel_geometric<real_t, n_t>::calc(tpl_wrap);
@@ -207,13 +251,17 @@ namespace libcloudphxx
     // TODO: get these values from flow characteristic (simulation-time during hskpng)
     //       cf. Benmoshe et al, JGR 2012
     template <typename real_t, typename n_t>
-    struct kernel_onishi : kernel_geometric<real_t, n_t>
+    struct kernel_onishi : kernel_geometric<real_t, n_t>, kernel_with_efficiencies<real_t, n_t>
     {
       detail::wang_collision_enhancement_t<real_t> wang_collision_enhancement;
 
       //ctor
       BOOST_GPU_ENABLED
-      kernel_onishi(thrust_device::pointer<real_t> k_params, real_t r_max) : kernel_geometric<real_t, n_t>(k_params, 1, r_max) {}
+      kernel_onishi(
+        thrust_device::pointer<real_t> k_params, 
+        thrust_device::pointer<real_t> k_coll_eff, 
+        real_t r_max
+      ) : kernel_geometric<real_t, n_t>(k_params), kernel_with_efficiencies<real_t, n_t>(k_coll_eff, r_max) {}
 
       // thrust requires that a default ctor exists
       kernel_onishi() = default;
@@ -238,7 +286,7 @@ namespace libcloudphxx
 
         real_t geometric = kernel_geometric<real_t, n_t>::calc(tpl_wrap);
         real_t res = 
-          kernel_geometric<real_t, n_t>::interpolated_efficiency(rwa, rwb) *             // stagnant air collision efficiency
+          kernel_with_efficiencies<real_t, n_t>::interpolated_efficiency(rwa, rwb) *     // stagnant air collision efficiency
           wang_collision_enhancement(rwa, rwb, kernel_base<real_t, n_t>::k_params[0]) *  // Wang turbulent collision efficiency enhancement, k_params[0] - epsilon
           sqrt(
             geometric * geometric +  // geometric kernel 

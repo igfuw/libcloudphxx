@@ -311,6 +311,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .add_property("w_LS", &lgrngn::get_w_LS<real_t>, &lgrngn::set_w_LS<real_t>)
       .add_property("SGS_mix_len", &lgrngn::get_SGS_mix_len<real_t>, &lgrngn::set_SGS_mix_len<real_t>)
       .add_property("kernel_parameters", &lgrngn::get_kp<real_t>, &lgrngn::set_kp<real_t>)
+      .def_readwrite("variable_dt_switch", &lgr::opts_init_t<real_t>::variable_dt_switch)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)

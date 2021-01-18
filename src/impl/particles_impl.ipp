@@ -64,11 +64,14 @@ namespace libcloudphxx
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
       thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
-      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
+      // device container for kernel parameters, comes from opts_init
       thrust_device::vector<real_t> kernel_parameters;
-
-      //number of kernel parameters defined by user in opts_init
-      const n_t n_user_params;
+      // device container for kernel collision efficiencies
+      thrust_device::vector<real_t> kernel_coll_eff;
+      // device container for kernel collision efficiencies radii matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rad;
+      // device container for kernel collision efficiencies ratio matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rat;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -166,6 +169,10 @@ namespace libcloudphxx
 
       // is a constant, external pressure profile used? (e.g. anelastic model)
       bool const_p;
+
+      // is it allowed to do substepping, if not, some memory can be saved
+      bool allow_sstp_cond,
+           allow_sstp_chem;
 
       // timestep counter
       n_t stp_ctr;
@@ -303,7 +310,6 @@ namespace libcloudphxx
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
         stp_ctr(0),
@@ -331,6 +337,8 @@ namespace libcloudphxx
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
+        allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
       {
 
@@ -387,7 +395,7 @@ namespace libcloudphxx
         if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
         if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
 
-        if(opts_init.sstp_cond > 1 && opts_init.exact_sstp_cond)
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
            distmem_real_vctrs.insert(&sstp_tmp_rv);
            distmem_real_vctrs.insert(&sstp_tmp_th);
