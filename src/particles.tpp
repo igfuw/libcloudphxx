@@ -27,7 +27,7 @@
 #include "detail/ran_with_mpi.hpp"
 
 //kernel definitions
-#include "detail/kernel_definitions/hall_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_efficiencies_like_in_EFM.hpp"
 #include "detail/kernel_definitions/hall_davis_no_waals_efficiencies_like_in_EFM.hpp"
 #include "detail/kernel_definitions_Jon/vohl_davis_no_waals_efficiencies.hpp"
 #include "detail/kernel_definitions_Jon/hall_pinsky_stratocumulus_efficiencies.hpp"
