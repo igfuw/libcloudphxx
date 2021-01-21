@@ -39,6 +39,13 @@ namespace libcloudphxx
         data(ai.data), 
         strides(!strvec.empty() ? &strvec[0] : ai.strides)
       {}
+
+      // non-default move ctor handling both the original and alternative usage
+      arrinfo_t(arrinfo_t &&ai) :
+        strvec(std::move(ai.strvec)),
+        data(ai.data),
+        strides(!strvec.empty() ? &strvec[0] : ai.strides)
+      {}
     };
   };
 };
