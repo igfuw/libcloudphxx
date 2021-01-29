@@ -49,16 +49,16 @@ namespace libcloudphxx
         dot_ssp.resize(n_part, 0);
       }
 
-      if(opts_init.chem_switch || opts_init.sstp_cond > 1 || n_dims >= 2)
+      if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
       {
         tmp_device_real_part1.resize(n_part);
       }
-      if((opts_init.sstp_cond>1 && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+      if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
       {
         tmp_device_real_part2.resize(n_part);
       }
 
-      if(opts_init.sstp_cond>1 && opts_init.exact_sstp_cond)
+      if(allow_sstp_cond && opts_init.exact_sstp_cond)
       {
         tmp_device_real_part3.resize(n_part);
         tmp_device_real_part4.resize(n_part);  

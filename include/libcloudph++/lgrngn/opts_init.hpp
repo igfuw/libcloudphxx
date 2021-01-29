@@ -64,6 +64,9 @@ namespace libcloudphxx
       // should aerosol concentration init be independent of rhod (assumed to be in cm^{-3} and not at STP)
       bool aerosol_independent_of_rhod;
 
+      // is it allowed to change dt during simulation through opts.dt
+      bool variable_dt_switch;
+
       // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
       unsigned long long  sd_const_multi;
 
@@ -100,17 +103,16 @@ namespace libcloudphxx
       // coalescence kernel parameters
       std::vector<real_t> kernel_parameters;
 
-      // chem
       bool chem_switch,  // if false no chemical reactions throughout the whole simulation (no memory allocation)
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            subs_switch,  // if false no subsidence throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
-           exact_sstp_cond, // if true, use per-particle sstp_cond logic, if false, use per-cell
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
-           turb_coal_switch;   // if true, turbulent coalescence kernels can be used
-
+           turb_coal_switch,   // if true, turbulent coalescence kernels can be used
+           exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           
       int sstp_chem;
       real_t chem_rho;
 
@@ -121,7 +123,8 @@ namespace libcloudphxx
       real_t RH_max;
 
       // rng seed
-      int rng_seed;
+      int rng_seed,
+          rng_seed_init; // seed used to init SD (positions and dry sizes)
 
       // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
@@ -168,6 +171,7 @@ namespace libcloudphxx
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
+        rng_seed_init(rng_seed),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
@@ -186,7 +190,8 @@ namespace libcloudphxx
         diag_incloud_time(false),
         no_ccn_at_init(false),
         open_side_walls(false),
-        periodic_topbot_walls(false)
+        periodic_topbot_walls(false),
+        variable_dt_switch(false)
       {}
 
       // dtor (just to silence -Winline warnings)

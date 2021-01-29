@@ -80,18 +80,14 @@ namespace libcloudphxx
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
-        // TODO: many max or m1 used, unify it
-#if !defined(__NVCC__)
-        using std::max;
-#endif
         // TODO: copy-pasted from init
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) - pimpl->halo_z);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) - pimpl->halo_z);
         /*
         if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
         if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * max(1, pimpl->opts_init.ny) );
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) );
         */
       }
 
@@ -174,8 +170,11 @@ namespace libcloudphxx
 
       pimpl->should_now_run_cond = false;
 
+      // dt defined in opts_init can be overriden by dt in opts
+      pimpl->adjust_timesteps(opts.dt);
+
       if (pimpl->opts_init.diag_incloud_time)
-        pimpl->update_incloud_time();
+        pimpl->update_incloud_time(pimpl->dt);
 
       // condensation/evaporation 
       if (opts.cond) 
@@ -189,15 +188,15 @@ namespace libcloudphxx
         //       that would make it easy to do in exact (per-cell) substepping
         pimpl->hskpng_mfp(); 
 
-        if(pimpl->opts_init.exact_sstp_cond && pimpl->opts_init.sstp_cond > 1)
+        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)
         // apply substeps per-particle logic
         {
-          for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+          for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {   
             pimpl->sstp_step_exact(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
-            pimpl->cond_sstp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond); 
+              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
+            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
           // copy sstp_tmp_rv and th to rv and th
           pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
@@ -206,13 +205,13 @@ namespace libcloudphxx
         else
         // apply per-cell sstp logic
         {
-          for (int step = 0; step < pimpl->opts_init.sstp_cond; ++step) 
+          for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {   
             pimpl->sstp_step(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond);
+              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->opts_init.dt / pimpl->opts_init.sstp_cond, opts.RH_max, opts.turb_cond);
+            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
           }
         }
 
@@ -308,7 +307,7 @@ namespace libcloudphxx
       // TODO2: shouldn't we run hskpng_Tpr before chemistry?
       if (opts.chem_dsl or opts.chem_dsc or opts.chem_rct) 
       {
-        for (int step = 0; step < pimpl->opts_init.sstp_chem; ++step) 
+        for (int step = 0; step < pimpl->sstp_chem; ++step) 
         {   
           // calculate new volume of droplets (needed for chemistry)
           pimpl->chem_vol_ante();
@@ -322,7 +321,7 @@ namespace libcloudphxx
             pimpl->sstp_step_chem(step);
 
             //dissolving trace gases (Henrys law)
-            pimpl->chem_henry(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+            pimpl->chem_henry(pimpl->dt / pimpl->sstp_chem);
 
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
@@ -338,7 +337,7 @@ namespace libcloudphxx
            
           if (opts.chem_rct)
           { //oxidation 
-            pimpl->chem_react(pimpl->opts_init.dt / pimpl->opts_init.sstp_chem);
+            pimpl->chem_react(pimpl->dt / pimpl->sstp_chem);
 
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
@@ -355,7 +354,7 @@ namespace libcloudphxx
         // introduce new particles with the given time interval
         if(pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0) 
         {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->opts_init.dt);
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
         }
       }
 
@@ -413,6 +412,9 @@ namespace libcloudphxx
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("turbulent advection does not work in 0D");
 
+      // dt defined in opts_init can be overriden by dt in opts
+      pimpl->adjust_timesteps(opts.dt);
+
       if (opts.chem_dsl) 
       { 
         // saving rv to be used as rv_old
@@ -430,7 +432,6 @@ namespace libcloudphxx
       // coalescence
       if (opts.coal) 
       {
-
         thrust::fill(pimpl->delta_accr20.begin(), pimpl->delta_accr20.end(), real_t(0));
         thrust::fill(pimpl->delta_accr25.begin(), pimpl->delta_accr25.end(), real_t(0));
         thrust::fill(pimpl->delta_accr32.begin(), pimpl->delta_accr32.end(), real_t(0));
@@ -439,13 +440,13 @@ namespace libcloudphxx
         thrust::fill(pimpl->delta_acnv25.begin(), pimpl->delta_acnv25.end(), real_t(0));
         thrust::fill(pimpl->delta_acnv32.begin(), pimpl->delta_acnv32.end(), real_t(0));
 
-        for (int step = 0; step < pimpl->opts_init.sstp_coal; ++step) 
+        for (int step = 0; step < pimpl->sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->opts_init.dt / pimpl->opts_init.sstp_coal, opts.turb_coal);
+          pimpl->coal(pimpl->dt / pimpl->sstp_coal, opts.turb_coal);
 
           // update invalid vterm 
-          if (step + 1 != pimpl->opts_init.sstp_coal)
+          if (step + 1 != pimpl->sstp_coal)
             pimpl->hskpng_vterm_invalid(); 
         }
 
@@ -582,12 +583,12 @@ namespace libcloudphxx
       if (opts.turb_adve)
       {
         // calc turbulent perturbation of velocity
-        pimpl->hskpng_turb_vel();
+        pimpl->hskpng_turb_vel(pimpl->dt);
       }
       else if (opts.turb_cond)
       {
         // calc turbulent perturbation only of vertical velocity
-        pimpl->hskpng_turb_vel(true);
+        pimpl->hskpng_turb_vel(pimpl->dt, true);
       }
 
       if(opts.turb_cond)
@@ -602,18 +603,18 @@ namespace libcloudphxx
       pimpl->adve_scheme = pimpl->opts_init.adve_scheme;
 
       // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
-      if (opts.turb_adve) pimpl->turb_adve();
+      if (opts.turb_adve) pimpl->turb_adve(pimpl->dt);
 
       // sedimentation/subsidence has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
       {
         // advection with terminal velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
-        pimpl->sedi();
+        pimpl->sedi(pimpl->dt);
       }
       if (opts.subs) 
       {
         // advection with subsidence velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
-        pimpl->subs();
+        pimpl->subs(pimpl->dt);
       }
 
       // boundary condition + accumulated rainfall to be returned
