@@ -494,6 +494,7 @@ namespace libcloudphxx
       void hskpng_vterm_invalid();
       void hskpng_tke();
       void hskpng_sgs_vel(const real_t &dt, const bool only_vertical = false);
+      void hskpng_sgs_vel_GA17(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
