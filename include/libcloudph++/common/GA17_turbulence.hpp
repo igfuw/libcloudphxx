@@ -80,7 +80,7 @@ namespace libcloudphxx
 
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::velocity, real_t> update_turb_vel(
+      quantity<si::velocity, real_t> update_sgs_vel(
         const quantity<si::velocity, real_t> &wp,
         const quantity<si::time, real_t> &tau,
         const quantity<si::time, real_t> &dt,

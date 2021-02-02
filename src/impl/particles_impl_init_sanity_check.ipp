@@ -117,14 +117,14 @@ namespace libcloudphxx
         throw std::runtime_error("opts_init.sedi_switch can be True only if n_dims > 1");
       if (opts_init.subs_switch && opts_init.nz == 0)
         throw std::runtime_error("opts_init.subs_switch can be True only if n_dims > 1");
-      if (opts_init.turb_adve_switch && opts_init.nz == 0)
-        throw std::runtime_error("opts_init.turb_adve_switch can be True only if n_dims > 1");
+      if (opts_init.sgs_adve != sgs_adve_t::undefined && opts_init.nz == 0)
+        throw std::runtime_error("opts_init.sgs_adve can be defined only if n_dims > 1");
       if (opts_init.turb_cond_switch && opts_init.nz == 0)
         throw std::runtime_error("opts_init.turb_cond_switch can be True only if n_dims > 1");
       if (opts_init.subs_switch && opts_init.nz != w_LS.size())
         throw std::runtime_error("opts_init.subs_switch == True, but subsidence velocity profile size != nz");
-      if ((opts_init.turb_adve_switch || opts_init.turb_cond_switch) && opts_init.nz != SGS_mix_len.size())
-        throw std::runtime_error("at least one of opts_init.turb_adve_switch, opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
+      if ((opts_init.sgs_adve != sgs_adve_t::undefined || opts_init.turb_cond_switch) && opts_init.nz != SGS_mix_len.size())
+        throw std::runtime_error("opts_init.sgs_adve is defined and/or opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("SGS_mix_len <= 0");
     }

@@ -82,7 +82,7 @@
 #include "impl/particles_impl_hskpng_Tpr.ipp"
 #include "impl/particles_impl_hskpng_mfp.ipp"
 #include "impl/particles_impl_hskpng_vterm.ipp"
-#include "impl/particles_impl_hskpng_turb_vel.ipp"
+#include "impl/particles_impl_hskpng_sgs_vel.ipp"
 #include "impl/particles_impl_hskpng_turb_ss.ipp"
 #include "impl/particles_impl_hskpng_tke.ipp"
 #include "impl/particles_impl_hskpng_sort.ipp"
@@ -96,7 +96,7 @@
 #include "impl/particles_impl_sync.ipp"
 #include "impl/particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 #include "impl/particles_impl_adve.ipp"
-#include "impl/particles_impl_turb_adve.ipp"
+#include "impl/particles_impl_sgs_adve.ipp"
 #include "impl/particles_impl_cond_common.ipp"
 #include "impl/particles_impl_cond.ipp"
 #include "impl/particles_impl_cond_sstp.ipp"

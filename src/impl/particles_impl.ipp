@@ -401,7 +401,7 @@ namespace libcloudphxx
            // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
         }
 
-        if(opts_init.turb_adve_switch)
+        if(opts_init.sgs_adve != sgs_adve_t::undefined)
         {
           if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
           if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
@@ -493,7 +493,7 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
+      void hskpng_sgs_vel(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
@@ -534,7 +534,7 @@ namespace libcloudphxx
 
       void adjust_timesteps(const real_t &dt);
       void adve();
-      void turb_adve(const real_t &dt);
+      void sgs_adve(const real_t &dt);
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi(const real_t &dt);

@@ -12,6 +12,7 @@
 #include "terminal_velocity.hpp"
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
+#include "sgs_adve.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
@@ -108,10 +109,11 @@ namespace libcloudphxx
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            subs_switch,  // if false no subsidence throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
-           turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+
+      sgs_adve_t::sgs_adve_t sgs_adve; // model of SGS advection to be used
            
       int sstp_chem;
       real_t chem_rho;
@@ -166,13 +168,13 @@ namespace libcloudphxx
         src_switch(false),  // source turned off by default
         exact_sstp_cond(false),
         turb_cond_switch(false),
-        turb_adve_switch(false),
         turb_coal_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         rng_seed_init(rng_seed),
         terminal_velocity(vt_t::undefined),
+        sgs_adve(sgs_adve_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),

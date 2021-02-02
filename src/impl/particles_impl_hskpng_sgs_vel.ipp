@@ -27,17 +27,17 @@ namespace libcloudphxx
       };
 
       template<class real_t>
-      struct common__turbulence__update_turb_vel
+      struct common__turbulence__update_sgs_vel
       {
         const quantity<si::time, real_t> dt;
-        common__turbulence__update_turb_vel(const real_t &dt):
+        common__turbulence__update_sgs_vel(const real_t &dt):
           dt(dt * si::seconds){}
 
         template<class tpl_t>
         BOOST_GPU_ENABLED
         real_t operator()(tpl_t tpl)
         {
-          return common::GA17_turbulence::update_turb_vel(
+          return common::GA17_turbulence::update_sgs_vel(
             thrust::get<0>(tpl) * si::metres / si::seconds,
             thrust::get<1>(tpl) * si::seconds,
             dt,
@@ -49,7 +49,7 @@ namespace libcloudphxx
     };
     // calc the SGS turbulent velocity component
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::hskpng_turb_vel(const real_t &dt, const bool only_vertical)
+    void particles_t<real_t, device>::impl::hskpng_sgs_vel(const real_t &dt, const bool only_vertical)
     {   
       namespace arg = thrust::placeholders;
 
@@ -86,7 +86,7 @@ namespace libcloudphxx
             r_normal.begin()
           )) + n_part,
           vel_turbs_vctrs_a[i]->begin(),
-          detail::common__turbulence__update_turb_vel<real_t>(dt)
+          detail::common__turbulence__update_sgs_vel<real_t>(dt)
         );
       }
     }
