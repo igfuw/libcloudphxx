@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "urand.hpp"
 #include "../../include/libcloudph++/lgrngn/backend.hpp"
 
@@ -39,40 +40,36 @@ namespace libcloudphxx
       // wavevectors in the form k = (nx,ny,nz) * 2 PI / L, where n is integer to get periodic flow
 //      const int nn; // = nx^2 + ny^2 + nz^2
 
-      // arrays of size [3][Nwaves]
-      thrust_device::vector<real_t> enm, knm, Anm, Bnm;
+      // pointers to arrays of size [3][Nwaves] stored in device memory
+      thrust_device::pointer<real_t> enm, knm, Anm, Bnm;
 
       public:
       BOOST_GPU_ENABLED
-      void update_time(const real_t &dt)
+      void update_time(const real_t &dt, thrust_device::pointer<real_t> rand_normal)
       {
-        /*
-        std::normal_distribution<real_t> normal_d(0,1);
-        std::default_random_engine local_rand_eng(std::random_device{}());
         real_t relax = exp(-wn * dt);
 
         for(int m=0; m<Nwaves; m+=2)
         {
           for(int i=0; i<3; ++i)
           {
-            Anm[i][m] = relax * Anm[i][m] + std_dev * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
+            Anm[i][m] = relax * Anm[i][m] + std_dev * sqrt(1. - relax * relax) * rand_normal[3*m+2*i];
             Anm[i][m+1] = -Anm[i][m];
 
-            Bnm[i][m] = relax * Bnm[i][m] + std_dev * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
+            Bnm[i][m] = relax * Bnm[i][m] + std_dev * sqrt(1. - relax * relax) * rand_normal[3*m+2*i+1];
             Bnm[i][m+1] = Bnm[i][m];
           }
         }
-        */
       }
 
       BOOST_GPU_ENABLED
       mode(const real_t &std_dev,
            const real_t &wn,
            const int Nwaves,
-           const std::vector<real_t> enm,
-           const std::vector<real_t> Anm,
-           const std::vector<real_t> Bnm,
-           const std::vector<real_t> knm
+           const thrust_device::pointer<real_t> enm,
+           const thrust_device::pointer<real_t> Anm,
+           const thrust_device::pointer<real_t> Bnm,
+           const thrust_device::pointer<real_t> knm
            ):
         Nwaves(Nwaves),
         std_dev(std_dev),
@@ -81,7 +78,31 @@ namespace libcloudphxx
         Anm(Anm),
         Bnm(Bnm),
         knm(knm)
+      {}
+
+/*
+      BOOST_GPU_ENABLED
+      mode(const mode<real_t> &m)
+      {}
+
+      BOOST_GPU_ENABLED
+      mode()
+      {}
+*/
+    };
+
+    template<class real_t>
+    struct mode_update_time
+    {
+      const real_t dt;
+
+      mode_update_time(const real_t &dt): dt(dt) {}
+
+      template <class tpl_t>
+      BOOST_GPU_ENABLED
+      void operator()(const tpl_t &tpl) //const mode<real_t> *mp, thrust_device::pointer<real_t> rand_normal)
       {
+        thrust::get<0>(tpl)->update_time(dt, thrust::get<1>(tpl));
       }
     };
 
@@ -93,18 +114,57 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &tmp_device_real_part;
       lgrngn::detail::rng<real_t, device> rng; // separate rng, because we want the same sequence of random numbers on all distmem GPUS/nodes
 
+      public:
+
       void update_time(const real_t &dt)
       {
         // get random normally distributed vars
-        int total_number_of_modes = 0;
-        rng.generate_normal_n(tmp_device_real_part, total_number_of_modes);
+        auto &rand_nrml(tmp_device_real_part);
+        auto total_number_of_modes = modes.size();
+        assert(total_number_of_modes * Nwaves_max * 6 <= rand_nrml.size());
+        rng.generate_normal_n(rand_nrml, total_number_of_modes * Nwaves_max * 6); // each mode needs nwaves*6 random numbers; TODO: use actual nwaves not Nwaves_max
 
+        namespace arg = thrust::placeholders;
+
+        auto zip_mode_rand = 
+          thrust::make_zip_iterator(thrust::make_tuple(
+            modes.begin(),
+            thrust::make_permutation_iterator(
+              rand_nrml.begin(),
+              thrust::make_transform_iterator(
+                thrust::make_counting_iterator(0),
+                arg::_1 * Nwaves_max * 6
+              )
+            )
+          ));
+
+        thrust::for_each(
+          zip_mode_rand,
+          zip_mode_rand + modes.size(),
+          mode_update_time<real_t>(dt)
+        );
+
+/*
         for(int n=0; n<Nmodes; ++n)
         {
+          std::normal_distribution<real_t> normal_d(0,1);
+          std::default_random_engine local_rand_eng(std::random_device{}());
+          real_t relax = exp(-wn[n] * dt);
+  
+          for(int m=0; m<Nwaves[n]; m+=2)
+          {
+            for(int i=0; i<3; ++i)
+            {
+              Anm[i][n][m] = relax * Anm[i][n][m] + std_dev[n] * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
+              Anm[i][n][m+1] = -Anm[i][n][m];
+  
+              Bnm[i][n][m] = relax * Bnm[i][n][m] + std_dev[n] * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
+              Bnm[i][n][m+1] = Bnm[i][n][m];
+            }
+          }
         }
+*/
       }
-
-      public:
 
       synth_turb(
         const real_t &eps,        // TKE dissipation rate [m2/s3], for now it has to be a constant value
@@ -129,9 +189,9 @@ namespace libcloudphxx
         int nn[Nmodes],     // nn = nx^2 + ny^2 + nz^2
             Nwaves[Nmodes]; // actual number of wave vectors in thath mode
 
-        std::array<std::vector<real_t>, Nmodes> enm, // unit vectors along wavevectors
-                                                Anm, Bnm, // coefficients of the Fourier transform
-                                                knm;
+        std::array<thrust_device::vector<real_t>, Nmodes> enm, // unit vectors along wavevectors
+                                                          Anm, Bnm, // coefficients of the Fourier transform
+                                                          knm;
 
   
         // --- linear distribution of nn (nn = 1, 2, 3, 4, ..., Nmodes) ---
@@ -252,7 +312,7 @@ namespace libcloudphxx
             // knm = unit vector * magnitude
             for(int i=0; i<3; ++i)
            //   knm[n][i][m] = enm[n][i][m] * k[n];
-              knm[n].push_back(enm[n].at(3*m+i) * k[n]);
+              knm[n].push_back(enm[n][3*m+i] * k[n]);
   
             // init random coefficients
 
@@ -281,10 +341,10 @@ namespace libcloudphxx
             std_dev[n],
             wn[n],
             Nwaves[n],
-            enm[n],
-            Anm[n],
-            Bnm[n],
-            knm[n]
+            enm[n].data(),
+            Anm[n].data(),
+            Bnm[n].data(),
+            knm[n].data()
           ));
           /*
       mode(const real_t &std_dev,

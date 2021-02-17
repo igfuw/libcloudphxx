@@ -423,6 +423,8 @@ namespace libcloudphxx
       if(!pimpl->opts_init.dev_count)
         pimpl->post_copy(opts);
 
+      pimpl->ST.update_time(pimpl->dt);
+
       pimpl->selected_before_counting = false;
     }
   };
