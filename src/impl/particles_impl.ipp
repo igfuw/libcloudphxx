@@ -29,6 +29,10 @@ namespace libcloudphxx
 
     };  
 
+    const int Nwaves_max=50;
+    const int Nmodes=50;
+    const double eps = 1e-4; // diss rate for ST, [m2/s3]
+
     // pimpl stuff 
     template <typename real_t, backend_t device>
     struct particles_t<real_t, device>::impl
@@ -63,6 +67,9 @@ namespace libcloudphxx
       thrust_device::vector<kernel_geometric_with_efficiencies<real_t, n_t> > k_geometric_with_efficiencies;
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
       thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
+
+      // synthetic turbulence - TODO (only when used)
+      synth_turb_periodic_box::synth_turb<real_t, device, Nmodes, Nwaves_max> ST;
 
       // device container for kernel parameters, could come from opts_init or a file depending on the kernel
       thrust_device::vector<real_t> kernel_parameters;
@@ -337,7 +344,8 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi ((_opts_init.sd_conc == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
+        ST(eps, _opts_init.rng_seed, tmp_device_real_part)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn

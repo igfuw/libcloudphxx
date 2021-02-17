@@ -367,7 +367,7 @@ namespace libcloudphxx
         }
       }
 
-      if (opts.sgs_adve || opts.turb_cond)
+      if ((opts.sgs_adve || opts.turb_cond) && pimpl->opts_init.sgs_adve == sgs_adve_t::GA17) // GA17 takes TKE input
       {
         // calc tke (diss_rate now holds TKE, not dissipation rate! Hence this must be done after coal, which requires diss rate)
         pimpl->hskpng_tke();
