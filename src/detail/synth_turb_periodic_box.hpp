@@ -1,6 +1,7 @@
 #pragma once
 #include <random>
 #include "urand.hpp"
+#include "thrust.hpp"
 #include "../../include/libcloudph++/lgrngn/backend.hpp"
 
 namespace libcloudphxx
@@ -45,19 +46,20 @@ namespace libcloudphxx
 
       public:
       BOOST_GPU_ENABLED
-      void update_time(const real_t &dt, thrust_device::pointer<real_t> rand_normal)
+      void update_time(const real_t &dt, const real_t &rand_normal)
       {
-        real_t relax = exp(-wn * dt);
+        const real_t relax = exp(-wn * dt);
+        const real_t *p_rand_normal(&rand_normal); // we rely on iterators passing pointers do data, without copies!
 
         for(int m=0; m<Nwaves; m+=2)
         {
           for(int i=0; i<3; ++i)
           {
-            Anm[i][m] = relax * Anm[i][m] + std_dev * sqrt(1. - relax * relax) * rand_normal[3*m+2*i];
-            Anm[i][m+1] = -Anm[i][m];
+            Anm[3*m+i] = relax * Anm[3*m+i] + std_dev * sqrt(1. - relax * relax) * p_rand_normal[3*m+2*i];
+            Anm[3*(m+1)+i] = -Anm[3*m+i];
 
-            Bnm[i][m] = relax * Bnm[i][m] + std_dev * sqrt(1. - relax * relax) * rand_normal[3*m+2*i+1];
-            Bnm[i][m+1] = Bnm[i][m];
+            Bnm[3*m+i] = relax * Bnm[3*m+i] + std_dev * sqrt(1. - relax * relax) * p_rand_normal[3*m+2*i+1];
+            Bnm[3*(m+1)+i] = Bnm[3*m+i];
           }
         }
       }
@@ -102,7 +104,8 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       void operator()(const tpl_t &tpl) //const mode<real_t> *mp, thrust_device::pointer<real_t> rand_normal)
       {
-        thrust::get<0>(tpl)->update_time(dt, thrust::get<1>(tpl));
+//        thrust::get<0>(tpl)->update_time(dt, thrust::get<1>(tpl));
+        thrust::get<0>(tpl).update_time(dt, thrust::get<1>(tpl));
       }
     };
 
@@ -113,6 +116,10 @@ namespace libcloudphxx
       thrust_device::vector<mode<real_t>> modes;
       thrust_device::vector<real_t> &tmp_device_real_part;
       lgrngn::detail::rng<real_t, device> rng; // separate rng, because we want the same sequence of random numbers on all distmem GPUS/nodes
+
+      std::array<thrust_device::vector<real_t>, Nmodes> enm, // unit vectors along wavevectors
+                                                        Anm, Bnm, // coefficients of the Fourier transform
+                                                        knm;
 
       public:
 
@@ -144,26 +151,14 @@ namespace libcloudphxx
           mode_update_time<real_t>(dt)
         );
 
-/*
-        for(int n=0; n<Nmodes; ++n)
+        for(int i=0; i<Nmodes; ++i)
         {
-          std::normal_distribution<real_t> normal_d(0,1);
-          std::default_random_engine local_rand_eng(std::random_device{}());
-          real_t relax = exp(-wn[n] * dt);
-  
-          for(int m=0; m<Nwaves[n]; m+=2)
-          {
-            for(int i=0; i<3; ++i)
-            {
-              Anm[i][n][m] = relax * Anm[i][n][m] + std_dev[n] * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
-              Anm[i][n][m+1] = -Anm[i][n][m];
-  
-              Bnm[i][n][m] = relax * Bnm[i][n][m] + std_dev[n] * sqrt(1. - relax * relax) * normal_d(local_rand_eng);
-              Bnm[i][n][m+1] = Bnm[i][n][m];
-            }
-          }
+          std::cerr << "mode " << i << " Anm: " << std::endl;
+          lgrngn::debug::print(Anm[i]);
+          std::cerr << "mode " << i << " Bnm: " << std::endl;
+          lgrngn::debug::print(Bnm[i]);
         }
-*/
+
       }
 
       synth_turb(
@@ -188,10 +183,6 @@ namespace libcloudphxx
 
         int nn[Nmodes],     // nn = nx^2 + ny^2 + nz^2
             Nwaves[Nmodes]; // actual number of wave vectors in thath mode
-
-        std::array<thrust_device::vector<real_t>, Nmodes> enm, // unit vectors along wavevectors
-                                                          Anm, Bnm, // coefficients of the Fourier transform
-                                                          knm;
 
   
         // --- linear distribution of nn (nn = 1, 2, 3, 4, ..., Nmodes) ---
@@ -306,6 +297,10 @@ namespace libcloudphxx
         for(int n=0; n<Nmodes; ++n)
         {
           std::normal_distribution<real_t> G_d(0, std_dev[n]);
+
+std::cerr << "ST ctor mode " << n << std::endl;
+std::cerr << "ST ctor nn " << nn[n] << std::endl;
+std::cerr << "ST ctor Nwaves " << Nwaves[n] << std::endl;
   
           for(int m=0; m<Nwaves[n]; ++m)
           {

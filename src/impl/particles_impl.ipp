@@ -29,8 +29,8 @@ namespace libcloudphxx
 
     };  
 
-    const int Nwaves_max=50;
-    const int Nmodes=50;
+    const int Nwaves_max=4; // has to be even
+    const int Nmodes=3;
     const double eps = 1e-4; // diss rate for ST, [m2/s3]
 
     // pimpl stuff 
