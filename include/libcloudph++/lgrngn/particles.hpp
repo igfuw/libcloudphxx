@@ -108,6 +108,7 @@ namespace libcloudphxx
       virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
       virtual void diag_max_rw()                                                { assert(false); }
       virtual void diag_vel_div()                                               { assert(false); }
+      virtual int  diag_sstp_coal()                                             { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
@@ -197,6 +198,7 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      int  diag_sstp_coal();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
 
@@ -294,6 +296,7 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      int  diag_sstp_coal();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
 
       struct impl;
