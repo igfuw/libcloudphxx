@@ -65,6 +65,14 @@ namespace libcloudphxx
       }
 
       BOOST_GPU_ENABLED
+      void add_vel(const real_t &x, const real_t &y, const real_t &z, const real_t u, const real_t v, const real_t w)
+      {
+        u+=1;
+        v+=2;
+        w+=3;
+      }
+
+      BOOST_GPU_ENABLED
       mode(const real_t &std_dev,
            const real_t &wn,
            const int Nwaves,
@@ -106,6 +114,21 @@ namespace libcloudphxx
       {
 //        thrust::get<0>(tpl)->update_time(dt, thrust::get<1>(tpl));
         thrust::get<0>(tpl).update_time(dt, thrust::get<1>(tpl));
+      }
+    };
+
+    template<class real_t>
+    struct mode_add_vel
+    {
+      thrust_device::pointer<mode<real_t>> modep;
+
+      mode_add_vel(thrust_device::pointer<mode<real_t>> modep): modep(modep) {}
+
+      template <class tpl_t>
+      BOOST_GPU_ENABLED
+      void operator()(const tpl_t &tpl_pos_vel) //const mode<real_t> *mp, thrust_device::pointer<real_t> rand_normal)
+      {
+        thrust::raw_pointer_cast(modep)->add_vel(thrust::get<0>(tpl_pos_vel), thrust::get<1>(tpl_pos_vel), thrust::get<2>(tpl_pos_vel), thrust::get<3>(tpl_pos_vel), thrust::get<4>(tpl_pos_vel), thrust::get<5>(tpl_pos_vel));
       }
     };
 
@@ -158,7 +181,19 @@ namespace libcloudphxx
           std::cerr << "mode " << i << " Bnm: " << std::endl;
           lgrngn::debug::print(Bnm[i]);
         }
+      }
 
+      template <class tpl_t, class thrust_size_t>
+      void calc_vel(const tpl_t &zip_pos_vel, const thrust_size_t n_part)
+      {
+        for(int i=0; i<modes.size(); ++i)
+        {
+          thrust::for_each(
+            zip_pos_vel,
+            zip_pos_vel + n_part,
+            mode_add_vel<real_t>(modes.data() + i)
+          );
+        }
       }
 
       synth_turb(

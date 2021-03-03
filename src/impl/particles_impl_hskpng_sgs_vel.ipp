@@ -18,6 +18,9 @@ namespace libcloudphxx
         case sgs_adve_t::GA17:
           hskpng_sgs_vel_GA17(dt, only_vertical);
           break;
+        case sgs_adve_t::ST_periodic:
+          hskpng_sgs_vel_ST_periodic(dt, only_vertical);
+          break;
         default:
           throw std::runtime_error("Unreckognized value of opts_init.sgs_adve.");
       }

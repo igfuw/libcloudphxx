@@ -85,6 +85,7 @@
 #include "impl/particles_impl_hskpng_vterm.ipp"
 #include "impl/particles_impl_hskpng_sgs_vel.ipp"
 #include "impl/particles_impl_hskpng_sgs_vel_GA17.ipp"
+#include "impl/particles_impl_hskpng_sgs_vel_ST_periodic.ipp"
 #include "impl/particles_impl_hskpng_turb_ss.ipp"
 #include "impl/particles_impl_hskpng_tke.ipp"
 #include "impl/particles_impl_hskpng_sort.ipp"

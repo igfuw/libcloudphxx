@@ -127,6 +127,8 @@ namespace libcloudphxx
         throw std::runtime_error("opts_init.sgs_adve is defined and/or opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("SGS_mix_len <= 0");
+      if (opts_init.sgs_adve == sgs_adve_t::ST_periodic && opts_init.ny == 0)
+        throw std::runtime_error("opts_init.sgs_adve==ST_periodic works only in 3 dims");
     }
   };
 };
