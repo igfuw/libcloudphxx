@@ -65,7 +65,7 @@ namespace libcloudphxx
       }
 
       BOOST_GPU_ENABLED
-      void add_vel(const real_t &x, const real_t &y, const real_t &z, const real_t u, const real_t v, const real_t w)
+      void add_vel(const real_t &x, const real_t &y, const real_t &z, real_t &u, real_t &v, real_t &w)
       {
         u+=1;
         v+=2;
