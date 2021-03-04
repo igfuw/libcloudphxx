@@ -118,6 +118,10 @@ namespace libcloudphxx
       int sstp_chem;
       real_t chem_rho;
 
+      // initial distance between every second SD and the preceeding one [m],
+      // used in the pair separation test of the SGS advection model
+      real_t init_pair_separation;
+
       // do we want to track the time SDs spend inside clouds
       bool diag_incloud_time;
 
@@ -193,7 +197,8 @@ namespace libcloudphxx
         no_ccn_at_init(false),
         open_side_walls(false),
         periodic_topbot_walls(false),
-        variable_dt_switch(false)
+        variable_dt_switch(false),
+        init_pair_separation(-1)
       {}
 
       // dtor (just to silence -Winline warnings)

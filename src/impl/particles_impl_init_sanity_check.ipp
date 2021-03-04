@@ -86,6 +86,12 @@ namespace libcloudphxx
       if(opts_init.sd_const_multi > 0 && opts_init.src_switch)
         throw std::runtime_error("aerosol source and constant multiplicity option are not compatible"); // NOTE: why not?
 
+      if(opts_init.init_pair_separation >= 0 && (opts_init.sd_conc == 0 || opts_init.sd_conc % 2 == 1))
+        throw std::runtime_error("init_pair_separation only works with positive, even sd_conc");
+
+      if(opts_init.init_pair_separation >= 0 && opts_init.ny==0)
+        throw std::runtime_error("init_pair_separation only works in 3D");
+
       if (n_dims > 0)
       {
         if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
