@@ -67,9 +67,16 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       void add_vel(const real_t &x, const real_t &y, const real_t &z, real_t &u, real_t &v, real_t &w)
       {
-        u+=1;
-        v+=2;
-        w+=3;
+        for(int m=0; m<Nwaves; ++m)
+        {
+          const real_t r = knm[3*m] * x + knm[3*m+1] * y + knm[3*m+2] * z;
+          const real_t cosr = cos(r);
+          const real_t sinr = sin(r);
+
+          u += (Anm[3*m+1] * enm[3*m+2] - Anm[3*m+2] * enm[3*m+1])*cosr - (Bnm[3*m+1] * enm[3*m+2] - Bnm[3*m+2] * enm[3*m+1])*sinr;
+          v += (Anm[3*m+2] * enm[3*m]   - Anm[3*m]   * enm[3*m+2])*cosr - (Bnm[3*m+2] * enm[3*m]   - Bnm[3*m]   * enm[3*m+2])*sinr;
+          w += (Anm[3*m]   * enm[3*m+1] - Anm[3*m+1] * enm[3*m])  *cosr - (Bnm[3*m]   * enm[3*m+1] - Bnm[3*m+1] * enm[3*m])*sinr;
+        }
       }
 
       BOOST_GPU_ENABLED
