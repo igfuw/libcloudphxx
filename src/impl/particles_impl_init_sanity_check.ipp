@@ -123,7 +123,7 @@ namespace libcloudphxx
         throw std::runtime_error("opts_init.turb_cond_switch can be True only if n_dims > 1");
       if (opts_init.subs_switch && opts_init.nz != w_LS.size())
         throw std::runtime_error("opts_init.subs_switch == True, but subsidence velocity profile size != nz");
-      if ((opts_init.sgs_adve == sgs_adve_t::GA17 && opts_init.nz != SGS_mix_len.size())
+      if (opts_init.sgs_adve == sgs_adve_t::GA17 && opts_init.nz != SGS_mix_len.size())
         throw std::runtime_error("opts_init.sgs_adve is set to GA17, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("SGS_mix_len <= 0");
