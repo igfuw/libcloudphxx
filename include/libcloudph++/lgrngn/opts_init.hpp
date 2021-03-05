@@ -113,7 +113,13 @@ namespace libcloudphxx
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
 
-      sgs_adve_t::sgs_adve_t sgs_adve; // model of SGS advection to be used
+      sgs_adve_t::sgs_adve_t sgs_adve; // model of SGS advection to be used. 
+      // parameters of the synthetic turbulence model (if used)
+      int ST_Nmodes,      // number of Fourier modes
+          ST_Nwaves_max;  // maximum number of wave numbers per mode
+      real_t ST_eps,      // TKE dissipation rate [m^2 / s^3], constant and uniform
+             ST_Lmax,     // maximum wave length of the ST modes [m]
+             ST_Lmin;     // minimum wave length of the ST modes [m]
            
       int sstp_chem;
       real_t chem_rho;
@@ -198,7 +204,12 @@ namespace libcloudphxx
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
-        init_pair_separation(-1)
+        init_pair_separation(-1),
+        ST_Nmodes(10),
+        ST_Nwaves_max(10),
+        ST_eps(-1),
+        ST_Lmax(100),
+        ST_Lmin(1e-3)
       {}
 
       // dtor (just to silence -Winline warnings)

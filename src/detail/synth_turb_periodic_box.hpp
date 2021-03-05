@@ -39,7 +39,6 @@ namespace libcloudphxx
 
       unsigned int Nwaves; // actual number of wave vectors in thath mode
       // wavevectors in the form k = (nx,ny,nz) * 2 PI / L, where n is integer to get periodic flow
-//      const int nn; // = nx^2 + ny^2 + nz^2
 
       // pointers to arrays of size [3][Nwaves] stored in device memory
       thrust_device::pointer<real_t> enm, knm, Anm, Bnm;
@@ -96,16 +95,6 @@ namespace libcloudphxx
         Bnm(Bnm),
         knm(knm)
       {}
-
-/*
-      BOOST_GPU_ENABLED
-      mode(const mode<real_t> &m)
-      {}
-
-      BOOST_GPU_ENABLED
-      mode()
-      {}
-*/
     };
 
     template<class real_t>
@@ -117,9 +106,8 @@ namespace libcloudphxx
 
       template <class tpl_t>
       BOOST_GPU_ENABLED
-      void operator()(const tpl_t &tpl) //const mode<real_t> *mp, thrust_device::pointer<real_t> rand_normal)
+      void operator()(const tpl_t &tpl)
       {
-//        thrust::get<0>(tpl)->update_time(dt, thrust::get<1>(tpl));
         thrust::get<0>(tpl).update_time(dt, thrust::get<1>(tpl));
       }
     };
@@ -139,17 +127,18 @@ namespace libcloudphxx
       }
     };
 
-    template <class real_t, lgrngn::backend_t device, int Nmodes, int Nwaves_max>
+    template <class real_t, lgrngn::backend_t device>
     class synth_turb
     {
       private:
+      const int Nmodes, Nwaves_max;
       thrust_device::vector<mode<real_t>> modes;
       thrust_device::vector<real_t> &tmp_device_real_part;
       lgrngn::detail::rng<real_t, device> rng; // separate rng, because we want the same sequence of random numbers on all distmem GPUS/nodes
 
-      std::array<thrust_device::vector<real_t>, Nmodes> enm, // unit vectors along wavevectors
-                                                        Anm, Bnm, // coefficients of the Fourier transform
-                                                        knm;
+      std::vector<thrust_device::vector<real_t>> enm, // unit vectors along wavevectors
+                                                 Anm, Bnm, // coefficients of the Fourier transform
+                                                 knm;
 
       public:
 
@@ -205,26 +194,35 @@ namespace libcloudphxx
 
       synth_turb(
         const real_t &eps,        // TKE dissipation rate [m2/s3], for now it has to be a constant value
-        int seed,                 // rng seed
-        thrust_device::vector<real_t> &_tmp_device_real_part, // temp space for real_t on the device
-        const real_t &Lmax = 100, // maximum length scale [m]
-        const real_t &Lmin = 1e-3 // Kolmogorov length scale [m]
+        const int &_Nmodes,
+        const int &_Nwaves_max,
+        const real_t &Lmax, // maximum length scale [m]
+        const real_t &Lmin, // Kolmogorov length scale [m]
+        const int &seed,                 // rng seed
+        thrust_device::vector<real_t> &_tmp_device_real_part // temp space for real_t on the device
       ):
+        Nmodes(_Nmodes),
+        Nwaves_max(_Nwaves_max),
         rng(seed),
         tmp_device_real_part(_tmp_device_real_part)
       {
         if(Nwaves_max % 2 != 0) throw std::runtime_error("Nwaves_max needs to be even, because we need to include opposites of all wavevectors.");
 
+        Anm.resize(Nmodes);
+        Bnm.resize(Nmodes);
+        knm.resize(Nmodes);
+        enm.resize(Nmodes);
+
         const real_t lambda = 1; // unsteadiness parameter, within [0,1]; see Sidin et al. 2009
 
-        real_t k[Nmodes],   // norms of wave vectors
-               dk[Nmodes],  // differences between norms of subsequent wave vectors
-               E[Nmodes],   // kinetic energy in a mode
-               std_dev[Nmodes], // sqrt(variances)
-               wn[Nmodes];   // frequencies
+        std::vector<real_t> k(Nmodes),   // norms of wave vectors
+                            dk(Nmodes),  // differences between norms of subsequent wave vectors
+                            E(Nmodes),   // kinetic energy in a mode
+                            std_dev(Nmodes), // sqrt(variances)
+                            wn(Nmodes);   // frequencies
 
-        int nn[Nmodes],     // nn = nx^2 + ny^2 + nz^2
-            Nwaves[Nmodes]; // actual number of wave vectors in thath mode
+        std::vector<int> nn(Nmodes),     // nn = nx^2 + ny^2 + nz^2
+                         Nwaves(Nmodes); // actual number of wave vectors in thath mode
 
   
         // --- linear distribution of nn (nn = 1, 2, 3, 4, ..., Nmodes) ---
@@ -267,7 +265,6 @@ namespace libcloudphxx
         {
   //        std::cerr << "nn[" << n << "]: " << nn[n] << std::endl;
           k[n] = sqrt(real_t(nn[n])) * (2. * M_PI / Lmax);
-        //  k[n] = sqrt(nn[n]) * (2. * M_PI / Lmax);
         }
   
         std::vector<std::array<int,3>> vectors;
@@ -286,14 +283,6 @@ namespace libcloudphxx
   
           for(int m=0; m<Nwaves[n]; m+=2)
           {
-          //  enm[n][0][m] = vectors.at(m/2)[0] / sqrt(real_t(nn[n]));
-          //  enm[n][1][m] = vectors.at(m/2)[1] / sqrt(real_t(nn[n]));
-          //  enm[n][2][m] = vectors.at(m/2)[2] / sqrt(real_t(nn[n]));
-          //  // opposite vector
-          //  enm[n][0][m+1] = -vectors.at(m/2)[0] / sqrt(real_t(nn[n]));
-          //  enm[n][1][m+1] = -vectors.at(m/2)[1] / sqrt(real_t(nn[n]));
-          //  enm[n][2][m+1] = -vectors.at(m/2)[2] / sqrt(real_t(nn[n]));
-
             enm[n].push_back(vectors.at(m/2)[0] / sqrt(real_t(nn[n])));
             enm[n].push_back(vectors.at(m/2)[1] / sqrt(real_t(nn[n])));
             enm[n].push_back(vectors.at(m/2)[2] / sqrt(real_t(nn[n])));
@@ -348,23 +337,12 @@ std::cerr << "ST ctor Nwaves " << Nwaves[n] << std::endl;
           {
             // knm = unit vector * magnitude
             for(int i=0; i<3; ++i)
-           //   knm[n][i][m] = enm[n][i][m] * k[n];
               knm[n].push_back(enm[n][3*m+i] * k[n]);
   
             // init random coefficients
-
-            /*
-            for(int i=0; i<3; ++i)
-            {
-              Anm[i][n][m] = 0;
-              Bnm[i][n][m] = 0;
-            }
-  */
   
             for(int i=0; i<3; ++i)
             {
-           //   Anm[n][i][m] = G_d(local_rand_eng);
-           //   Bnm[n][i][m] = G_d(local_rand_eng);
               Anm[n].push_back(G_d(local_rand_eng));
               Bnm[n].push_back(G_d(local_rand_eng));
             }
@@ -383,16 +361,6 @@ std::cerr << "ST ctor Nwaves " << Nwaves[n] << std::endl;
             Bnm[n].data(),
             knm[n].data()
           ));
-          /*
-      mode(const real_t &std_dev,
-           const real_t &wn,
-           const int &Nwaves,
-           const real_t enm[3][Nwaves_max],
-           const real_t Anm[3][Nwaves_max],
-           const real_t Bnm[3][Nwaves_max],
-           const real_t knm[3][Nwaves_max]
-           )
-      */
         }
       }
     };
