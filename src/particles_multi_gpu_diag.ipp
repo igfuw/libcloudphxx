@@ -250,5 +250,11 @@ namespace libcloudphxx
       }
       return res;
     }
+
+    template <typename real_t>
+    real_t particles_t<real_t, multi_CUDA>::diag_pair_separation_mean()
+    {
+      assert(false); // not implemented
+    }
   };
 };

@@ -172,10 +172,10 @@ namespace libcloudphxx
 
         for(int i=0; i<Nmodes; ++i)
         {
-          std::cerr << "mode " << i << " Anm: " << std::endl;
-          lgrngn::debug::print(Anm[i]);
-          std::cerr << "mode " << i << " Bnm: " << std::endl;
-          lgrngn::debug::print(Bnm[i]);
+//          std::cerr << "mode " << i << " Anm: " << std::endl;
+//          lgrngn::debug::print(Anm[i]);
+  //        std::cerr << "mode " << i << " Bnm: " << std::endl;
+  //        lgrngn::debug::print(Bnm[i]);
         }
       }
 
@@ -329,9 +329,9 @@ namespace libcloudphxx
         {
           std::normal_distribution<real_t> G_d(0, std_dev[n]);
 
-std::cerr << "ST ctor mode " << n << std::endl;
-std::cerr << "ST ctor nn " << nn[n] << std::endl;
-std::cerr << "ST ctor Nwaves " << Nwaves[n] << std::endl;
+//std::cerr << "ST ctor mode " << n << std::endl;
+//std::cerr << "ST ctor nn " << nn[n] << std::endl;
+//std::cerr << "ST ctor Nwaves " << Nwaves[n] << std::endl;
   
           for(int m=0; m<Nwaves[n]; ++m)
           {

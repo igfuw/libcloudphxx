@@ -184,9 +184,9 @@ namespace libcloudphxx
         // e1 = sqrt(1. - h*h) * sin(th);
         // e2 = h;
         
-        thrust_device::vector<real_t> &e0(tmp_device_real_part);
-        thrust_device::vector<real_t> &e1(tmp_device_real_part1);
-        thrust_device::vector<real_t> &e2(u01);
+        thrust_device::vector<real_t> e0(tmp_device_real_part1);
+        thrust_device::vector<real_t> e1(n_part_to_init); // TODO: use tmp_device_real_part2 (first ensure it is resized if init_pair_separation==True)
+        thrust_device::vector<real_t> e2(tmp_device_real_part); // aka u01
 
         // fill u01 with random numbers [0,1] (angle th)
         rand_u01(n_part_to_init);
@@ -210,8 +210,8 @@ namespace libcloudphxx
         // fill e2 with random numbers [-1,1]
         rand_u01(n_part_to_init);
         thrust::transform(
-          e2.begin(),
-          e2.begin() + n_part_to_init,
+          u01.begin(),
+          u01.begin() + n_part_to_init,
           e2.begin(),
           real_t(2) * arg::_1 - real_t(1)
         );
