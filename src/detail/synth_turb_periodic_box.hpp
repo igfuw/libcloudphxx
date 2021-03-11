@@ -365,7 +365,7 @@ namespace libcloudphxx
       }
     };
 
-    // TODO: 3D, 2D, 1D
+    // TODO: 2D, 1D
   };
 };
 
