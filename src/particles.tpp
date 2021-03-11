@@ -28,12 +28,12 @@
 #include "detail/ran_with_mpi.hpp"
 
 //kernel definitions
-#include "detail/kernel_definitions/hall_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
-#include "detail/kernel_definitions/vohl_davis_no_waals_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_efficiencies_like_in_EFM.hpp"
+#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies_like_in_EFM.hpp"
+#include "detail/kernel_definitions_Jon/vohl_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_stratocumulus_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_cumulonimbus_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #if defined(USE_MPI)
   #include <mpi.h>
@@ -47,6 +47,7 @@
 #include "particles_init.ipp"
 #include "particles_step.ipp"
 #include "particles_diag.ipp"
+#include "particles_remove.ipp"
 
 // details
 #include "impl/particles_impl.ipp"
@@ -118,6 +119,7 @@
 #include "impl/particles_impl_src_dry_distros.ipp"
 #include "impl/particles_impl_src_dry_sizes.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
+#include "impl/particles_impl_remove.ipp"
 #include "impl/particles_impl_adjust_timesteps.ipp"
 
 // MPI copy

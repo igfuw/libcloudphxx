@@ -67,11 +67,14 @@ namespace libcloudphxx
       // synthetic turbulence - TODO (only when used)
       synth_turb_periodic_box::synth_turb<real_t, device> ST;
 
-      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
+      // device container for kernel parameters, comes from opts_init
       thrust_device::vector<real_t> kernel_parameters;
-
-      //number of kernel parameters defined by user in opts_init
-      const n_t n_user_params;
+      // device container for kernel collision efficiencies
+      thrust_device::vector<real_t> kernel_coll_eff;
+      // device container for kernel collision efficiencies radii matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rad;
+      // device container for kernel collision efficiencies ratio matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rat;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -310,7 +313,6 @@ namespace libcloudphxx
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
         stp_ctr(0),
@@ -503,6 +505,11 @@ namespace libcloudphxx
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
+
+      void remove_rng(
+        const real_t &min, const real_t &max, 
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      ); 
 
       void moms_all();
    
