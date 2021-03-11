@@ -137,6 +137,10 @@ namespace libcloudphxx
         throw std::runtime_error("opts_init.sgs_adve==ST_periodic works only in 3 dims");
       if (opts_init.sgs_adve == sgs_adve_t::ST_periodic && opts_init.ST_eps <= 0)
         throw std::runtime_error("opts_init.sgs_adve==ST_periodic but opts_init.ST_eps <= 0");
+#if defined(USE_MPI)
+      if (opts_init.sgs_adve == sgs_adve_t::ST_periodic)
+        throw std::runtime_error("opts_init.sgs_adve==ST_periodic does not work with MPI");
+#endif
     }
   };
 };

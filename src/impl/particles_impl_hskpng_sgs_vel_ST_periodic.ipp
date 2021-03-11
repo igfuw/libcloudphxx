@@ -28,13 +28,17 @@ namespace libcloudphxx
       // calc new SGS velocities
       auto zip_pos_vel = 
         thrust::make_zip_iterator(thrust::make_tuple(
-          x.begin(),
+          thrust::make_transform_iterator(
+            x.begin(),
+            arg::_1 + n_x_bfr * opts_init.dx
+          ), // position x taking into account multi_CUDA
           y.begin(),
           z.begin(),
           up.begin(),
           vp.begin(),
           wp.begin()
       ));
+      // TODO: take into account x0,y0,z0?
 
       ST.calc_vel(zip_pos_vel, n_part);
     };
