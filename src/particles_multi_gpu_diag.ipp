@@ -262,5 +262,26 @@ namespace libcloudphxx
     {
       assert(false); // not implemented
     }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_up_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
+    }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_vp_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
+    }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_wp_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
+    }
   };
 };

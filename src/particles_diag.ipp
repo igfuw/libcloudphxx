@@ -371,6 +371,30 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->wp.begin(), n);
     }   
 
+    // get min and max sgs vel along x
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_up_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->up.begin(),pimpl->up.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
+    // get min and max sgs vel along y
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_vp_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->vp.begin(),pimpl->vp.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
+    // get min and max sgs vel along z
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_wp_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->wp.begin(),pimpl->wp.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
     // compute n-th moment of incloud_time for selected particles
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
