@@ -105,11 +105,18 @@ namespace libcloudphxx
       virtual void diag_up_mom(const int&)                                      { assert(false); }
       virtual void diag_vp_mom(const int&)                                      { assert(false); }
       virtual void diag_wp_mom(const int&)                                      { assert(false); }
+      virtual std::pair<real_t, real_t> diag_up_minmax()                        { assert(false); }
+      virtual std::pair<real_t, real_t> diag_vp_minmax()                        { assert(false); }
+      virtual std::pair<real_t, real_t> diag_wp_minmax()                        { assert(false); }
       virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
       virtual void diag_max_rw()                                                { assert(false); }
       virtual void diag_vel_div()                                               { assert(false); }
+      virtual real_t diag_pair_separation_mean()                                { assert(false); }
+      virtual int  diag_sstp_coal()                                             { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
+
+      virtual void remove_wet_rng(const real_t&, const real_t&)                 { assert(false); }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
@@ -187,7 +194,11 @@ namespace libcloudphxx
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);
       void diag_wp_mom(const int&);
+      std::pair<real_t, real_t> diag_up_minmax();
+      std::pair<real_t, real_t> diag_vp_minmax();
+      std::pair<real_t, real_t> diag_wp_minmax();
       void diag_incloud_time_mom(const int &k);
+      real_t diag_pair_separation_mean();
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
       void diag_chem(const enum common::chem::chem_species_t&);
@@ -197,8 +208,11 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      int  diag_sstp_coal();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
+
+      void remove_wet_rng(const real_t&, const real_t&);
 
       struct impl;
       std::unique_ptr<impl> pimpl;
@@ -283,10 +297,12 @@ namespace libcloudphxx
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);
       void diag_wp_mom(const int&);
+      std::pair<real_t, real_t> diag_up_minmax();
+      std::pair<real_t, real_t> diag_vp_minmax();
+      std::pair<real_t, real_t> diag_wp_minmax();
       void diag_incloud_time_mom(const int&);
+      real_t diag_pair_separation_mean();
       void diag_wet_mass_dens(const real_t&, const real_t&);
-      real_t *outbuf();
-
       void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();
       void diag_RH_ge_Sc();
@@ -294,7 +310,11 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      int  diag_sstp_coal();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
+      real_t *outbuf();
+
+      void remove_wet_rng(const real_t&, const real_t&);
 
       struct impl;
       std::unique_ptr<impl> pimpl;

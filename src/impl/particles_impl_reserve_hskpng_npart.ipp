@@ -22,7 +22,7 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 
       if (opts_init.nz != 0) z.reserve(opts_init.n_sd_max); 
 
-      if(opts_init.turb_adve_switch)
+      if(opts_init.sgs_adve != sgs_adve_t::undefined)
       {
         if (opts_init.nx != 0) up.reserve(opts_init.n_sd_max);
         if (opts_init.ny != 0) vp.reserve(opts_init.n_sd_max); 

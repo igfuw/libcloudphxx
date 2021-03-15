@@ -35,7 +35,7 @@ namespace libcloudphxx
       if (opts_init.ny != 0) y.resize(n_part); 
       if (opts_init.nz != 0) z.resize(n_part); 
 
-      if(opts_init.turb_adve_switch) 
+      if(opts_init.sgs_adve != sgs_adve_t::undefined) 
       {
         if (opts_init.nx != 0) up.resize(n_part, 0); 
         if (opts_init.ny != 0) vp.resize(n_part, 0); 

@@ -20,7 +20,7 @@ namespace libcloudphxx
       if(opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
           ambient_chem[(chem_species_t)i].resize(n_cell);
-      if(opts_init.turb_cond_switch || opts_init.turb_adve_switch || opts_init.turb_coal_switch)
+      if(opts_init.turb_cond_switch || opts_init.sgs_adve!=sgs_adve_t::undefined || opts_init.turb_coal_switch)
         diss_rate.resize(n_cell);
 
       // memory allocation for vector fields (Arakawa-C grid)
