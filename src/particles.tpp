@@ -7,6 +7,9 @@
   */
 
 #include <iostream>
+#if !defined(NDEBUG)
+  #include <iomanip>
+#endif
 
 #include <libcloudph++/lgrngn/particles.hpp>
 
