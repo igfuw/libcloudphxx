@@ -275,14 +275,14 @@ namespace libcloudphxx
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<real_t, std::pair<real_t, int>> size_conc_map;
 
-          // turn the size : {conc, multi} dict into a size : {conc, multi} map
+          // turn the size : {conc, count} dict into a size : {conc, count} map
           for (int i = 0; i < len(size_conc.keys()); ++i)
           {
-            const bp::list conc_multi_list = bp::extract<bp::list>(size_conc.values()[i]);
-            assert(len(conc_multi_list) == 2);
-            const real_t conc = bp::extract<real_t>(conc_multi_list[0]);
-            const int multi   = bp::extract<int>   (conc_multi_list[1]);
-            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, multi);
+            const bp::list conc_count_list = bp::extract<bp::list>(size_conc.values()[i]);
+            assert(len(conc_count_list) == 2);
+            const real_t conc = bp::extract<real_t>(conc_count_list[0]);
+            const int count   = bp::extract<int>   (conc_count_list[1]);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count);
           }
           const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
           arg->dry_sizes[kappa] = size_conc_map;
@@ -305,14 +305,14 @@ namespace libcloudphxx
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<real_t, std::pair<real_t, int>> size_conc_map;
 
-          // turn the size : {conc, multi} dict into a size : {conc, multi} map
+          // turn the size : {conc, count} dict into a size : {conc, count} map
           for (int i = 0; i < len(size_conc.keys()); ++i)
           {
-            const bp::list conc_multi_list = bp::extract<bp::list>(size_conc.values()[i]);
-            assert(len(conc_multi_list) == 2);
-            const real_t conc = bp::extract<real_t>(conc_multi_list[0]);
-            const int multi   = bp::extract<int>   (conc_multi_list[1]);
-            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, multi);
+            const bp::list conc_count_list = bp::extract<bp::list>(size_conc.values()[i]);
+            assert(len(conc_count_list) == 2);
+            const real_t conc = bp::extract<real_t>(conc_count_list[0]);
+            const int count   = bp::extract<int>   (conc_count_list[1]);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count);
           }
           const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
           arg->src_dry_sizes[kappa] = size_conc_map;

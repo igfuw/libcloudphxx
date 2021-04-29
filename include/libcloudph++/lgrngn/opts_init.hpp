@@ -37,7 +37,7 @@ namespace libcloudphxx
       typedef std::map<
         real_t,                  // kappa
         std::map<real_t,         // radius [m]
-          std::pair<real_t, int> // STP_concentration [1/m^3], SD multiplicity
+          std::pair<real_t, int> // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
         > 
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
