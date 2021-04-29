@@ -78,9 +78,9 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_multi)
+    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_count)
     {
-      thrust::fill(count_num.begin(), count_num.end(), conc_multi.second);
+      thrust::fill(count_num.begin(), count_num.end(), conc_count.second);
       //init_count_num_hlpr(conc_multi.first, conc_multi.second);
     }
 
