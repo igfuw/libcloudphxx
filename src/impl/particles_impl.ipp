@@ -576,6 +576,9 @@ namespace libcloudphxx
 
       void post_copy(const opts_t<real_t>&);
 
+      void ante_adding_SD();
+      void post_adding_SD();
+
       // distmem stuff
       void xchng_domains();
       void xchng_courants();
