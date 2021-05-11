@@ -48,9 +48,6 @@ namespace libcloudphxx
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
-  
-      // timestep interval at which source will be applied
-      int supstp_src;
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -74,19 +71,6 @@ namespace libcloudphxx
       // should be enough to store particles from sources
       unsigned long long n_sd_max; 
 
-      // source distro per unit time
-      dry_distros_t src_dry_distros;
-
-      // number of SDs created from src_dry_distros per cell per source iteration
-      unsigned long long src_sd_conc;
-
-      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
-      dry_sizes_t src_dry_sizes;
-
-      // box in which aerosol from source will be created
-      // will be rounded to cell number - cells are supposed to be uniform
-      real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
-
       // coalescence Kernel type
       kernel_t::kernel_t kernel;
 
@@ -108,6 +92,7 @@ namespace libcloudphxx
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            subs_switch,  // if false no subsidence throughout the whole simulation
            src_switch,   // if false no source throughout the whole simulation
+           rlx_switch,   // if false no relaxation throughout the whole simulation
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
@@ -146,6 +131,50 @@ namespace libcloudphxx
            periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
 
 
+      // --- aerosol source stuff ---
+
+      // source distro per unit time
+      dry_distros_t src_dry_distros;
+
+      // number of SDs created from src_dry_distros per cell per source iteration
+      unsigned long long src_sd_conc;
+
+      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
+      dry_sizes_t src_dry_sizes;
+
+      // box in which aerosol from source will be created
+      // will be rounded to cell number - cells are supposed to be uniform
+      real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
+  
+      // timestep interval at which source will be applied
+      int supstp_src;
+
+
+      // --- aerosol relaxation stuff ---
+
+      // initial dry sizes of aerosol
+      // defined with a distribution
+      // uses shared_ptr to make opts_init copyable
+      typedef std::unordered_map<
+        real_t,                // kappa
+        std::tuple<
+          std::shared_ptr<unary_function<real_t>>, // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
+          std::pair<real_t, real_t>, // kappa range of CCN considered to belong to this distribution, ranges of different members of the map need to be exclusive (TODO: add a check of this)
+          std::pair<real_t, real_t>  // range of altitudes at which this relaxation acts
+        >
+      > rlx_dry_distros_t;
+
+      rlx_dry_distros_t rlx_dry_distros;
+
+      // number of bins into which the relaxation distro is divided, up to one SD is created per bin
+      unsigned long long rlx_bins;
+  
+      // timestep interval at which relaxation will be applied
+      int supstp_rlx;
+
+
+      // -- ctors ---
+
       // ctor with defaults (C++03 compliant) ...
       opts_init_t() : 
         nx(0), ny(0), nz(0),
@@ -158,7 +187,6 @@ namespace libcloudphxx
         sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1),         
-        supstp_src(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
         subs_switch(false),  // subsidence turned off by default
@@ -186,6 +214,9 @@ namespace libcloudphxx
         src_y1(0),
         src_z0(0),
         src_z1(0),
+        supstp_src(1),
+        rlx_bins(0),
+        supstp_rlx(1),
         rd_min(0.),
         diag_incloud_time(false),
         no_ccn_at_init(false),

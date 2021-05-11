@@ -172,7 +172,7 @@ namespace libcloudphxx
            allow_sstp_chem;
 
       // timestep counter
-      n_t stp_ctr;
+      n_t src_stp_ctr, rlx_stp_ctr;
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
@@ -310,7 +310,8 @@ namespace libcloudphxx
         n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
-        stp_ctr(0),
+        src_stp_ctr(0),
+        rlx_stp_ctr(0),
 	bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
