@@ -277,6 +277,7 @@ namespace libcloudphxx
       }
 
       // aerosol relaxation, in sync since it changes th/rv
+      // TODO: more sanity checks for rlx! 3D only, values of rlx_bins etc. check that appa ranges are exclusive
       if (opts.rlx)
       {
         // sanity check
