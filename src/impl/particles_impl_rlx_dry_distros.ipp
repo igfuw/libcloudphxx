@@ -23,6 +23,7 @@ namespace libcloudphxx
       thrust::device_vector<real_t> hor_avg_count(opts_init.nz);
       thrust::device_vector<int> hor_avg_k(opts_init.nz);
       thrust::device_vector<real_t> expected_hor_avg(opts_init.nz);
+      thrust::device_vector<bool> create_SD(opts_init.nz);
 
       // calc sum of ln(rd) ranges of all relax distributions
       real_t tot_lnrd_rng = 0.;
@@ -139,17 +140,18 @@ namespace libcloudphxx
          
           std::cerr << "hor_missing:" << std::endl;
           debug::print(hor_missing);
+        
+          // set number of SDs to init
+          thrust::transform(hor_missing.begin(), hor_missing.end(), create_SD.begin(), arg::_1 > 0);
+         
+          std::cerr << "create_SD:" << std::endl;
+          debug::print(create_SD);
+        //  init_count_num_rlx();
 
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
         }
       }
-        
-
-        // 
-
-//      // set number of SDs to init; use count_num as storage
-//      init_count_num_src(opts_init.src_sd_conc);
 
 /*
 
