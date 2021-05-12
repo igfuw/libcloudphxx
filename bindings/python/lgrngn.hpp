@@ -332,14 +332,18 @@ namespace libcloudphxx
         // loop over kappas
         for (int i = 0; i < len(kappa_func.keys()); ++i)
         {
+          std::cerr << i << std::endl;
           const real_t kappa = bp::extract<real_t>(kappa_func.keys()[i]);
+          std::cerr << kappa << std::endl;
           const bp::list nlnrd_kparange_zrange_list = bp::extract<bp::list>(kappa_func.values()[i]);
           assert(len(nlnrd_kparange_zrange_list) == 3);
           auto nlnrd = std::make_shared<detail::pyunary<real_t>>(nlnrd_kparange_zrange_list[0]);
           const bp::list kparange_list = bp::extract<bp::list>(nlnrd_kparange_zrange_list[1]);
           std::pair<real_t, real_t> kparange{bp::extract<real_t>(kparange_list[0]), bp::extract<real_t>(kparange_list[1])};
+          std::cerr << kparange.first << " " << kparange.second << std::endl;
           const bp::list zrange_list = bp::extract<bp::list>(nlnrd_kparange_zrange_list[2]);
           std::pair<real_t, real_t> zrange{bp::extract<real_t>(zrange_list[0]), bp::extract<real_t>(zrange_list[1])};
+          std::cerr << zrange.first << " " << zrange.second << std::endl;
           arg->rlx_dry_distros[kappa] = std::make_tuple(nlnrd, kparange, zrange);
         }
       }

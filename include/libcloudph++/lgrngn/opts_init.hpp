@@ -151,7 +151,6 @@ namespace libcloudphxx
 
 
       // --- aerosol relaxation stuff ---
-
       // initial dry sizes of aerosol
       // defined with a distribution
       // uses shared_ptr to make opts_init copyable
@@ -172,7 +171,6 @@ namespace libcloudphxx
       // timestep interval at which relaxation will be applied
       int supstp_rlx;
 
-
       // -- ctors ---
 
       // ctor with defaults (C++03 compliant) ...
@@ -192,6 +190,7 @@ namespace libcloudphxx
         subs_switch(false),  // subsidence turned off by default
         coal_switch(true),  // coalescence turned on by default
         src_switch(false),  // source turned off by default
+        rlx_switch(false), 
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),

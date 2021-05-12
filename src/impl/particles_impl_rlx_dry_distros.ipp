@@ -59,6 +59,10 @@ namespace libcloudphxx
         std::iota(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), 0); // fill with a 0,1,2,... sequence
         std::transform(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), bin_rd3_left_edges.begin(), [log_rd_min_val=log_rd_min, lnrd_bin_size] (real_t bin_number) { return std::exp( 3 * (log_rd_min_val + bin_number * lnrd_bin_size)) ; }); // calculate left edges
 
+        // minimum and maximum cell indices
+        const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz + 0.5,
+                  z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz + 0.5;
+
         // loop over the bins
         for(int bin_number=0; bin_number<bin_rd3_left_edges.size()-1; ++bin_number)
         {
@@ -71,6 +75,17 @@ namespace libcloudphxx
           moms_rng(rd3_min, rd3_max, rd3.begin(), true);
           // calculate 0-th non-specific moment of rd3 (number of droplets in a cell) of droplets in this rd3 and kappa range
           moms_calc(rd3.begin(), 0, false);
+          // divide by volume
+          thrust::transform(
+            count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+            thrust::make_permutation_iterator(                  // input - second arg
+              dv.begin(),
+              count_ijk.begin()
+            ),
+            count_mom.begin(),                                  // output (in place)
+            thrust::divides<real_t>()
+          );
+
           // horizontal average of this moment
           thrust::fill(hor_avg.begin(), hor_avg.end(), 0);
           thrust_device::vector<thrust_size_t> &count_k(tmp_device_size_cell);  // NOTE: tmp_device_size_cell is also used in some other inits, careful not to overwrite it!
@@ -79,12 +94,11 @@ namespace libcloudphxx
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
           int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin();
           thrust::copy(hor_avg_count.begin(), hor_avg_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_avg.begin(), hor_avg_k.begin()));
-          // divide sum by volume (uppermost and lowermost cells are half the height) [1/m^3]
-          thrust::transform(hor_avg.begin()+1, hor_avg.end()-1, hor_avg.begin()+1, arg::_1 / ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz));
-          hor_avg[0] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
-          hor_avg[opts_init.nz-1] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
+          // divide sum by the number of cells at this level
+          thrust::transform(hor_avg.begin(), hor_avg.end(), hor_avg.begin(), arg::_1 / (opts_init.nx * m1(opts_init.ny)));
+
           
-          // calculate expected CCN number
+          // calculate expected CCN conc
           const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
           const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
           thrust::fill(expected_hor_avg.begin(), expected_hor_avg.end(), expected_STP_concentration);
@@ -102,20 +116,30 @@ namespace libcloudphxx
             );
           }
 
-          // account for minimum and maximum relaxation heights (zero-out expected value)
-          const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz + 0.5,
-                    z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz + 0.5;
+          // set to zero outside of the defined range of altitudes
+          thrust::transform_if(thrust::make_counting_iterator<int>(0), thrust::make_counting_iterator<int>(opts_init.nz), expected_hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 >= z_max_index); 
 
-          thrust::transform_if(thrust::make_counting_iterator<int>(0), thrust::make_counting_iterator<int>(opts_init.nz), hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 > z_max_index); 
+          std::cerr << "bin number: " << bin_number 
+            << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) 
+            << " r_center: " << std::exp(bin_lnrd_center) 
+            << " z_indices: (" << z_min_index << ", " << z_max_index << "), " 
+            << " expected STD concentration: " << expected_STP_concentration 
+            << std::endl;
+        
+          std::cerr << "hor_avg:" << std::endl;
+          debug::print(hor_avg);
+        
+          std::cerr << "expected_hor_avg:" << std::endl;
+          debug::print(expected_hor_avg);
 
           // calculate how many CCN are missing
           thrust::device_vector<real_t> &hor_missing(expected_hor_avg);
           thrust::transform(expected_hor_avg.begin(), expected_hor_avg.end(), hor_avg.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
-
-          std::cerr << "bin number: " << bin_number << std::endl;
-          debug::print(hor_missing);
          
+          std::cerr << "hor_missing:" << std::endl;
+          debug::print(hor_missing);
+
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
         }
