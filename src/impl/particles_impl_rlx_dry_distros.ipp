@@ -84,7 +84,7 @@ namespace libcloudphxx
           hor_avg[0] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
           hor_avg[opts_init.nz-1] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
           
-          // calculate how many CCN are missing
+          // calculate expected CCN number
           const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
           const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
           thrust::fill(expected_hor_avg.begin(), expected_hor_avg.end(), expected_STP_concentration);
@@ -108,6 +108,13 @@ namespace libcloudphxx
 
           thrust::transform_if(thrust::make_counting_iterator<int>(0), thrust::make_counting_iterator<int>(opts_init.nz), hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 > z_max_index); 
 
+          // calculate how many CCN are missing
+          thrust::device_vector<real_t> &hor_missing(expected_hor_avg);
+          thrust::transform(expected_hor_avg.begin(), expected_hor_avg.end(), hor_avg.begin(), hor_missing.begin(), arg::_1 - arg::_2);
+          thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
+
+          std::cerr << "bin number: " << bin_number << std::endl;
+          debug::print(hor_missing);
          
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
