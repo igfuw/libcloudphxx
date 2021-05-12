@@ -567,8 +567,8 @@ namespace libcloudphxx
       void src_dry_distros(const real_t &dt);
       void src_dry_sizes(const real_t &dt);
 
-      void rlx(const real_t &dt);
-      void rlx_dry_distros(const real_t &dt);
+      void rlx();
+      void rlx_dry_distros();
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);

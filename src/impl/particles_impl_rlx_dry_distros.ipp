@@ -14,7 +14,7 @@ namespace libcloudphxx
   {
     // create new aerosol particles to relax towards a size distribution
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::rlx_dry_distros(const real_t &dt)
+    void particles_t<real_t, device>::impl::rlx_dry_distros()
     {   
       namespace arg = thrust::placeholders;
 
@@ -22,6 +22,7 @@ namespace libcloudphxx
       thrust::device_vector<real_t> hor_avg(opts_init.nz);
       thrust::device_vector<real_t> hor_avg_count(opts_init.nz);
       thrust::device_vector<int> hor_avg_k(opts_init.nz);
+      thrust::device_vector<real_t> expected_hor_avg(opts_init.nz);
 
       // calc sum of ln(rd) ranges of all relax distributions
       real_t tot_lnrd_rng = 0.;
@@ -29,8 +30,7 @@ namespace libcloudphxx
       {
         dist_analysis_sd_conc(
           *(std::get<0>(ddi->second)),
-          opts_init.rlx_bins,
-          dt
+          opts_init.rlx_bins
         );
         tot_lnrd_rng += log_rd_max - log_rd_min;
       }
@@ -38,13 +38,14 @@ namespace libcloudphxx
       // initialize SDs of each kappa-type
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
+        const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
+
         // analyze distribution to get rd_min and max needed for bin sizes
         // TODO: this was done a moment ago!
         // TODO2: this could be done once at the start of the simulation!
         dist_analysis_sd_conc(
-          *(std::get<0>(ddi->second)),
-          opts_init.rlx_bins,
-          dt
+          n_of_lnrd_stp,
+          opts_init.rlx_bins
         );
         const real_t lnrd_rng = log_rd_max - log_rd_min;
 
@@ -59,10 +60,10 @@ namespace libcloudphxx
         std::transform(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), bin_rd3_left_edges.begin(), [log_rd_min_val=log_rd_min, lnrd_bin_size] (real_t bin_number) { return std::exp( 3 * (log_rd_min_val + bin_number * lnrd_bin_size)) ; }); // calculate left edges
 
         // loop over the bins
-        for(int i=0; i<bin_rd3_left_edges.size()-1; ++i)
+        for(int bin_number=0; bin_number<bin_rd3_left_edges.size()-1; ++bin_number)
         {
-          const real_t rd3_min = bin_rd3_left_edges.at(i),
-                       rd3_max = bin_rd3_left_edges.at(i+1);
+          const real_t rd3_min = bin_rd3_left_edges.at(bin_number),
+                       rd3_max = bin_rd3_left_edges.at(bin_number+1);
           // TODO: these selections could be optimised
           // select droplets within the desired kappa range
           moms_rng((std::get<1>(ddi->second)).first, (std::get<1>(ddi->second)).second, kpa.begin(), false);
@@ -78,12 +79,36 @@ namespace libcloudphxx
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
           int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin();
           thrust::copy(hor_avg_count.begin(), hor_avg_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_avg.begin(), hor_avg_k.begin()));
-          // divide sum by volume (uppermost and lowermost cells are half the height
+          // divide sum by volume (uppermost and lowermost cells are half the height) [1/m^3]
           thrust::transform(hor_avg.begin()+1, hor_avg.end()-1, hor_avg.begin()+1, arg::_1 / ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz));
           hor_avg[0] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
           hor_avg[opts_init.nz-1] /= 0.5 * ((opts_init.x1 - opts_init.x0) * (opts_init.y1 - opts_init.y0) * opts_init.dz);
           
+          // calculate how many CCN are missing
+          const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
+          const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
+          thrust::fill(expected_hor_avg.begin(), expected_hor_avg.end(), expected_STP_concentration);
+ 
+          // correcting STP -> actual ambient conditions
+          if(!opts_init.aerosol_independent_of_rhod)
+          {
+            using common::earth::rho_stp;
+            thrust::transform(
+              expected_hor_avg.begin(), 
+              expected_hor_avg.begin() + opts_init.nz, 
+              rhod.begin(),                 // rhod has size ncell, but vertical cooridnate varies first, so rhod.begin() to rhod.begin()+nz should be the vertical profile?
+              expected_hor_avg.begin(), 
+              arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
+            );
+          }
 
+          // account for minimum and maximum relaxation heights (zero-out expected value)
+          const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz + 0.5,
+                    z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz + 0.5;
+
+          thrust::transform_if(thrust::make_counting_iterator<int>(0), thrust::make_counting_iterator<int>(opts_init.nz), hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 > z_max_index); 
+
+         
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
         }

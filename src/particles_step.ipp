@@ -286,7 +286,7 @@ namespace libcloudphxx
         // introduce new particles with the given time interval
         if(pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0) 
         {
-          pimpl->rlx(pimpl->opts_init.supstp_rlx * pimpl->dt);
+          pimpl->rlx();
         }
       }
 
