@@ -66,7 +66,7 @@ namespace libcloudphxx
           const thrust_size_t n
         ) {
           // note: generate_n copies the third argument!!!
-          std::generate_n(u01.begin(), n, fnctr_u01({engine, dist_u01})); 
+          std::generate_n(u01.begin(), n, fnctr_u01({engine, dist_u01})); // [0,1) range 
         }
 
         void generate_normal_n(
@@ -131,10 +131,12 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
+          int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
           assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-
+          // shift into the expected [0,1) range
+          namespace arg = thrust::placeholders;
+          thrust::transform(v.begin(), v.begin() + n, float(1) - arg::_1);
         }
 
         void generate_n(
@@ -142,9 +144,12 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
+          int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
           assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
+          // shift into the expected [0,1) range
+          namespace arg = thrust::placeholders;
+          thrust::transform(v.begin(), v.begin() + n, double(1) - arg::_1);
         }
 
         void generate_normal_n(

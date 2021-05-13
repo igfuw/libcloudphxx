@@ -276,7 +276,7 @@ namespace libcloudphxx
 
       // methods
 
-      // fills u01 with n random real numbers uniformly distributed in range [0,1) on CPU or (0,1] on GPU (!)
+      // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
       // fills un with n random integers uniformly distributed on the whole integer range
