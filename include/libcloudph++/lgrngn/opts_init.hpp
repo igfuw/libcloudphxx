@@ -126,6 +126,9 @@ namespace libcloudphxx
       int rng_seed,
           rng_seed_init; // seed used to init SD (positions and dry sizes)
 
+      // should the separate rng seed for initialization be used?
+      bool rng_seed_init_switch;
+
       // no of GPUs per MPI node to use, 0 for all available
       int dev_count; 
 
@@ -171,7 +174,7 @@ namespace libcloudphxx
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
-        rng_seed_init(rng_seed),
+        rng_seed_init(44),
         terminal_velocity(vt_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
@@ -191,7 +194,8 @@ namespace libcloudphxx
         no_ccn_at_init(false),
         open_side_walls(false),
         periodic_topbot_walls(false),
-        variable_dt_switch(false)
+        variable_dt_switch(false),
+        rng_seed_init_switch(false)
       {}
 
       // dtor (just to silence -Winline warnings)
