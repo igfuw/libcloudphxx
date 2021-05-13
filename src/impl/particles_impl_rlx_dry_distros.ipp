@@ -61,8 +61,8 @@ namespace libcloudphxx
         std::transform(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), bin_rd3_left_edges.begin(), [log_rd_min_val=log_rd_min, lnrd_bin_size] (real_t bin_number) { return std::exp( 3 * (log_rd_min_val + bin_number * lnrd_bin_size)) ; }); // calculate left edges
 
         // minimum and maximum cell indices
-        const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz + 0.5,
-                  z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz + 0.5;
+        const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz,
+                  z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz;
 
         // loop over the bins
         for(int bin_number=0; bin_number<bin_rd3_left_edges.size()-1; ++bin_number)
@@ -118,7 +118,7 @@ namespace libcloudphxx
           }
 
           // set to zero outside of the defined range of altitudes
-          thrust::transform_if(thrust::make_counting_iterator<int>(0), thrust::make_counting_iterator<int>(opts_init.nz), expected_hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 >= z_max_index); 
+          thrust::transform_if(zero, zero+opts_init.nz, expected_hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 > z_max_index); 
 
           std::cerr << "bin number: " << bin_number 
             << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) 
@@ -141,313 +141,64 @@ namespace libcloudphxx
           std::cerr << "hor_missing:" << std::endl;
           debug::print(hor_missing);
         
-          // set number of SDs to init
-          thrust::transform(hor_missing.begin(), hor_missing.end(), create_SD.begin(), arg::_1 > 0);
+          // set number of SDs to init; create only if concentration is lower than expected with a tolerance
+          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_avg.begin(), create_SD.begin(), arg::_2 > 0 && arg::_1 / arg::_2 > config.rlx_conc_tolerance); // WARNING: watch out for div by 0
          
           std::cerr << "create_SD:" << std::endl;
           debug::print(create_SD);
+
+          n_part_old = n_part;
+          n_part_to_init = thrust::reduce(create_SD.begin(), create_SD.end());
+          n_part = n_part_old + n_part_to_init;
+
+          // resize cell indices, resize should be cheap, because we allocate a large chunk of memory at the start
+          ijk.resize(n_part);
+          i.resize(n_part);
+          k.resize(n_part);
+          if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
+
+          // k index based on create_SD
+          thrust::copy_if(zero, zero+opts_init.nz, create_SD.begin(), k.begin()+n_part_old, arg::_1 == 1);
+          // i and j random 
+          // tossing random numbers [0,1) (or is it [0,1]??) TODO: do it once for all bins
+          rand_u01(n_part_to_init * (n_dims-1));
+          // WARNING: might crash if u01 can have value 1, double check if it can
+          thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin(), arg::_1 * opts_init.nx); 
+          if(n_dims==3) thrust::transform(u01.begin() + n_part_to_init, u01.begin() + 2*n_part_to_init, j.begin(), arg::_1 * opts_init.ny); 
+
+          // raveling i, j & k into ijk; only of the new SD
+          ravel_ijk(n_part_old);
+
+          // set count_num to the number of SD to init per cell
+          thrust::fill(count_num.begin(), count_num.end(), 0);
+          thrust::scatter(thrust::make_constant_iterator<n_t>(1), thrust::make_constant_iterator<n_t>(1) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
+
+          std::cerr << "i:" << std::endl;
+          debug::print(i.begin()+n_part_old, i.end());
+
+          std::cerr << "k:" << std::endl;
+          debug::print(k.begin()+n_part_old, k.end());
+
+          std::cerr << "ijk:" << std::endl;
+          debug::print(ijk.begin()+n_part_old, ijk.end());
+
+          std::cerr << "count_num:" << std::endl;
+          debug::print(count_num);
+
+          // init i,j,k, (random i and j, k from create SD)
+          // init count num
+          // init ijk
+          // other inits, TODO: how to make these init not in the bins loop?
+
         //  init_count_num_rlx();
 
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
+          // at the end we need to set sorting=false
+
         }
       }
 
-/*
-
-      // --- see how many already existing SDs match size bins ---
-      {
-        namespace arg = thrust::placeholders;
-
-        // set no of particles to init
-        n_part_old = n_part;
-        n_part_to_init = thrust::reduce(count_num.begin(), count_num.end());
-        n_part = n_part_old + n_part_to_init;
-        hskpng_resize_npart();
-
-        thrust_size_t n_part_bfr_src = n_part_old,
-                      n_part_tot_in_src = n_part_to_init;
-
-        // tmp vector with bin number of existing SDs
-        thrust_device::vector<thrust_size_t> bin_no(n_part);
-
-        const thrust_size_t out_of_bins = 4444444444; // would cause an error for src_sd_conc > out_of_bins
-        // calc bin no
-        thrust::transform(
-          sorted_rd3.begin(),
-          sorted_rd3.end(),
-          thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin()),
-          bin_no.begin(),
-          detail::get_bin_no<real_t, n_t, thrust_size_t, out_of_bins>(log_rd_min, log_rd_max)
-        );
-                    
-        // init ijk and rd3 of new particles
-        init_ijk();
-        init_dry_sd_conc(); 
-
-        // translate these new rd3 into bin no; bin_no just got resized
-        thrust::transform(
-          rd3.begin() + n_part_old,
-          rd3.end(),
-          thrust::make_permutation_iterator(count_num.begin(), ijk.begin() + n_part_old),
-          bin_no.begin() + n_part_old,
-          detail::get_bin_no<real_t, n_t, thrust_size_t, out_of_bins>(log_rd_min, log_rd_max)
-        );
-
-        // -- init new SDs that didnt have a match -- 
-        {
-          thrust_device::vector<thrust_size_t> tmp_bin_no(n_part_old);
-          thrust::copy(bin_no.begin(), bin_no.begin() + n_part_old, tmp_bin_no.begin());
-
-          thrust_size_t n_out_of_bins = thrust::count(tmp_bin_no.begin(), tmp_bin_no.end(), out_of_bins);
-        
-          // remove reference to those outside of bins from tmp_bin_no and sorted_ijk
-          thrust::remove_if(
-            sorted_ijk.begin(),
-            sorted_ijk.begin() + n_part_old,
-            tmp_bin_no.begin(),
-            arg::_1 == out_of_bins
-          );
-
-          thrust::remove(
-            tmp_bin_no.begin(),
-            tmp_bin_no.begin() + n_part_old,
-            out_of_bins
-          ); // if these two removes are done in a single step with a tuple, it fails on CUDA; TODO: report this?
-
-          thrust_size_t count_bins;
-          {
-          // remove duplicates from tmp_bin_no
-            thrust::pair<
-              thrust_device::vector<thrust_size_t>::iterator,
-              typename thrust_device::vector<thrust_size_t>::iterator
-            > np = thrust::unique_by_key(tmp_bin_no.begin(), tmp_bin_no.begin() + n_part_old - n_out_of_bins, sorted_ijk.begin());
-            count_bins = np.first - tmp_bin_no.begin(); // total no of bins with a match
-          }
-
-          // --- remove rd3 and ijk of newly added SDs that have counterparts ---
-          thrust_device::vector<bool> have_match(n_part_to_init);
-          // find those with a match
-          thrust::binary_search(
-            thrust::make_zip_iterator(thrust::make_tuple(
-              sorted_ijk.begin(),
-              tmp_bin_no.begin()
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              sorted_ijk.begin(),
-              tmp_bin_no.begin()
-            )) + count_bins,
-            thrust::make_zip_iterator(thrust::make_tuple(
-              ijk.begin() + n_part_old,
-              bin_no.begin() + n_part_old
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              ijk.begin() + n_part_old,
-              bin_no.begin() + n_part_old
-            )) + n_part_to_init,
-            have_match.begin(),
-            detail::two_keys_sort<thrust_size_t, thrust_size_t>()
-          );
-          // remove those with a match
-          thrust::remove_if(
-            thrust::make_zip_iterator(thrust::make_tuple(
-              rd3.begin() + n_part_old,
-              ijk.begin() + n_part_old
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              rd3.begin() + n_part_old,
-              ijk.begin() + n_part_old
-            )) + n_part_to_init,
-            have_match.begin(),
-            thrust::identity<bool>()
-          );
-
-          n_part_to_init -= count_bins;
-          n_part -= count_bins;
-          hskpng_resize_npart();
-
-          // init other peoperties of SDs that didnt have a match
-          init_kappa(
-            opts_init.src_dry_distros.begin()->first
-          ); 
-
-          if(opts_init.diag_incloud_time)
-            init_incloud_time();
-
-          init_n_sd_conc(
-            *(opts_init.src_dry_distros.begin()->second)
-          ); // TODO: document that n_of_lnrd_stp is expected!
-
-          // init rw
-          init_wet();
-
-          // init x, y, z, i, j, k
-          init_xyz();
-
-          // TODO: init chem
-            
-          {
-            // count number of matched bins per cell
-            thrust::pair<
-              thrust_device::vector<thrust_size_t>::iterator,
-              typename thrust_device::vector<thrust_size_t>::iterator
-            > it_pair =  thrust::reduce_by_key(
-              sorted_ijk.begin(), sorted_ijk.begin() + count_bins, 
-              thrust::make_constant_iterator<thrust_size_t>(1), 
-              sorted_ijk.begin(), 
-              tmp_bin_no.begin()
-            );
-            count_bins = it_pair.first - sorted_ijk.begin(); // now it counts no of cells that have any bins matched
-          }
-
-          // set count_num to the number of SDs matched per cell
-          // they still need to be initialized
-          thrust::copy(
-            tmp_bin_no.begin(),
-            tmp_bin_no.begin() + count_bins,
-            thrust::make_permutation_iterator(count_num.begin(), sorted_ijk.begin())
-          );
-          // sorted_ijk no longer valid
-        }
-
-        // tmp vector to hold number of particles in a given size bin in a given cell
-        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
-        // tmp vector for number of particles in bins up to this one
-        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
-
-        thrust_size_t count_bins;
-        {
-          thrust_device::vector<thrust_size_t> &out(bin_cell_count_ptr); // use it temporarily
-          // calc no of SDs in bins/cells
-          thrust::pair<
-            thrust_device::vector<thrust_size_t>::iterator,
-            typename thrust_device::vector<thrust_size_t>::iterator
-          > np = thrust::reduce_by_key(
-              bin_no.begin(),
-              bin_no.begin() + n_part_bfr_src,
-              thrust::make_constant_iterator<thrust_size_t>(1),
-              out.begin(),// output bin no - in place didn't work well, why?
-              bin_cell_count.begin()// output number of SDs
-            );
-          count_bins = np.second - bin_cell_count.begin(); // number of bins with SDs inside, includes the out_of_bins
-          thrust::copy(out.begin(), out.begin() + count_bins, bin_no.begin());
-        }
-
-        // number of SDs (incl. out_of_bins) in bins up to (i-1)
-        thrust::exclusive_scan(
-          bin_cell_count.begin(), 
-          bin_cell_count.begin() + count_bins, 
-          bin_cell_count_ptr.begin()
-        );
-
-        // remove out of bins from bin_cell_count, bins_no and bin cell_count_ptr
-        count_bins = 
-          thrust::remove_if(
-             thrust::make_zip_iterator(thrust::make_tuple(
-               bin_no.begin(), 
-               bin_cell_count.begin(),
-               bin_cell_count_ptr.begin()
-             )),
-             thrust::make_zip_iterator(thrust::make_tuple(
-               bin_no.begin(), 
-               bin_cell_count.begin(),
-               bin_cell_count_ptr.begin()
-             )) + count_bins,
-             bin_no.begin(),
-             arg::_1 == out_of_bins
-          ) - 
-           thrust::make_zip_iterator(thrust::make_tuple(
-             bin_no.begin(), 
-             bin_cell_count.begin(),
-             bin_cell_count_ptr.begin()
-           )); // count_bins now does not count out_of_bins
-
-        // randomly select which old SD will be increased
-        // overwrites sorted_rd3
-        rand_u01(count_bins);
-
-        // TODO: merge the following transforms into one
-        
-        // randomly choose one SD per bin
-        thrust::transform(
-          u01.begin(),
-          u01.begin() + count_bins,
-          bin_cell_count.begin(),
-          bin_cell_count.begin(),
-          thrust::multiplies<real_t>()
-        );
-        // translate no in bin to the total id
-        thrust::transform(
-          bin_cell_count_ptr.begin(),
-          bin_cell_count_ptr.begin() + count_bins,
-          bin_cell_count.begin(),
-          bin_cell_count.begin(),
-          thrust::plus<real_t>()
-        );
-
-        // --- increase multiplicity of existing SDs ---
-
-        n_part_old = n_part; // number of those before src + no of those w/o match
-        n_part_to_init = count_bins; // number of matched SDs
-        n_part = n_part_old + n_part_to_init;
-        hskpng_resize_npart();
-
-        // copy rd3 and ijk of the selected SDs to the end of the respective vectors
-        thrust::copy(
-          thrust::make_permutation_iterator(
-            rd3.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
-            )
-          ),
-          thrust::make_permutation_iterator(
-            rd3.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()
-            )
-          ) + count_bins,
-          rd3.begin() + n_part_old     // output
-        );
-        thrust::copy(
-          thrust::make_permutation_iterator(
-            ijk.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
-            )
-          ),
-          thrust::make_permutation_iterator(
-            ijk.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()
-            )
-          ) + count_bins,
-          ijk.begin() + n_part_old     // output
-        );
-
-        // init n of the copied SDs, but using the src distribution
-        init_n_sd_conc(
-          *(opts_init.src_dry_distros.begin()->second)
-        ); // TODO: document that n_of_lnrd_stp is expected!
-
-        // add the just-initialized multiplicities to the old ones
-        thrust::transform(
-          n.begin() + n_part_old,
-          n.end(),
-          thrust::make_permutation_iterator(
-            n.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
-            )
-          ),
-          thrust::make_permutation_iterator(
-            n.begin(), thrust::make_permutation_iterator(
-              sorted_id.begin(), bin_cell_count.begin()      // translates no of sorted SD into id
-            )
-          ), //in-place
-          thrust::plus<n_t>()
-        );
-        // TODO: check for overflows of na after addition
-
-        // --- properly reduce size of the vectors back to no before src + no w/o match ---
-        n_part = n_part_old;
-        hskpng_resize_npart();   
-      }
-      */
     }
   };  
 };

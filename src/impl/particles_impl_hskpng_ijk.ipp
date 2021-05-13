@@ -29,6 +29,47 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::ravel_ijk(const thrust_size_t begin_shift) // default = 0
+    {
+      switch (n_dims)
+      {
+        case 0: 
+          break;
+        case 1:
+          thrust::copy(i.begin()+begin_shift, i.end(), ijk.begin()+begin_shift);
+          break;
+        case 2:
+          namespace arg = thrust::placeholders;
+          thrust::transform(
+            i.begin()+begin_shift, i.end(), // input - first arg
+            k.begin()+begin_shift,          // input - second arg
+            ijk.begin()+begin_shift,        // output
+            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
+          );
+          break;
+        case 3:
+          namespace arg = thrust::placeholders;
+          thrust::transform(
+            i.begin()+begin_shift, i.end(), // input - first arg
+            j.begin()+begin_shift,          // input - second arg
+            ijk.begin()+begin_shift,        // output
+            arg::_1 * (opts_init.nz * opts_init.ny) + 
+            arg::_2 * opts_init.nz
+          );
+          thrust::transform(
+            ijk.begin()+begin_shift, ijk.end(),
+            k.begin()+begin_shift,
+            ijk.begin()+begin_shift, // in-place!
+            arg::_1 + arg::_2
+          );
+          // TODO: replace these two transforms with single one
+          break;
+        default:
+          assert(false);
+      }
+    }
+
+    template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_ijk()
     {   
       // helper functor
@@ -51,42 +92,7 @@ namespace libcloudphxx
       if (opts_init.nz != 0) helper(z, k, opts_init.dz);
 
       // raveling i, j & k into ijk
-      switch (n_dims)
-      {
-        case 0: 
-          break;
-        case 1:
-          thrust::copy(i.begin(), i.end(), ijk.begin());
-          break;
-        case 2:
-          namespace arg = thrust::placeholders;
-          thrust::transform(
-            i.begin(), i.end(), // input - first arg
-            k.begin(),          // input - second arg
-            ijk.begin(),        // output
-            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
-          );
-          break;
-        case 3:
-          namespace arg = thrust::placeholders;
-          thrust::transform(
-            i.begin(), i.end(), // input - first arg
-            j.begin(),          // input - second arg
-            ijk.begin(),        // output
-            arg::_1 * (opts_init.nz * opts_init.ny) + 
-            arg::_2 * opts_init.nz
-          );
-          thrust::transform(
-            ijk.begin(), ijk.end(),
-            k.begin(),
-            ijk.begin(), // in-place!
-            arg::_1 + arg::_2
-          );
-          // TODO: replace these two transforms with single one
-          break;
-        default:
-          assert(false);
-      }
+      ravel_ijk();
       
       // flagging that particles are no longer sorted 
       sorted = false;
