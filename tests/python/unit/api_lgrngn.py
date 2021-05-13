@@ -34,6 +34,7 @@ opts_init.sd_conc = 64
 opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.rng_seed_init = 456
+opts_init.rng_seed_init_switch = True
 opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
