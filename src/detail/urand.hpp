@@ -136,7 +136,7 @@ namespace libcloudphxx
           _unused(status);
           // shift into the expected [0,1) range
           namespace arg = thrust::placeholders;
-          thrust::transform(v.begin(), v.begin() + n, float(1) - arg::_1);
+          thrust::transform(v.begin(), v.begin() + n, v.begin(), float(1) - arg::_1);
         }
 
         void generate_n(
@@ -149,7 +149,7 @@ namespace libcloudphxx
           _unused(status);
           // shift into the expected [0,1) range
           namespace arg = thrust::placeholders;
-          thrust::transform(v.begin(), v.begin() + n, double(1) - arg::_1);
+          thrust::transform(v.begin(), v.begin() + n, v.begin(), double(1) - arg::_1);
         }
 
         void generate_normal_n(
