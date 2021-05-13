@@ -82,7 +82,7 @@ namespace libcloudphxx
           thrust::transform(
             vx.begin(), vx.end(),                                // input
             vi.begin(),                                          // output
-            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math
+            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math; TODO: now that rand uniform has range [0,1), float might be good here?
           );
         }
       } helper;

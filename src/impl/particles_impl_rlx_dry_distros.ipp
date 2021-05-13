@@ -12,6 +12,23 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      /// @brief returns ret_t(x*c)
+      template <typename arg_t, typename ret_t>
+      struct multiply_by_constant_and_cast
+      {
+        arg_t c;
+        multiply_by_constant_and_cast(arg_t c) : c(c) {}
+
+        BOOST_GPU_ENABLED
+        ret_t operator()(arg_t x)
+        {
+          return ret_t(x*c);
+        }
+      };
+    };
+
     // create new aerosol particles to relax towards a size distribution
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::rlx_dry_distros()
@@ -160,11 +177,14 @@ namespace libcloudphxx
           // k index based on create_SD
           thrust::copy_if(zero, zero+opts_init.nz, create_SD.begin(), k.begin()+n_part_old, arg::_1 == 1);
           // i and j random 
-          // tossing random numbers [0,1) (or is it [0,1]??) TODO: do it once for all bins
+          // tossing random numbers [0,1)  TODO: do it once for all bins
           rand_u01(n_part_to_init * (n_dims-1));
-          // WARNING: might crash if u01 can have value 1, double check if it can
-          thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin(), arg::_1 * opts_init.nx); 
-          if(n_dims==3) thrust::transform(u01.begin() + n_part_to_init, u01.begin() + 2*n_part_to_init, j.begin(), arg::_1 * opts_init.ny); 
+
+          std::cerr << "u01:" << std::endl;
+          debug::print(u01.begin(), u01.begin()+n_part_to_init);
+
+          thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
+          if(n_dims==3) thrust::transform(u01.begin() + n_part_to_init, u01.begin() + 2*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
 
           // raveling i, j & k into ijk; only of the new SD
           ravel_ijk(n_part_old);
@@ -189,8 +209,6 @@ namespace libcloudphxx
           // init count num
           // init ijk
           // other inits, TODO: how to make these init not in the bins loop?
-
-        //  init_count_num_rlx();
 
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 

@@ -103,6 +103,7 @@ namespace libcloudphxx
         rand_u01(n_part_to_init);
 
 	// shifting from [0,1] to random position within respective cell 
+  // TODO: now the rand range is [0,1), include this here
         {
           namespace arg = thrust::placeholders;
 	  thrust::transform(
