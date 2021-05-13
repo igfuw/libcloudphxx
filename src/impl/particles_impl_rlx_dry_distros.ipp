@@ -56,6 +56,8 @@ namespace libcloudphxx
       // initialize SDs of each kappa-type
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
+        const auto &kappa(ddi->first);
+        assert(kappa >= 0);
         const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
 
         // analyze distribution to get rd_min and max needed for bin sizes
@@ -66,13 +68,14 @@ namespace libcloudphxx
           opts_init.rlx_bins
         );
         const real_t lnrd_rng = log_rd_max - log_rd_min;
-
-
+        assert(lnrd_rng > 0);
 
         // calculate bin edges (in rd3)
         // tmp vector with bin edges, probably could be allocated once in init
         const int n_bins = opts_init.rlx_bins * lnrd_rng / tot_lnrd_rng;
+        assert(n_bins>0);
         const real_t lnrd_bin_size = lnrd_rng / n_bins;
+        assert(lnrd_bin_size > 0);
         std::vector<real_t> bin_rd3_left_edges(n_bins+1); // on CPU because of small number of edges
         std::iota(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), 0); // fill with a 0,1,2,... sequence
         std::transform(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), bin_rd3_left_edges.begin(), [log_rd_min_val=log_rd_min, lnrd_bin_size] (real_t bin_number) { return std::exp( 3 * (log_rd_min_val + bin_number * lnrd_bin_size)) ; }); // calculate left edges
@@ -81,11 +84,18 @@ namespace libcloudphxx
         const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz,
                   z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz;
 
+        assert(z_max_index > z_min_index);
+        assert(z_min_index >= 0);
+        assert(z_max_index < opts_init.nz);
+
+        const auto n_part_pre_bins_loop = n_part;
+
         // loop over the bins
         for(int bin_number=0; bin_number<bin_rd3_left_edges.size()-1; ++bin_number)
         {
           const real_t rd3_min = bin_rd3_left_edges.at(bin_number),
                        rd3_max = bin_rd3_left_edges.at(bin_number+1);
+          assert(rd3_min < rd3_max);
           // TODO: these selections could be optimised
           // select droplets within the desired kappa range
           moms_rng((std::get<1>(ddi->second)).first, (std::get<1>(ddi->second)).second, kpa.begin(), false);
@@ -111,6 +121,7 @@ namespace libcloudphxx
           thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
           int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin();
+          assert(number_of_levels_with_droplets <= opts_init.nz);
           thrust::copy(hor_avg_count.begin(), hor_avg_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_avg.begin(), hor_avg_k.begin()));
           // divide sum by the number of cells at this level
           thrust::transform(hor_avg.begin(), hor_avg.end(), hor_avg.begin(), arg::_1 / (opts_init.nx * m1(opts_init.ny)));
@@ -119,6 +130,7 @@ namespace libcloudphxx
           // calculate expected CCN conc
           const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
           const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
+          assert(expected_STP_concentration >= 0);
           thrust::fill(expected_hor_avg.begin(), expected_hor_avg.end(), expected_STP_concentration);
  
           // correcting STP -> actual ambient conditions
@@ -168,23 +180,24 @@ namespace libcloudphxx
           n_part_to_init = thrust::reduce(create_SD.begin(), create_SD.end());
           n_part = n_part_old + n_part_to_init;
 
-          // resize cell indices, resize should be cheap, because we allocate a large chunk of memory at the start
+          // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
           ijk.resize(n_part);
           i.resize(n_part);
           k.resize(n_part);
           if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
+          rd3.resize(n_part);
 
           // k index based on create_SD
           thrust::copy_if(zero, zero+opts_init.nz, create_SD.begin(), k.begin()+n_part_old, arg::_1 == 1);
           // i and j random 
           // tossing random numbers [0,1)  TODO: do it once for all bins
-          rand_u01(n_part_to_init * (n_dims-1));
+          rand_u01(n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
           std::cerr << "u01:" << std::endl;
           debug::print(u01.begin(), u01.begin()+n_part_to_init);
 
           thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
-          if(n_dims==3) thrust::transform(u01.begin() + n_part_to_init, u01.begin() + 2*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
+          if(n_dims==3) thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
 
           // raveling i, j & k into ijk; only of the new SD
           ravel_ijk(n_part_old);
@@ -205,18 +218,38 @@ namespace libcloudphxx
           std::cerr << "count_num:" << std::endl;
           debug::print(count_num);
 
-          // init i,j,k, (random i and j, k from create SD)
-          // init count num
-          // init ijk
-          // other inits, TODO: how to make these init not in the bins loop?
+          // init dry radius
+          // set rd3 randomized within the bin, uniformly distributed on the log(rd) axis
+          const real_t lnrd_min = std::log(std::pow(rd3_min, 1./3.));
+          thrust::transform(u01.begin() + 1*n_part_to_init, u01.begin() + 2*n_part_to_init, rd3.begin()+n_part_old, lnrd_min + arg::_1 * lnrd_bin_size);
+
+          // converting from lnrd to rd3
+          thrust::transform(
+            rd3.begin() + n_part_old,
+            rd3.end(),
+            rd3.begin() + n_part_old,
+            detail::exp3x<real_t>()
+          );
+
+          std::cerr << "rd3:" << std::endl;
+          debug::print(rd3.begin()+n_part_old, rd3.end());
 
           // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
 
           // at the end we need to set sorting=false
 
-        }
-      }
+        } // end of the bins loop
 
+        // init other SD characteristics that don't have to be initialized in the bins loop
+        n_part_old = n_part_pre_bins_loop;
+        n_part_to_init = n_part - n_part_old;
+        hskpng_resize_npart();
+
+        // init multiplicities
+        init_n_sd_conc(n_of_lnrd_stp);
+
+        init_SD_with_distros_finalize(kappa);
+      } // end of the distros loop
     }
   };  
 };
