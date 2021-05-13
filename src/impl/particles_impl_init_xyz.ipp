@@ -99,7 +99,7 @@ namespace libcloudphxx
       {
         if (n[ix] == 0) continue;
 
-        // tossing random numbers [0,1] 
+        // tossing random numbers
         rand_u01(n_part_to_init);
 
 	// shifting from [0,1] to random position within respective cell 

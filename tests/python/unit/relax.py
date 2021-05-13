@@ -33,9 +33,9 @@ def lognormal(lnr):
 def test(opts_init):
   opts_init.supstp_rlx = 50
   opts_init.rng_seed = int(time())
-  opts_init.rng_seed_init = int(time())
+#  opts_init.rng_seed_init = int(time())
   print('rng_seed:', opts_init.rng_seed)
-  print('rng_seed_init:', opts_init.rng_seed_init)
+#  print('rng_seed_init:', opts_init.rng_seed_init)
   opts_init.dt = 1
   opts_init.nx = 2;
   opts_init.nz = 2;
