@@ -53,6 +53,8 @@ namespace libcloudphxx
         tot_lnrd_rng += log_rd_max - log_rd_min;
       }
 
+      const auto n_part_pre_relax = n_part;
+
       // initialize SDs of each kappa-type
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
@@ -97,12 +99,12 @@ namespace libcloudphxx
                        rd3_max = bin_rd3_left_edges.at(bin_number+1);
           assert(rd3_min < rd3_max);
           // TODO: these selections could be optimised
-          // select droplets within the desired kappa range
-          moms_rng((std::get<1>(ddi->second)).first, (std::get<1>(ddi->second)).second, kpa.begin(), false);
+          // select droplets within the desired kappa range; only from the droplets existing before relaxation began, because relaxed ones are not sorted
+          moms_rng((std::get<1>(ddi->second)).first, (std::get<1>(ddi->second)).second, kpa.begin(), n_part_pre_relax, false);
           // out of those, select droplets within the desired rd3 range
-          moms_rng(rd3_min, rd3_max, rd3.begin(), true);
+          moms_rng(rd3_min, rd3_max, rd3.begin(), n_part_pre_relax, true);
           // calculate 0-th non-specific moment of rd3 (number of droplets in a cell) of droplets in this rd3 and kappa range
-          moms_calc(rd3.begin(), 0, false);
+          moms_calc(rd3.begin(), n_part_pre_relax, 0, false);
           // divide by volume
           thrust::transform(
             count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
@@ -234,10 +236,7 @@ namespace libcloudphxx
           std::cerr << "rd3:" << std::endl;
           debug::print(rd3.begin()+n_part_old, rd3.end());
 
-          // TODO: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
-
-          // at the end we need to set sorting=false
-
+          // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
         } // end of the bins loop
 
         // init other SD characteristics that don't have to be initialized in the bins loop
@@ -250,6 +249,7 @@ namespace libcloudphxx
 
         init_SD_with_distros_finalize(kappa);
       } // end of the distros loop
+      sorted = false;
     }
   };  
 };
