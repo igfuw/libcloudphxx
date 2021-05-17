@@ -149,7 +149,7 @@ namespace libcloudphxx
           }
 
           // set to zero outside of the defined range of altitudes
-          thrust::transform_if(zero, zero+opts_init.nz, expected_hor_avg.begin(), arg::_1 = 0, arg::_1 < z_min_index || arg::_1 > z_max_index); 
+          thrust::replace_if(expected_hor_avg.begin(), expected_hor_avg.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 > z_max_index, real_t(0));
 
 /*
           std::cerr << "bin number: " << bin_number 
