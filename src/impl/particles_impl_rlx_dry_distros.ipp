@@ -40,7 +40,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> hor_avg_count(opts_init.nz);
       thrust_device::vector<thrust_size_t> hor_avg_k(opts_init.nz);
       thrust_device::vector<real_t> expected_hor_avg(opts_init.nz);
-      thrust_device::vector<bool> create_SD(opts_init.nz);
+      thrust_device::vector<thrust_size_t> create_SD(opts_init.nz); // could be bool, but then thrust::reduce does not add bools as expected
 
       // calc sum of ln(rd) ranges of all relax distributions
       real_t tot_lnrd_rng = 0.;
@@ -122,16 +122,16 @@ namespace libcloudphxx
           thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
           thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
 
-          // std::cerr << "count_n: " << count_n << std::endl;
-          // std::cerr << "count_k:" << std::endl;
-          // debug::print(count_k.begin(), count_k.end());
-          // std::cerr << "count_mom:" << std::endl;
-          // debug::print(count_mom.begin(), count_mom.end());
+          //std::cerr << "count_n: " << count_n << std::endl;
+          //std::cerr << "count_k:" << std::endl;
+          //debug::print(count_k.begin(), count_k.end());
+          //std::cerr << "count_mom:" << std::endl;
+          //debug::print(count_mom.begin(), count_mom.end());
 
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
           int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin();
           
-          // std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
+          //std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
           
           assert(number_of_levels_with_droplets <= opts_init.nz);
           thrust::copy(hor_avg_count.begin(), hor_avg_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_avg.begin(), hor_avg_k.begin()));
@@ -191,6 +191,8 @@ namespace libcloudphxx
           n_part_to_init = thrust::reduce(create_SD.begin(), create_SD.end());
           n_part = n_part_old + n_part_to_init;
 
+          //std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
+
           // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
           ijk.resize(n_part);
           i.resize(n_part);
@@ -217,17 +219,17 @@ namespace libcloudphxx
           thrust::fill(count_num.begin(), count_num.end(), 0);
           thrust::scatter(thrust::make_constant_iterator<n_t>(1), thrust::make_constant_iterator<n_t>(1) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
 
-          // std::cerr << "i:" << std::endl;
-          // debug::print(i.begin()+n_part_old, i.end());
+          //std::cerr << "i:" << std::endl;
+          //debug::print(i.begin()+n_part_old, i.end());
 
-          // std::cerr << "k:" << std::endl;
-          // debug::print(k.begin()+n_part_old, k.end());
+          //std::cerr << "k:" << std::endl;
+          //debug::print(k.begin()+n_part_old, k.end());
 
-          // std::cerr << "ijk:" << std::endl;
-          // debug::print(ijk.begin()+n_part_old, ijk.end());
+          //std::cerr << "ijk:" << std::endl;
+          //debug::print(ijk.begin()+n_part_old, ijk.end());
 
-          // std::cerr << "count_num:" << std::endl;
-          // debug::print(count_num);
+          //std::cerr << "count_num:" << std::endl;
+          //debug::print(count_num);
 
           // init dry radius
           // set rd3 randomized within the bin, uniformly distributed on the log(rd) axis
