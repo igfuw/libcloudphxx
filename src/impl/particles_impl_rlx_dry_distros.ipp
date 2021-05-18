@@ -256,6 +256,8 @@ namespace libcloudphxx
         init_n_sd_conc(n_of_lnrd_stp);
 
         init_SD_with_distros_finalize(kappa);
+
+        // TODO: asserts of newly added SD parameters? e.g. how many SD, how big is multiplicity etc.
       } // end of the distros loop
       sorted = false;
     }
