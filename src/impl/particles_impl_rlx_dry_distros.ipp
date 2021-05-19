@@ -250,6 +250,23 @@ namespace libcloudphxx
             detail::exp3x<real_t>()
           );
 
+          // init multiplicities (includes casting from real to n)
+          thrust::copy_if(
+            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 + real_t(0.5)),
+            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 + real_t(0.5)) + opts_init.nz,
+            create_SD.begin(), 
+            n.begin()+n_part_old, 
+            arg::_1 == 1
+          );
+
+          //std::cerr << "rlx, n of new particles:" << std::endl;
+          //debug::print(n.begin()+n_part_old, n.end());
+
+          // detecting possible overflows of n type
+          thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
+          assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+
+
           //std::cerr << "rd3:" << std::endl;
           //debug::print(rd3.begin()+n_part_old, rd3.end());
           // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
@@ -260,12 +277,6 @@ namespace libcloudphxx
         n_part_to_init = n_part - n_part_old;
         //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
-
-        // init multiplicities
-        init_n_sd_conc(n_of_lnrd_stp);
-
-        //std::cerr << "rlx, n of new particles:" << std::endl;
-        //debug::print(n.begin()+n_part_old, n.end());
 
         init_SD_with_distros_finalize(kappa);
 
