@@ -59,6 +59,7 @@ namespace libcloudphxx
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
         const auto &kappa(ddi->first);
+        //std::cerr << "rlx kappa: " << kappa << std::endl;
         assert(kappa >= 0);
         const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
 
@@ -83,8 +84,8 @@ namespace libcloudphxx
         std::transform(bin_rd3_left_edges.begin(), bin_rd3_left_edges.end(), bin_rd3_left_edges.begin(), [log_rd_min_val=log_rd_min, lnrd_bin_size] (real_t bin_number) { return std::exp( 3 * (log_rd_min_val + bin_number * lnrd_bin_size)) ; }); // calculate left edges
 
         // minimum and maximum cell indices
-        const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.nz,
-                  z_max_index = (std::get<2>(ddi->second)).second / opts_init.nz;
+        const int z_min_index = (std::get<2>(ddi->second)).first  / opts_init.dz,
+                  z_max_index = (std::get<2>(ddi->second)).second / opts_init.dz;
 
         assert(z_max_index >= z_min_index);
         assert(z_min_index >= 0);
@@ -129,8 +130,13 @@ namespace libcloudphxx
           //debug::print(count_mom.begin(), count_mom.end());
 
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
-          int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin();
-          
+
+          //std::cerr << "hor_avg_k:" << std::endl;
+          //debug::print(hor_avg_k.begin(), hor_avg_k.end());
+          //std::cerr << "hor_avg_count:" << std::endl;
+          //debug::print(hor_avg_count.begin(), hor_avg_count.end());
+
+          int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
           //std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
           
           assert(number_of_levels_with_droplets <= opts_init.nz);
@@ -252,10 +258,14 @@ namespace libcloudphxx
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
         n_part_to_init = n_part - n_part_old;
+        //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
 
         // init multiplicities
         init_n_sd_conc(n_of_lnrd_stp);
+
+        //std::cerr << "rlx, n of new particles:" << std::endl;
+        //debug::print(n.begin()+n_part_old, n.end());
 
         init_SD_with_distros_finalize(kappa);
 
