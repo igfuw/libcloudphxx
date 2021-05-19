@@ -27,6 +27,28 @@ namespace libcloudphxx
           return ret_t(x*c);
         }
       };
+
+      template<class real_t>
+      struct relax_conc_tolerance
+      {
+        const real_t tolerance;
+
+        relax_conc_tolerance(const real_t tol):
+          tolerance(tol)
+          {}
+
+        BOOST_GPU_ENABLED
+        int operator()(const real_t &a1, const real_t &a2)
+        {
+//          printf("missing %g expected %g tolerance %g result %d\n", a1, a2, tolerance, a2 > real_t(0) ?
+//                          a1 / a2 > tolerance ? 1 : 0
+//                                    : 0);
+//          //std::cerr << "a1: " << a1 << " a2: " << a2 << " tol: " << tolerance << " result: " << bool(a1 / a2 > tolerance) << std::endl;
+          return a2 > real_t(0) ?
+            a1 / a2 > tolerance ? 1 : 0
+          : 0;
+        }
+      };
     };
 
     // create new aerosol particles to relax towards a size distribution
@@ -38,6 +60,7 @@ namespace libcloudphxx
       // vectors of size nz used in calculation of horizontal averages, TODO: allocate them at init
       thrust_device::vector<real_t> hor_avg(opts_init.nz);
       thrust_device::vector<real_t> hor_avg_count(opts_init.nz);
+      thrust_device::vector<real_t> hor_missing(opts_init.nz);
       thrust_device::vector<thrust_size_t> hor_avg_k(opts_init.nz);
       thrust_device::vector<real_t> expected_hor_avg(opts_init.nz);
       thrust_device::vector<thrust_size_t> create_SD(opts_init.nz); // could be bool, but then thrust::reduce does not add bools as expected
@@ -167,12 +190,12 @@ namespace libcloudphxx
           // set to zero outside of the defined range of altitudes
           thrust::replace_if(expected_hor_avg.begin(), expected_hor_avg.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 > z_max_index, real_t(0));
 
-          //std::cerr << "bin number: " << bin_number 
-          //  << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) 
-          //  << " r_center: " << std::exp(bin_lnrd_center) 
-          //  << " z_indices: (" << z_min_index << ", " << z_max_index << "), " 
-          //  << " expected STD concentration: " << expected_STP_concentration 
-          //  << std::endl;
+          //std::cerr << "bin number: " << bin_number ;
+          //std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
+          //std::cerr   << " r_center: " << std::exp(bin_lnrd_center) ;
+          //std::cerr   << " z_indices: (" << z_min_index << ", " << z_max_index << "), " ;
+          //std::cerr   << " expected STD concentration: " << expected_STP_concentration ;
+          //std::cerr  << std::endl;
         
           //std::cerr << "hor_avg:" << std::endl;
           //debug::print(hor_avg);
@@ -180,7 +203,6 @@ namespace libcloudphxx
           //std::cerr << "expected_hor_avg:" << std::endl;
           //debug::print(expected_hor_avg);
           // calculate how many CCN are missing
-          thrust_device::vector<real_t> &hor_missing(expected_hor_avg);
           thrust::transform(expected_hor_avg.begin(), expected_hor_avg.end(), hor_avg.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
@@ -188,7 +210,7 @@ namespace libcloudphxx
           //debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
-          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_avg.begin(), create_SD.begin(), arg::_2 > 0 && arg::_1 / arg::_2 > config.rlx_conc_tolerance); // WARNING: watch out for div by 0
+          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_avg.begin(), create_SD.begin(), detail::relax_conc_tolerance<real_t>(config.rlx_conc_tolerance));
          
           //std::cerr << "create_SD:" << std::endl;
           //debug::print(create_SD);
@@ -205,6 +227,7 @@ namespace libcloudphxx
           k.resize(n_part);
           if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
           rd3.resize(n_part);
+          n.resize(n_part);
 
           // k index based on create_SD
           thrust::copy_if(zero, zero+opts_init.nz, create_SD.begin(), k.begin()+n_part_old, arg::_1 == 1);
@@ -259,7 +282,7 @@ namespace libcloudphxx
             arg::_1 == 1
           );
 
-          //std::cerr << "rlx, n of new particles:" << std::endl;
+          //std::cerr << "n:" << std::endl;
           //debug::print(n.begin()+n_part_old, n.end());
 
           // detecting possible overflows of n type
