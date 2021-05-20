@@ -49,6 +49,38 @@ namespace libcloudphxx
           : 0;
         }
       };
+
+      // domain volume at this height level
+      template <typename real_t>
+      struct hor_dv_eval
+      {
+        // note: having a copy of opts_init here causes CUDA crashes (alignment problems?)
+        const real_t
+          dz,
+          x0, y0, z0,
+          x1, y1, z1;
+
+        hor_dv_eval(const opts_init_t<real_t> &o) :
+          dz(o.dz),
+          x0(o.x0), y0(o.y0), z0(o.z0),
+          x1(o.x1), y1(o.y1), z1(o.z1)
+        {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(const int &k)
+        {
+#if !defined(__NVCC__)
+          using std::min;
+          using std::max;
+#endif
+          return
+            max(real_t(0),
+              (x1 - x0) *
+              (y1 - y0) * // NOTE: size in y is taken into account even in 2D!
+              (min((k + 1) * dz, z1) - max(k * dz, z0))
+            );
+        }
+      };
     };
 
     // create new aerosol particles to relax towards a size distribution
@@ -58,11 +90,11 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       // vectors of size nz used in calculation of horizontal averages, TODO: allocate them at init
-      thrust_device::vector<real_t> hor_avg(opts_init.nz);
-      thrust_device::vector<real_t> hor_avg_count(opts_init.nz);
+      thrust_device::vector<real_t> hor_sum(opts_init.nz);
+      thrust_device::vector<real_t> hor_sum_count(opts_init.nz);
       thrust_device::vector<real_t> hor_missing(opts_init.nz);
-      thrust_device::vector<thrust_size_t> hor_avg_k(opts_init.nz);
-      thrust_device::vector<real_t> expected_hor_avg(opts_init.nz);
+      thrust_device::vector<thrust_size_t> hor_sum_k(opts_init.nz);
+      thrust_device::vector<real_t> expected_hor_sum(opts_init.nz);
       thrust_device::vector<thrust_size_t> create_SD(opts_init.nz); // could be bool, but then thrust::reduce does not add bools as expected
 
       // calc sum of ln(rd) ranges of all relax distributions
@@ -129,19 +161,20 @@ namespace libcloudphxx
           moms_rng(rd3_min, rd3_max, rd3.begin(), n_part_pre_relax, true);
           // calculate 0-th non-specific moment of rd3 (number of droplets in a cell) of droplets in this rd3 and kappa range
           moms_calc(rd3.begin(), n_part_pre_relax, 0, false);
-          // divide by volume
-          thrust::transform(
-            count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-            thrust::make_permutation_iterator(                  // input - second arg
-              dv.begin(),
-              count_ijk.begin()
-            ),
-            count_mom.begin(),                                  // output (in place)
-            thrust::divides<real_t>()
-          );
 
-          // horizontal average of this moment
-          thrust::fill(hor_avg.begin(), hor_avg.end(), 0);
+//          // divide by volume
+//          thrust::transform(
+//            count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+//            thrust::make_permutation_iterator(                  // input - second arg
+//              dv.begin(),
+//              count_ijk.begin()
+//            ),
+//            count_mom.begin(),                                  // output (in place)
+//            thrust::divides<real_t>()
+//          );
+
+          // horizontal sum of this moment
+          thrust::fill(hor_sum.begin(), hor_sum.end(), 0);
           thrust_device::vector<thrust_size_t> &count_k(tmp_device_size_cell);  // NOTE: tmp_device_size_cell is also used in some other inits, careful not to overwrite it!
           thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
           thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
@@ -152,43 +185,45 @@ namespace libcloudphxx
           //std::cerr << "count_mom:" << std::endl;
           //debug::print(count_mom.begin(), count_mom.end());
 
-          auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_avg_k.begin(), hor_avg_count.begin()); 
+          auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
-          //std::cerr << "hor_avg_k:" << std::endl;
-          //debug::print(hor_avg_k.begin(), hor_avg_k.end());
-          //std::cerr << "hor_avg_count:" << std::endl;
-          //debug::print(hor_avg_count.begin(), hor_avg_count.end());
+          //std::cerr << "hor_sum_k:" << std::endl;
+          //debug::print(hor_sum_k.begin(), hor_sum_k.end());
+          //std::cerr << "hor_sum_count:" << std::endl;
+          //debug::print(hor_sum_count.begin(), hor_sum_count.end());
 
-          int number_of_levels_with_droplets = new_end.first - hor_avg_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
+          int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
           //std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
           
           assert(number_of_levels_with_droplets <= opts_init.nz);
-          thrust::copy(hor_avg_count.begin(), hor_avg_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_avg.begin(), hor_avg_k.begin()));
+          thrust::copy(hor_sum_count.begin(), hor_sum_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_sum.begin(), hor_sum_k.begin()));
           // divide sum by the number of cells at this level
-          thrust::transform(hor_avg.begin(), hor_avg.end(), hor_avg.begin(), arg::_1 / (opts_init.nx * m1(opts_init.ny)));
-
+//          thrust::transform(hor_sum.begin(), hor_sum.end(), hor_sum.begin(), arg::_1 / (opts_init.nx * m1(opts_init.ny)));
           
-          // calculate expected CCN conc
+          // calculate expected CCN number
           const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
           const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
           assert(expected_STP_concentration >= 0);
-          thrust::fill(expected_hor_avg.begin(), expected_hor_avg.end(), expected_STP_concentration);
+          thrust::transform(zero, zero + opts_init.nz, expected_hor_sum.begin(), detail::hor_dv_eval<real_t>(opts_init)); // fill with volume of the domain at this level
+          thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), expected_hor_sum.begin(), expected_STP_concentration * arg::_1); // multiply by the expected concentration
+
+          // TODO: check for overflows?
  
           // correcting STP -> actual ambient conditions
           if(!opts_init.aerosol_independent_of_rhod)
           {
             using common::earth::rho_stp;
             thrust::transform(
-              expected_hor_avg.begin(), 
-              expected_hor_avg.begin() + opts_init.nz, 
+              expected_hor_sum.begin(), 
+              expected_hor_sum.begin() + opts_init.nz, 
               rhod.begin(),                 // rhod has size ncell, but vertical cooridnate varies first, so rhod.begin() to rhod.begin()+nz should be the vertical profile?
-              expected_hor_avg.begin(), 
+              expected_hor_sum.begin(), 
               arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
             );
           }
 
           // set to zero outside of the defined range of altitudes
-          thrust::replace_if(expected_hor_avg.begin(), expected_hor_avg.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 > z_max_index, real_t(0));
+          thrust::replace_if(expected_hor_sum.begin(), expected_hor_sum.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 > z_max_index, real_t(0));
 
           //std::cerr << "bin number: " << bin_number ;
           //std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
@@ -197,20 +232,20 @@ namespace libcloudphxx
           //std::cerr   << " expected STD concentration: " << expected_STP_concentration ;
           //std::cerr  << std::endl;
         
-          //std::cerr << "hor_avg:" << std::endl;
-          //debug::print(hor_avg);
+          //std::cerr << "hor_sum:" << std::endl;
+          //debug::print(hor_sum);
         
-          //std::cerr << "expected_hor_avg:" << std::endl;
-          //debug::print(expected_hor_avg);
+          //std::cerr << "expected_hor_sum:" << std::endl;
+          //debug::print(expected_hor_sum);
           // calculate how many CCN are missing
-          thrust::transform(expected_hor_avg.begin(), expected_hor_avg.end(), hor_avg.begin(), hor_missing.begin(), arg::_1 - arg::_2);
+          thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
           //std::cerr << "hor_missing:" << std::endl;
           //debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
-          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_avg.begin(), create_SD.begin(), detail::relax_conc_tolerance<real_t>(config.rlx_conc_tolerance));
+          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), create_SD.begin(), detail::relax_conc_tolerance<real_t>(config.rlx_conc_tolerance));
          
           //std::cerr << "create_SD:" << std::endl;
           //debug::print(create_SD);
@@ -286,8 +321,10 @@ namespace libcloudphxx
           //debug::print(n.begin()+n_part_old, n.end());
 
           // detecting possible overflows of n type
-          thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
-          assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+          {
+            thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
+            assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+          }
 
 
           //std::cerr << "rd3:" << std::endl;
