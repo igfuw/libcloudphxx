@@ -131,8 +131,12 @@ namespace libcloudphxx
         if(opts_init.rlx_switch)
           std::cerr << "libcloudph++ WARNING: relaxation is not fully supported in MPI runs. Mean calculation and addition of SD will be done locally on each node." << std::endl;
       #endif
-        if(n_dims < 2 && opts_init.rlx_switch)
-          throw std::runtime_error("CCN relaxation works only in 2D and 3D, set rlx_switch to false");
+      if(n_dims < 2 && opts_init.rlx_switch)
+        throw std::runtime_error("CCN relaxation works only in 2D and 3D, set rlx_switch to false");
+      if(opts_init.rlx_switch && opts_init.rlx_bins <= 0)
+        throw std::runtime_error("rlx_bins <= 0");
+      if(opts_init.rlx_switch && opts_init.rlx_sd_per_bin <= 0)
+        throw std::runtime_error("n_sd_per_bin <= 0");
     }
   };
 };

@@ -29,12 +29,14 @@ namespace libcloudphxx
       };
 
       template<class real_t>
-      struct relax_conc_tolerance
+      struct calc_n_sd_to_create
       {
         const real_t tolerance;
+        const int n_sd_per_bin;
 
-        relax_conc_tolerance(const real_t tol):
-          tolerance(tol)
+        calc_n_sd_to_create(const real_t tol, const int n_sd_per_bin):
+          tolerance(tol),
+          n_sd_per_bin(n_sd_per_bin)
           {}
 
         BOOST_GPU_ENABLED
@@ -45,7 +47,7 @@ namespace libcloudphxx
 //                                    : 0);
 //          //std::cerr << "a1: " << a1 << " a2: " << a2 << " tol: " << tolerance << " result: " << bool(a1 / a2 > tolerance) << std::endl;
           return a2 > real_t(0) ?
-            a1 / a2 > tolerance ? 1 : 0
+            a1 / a2 > tolerance ? n_sd_per_bin : 0
           : 0;
         }
       };
@@ -95,7 +97,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> hor_missing(opts_init.nz);
       thrust_device::vector<thrust_size_t> hor_sum_k(opts_init.nz);
       thrust_device::vector<real_t> expected_hor_sum(opts_init.nz);
-      thrust_device::vector<thrust_size_t> create_SD(opts_init.nz); // could be bool, but then thrust::reduce does not add bools as expected
+      thrust_device::vector<thrust_size_t> n_SD_to_create(opts_init.nz); // could be bool, but then thrust::reduce does not add bools as expected
 
       // calc sum of ln(rd) ranges of all relax distributions
       real_t tot_lnrd_rng = 0.;
@@ -223,7 +225,7 @@ namespace libcloudphxx
           }
 
           // set to zero outside of the defined range of altitudes
-          thrust::replace_if(expected_hor_sum.begin(), expected_hor_sum.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 > z_max_index, real_t(0));
+          thrust::replace_if(expected_hor_sum.begin(), expected_hor_sum.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 >= z_max_index, real_t(0));
 
           //std::cerr << "bin number: " << bin_number ;
           //std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
@@ -241,17 +243,17 @@ namespace libcloudphxx
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
-          //std::cerr << "hor_missing:" << std::endl;
-          //debug::print(hor_missing);
+          std::cerr << "hor_missing:" << std::endl;
+          debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
-          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), create_SD.begin(), detail::relax_conc_tolerance<real_t>(config.rlx_conc_tolerance));
+          thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), n_SD_to_create.begin(), detail::calc_n_sd_to_create<real_t>(config.rlx_conc_tolerance, opts_init.rlx_sd_per_bin));
          
-          //std::cerr << "create_SD:" << std::endl;
-          //debug::print(create_SD);
+          std::cerr << "n_SD_to_create:" << std::endl;
+          debug::print(n_SD_to_create);
 
           n_part_old = n_part;
-          n_part_to_init = thrust::reduce(create_SD.begin(), create_SD.end());
+          n_part_to_init = thrust::reduce(n_SD_to_create.begin(), n_SD_to_create.end());
           n_part = n_part_old + n_part_to_init;
 
           //std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
@@ -264,9 +266,55 @@ namespace libcloudphxx
           rd3.resize(n_part);
           n.resize(n_part);
 
-          // k index based on create_SD
-          thrust::copy_if(zero, zero+opts_init.nz, create_SD.begin(), k.begin()+n_part_old, arg::_1 == 1);
-          // i and j random 
+          // --- init k ---
+          thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
+          thrust::exclusive_scan(n_SD_to_create.begin(), n_SD_to_create.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
+
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              n_SD_to_create.begin(), ptr.begin(), zero
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              n_SD_to_create.end(), ptr.end(), zero + opts_init.nz
+            )),
+            detail::arbitrary_sequence<thrust_size_t>(&(k[n_part_old]))
+          );
+
+
+          // --- init multiplicities (includes casting from real to n) ---
+
+//          thrust::copy_if(
+//            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5)),
+//            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5)) + opts_init.nz,
+//            n_SD_to_create.begin(), 
+//            n.begin()+n_part_old, 
+//            arg::_1 > 0
+//          );
+
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              n_SD_to_create.begin(), ptr.begin(), 
+              thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5))
+//              zero
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              n_SD_to_create.end(), ptr.end(),
+              thrust::make_transform_iterator(hor_missing.end(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5))
+  //            zero + opts_init.nz
+            )),
+            detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
+          );
+
+          std::cerr << "n:" << std::endl;
+          debug::print(n.begin()+n_part_old, n.end());
+
+          // detecting possible overflows of n type
+          {
+            thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
+            assert(n[ix] < (typename impl::n_t)(-1) / 10000);
+          }
+
+          // --- init of i and j ---
           // tossing random numbers [0,1)  TODO: do it once for all bins
           rand_u01(n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
@@ -280,20 +328,20 @@ namespace libcloudphxx
           ravel_ijk(n_part_old);
 
           // set count_num to the number of SD to init per cell
-          thrust::fill(count_num.begin(), count_num.end(), 0);
-          thrust::scatter(thrust::make_constant_iterator<n_t>(1), thrust::make_constant_iterator<n_t>(1) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
+//          thrust::fill(count_num.begin(), count_num.end(), 0);
+//          thrust::scatter(thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin), thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
 
-          //std::cerr << "i:" << std::endl;
-          //debug::print(i.begin()+n_part_old, i.end());
+          std::cerr << "i:" << std::endl;
+          debug::print(i.begin()+n_part_old, i.end());
 
-          //std::cerr << "k:" << std::endl;
-          //debug::print(k.begin()+n_part_old, k.end());
+          std::cerr << "k:" << std::endl;
+          debug::print(k.begin()+n_part_old, k.end());
 
-          //std::cerr << "ijk:" << std::endl;
-          //debug::print(ijk.begin()+n_part_old, ijk.end());
-
-          //std::cerr << "count_num:" << std::endl;
-          //debug::print(count_num);
+          std::cerr << "ijk:" << std::endl;
+          debug::print(ijk.begin()+n_part_old, ijk.end());
+//
+//          std::cerr << "count_num:" << std::endl;
+//          debug::print(count_num);
 
           // init dry radius
           // set rd3 randomized within the bin, uniformly distributed on the log(rd) axis
@@ -308,34 +356,16 @@ namespace libcloudphxx
             detail::exp3x<real_t>()
           );
 
-          // init multiplicities (includes casting from real to n)
-          thrust::copy_if(
-            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 + real_t(0.5)),
-            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 + real_t(0.5)) + opts_init.nz,
-            create_SD.begin(), 
-            n.begin()+n_part_old, 
-            arg::_1 == 1
-          );
 
-          //std::cerr << "n:" << std::endl;
-          //debug::print(n.begin()+n_part_old, n.end());
-
-          // detecting possible overflows of n type
-          {
-            thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
-            assert(n[ix] < (typename impl::n_t)(-1) / 10000);
-          }
-
-
-          //std::cerr << "rd3:" << std::endl;
-          //debug::print(rd3.begin()+n_part_old, rd3.end());
+          std::cerr << "rd3:" << std::endl;
+          debug::print(rd3.begin()+n_part_old, rd3.end());
           // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
         } // end of the bins loop
 
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
         n_part_to_init = n_part - n_part_old;
-        //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
+        std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
 
         init_SD_with_distros_finalize(kappa, false); // no need to unravel ijk there, becaues i j k are already initialized

@@ -168,8 +168,11 @@ namespace libcloudphxx
 
       rlx_dry_distros_t rlx_dry_distros;
 
-      // number of bins into which the relaxation distro is divided, up to one SD is created per bin
+      // number of bins into which the relaxation distro is divided
       unsigned long long rlx_bins;
+
+      // number of SD created per bin
+      unsigned long long rlx_sd_per_bin;
   
       // timestep interval at which relaxation will be applied
       int supstp_rlx;
@@ -218,6 +221,7 @@ namespace libcloudphxx
         src_z1(0),
         supstp_src(1),
         rlx_bins(0),
+        rlx_sd_per_bin(0),
         supstp_rlx(1),
         rd_min(0.),
         diag_incloud_time(false),
