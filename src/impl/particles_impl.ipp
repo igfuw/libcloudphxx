@@ -425,7 +425,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const real_t &);
+      void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -488,6 +488,7 @@ namespace libcloudphxx
       void hskpng_shuffle_and_sort();
       void hskpng_count();
       void ravel_ijk(const thrust_size_t begin_shift = 0);
+      void unravel_ijk(const thrust_size_t begin_shift = 0);
       void hskpng_ijk();
       void hskpng_Tpr();
       void hskpng_mfp();

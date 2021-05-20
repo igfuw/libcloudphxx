@@ -301,7 +301,7 @@ namespace libcloudphxx
         //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
 
-        init_SD_with_distros_finalize(kappa);
+        init_SD_with_distros_finalize(kappa, false); // no need to unravel ijk there, becaues i j k are already initialized
 
         // TODO: asserts of newly added SD parameters? e.g. how many SD, how big is multiplicity etc.
       } // end of the distros loop

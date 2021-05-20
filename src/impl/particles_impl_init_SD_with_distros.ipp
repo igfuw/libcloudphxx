@@ -50,7 +50,7 @@ namespace libcloudphxx
 
     // final inits common for tail/sd_conc/const_multi
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const real_t &kappa)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const real_t &kappa, const bool unravel_ijk_switch)
     {
       // init kappa
       init_kappa(kappa);
@@ -78,6 +78,10 @@ namespace libcloudphxx
         chem_vol_ante();
       }
       
+      // ijk -> i, j, k
+      if(unravel_ijk_switch)
+        unravel_ijk(n_part_old);
+
       // initialising particle positions
       init_xyz();
     }

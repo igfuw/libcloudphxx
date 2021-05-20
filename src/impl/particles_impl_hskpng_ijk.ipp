@@ -28,6 +28,7 @@ namespace libcloudphxx
       };
     };
 
+    // calc ijk from i, j and k
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ravel_ijk(const thrust_size_t begin_shift) // default = 0
     {
@@ -66,6 +67,58 @@ namespace libcloudphxx
           break;
         default:
           assert(false);
+      }
+    }
+
+
+    // calc i, j and k from ijk
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::unravel_ijk(const thrust_size_t begin_shift) // default = 0
+    {
+      switch(n_dims)
+      {
+        case 3:
+          namespace arg = thrust::placeholders;
+          // y
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            j.begin() + begin_shift,        // output
+            (arg::_1 / opts_init.nz) % (opts_init.ny) // z varies first
+          );
+          // z
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            k.begin() + begin_shift,        // output
+            arg::_1 % (opts_init.nz)   // z varies first
+          );
+          // x
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            i.begin() + begin_shift,        // output
+            arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
+          );
+          break;
+        case 2:
+          // z
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            k.begin() + begin_shift,        // output
+            arg::_1 % (opts_init.nz)   // z varies first
+          );
+          // x
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            i.begin() + begin_shift,        // output
+            arg::_1 / (opts_init.nz)
+          );
+          break;
+        case 1:
+          thrust::copy(ijk.begin() + begin_shift, ijk.end(), i.begin() + begin_shift); // only x
+        case 0:
+          break;
+        default:
+          assert(false);
+          break;
       }
     }
 
