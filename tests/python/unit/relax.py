@@ -109,6 +109,7 @@ opts_init.dry_distros = {kappa:lognormal}
 opts_init.rlx_dry_distros = {kappa: [lognormal_rlx, [0,2],[0,opts_init.dz]]}
 opts_init.sd_conc = 1024
 opts_init.rlx_bins = 1024
+opts_init.rlx_timescale = 4 # whole simulation time is 2, so this means we should get half of the droplets added
 
 
 
@@ -132,12 +133,12 @@ if not(sd_conc[1] == 1024 and sd_conc[3] == 1024):
 
 print(('wet mom0', wet_mom0))
 print((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3])) # relax n_stp is two times bigger
-if abs((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) - 2)  > 0.01:
+if abs((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) - 1.5)  > 0.01:  # we expect 1.5, because n_rlx is two tmes bigger, but relaxation time scale is twice the simulation time
   raise Exception("incorrect multiplicity after source")
 
 print(('wet mom1', wet_mom1))
 print((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3])) # relax n_stp is two times bigger
-if abs((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) - 2)  > 0.01:
+if abs((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) - 1.5)  > 0.01:
   raise Exception("incorrect radius after source")
 
 
@@ -162,11 +163,11 @@ if not(sd_conc[1] == 1024 and sd_conc[3] == 1024):
 
 print(('wet mom0', wet_mom0))
 print((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3])) # relax n_stp is two times bigger
-if abs((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) - 2)  > 0.01:
+if abs((wet_mom0[0] + wet_mom0[2]) / (wet_mom0[1] + wet_mom0[3]) - 1.5)  > 0.01:
   raise Exception("incorrect multiplicity after source")
 
 print(('wet mom1', wet_mom1))
 print((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3])) # relax n_stp is two times bigger
-if abs((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) - 2)  > 0.01:
+if abs((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) - 1.5)  > 0.01:
   raise Exception("incorrect radius after source")
 

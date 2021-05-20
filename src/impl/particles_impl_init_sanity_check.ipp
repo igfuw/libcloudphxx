@@ -137,6 +137,8 @@ namespace libcloudphxx
         throw std::runtime_error("rlx_bins <= 0");
       if(opts_init.rlx_switch && opts_init.rlx_sd_per_bin <= 0)
         throw std::runtime_error("n_sd_per_bin <= 0");
+      if(opts_init.rlx_switch && opts_init.rlx_timescale <= 0)
+        throw std::runtime_error("rlx_timescale <= 0");
     }
   };
 };

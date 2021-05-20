@@ -87,7 +87,7 @@ namespace libcloudphxx
 
     // create new aerosol particles to relax towards a size distribution
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::rlx_dry_distros()
+    void particles_t<real_t, device>::impl::rlx_dry_distros(const real_t dt)
     {   
       namespace arg = thrust::placeholders;
 
@@ -282,25 +282,20 @@ namespace libcloudphxx
 
 
           // --- init multiplicities (includes casting from real to n) ---
+#if !defined(__NVCC__)
+          using std::min;
+#endif
 
-//          thrust::copy_if(
-//            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5)),
-//            thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5)) + opts_init.nz,
-//            n_SD_to_create.begin(), 
-//            n.begin()+n_part_old, 
-//            arg::_1 > 0
-//          );
+          std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
 
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
               n_SD_to_create.begin(), ptr.begin(), 
-              thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5))
-//              zero
+              thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
             )),
             thrust::make_zip_iterator(thrust::make_tuple(
               n_SD_to_create.end(), ptr.end(),
-              thrust::make_transform_iterator(hor_missing.end(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) + real_t(0.5))
-  //            zero + opts_init.nz
+              thrust::make_transform_iterator(hor_missing.end(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
             )),
             detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
           );

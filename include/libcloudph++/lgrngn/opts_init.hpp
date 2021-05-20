@@ -177,6 +177,9 @@ namespace libcloudphxx
       // timestep interval at which relaxation will be applied
       int supstp_rlx;
 
+      // relaxation time scale [s]
+      real_t rlx_timescale;
+
       // -- ctors ---
 
       // ctor with defaults (C++03 compliant) ...
@@ -221,6 +224,7 @@ namespace libcloudphxx
         src_z1(0),
         supstp_src(1),
         rlx_bins(0),
+        rlx_timescale(1),
         rlx_sd_per_bin(0),
         supstp_rlx(1),
         rd_min(0.),
