@@ -243,14 +243,14 @@ namespace libcloudphxx
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
-          std::cerr << "hor_missing:" << std::endl;
-          debug::print(hor_missing);
+          //std::cerr << "hor_missing:" << std::endl;
+          //debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
           thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), n_SD_to_create.begin(), detail::calc_n_sd_to_create<real_t>(config.rlx_conc_tolerance, opts_init.rlx_sd_per_bin));
          
-          std::cerr << "n_SD_to_create:" << std::endl;
-          debug::print(n_SD_to_create);
+          //std::cerr << "n_SD_to_create:" << std::endl;
+          //debug::print(n_SD_to_create);
 
           n_part_old = n_part;
           n_part_to_init = thrust::reduce(n_SD_to_create.begin(), n_SD_to_create.end());
@@ -286,7 +286,7 @@ namespace libcloudphxx
           using std::min;
 #endif
 
-          std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
+          //std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
 
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
@@ -300,8 +300,8 @@ namespace libcloudphxx
             detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
           );
 
-          std::cerr << "n:" << std::endl;
-          debug::print(n.begin()+n_part_old, n.end());
+          //std::cerr << "n:" << std::endl;
+          //debug::print(n.begin()+n_part_old, n.end());
 
           // detecting possible overflows of n type
           {
@@ -326,17 +326,17 @@ namespace libcloudphxx
 //          thrust::fill(count_num.begin(), count_num.end(), 0);
 //          thrust::scatter(thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin), thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
 
-          std::cerr << "i:" << std::endl;
-          debug::print(i.begin()+n_part_old, i.end());
+          //std::cerr << "i:" << std::endl;
+          //debug::print(i.begin()+n_part_old, i.end());
 
-          std::cerr << "k:" << std::endl;
-          debug::print(k.begin()+n_part_old, k.end());
+          //std::cerr << "k:" << std::endl;
+          //debug::print(k.begin()+n_part_old, k.end());
 
-          std::cerr << "ijk:" << std::endl;
-          debug::print(ijk.begin()+n_part_old, ijk.end());
+          //std::cerr << "ijk:" << std::endl;
+          //debug::print(ijk.begin()+n_part_old, ijk.end());
 //
-//          std::cerr << "count_num:" << std::endl;
-//          debug::print(count_num);
+//          //std::cerr << "count_num:" << std::endl;
+//          //debug::print(count_num);
 
           // init dry radius
           // set rd3 randomized within the bin, uniformly distributed on the log(rd) axis
@@ -352,15 +352,15 @@ namespace libcloudphxx
           );
 
 
-          std::cerr << "rd3:" << std::endl;
-          debug::print(rd3.begin()+n_part_old, rd3.end());
+          //std::cerr << "rd3:" << std::endl;
+          //debug::print(rd3.begin()+n_part_old, rd3.end());
           // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
         } // end of the bins loop
 
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
         n_part_to_init = n_part - n_part_old;
-        std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
+        //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
 
         init_SD_with_distros_finalize(kappa, false); // no need to unravel ijk there, becaues i j k are already initialized
