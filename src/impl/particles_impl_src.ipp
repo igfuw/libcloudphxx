@@ -12,7 +12,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src(const real_t &dt)
     {   
-      ante_adding_SD();
+  //    ante_adding_SD();
 
       if(!opts_init.src_dry_distros.empty())
         src_dry_distros(dt);
@@ -20,7 +20,7 @@ namespace libcloudphxx
       if(!opts_init.src_dry_sizes.empty())
         src_dry_sizes(dt);
 
-      post_adding_SD();
+//      post_adding_SD();
     }
   };  
 };

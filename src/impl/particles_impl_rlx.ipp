@@ -12,12 +12,12 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::rlx(const real_t dt)
     {   
-      ante_adding_SD();
+ //     ante_adding_SD();
 
       if(!opts_init.rlx_dry_distros.empty())
         rlx_dry_distros(dt);
  
-      post_adding_SD();
+//      post_adding_SD();
     }
   };  
 };
