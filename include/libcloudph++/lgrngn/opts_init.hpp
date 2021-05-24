@@ -172,7 +172,7 @@ namespace libcloudphxx
       unsigned long long rlx_bins;
 
       // number of SD created per bin
-      unsigned long long rlx_sd_per_bin;
+      real_t rlx_sd_per_bin; // floating, because it gets divided by the number of GPUs per node * number of nodes
   
       // timestep interval at which relaxation will be applied
       int supstp_rlx;
