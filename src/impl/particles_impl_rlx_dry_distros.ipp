@@ -34,9 +34,9 @@ namespace libcloudphxx
         const real_t tolerance;
         const int n_sd_per_bin;
 
-        calc_n_sd_to_create(const real_t tol, const int n_sd_per_bin):
+        calc_n_sd_to_create(const real_t tol, const real_t n_sd_per_bin_real):
           tolerance(tol),
-          n_sd_per_bin(n_sd_per_bin)
+          n_sd_per_bin(std::max<int>(1, int(n_sd_per_bin_real + 0.5)))
           {}
 
         BOOST_GPU_ENABLED
