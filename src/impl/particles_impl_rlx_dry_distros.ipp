@@ -7,6 +7,8 @@
 // #include <limits>
 #include <thrust/unique.h>
 #include <thrust/binary_search.h>
+#include <numeric>
+
 
 namespace libcloudphxx
 {
