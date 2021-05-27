@@ -101,8 +101,7 @@ namespace libcloudphxx
         int  vt_a, int  vt_b,
         int  accr25_a, int  accr25_b,
         int  acnv25_a, int  acnv25_b,
-
-        typename tup_t
+        typename tup_t, typename tup_accr_acnv_t
       >
       BOOST_GPU_ENABLED
       void collide(tup_t tpl, const n_t &col_no, tup_accr_acnv_t tpl_accr_acnv)
