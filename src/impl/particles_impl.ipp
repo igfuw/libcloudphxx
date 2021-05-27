@@ -89,7 +89,10 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
-        incloud_time; // time this SD has been within a cloud
+        incloud_time, // time this SD has been within a cloud
+        delta_acnv25, // change of n * r_w^3 due to autoconversion
+        delta_accr25; // change of n * r_w^3 due to accretion
+
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -147,6 +150,8 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
+        accr25, // accumulated volume (without 4/3 pi) of water turned into rain water (r>25um) through accretion
+        acnv25, // ditto for autoconversion
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -387,7 +392,7 @@ namespace libcloudphxx
         // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &delta_accr25, &delta_acnv25};
         distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
 
         if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
