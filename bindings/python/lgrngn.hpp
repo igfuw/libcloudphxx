@@ -320,6 +320,35 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
+      void set_rdd( // rlx_dry_distros
+        lgr::opts_init_t<real_t> *arg,
+        const bp::dict &kappa_func
+      )
+      {
+        arg->rlx_dry_distros.clear();
+        if(len(kappa_func.keys()) == 0)
+          return;
+
+        // loop over kappas
+        for (int i = 0; i < len(kappa_func.keys()); ++i)
+        {
+          std::cerr << i << std::endl;
+          const real_t kappa = bp::extract<real_t>(kappa_func.keys()[i]);
+          std::cerr << kappa << std::endl;
+          const bp::list nlnrd_kparange_zrange_list = bp::extract<bp::list>(kappa_func.values()[i]);
+          assert(len(nlnrd_kparange_zrange_list) == 3);
+          auto nlnrd = std::make_shared<detail::pyunary<real_t>>(nlnrd_kparange_zrange_list[0]);
+          const bp::list kparange_list = bp::extract<bp::list>(nlnrd_kparange_zrange_list[1]);
+          std::pair<real_t, real_t> kparange{bp::extract<real_t>(kparange_list[0]), bp::extract<real_t>(kparange_list[1])};
+          std::cerr << kparange.first << " " << kparange.second << std::endl;
+          const bp::list zrange_list = bp::extract<bp::list>(nlnrd_kparange_zrange_list[2]);
+          std::pair<real_t, real_t> zrange{bp::extract<real_t>(zrange_list[0]), bp::extract<real_t>(zrange_list[1])};
+          std::cerr << zrange.first << " " << zrange.second << std::endl;
+          arg->rlx_dry_distros[kappa] = std::make_tuple(nlnrd, kparange, zrange);
+        }
+      }
+
+      template <typename real_t>
       void get_ds(
         lgr::opts_init_t<real_t> *arg
       )
@@ -349,6 +378,14 @@ namespace libcloudphxx
       )
       {
         throw std::runtime_error("source_dry_distros does not feature a getter yet - TODO");
+      }
+
+      template <typename real_t>
+      void get_rdd(
+        lgr::opts_init_t<real_t> *arg
+      )
+      {
+        throw std::runtime_error("relax_dry_distros does not feature a getter yet - TODO");
       }
 
       template <typename real_t>

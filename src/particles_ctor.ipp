@@ -9,11 +9,6 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
-#include <boost/numeric/odeint.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
-
 #include <map>
 
 namespace libcloudphxx

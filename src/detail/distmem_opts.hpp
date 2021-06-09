@@ -46,6 +46,8 @@ namespace libcloudphxx
 
         opts_init.n_sd_max = opts_init.n_sd_max / size + 1;
 
+        opts_init.rlx_sd_per_bin /= size;
+
         return n_x_bfr;
       }
     }

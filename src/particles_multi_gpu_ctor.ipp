@@ -37,6 +37,9 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
+      if(pimpl->glob_opts_init.rlx_switch)
+        std::cerr << "libcloudph++ WARNING: relaxation is not fully supported in the multi_CUDA backend. Mean calculation and addition of SD will be done locally on each GPU." << std::endl;
+
       pimpl->mcuda_run(
         &particles_t<real_t, CUDA>::init,
         th, rv, rhod, p, courant_1, courant_2, courant_3, ambient_chem

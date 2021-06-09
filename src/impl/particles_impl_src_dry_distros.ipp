@@ -221,6 +221,9 @@ namespace libcloudphxx
 
           // init rw
           init_wet();
+      
+          // ijk -> i, j, k
+          unravel_ijk(n_part_old);
 
           // init x, y, z, i, j, k
           init_xyz();

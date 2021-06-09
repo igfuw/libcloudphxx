@@ -12,10 +12,11 @@ namespace libcloudphxx
   {
     namespace detail
     {
+      template<class res_t>
       struct arbitrary_sequence //fill container with n 0s, m 1s, l 2s, etc...
       {
-        thrust_device::pointer<thrust_size_t> res;
-        arbitrary_sequence(thrust_device::pointer<thrust_size_t> res): res(res) {}
+        thrust_device::pointer<res_t> res;
+        arbitrary_sequence(thrust_device::pointer<res_t> res): res(res) {}
       
         template<typename Tuple>
         BOOST_GPU_ENABLED
@@ -45,7 +46,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           count_num.end(), ptr.end(), zero + n_cell
         )), 
-        detail::arbitrary_sequence(&(ijk[n_part_old]))
+        detail::arbitrary_sequence<thrust_size_t>(&(ijk[n_part_old]))
       );
     }
   };

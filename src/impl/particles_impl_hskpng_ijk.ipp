@@ -28,6 +28,100 @@ namespace libcloudphxx
       };
     };
 
+    // calc ijk from i, j and k
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::ravel_ijk(const thrust_size_t begin_shift) // default = 0
+    {
+      switch (n_dims)
+      {
+        case 0: 
+          break;
+        case 1:
+          thrust::copy(i.begin()+begin_shift, i.end(), ijk.begin()+begin_shift);
+          break;
+        case 2:
+          namespace arg = thrust::placeholders;
+          thrust::transform(
+            i.begin()+begin_shift, i.end(), // input - first arg
+            k.begin()+begin_shift,          // input - second arg
+            ijk.begin()+begin_shift,        // output
+            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
+          );
+          break;
+        case 3:
+          namespace arg = thrust::placeholders;
+          thrust::transform(
+            i.begin()+begin_shift, i.end(), // input - first arg
+            j.begin()+begin_shift,          // input - second arg
+            ijk.begin()+begin_shift,        // output
+            arg::_1 * (opts_init.nz * opts_init.ny) + 
+            arg::_2 * opts_init.nz
+          );
+          thrust::transform(
+            ijk.begin()+begin_shift, ijk.end(),
+            k.begin()+begin_shift,
+            ijk.begin()+begin_shift, // in-place!
+            arg::_1 + arg::_2
+          );
+          // TODO: replace these two transforms with single one
+          break;
+        default:
+          assert(false);
+      }
+    }
+
+
+    // calc i, j and k from ijk
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::unravel_ijk(const thrust_size_t begin_shift) // default = 0
+    {
+      switch(n_dims)
+      {
+        case 3:
+          namespace arg = thrust::placeholders;
+          // y
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            j.begin() + begin_shift,        // output
+            (arg::_1 / opts_init.nz) % (opts_init.ny) // z varies first
+          );
+          // z
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            k.begin() + begin_shift,        // output
+            arg::_1 % (opts_init.nz)   // z varies first
+          );
+          // x
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            i.begin() + begin_shift,        // output
+            arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
+          );
+          break;
+        case 2:
+          // z
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            k.begin() + begin_shift,        // output
+            arg::_1 % (opts_init.nz)   // z varies first
+          );
+          // x
+          thrust::transform(
+            ijk.begin() + begin_shift, ijk.end(), // input - first arg
+            i.begin() + begin_shift,        // output
+            arg::_1 / (opts_init.nz)
+          );
+          break;
+        case 1:
+          thrust::copy(ijk.begin() + begin_shift, ijk.end(), i.begin() + begin_shift); // only x
+        case 0:
+          break;
+        default:
+          assert(false);
+          break;
+      }
+    }
+
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_ijk()
     {   
@@ -41,7 +135,7 @@ namespace libcloudphxx
           thrust::transform(
             vx.begin(), vx.end(),                                // input
             vi.begin(),                                          // output
-            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math
+            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math; TODO: now that rand uniform has range [0,1), float might be good here?
           );
         }
       } helper;
@@ -51,42 +145,7 @@ namespace libcloudphxx
       if (opts_init.nz != 0) helper(z, k, opts_init.dz);
 
       // raveling i, j & k into ijk
-      switch (n_dims)
-      {
-        case 0: 
-          break;
-        case 1:
-          thrust::copy(i.begin(), i.end(), ijk.begin());
-          break;
-        case 2:
-          namespace arg = thrust::placeholders;
-          thrust::transform(
-            i.begin(), i.end(), // input - first arg
-            k.begin(),          // input - second arg
-            ijk.begin(),        // output
-            arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
-          );
-          break;
-        case 3:
-          namespace arg = thrust::placeholders;
-          thrust::transform(
-            i.begin(), i.end(), // input - first arg
-            j.begin(),          // input - second arg
-            ijk.begin(),        // output
-            arg::_1 * (opts_init.nz * opts_init.ny) + 
-            arg::_2 * opts_init.nz
-          );
-          thrust::transform(
-            ijk.begin(), ijk.end(),
-            k.begin(),
-            ijk.begin(), // in-place!
-            arg::_1 + arg::_2
-          );
-          // TODO: replace these two transforms with single one
-          break;
-        default:
-          assert(false);
-      }
+      ravel_ijk();
       
       // flagging that particles are no longer sorted 
       sorted = false;

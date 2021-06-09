@@ -65,6 +65,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::moms_rng(
       const real_t &min, const real_t &max, 
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const thrust_size_t npart,
       const bool cons // is it a consecutive selection after previous one
     )
     {
@@ -75,20 +76,30 @@ namespace libcloudphxx
 
       if(!cons)
         thrust::transform(
-          n.begin(), n.end(),   // input - 1st arg
-          vec_bgn,              // input - 2nd arg
-          n_filtered.begin(),   // output
+          n.begin(), n.begin() + npart, // input - 1st arg
+          vec_bgn,                      // input - 2nd arg
+          n_filtered.begin(),           // output
           detail::range_filter<real_t>(min, max) 
         );
       else
         thrust::transform(
-          n_filtered.begin(), n_filtered.end(),   // input - 1st arg
-          vec_bgn,                                // input - 2nd arg
-          n_filtered.begin(),                     // output
+          n_filtered.begin(), n_filtered.begin() + npart,  // input - 1st arg
+          vec_bgn,                                         // input - 2nd arg
+          n_filtered.begin(),                              // output
           detail::range_filter<real_t>(min, max) 
         );
 
       selected_before_counting = true;
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::moms_rng(
+      const real_t &min, const real_t &max, 
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons // is it a consecutive selection after previous one
+    )
+    {
+      moms_rng(min, max, vec_bgn, n_part, cons);
     }
  
     // selects particles for which vec1[i] >= vec2[i]
@@ -179,6 +190,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_calc(
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const thrust_size_t npart,
       const real_t power,
       const bool specific
     )
@@ -199,7 +211,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator
       > it_pair = thrust::reduce_by_key(
         // input - keys
-        sorted_ijk.begin(), sorted_ijk.end(),  
+        sorted_ijk.begin(), sorted_ijk.begin()+npart,  
         // input - values
         thrust::make_transform_iterator(
           zip_it_t(thrust::make_tuple(
@@ -285,7 +297,7 @@ namespace libcloudphxx
           std::cout << "sorted_id:" << std::endl;
           debug::print(sorted_id);
           std::cout << "vec:" << std::endl;
-          debug::print(vec_bgn, vec_bgn + n_part);
+          debug::print(vec_bgn, vec_bgn + npart);
           std::cout << "dv:" << std::endl;
           debug::print(dv);
           std::cout << "rhod:" << std::endl;
@@ -293,6 +305,16 @@ namespace libcloudphxx
         }
       }
 #endif
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::moms_calc(
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const real_t power,
+      const bool specific
+    )
+    {
+      moms_calc(vec_bgn, n_part, power, specific);
     }
   };  
 };
