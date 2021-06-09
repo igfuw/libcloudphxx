@@ -118,7 +118,7 @@ namespace libcloudphxx
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
         const auto &kappa(ddi->first);
-        //std::cerr << "rlx kappa: " << kappa << std::endl;
+        std::cerr << "rlx kappa: " << kappa << std::endl;
         assert(kappa >= 0);
         const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
 
@@ -151,6 +151,8 @@ namespace libcloudphxx
         assert(z_max_index < opts_init.nz);
 
         const auto n_part_pre_bins_loop = n_part;
+
+        real_t expected_STP_concentration_tot = 0;
 
         // loop over the bins
         for(int bin_number=0; bin_number<bin_rd3_left_edges.size()-1; ++bin_number)
@@ -191,13 +193,13 @@ namespace libcloudphxx
 
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
-          //std::cerr << "hor_sum_k:" << std::endl;
-          //debug::print(hor_sum_k.begin(), hor_sum_k.end());
-          //std::cerr << "hor_sum_count:" << std::endl;
-          //debug::print(hor_sum_count.begin(), hor_sum_count.end());
+          std::cerr << "hor_sum_k:" << std::endl;
+          debug::print(hor_sum_k.begin(), hor_sum_k.end());
+          std::cerr << "hor_sum_count:" << std::endl;
+          debug::print(hor_sum_count.begin(), hor_sum_count.end());
 
           int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
-          //std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
+          std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
           
           assert(number_of_levels_with_droplets <= opts_init.nz);
           thrust::copy(hor_sum_count.begin(), hor_sum_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_sum.begin(), hor_sum_k.begin()));
@@ -208,6 +210,7 @@ namespace libcloudphxx
           const real_t bin_lnrd_center = log_rd_min + (bin_number + 0.5) * lnrd_bin_size;
           const real_t expected_STP_concentration = n_of_lnrd_stp(bin_lnrd_center) * lnrd_bin_size;
           assert(expected_STP_concentration >= 0);
+          expected_STP_concentration_tot += expected_STP_concentration;
           thrust::transform(zero, zero + opts_init.nz, expected_hor_sum.begin(), detail::hor_dv_eval<real_t>(opts_init)); // fill with volume of the domain at this level
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), expected_hor_sum.begin(), expected_STP_concentration * arg::_1); // multiply by the expected concentration
 
@@ -229,36 +232,36 @@ namespace libcloudphxx
           // set to zero outside of the defined range of altitudes
           thrust::replace_if(expected_hor_sum.begin(), expected_hor_sum.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 >= z_max_index, real_t(0));
 
-          //std::cerr << "bin number: " << bin_number ;
-          //std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
-          //std::cerr   << " r_center: " << std::exp(bin_lnrd_center) ;
-          //std::cerr   << " z_indices: (" << z_min_index << ", " << z_max_index << "), " ;
-          //std::cerr   << " expected STD concentration: " << expected_STP_concentration ;
-          //std::cerr  << std::endl;
+          std::cerr << "bin number: " << bin_number ;
+          std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
+          std::cerr   << " r_center: " << std::exp(bin_lnrd_center) ;
+          std::cerr   << " z_indices: (" << z_min_index << ", " << z_max_index << "), " ;
+          std::cerr   << " expected STP concentration: " << expected_STP_concentration ;
+          std::cerr  << std::endl;
         
-          //std::cerr << "hor_sum:" << std::endl;
-          //debug::print(hor_sum);
+          std::cerr << "hor_sum:" << std::endl;
+          debug::print(hor_sum);
         
-          //std::cerr << "expected_hor_sum:" << std::endl;
-          //debug::print(expected_hor_sum);
+          std::cerr << "expected_hor_sum:" << std::endl;
+          debug::print(expected_hor_sum);
           // calculate how many CCN are missing
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
-          //std::cerr << "hor_missing:" << std::endl;
-          //debug::print(hor_missing);
+          std::cerr << "hor_missing:" << std::endl;
+          debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
           thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), n_SD_to_create.begin(), detail::calc_n_sd_to_create<real_t>(config.rlx_conc_tolerance, opts_init.rlx_sd_per_bin));
          
-          //std::cerr << "n_SD_to_create:" << std::endl;
-          //debug::print(n_SD_to_create);
+          std::cerr << "n_SD_to_create:" << std::endl;
+          debug::print(n_SD_to_create);
 
           n_part_old = n_part;
           n_part_to_init = thrust::reduce(n_SD_to_create.begin(), n_SD_to_create.end());
           n_part = n_part_old + n_part_to_init;
 
-          //std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
+          std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
 
           // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
           ijk.resize(n_part);
@@ -288,7 +291,7 @@ namespace libcloudphxx
           using std::min;
 #endif
 
-          //std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
+          std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
 
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
@@ -358,6 +361,8 @@ namespace libcloudphxx
           //debug::print(rd3.begin()+n_part_old, rd3.end());
           // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
         } // end of the bins loop
+
+        std::cerr << "expected_STP_concentration_tot: " << expected_STP_concentration_tot << std::endl;
 
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
