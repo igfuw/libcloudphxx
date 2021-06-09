@@ -194,9 +194,9 @@ namespace libcloudphxx
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
           //std::cerr << "hor_sum_k:" << std::endl;
-          debug::print(hor_sum_k.begin(), hor_sum_k.end());
+          //debug::print(hor_sum_k.begin(), hor_sum_k.end());
           //std::cerr << "hor_sum_count:" << std::endl;
-          debug::print(hor_sum_count.begin(), hor_sum_count.end());
+          //debug::print(hor_sum_count.begin(), hor_sum_count.end());
 
           int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
           //std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
@@ -240,22 +240,22 @@ namespace libcloudphxx
           //std::cerr  << std::endl;
         
           //std::cerr << "hor_sum:" << std::endl;
-          debug::print(hor_sum);
+          //debug::print(hor_sum);
         
           //std::cerr << "expected_hor_sum:" << std::endl;
-          debug::print(expected_hor_sum);
+          //debug::print(expected_hor_sum);
           // calculate how many CCN are missing
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
           //std::cerr << "hor_missing:" << std::endl;
-          debug::print(hor_missing);
+          //debug::print(hor_missing);
         
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
           thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), n_SD_to_create.begin(), detail::calc_n_sd_to_create<real_t>(config.rlx_conc_tolerance, opts_init.rlx_sd_per_bin));
          
           //std::cerr << "n_SD_to_create:" << std::endl;
-          debug::print(n_SD_to_create);
+          //debug::print(n_SD_to_create);
 
           n_part_old = n_part;
           n_part_to_init = thrust::reduce(n_SD_to_create.begin(), n_SD_to_create.end());
