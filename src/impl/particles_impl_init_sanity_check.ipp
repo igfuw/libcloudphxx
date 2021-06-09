@@ -67,8 +67,8 @@ namespace libcloudphxx
       if (opts_init.src_switch && n_dims<2)
         throw std::runtime_error("src_switch==True and n_dims<2. Source only works in 2D and 3D.");
 
-      if (opts_init.src_switch && !opts_init.src_dry_distros.empty() &&
-          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
+//      if (opts_init.src_switch && !opts_init.src_dry_distros.empty() &&
+//          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
 
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
