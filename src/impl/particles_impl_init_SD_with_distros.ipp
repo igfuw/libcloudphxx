@@ -84,6 +84,9 @@ namespace libcloudphxx
 
       // initialising particle positions
       init_xyz();
+
+      if(opts_init.diag_incloud_time)
+        init_incloud_time();
     }
   };
 };
