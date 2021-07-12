@@ -110,6 +110,8 @@ namespace libcloudphxx
       virtual void diag_vel_div()                                               { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
+      virtual void diag_accr25()                                   { assert(false); }
+      virtual void diag_acnv25()                                   { assert(false); }
 
       // storing a pointer to opts_init (e.g. for interrogatin about
       // dimensions in Python bindings)
@@ -199,6 +201,8 @@ namespace libcloudphxx
       void diag_vel_div();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
+      virtual void diag_accr25();
+      virtual void diag_acnv25();
 
       struct impl;
       std::unique_ptr<impl> pimpl;
@@ -286,6 +290,8 @@ namespace libcloudphxx
       void diag_incloud_time_mom(const int&);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       real_t *outbuf();
+      virtual void diag_accr25();
+      virtual void diag_acnv25();
 
       void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();

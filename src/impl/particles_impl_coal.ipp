@@ -99,34 +99,79 @@ namespace libcloudphxx
         int rw2_a, int rw2_b,
         int rd3_a, int rd3_b,
         int  vt_a, int  vt_b,
-        typename tup_t
+        int  accr25_a, int  accr25_b,
+        int  acnv25_a, int  acnv25_b,
+        typename tup_t, typename tup_accr_acnv_t
       >
       BOOST_GPU_ENABLED
-      void collide(tup_t tpl, const n_t &col_no)
+      void collide(tup_t tpl, const n_t &col_no, tup_accr_acnv_t tpl_accr_acnv)
       {
 #if !defined(__NVCC__)
         using std::cbrt;
         using std::sqrt;
 #endif
-        // multiplicity change (eq. 12 in Shima et al. 2009)
-        thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+        if(thrust::get<rw2_a>(tpl) < thrust::get<rw2_b>(tpl)) // ugly if only for accretion
+        {
+          bool acnv25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) < 6.25e-10;
+          bool accr25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) >= 6.25e-10;
 
-        // wet radius change (eq. 13 in Shima et al. 2009)
-        const real_t rw_b = cbrt(
-          col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
-          thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
-        );
+          if(accr25_flag)
+            thrust::get<accr25_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_a>(tpl), real_t(3./2));
 
-        thrust::get<rw2_b>(tpl) = rw_b * rw_b;
+          // multiplicity change (eq. 12 in Shima et al. 2009)
+          thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+  
+          // wet radius change (eq. 13 in Shima et al. 2009)
+          const real_t rw_b = cbrt(
+            col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+            thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
+          );
+  
+          thrust::get<rw2_b>(tpl) = rw_b * rw_b;
 
-        // dry radius change (eq. 13 in Shima et al. 2009)
-        thrust::get<rd3_b>(tpl) 
-          = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+          acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
 
-        // invalidating vt
-        thrust::get<vt_b>(tpl) = detail::invalid;
+          if(acnv25_flag)
+            thrust::get<acnv25_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+  
+          // dry radius change (eq. 13 in Shima et al. 2009)
+          thrust::get<rd3_b>(tpl) 
+            = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+  
+          // invalidating vt
+          thrust::get<vt_b>(tpl) = detail::invalid;
+        }
+        else // rb < ra
+        {
+          bool acnv25_flag = thrust::get<rw2_a>(tpl) < 6.25e-10 && thrust::get<rw2_b>(tpl) < 6.25e-10;
+          bool accr25_flag = thrust::get<rw2_b>(tpl) < 6.25e-10 && thrust::get<rw2_a>(tpl) >= 6.25e-10;
 
-        // TODO: kappa, chemistry (only if enabled)
+          if(accr25_flag)
+            thrust::get<accr25_b>(tpl_accr_acnv) += col_no * thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+
+          // multiplicity change (eq. 12 in Shima et al. 2009)
+          thrust::get<n_a>(tpl) -= col_no * thrust::get<n_b>(tpl);
+  
+          // wet radius change (eq. 13 in Shima et al. 2009)
+          const real_t rw_b = cbrt(
+            col_no * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl)) + 
+            thrust::get<rw2_b>(tpl) * sqrt(thrust::get<rw2_b>(tpl))
+          );
+  
+          thrust::get<rw2_b>(tpl) = rw_b * rw_b;
+
+          acnv25_flag = acnv25_flag && thrust::get<rw2_b>(tpl) >= 6.25e-10;
+
+          if(acnv25_flag)
+            thrust::get<acnv25_b>(tpl_accr_acnv) += thrust::get<n_b>(tpl) * pow(thrust::get<rw2_b>(tpl), real_t(3./2));
+  
+          // dry radius change (eq. 13 in Shima et al. 2009)
+          thrust::get<rd3_b>(tpl) 
+            = col_no *thrust::get<rd3_a>(tpl) + thrust::get<rd3_b>(tpl);
+  
+          // invalidating vt
+          thrust::get<vt_b>(tpl) = detail::invalid;
+        }
       }
 
       template <typename real_t, typename n_t>
@@ -151,6 +196,7 @@ namespace libcloudphxx
           real_t,        real_t         // number of collisions (output); same vector as u01!
         > tpl_rw_t;
         enum { n_a_ix, n_b_ix, rw2_a_ix, rw2_b_ix, vt_a_ix, vt_b_ix, rd3_a_ix, rd3_b_ix, col_a_ix, col_b_ix };
+        enum { accr25_a_ix, accr25_b_ix, acnv25_a_ix, acnv25_b_ix};
 
         // read-only parameters passed to the calc function
         typedef thrust::tuple<
@@ -235,8 +281,10 @@ namespace libcloudphxx
                 n_a_ix,   n_b_ix,
               rw2_a_ix, rw2_b_ix,
               rd3_a_ix, rd3_b_ix,
-               vt_a_ix,  vt_b_ix
-            >(thrust::get<1>(tpl_ro_rw), col_no);
+               vt_a_ix,  vt_b_ix,
+               accr25_a_ix, accr25_b_ix,
+               acnv25_a_ix, acnv25_b_ix
+            >(thrust::get<1>(tpl_ro_rw), col_no, thrust::get<3>(tpl_ro_rw)); // 3 - tpl_accr_acnv
             thrust::get<col_b_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(na_ge_nb); // col vector for the second in a pair stores info on which one has greater multiplicity
           }
           else
@@ -247,8 +295,10 @@ namespace libcloudphxx
                 n_b_ix,   n_a_ix,
               rw2_b_ix, rw2_a_ix,
               rd3_b_ix, rd3_a_ix,
-               vt_b_ix,  vt_a_ix
-            >(thrust::get<1>(tpl_ro_rw), col_no);
+               vt_b_ix,  vt_a_ix,
+               accr25_b_ix, accr25_a_ix,
+               acnv25_b_ix, acnv25_a_ix
+            >(thrust::get<1>(tpl_ro_rw), col_no, thrust::get<3>(tpl_ro_rw));
             thrust::get<col_b_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(nb_gt_na); // col vector for the second in a pair stores info on which one has greater multiplicity
           }
           thrust::get<col_a_ix>(thrust::get<1>(tpl_ro_rw)) = real_t(col_no); // col vector for the first in a pair stores info on number of collisions
@@ -415,17 +465,24 @@ namespace libcloudphxx
         )
       );
 
+      auto zip_accr_acnv_it =
+        thrust::make_zip_iterator(thrust::make_tuple(
+          thrust::make_permutation_iterator(delta_accr25.begin(),   sorted_id.begin()),
+          thrust::make_permutation_iterator(delta_accr25.begin(),   sorted_id.begin())+1,
+          thrust::make_permutation_iterator(delta_acnv25.begin(),   sorted_id.begin()),
+          thrust::make_permutation_iterator(delta_acnv25.begin(),   sorted_id.begin())+1
+        ));
 
       if(turb_coal)
         thrust::for_each(
-          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)),
-          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it)) + n_part - 1,
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it, zip_accr_acnv_it)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_turb_it, zip_accr_acnv_it)) + n_part - 1,
           detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
         );
       else
         thrust::for_each(
-          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)),
-          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it)) + n_part - 1,
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)),
+          thrust::make_zip_iterator(thrust::make_tuple(zip_ro_it, zip_rw_it, zip_ro_calc_it, zip_accr_acnv_it)) + n_part - 1,
           detail::collider<real_t, n_t>(dt, p_kernel, pure_const_multi, increase_sstp_coal)
         );
 

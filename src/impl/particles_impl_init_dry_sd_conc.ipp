@@ -42,7 +42,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry_sd_conc()
     {
-      // tossing random numbers [0,1] for dry radii
+      // tossing random numbers
       rand_u01(n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
