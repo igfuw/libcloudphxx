@@ -46,7 +46,7 @@ jobs:
       #run: sudo apt-get install libthrust-dev
       run: |
         git clone --depth=1 git://github.com/thrust/thrust.git --branch 1.9.10-1
-        ln -s `pwd`/thrust/thrust /usr/local/include/thrust
+        sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust
         
     - name: Cache Boost
       uses: actions/cache@v2
