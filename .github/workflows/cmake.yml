@@ -41,6 +41,9 @@ jobs:
   #      #platform_version: 18.04
   #      # OPTIONAL: Specify a custom install location
   #      #boost_install_dir: /home/runner/some_directory
+  
+    - name: Install Thrust
+      run: sudo apt-get install libthrust-dev
         
     - name: Cache Boost
       uses: actions/cache@v2
