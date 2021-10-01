@@ -48,6 +48,10 @@ jobs:
       uses: egor-tensin/build-boost@v1
       with:
         version: 1.72.0
+        #libraries: filesystem program_options system
+        libraries:
+        platform: x64
+        configuration: Release
       
     #- name: Install hdf5 (Linux)
     #  run: sudo apt-get install libhdf5-dev
