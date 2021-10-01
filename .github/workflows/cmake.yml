@@ -48,8 +48,7 @@ jobs:
       uses: egor-tensin/build-boost@v1
       with:
         version: 1.72.0
-        #libraries: filesystem program_options system
-        libraries:
+        libraries: date_time # in fact we don't need any compiled libs, only header libs, but when nothing is passed all libs are built
         platform: x64
         configuration: Release
       
