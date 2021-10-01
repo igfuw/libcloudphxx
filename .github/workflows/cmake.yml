@@ -21,8 +21,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Install cuda-toolkit
-      uses: Jimver/cuda-toolkit@v0.2.4
+    # TODO: cache cuda-toolki
+    
+    #- name: Install cuda-toolkit
+    #  id: cuda-toolkit
+    #  uses: Jimver/cuda-toolkit@v0.2.4
+    #  with:
+    #    linux-local-args: '["--toolkit"]'
 
   #  - name: Install boost
   #    uses: MarkusJx/install-boost@v2.0.0
@@ -60,7 +65,7 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBoost_INCLUDE_DIR=${{ steps.boost.outputs.includedir }}
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBoost_INCLUDE_DIR=${{ steps.boost.outputs.root }}/include
 
     - name: Build
       # Build your program with the given configuration
