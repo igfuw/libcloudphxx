@@ -55,24 +55,30 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
    #   run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBOOST_ROOT=${{ steps.boost.outputs.root }}
-      run: |
-        echo $SI
-#        singularity exec ${{si.name}} 'cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}'
+      run: singularity exec $SI 'cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}'
 #
-#    - name: Build
+    - name: Build
       # Build your program with the given configuration
-#      run: singularity exec $env.SI 'cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}'
+      run: singularity exec $SI 'cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}'
 
+
+  # job test
   test:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+
+    - name: Set friendly Singularity image name
+      uses: allenevans/set-env@v2.0.0
+      with:
+        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
+      run: singularity exec $SI 'run: ctest -C ${{env.BUILD_TYPE}}'
       
  #   - name: Run Singularity shell
  #     run: singularity shell '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif'
