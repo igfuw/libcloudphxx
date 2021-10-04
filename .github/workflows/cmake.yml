@@ -45,7 +45,7 @@ jobs:
       run: |
         SI='${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif'
         echo $SI
-        singularity exec '$SI' nvidia-smi
+        singularity exec $SI nvidia-smi
         nvidia-smi
       
     - name: Configure CMake
