@@ -26,18 +26,20 @@ jobs:
       with:
         singularity-version: 3.6.4
             
-    - name: Cache Singularity container
+    - name: Cache Singularity
       id: cache_singularity
       uses: actions/cache@v2
       with:
-        path: '${{ runner.workspace }}/singularity_containers'
-        key: 'sng_ubuntu'
+        #path: '${{ runner.workspace }}/singularity_containers'
+        path: '$HOME/.singularity/'
+        key: 'singularity'
         
     - name: Download UWLCM Singularity container
       if: steps.cache_singularity.outputs.cache-hit != 'true'
-      run: |
-        mkdir '${{ runner.workspace }}/singularity_containers'
-        singularity pull --disable-cache --dir '${{ runner.workspace }}/singularity_containers' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
+  #    run: |
+  #      mkdir '${{ runner.workspace }}/singularity_containers'
+  #      singularity pull --disable-cache --dir '${{ runner.workspace }}/singularity_containers' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
+      run: singularity pull --disable-cache library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
       # disable Singularity cache, we cache manually
       # In truth it's cuda 11.4
       
@@ -45,8 +47,10 @@ jobs:
       run: |
         pwd
         ls
-        ls '${{ runner.workspace }}/singularity_containers'
-        singularity shell '${{ runner.workspace }}/singularity_containers/uwlcm_ubuntu_20_04_cuda_11_1'
+        ls '$HOME/.singularity'
+        singularity shell uwlcm_ubuntu_20_04_cuda_11_1
+   #     ls '${{ runner.workspace }}/singularity_containers'
+   #     singularity shell '${{ runner.workspace }}/singularity_containers/uwlcm_ubuntu_20_04_cuda_11_1'
         
 #    - name: Download UWLCM Singularity container
 #      run: wget https://github.com/igfuw/UWLCM/blob/0fc77ec68053936e36eea4b49f11b3dd2cb1a827/singularity/sng_ubuntu_20_04_cuda_11_1
