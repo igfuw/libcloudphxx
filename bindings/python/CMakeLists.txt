@@ -48,8 +48,10 @@ if(${Boost_MINOR_VERSION} LESS 65)
   find_package(Boost COMPONENTS python3 REQUIRED)
   target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 else()
-  message(STATUS "boost numpy as numpy3")
-  find_package(Boost COMPONENTS numpy3 REQUIRED) # also finds python3
+#  message(STATUS "boost numpy as numpy3")
+#  find_package(Boost COMPONENTS numpy3 REQUIRED) # also finds python3
+  message(STATUS "boost numpy as numpy")
+  find_package(Boost COMPONENTS numpy REQUIRED) # also finds python3
   target_link_libraries(cloudphxx ${Boost_LIBRARIES})
   target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
 #  if(${Boost_MINOR_VERSION} LESS 67)
