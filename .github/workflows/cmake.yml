@@ -25,12 +25,22 @@ jobs:
       uses: eWaterCycle/setup-singularity@v6
       with:
         singularity-version: 3.6.4
+            
+    - name: Cache Singularity container
+      uses: actions/cache@v2
+      with:
+        path: '${{ runner.workspace }}/uwlcm_ubuntu*'
+        key: 'sng_ubuntu'
         
     - name: Download UWLCM Singularity container
-      run: wget https://github.com/igfuw/UWLCM/blob/0fc77ec68053936e36eea4b49f11b3dd2cb1a827/singularity/sng_ubuntu_20_04_cuda_11_1
+      run: singularity pull library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0 
+      # In truth it's cuda 11.4
         
-    - name: Build UWLCM Singularity container
-      run: singularity build sng_ubuntu_20_04_cuda_11_1.sif sng_ubuntu_20_04_cuda_11_1
+#    - name: Download UWLCM Singularity container
+#      run: wget https://github.com/igfuw/UWLCM/blob/0fc77ec68053936e36eea4b49f11b3dd2cb1a827/singularity/sng_ubuntu_20_04_cuda_11_1
+        
+#    - name: Build UWLCM Singularity container
+#      run: singularity build sng_ubuntu_20_04_cuda_11_1.sif sng_ubuntu_20_04_cuda_11_1
     
     # TODO: cache cuda-toolki
     
