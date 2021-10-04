@@ -37,7 +37,7 @@ jobs:
     - name: Download UWLCM Singularity container
       if: steps.cache_singularity.outputs.cache-hit != 'true'
       run: |
-        mkdir '${{ runner.workspace }}/singularity_containters'
+        mkdir '${{ runner.workspace }}/singularity_containers'
         singularity pull --disable-cache --dir '${{ runner.workspace }}/singularity_containers' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
       # disable Singularity cache, we cache manually
       # In truth it's cuda 11.4
