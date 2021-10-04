@@ -27,14 +27,15 @@ jobs:
         singularity-version: 3.6.4
             
     - name: Cache Singularity container
+      id: cache_singularity
       uses: actions/cache@v2
       with:
         path: '${{ runner.workspace }}/singularity_containers'
         #path: '${{ runner.workspace }}/uwlcm_ubuntu_20_04_cuda_11_1*'
-        key: 'sng_ubuntu_test'
+        key: 'sng_ubuntu'
         
     - name: Download UWLCM Singularity container
-      if: test -f '${{ runner.workspace }}/singularity_containters/uwlcm_ubuntu_20_04_cuda_11_1' 
+      if: steps.cache_singularity.outputs.cache-hit != 'true'
       run: |
         mkdir '${{ runner.workspace }}/singularity_containters'
         singularity pull --disable-cache --dir '${{ runner.workspace }}/singularity_containers' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
