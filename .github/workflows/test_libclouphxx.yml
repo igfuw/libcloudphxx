@@ -29,15 +29,15 @@ jobs:
     
     - name: Install Singularity
       #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
-#      uses: eWaterCycle/setup-singularity@v6
-#      with:
-#        singularity-version: 3.6.4
-      #following https://sylabs.io/guides/3.0/user-guide/installation.html
-      run: |
-        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-        sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
-        sudo apt-get update
-        sudo apt-get install -y singularity-container
+      uses: eWaterCycle/setup-singularity@v6
+      with:
+        singularity-version: 3.6.4
+      #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
+#      run: |
+#        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+#        sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
+#        sudo apt-get update
+#        sudo apt-get install -y singularity-container
             
     - name: Cache UWLCM Singularity image
       id: cache_singularity
