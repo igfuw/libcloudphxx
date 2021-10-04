@@ -32,14 +32,14 @@ jobs:
       with:
         singularity-version: 3.6.4
             
-    - name: Cache Singularity
+    - name: Cache UWLCM Singularity image
       id: cache_singularity
       uses: actions/cache@v2
       with:
         path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
         key: 'sng_ubuntu_20_04_cuda_11_4'
         
-    - name: Download UWLCM Singularity container
+    - name: Download UWLCM Singularity image
       if: steps.cache_singularity.outputs.cache-hit != 'true'
       run: |
         mkdir '${{ github.workspace }}/singularity_images'
