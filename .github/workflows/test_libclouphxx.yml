@@ -17,7 +17,7 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env: 
       SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
 
@@ -66,13 +66,13 @@ jobs:
 #
     - name: Build libcloudph++
       # Build your program with the given configuration
-      run: singularity exec $SI VERBOSE=1 cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: singularity exec $SI VERBOSE=1 cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j4
 
 
   # job test
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
 
