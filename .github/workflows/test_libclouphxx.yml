@@ -31,7 +31,7 @@ jobs:
       #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
       uses: eWaterCycle/setup-singularity@v6
       with:
-        singularity-version: 3.6.4
+        singularity-version: 3.7.1
       #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
 #      run: |
 #        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
