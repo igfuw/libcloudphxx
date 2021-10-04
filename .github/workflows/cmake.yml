@@ -29,13 +29,14 @@ jobs:
     - name: Cache Singularity container
       uses: actions/cache@v2
       with:
-        path: '${{ runner.workspace }}/singularity_containers'
+        #path: '${{ runner.workspace }}/singularity_containers'
+        path: '${{ runner.workspace }}/uwlcm_ubuntu_20_04_cuda_11_1*'
         key: 'sng_ubuntu'
         
     - name: Download UWLCM Singularity container
       run: |
         mkdir '${{ runner.workspace }}/singularity_containters'
-        singularity pull --dir '${{ runner.workspace }}/singularity_containters' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0 
+        singularity pull --dir '${{ runner.workspace }}' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0 
       # In truth it's cuda 11.4
         
 #    - name: Download UWLCM Singularity container
