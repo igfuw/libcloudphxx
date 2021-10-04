@@ -38,6 +38,8 @@ jobs:
       run: |
         mkdir '${{ github.workspace }}/singularity_containers'
         singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_containers' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
+        singularity exec '${{ github.workspace }}/singularity_containers/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif' nvidia-smi
+        nvidia-smi
       # disable Singularity cache, we cache manually
       # In truth it's cuda 11.4
       
