@@ -28,9 +28,11 @@ jobs:
       run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
-      uses: eWaterCycle/setup-singularity@v6
-      with:
-        singularity-version: 3.6.4
+#      when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
+#      uses: eWaterCycle/setup-singularity@v6
+#      with:
+#        singularity-version: 3.6.4
+      run: sudo apt-get install -y singularity-container
             
     - name: Cache UWLCM Singularity image
       id: cache_singularity
