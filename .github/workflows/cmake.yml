@@ -34,19 +34,19 @@ jobs:
       id: cache_singularity
       uses: actions/cache@v2
       with:
-        path: '${{ github.workspace }}/singularity_images'
-        key: 'sng_ubuntu'
+        path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+        key: 'sng_ubuntu_20_04_cuda_11_4'
         
     - name: Download UWLCM Singularity container
       if: steps.cache_singularity.outputs.cache-hit != 'true'
       run: |
         mkdir '${{ github.workspace }}/singularity_images'
-        singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0
+        singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
       # disable Singularity cache, we cache manually
       # In truth it's cuda 11.4
 
     - name: Set friendly Singularity image name
-      run: export SI='${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif'
+      run: export SI='${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
       
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
