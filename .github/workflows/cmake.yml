@@ -30,7 +30,7 @@ jobs:
       run: wget https://github.com/igfuw/UWLCM/blob/0fc77ec68053936e36eea4b49f11b3dd2cb1a827/singularity/sng_ubuntu_20_04_cuda_11_1
         
     - name: Build UWLCM Singularity container
-      run: singularity build --remote sng_ubuntu_20_04_cuda_11_1.sif sng_ubuntu_20_04_cuda_11_1
+      run: singularity build sng_ubuntu_20_04_cuda_11_1.sif sng_ubuntu_20_04_cuda_11_1
     
     # TODO: cache cuda-toolki
     
