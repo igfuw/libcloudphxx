@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Nvidia driver
-      run: sudo apt install nvidia-driver-470
+      run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
       uses: eWaterCycle/setup-singularity@v6
