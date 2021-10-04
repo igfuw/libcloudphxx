@@ -32,7 +32,7 @@ jobs:
       with:
         path: '${{ runner.workspace }}/singularity_containers'
         #path: '${{ runner.workspace }}/uwlcm_ubuntu_20_04_cuda_11_1*'
-        key: 'sng_ubuntu'
+        key: 'sng_ubuntu_test'
         
     - name: Download UWLCM Singularity container
       if: steps.cache_singularity.outputs.cache-hit != 'true'
