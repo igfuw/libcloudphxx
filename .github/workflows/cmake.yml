@@ -74,11 +74,11 @@ jobs:
       with:
         SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
 
-    - name: Test
+    - name: unit_test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: singularity exec $SI 'run: ctest -C ${{env.BUILD_TYPE}}'
+      run: singularity exec $SI 'ctest -C ${{env.BUILD_TYPE}}'
       
  #   - name: Run Singularity shell
  #     run: singularity shell '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif'
