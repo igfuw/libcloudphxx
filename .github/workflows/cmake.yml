@@ -47,16 +47,16 @@ jobs:
       # disable Singularity cache, we cache manually
 
     - name: Set friendly Singularity image name
-      id: si
-      output:
-        name: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+      uses: allenevans/set-env@v2.0.0
+      with:
+        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
       
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
    #   run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBOOST_ROOT=${{ steps.boost.outputs.root }}
       run: |
-        echo ${{ si.name }}
+        echo $SI
 #        singularity exec ${{si.name}} 'cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}'
 #
 #    - name: Build
