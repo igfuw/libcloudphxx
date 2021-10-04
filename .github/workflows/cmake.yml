@@ -34,7 +34,7 @@ jobs:
         
     - name: Download UWLCM Singularity container
       run: |
-        mkdir singularity_containers
+        mkdir '${{ runner.workspace }}/singularity_containters'
         singularity pull --dir '${{ runner.workspace }}/singularity_containters' library://pdziekan/default/uwlcm_ubuntu_20_04_cuda_11_1:1.0 
       # In truth it's cuda 11.4
         
