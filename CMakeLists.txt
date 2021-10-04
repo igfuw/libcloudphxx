@@ -205,6 +205,9 @@ if (CMAKE_CUDA_COMPILER)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
     list(SORT msg)
     list(GET msg 0 VIRT)
+    if (VIRT STREQUAL "?")
+      set (VIRT "20")
+    endif()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
 
     set(GPU_CODE_OPTIONS  --gpu-code=)
