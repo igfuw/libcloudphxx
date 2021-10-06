@@ -19,7 +19,8 @@ runs:
   steps:
   - name: Install Nvidia driver
     shell: bash
-    run: sudo apt install --no-install-recommends nvidia-driver-470
+    run: |
+      [[ "${{!inputs.disable_cuda}}" = true ]] && sudo apt install --no-install-recommends nvidia-driver-470 || true
  #   if: ${{!inputs.disable_cuda}}
   
   - name: Install Singularity
