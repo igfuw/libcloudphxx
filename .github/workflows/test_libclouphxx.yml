@@ -7,29 +7,43 @@ on:
     branches: [ master ]
 
 #env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-#  BUILD_TYPE: Release
 
 jobs:
-  # first job, build the library
-  build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  build_CUDA:
     runs-on: ubuntu-20.04
 
     strategy:
       matrix:
-        name: ["CUDA", "no CUDA"]
+        name: ["CUDA"]
         build_type: ["Debug", "Release"]
         include:
         - name: "CUDA"
           disable_cuda: false
           # not enough RAM to compile Debug CUDA on 4 threads
           threads: 1
-        - name: "no CUDA"
-          disable_cuda: true
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build libcloudph++
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/libcloudphxx_build
+      with:
+        disable_cuda: ${{matrix.disable_cuda}}
+        build_type: ${{matrix.build_type}}
+        threads: ${{matrix.threads}}
+
+  build:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        name: ["no_CUDA"]
+        build_type: ["Debug", "Release"]
+        include:
+        - name: "no_CUDA"
+          disable_cuda: false
+          # not enough RAM to compile Debug CUDA on 4 threads
           threads: 4
 
     steps:
