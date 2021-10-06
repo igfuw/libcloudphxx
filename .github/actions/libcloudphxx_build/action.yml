@@ -4,7 +4,7 @@ inputs:
   disable_cuda:
     description: 'disable CUDA build?'
     required: true
-    default: false
+    default: "false"
   build_type:
     description: 'CMake build type: Release, Debug, ...'
     required: true
@@ -20,7 +20,7 @@ runs:
   - name: Install Nvidia driver
     shell: bash
     run: |
-      [[ "${{!inputs.disable_cuda}}" = true ]] && sudo apt install --no-install-recommends nvidia-driver-470 || true
+      [ "${{inputs.disable_cuda}}" = "false" ] && sudo apt install --no-install-recommends nvidia-driver-470 || true
  #   if: ${{!inputs.disable_cuda}}
   
   - name: Install Singularity
@@ -46,7 +46,7 @@ runs:
     shell: bash
 #    if: steps.cache_singularity.outputs.cache-hit != 'true'
     run: |
-      [[ "${{steps.cache_singularity.outputs.cache-hit}}" != "true" ]] &&
+      [ "${{steps.cache_singularity.outputs.cache-hit}}" != "true" ] &&
       mkdir '${{ github.workspace }}/singularity_images'
       singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
       || true
