@@ -29,7 +29,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Nvidia driver
-      if: matrix.cuda == "True"
+      if: matrix.cuda = 'True'
       run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
@@ -52,7 +52,7 @@ jobs:
         key: 'sng_ubuntu_20_04_cuda_11_4'
         
     - name: Download UWLCM Singularity image
-      if: steps.cache_singularity.outputs.cache-hit != 'True'
+      if: steps.cache_singularity.outputs.cache-hit != 'true'
       run: |
         mkdir '${{ github.workspace }}/singularity_images'
         singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
