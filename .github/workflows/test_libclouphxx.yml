@@ -42,7 +42,7 @@ jobs:
         build_type: ["Debug", "Release"]
         include:
         - name: "no_CUDA"
-          disable_cuda: false
+          disable_cuda: true
           # not enough RAM to compile Debug CUDA on 4 threads
           threads: 4
 
