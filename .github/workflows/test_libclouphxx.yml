@@ -106,12 +106,17 @@ jobs:
     needs: build
     runs-on: ubuntu-20.04
 
+    strategy:
+      matrix:
+        build_type: ["Release"]
+
     steps:
 
-    - name: Set friendly Singularity image name
-      uses: allenevans/set-env@v2.0.0
-      with:
-        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+   # TODO: it is already done by the libcloudphxx_build action?
+   # - name: Set friendly Singularity image name
+   #   uses: allenevans/set-env@v2.0.0
+   #   with:
+   #     SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
 
     - name: Run unit tests
       working-directory: ${{github.workspace}}/build
