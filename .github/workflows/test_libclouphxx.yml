@@ -24,15 +24,15 @@ jobs:
         name: ["CUDA", "no CUDA"]
         include:
         - name: "CUDA"
-          cuda: True
+          disable-cuda: false
         - name: "no CUDA"
-          cuda: False
+          disable-cuda: true
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install Nvidia driver
-      if: matrix.cuda == 'True'
+      if: matrix.disable-cuda == 'false'
       run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
@@ -69,7 +69,7 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: singularity exec $SI cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True -DLIBCLOUDPHXX_DISABLE_CUDA=${{matrix.cuda}}
+      run: singularity exec $SI cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True -DLIBCLOUDPHXX_DISABLE_CUDA=${{matrix.disable-cuda}}
 #
     - name: Build libcloudph++
       # Build your program with the given configuration
