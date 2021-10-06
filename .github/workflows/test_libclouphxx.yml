@@ -31,8 +31,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - run: echo matrix.disable-cuda
+
     - name: Install Nvidia driver
-      if: !matrix.disable-cuda
+      if: matrix.disable-cuda == 'false'
       run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
