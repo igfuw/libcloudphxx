@@ -20,7 +20,7 @@ runs:
   - name: Install Nvidia driver
     shell: bash
     run: sudo apt install --no-install-recommends nvidia-driver-470
-    if: ${{!inputs.disable_cuda}}
+ #   if: ${{!inputs.disable_cuda}}
   
   - name: Install Singularity
     #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
@@ -43,7 +43,7 @@ runs:
       
   - name: Download UWLCM Singularity image
     shell: bash
-    if: steps.cache_singularity.outputs.cache-hit != 'true'
+#    if: steps.cache_singularity.outputs.cache-hit != 'true'
     run: |
       mkdir '${{ github.workspace }}/singularity_images'
       singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
