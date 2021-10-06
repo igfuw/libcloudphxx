@@ -21,15 +21,18 @@ jobs:
 
     strategy:
       matrix:
+        name: ["CUDA", "no CUDA"]
         include:
-        - cuda: True
-        - cuda: False
+        - name: "CUDA"
+          cuda: True
+        - name: "no CUDA"
+          cuda: False
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install Nvidia driver
-      if: matrix.cuda == 'True'
+      if: matrix.cuda == True
       run: sudo apt install --no-install-recommends nvidia-driver-470
     
     - name: Install Singularity
