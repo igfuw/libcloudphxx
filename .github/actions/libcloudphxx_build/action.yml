@@ -48,8 +48,8 @@ runs:
     run: |
       [ "${{steps.cache_singularity.outputs.cache-hit}}" != "true" ] &&
       {
-        mkdir '${{ github.workspace }}/singularity_images';
-        singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4;
+      mkdir '${{ github.workspace }}/singularity_images';
+      singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4;
       }
       ||
       true
