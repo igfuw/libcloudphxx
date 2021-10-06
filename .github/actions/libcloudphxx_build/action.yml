@@ -46,8 +46,10 @@ runs:
     shell: bash
 #    if: steps.cache_singularity.outputs.cache-hit != 'true'
     run: |
+      [[ "${{steps.cache_singularity.outputs.cache-hit}}" != 'true' ]] &&
       mkdir '${{ github.workspace }}/singularity_images'
       singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
+      || true
     # disable Singularity cache, we cache manually
 
   - name: Set friendly Singularity image name
