@@ -23,7 +23,7 @@ jobs:
       matrix:
         name: ["CUDA", "no CUDA"]
         build_type: ["Debug", "Release"]
-        threads: 4
+        threads: [4]
         include:
         - name: "CUDA"
           disable-cuda: false
