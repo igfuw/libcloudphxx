@@ -23,68 +23,63 @@ jobs:
       matrix:
         name: ["CUDA", "no CUDA"]
         build_type: ["Debug", "Release"]
+        threads: [4]
         include:
         - name: "CUDA"
-          disable_cuda: false
-          # not enough RAM to compile Debug CUDA on 4 threads
-          threads: 1
+          disable-cuda: false
+        - name: "CUDA"
+          build_type: "Debug"
+          threads: 1 # not enough RAM to compile Debug CUDA
+          disable-cuda: false
         - name: "no CUDA"
-          disable_cuda: true
-          threads: 4
+          disable-cuda: true
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.1-beta
+    - name: Install Nvidia driver
+      if: ${{!matrix.disable-cuda}}
+      run: sudo apt install --no-install-recommends nvidia-driver-470
+    
+    - name: Install Singularity
+      #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
+      uses: eWaterCycle/setup-singularity@v6
       with:
-        disable_cuda: ${{matrix.disable_cuda}}
-        build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
-
-#    - name: Install Nvidia driver
-#      if: ${{!matrix.disable_cuda}}
-#      run: sudo apt install --no-install-recommends nvidia-driver-470
-#    
-#    - name: Install Singularity
-#      #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
-#      uses: eWaterCycle/setup-singularity@v6
-#      with:
-#        singularity-version: 3.7.1
-#      #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
-##      run: |
-##        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-##        sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
-##        sudo apt-get update
-##        sudo apt-get install -y singularity-container
-#            
-#    - name: Cache UWLCM Singularity image
-#      id: cache_singularity
-#      uses: actions/cache@v2
-#      with:
-#        path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
-#        key: 'sng_ubuntu_20_04_cuda_11_4'
-#        
-#    - name: Download UWLCM Singularity image
-#      if: steps.cache_singularity.outputs.cache-hit != 'true'
+        singularity-version: 3.7.1
+      #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
 #      run: |
-#        mkdir '${{ github.workspace }}/singularity_images'
-#        singularity pull --disable_cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
-#      # disable Singularity cache, we cache manually
+#        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+#        sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
+#        sudo apt-get update
+#        sudo apt-get install -y singularity-container
+            
+    - name: Cache UWLCM Singularity image
+      id: cache_singularity
+      uses: actions/cache@v2
+      with:
+        path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+        key: 'sng_ubuntu_20_04_cuda_11_4'
+        
+    - name: Download UWLCM Singularity image
+      if: steps.cache_singularity.outputs.cache-hit != 'true'
+      run: |
+        mkdir '${{ github.workspace }}/singularity_images'
+        singularity pull --disable-cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
+      # disable Singularity cache, we cache manually
+
+    - name: Set friendly Singularity image name
+      uses: allenevans/set-env@v2.0.0
+      with:
+        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+      
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: singularity exec $SI cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True -DLIBCLOUDPHXX_DISABLE_CUDA=${{matrix.disable-cuda}}
 #
-#    - name: Set friendly Singularity image name
-#      uses: allenevans/set-env@v2.0.0
-#      with:
-#        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
-#      
-#    - name: Configure CMake
-#      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-#      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-#      run: singularity exec $SI cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True -DLIBCLOUDPHXX_DISABLE_CUDA=${{matrix.disable_cuda}}
-##
-#    - name: Build libcloudph++
-#      # Build your program with the given configuration
-#      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j${{matrix.threads}}
+    - name: Build libcloudph++
+      # Build your program with the given configuration
+      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j${{matrix.threads}}
 
   # job test
   test:
