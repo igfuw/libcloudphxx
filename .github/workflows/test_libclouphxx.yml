@@ -23,8 +23,13 @@ jobs:
       matrix:
         name: ["CUDA", "no CUDA"]
         build_type: ["Debug", "Release"]
+        threads: 4
         include:
         - name: "CUDA"
+          disable-cuda: false
+        - name: "CUDA"
+          build_type: "Debug"
+          threads: 1 # not enough RAM to compile Debug CUDA
           disable-cuda: false
         - name: "no CUDA"
           disable-cuda: true
@@ -74,7 +79,7 @@ jobs:
 #
     - name: Build libcloudph++
       # Build your program with the given configuration
-      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j4
+      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j${{matrix.threads}}
 
   # job test
   test:
