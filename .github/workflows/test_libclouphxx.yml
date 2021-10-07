@@ -11,7 +11,6 @@ on:
 jobs:
 #  build_CUDA:
 #    runs-on: ubuntu-20.04
-#
 #    strategy:
 #      matrix:
 #        name: ["CUDA"]
@@ -35,7 +34,6 @@ jobs:
 
   build:
     runs-on: ubuntu-20.04
-
     strategy:
       matrix:
         name: ["no_CUDA"]
@@ -43,7 +41,6 @@ jobs:
         include:
         - name: "no_CUDA"
           disable_cuda: true
-          # not enough RAM to compile Debug CUDA on 4 threads
           threads: 4
 
     steps:
@@ -67,6 +64,97 @@ jobs:
       with:
         name: libcloud_build_${{matrix.build_type}}_tar
         path: build.tar
+
+  # test jobs
+#  unit_test:
+#    needs: build
+#    runs-on: ubuntu-20.04
+#
+#    strategy:
+#      matrix:
+#        build_type: ["Release", "Debug"]
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: Download libcloudph++ build
+#      uses: actions/download-artifact@v2
+#      with:
+#        name: libcloud_build_${{matrix.build_type}}_tar
+#
+#    - name: Decompress libcloudph++ build
+#      run: tar -xvf build.tar
+#
+#    - name: load UWLCM Singularity image
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/load_UWLCM_singularity_image
+#      with:
+#        path: ${{ github.workspace }}/singularity_images
+#
+#    - name: Run unit tests
+#      working-directory: ${{github.workspace}}/build
+#      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+#      run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+
+  parcel_test:
+    needs: build
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        build_type: ["Release", "Debug"]
+        include:
+        - build_type: "Release"
+          long_tests: true
+          debug_tests: false
+        - build_type: "Debug"
+          long_tests: false
+          debug_tests: true
+
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_tar
+
+    - name: Decompress libcloudph++ build
+      run: tar -xvf build.tar
+
+    - name: load UWLCM Singularity image
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/load_UWLCM_singularity_image
+      with:
+        path: ${{ github.workspace }}/singularity_images
+
+    - name: Install libcloudph++
+      run: singularity exec $SI cmake --install build
+
+    - name: Install python3-gnuplot
+      run: |
+        wget http://ftp.pl.debian.org/debian/pool/main/p/python-gnuplot/python3-gnuplot_1.8-8_all.deb
+        sudo dpkg -i python3-gnuplot_1.8-8_all.deb
+
+    - name: checkout parcel repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/parcel
+
+    - run: mkdir parcel/plots/outputs
+
+    - name: run parcel tests long
+      working-directory: ${{github.workspace}}/parcel
+      if: ${{matrix.long_tests}}
+      run: |
+        py.test -v unit_test
+        py.test -v long_test
+
+    - name: run parcel tests debug
+      working-directory: ${{github.workspace}}/parcel
+      if: ${{matrix.debug_tests}}
+      run: py.test -v unit_test_debug
 
 #    - name: Install Nvidia driver
 #      if: ${{!matrix.disable_cuda}}
@@ -111,62 +199,6 @@ jobs:
 #    - name: Build libcloudph++
 #      # Build your program with the given configuration
 #      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j${{matrix.threads}}
-
-  # test jobs
-  unit_test:
-    needs: build
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        build_type: ["Release", "Debug"]
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
-# Singularity installation the same as in libcloudphxx_build action...
-#    - name: Install Singularity
-#      #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
-#      uses: eWaterCycle/setup-singularity@v6
-#      with:
-#        singularity-version: 3.7.1
-#            
-#    - name: Cache UWLCM Singularity image
-#      id: cache_singularity
-#      uses: actions/cache@v2
-#      with:
-#        path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
-#        key: 'sng_ubuntu_20_04_cuda_11_4'
-#        
-#    - name: Download UWLCM Singularity image
-#      if: steps.cache_singularity.outputs.cache-hit != 'true'
-#      run: |
-#        mkdir '${{ github.workspace }}/singularity_images'
-#        singularity pull --disable_cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
-#
-#    - name: Set friendly Singularity image name
-#      uses: allenevans/set-env@v2.0.0
-#      with:
-#        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
-
-    - name: Run unit tests
-      working-directory: ${{github.workspace}}/build
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
       
       
  #   - name: Run Singularity shell
