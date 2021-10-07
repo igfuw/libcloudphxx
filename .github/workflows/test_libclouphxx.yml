@@ -135,7 +135,7 @@ jobs:
     - name: Install python3-gnuplot
       run: |
         wget http://ftp.pl.debian.org/debian/pool/main/p/python-gnuplot/python3-gnuplot_1.8-8_all.deb
-        sudo dpkg -i python3-gnuplot_1.8-8_all.deb
+        sudo apt install python3-gnuplot_1.8-8_all.deb
 
     - name: checkout parcel repo
       uses: actions/checkout@v2
@@ -202,18 +202,65 @@ jobs:
       run: sudo cmake --install build
 
     - name: Configure kinematic_2D CMake
-      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D
+      working-directory: ${{github.workspace}}models/kinematic_2D
       run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
   
     - name: Build kinematic_2D 
-      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D
+      working-directory: ${{github.workspace}}/models/kinematic_2D
       run: VERBOSE=1 singularity exec $SI cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
-      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D/build
+      working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
         ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
         cat Testing/Temporary/LastTest.log
+
+  build_and_test_KiD-A:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        name: ["no_CUDA"]
+        build_type: ["RelWithDebInfo"]
+        include:
+        - name: "no_CUDA"
+          disable_cuda: true
+          threads: 4
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: merge with the KiD-A branch
+#      working-directory: ${{github.workspace}}/libcloudphxx
+      run: |
+        git ls-remote --heads origin
+        git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git fetch --all
+        git branch -r
+        git branch -v -a
+        git stash
+        git merge --verbose --progress origin/kida-1d
+        git stash apply
+
+    - name: build libcloudph++
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/libcloudphxx_build
+      with:
+        disable_cuda: ${{matrix.disable_cuda}}
+        build_type: ${{matrix.build_type}}
+        threads: ${{matrix.threads}}
+        path: ${{ github.workspace }}
+
+    - name: Install libcloudph++
+      run: sudo cmake --install build
+
+    - name: checkout KiD-libcloud repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/kid-libcloud
+
+    - name: run KiD LWP test
+      run: \ # TODO
+
 
 #    - name: Install Nvidia driver
 #      if: ${{!matrix.disable_cuda}}
