@@ -1,0 +1,47 @@
+name: 'load UWLCM Singularity image'
+description: 'set env var SI to point to the image location'
+inputs:
+  path:
+    description: 'Where to put the image'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  
+  - name: Install Singularity
+    #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
+    uses: eWaterCycle/setup-singularity@v6
+    with:
+      singularity-version: 3.7.1
+    #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
+#    run: |
+#      wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+#      sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
+#      sudo apt-get update
+#      sudo apt-get install -y singularity-container
+          
+  - name: Cache UWLCM Singularity image
+    id: cache_singularity
+    uses: actions/cache@v2
+    with:
+      path: '${{ inputs.path }}/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+      key: 'sng_ubuntu_20_04_cuda_11_4'
+      
+  - name: Download UWLCM Singularity image
+    shell: bash
+#    if: steps.cache_singularity.outputs.cache-hit != 'true'
+    run: |
+      [ "${{steps.cache_singularity.outputs.cache-hit}}" != "true" ] && \
+      {
+      mkdir '${{ inputs.path }}';
+      singularity pull --disable-cache --dir '${{ inputs.path }}' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4;
+      } \
+      || \
+      true
+    # disable Singularity cache, we cache manually
+
+  - name: Set friendly Singularity image name
+    uses: allenevans/set-env@v2.0.0
+    with:
+      SI: '${{ inputs.path }}/uwlcm_ubuntu_20_04_cuda_11_4.sif'
