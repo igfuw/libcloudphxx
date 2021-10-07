@@ -14,7 +14,7 @@ jobs:
 #    strategy:
 #      matrix:
 #        name: ["CUDA"]
-#        build_type: ["Debug", "Release"]
+#        build_type: ["Debug", "RelWithDebInfo"]
 #        include:
 #        - name: "CUDA"
 #          disable_cuda: false
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["Debug", "Release"]
+        build_type: ["Debug", "RelWithDebInfo"]
         include:
         - name: "no_CUDA"
           disable_cuda: true
@@ -72,7 +72,7 @@ jobs:
 #
 #    strategy:
 #      matrix:
-#        build_type: ["Release", "Debug"]
+#        build_type: ["RelWithDebInfo", "Debug"]
 #
 #    steps:
 #    - uses: actions/checkout@v2
@@ -102,9 +102,9 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["Release", "Debug"]
+        build_type: ["RelWithDebInfo", "Debug"]
         include:
-        - build_type: "Release"
+        - build_type: "RelWithDebInfo"
           long_tests: true
           debug_tests: false
         - build_type: "Debug"
@@ -130,7 +130,7 @@ jobs:
         path: ${{ github.workspace }}/singularity_images
 
     - name: Install libcloudph++
-      run: sudo singularity exec $SI cmake --install build
+      run: sudo cmake --install build
 
     - name: Install python3-gnuplot
       run: |
@@ -155,6 +155,65 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
       run: py.test -v unit_test_debug
+
+  kinematic_2D_test:
+    needs: build
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        build_type: ["RelWithDebInfo"]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_tar
+
+    - name: Decompress libcloudph++ build
+      run: tar -xvf build.tar
+
+    - name: load UWLCM Singularity image
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/load_UWLCM_singularity_image
+      with:
+        path: ${{ github.workspace }}/singularity_images
+
+    - name: Install libcloudph++
+      run: sudo cmake --install build
+
+    - name: checkout libmpdata++ repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+
+    - name: Configure libmpdata++ CMake
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: singularity exec $SI cmake -B build
+  
+    - name: Build libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: VERBOSE=1 singularity exec $SI cmake --build build 
+
+    - name: Install libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: sudo cmake --install build
+
+    - name: Configure kinematic_2D CMake
+      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D
+      run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+  
+    - name: Build kinematic_2D 
+      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D
+      run: VERBOSE=1 singularity exec $SI cmake --build build --config ${{matrix.build_type}} 
+
+    - name: Run kinematic_2D tests
+      working-directory: ${{github.workspace}}/libcloudphxx/models/kinematic_2D/build
+      run: |
+        ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        cat Testing/Temporary/LastTest.log
 
 #    - name: Install Nvidia driver
 #      if: ${{!matrix.disable_cuda}}
@@ -251,7 +310,7 @@ jobs:
  #       version: 1.72.0
  #       libraries: date_time # in fact we don't need any compiled libs, only header libs, but when nothing is passed all libs are built
  #       platform: x64
- #       configuration: Release
+ #       configuration: RelWithDebInfo
       
     #- name: Install hdf5 (Linux)
     #  run: sudo apt-get install libhdf5-dev
