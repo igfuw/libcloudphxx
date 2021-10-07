@@ -64,7 +64,7 @@ jobs:
     - name: Upload libcloudph++ build
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_build_tar
+        name: libcloud_build_${{matrix.build_type}}_tar
         path: build.tar
 
 #    - name: Install Nvidia driver
@@ -118,7 +118,7 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["Release"]
+        build_type: ["Release", "Debug"]
 
     steps:
     - uses: actions/checkout@v2
@@ -129,7 +129,7 @@ jobs:
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_build_tar
+        name: libcloud_build_${{matrix.build_type}}_tar
 #        path: ${{ github.workspace }}/build
 
     - name: Decompress libcloudph++ build
