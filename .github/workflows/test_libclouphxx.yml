@@ -57,11 +57,15 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
 
-    - name: Upload built libcloudph++
+    # tar build dir before upload as artifact to retain permission and case-sensitive names
+    - name: Compress libcloudph++ build
+      run: tar -cvf build.tar ${{github.workspace}}/build
+
+    - name: Upload libcloudph++ build
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_build
-        path: ${{github.workspace}}/build
+        name: libcloud_build_tar
+        path: build.tar
 
 #    - name: Install Nvidia driver
 #      if: ${{!matrix.disable_cuda}}
@@ -119,14 +123,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: create the build directory
-      run: mkdir ${{ github.workspace }}/build
+#    - name: create the build directory
+#      run: mkdir ${{ github.workspace }}/build
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_build
-        path: ${{ github.workspace }}/build
+        name: libcloud_build_tar
+#        path: ${{ github.workspace }}/build
+
+    - name: Decompress libcloudph++ build
+      run: |
+        tar -xvf build.tar
+        pwd
+        ls
+        ls build
 
 # Singularity installation the same as in libcloudphxx_build action...
     - name: Install Singularity
