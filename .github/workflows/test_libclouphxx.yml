@@ -119,10 +119,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: create the build directory
+      run: mkdir ${{ github.workspace }}/build
+
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v2
       with:
         name: libcloud_build
+        path: ${{ github.workspace }}/build
 
     - run: |
         pwd
