@@ -59,7 +59,7 @@ jobs:
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
     - name: Compress libcloudph++ build
-      run: tar -cvf build.tar ${{github.workspace}}/build
+      run: tar -cvf build.tar build
 
     - name: Upload libcloudph++ build
       uses: actions/upload-artifact@v2
