@@ -130,7 +130,7 @@ jobs:
         path: ${{ github.workspace }}/singularity_images
 
     - name: Install libcloudph++
-      run: singularity exec $SI cmake --install build
+      run: sudo singularity exec $SI cmake --install build
 
     - name: Install python3-gnuplot
       run: |
