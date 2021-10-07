@@ -135,7 +135,7 @@ jobs:
     - name: Install python3-gnuplot
       run: |
         wget http://ftp.pl.debian.org/debian/pool/main/p/python-gnuplot/python3-gnuplot_1.8-8_all.deb
-        sudo apt install python3-gnuplot_1.8-8_all.deb
+        sudo apt install ./python3-gnuplot_1.8-8_all.deb
 
     - name: checkout parcel repo
       uses: actions/checkout@v2
@@ -165,6 +165,29 @@ jobs:
         build_type: ["RelWithDebInfo"]
 
     steps:
+    - name: load UWLCM Singularity image
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/load_UWLCM_singularity_image
+      with:
+        path: ${{ github.workspace }}/singularity_images
+
+    - name: checkout libmpdata++ repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+
+    - name: Configure libmpdata++ CMake
+      working-directory: ${{github.workspace}}/libmpdata++
+      run: singularity exec $SI cmake -B build
+  
+    - name: Build libmpdata++
+      working-directory: ${{github.workspace}}/libmpdata++
+      run: VERBOSE=1 singularity exec $SI cmake --build build 
+
+    - name: Install libmpdata++
+      working-directory: ${{github.workspace}}/libmpdata++
+      run: sudo cmake --install build
+
     - uses: actions/checkout@v2
 
     - name: Download libcloudph++ build
@@ -175,30 +198,7 @@ jobs:
     - name: Decompress libcloudph++ build
       run: tar -xvf build.tar
 
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
     - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: checkout libmpdata++ repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/libmpdataxx
-
-    - name: Configure libmpdata++ CMake
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: singularity exec $SI cmake -B build
-  
-    - name: Build libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: VERBOSE=1 singularity exec $SI cmake --build build 
-
-    - name: Install libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
       run: sudo cmake --install build
 
     - name: Configure kinematic_2D CMake
@@ -232,6 +232,7 @@ jobs:
     - name: merge with the KiD-A branch
 #      working-directory: ${{github.workspace}}/libcloudphxx
       run: |
+        git checkout -b tmp_branch # to get rid of the detached HEAD
         git ls-remote --heads origin
         git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git fetch --all
