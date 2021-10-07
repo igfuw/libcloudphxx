@@ -125,10 +125,10 @@ jobs:
         name: libcloud_build
 
     - run: |
-      pwd
-      ls
-      echo ${{ github.workspace }}
-      ls ${{ github.workspace }}
+        pwd
+        ls
+        echo ${{ github.workspace }}
+        ls ${{ github.workspace }}
 
 # Singularity installation the same as in libcloudphxx_build action...
     - name: Install Singularity
