@@ -56,6 +56,7 @@ jobs:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
+        path: ${{ github.workspace }}
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
     - name: Compress libcloudph++ build
