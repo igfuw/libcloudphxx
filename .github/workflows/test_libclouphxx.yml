@@ -9,29 +9,29 @@ on:
 #env:
 
 jobs:
-  build_CUDA:
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        name: ["CUDA"]
-        build_type: ["Debug", "Release"]
-        include:
-        - name: "CUDA"
-          disable_cuda: false
-          # not enough RAM to compile Debug CUDA on 4 threads
-          threads: 1
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: build libcloudph++
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/libcloudphxx_build
-      with:
-        disable_cuda: ${{matrix.disable_cuda}}
-        build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
+#  build_CUDA:
+#    runs-on: ubuntu-20.04
+#
+#    strategy:
+#      matrix:
+#        name: ["CUDA"]
+#        build_type: ["Debug", "Release"]
+#        include:
+#        - name: "CUDA"
+#          disable_cuda: false
+#          # not enough RAM to compile Debug CUDA on 4 threads
+#          threads: 1
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: build libcloudph++
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/libcloudphxx_build
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: ${{matrix.threads}}
 
   build:
     runs-on: ubuntu-20.04
@@ -56,6 +56,12 @@ jobs:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
+
+    - name: Upload built libcloudph++
+      uses: actions/upload-artifact@v2
+      with:
+        name: libcloud_build
+        path: ${{github.workspace}}/build
 
 #    - name: Install Nvidia driver
 #      if: ${{!matrix.disable_cuda}}
@@ -112,6 +118,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build
 
 # Singularity installation the same as in libcloudphxx_build action...
     - name: Install Singularity
