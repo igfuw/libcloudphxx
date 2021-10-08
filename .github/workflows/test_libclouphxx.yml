@@ -151,13 +151,13 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
       run: |
-        singularity exec $SI -B /usr/local py.test-3 -v unit_test
-        singularity exec $SI -B /usr/local py.test-3 -v long_test
+        singularity exec -B /usr/local $SI py.test-3 -v unit_test
+        singularity exec -B /usr/local $SI py.test-3 -v long_test
 
     - name: run parcel tests debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: singularity exec $SI -B /usr/local py.test-3 -v unit_test_debug
+      run: singularity exec -B /usr/local $SI py.test-3 -v unit_test_debug
 
   kinematic_2D_test:
     needs: build
@@ -209,17 +209,17 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec $SI -B /usr/local cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+      run: singularity exec -B /usr/local $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec $SI -B /usr/local cmake --build build --config ${{matrix.build_type}} 
+      run: VERBOSE=1 singularity exec -B /usr/local $SI cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        singularity exec $SI -B /usr/local ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-        singularity exec $SI -B /usr/local cat Testing/Temporary/LastTest.log
+        singularity exec -B /usr/local $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        singularity exec -B /usr/local $SI cat Testing/Temporary/LastTest.log
 
 #  build_and_test_KiD-A:
 #    runs-on: ubuntu-20.04
