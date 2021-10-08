@@ -145,19 +145,19 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
-    - run: singularity exec $SI ls /usr/local/lib/python3/dist-packages/
+#    - run: singularity exec $SI ls /usr/local/lib/python3/dist-packages/
 
     - name: run parcel tests long
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
       run: |
-        singularity exec $SI py.test-3 -v unit_test
-        singularity exec $SI py.test-3 -v long_test
+        singularity exec $SI -B /usr/local py.test-3 -v unit_test
+        singularity exec $SI -B /usr/local py.test-3 -v long_test
 
     - name: run parcel tests debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: singularity exec $SI py.test-3 -v unit_test_debug
+      run: singularity exec $SI -B /usr/local py.test-3 -v unit_test_debug
 
   kinematic_2D_test:
     needs: build
@@ -209,17 +209,17 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=/usr/local/share/libcloudph++/
+      run: singularity exec $SI -B /usr/local cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec $SI cmake --build build --config ${{matrix.build_type}} 
+      run: VERBOSE=1 singularity exec $SI -B /usr/local cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        singularity exec $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-        singularity exec $SI cat Testing/Temporary/LastTest.log
+        singularity exec $SI -B /usr/local ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        singularity exec $SI -B /usr/local cat Testing/Temporary/LastTest.log
 
 #  build_and_test_KiD-A:
 #    runs-on: ubuntu-20.04
