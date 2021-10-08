@@ -233,8 +233,9 @@ jobs:
 
     - name: merge with the KiD-A branch
 #      working-directory: ${{github.workspace}}/libcloudphxx
-      run: |
+
 #        git checkout -b tmp_branch # to get rid of the detached HEAD
+      run: |
         git ls-remote --heads origin
         git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git fetch --all
