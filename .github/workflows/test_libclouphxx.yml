@@ -155,7 +155,7 @@ jobs:
     - name: run parcel tests debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: py.test -v unit_test_debug
+      run: singularity exec $SI py.test -v unit_test_debug
 
   kinematic_2D_test:
     needs: build
@@ -166,6 +166,19 @@ jobs:
         build_type: ["RelWithDebInfo"]
 
     steps:
+    - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_tar
+
+    - name: Decompress libcloudph++ build
+      run: tar -xvf build.tar
+
+    - name: Install libcloudph++
+      run: sudo cmake --install build
+
     - name: load UWLCM Singularity image
       #uses: igfuw/libcloudphxx_build@v0.1-beta
       uses: ./.github/actions/load_UWLCM_singularity_image
@@ -190,19 +203,6 @@ jobs:
       working-directory: ${{github.workspace}}/libmpdata++
       run: sudo cmake --install build
 
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}models/kinematic_2D
       run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
@@ -214,8 +214,8 @@ jobs:
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-        cat Testing/Temporary/LastTest.log
+        singularity exec $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        singularity exec $SI cat Testing/Temporary/LastTest.log
 
   build_and_test_KiD-A:
     runs-on: ubuntu-20.04
@@ -236,6 +236,8 @@ jobs:
 
 #        git checkout -b tmp_branch # to get rid of the detached HEAD
       run: |
+        git config user.email "pdziekan@fuw.edu.pl"
+        git config user.name "Piotr Dziekan"
         git ls-remote --heads origin
         git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git fetch --all
