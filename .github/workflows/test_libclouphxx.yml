@@ -149,13 +149,13 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
       run: |
-        singularity exec $SI py.test -v unit_test
-        singularity exec $SI py.test -v long_test
+        singularity exec $SI py.test-3 -v unit_test
+        singularity exec $SI py.test-3 -v long_test
 
     - name: run parcel tests debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: singularity exec $SI py.test -v unit_test_debug
+      run: singularity exec $SI py.test-3 -v unit_test_debug
 
   kinematic_2D_test:
     needs: build
@@ -194,19 +194,19 @@ jobs:
     - run: echo ${{ github.workspace }}
 
     - name: Configure libmpdata++ CMake
-      working-directory: ${{github.workspace}}/libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
       run: singularity exec $SI cmake -B build
   
     - name: Build libmpdata++
-      working-directory: ${{github.workspace}}/libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
       run: VERBOSE=1 singularity exec $SI cmake --build build 
 
     - name: Install libmpdata++
-      working-directory: ${{github.workspace}}/libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
       run: sudo cmake --install build
 
     - name: Configure kinematic_2D CMake
-      working-directory: ${{github.workspace}}models/kinematic_2D
+      working-directory: ${{github.workspace}}/models/kinematic_2D
       run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
   
     - name: Build kinematic_2D 
@@ -234,7 +234,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: merge with the KiD-A branch
-      uses: devmasx/merge-branch@v1.4.0
+      uses: devmasx/merge-branch@1.4.0
       with:
         type: now
         target_branch: kida-1d
