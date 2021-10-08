@@ -141,6 +141,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: igfuw/parcel
+        path: parcel
 
     - run: mkdir parcel/plots/outputs
 
@@ -175,6 +176,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: igfuw/libmpdataxx
+        path: libmpdataxx
 
     - name: Configure libmpdata++ CMake
       working-directory: ${{github.workspace}}/libmpdata++
@@ -232,14 +234,14 @@ jobs:
     - name: merge with the KiD-A branch
 #      working-directory: ${{github.workspace}}/libcloudphxx
       run: |
-        git checkout -b tmp_branch # to get rid of the detached HEAD
+#        git checkout -b tmp_branch # to get rid of the detached HEAD
         git ls-remote --heads origin
         git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git fetch --all
         git branch -r
         git branch -v -a
         git stash
-        git merge --verbose --progress origin/kida-1d
+        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
         git stash apply
 
     - name: build libcloudph++
@@ -258,6 +260,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: igfuw/kid-libcloud
+        path: kid-libcloud
 
     - name: run KiD LWP test
       run: \ # TODO
