@@ -145,6 +145,8 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
+    - run: singularity exec $SI ls /usr/local/lib/python3/dist-packages/
+
     - name: run parcel tests long
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
@@ -207,7 +209,7 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+      run: singularity exec $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=/usr/local/share/libcloudph++/
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
