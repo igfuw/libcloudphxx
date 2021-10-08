@@ -221,60 +221,47 @@ jobs:
         singularity exec $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
         singularity exec $SI cat Testing/Temporary/LastTest.log
 
-  build_and_test_KiD-A:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        name: ["no_CUDA"]
-        build_type: ["RelWithDebInfo"]
-        include:
-        - name: "no_CUDA"
-          disable_cuda: true
-          threads: 4
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: merge with the KiD-A branch
-      uses: devmasx/merge-branch@1.4.0
-      with:
-        type: now
-        target_branch: kida-1d
-        github_token: ${{ github.token }}
-#      working-directory: ${{github.workspace}}/libcloudphxx
-
-#      run: |
-#        git config user.email "pdziekan@fuw.edu.pl"
-#        git config user.name "Piotr Dziekan"
-#        git ls-remote --heads origin
-#        git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-#        git fetch --all
-#        git branch -r
-#        git branch -v -a
-#        git stash
-#        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
-#        git stash apply
-
-    - name: build libcloudph++
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/libcloudphxx_build
-      with:
-        disable_cuda: ${{matrix.disable_cuda}}
-        build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
-        path: ${{ github.workspace }}
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: checkout KiD-libcloud repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/kid-libcloud
-        path: kid-libcloud
-
-    - name: run KiD LWP test
-      run: \ # TODO
+#  build_and_test_KiD-A:
+#    runs-on: ubuntu-20.04
+#    strategy:
+#      matrix:
+#        name: ["no_CUDA"]
+#        build_type: ["RelWithDebInfo"]
+#        include:
+#        - name: "no_CUDA"
+#          disable_cuda: true
+#          threads: 4
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: merge with the KiD-A branch
+#      uses: devmasx/merge-branch@1.4.0
+#      with:
+#        type: now
+#        target_branch: kida-1d
+#        github_token: ${{ github.token }}
+#
+#    - name: build libcloudph++
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/libcloudphxx_build
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: ${{matrix.threads}}
+#        path: ${{ github.workspace }}
+#
+#    - name: Install libcloudph++
+#      run: sudo cmake --install build
+#
+#    - name: checkout KiD-libcloud repo
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/kid-libcloud
+#        path: kid-libcloud
+#
+#    - name: run KiD LWP test
+#      run: \ # TODO
 
 
 #    - name: Install Nvidia driver
