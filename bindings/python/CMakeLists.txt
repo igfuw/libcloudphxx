@@ -95,7 +95,7 @@ set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
     from distutils import sysconfig as sc
-    print((sysconfig.get_paths()['purelib'])"
+    print((sc.get_paths()['purelib'])"
   OUTPUT_VARIABLE PYTHON_SITE
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 #    print(sc.get_python_lib(prefix='', plat_specific=False))"
