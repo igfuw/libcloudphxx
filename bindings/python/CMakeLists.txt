@@ -88,6 +88,6 @@ set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Python_SITELIB is an absolute path, we manually prepend install prefix
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python_SITELIB}"
+     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python3_SITELIB}"
      COMPONENT library
 )
