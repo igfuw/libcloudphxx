@@ -2,14 +2,8 @@ add_library(cloudphxx SHARED lib.cpp)
 add_dependencies(cloudphxx git_revision.h)
 set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 
-# informing the Python bindings where to find Python
-find_package(PythonLibs)
-if (NOT PYTHON_LIBRARIES)
-  message(FATAL_ERROR "
-    Python libraries not found. 
-    Please install them (e.g. sudo apt-get install python-dev).
-  ")
-endif()
+find_package(Python REQUIRED)
+
 target_include_directories(cloudphxx PRIVATE ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
 
@@ -91,19 +85,9 @@ target_link_libraries(cloudphxx cloudphxx_lgrngn)
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    from distutils import sysconfig as sc
-    print((sc.get_paths()['purelib'])"
-  OUTPUT_VARIABLE PYTHON_SITE
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-#    print(sc.get_python_lib(prefix='', plat_specific=False))"
-
+# Python_SITELIB is an absolute path, we manually prepend install prefix
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION ${PYTHON_SITE}
+     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python_SITELIB}"
      COMPONENT library
 )
-
-#execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install ${cloudphxx})
