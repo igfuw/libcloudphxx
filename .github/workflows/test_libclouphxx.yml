@@ -146,8 +146,6 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
-    - run: singularity exec -B /usr/local $SI ls /usr/local/lib/python3/dist-packages/
-
     - name: run parcel tests long
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
