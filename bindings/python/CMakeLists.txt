@@ -2,10 +2,10 @@ add_library(cloudphxx SHARED lib.cpp)
 add_dependencies(cloudphxx git_revision.h)
 set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 
-find_package(Python REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 
-target_include_directories(cloudphxx PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
+target_include_directories(cloudphxx PRIVATE ${Python3_INCLUDE_DIRS})
+target_link_libraries(cloudphxx ${Python3_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
 #if(${Boost_MINOR_VERSION} LESS 67)
