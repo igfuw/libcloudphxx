@@ -95,7 +95,7 @@ set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
     from distutils import sysconfig as sc
-    print(sc.get_python_lib(prefix='', plat_specific=True))"
+    print(sc.get_python_lib(prefix='', plat_specific=False))"
   OUTPUT_VARIABLE PYTHON_SITE
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -104,3 +104,5 @@ install ( TARGETS cloudphxx
      DESTINATION ${PYTHON_SITE}
      COMPONENT library
 )
+
+#execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install ${cloudphxx})
