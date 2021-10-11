@@ -102,7 +102,8 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["RelWithDebInfo", "Debug"]
+      #  build_type: ["RelWithDebInfo", "Debug"]
+        build_type: ["Debug"]
         include:
         - build_type: "RelWithDebInfo"
           long_tests: true
@@ -157,7 +158,8 @@ jobs:
     - name: run parcel tests debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: singularity exec -B /usr/local $SI py.test-3 -v unit_test_debug
+      #run: singularity exec -B /usr/local $SI py.test-3 -v unit_test_debug
+      run: singularity exec -B /usr/local $SI python3 -m pytest -v unit_test_debug
 
 #  kinematic_2D_test:
 #    needs: build
