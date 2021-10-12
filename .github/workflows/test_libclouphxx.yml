@@ -147,6 +147,11 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
+    - run: ls /usr/lib/python3/dist-packages/
+    - run: ls /usr/lib/python3/site-packages/
+    - run: ls /usr/local/lib/python3/dist-packages/
+    - run: ls /usr/local/lib/python3/site-packages/
+
     - name: run parcel tests long
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
@@ -159,7 +164,7 @@ jobs:
       if: ${{matrix.debug_tests}}
       #run: singularity exec -B /usr/local $SI py.test-3 -v unit_test_debug
 #      run: singularity exec -B/usr/local/usr/lib/python3/dist-packages:/usr/local/lib/python3.8/dist-packages $SI python3 -m pytest -v unit_test_debug
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -v unit_test_debug
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test_debug
 
 
       #libcloudphxx python bindings are installed in /usr/local/usr/lib/python3/dist-packages, we need them mounted in a sys.path directory within the image, but without shadowing other packages. /usr/local/lib/python3.8/dist-packages is (hopefully) empty within the image. NOTE: hardcode paths may change in future...
