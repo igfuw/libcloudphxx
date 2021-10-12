@@ -198,7 +198,7 @@ jobs:
 
     - name: Configure libmpdata++ CMake
       working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: singularity exec $SI cmake -B build
+      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
   
     - name: Build libmpdata++
       working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
@@ -210,16 +210,17 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++
+      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
+
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI cmake --build build --config ${{matrix.build_type}} 
+      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
         cat Testing/Temporary/LastTest.log
 
   build_and_test_KiD-A:
@@ -264,6 +265,6 @@ jobs:
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI "sudo apt install nco; bash ./.travis_scripts/lwp_test.sh"
 #        sudo apt install nco
         
