@@ -54,6 +54,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        install_prefix: ${{ github.workspace }}/installed 
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
     - name: Compress libcloudph++ build
@@ -157,7 +158,10 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
       #run: singularity exec -B /usr/local $SI py.test-3 -v unit_test_debug
-      run: singularity exec -B/usr/local/usr/lib/python3/dist-packages:/usr/local/lib/python3.8/dist-packages $SI python3 -m pytest -v unit_test_debug
+#      run: singularity exec -B/usr/local/usr/lib/python3/dist-packages:/usr/local/lib/python3.8/dist-packages $SI python3 -m pytest -v unit_test_debug
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -v unit_test_debug
+
+
       #libcloudphxx python bindings are installed in /usr/local/usr/lib/python3/dist-packages, we need them mounted in a sys.path directory within the image, but without shadowing other packages. /usr/local/lib/python3.8/dist-packages is (hopefully) empty within the image. NOTE: hardcode paths may change in future...
 
 #  kinematic_2D_test:
