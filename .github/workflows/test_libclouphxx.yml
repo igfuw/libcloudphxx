@@ -196,8 +196,6 @@ jobs:
         repository: igfuw/libmpdataxx
         path: libmpdataxx
 
-    - run: echo ${{ github.workspace }}
-
     - name: Configure libmpdata++ CMake
       working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
       run: singularity exec $SI cmake -B build
@@ -212,16 +210,16 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec -B /usr/local,${{ github.workspace }}/installed/share/libcloudph++ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++
+      run: singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec -B /usr/local,${{ github.workspace }}/installed/share/libcloudph++ $SI cmake --build build --config ${{matrix.build_type}} 
+      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        singularity exec -B /usr/local,${{ github.workspace }}/installed/share/libcloudph++ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        singularity exec -B ${{ github.workspace }}/installed/share/libcloudph++ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
         cat Testing/Temporary/LastTest.log
 
   build_and_test_KiD-A:
@@ -253,6 +251,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        install_prefix: ${{ github.workspace }}/installed 
 
     - name: Install libcloudph++
       run: sudo cmake --install build
