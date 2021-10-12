@@ -148,7 +148,7 @@ jobs:
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI py.test-3 --verbosity=100 unit_test
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI py.test-3 -s --verbosity=100 unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
 
     - name: run parcel long_test
@@ -265,6 +265,6 @@ jobs:
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: singularity exec $SI . ./.travis_scripts/lwp_test.sh
+      run: singularity exec $SI bash ./.travis_scripts/lwp_test.sh
 #        sudo apt install nco
         
