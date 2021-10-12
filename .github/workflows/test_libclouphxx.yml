@@ -265,6 +265,6 @@ jobs:
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI "sudo apt install nco; bash ./.travis_scripts/lwp_test.sh"
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash -c "sudo apt install nco; bash ./.travis_scripts/lwp_test.sh"
 #        sudo apt install nco
         
