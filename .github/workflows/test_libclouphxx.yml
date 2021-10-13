@@ -223,7 +223,7 @@ jobs:
 #        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
 #        cat Testing/Temporary/LastTest.log
 #
-#  build_and_test_KiD-A:
+  build_and_test_KiD-A:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
