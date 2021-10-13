@@ -263,8 +263,10 @@ jobs:
         repository: igfuw/kid-libcloud
         path: kid-libcloud
 
+    - name: Install nco
+      run: sudo apt install nco
+
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages sudo -H singularity exec -B${{ github.workspace }}/installed  $SI bash -c "sudo apt install nco; bash ./.travis_scripts/lwp_test.sh"
-#        sudo apt install nco
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
         
