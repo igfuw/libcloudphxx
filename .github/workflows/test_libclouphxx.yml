@@ -143,18 +143,18 @@ jobs:
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI py.test-3 -s --verbosity=100 unit_test
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
 
     - name: run parcel long_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v long_test
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
 
     - name: run parcel unit_test_debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test_debug
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
 
 
   kinematic_2D_test:
