@@ -317,6 +317,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       const float /* t */
     )  
     {
+      assert(psi.size() == dot_psi.size());
     }  
   };
   
@@ -328,7 +329,8 @@ file(WRITE "${tmpdir}/test.cpp" "
       thrust::cpp::vector<float>, // deriv_type
       float,                      // time_type
       boost::numeric::odeint::thrust_algebra,
-      boost::numeric::odeint::thrust_operations 
+      boost::numeric::odeint::thrust_operations,
+      boost::numeric::odeint::initially_resizer
     > chem_stepper;
   
     thrust::cpp::vector<float> v(2);
