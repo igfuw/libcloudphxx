@@ -330,7 +330,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       float,                      // time_type
       boost::numeric::odeint::thrust_algebra,
       boost::numeric::odeint::thrust_operations,
-      boost::numeric::odeint::initially_resizer
+      boost::numeric::odeint::always_resizer
     > chem_stepper;
   
     thrust::cpp::vector<float> v(2);

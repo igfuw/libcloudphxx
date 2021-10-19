@@ -200,7 +200,7 @@ namespace libcloudphxx
         real_t,                        // time_type
         boost::numeric::odeint::thrust_algebra,
         boost::numeric::odeint::thrust_operations,
-        boost::numeric::odeint::initially_resizer
+        boost::numeric::odeint::always_resizer
       > chem_stepper;
 
       // temporary data
