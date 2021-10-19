@@ -81,7 +81,12 @@ endif()
 
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-#to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
+# build rpath to libcloudphxx_lgrngn.so in the build directory
+set_property(TARGET cloudphxx PROPERTY BUILD_RPATH_USE_ORIGIN TRUE)
+set_property(TARGET cloudphxx PROPERTY BUILD_RPATH "${ORIGIN}/")
+target_link_options(cloudphxx PRIVATE "-Wl,--disable-new-dtags") # otherwise BUILD_RPATH sets RUNPATH instead of RPATH, and LD_LIBRARY_PATH has precedence over RUNPATH
+
+#install rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
