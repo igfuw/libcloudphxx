@@ -138,7 +138,9 @@ namespace libcloudphxx
       if(opts_init.rlx_switch && opts_init.rlx_sd_per_bin <= 0)
         throw std::runtime_error("rlx_sd_per_bin <= 0");
       if(opts_init.rlx_switch && opts_init.rlx_timescale <= 0)
-        throw std::runtime_error("rlx_timescale <= 0");
+        throw std::runtime_error("rlx_timescale <= 0");        
+      if(opts_init.rlx_switch && opts_init.chem_switch)
+        throw std::runtime_error("CCN relaxation does not work with chemistry");
     }
   };
 };
