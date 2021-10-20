@@ -23,7 +23,7 @@ runs:
           
   - name: Cache UWLCM Singularity image
     id: cache_singularity
-    uses: actions/cache@v3
+    uses: actions/cache@v2
     with:
       path: '${{ inputs.path }}/uwlcm_ubuntu_20_04_cuda_11_4_v3.sif'
       key: 'sng_ubuntu_20_04_cuda_11_4_v3'
