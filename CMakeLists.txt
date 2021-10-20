@@ -305,9 +305,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #include <thrust/system/cpp/vector.h>
 
   #include <boost/numeric/odeint.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust.hpp>
   
   struct rhs 
   {
@@ -329,8 +327,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       thrust::cpp::vector<float>, // deriv_type
       float,                      // time_type
       boost::numeric::odeint::thrust_algebra,
-      boost::numeric::odeint::thrust_operations,
-      boost::numeric::odeint::always_resizer
+      boost::numeric::odeint::thrust_operations
     > chem_stepper;
   
     thrust::cpp::vector<float> v(2);

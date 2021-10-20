@@ -127,6 +127,10 @@ namespace libcloudphxx
         throw std::runtime_error("at least one of opts_init.turb_adve_switch, opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("SGS_mix_len <= 0");
+      #if defined(USE_MPI)
+        if(opts_init.chem_switch)
+          throw std::runtime_error("chemistry is not compatible with MPI");
+      #endif
     }
   };
 };
