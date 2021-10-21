@@ -236,8 +236,14 @@ jobs:
       run: |
         git config --global user.email "pdziekan@fuw.edu.pl"
         git config --global user.name "Piotr Dziekan"
-        git fetch origin
-        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
+        git ls-remote --heads origin
+        git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git fetch --all
+        git branch -r
+        git branch -v -a
+        git stash
+        git merge --verbose --progress origin/kida-1d
+        git stash apply
 #      uses: devmasx/merge-branch@1.4.0
 #      with:
 #        type: now
