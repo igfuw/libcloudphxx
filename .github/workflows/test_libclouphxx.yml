@@ -233,15 +233,16 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: merge with the KiD-A branch
-      uses: devmasx/merge-branch@1.4.0
-      with:
-        type: now
-        target_branch: kida-1d
-        github_token: ${{ github.token }}
+      run: |
+        git fetch origin
+        git merge origin/kida-1d
+#      uses: devmasx/merge-branch@1.4.0
+#      with:
+#        type: now
+#        target_branch: kida-1d
+#        github_token: ${{ github.token }}
 
-    - run: pwd
-    - run: git status
-    - run: git log
+    - run: grep diag_accr include/libcloudph++/lgrngn/particles.hpp
 
     - name: build libcloudph++
       #uses: igfuw/libcloudphxx_build@v0.1-beta
@@ -262,9 +263,9 @@ jobs:
         repository: igfuw/kid-libcloud
         path: kid-libcloud
 
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+# Debugging ssh session
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
