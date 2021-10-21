@@ -242,7 +242,7 @@ jobs:
         git branch -r
         git branch -v -a
         git stash
-        git merge --verbose --progress origin/kida-1d
+        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
         git stash apply
 #      uses: devmasx/merge-branch@1.4.0
 #      with:
