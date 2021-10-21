@@ -235,7 +235,7 @@ jobs:
     - name: merge with the KiD-A branch
       run: |
         git fetch origin
-        git merge origin/kida-1d
+        git merge --allow-unrelated-histories origin/kida-1d
 #      uses: devmasx/merge-branch@1.4.0
 #      with:
 #        type: now
