@@ -234,6 +234,8 @@ jobs:
 
     - name: merge with the KiD-A branch
       run: |
+        git config --global user.email "pdziekan@fuw.edu.pl"
+        git config --global user.name "Piotr Dziekan"
         git fetch origin
         git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
 #      uses: devmasx/merge-branch@1.4.0
