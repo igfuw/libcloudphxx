@@ -232,9 +232,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-# Debugging ssh session
-#    - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v3
+    # Debugging ssh session
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: merge with the KiD-A branch
       run: |
