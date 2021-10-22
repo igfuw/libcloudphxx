@@ -233,21 +233,25 @@ jobs:
     - uses: actions/checkout@v2
 
 # Debugging ssh session
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
 
     - name: merge with the KiD-A branch
       run: |
-        git config --global user.email "pdziekan@fuw.edu.pl"
-        git config --global user.name "Piotr Dziekan"
-        git ls-remote --heads origin
-        git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
         git fetch --all
-        git branch -r
-        git branch -v -a
-        git stash
-        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
-        git stash apply
+        git merge origin/kida-1d
+
+#        git config --global user.email "pdziekan@fuw.edu.pl"
+#        git config --global user.name "Piotr Dziekan"
+#        git ls-remote --heads origin
+#        git config --replace-all remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+#        git fetch --all
+#        git branch -r
+#        git branch -v -a
+#        git stash
+#        git merge --verbose --progress --allow-unrelated-histories origin/kida-1d
+#        git stash apply
+
 #      uses: devmasx/merge-branch@1.4.0
 #      with:
 #        type: now
