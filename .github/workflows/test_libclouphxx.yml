@@ -236,12 +236,14 @@ jobs:
         fetch-depth: 0 
 
     # Debugging ssh session
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
 
     - name: merge with the KiD-A branch
       run: |
-        git fetch --all
+        git config --global user.email "pdziekan@fuw.edu.pl"
+        git config --global user.name "Piotr Dziekan"
+        git fetch origin
         git merge origin/kida-1d
 
 #        git config --global user.email "pdziekan@fuw.edu.pl"
