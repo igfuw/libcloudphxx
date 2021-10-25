@@ -230,7 +230,10 @@ jobs:
           threads: 4
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout libcloudphxx PR
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 
 
     # Debugging ssh session
     - name: Setup tmate session
