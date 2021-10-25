@@ -179,6 +179,10 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
+        thrust::fill(pimpl->delta_revp20.begin(), pimpl->delta_revp20.end(), real_t(0));
+        thrust::fill(pimpl->delta_revp25.begin(), pimpl->delta_revp25.end(), real_t(0));
+        thrust::fill(pimpl->delta_revp32.begin(), pimpl->delta_revp32.end(), real_t(0));
+
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
         //       that would make it easy to do in exact (per-cell) substepping
@@ -216,6 +220,86 @@ namespace libcloudphxx
 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
+
+        // add evap from SDs to cell evap
+        {
+          thrust::transform(
+            pimpl->delta_revp20.begin(), pimpl->delta_revp20.end(),
+            pimpl->n.begin(),
+            pimpl->delta_revp20.begin(),
+            thrust::multiplies<real_t>()
+          );
+
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_revp20.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->revp20.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->revp20.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          thrust::transform(
+            pimpl->delta_revp25.begin(), pimpl->delta_revp25.end(),
+            pimpl->n.begin(),
+            pimpl->delta_revp25.begin(),
+            thrust::multiplies<real_t>()
+          );
+
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_revp25.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->revp25.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->revp25.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          thrust::transform(
+            pimpl->delta_revp32.begin(), pimpl->delta_revp32.end(),
+            pimpl->n.begin(),
+            pimpl->delta_revp32.begin(),
+            thrust::multiplies<real_t>()
+          );
+
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_revp32.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->revp32.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->revp32.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
       }
 
       // chemistry
@@ -348,6 +432,14 @@ namespace libcloudphxx
       // coalescence
       if (opts.coal) 
       {
+        thrust::fill(pimpl->delta_accr20.begin(), pimpl->delta_accr20.end(), real_t(0));
+        thrust::fill(pimpl->delta_accr25.begin(), pimpl->delta_accr25.end(), real_t(0));
+        thrust::fill(pimpl->delta_accr32.begin(), pimpl->delta_accr32.end(), real_t(0));
+
+        thrust::fill(pimpl->delta_acnv20.begin(), pimpl->delta_acnv20.end(), real_t(0));
+        thrust::fill(pimpl->delta_acnv25.begin(), pimpl->delta_acnv25.end(), real_t(0));
+        thrust::fill(pimpl->delta_acnv32.begin(), pimpl->delta_acnv32.end(), real_t(0));
+
         for (int step = 0; step < pimpl->sstp_coal; ++step) 
         {
           // collide
@@ -364,6 +456,122 @@ namespace libcloudphxx
         {
           ++(pimpl->opts_init.sstp_coal);
           *(pimpl->increase_sstp_coal) = false;
+        }
+
+        // add accr and acnv to cell statistics, similar to moms_calc + repeated 4 times :)
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_accr20.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->accr20.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_accr25.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->accr25.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->accr25.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_accr32.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->accr32.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->accr32.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_acnv20.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->acnv20.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->acnv20.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_acnv25.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->acnv25.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->acnv25.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
+        }
+        {
+          const auto n = thrust::reduce_by_key(
+            // input - keys
+            pimpl->sorted_ijk.begin(), pimpl->sorted_ijk.end(),  
+            // input - values
+            thrust::make_permutation_iterator(pimpl->delta_acnv32.begin(), pimpl->sorted_id.begin()),
+            // output - keys
+            pimpl->count_ijk.begin(),
+            // output - values
+            pimpl->count_mom.begin()
+          );  
+          auto count_n = n.first - pimpl->count_ijk.begin();
+          thrust::transform(
+            pimpl->count_mom.begin(), pimpl->count_mom.begin() + count_n,
+            thrust::make_permutation_iterator(pimpl->acnv32.begin(), pimpl->count_ijk.begin()),
+            thrust::make_permutation_iterator(pimpl->acnv32.begin(), pimpl->count_ijk.begin()),
+            thrust::plus<real_t>()
+          );
         }
       }
 

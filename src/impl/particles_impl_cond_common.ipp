@@ -157,10 +157,11 @@ namespace libcloudphxx
 
         advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
 
+        template <class tpl_tpl_t>
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
+          tpl_tpl_t tpl_tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -170,8 +171,10 @@ namespace libcloudphxx
           using std::isinf;
 #endif
 
-          auto& tpl_in = thrust::get<0>(tpl);
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
+          auto tpl = thrust::get<0>(tpl_tpl);
+          //auto &tpl_revp = thrust::get<1>(tpl_tpl);
+
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, thrust::make_tuple(tpl, thrust::get<1>(tpl_tpl), thrust::get<2>(tpl_tpl)), RH_max); 
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
@@ -190,21 +193,12 @@ namespace libcloudphxx
               "eta: %g  "
               "rd3: %g  "
               "kpa: %g  "
-              "vt: %g  "
+              "vt: %g\n"
               "lambda_D: %g  "
-              "lambda_K: %g\n",
-               drw2, rw2_old, dt, RH_max, 
-               thrust::get<0>(tpl_in), // rhod
-               thrust::get<1>(tpl_in), // rv
-               thrust::get<2>(tpl_in), // T
-               thrust::get<1>(tpl),    // p
-               thrust::get<2>(tpl),    // RH
-               thrust::get<3>(tpl_in), // eta
-               thrust::get<4>(tpl_in), // rd3
-               thrust::get<5>(tpl_in), // kpa
-               thrust::get<6>(tpl_in), // vt
-               thrust::get<7>(tpl_in), // lambda_D
-               thrust::get<8>(tpl_in)  // lambda_K
+              "lambda_K: %g  ",
+               drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl),thrust::get<1>(tpl),
+               thrust::get<2>(tpl),thrust::get<1>(tpl_tpl),thrust::get<2>(tpl_tpl),thrust::get<3>(tpl),
+               thrust::get<4>(tpl),thrust::get<5>(tpl),thrust::get<6>(tpl),thrust::get<7>(tpl),thrust::get<8>(tpl)
             );
             assert(0);
           }
@@ -212,7 +206,7 @@ namespace libcloudphxx
 
           if (drw2 == 0) return rw2_old;
 
-          const real_t rd = cbrt(thrust::get<4>(tpl_in));
+          const real_t rd = cbrt(thrust::get<4>(tpl));
           const real_t rd2 = rd*rd;
  
           const real_t 
@@ -242,9 +236,9 @@ namespace libcloudphxx
               "rd3: %g  "
               "kpa: %g  "
               "vt: %g\n",
-               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
-               thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
-               thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
+               a, b, drw2, rw2_old, dt, RH_max, thrust::get<0>(tpl),thrust::get<1>(tpl),
+               thrust::get<2>(tpl),thrust::get<1>(tpl_tpl),thrust::get<2>(tpl_tpl),thrust::get<3>(tpl),
+               thrust::get<4>(tpl),thrust::get<5>(tpl),thrust::get<6>(tpl)
             );
             assert(0);
           }
@@ -274,6 +268,17 @@ namespace libcloudphxx
           }
           // check if it doesn't evaporate too much
           if(rw2_new < rd2) rw2_new = rd2;
+
+          // store rain evaporation rates
+          if(rw2_new < rw2_old)
+          {
+            if(rw2_old > 4e-10)       // r_rain > 20um
+              thrust::get<0>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 6.25e-10)    // r_rain > 25um
+              thrust::get<1>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+            if(rw2_old > 1.024e-9)    // r_rain > 32um
+              thrust::get<2>(thrust::get<3>(tpl_tpl)) += pow(rw2_old, real_t(3./2)) - pow(rw2_new, real_t(3./2));
+          }
 
 #if !defined(NDEBUG)
           if(isnan(rw2_new) || isinf(rw2_new))

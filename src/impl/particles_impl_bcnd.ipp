@@ -177,15 +177,26 @@ namespace libcloudphxx
             {
               // default "open" boudary at the top of the domain 
               // (just for numerical-error-sourced out-of-domain particles)
-              {
-                namespace arg = thrust::placeholders;
-                thrust::transform_if(
-                  z.begin(), z.end(),          // input - arg
-                  n.begin(),                   // output
-                  detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
-                  arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
-                );
-              }
+//              {
+//                namespace arg = thrust::placeholders;
+//                thrust::transform_if(
+//                  z.begin(), z.end(),          // input - arg
+//                  n.begin(),                   // output
+//                  detail::flag<n_t, real_t>(), // operation (zero-out, so recycling will take care of it)
+//                  arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+//                );
+//              }
+
+              // hardcoded perdiodic boundary at the top of the domain in ther vertical just for KiD 1D
+  	          {
+  	            namespace arg = thrust::placeholders;
+  	            thrust::transform_if(
+              	z.begin(), z.end(),          // input - arg
+              	z.begin(),                   // output
+              	arg::_1 - opts_init.z1 + opts_init.z0, // operation
+              	arg::_1 >= opts_init.z1      // condition (note: >= seems important as z==z1 would cause out-of-range ijk)
+  	            );
+  	          }
 
               // precipitation on the bottom edge of the domain
               //// first: count the volume of particles below the domain

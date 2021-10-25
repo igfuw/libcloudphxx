@@ -89,7 +89,16 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
-        incloud_time; // time this SD has been within a cloud
+        incloud_time, // time this SD has been within a cloud
+        delta_revp20, // change of n * r_w^3 due to rain evaporation
+        delta_revp25, // change of n * r_w^3 due to rain evaporation
+        delta_revp32, // change of n * r_w^3 due to rain evaporation
+        delta_accr20, // change of n * r_w^3 due to accretion
+        delta_accr25, // change of n * r_w^3 due to accretion
+        delta_accr32, // change of n * r_w^3 due to accretion
+        delta_acnv20, // change of n * r_w^3 due to autoconversion
+        delta_acnv25, // change of n * r_w^3 due to autoconversion
+        delta_acnv32; // change of n * r_w^3 due to autoconversion
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -147,6 +156,15 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
+        revp20,
+        revp25,
+        revp32,
+        accr20, // accumulated volume (without 4/3 pi) of water turned into rain water (r>20um) through accretion
+        accr25, // ditto, but for rain definition r>32um
+        accr32, // ditto, but for rain definition r>32um
+        acnv20, // ditto for autoconversion
+        acnv25, // ditto for autoconversion
+        acnv32,
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -386,7 +404,7 @@ namespace libcloudphxx
         // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &delta_revp20, &delta_revp25, &delta_revp32, &delta_accr20, &delta_accr25, &delta_acnv20, &delta_acnv25, &delta_accr32, &delta_acnv32};
         distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
 
         if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
