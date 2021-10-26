@@ -4,6 +4,10 @@ inputs:
   path:
     description: 'Where to put the image'
     required: true
+  tag:
+    description: 'Image tag'
+    required: true
+    default: 'ubuntu_20_04_cuda_11_4_v3'
 
 runs:
   using: "composite"
@@ -25,8 +29,8 @@ runs:
     id: cache_singularity
     uses: actions/cache@v2
     with:
-      path: '${{ inputs.path }}/uwlcm_ubuntu_20_04_cuda_11_4_v3.sif'
-      key: 'sng_ubuntu_20_04_cuda_11_4_v3'
+      path: '${{ inputs.path }}/uwlcm_${{ inputs.tag }}.sif'
+      key: '${{ inputs.tag }}'
       
   - name: Download UWLCM Singularity image
     shell: bash
@@ -35,7 +39,7 @@ runs:
       [ "${{steps.cache_singularity.outputs.cache-hit}}" != "true" ] && \
       {
       mkdir '${{ inputs.path }}';
-      singularity pull --disable-cache --dir '${{ inputs.path }}' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4_v3;
+      singularity pull --disable-cache --dir '${{ inputs.path }}' library://pdziekan/default/uwlcm:${{ inputs.tag }};
       } \
       || \
       true
