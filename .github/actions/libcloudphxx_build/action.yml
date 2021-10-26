@@ -80,6 +80,12 @@ runs:
 #    uses: allenevans/set-env@v2.0.0
 #    with:
 #      SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+
+
+  # Debugging with a ssh session
+  - name: Setup tmate session
+    uses: mxschmitt/action-tmate@v3
+
     
   - name: Configure CMake
     shell: bash

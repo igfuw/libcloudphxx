@@ -7,29 +7,29 @@ on:
     branches: [ master ]
 
 jobs:
-  build_CUDA:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        name: ["CUDA"]
-        build_type: ["Debug", "RelWithDebInfo"]
-        include:
-        - name: "CUDA"
-          disable_cuda: false
-          # not enough RAM to compile Debug CUDA on 4 threads
-          threads: 1
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: build libcloudph++
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/libcloudphxx_build
-      with:
-        disable_cuda: ${{matrix.disable_cuda}}
-        build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
-        path: ${{ github.workspace }}
+#  build_CUDA:
+#    runs-on: ubuntu-20.04
+#    strategy:
+#      matrix:
+#        name: ["CUDA"]
+#        build_type: ["Debug", "RelWithDebInfo"]
+#        include:
+#        - name: "CUDA"
+#          disable_cuda: false
+#          # not enough RAM to compile Debug CUDA on 4 threads
+#          threads: 1
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: build libcloudph++
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/libcloudphxx_build
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: ${{matrix.threads}}
+#        path: ${{ github.workspace }}
 
   build:
     runs-on: ubuntu-20.04
@@ -51,6 +51,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    # Debugging with a ssh session
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
 
     - name: build libcloudph++
       #uses: igfuw/libcloudphxx_build@v0.1-beta
@@ -74,212 +78,208 @@ jobs:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
         path: build.tar
 
-  # test jobs
-  unit_test:
-    needs: build
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        build_type: ["RelWithDebInfo", "Debug"]
-        mpi: ["none", "mvapich2"]
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
-    - name: Run unit tests
-      working-directory: ${{github.workspace}}/build
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-
-  parcel_test:
-    needs: build
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        build_type: ["RelWithDebInfo", "Debug"]
-        mpi: ["none"]
-        include:
-        - build_type: "RelWithDebInfo"
-          long_tests: true
-          debug_tests: false
-        - build_type: "Debug"
-          long_tests: false
-          debug_tests: true
-
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: checkout parcel repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/parcel
-        path: parcel
-
-    - run: mkdir parcel/plots/outputs
-
-    - name: run parcel unit_test
-      working-directory: ${{github.workspace}}/parcel
-      if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
-      #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
-
-    - name: run parcel long_test
-      working-directory: ${{github.workspace}}/parcel
-      if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
-
-    - name: run parcel unit_test_debug
-      working-directory: ${{github.workspace}}/parcel
-      if: ${{matrix.debug_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
-
-
-  kinematic_2D_test:
-    needs: build
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        build_type: ["RelWithDebInfo"]
-        mpi: ["none"]
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
-    - name: checkout libmpdata++ repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/libmpdataxx
-        path: libmpdataxx
-
-    - name: Configure libmpdata++ CMake
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
-  
-    - name: Build libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: VERBOSE=1 singularity exec $SI cmake --build build 
-
-    - name: Install libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: sudo cmake --install build
-
-    - name: Configure kinematic_2D CMake
-      working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
-
-  
-    - name: Build kinematic_2D 
-      working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
-
-    - name: Run kinematic_2D tests
-      working-directory: ${{github.workspace}}/models/kinematic_2D/build
-      run: |
-        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-        cat Testing/Temporary/LastTest.log
-
-  build_and_test_KiD-A:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        name: ["no_CUDA"]
-        build_type: ["RelWithDebInfo"]
-        mpi: ["none"]
-        include:
-        - name: "no_CUDA"
-          disable_cuda: true
-          threads: 4
-
-    steps:
-    - name: Checkout libcloudphxx PR
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0 
-
-    # Debugging ssh session
-#    - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v3
-
-    - name: merge with the KiD-A branch
-      run: |
-        git config --global user.email "pdziekan@fuw.edu.pl"
-        git config --global user.name "Piotr Dziekan"
-        git fetch origin
-        git merge origin/kida-1d
-
-    - run: grep diag_accr include/libcloudph++/lgrngn/particles.hpp
-
-    - name: build libcloudph++
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/libcloudphxx_build
-      with:
-        disable_cuda: ${{matrix.disable_cuda}}
-        build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
-        path: ${{ github.workspace }}
-        install_prefix: ${{ github.workspace }}/installed 
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: checkout KiD-libcloud repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/kid-libcloud
-        path: kid-libcloud
-
-    - name: run KiD LWP test
-      working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
+#  # test jobs
+#  unit_test:
+#    needs: build
+#    runs-on: ubuntu-20.04
+#
+#    strategy:
+#      matrix:
+#        build_type: ["RelWithDebInfo", "Debug"]
+#        mpi: ["none", "mvapich2"]
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: Download libcloudph++ build
+#      uses: actions/download-artifact@v2
+#      with:
+#        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+#
+#    - name: Decompress libcloudph++ build
+#      run: tar -xvf build.tar
+#
+#    - name: load UWLCM Singularity image
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/load_UWLCM_singularity_image
+#      with:
+#        path: ${{ github.workspace }}/singularity_images
+#
+#    - name: Run unit tests
+#      working-directory: ${{github.workspace}}/build
+#      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+#      run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+#
+#  parcel_test:
+#    needs: build
+#    runs-on: ubuntu-20.04
+#
+#    strategy:
+#      matrix:
+#        build_type: ["RelWithDebInfo", "Debug"]
+#        mpi: ["none"]
+#        include:
+#        - build_type: "RelWithDebInfo"
+#          long_tests: true
+#          debug_tests: false
+#        - build_type: "Debug"
+#          long_tests: false
+#          debug_tests: true
+#
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: Download libcloudph++ build
+#      uses: actions/download-artifact@v2
+#      with:
+#        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+#
+#    - name: Decompress libcloudph++ build
+#      run: tar -xvf build.tar
+#
+#    - name: load UWLCM Singularity image
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/load_UWLCM_singularity_image
+#      with:
+#        path: ${{ github.workspace }}/singularity_images
+#
+#    - name: Install libcloudph++
+#      run: sudo cmake --install build
+#
+#    - name: checkout parcel repo
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/parcel
+#        path: parcel
+#
+#    - run: mkdir parcel/plots/outputs
+#
+#    - name: run parcel unit_test
+#      working-directory: ${{github.workspace}}/parcel
+#      if: ${{matrix.long_tests}}
+#      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
+#      #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
+#
+#    - name: run parcel long_test
+#      working-directory: ${{github.workspace}}/parcel
+#      if: ${{matrix.long_tests}}
+#      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
+#
+#    - name: run parcel unit_test_debug
+#      working-directory: ${{github.workspace}}/parcel
+#      if: ${{matrix.debug_tests}}
+#      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
+#
+#
+#  kinematic_2D_test:
+#    needs: build
+#    runs-on: ubuntu-20.04
+#
+#    strategy:
+#      matrix:
+#        build_type: ["RelWithDebInfo"]
+#        mpi: ["none"]
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: Download libcloudph++ build
+#      uses: actions/download-artifact@v2
+#      with:
+#        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+#
+#    - name: Decompress libcloudph++ build
+#      run: tar -xvf build.tar
+#
+#    - name: Install libcloudph++
+#      run: sudo cmake --install build
+#
+#    - name: load UWLCM Singularity image
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/load_UWLCM_singularity_image
+#      with:
+#        path: ${{ github.workspace }}/singularity_images
+#
+#    - name: checkout libmpdata++ repo
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/libmpdataxx
+#        path: libmpdataxx
+#
+#    - name: Configure libmpdata++ CMake
+#      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+#      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
+#  
+#    - name: Build libmpdata++
+#      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+#      run: VERBOSE=1 singularity exec $SI cmake --build build 
+#
+#    - name: Install libmpdata++
+#      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+#      run: sudo cmake --install build
+#
+#    - name: Configure kinematic_2D CMake
+#      working-directory: ${{github.workspace}}/models/kinematic_2D
+#      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
+#
+#  
+#    - name: Build kinematic_2D 
+#      working-directory: ${{github.workspace}}/models/kinematic_2D
+#      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
+#
+#    - name: Run kinematic_2D tests
+#      working-directory: ${{github.workspace}}/models/kinematic_2D/build
+#      run: |
+#        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+#        cat Testing/Temporary/LastTest.log
+#
+#  build_and_test_KiD-A:
+#    runs-on: ubuntu-20.04
+#    strategy:
+#      matrix:
+#        name: ["no_CUDA"]
+#        build_type: ["RelWithDebInfo"]
+#        mpi: ["none"]
+#        include:
+#        - name: "no_CUDA"
+#          disable_cuda: true
+#          threads: 4
+#
+#    steps:
+#    - name: Checkout libcloudphxx PR
+#      uses: actions/checkout@v2
+#      with:
+#        fetch-depth: 0 
+#
+#    - name: merge with the KiD-A branch
+#      run: |
+#        git config --global user.email "pdziekan@fuw.edu.pl"
+#        git config --global user.name "Piotr Dziekan"
+#        git fetch origin
+#        git merge origin/kida-1d
+#
+#    - run: grep diag_accr include/libcloudph++/lgrngn/particles.hpp
+#
+#    - name: build libcloudph++
+#      #uses: igfuw/libcloudphxx_build@v0.1-beta
+#      uses: ./.github/actions/libcloudphxx_build
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: ${{matrix.threads}}
+#        path: ${{ github.workspace }}
+#        install_prefix: ${{ github.workspace }}/installed 
+#
+#    - name: Install libcloudph++
+#      run: sudo cmake --install build
+#
+#    - name: checkout KiD-libcloud repo
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/kid-libcloud
+#        path: kid-libcloud
+#
+#    - name: run KiD LWP test
+#      working-directory: ${{github.workspace}}/kid-libcloud
+#      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
