@@ -44,8 +44,10 @@ jobs:
           threads: 4
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4_v3"
+          cxx: "g++"
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
 
     steps:
     - uses: actions/checkout@v2
@@ -60,6 +62,7 @@ jobs:
         path: ${{ github.workspace }}
         install_prefix: ${{ github.workspace }}/installed 
         tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
     - name: Compress libcloudph++ build
