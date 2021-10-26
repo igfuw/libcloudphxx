@@ -7,7 +7,7 @@ inputs:
   tag:
     description: 'Image tag'
     required: true
-    default: 'ubuntu_20_04_cuda_11_4_v3'
+    default: 'ubuntu_20_04_cuda_11_4'
 
 runs:
   using: "composite"
@@ -15,7 +15,7 @@ runs:
   
   - name: Install Singularity
     #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
-    uses: eWaterCycle/setup-singularity@v6
+    uses: eWaterCycle/setup-singularity@v7
     with:
       singularity-version: 3.7.1
     #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3

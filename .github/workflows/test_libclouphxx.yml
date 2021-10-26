@@ -43,7 +43,7 @@ jobs:
           disable_cuda: true
           threads: 4
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4_v3"
+          tag: "ubuntu_20_04_cuda_11_4"
           cxx: "g++"
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"

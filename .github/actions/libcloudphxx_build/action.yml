@@ -23,7 +23,7 @@ inputs:
   tag:
     description: 'Singularity image tag'
     required: true
-    default: 'ubuntu_20_04_cuda_11_4_v3'
+    default: 'ubuntu_20_04_cuda_11_4'
   cxx:
     description: 'C++ compiler'
     required: true
