@@ -48,4 +48,4 @@ runs:
   - name: Set friendly Singularity image name
     uses: allenevans/set-env@v2.0.0
     with:
-      SI: '${{ inputs.path }}/uwlcm_ubuntu_20_04_cuda_11_4_v3.sif'
+      SI: '${{ inputs.path }}/uwlcm_${{ inputs.tag }}.sif'
