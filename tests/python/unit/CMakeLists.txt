@@ -10,13 +10,14 @@ endforeach()
 
 # tests with chemistry, chemistry does not work with MPI
 if(NOT USE_MPI)
-  foreach(SD_removal chem_coal)
+  foreach(test SD_removal chem_coal)
     #TODO: indicate that tests depend on the lib
     add_test(
       NAME ${test}
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bindings/python" 
       COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
     )
+  endforeach()
 endif()
 
 ## pytest tests run with "python -m pytest"
