@@ -36,10 +36,10 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        #build_type: ["Debug", "RelWithDebInfo"]
-        build_type: ["RelWithDebInfo"]
-        #mpi: ["none", "mvapich2"]
-        mpi: ["none"]
+        build_type: ["Debug", "RelWithDebInfo"]
+        #build_type: ["RelWithDebInfo"]
+        mpi: ["none", "mvapich2"]
+        #mpi: ["none"]
         include:
         - name: "no_CUDA"
           disable_cuda: true
@@ -47,9 +47,9 @@ jobs:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
           cxx: "g++"
-#        - mpi: "mvapich2"
-#          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
-#          cxx: "mpic++"
+        - mpi: "mvapich2"
+          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
 
     steps:
     - uses: actions/checkout@v2
