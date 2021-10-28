@@ -124,16 +124,16 @@ jobs:
 
     strategy:
       matrix:
-        #build_type: ["RelWithDebInfo", "Debug"]
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfo", "Debug"]
+  #      build_type: ["RelWithDebInfo"]
         mpi: ["none"]
         include:
         - build_type: "RelWithDebInfo"
           long_tests: true
           debug_tests: false
-#        - build_type: "Debug"
-#          long_tests: false
-#          debug_tests: true
+        - build_type: "Debug"
+          long_tests: false
+          debug_tests: true
 
 
     steps:
