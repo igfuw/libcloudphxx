@@ -38,7 +38,8 @@ jobs:
         name: ["no_CUDA"]
         #build_type: ["Debug", "RelWithDebInfo"]
         build_type: ["RelWithDebInfo"]
-        mpi: ["none", "mvapich2"]
+        #mpi: ["none", "mvapich2"]
+        mpi: ["none"]
         include:
         - name: "no_CUDA"
           disable_cuda: true
@@ -130,9 +131,9 @@ jobs:
         - build_type: "RelWithDebInfo"
           long_tests: true
           debug_tests: false
-        - build_type: "Debug"
-          long_tests: false
-          debug_tests: true
+#        - build_type: "Debug"
+#          long_tests: false
+#          debug_tests: true
 
 
     steps:
