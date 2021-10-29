@@ -305,7 +305,3 @@ jobs:
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
       run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
-
-    # Debugging with a ssh session
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
