@@ -183,6 +183,7 @@ jobs:
 
 
   parcel_test:
+# done after kinematic_2D_test, because otherwise we occasionally get "illegal instruction" errors, probably because libcloudphxx is installed simultaneously on the same runner at the same location by two different jobs (?)
 #    needs: build
     needs: kinematic_2D_test
     runs-on: ubuntu-20.04
