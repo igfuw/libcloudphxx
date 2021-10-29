@@ -118,8 +118,73 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
-  parcel_test:
+
+  kinematic_2D_test:
     needs: build
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        build_type: ["RelWithDebInfo"]
+        mpi: ["none"]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+
+    - name: Decompress libcloudph++ build
+      run: tar -xvf build.tar
+
+    - name: Install libcloudph++
+      run: sudo cmake --install build
+
+    - name: load UWLCM Singularity image
+      #uses: igfuw/libcloudphxx_build@v0.1-beta
+      uses: ./.github/actions/load_UWLCM_singularity_image
+      with:
+        path: ${{ github.workspace }}/singularity_images
+
+    - name: checkout libmpdata++ repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+        path: libmpdataxx
+
+    - name: Configure libmpdata++ CMake
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
+  
+    - name: Build libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: VERBOSE=1 singularity exec $SI cmake --build build 
+
+    - name: Install libmpdata++
+      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
+      run: sudo cmake --install build
+
+    - name: Configure kinematic_2D CMake
+      working-directory: ${{github.workspace}}/models/kinematic_2D
+      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
+
+  
+    - name: Build kinematic_2D 
+      working-directory: ${{github.workspace}}/models/kinematic_2D
+      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
+
+    - name: Run kinematic_2D tests
+      working-directory: ${{github.workspace}}/models/kinematic_2D/build
+      run: |
+        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        cat Testing/Temporary/LastTest.log
+
+
+  parcel_test:
+#    needs: build
+    needs: kinematic_2D_test
     runs-on: ubuntu-20.04
 
     strategy:
@@ -183,69 +248,6 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
       run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
-
-
-  kinematic_2D_test:
-    needs: build
-    runs-on: ubuntu-20.04
-
-    strategy:
-      matrix:
-        build_type: ["RelWithDebInfo"]
-        mpi: ["none"]
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download libcloudph++ build
-      uses: actions/download-artifact@v2
-      with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
-
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
-
-    - name: Install libcloudph++
-      run: sudo cmake --install build
-
-    - name: load UWLCM Singularity image
-      #uses: igfuw/libcloudphxx_build@v0.1-beta
-      uses: ./.github/actions/load_UWLCM_singularity_image
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
-    - name: checkout libmpdata++ repo
-      uses: actions/checkout@v2
-      with:
-        repository: igfuw/libmpdataxx
-        path: libmpdataxx
-
-    - name: Configure libmpdata++ CMake
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
-  
-    - name: Build libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: VERBOSE=1 singularity exec $SI cmake --build build 
-
-    - name: Install libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: sudo cmake --install build
-
-    - name: Configure kinematic_2D CMake
-      working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
-
-  
-    - name: Build kinematic_2D 
-      working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
-
-    - name: Run kinematic_2D tests
-      working-directory: ${{github.workspace}}/models/kinematic_2D/build
-      run: |
-        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
-        cat Testing/Temporary/LastTest.log
 
   build_and_test_KiD-A:
     runs-on: ubuntu-20.04
