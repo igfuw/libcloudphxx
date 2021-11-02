@@ -205,13 +205,16 @@ if (CMAKE_CUDA_COMPILER)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
     list(SORT msg)
     list(GET msg 0 VIRT)
+    if (VIRT STREQUAL "?")
+      set (VIRT "35")
+    endif()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
 
     set(GPU_CODE_OPTIONS  --gpu-code=)
     foreach(code ${msg})
       message(STATUS "CUDA capability: ${code}")
       if (code STREQUAL "?")
-        set (code "20")
+        set (code "35")
         message(STATUS "CUDA capability check failed, assuming a default of ${code}")
       endif()
       set(arch ${code})
@@ -302,9 +305,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #include <thrust/system/cpp/vector.h>
 
   #include <boost/numeric/odeint.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust.hpp>
   
   struct rhs 
   {
@@ -314,6 +315,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       const float /* t */
     )  
     {
+      assert(psi.size() == dot_psi.size());
     }  
   };
   
@@ -325,7 +327,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       thrust::cpp::vector<float>, // deriv_type
       float,                      // time_type
       boost::numeric::odeint::thrust_algebra,
-      boost::numeric::odeint::thrust_operations 
+      boost::numeric::odeint::thrust_operations
     > chem_stepper;
   
     thrust::cpp::vector<float> v(2);

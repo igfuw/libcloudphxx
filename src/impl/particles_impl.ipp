@@ -11,9 +11,9 @@
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+//#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
+//#include <boost/numeric/odeint/util/resizer.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust.hpp>
 
 #include <map>
 #include <set>

@@ -41,8 +41,8 @@ namespace libcloudphxx
           chem_rho(chem_rho) 
         {}
 
-	BOOST_GPU_ENABLED
-	real_t operator()(const real_t &rd3) const 
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
 
@@ -55,7 +55,7 @@ namespace libcloudphxx
 #endif
             * chem_rho * rd3
             * (M_NH3_H2O<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
-	}
+        }
       };
 /*
       template <typename real_t>
@@ -65,8 +65,8 @@ namespace libcloudphxx
 
         chem_init_SO4(const real_t &chem_rho) : chem_rho(chem_rho) {}
 
-	BOOST_GPU_ENABLED
-	real_t operator()(const real_t &rd3) const 
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
  
@@ -79,7 +79,7 @@ namespace libcloudphxx
 #endif
             * chem_rho * rd3
             * (M_SO4<real_t>() / (M_NH4<real_t>() + M_SO4<real_t>()));
-	}
+        }
       };
 */
       template <typename real_t>
@@ -90,8 +90,8 @@ namespace libcloudphxx
 
         chem_init_S6(const real_t &chem_rho) : chem_rho(chem_rho) {}
 
-	BOOST_GPU_ENABLED
-	real_t operator()(const real_t &rd3) const 
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
 
@@ -104,7 +104,7 @@ namespace libcloudphxx
 #endif
             * chem_rho * rd3
             * (M_H2SO4<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
-	}
+        }
       };
 
       template <typename real_t>
@@ -114,8 +114,8 @@ namespace libcloudphxx
  
         chem_init_H(const real_t &chem_rho) : chem_rho(chem_rho) {}
  
-	BOOST_GPU_ENABLED
-	real_t operator()(const real_t &rd3) const 
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rd3) const 
         { 
           using namespace common::molar_mass;
 
@@ -128,10 +128,12 @@ namespace libcloudphxx
 #endif
             * chem_rho * rd3
             * (M_H<real_t>() / (M_NH4<real_t>() + M_HSO4<real_t>()));
-	}
+        }
       };
     };
 
+    // NOTE: init_chem does not work for SD created during the simulation, hence chemistry is not compatible with distributed memory (multi_CUDA or MPI), src nor ccn relaxation
+    //       however, it works with removing SD in remove_n0 (?)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_chem()
     {
@@ -153,8 +155,8 @@ namespace libcloudphxx
           i < chem_rhs_beg 
             ? chem_ante_rhs
             : i < chem_rhs_fin
-	      ? chem_rhs
-	      : chem_post_rhs
+              ? chem_rhs
+              : chem_post_rhs
         );
         const int offset = 
           i < chem_rhs_beg
@@ -170,6 +172,7 @@ namespace libcloudphxx
       assert(chem_end[chem_all-1] == chem_post_rhs.end());
     }
 
+    // NOTE: valid only at init, not afterwards when SD are created e.g. from src, ccn_relax or distmem copies
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_chem_aq()
     {
@@ -183,34 +186,33 @@ namespace libcloudphxx
         using namespace common::molar_mass;
         switch (i)
         {
-
           case NH3:
           {
-	    thrust::transform(
+            thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
               detail::chem_init_NH4<real_t>(opts_init.chem_rho)
-	    );
+            );
           }
           break;
 
           case H:
           {
-	    thrust::transform(
+            thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
               detail::chem_init_H<real_t>(opts_init.chem_rho)
-	    );
+            );
           }
           break;
 
           case S_VI:
           {
-	    thrust::transform(
+            thrust::transform(
               rd3.begin(), rd3.end(),                                                    // input
               chem_bgn[i],                                                               // output
               detail::chem_init_S6<real_t>(opts_init.chem_rho)
-	    );
+            );
           }
           break;
 
