@@ -139,28 +139,20 @@ jobs:
     - name: Install libcloudph++
       run: sudo cmake --install build
 
-    - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@v0.1
-      with:
-        path: ${{ github.workspace }}/singularity_images
-
     - name: checkout libmpdata++ repo
       uses: actions/checkout@v2
       with:
         repository: igfuw/libmpdataxx
         path: libmpdataxx
 
-    - name: Configure libmpdata++ CMake
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: singularity exec $SI cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed
-  
-    - name: Build libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: VERBOSE=1 singularity exec $SI cmake --build build 
-
     - name: Install libmpdata++
-      working-directory: ${{github.workspace}}/libmpdataxx/libmpdata++
-      run: sudo cmake --install build
+      uses: igfuw/libmpdataxx_install@v0.1
+      with:
+        build_type: ${{matrix.build_type}}
+        threads: 4
+        path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
