@@ -146,7 +146,7 @@ jobs:
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.1
+      uses: igfuw/libmpdataxx_install@v0.2
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
