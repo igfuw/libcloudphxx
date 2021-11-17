@@ -152,7 +152,6 @@ jobs:
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
         install_prefix: ${{ github.workspace }}/installed
-        tag: ${{ matrix.tag }}
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
