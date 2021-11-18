@@ -53,10 +53,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Debugging with a ssh session
-#    - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v3
-
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@v0.2-beta
       with:
@@ -135,6 +131,10 @@ jobs:
 
     - name: Decompress libcloudph++ build
       run: tar -xvf build.tar
+
+    # Debugging with a ssh session
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Install libcloudph++
       run: sudo cmake --install build
