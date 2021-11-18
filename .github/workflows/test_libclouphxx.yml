@@ -146,7 +146,7 @@ jobs:
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.2
+      uses: igfuw/libmpdataxx_install@v0.3
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
@@ -169,9 +169,9 @@ jobs:
         cat Testing/Temporary/LastTest.log
 
     # Debugging with a ssh session on failure
-    - name: Setup tmate session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
+#    - name: Setup tmate session
+#      if: ${{ failure() }}
+#      uses: mxschmitt/action-tmate@v3
 
 
   parcel_test:
@@ -236,11 +236,6 @@ jobs:
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
       run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
-
-    # Debugging with a ssh session on failure
-    - name: Setup tmate session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
 
   build_and_test_KiD-A:
     runs-on: ubuntu-20.04
