@@ -261,29 +261,12 @@ namespace libcloudphxx
         }
       }
 
-      // aerosol source, in sync since it changes th/rv
-      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
-      {
-        // sanity check
-        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
-
-        // introduce new particles with the given time interval
-        if(pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
-        }
-      }
-
-      if(opts.cond || (opts.src && pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0))
+      if(opts.cond) // || (opts.src && pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) || (opts.rlx && pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
-
-      // update the step counter since src was turned on
-      if (opts.src) ++pimpl->stp_ctr;
-      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       if (opts.chem_dsl == true)
       {
@@ -408,6 +391,42 @@ namespace libcloudphxx
         // advection with subsidence velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
         pimpl->subs(pimpl->dt);
       }
+
+      // NOTE: source and relax should affect th and rv (because we add humidifed aerosols), but these changes are minimal and we neglect them.
+      //       otherwise src and rlx should be don in step_sync
+
+      // aerosol source, in sync since it changes th/rv
+      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
+      {
+        // sanity check
+        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+
+        // introduce new particles with the given time interval
+        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
+        }
+      }
+
+      // aerosol relaxation, in sync since it changes th/rv
+      // TODO: more sanity checks for rlx! 3D only, values of rlx_bins etc. check that appa ranges are exclusive, zmin<zmax, kpamin<kpamax,...
+      if (opts.rlx)
+      {
+        // sanity check
+        if (pimpl->opts_init.rlx_switch == false) throw std::runtime_error("aerosol relaxation was switched off in opts_init");
+
+        // introduce new particles with the given time interval
+        if(pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0) 
+        {
+          pimpl->rlx(pimpl->opts_init.supstp_rlx * pimpl->dt);
+        }
+      }
+
+      // update the step counter since src/rlx was turned on
+      if (opts.src) ++pimpl->src_stp_ctr;
+      else pimpl->src_stp_ctr = 0; //reset the counter if source was turned off
+      if (opts.rlx) ++pimpl->rlx_stp_ctr;
+      else pimpl->rlx_stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
       // distmem version overwrites i and tmp_device_size_part
