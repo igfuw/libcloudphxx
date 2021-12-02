@@ -11,9 +11,9 @@
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+//#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
+//#include <boost/numeric/odeint/util/resizer.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust.hpp>
 
 #include <map>
 #include <set>
@@ -172,7 +172,7 @@ namespace libcloudphxx
            allow_sstp_chem;
 
       // timestep counter
-      n_t stp_ctr;
+      n_t src_stp_ctr, rlx_stp_ctr;
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
@@ -276,10 +276,10 @@ namespace libcloudphxx
 
       // methods
 
-      // fills u01[0:n] with random numbers
+      // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
-      // fills un[0:n] with random numbers
+      // fills un with n random integers uniformly distributed on the whole integer range
       void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
       // max(1, n)
@@ -310,7 +310,8 @@ namespace libcloudphxx
         n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
-        stp_ctr(0),
+        src_stp_ctr(0),
+        rlx_stp_ctr(0),
 	bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
@@ -424,7 +425,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const real_t &);
+      void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -486,6 +487,8 @@ namespace libcloudphxx
       void hskpng_sort();
       void hskpng_shuffle_and_sort();
       void hskpng_count();
+      void ravel_ijk(const thrust_size_t begin_shift = 0);
+      void unravel_ijk(const thrust_size_t begin_shift = 0);
       void hskpng_ijk();
       void hskpng_Tpr();
       void hskpng_mfp();
@@ -510,8 +513,20 @@ namespace libcloudphxx
       void moms_rng(
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const thrust_size_t npart,
         const bool cons
       ); 
+      void moms_rng(
+        const real_t &min, const real_t &max, 
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const bool cons
+      ); 
+      void moms_calc(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const thrust_size_t npart,
+        const real_t power,
+        const bool specific = true
+      );
       void moms_calc(
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
@@ -566,6 +581,9 @@ namespace libcloudphxx
       void src_dry_distros(const real_t &dt);
       void src_dry_sizes(const real_t &dt);
 
+      void rlx(const real_t);
+      void rlx_dry_distros(const real_t);
+
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
       void sstp_step_ssp(const real_t &dt);
@@ -574,6 +592,9 @@ namespace libcloudphxx
       void sstp_save_chem();
 
       void post_copy(const opts_t<real_t>&);
+
+      void ante_adding_SD();
+      void post_adding_SD();
 
       // distmem stuff
       void xchng_domains();

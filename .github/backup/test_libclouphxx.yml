@@ -1,0 +1,101 @@
+#    - name: Install Nvidia driver
+#      if: ${{!matrix.disable_cuda}}
+#      run: sudo apt install --no-install-recommends nvidia-driver-470
+#    
+#    - name: Install Singularity
+#      #when installed from this action, .SIF is always converted to sandbox (could be related to: https://githubmemory.com/repo/hpcng/singularity/issues/6065)
+#      uses: eWaterCycle/setup-singularity@v6
+#      with:
+#        singularity-version: 3.7.1
+#      #apt installation following https://sylabs.io/guides/3.0/user-guide/installation.html, but this is a too old version and uninstalls python-is-python3
+##      run: |
+##        wget -O- http://neuro.debian.net/lists/focal.de-fzj.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+##        sudo apt-key adv --recv-keys --keyserver hkps://keyserver.ubuntu.com 0xA5D32F012649A5A9
+##        sudo apt-get update
+##        sudo apt-get install -y singularity-container
+#            
+#    - name: Cache UWLCM Singularity image
+#      id: cache_singularity
+#      uses: actions/cache@v2
+#      with:
+#        path: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+#        key: 'sng_ubuntu_20_04_cuda_11_4'
+#        
+#    - name: Download UWLCM Singularity image
+#      if: steps.cache_singularity.outputs.cache-hit != 'true'
+#      run: |
+#        mkdir '${{ github.workspace }}/singularity_images'
+#        singularity pull --disable_cache --dir '${{ github.workspace }}/singularity_images' library://pdziekan/default/uwlcm:ubuntu_20_04_cuda_11_4
+#      # disable Singularity cache, we cache manually
+#
+#    - name: Set friendly Singularity image name
+#      uses: allenevans/set-env@v2.0.0
+#      with:
+#        SI: '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_4.sif'
+#      
+#    - name: Configure CMake
+#      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+#      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+#      run: singularity exec $SI cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True -DLIBCLOUDPHXX_DISABLE_CUDA=${{matrix.disable_cuda}}
+##
+#    - name: Build libcloudph++
+#      # Build your program with the given configuration
+#      run: VERBOSE=1 singularity exec $SI cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -j${{matrix.threads}}
+      
+      
+ #   - name: Run Singularity shell
+ #     run: singularity shell '${{ github.workspace }}/singularity_images/uwlcm_ubuntu_20_04_cuda_11_1_1.0.sif'
+        
+#    - name: Download UWLCM Singularity container
+#      run: wget https://github.com/igfuw/UWLCM/blob/0fc77ec68053936e36eea4b49f11b3dd2cb1a827/singularity/sng_ubuntu_20_04_cuda_11_1
+        
+#    - name: Build UWLCM Singularity container
+#      run: singularity build sng_ubuntu_20_04_cuda_11_1.sif sng_ubuntu_20_04_cuda_11_1
+    
+    # TODO: cache cuda-toolki
+    
+    #- name: Install cuda-toolkit
+    #  id: cuda-toolkit
+    #  uses: Jimver/cuda-toolkit@v0.2.4
+    #  with:
+    #    linux-local-args: '["--toolkit"]'
+
+  #  - name: Install boost
+  #    uses: MarkusJx/install-boost@v2.0.0
+  #    id: install-boost
+  #    with:
+  #      # REQUIRED: Specify the required boost version
+  #      # A list of supported versions can be found here: 
+  #      # https://github.com/actions/boost-versions/blob/main/versions-manifest.json
+  #      boost_version: 1.73.0
+  #      # OPTIONAL: Specify a platform version
+  #      #platform_version: 18.04
+  #      # OPTIONAL: Specify a custom install location
+  #      #boost_install_dir: /home/runner/some_directory
+  
+#    - name: Install Thrust
+#      #run: sudo apt-get install libthrust-dev
+#      run: |
+#        git clone --depth=1 git://github.com/thrust/thrust.git --branch 1.9.10-1
+#        sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust
+        
+#    - name: Cache Boost
+#      uses: actions/cache@v2
+#      with:
+#        path: '${{ runner.workspace }}/boost_*.tar.gz'
+#        key: 'boost-1.72.0'
+
+ #   - name: Build Boost
+ #     id: boost
+ #     # This won't re-download the archive unnecessarily:
+ #     uses: egor-tensin/build-boost@v1
+ #     with:
+ #       version: 1.72.0
+ #       libraries: date_time # in fact we don't need any compiled libs, only header libs, but when nothing is passed all libs are built
+ #       platform: x64
+ #       configuration: RelWithDebInfo
+      
+    #- name: Install hdf5 (Linux)
+    #  run: sudo apt-get install libhdf5-dev
+    #  #if: matrix.os == 'ubuntu-latest'
+      

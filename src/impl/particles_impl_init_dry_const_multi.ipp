@@ -54,7 +54,7 @@ namespace libcloudphxx
 
       detail::calc_CDF(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
 
-      // tossing random numbers [0,1] for dry radii
+      // tossing random numbers
       rand_u01(n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
