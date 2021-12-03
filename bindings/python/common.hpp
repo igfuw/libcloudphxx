@@ -89,6 +89,12 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
+      real_t visc(const real_t &T)
+      {
+	return cmn::vterm::visc(T * si::kelvins) / si::pascals / si::seconds;
+      }
+
+      template <typename real_t>
       real_t rw3_cr(const real_t &rd3, const real_t &kappa, const real_t &T)
       {
         return cmn::kappa_koehler::rw3_cr(

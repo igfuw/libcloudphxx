@@ -135,6 +135,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
+    bp::def("visc", &common::visc<real_t>);
     bp::def("rw3_cr", &common::rw3_cr<real_t>);
     bp::def("S_cr", &common::S_cr<real_t>);
     bp::def("p_hydro", &common::p_hydro<real_t>);
