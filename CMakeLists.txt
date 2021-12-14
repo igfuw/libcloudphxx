@@ -36,6 +36,7 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS_RELEASE "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFOPORTABLE "") # without march=native
 
 ############################################################################################
 # see if CUDA is available
@@ -61,6 +62,7 @@ else()
   set(CMAKE_CUDA_FLAGS_DEBUG "")
   set(CMAKE_CUDA_FLAGS_RELEASE "")
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFOPORTABLE "")
 endif()
 
 #############################################################################################
@@ -114,9 +116,10 @@ target_include_directories(cloudphxx_lgrngn
 # enabling c++14
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_14)
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:         -g -Og -DTHRUST_DEBUG>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>: -Ofast -march=native>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:       -DNDEBUG -Ofast -march=native -Winline>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:                  -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:                -Ofast -march=native -Winline -DNDEBUG >)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>:         -Ofast -march=native>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFOPORTABLE>>: -Ofast>)
 
 # add dependencies
 if (CMAKE_CUDA_COMPILER)
@@ -363,7 +366,7 @@ add_subdirectory(bindings)
 
 ############################################################################################
 # installation
-set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg)
+set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg RELWITHDEBINFOPORTABLE_POSTFIX _relwithdbg)
 
 # install files and export targets
 install(TARGETS cloudphxx_lgrngn EXPORT cloudphxx_lgrngn-targets 
