@@ -593,6 +593,8 @@ namespace libcloudphxx
 
       void post_copy(const opts_t<real_t>&);
 
+      // two functions for calculating changes in rv and th due to condensation on SDs initialized during simulation, e.g. via source or relaxation
+      // NOTE: curently not used, because of small sizes of these droplets
       void ante_adding_SD();
       void post_adding_SD();
 
