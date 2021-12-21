@@ -44,10 +44,6 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         int operator()(const real_t &a1, const real_t &a2)
         {
-//          printf("missing %g expected %g tolerance %g result %d\n", a1, a2, tolerance, a2 > real_t(0) ?
-//                          a1 / a2 > tolerance ? 1 : 0
-//                                    : 0);
-//          //std::cerr << "a1: " << a1 << " a2: " << a2 << " tol: " << tolerance << " result: " << bool(a1 / a2 > tolerance) << std::endl;
           return a2 > real_t(0) ?
             a1 / a2 > tolerance ? n_sd_per_bin : 0
           : 0;
@@ -118,7 +114,6 @@ namespace libcloudphxx
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
         const auto &kappa(ddi->first);
-        std::cerr << "rlx kappa: " << kappa << std::endl;
         assert(kappa >= 0);
         const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
 
@@ -168,38 +163,15 @@ namespace libcloudphxx
           // calculate 0-th non-specific moment of rd3 (number of droplets in a cell) of droplets in this rd3 and kappa range
           moms_calc(rd3.begin(), n_part_pre_relax, 0, false);
 
-//          // divide by volume
-//          thrust::transform(
-//            count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-//            thrust::make_permutation_iterator(                  // input - second arg
-//              dv.begin(),
-//              count_ijk.begin()
-//            ),
-//            count_mom.begin(),                                  // output (in place)
-//            thrust::divides<real_t>()
-//          );
-
           // horizontal sum of this moment
           thrust::fill(hor_sum.begin(), hor_sum.end(), 0);
           thrust_device::vector<thrust_size_t> &count_k(tmp_device_size_cell);  // NOTE: tmp_device_size_cell is also used in some other inits, careful not to overwrite it!
           thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
           thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
 
-          //std::cerr << "count_n: " << count_n << std::endl;
-          //std::cerr << "count_k:" << std::endl;
-          //debug::print(count_k.begin(), count_k.end());
-          //std::cerr << "count_mom:" << std::endl;
-          //debug::print(count_mom.begin(), count_mom.end());
-
           auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
-          std::cerr << "hor_sum_k:" << std::endl;
-          debug::print(hor_sum_k.begin(), hor_sum_k.end());
-          std::cerr << "hor_sum_count:" << std::endl;
-          debug::print(hor_sum_count.begin(), hor_sum_count.end());
-
           int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
-          std::cerr << "number_of_levels_with_droplets: " << number_of_levels_with_droplets << std::endl;
           
           assert(number_of_levels_with_droplets <= opts_init.nz);
           thrust::copy(hor_sum_count.begin(), hor_sum_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_sum.begin(), hor_sum_k.begin()));
@@ -232,36 +204,16 @@ namespace libcloudphxx
           // set to zero outside of the defined range of altitudes
           thrust::replace_if(expected_hor_sum.begin(), expected_hor_sum.begin()+opts_init.nz, zero, arg::_1 < z_min_index || arg::_1 >= z_max_index, real_t(0));
 
-          std::cerr << "bin number: " << bin_number ;
-          std::cerr   << " rd_range: (" << std::pow(rd3_min, 1./3.) << ", " << std::pow(rd3_max, 1./3.) ;
-          std::cerr   << " r_center: " << std::exp(bin_lnrd_center) ;
-          std::cerr   << " z_indices: (" << z_min_index << ", " << z_max_index << "), " ;
-          std::cerr   << " expected STP concentration: " << expected_STP_concentration ;
-          std::cerr  << std::endl;
-        
-          std::cerr << "hor_sum:" << std::endl;
-          debug::print(hor_sum);
-        
-          std::cerr << "expected_hor_sum:" << std::endl;
-          debug::print(expected_hor_sum);
           // calculate how many CCN are missing
           thrust::transform(expected_hor_sum.begin(), expected_hor_sum.end(), hor_sum.begin(), hor_missing.begin(), arg::_1 - arg::_2);
           thrust::replace_if(hor_missing.begin(), hor_missing.end(), arg::_1 < 0, 0);
          
-          std::cerr << "hor_missing:" << std::endl;
-          debug::print(hor_missing);
-        
           // set number of SDs to init; create only if concentration is lower than expected with a tolerance
           thrust::transform(hor_missing.begin(), hor_missing.end(), expected_hor_sum.begin(), n_SD_to_create.begin(), detail::calc_n_sd_to_create<real_t>(config.rlx_conc_tolerance, opts_init.rlx_sd_per_bin));
-         
-          std::cerr << "n_SD_to_create:" << std::endl;
-          debug::print(n_SD_to_create);
 
           n_part_old = n_part;
           n_part_to_init = thrust::reduce(n_SD_to_create.begin(), n_SD_to_create.end());
           n_part = n_part_old + n_part_to_init;
-
-          std::cerr << "n_part_to_init: " << n_part_to_init << std::endl;
 
           // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
           ijk.resize(n_part);
@@ -291,8 +243,6 @@ namespace libcloudphxx
           using std::min;
 #endif
 
-          std::cerr << "dt: " << dt << " rlx_timescale: " << opts_init.rlx_timescale << " hor_avg fraction added: " << min(dt / opts_init.rlx_timescale, real_t(1)) << std::endl;
-
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
               n_SD_to_create.begin(), ptr.begin(), 
@@ -305,9 +255,6 @@ namespace libcloudphxx
             detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
           );
 
-          //std::cerr << "n:" << std::endl;
-          //debug::print(n.begin()+n_part_old, n.end());
-
           // detecting possible overflows of n type
           {
             thrust_size_t ix = thrust::max_element(n.begin() + n_part_old, n.end()) - (n.begin() + n_part_old);
@@ -318,30 +265,11 @@ namespace libcloudphxx
           // tossing random numbers [0,1)  TODO: do it once for all bins
           rand_u01(n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
-          //std::cerr << "u01:" << std::endl;
-          //debug::print(u01.begin(), u01.begin()+n_part_to_init);
-
           thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
           if(n_dims==3) thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
 
           // raveling i, j & k into ijk; only of the new SD
           ravel_ijk(n_part_old);
-
-          // set count_num to the number of SD to init per cell
-//          thrust::fill(count_num.begin(), count_num.end(), 0);
-//          thrust::scatter(thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin), thrust::make_constant_iterator<n_t>(opts_init.rlx_sd_per_bin) + n_part_to_init, ijk.begin() + n_part_old, count_num.begin());
-
-          //std::cerr << "i:" << std::endl;
-          //debug::print(i.begin()+n_part_old, i.end());
-
-          //std::cerr << "k:" << std::endl;
-          //debug::print(k.begin()+n_part_old, k.end());
-
-          //std::cerr << "ijk:" << std::endl;
-          //debug::print(ijk.begin()+n_part_old, ijk.end());
-//
-//          //std::cerr << "count_num:" << std::endl;
-//          //debug::print(count_num);
 
           // init dry radius
           // set rd3 randomized within the bin, uniformly distributed on the log(rd) axis
@@ -356,18 +284,12 @@ namespace libcloudphxx
             detail::exp3x<real_t>()
           );
 
-
-          //std::cerr << "rd3:" << std::endl;
-          //debug::print(rd3.begin()+n_part_old, rd3.end());
           // NOTE: watch out not to mess up sorting while adding SDs to the bins, because moms_X functions require sorted data...
         } // end of the bins loop
-
-        std::cerr << "expected_STP_concentration_tot: " << expected_STP_concentration_tot << std::endl;
 
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
         n_part_to_init = n_part - n_part_old;
-        //std::cerr << "n_part: " << n_part << " n_part_old: " << n_part_old << " n_part_to_init: " << n_part_to_init << std::endl;
         hskpng_resize_npart();
 
         init_SD_with_distros_finalize(kappa, false); // no need to unravel ijk there, becaues i j k are already initialized
