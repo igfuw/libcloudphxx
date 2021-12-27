@@ -5,6 +5,6 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(Boost REQUIRED)
 
-if(NOT TARGET clphxx::cloudphxx_lgrngn)
-    include("${cloudphxx_CMAKE_DIR}/cloudphxx_lgrngn-targets.cmake")
+if(NOT TARGET clphxx::cloudphxx_lgrngn OR NOT TARGET clphxx::cloudphxx_headers)
+    include("${cloudphxx_CMAKE_DIR}/cloudphxx-targets.cmake")
 endif()
