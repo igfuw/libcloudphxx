@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         name: ["CUDA"]
-        build_type: ["Debug", "RelWithDebInfo"]
+        build_type: ["Debug", "RelWithDebInfoPortable"]
         include:
         - name: "CUDA"
           disable_cuda: false
@@ -35,8 +35,8 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["Debug", "RelWithDebInfo"]
-        #build_type: ["RelWithDebInfo"]
+        build_type: ["Debug", "RelWithDebInfoPortable"]
+        #build_type: ["RelWithDebInfoPortable"]
         mpi: ["none", "mvapich2"]
         #mpi: ["none"]
         include:
@@ -81,7 +81,7 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["RelWithDebInfo", "Debug"]
+        build_type: ["RelWithDebInfoPortable", "Debug"]
         mpi: ["none", "mvapich2"]
         include:
         - mpi: "none"
@@ -118,7 +118,7 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfoPortable"]
         mpi: ["none"]
 
     steps:
@@ -182,11 +182,11 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["RelWithDebInfo", "Debug"]
-  #      build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfoPortable", "Debug"]
+  #      build_type: ["RelWithDebInfoPortable"]
         mpi: ["none"]
         include:
-        - build_type: "RelWithDebInfo"
+        - build_type: "RelWithDebInfoPortable"
           long_tests: true
           debug_tests: false
         - build_type: "Debug"
@@ -242,7 +242,7 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfoPortable"]
         mpi: ["none"]
         include:
         - name: "no_CUDA"
