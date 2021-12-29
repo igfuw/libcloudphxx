@@ -97,8 +97,8 @@ endif()
 set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # mpic++ will not work
 
 ############################################################################################
-# create the library target
-add_library(cloudphxx_lgrngn SHARED ${files})
+# create the lagrangian microphysics library target
+add_library(cloudphxx_lgrngn SHARED ${files}) 
 
 ############################################################################################
 
@@ -365,20 +365,40 @@ add_subdirectory(include)
 add_subdirectory(bindings) 
 
 ############################################################################################
+
+# create a header-only library target (enough for blk_1m blk_2m and common)
+add_library(cloudphxx_headers INTERFACE)
+
+target_include_directories(cloudphxx_headers 
+  INTERFACE
+    $<INSTALL_INTERFACE:include>
+)
+
+target_compile_features(cloudphxx_headers INTERFACE cxx_std_14)
+
+target_link_libraries(cloudphxx_headers
+  INTERFACE
+    Boost::boost
+)
+
+############################################################################################
 # installation
 set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg RELWITHDEBINFOPORTABLE_POSTFIX _relwithdbg)
 
 # install files and export targets
-install(TARGETS cloudphxx_lgrngn EXPORT cloudphxx_lgrngn-targets 
+install(TARGETS cloudphxx_lgrngn cloudphxx_headers EXPORT cloudphxx-targets 
   LIBRARY DESTINATION lib
   INCLUDES DESTINATION include)
 
-install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
+install(EXPORT cloudphxx-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
+
+#install(TARGETS cloudphxx_headers EXPORT cloudphxx_headers-targets)
+#  INCLUDES DESTINATION include) # these files were already installed by lgrngn
+
+#install(EXPORT cloudphxx_headers-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
 
 # generate and install a config file
 include(CMakePackageConfigHelpers)
-
-#export(TARGETS cloudphxx_lgrngn FILE MyLibraryConfig.cmake)
 
 configure_package_config_file(
   libcloudph++-config.cmake.in
@@ -392,4 +412,3 @@ install(
   DESTINATION
     share/libcloudph++
 )
-############################################################################################
