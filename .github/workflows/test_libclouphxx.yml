@@ -36,7 +36,6 @@ jobs:
       matrix:
         name: ["no_CUDA"]
         build_type: ["Debug", "RelWithDebInfoPortable"]
-        #build_type: ["RelWithDebInfoPortable"]
         mpi: ["none", "mvapich2"]
         #mpi: ["none"]
         include:
@@ -183,7 +182,6 @@ jobs:
     strategy:
       matrix:
         build_type: ["RelWithDebInfoPortable", "Debug"]
-  #      build_type: ["RelWithDebInfoPortable"]
         mpi: ["none"]
         include:
         - build_type: "RelWithDebInfoPortable"
@@ -285,3 +283,10 @@ jobs:
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
       run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
+
+  call_test_uwlcm_hlpr:
+    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
+    with:
+      UWLCM_sha: "master"
+      libcloudphxx_sha: ${{ github.sha }} # merge PR SHA
+      libmpdataxx_sha: "master"
