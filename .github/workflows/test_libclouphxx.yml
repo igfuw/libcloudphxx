@@ -80,7 +80,7 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["Debug", "RelWithDebInfoPortable"]
+        build_type: ["RelWithDebInfoPortable", "Debug"]
         mpi: ["none", "mvapich2"]
         include:
         - mpi: "none"
@@ -181,7 +181,7 @@ jobs:
 
     strategy:
       matrix:
-        build_type: ["Debug", "RelWithDebInfoPortable"]
+        build_type: ["RelWithDebInfoPortable", "Debug"]
         mpi: ["none"]
         include:
         - build_type: "RelWithDebInfoPortable"
@@ -240,7 +240,7 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfoPortable"]
         mpi: ["none"]
         include:
         - name: "no_CUDA"
