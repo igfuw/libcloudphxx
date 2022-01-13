@@ -91,7 +91,6 @@ namespace libcloudphxx
            coal_switch,  // if false no coalescence throughout the whole simulation
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            subs_switch,  // if false no subsidence throughout the whole simulation
-           src_switch,   // if false no source throughout the whole simulation
            rlx_switch,   // if false no relaxation throughout the whole simulation
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
@@ -135,6 +134,9 @@ namespace libcloudphxx
 
 
       // --- aerosol source stuff ---
+
+      // type of CCN source
+      src_t src_type;
 
       // source distro per unit time
       dry_distros_t src_dry_distros;
@@ -198,7 +200,7 @@ namespace libcloudphxx
         sedi_switch(true),  // sedimentation turned on by default
         subs_switch(false),  // subsidence turned off by default
         coal_switch(true),  // coalescence turned on by default
-        src_switch(false),  // source turned off by default
+        src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
         exact_sstp_cond(false),
         turb_cond_switch(false),
