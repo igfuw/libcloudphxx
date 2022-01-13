@@ -225,6 +225,10 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("implicit", lgr::as_t::implicit)
       .value("euler", lgr::as_t::euler)
       .value("pred_corr", lgr::as_t::pred_corr);
+    bp::enum_<lgr::src_t>("src_type") 
+      .value("off", lgr::src_t::off)
+      .value("simple", lgr::src_t::simple)
+      .value("matching", lgr::src_t::matching);
 
     bp::enum_<cmn::chem::chem_species_t>("chem_species_t")
       .value("H",    cmn::chem::H)
@@ -287,7 +291,6 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("coal_switch", &lgr::opts_init_t<real_t>::coal_switch)
       .def_readwrite("sedi_switch", &lgr::opts_init_t<real_t>::sedi_switch)
       .def_readwrite("subs_switch", &lgr::opts_init_t<real_t>::subs_switch)
-      .def_readwrite("src_switch", &lgr::opts_init_t<real_t>::src_switch)
       .def_readwrite("rlx_switch", &lgr::opts_init_t<real_t>::rlx_switch)
       .def_readwrite("turb_adve_switch", &lgr::opts_init_t<real_t>::turb_adve_switch)
       .def_readwrite("turb_cond_switch", &lgr::opts_init_t<real_t>::turb_cond_switch)
