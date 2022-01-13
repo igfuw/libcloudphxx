@@ -51,7 +51,7 @@ namespace libcloudphxx
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
       detail::config<real_t> config;
-      as_t::as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
+      as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;

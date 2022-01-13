@@ -73,16 +73,16 @@ namespace libcloudphxx
       unsigned long long n_sd_max; 
 
       // coalescence Kernel type
-      kernel_t::kernel_t kernel;
+      kernel_t kernel;
 
       // terminal velocity formula
-      vt_t::vt_t terminal_velocity;
+      vt_t terminal_velocity;
 
       // super-droplet advection scheme
-      as_t::as_t adve_scheme;
+      as_t adve_scheme;
 
       // RH formula
-      RH_formula_t::RH_formula_t RH_formula;
+      RH_formula_t RH_formula;
 //</listing>
  
       // coalescence kernel parameters
