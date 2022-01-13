@@ -578,6 +578,8 @@ namespace libcloudphxx
       void bcnd();
 
       void src(const real_t &dt);
+      void src_dry_distros_simple(const real_t &dt);
+      void src_dry_distros_matching(const real_t &dt);
       void src_dry_distros(const real_t &dt);
       void src_dry_sizes(const real_t &dt);
 

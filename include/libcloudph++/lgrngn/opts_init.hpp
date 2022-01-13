@@ -12,6 +12,7 @@
 #include "terminal_velocity.hpp"
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
+#include "ccn_source.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
