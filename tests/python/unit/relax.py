@@ -60,7 +60,6 @@ def test(opts_init):
   opts_init.adve_switch = 0;
   opts_init.cond_switch = 0;
   opts_init.sedi_switch = 0;
-  opts_init.src_switch = 0;
   opts_init.rlx_switch = 1;
   
   opts = lgrngn.opts_t()

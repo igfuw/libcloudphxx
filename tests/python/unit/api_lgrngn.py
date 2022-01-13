@@ -69,7 +69,7 @@ print("chem_switch = ", opts_init.chem_switch)
 print("coal_switch = ", opts_init.coal_switch)
 print("sedi_switch = ", opts_init.sedi_switch)
 print("subs_switch = ", opts_init.subs_switch)
-print("src_switch = ", opts_init.src_switch)
+print("src_type = ", opts_init.src_type)
 
 print("exact_sstp_cond = ", opts_init.exact_sstp_cond)
 print("sstp_cond =", opts_init.sstp_cond)
