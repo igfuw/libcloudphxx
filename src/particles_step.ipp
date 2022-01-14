@@ -399,7 +399,7 @@ namespace libcloudphxx
       if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
       {
         // sanity check
-        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
+        if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("aerosol source was switched off in opts_init");
 
         // introduce new particles with the given time interval
         if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 

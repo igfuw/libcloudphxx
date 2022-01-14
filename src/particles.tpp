@@ -117,6 +117,8 @@
 #include "impl/particles_impl_ante_adding_SD.ipp"
 #include "impl/particles_impl_post_adding_SD.ipp"
 #include "impl/particles_impl_src.ipp"
+#include "impl/particles_impl_src_dry_distros_simple.ipp"
+#include "impl/particles_impl_src_dry_distros_matching.ipp"
 #include "impl/particles_impl_src_dry_distros.ipp"
 #include "impl/particles_impl_src_dry_sizes.ipp"
 #include "impl/particles_impl_rlx.ipp"
