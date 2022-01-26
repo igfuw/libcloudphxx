@@ -98,7 +98,7 @@ namespace libcloudphxx
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
 
-      sgs_adve_t::sgs_adve_t sgs_adve; // model of SGS advection to be used. 
+      sgs_adve_t sgs_adve; // model of SGS advection to be used. 
       // parameters of the synthetic turbulence model (if used)
       int ST_Nmodes,      // number of Fourier modes
           ST_Nwaves_max;  // maximum number of wave numbers per mode

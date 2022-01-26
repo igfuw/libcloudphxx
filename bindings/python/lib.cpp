@@ -225,7 +225,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .value("implicit", lgr::as_t::implicit)
       .value("euler", lgr::as_t::euler)
       .value("pred_corr", lgr::as_t::pred_corr);
-    bp::enum_<lgr::sgs_adve_t::sgs_adve_t>("sgs_adve_t") 
+    bp::enum_<lgr::sgs_adve_t>("sgs_adve_t") 
       .value("ST_periodic", lgr::sgs_adve_t::ST_periodic)
       .value("GA17", lgr::sgs_adve_t::GA17);
     bp::enum_<lgr::src_t>("src_t") 
