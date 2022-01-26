@@ -30,6 +30,8 @@ namespace libcloudphxx
 
         const real_t bcond_tolerance = 2e-4; // [m]; error tolerance for position near bcond after distmem copy  
 
+        const real_t rlx_conc_tolerance = 0.1; // tolerance of the relaxation scheme; new SD will be created if missing_conc/expected_conc > tolerance
+
         // ctor
         config():
           vt0_ln_r_min(log(5e-7)),

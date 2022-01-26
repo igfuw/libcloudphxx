@@ -36,6 +36,7 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 set(CMAKE_CXX_FLAGS_DEBUG "")
 set(CMAKE_CXX_FLAGS_RELEASE "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFOPORTABLE "") # without march=native
 
 ############################################################################################
 # see if CUDA is available
@@ -61,6 +62,7 @@ else()
   set(CMAKE_CUDA_FLAGS_DEBUG "")
   set(CMAKE_CUDA_FLAGS_RELEASE "")
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFOPORTABLE "")
 endif()
 
 #############################################################################################
@@ -95,8 +97,8 @@ endif()
 set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # mpic++ will not work
 
 ############################################################################################
-# create the library target
-add_library(cloudphxx_lgrngn SHARED ${files})
+# create the lagrangian microphysics library target
+add_library(cloudphxx_lgrngn SHARED ${files}) 
 
 ############################################################################################
 
@@ -114,9 +116,10 @@ target_include_directories(cloudphxx_lgrngn
 # enabling c++14
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_14)
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:         -g -Og -DTHRUST_DEBUG>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>: -Ofast -march=native>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:       -DNDEBUG -Ofast -march=native -Winline>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:                  -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:                -Ofast -march=native -Winline -DNDEBUG >)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>:         -Ofast -march=native>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFOPORTABLE>>: -Ofast>)
 
 # add dependencies
 if (CMAKE_CUDA_COMPILER)
@@ -205,13 +208,16 @@ if (CMAKE_CUDA_COMPILER)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
     list(SORT msg)
     list(GET msg 0 VIRT)
+    if (VIRT STREQUAL "?")
+      set (VIRT "35")
+    endif()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
 
     set(GPU_CODE_OPTIONS  --gpu-code=)
     foreach(code ${msg})
       message(STATUS "CUDA capability: ${code}")
       if (code STREQUAL "?")
-        set (code "20")
+        set (code "35")
         message(STATUS "CUDA capability check failed, assuming a default of ${code}")
       endif()
       set(arch ${code})
@@ -302,9 +308,7 @@ file(WRITE "${tmpdir}/test.cpp" "
   #include <thrust/system/cpp/vector.h>
 
   #include <boost/numeric/odeint.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-  #include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+  #include <boost/numeric/odeint/external/thrust/thrust.hpp>
   
   struct rhs 
   {
@@ -314,6 +318,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       const float /* t */
     )  
     {
+      assert(psi.size() == dot_psi.size());
     }  
   };
   
@@ -325,7 +330,7 @@ file(WRITE "${tmpdir}/test.cpp" "
       thrust::cpp::vector<float>, // deriv_type
       float,                      // time_type
       boost::numeric::odeint::thrust_algebra,
-      boost::numeric::odeint::thrust_operations 
+      boost::numeric::odeint::thrust_operations
     > chem_stepper;
   
     thrust::cpp::vector<float> v(2);
@@ -360,20 +365,40 @@ add_subdirectory(include)
 add_subdirectory(bindings) 
 
 ############################################################################################
+
+# create a header-only library target (enough for blk_1m blk_2m and common)
+add_library(cloudphxx_headers INTERFACE)
+
+target_include_directories(cloudphxx_headers 
+  INTERFACE
+    $<INSTALL_INTERFACE:include>
+)
+
+target_compile_features(cloudphxx_headers INTERFACE cxx_std_14)
+
+target_link_libraries(cloudphxx_headers
+  INTERFACE
+    Boost::boost
+)
+
+############################################################################################
 # installation
-set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg)
+set_target_properties(cloudphxx_lgrngn PROPERTIES DEBUG_POSTFIX _dbg RELWITHDEBINFO_POSTFIX _relwithdbg RELWITHDEBINFOPORTABLE_POSTFIX _relwithdbg)
 
 # install files and export targets
-install(TARGETS cloudphxx_lgrngn EXPORT cloudphxx_lgrngn-targets 
+install(TARGETS cloudphxx_lgrngn cloudphxx_headers EXPORT cloudphxx-targets 
   LIBRARY DESTINATION lib
   INCLUDES DESTINATION include)
 
-install(EXPORT cloudphxx_lgrngn-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
+install(EXPORT cloudphxx-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
+
+#install(TARGETS cloudphxx_headers EXPORT cloudphxx_headers-targets)
+#  INCLUDES DESTINATION include) # these files were already installed by lgrngn
+
+#install(EXPORT cloudphxx_headers-targets NAMESPACE clphxx:: DESTINATION share/libcloudph++)
 
 # generate and install a config file
 include(CMakePackageConfigHelpers)
-
-#export(TARGETS cloudphxx_lgrngn FILE MyLibraryConfig.cmake)
 
 configure_package_config_file(
   libcloudph++-config.cmake.in
@@ -387,4 +412,3 @@ install(
   DESTINATION
     share/libcloudph++
 )
-############################################################################################

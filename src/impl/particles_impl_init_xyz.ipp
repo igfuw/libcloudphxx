@@ -95,53 +95,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
-      // get i, j, k from ijk 
-      switch(n_dims)
-      {
-        case 3:
-          namespace arg = thrust::placeholders;
-          // y
-          thrust::transform(
-            ijk.begin() + n_part_old, ijk.end(), // input - first arg
-            j.begin() + n_part_old,        // output
-            (arg::_1 / opts_init.nz) % (opts_init.ny) // z varies first
-          );
-          // z
-          thrust::transform(
-            ijk.begin() + n_part_old, ijk.end(), // input - first arg
-            k.begin() + n_part_old,        // output
-            arg::_1 % (opts_init.nz)   // z varies first
-          );
-          // x
-          thrust::transform(
-            ijk.begin() + n_part_old, ijk.end(), // input - first arg
-            i.begin() + n_part_old,        // output
-            arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
-          );
-          break;
-        case 2:
-          // z
-          thrust::transform(
-            ijk.begin() + n_part_old, ijk.end(), // input - first arg
-            k.begin() + n_part_old,        // output
-            arg::_1 % (opts_init.nz)   // z varies first
-          );
-          // x
-          thrust::transform(
-            ijk.begin() + n_part_old, ijk.end(), // input - first arg
-            i.begin() + n_part_old,        // output
-            arg::_1 / (opts_init.nz)
-          );
-          break;
-        case 1:
-          thrust::copy(ijk.begin() + n_part_old, ijk.end(), i.begin() + n_part_old); // only x
-        case 0:
-          break;
-        default:
-          assert(false);
-          break;
-      }
-
       thrust_device::vector<real_t> 
                   *v[3] = { &x,           &y,           &z           };
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
@@ -155,10 +108,11 @@ namespace libcloudphxx
       {
         if (n[ix] == 0) continue;
 
-        // tossing random numbers [0,1] 
+        // tossing random numbers
         rand_u01(n_part_to_init);
 
 	// shifting from [0,1] to random position within respective cell 
+  // TODO: now the rand range is [0,1), include this here
         {
           namespace arg = thrust::placeholders;
 	  thrust::transform(

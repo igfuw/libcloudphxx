@@ -54,28 +54,26 @@ namespace libcloudphxx
       if (!opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
 
-      // TODO: in source match chemical composition
-      if (opts_init.chem_switch && opts_init.src_switch)
+      if (opts_init.chem_switch && opts_init.src_type!=src_t::off)
         throw std::runtime_error("chemistry and aerosol source are not compatible");
 
-      if (opts_init.src_switch && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
-        throw std::runtime_error("src_switch==True, but src_dry_distros and src_dry_sizes are empty");
+      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
+        throw std::runtime_error("CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
 
-      if (opts_init.src_switch && opts_init.src_dry_distros.size() > 1)
+      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
         throw std::runtime_error("src_dry_distros can only have a single kappa value.");
 
-      if (opts_init.src_switch && n_dims<2)
-        throw std::runtime_error("src_switch==True and n_dims<2. Source only works in 2D and 3D.");
+      if (opts_init.src_type==src_t::matching && opts_init.dry_distros.size() > 1)
+        throw std::runtime_error("For 'matching' CCN source, the initial aerosol distribution can only have one kappa value (na kappa matching done).");
 
-      if (opts_init.src_switch && !opts_init.src_dry_distros.empty() &&
-          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("Kappa of the source has to be the same as that of the initial profile");
+      if (opts_init.src_type!=src_t::off && n_dims<2)
+        throw std::runtime_error("CCN source works in 2D and 3D only.");
+
+      if (opts_init.src_type==src_t::matching && !opts_init.src_dry_distros.empty() &&
+          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
 
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("chemistry and multiple kappa distributions are not compatible");
-
-      // TODO: in source match kappas 
-      if(opts_init.dry_distros.size() > 1 && opts_init.src_switch)
-        throw std::runtime_error("aerosol source and multiple kappa distributions are not compatible");
 
       if(opts_init.dry_distros.size() == 0 && opts_init.dry_sizes.size() == 0)
         throw std::runtime_error("Both dry_distros and dry_sizes are undefined");
@@ -83,7 +81,7 @@ namespace libcloudphxx
       if(opts_init.sd_conc_large_tail && opts_init.sd_conc == 0)
         throw std::runtime_error("Sd_conc_large_tail make sense only with sd_conc init (i.e. sd_conc>0)");
 
-      if(opts_init.sd_const_multi > 0 && opts_init.src_switch)
+      if(opts_init.sd_const_multi > 0 && opts_init.src_type!=src_t::off)
         throw std::runtime_error("aerosol source and constant multiplicity option are not compatible"); // NOTE: why not?
 
       if(opts_init.init_pair_separation >= 0 && (opts_init.sd_conc == 0 || opts_init.sd_conc % 2 == 1))
@@ -141,7 +139,22 @@ namespace libcloudphxx
       if (opts_init.sgs_adve == sgs_adve_t::ST_periodic)
         throw std::runtime_error("opts_init.sgs_adve==ST_periodic does not work with MPI");
 #endif
+      #if defined(USE_MPI)
+        if(opts_init.rlx_switch)
+          std::cerr << "libcloudph++ WARNING: relaxation is not fully supported in MPI runs. Mean calculation and addition of SD will be done locally on each node." << std::endl;
+        if(opts_init.chem_switch)
+          throw std::runtime_error("chemistry is not compatible with MPI");
+      #endif
+      if(n_dims < 2 && opts_init.rlx_switch)
+        throw std::runtime_error("CCN relaxation works only in 2D and 3D, set rlx_switch to false");
+      if(opts_init.rlx_switch && opts_init.rlx_bins <= 0)
+        throw std::runtime_error("rlx_bins <= 0");
+      if(opts_init.rlx_switch && opts_init.rlx_sd_per_bin <= 0)
+        throw std::runtime_error("rlx_sd_per_bin <= 0");
+      if(opts_init.rlx_switch && opts_init.rlx_timescale <= 0)
+        throw std::runtime_error("rlx_timescale <= 0");        
+      if(opts_init.rlx_switch && opts_init.chem_switch)
+        throw std::runtime_error("CCN relaxation does not work with chemistry");
     }
   };
 };
-

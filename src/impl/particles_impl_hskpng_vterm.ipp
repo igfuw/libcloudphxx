@@ -37,10 +37,10 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__vt
       {
-        vt_t::vt_t vt_eq; //type of terminal velocity formula to use 
+        vt_t vt_eq; //type of terminal velocity formula to use 
 
         //ctor
-        common__vterm__vt(const vt_t::vt_t &vt_eq): vt_eq(vt_eq) {}
+        common__vterm__vt(const vt_t &vt_eq): vt_eq(vt_eq) {}
 
         BOOST_GPU_ENABLED 
         real_t operator()(
@@ -98,10 +98,10 @@ namespace libcloudphxx
       template <typename real_t>
       struct common__vterm__vt__cached
       {
-        vt_t::vt_t vt_eq; //type of terminal velocity formula to use 
+        vt_t vt_eq; //type of terminal velocity formula to use 
 
         //ctor
-        common__vterm__vt__cached(const vt_t::vt_t &vt_eq): vt_eq(vt_eq) {}
+        common__vterm__vt__cached(const vt_t &vt_eq): vt_eq(vt_eq) {}
 
         BOOST_GPU_ENABLED 
         real_t operator()(

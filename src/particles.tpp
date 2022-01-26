@@ -7,6 +7,9 @@
   */
 
 #include <iostream>
+#if !defined(NDEBUG)
+  #include <iomanip>
+#endif
 
 #include <libcloudph++/lgrngn/particles.hpp>
 
@@ -115,9 +118,15 @@
 #include "impl/particles_impl_rcyc.ipp"
 #include "impl/particles_impl_sstp.ipp"
 #include "impl/particles_impl_sstp_chem.ipp"
+#include "impl/particles_impl_ante_adding_SD.ipp"
+#include "impl/particles_impl_post_adding_SD.ipp"
 #include "impl/particles_impl_src.ipp"
+#include "impl/particles_impl_src_dry_distros_simple.ipp"
+#include "impl/particles_impl_src_dry_distros_matching.ipp"
 #include "impl/particles_impl_src_dry_distros.ipp"
 #include "impl/particles_impl_src_dry_sizes.ipp"
+#include "impl/particles_impl_rlx.ipp"
+#include "impl/particles_impl_rlx_dry_distros.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
 #include "impl/particles_impl_remove.ipp"
 #include "impl/particles_impl_adjust_timesteps.ipp"

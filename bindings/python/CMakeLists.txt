@@ -2,16 +2,10 @@ add_library(cloudphxx SHARED lib.cpp)
 add_dependencies(cloudphxx git_revision.h)
 set_target_properties(cloudphxx PROPERTIES SUFFIX ".so") # e.g. Mac defaults to .dylib which is not looked for by Python
 
-# informing the Python bindings where to find Python
-find_package(PythonLibs)
-if (NOT PYTHON_LIBRARIES)
-  message(FATAL_ERROR "
-    Python libraries not found. 
-    Please install them (e.g. sudo apt-get install python-dev).
-  ")
-endif()
-target_include_directories(cloudphxx PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(cloudphxx ${PYTHON_LIBRARIES})
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
+
+target_include_directories(cloudphxx PRIVATE ${Python3_INCLUDE_DIRS})
+target_link_libraries(cloudphxx ${Python3_LIBRARIES})
 
 # informing the Python bindings where to find Boost.Python 
 #if(${Boost_MINOR_VERSION} LESS 67)
@@ -48,8 +42,10 @@ if(${Boost_MINOR_VERSION} LESS 65)
   find_package(Boost COMPONENTS python3 REQUIRED)
   target_link_libraries(cloudphxx ${Boost_LIBRARIES})
 else()
-  message(STATUS "boost numpy as numpy3")
-  find_package(Boost COMPONENTS numpy3 REQUIRED) # also finds python3
+#  message(STATUS "boost numpy as numpy3")
+#  find_package(Boost COMPONENTS numpy3 REQUIRED) # also finds python3
+  message(STATUS "boost numpy as numpy")
+  find_package(Boost COMPONENTS numpy REQUIRED) # also finds python3
   target_link_libraries(cloudphxx ${Boost_LIBRARIES})
   target_compile_options(cloudphxx PRIVATE  -DBPNUMPY)
 #  if(${Boost_MINOR_VERSION} LESS 67)
@@ -85,20 +81,18 @@ endif()
 
 target_link_libraries(cloudphxx cloudphxx_lgrngn)
 
-#to retain rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
+# build rpath to libcloudphxx_lgrngn.so in the build directory
+set_property(TARGET cloudphxx PROPERTY BUILD_RPATH_USE_ORIGIN TRUE)
+set_property(TARGET cloudphxx PROPERTY BUILD_RPATH "${ORIGIN}/")
+target_link_options(cloudphxx PRIVATE "-Wl,--disable-new-dtags") # otherwise BUILD_RPATH sets RUNPATH instead of RPATH, and LD_LIBRARY_PATH has precedence over RUNPATH. TODO: when installing, it is probably better to set RUNPATH...
+
+#install rpath to libcloudphxx_lgrngn.so linked by libcloudphxx.so after installation
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# where to install python modules (see http://stackoverflow.com/questions/1242904/finding-python-site-packages-directory-with-cmake)
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-    from distutils import sysconfig as sc
-    print(sc.get_python_lib(prefix='', plat_specific=True))"
-  OUTPUT_VARIABLE PYTHON_SITE
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
+# Python_SITELIB is an absolute path, we manually prepend install prefix
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION ${PYTHON_SITE}
+     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python3_SITELIB}"
      COMPONENT library
 )

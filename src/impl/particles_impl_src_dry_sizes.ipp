@@ -73,9 +73,15 @@ namespace libcloudphxx
           if (opts_init.chem_switch){
             chem_vol_ante();
           }
+      
+          // ijk -> i, j, k
+          unravel_ijk(n_part_old);
   
           // initialising particle positions
           init_xyz();
+
+          if(opts_init.diag_incloud_time)
+            init_incloud_time();
         }
       }
     }
