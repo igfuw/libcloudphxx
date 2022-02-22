@@ -35,6 +35,7 @@ namespace libcloudphxx
         sstp_tmp_th.resize(n_cell);
         sstp_tmp_rh.resize(n_cell);
       }
+      coal_tele_mass_flux.resize(n_cell, 0);
     }
   };
 };
