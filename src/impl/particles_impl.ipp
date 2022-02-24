@@ -148,7 +148,7 @@ namespace libcloudphxx
         RH, // relative humisity 
         eta,// dynamic viscosity 
         diss_rate, // turbulent kinetic energy dissipation rate
-        coal_tele_mass_flux; // vertical mass flux due to mass "teleportation" at collision (diagnostic)
+        coal_tele_mass_flux; // vertical mass flux due to mass "teleportation" at collision (diagnostic, accumulated over time)
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile

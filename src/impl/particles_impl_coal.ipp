@@ -283,14 +283,19 @@ namespace libcloudphxx
       // references to tmp data
       thrust_device::vector<real_t> 
         &scl(tmp_device_real_cell), // scale factor for probablility
-        &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
+        &col(tmp_device_real_part), // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
                                     // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
+        &coal_tele_mass_flux_pp(tmp_device_real_part2); // mass flux caused by teleportation of droplets at coalescence
+                                                        // 1st one of a pair - data, 2nd - empty
       thrust_device::vector<thrust_size_t> 
         &off(tmp_device_size_cell); // offset for getting index of particle within a cell
 
       // laying out scale factor onto ijk grid
       // fill with 0s if not all cells will be updated in the following copy
       if(count_n!=n_cell)  thrust::fill(scl.begin(), scl.end(), real_t(0.));
+
+      if(opts_init.diag_coal_tele_mass_flux)
+        thrust::fill(coal_tele_mass_flux_pp.begin(), coal_tele_mass_flux_pp.end());
       
       thrust::copy(
         count_mom.begin(),                    // input - begin
@@ -381,7 +386,8 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(z.begin(), sorted_id.begin()), 
           thrust::make_permutation_iterator(z.begin(), sorted_id.begin())+1,
           // mass flux caused by teleportation in the coalescence algorithm - its overwritten, not read-only!
-          thrust::make_permutation_iterator(coal_tele_mass_flux.begin(), sorted_ijk.begin())
+          // TODO: pass it only if opts_init.diag_coal_tele_mass_flux==true
+          thrust::make_permutation_iterator(coal_tele_mass_flux_pp.begin(), sorted_id.begin())
         )
       );
 
@@ -518,6 +524,27 @@ namespace libcloudphxx
           detail::selector()
         );
         nancheck(incloud_time, "incloud_time - post coalescence");
+      }
+
+      // per-cell sum of coalescence teleportation mass flux
+      if(opts_init.diag_coal_tele_mass_flux)
+      {
+        thrust::pair<
+          thrust_device::vector<thrust_size_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator
+        > it_pair = thrust::reduce_by_key(
+          // input - keys
+          sorted_ijk.begin(), sorted_ijk.begin()+npart,
+          // input - values
+          coal_tele_mass_flux_pp.begin(), coal_tele_mass_flux_pp.end(),
+          // output - keys
+          count_ijk.begin(),
+          // output - values
+          coal_tele_mass_flux.begin()
+        );
+
+        count_n = it_pair.first - count_ijk.begin();
+        assert(count_n <= n_cell);
       }
     }
   };  
