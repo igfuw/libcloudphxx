@@ -533,6 +533,8 @@ namespace libcloudphxx
 //          thrust_device::vector<thrust_size_t>::iterator,
 //          typename thrust_device::vector<real_t>::iterator
 //        >
+
+        // store sum from this step in tmp_device_real_cell
         auto it_pair = thrust::reduce_by_key(
           // input - keys
           sorted_ijk.begin(), sorted_ijk.begin()+n_part,
@@ -541,8 +543,10 @@ namespace libcloudphxx
           // output - keys
           count_ijk.begin(),
           // output - values
-          coal_tele_mass_flux.begin()
+          tmp_device_real_cell.begin()
         );
+        // add to accumulated values from previous steps
+        thrust::transform(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), coal_tele_mass_flux.begin(), coal_tele_mass_flux.begin(), thrust::plus<real_t>());
 
         count_n = it_pair.first - count_ijk.begin();
         assert(count_n <= n_cell);
