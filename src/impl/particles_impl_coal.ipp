@@ -115,7 +115,7 @@ namespace libcloudphxx
         // calculate vertical mass flux from _a to _b
         // teleported mass = col_no * n_b * mass_a
         // distance = z_b - z_a, >0 mean upward flux
-        coal_tele_mass_flux_pp += (z_b - z_a) * col_no * thrust::get<n_b>(tpl) * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl));
+        coal_tele_mass_flux_pp = (z_b - z_a) * col_no * thrust::get<n_b>(tpl) * thrust::get<rw2_a>(tpl) * sqrt(thrust::get<rw2_a>(tpl));
         // done later: * 4/3 PI rho_w / dt
 
         // wet radius change (eq. 13 in Shima et al. 2009)
@@ -534,6 +534,8 @@ namespace libcloudphxx
 //          typename thrust_device::vector<real_t>::iterator
 //        >
 
+        thrust::fill(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), 0);
+
         // store sum from this step in tmp_device_real_cell
         auto it_pair = thrust::reduce_by_key(
           // input - keys
@@ -545,11 +547,12 @@ namespace libcloudphxx
           // output - values
           tmp_device_real_cell.begin()
         );
-        // add to accumulated values from previous steps
-        thrust::transform(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), coal_tele_mass_flux.begin(), coal_tele_mass_flux.begin(), thrust::plus<real_t>());
 
         count_n = it_pair.first - count_ijk.begin();
         assert(count_n <= n_cell);
+
+        // add to accumulated values from previous steps
+        thrust::transform(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), coal_tele_mass_flux.begin(), coal_tele_mass_flux.begin(), thrust::plus<real_t>());
       }
     }
   };  
