@@ -354,7 +354,7 @@ namespace libcloudphxx
           pi_size_t, pi_size_t,                                    // off_a & off_b
           pi_real_t,                                               // dv
           pi_real_t, pi_real_t,                                    // z_a & z_b
-          pi_real_t                                                // col_tele_mass_flux
+          i_real_t                                                // col_tele_mass_flux
         >
       > zip_ro_t;
 
@@ -387,7 +387,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(z.begin(), sorted_id.begin())+1,
           // mass flux caused by teleportation in the coalescence algorithm - its overwritten, not read-only!
           // TODO: pass it only if opts_init.diag_coal_tele_mass_flux==true
-          thrust::make_permutation_iterator(coal_tele_mass_flux_pp.begin(), sorted_id.begin())
+          coal_tele_mass_flux_pp.begin()
         )
       );
 
