@@ -554,7 +554,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(coal_tele_mass_flux.begin(), count_ijk.begin()),
           thrust::make_permutation_iterator(coal_tele_mass_flux.begin(), count_ijk.begin()),
           thrust::plus<real_t>()
-
+        );
       }
     }
   };  
