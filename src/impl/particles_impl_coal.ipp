@@ -529,12 +529,7 @@ namespace libcloudphxx
       // per-cell sum of coalescence teleportation mass flux
       if(opts_init.diag_coal_tele_mass_flux)
       {
-//        thrust::pair<
-//          thrust_device::vector<thrust_size_t>::iterator,
-//          typename thrust_device::vector<real_t>::iterator
-//        >
-
-        thrust::fill(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), 0);
+        thrust::fill(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), 0); // TODO: not needed?
 
         // store sum from this step in tmp_device_real_cell
         auto it_pair = thrust::reduce_by_key(
@@ -552,7 +547,14 @@ namespace libcloudphxx
         assert(count_n <= n_cell);
 
         // add to accumulated values from previous steps
-        thrust::transform(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), coal_tele_mass_flux.begin(), coal_tele_mass_flux.begin(), thrust::plus<real_t>());
+//        thrust::transform(tmp_device_real_cell.begin(), tmp_device_real_cell.end(), coal_tele_mass_flux.begin(), coal_tele_mass_flux.begin(), thrust::plus<real_t>());
+        thrust::transform(
+          tmp_device_real_cell.begin(),
+          tmp_device_real_cell.begin() + count_n,
+          thrust::make_permutation_iterator(coal_tele_mass_flux.begin(), count_ijk.begin()),
+          thrust::make_permutation_iterator(coal_tele_mass_flux.begin(), count_ijk.begin()),
+          thrust::plus<real_t>()
+
       }
     }
   };  
