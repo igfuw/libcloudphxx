@@ -24,6 +24,7 @@ namespace libcloudphxx
       n.resize(n_part);
       tmp_device_n_part.resize(n_part);
       tmp_device_size_part.resize(n_part);
+      if (opts_init.n_ref > 1) ijk_ref.resize(n_part);
 
       vt.resize(n_part, detail::invalid);
 

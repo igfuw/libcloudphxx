@@ -141,6 +141,17 @@ namespace libcloudphxx
         throw std::runtime_error("rlx_timescale <= 0");        
       if(opts_init.rlx_switch && opts_init.chem_switch)
         throw std::runtime_error("CCN relaxation does not work with chemistry");
+
+/*
+      if(n_dims == 3 && opts_init.n_ref > 1 && (opts_init.ny - 1) % opts_init.n_ref != 0)
+        throw std::runtime_error("opts_init.ny is not correctly divisible by n_ref ((opts_init.ny - 1) % opts_init.n_ref != 0)");
+      if(n_dims >= 2 && opts_init.n_ref > 1 && (opts_init.nz - 1) % opts_init.n_ref != 0)
+        throw std::runtime_error("opts_init.nz is not correctly divisible by n_ref ((opts_init.nz - 1) % opts_init.n_ref != 0)");
+        */
+      if(n_dims <= 1 && opts_init.n_ref > 1)
+        throw std::runtime_error("opts_init.n_ref > 1 works only in 2D and 3D");
+      if(opts_init.n_ref == 0)
+        throw std::runtime_error("opts_init.n_ref==0; set opts_init.n_ref=1 for no refinement");
     }
   };
 };

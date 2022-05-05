@@ -53,15 +53,17 @@ namespace libcloudphxx
       init_n_sd_conc(
         *(opts_init.src_dry_distros.begin()->second)
       ); // TODO: document that n_of_lnrd_stp is expected!
-
-      // init rw
-      init_wet();
     
       // ijk -> i, j, k
       unravel_ijk(n_part_old);
 
-      // init x, y, z, i, j, k
+      // init x, y, z
       init_xyz();
+
+      hskpng_ijk_ref(n_part_old);
+
+      // init rw
+      init_wet();
 
       // TODO: init chem
     }

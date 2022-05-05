@@ -52,6 +52,16 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const real_t &kappa, const bool unravel_ijk_switch)
     {
+      // ijk -> i, j, k
+      if(unravel_ijk_switch)
+        unravel_ijk(n_part_old);
+
+      // initialising particle positions
+      init_xyz();
+
+      // ijk of the refined cells
+      hskpng_ijk_ref(n_part_old);
+
       // init kappa
       init_kappa(kappa);
       
@@ -77,13 +87,6 @@ namespace libcloudphxx
       if (opts_init.chem_switch){
         chem_vol_ante();
       }
-      
-      // ijk -> i, j, k
-      if(unravel_ijk_switch)
-        unravel_ijk(n_part_old);
-
-      // initialising particle positions
-      init_xyz();
 
       if(opts_init.diag_incloud_time)
         init_incloud_time();

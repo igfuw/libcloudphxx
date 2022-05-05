@@ -34,6 +34,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_e2l(
       const arrinfo_t<real_t> &arr,
       thrust_device::vector<real_t> * key,
+      const bool refined,
       const int ext_x, const int ext_y, const int ext_z,
       const long int offset
     )
@@ -48,6 +49,9 @@ namespace libcloudphxx
       // different strides due to non-standard storage order in 3D libmpdata++
       long int max_stride = 0;        // stride of the dimension with highest stride
       long int max_stride_n_cell = 0; // number of cells in that direction in this process (with halo)
+
+      const auto ny = refined ? ny_ref : opts_init.ny,
+                 nz = refined ? nz_ref : opts_init.nz;
 
       switch (n_dims)
       {
@@ -79,8 +83,8 @@ namespace libcloudphxx
             // output
             l2e[key].begin(), 
             // op
-            arr.strides[0] * /* i = */ (arg::_1 / (opts_init.nz + ext_z)) +
-            arr.strides[1] * /* j = */ (arg::_1 % (opts_init.nz + ext_z))     // module of negative value might not work in 2003 standard?
+            arr.strides[0] * /* i = */ (arg::_1 / (nz + ext_z)) +
+            arr.strides[1] * /* j = */ (arg::_1 % (nz + ext_z))     // module of negative value might not work in 2003 standard?
           );
           max_stride = arr.strides[0];
           max_stride_n_cell = n_x_tot + ext_x;
@@ -94,12 +98,12 @@ namespace libcloudphxx
             // output
             l2e[key].begin(),
             // op
-            arr.strides[0] * /* i = */ (arg::_1 / ((opts_init.nz + ext_z) * (opts_init.ny + ext_y))) +  
-            arr.strides[1] * /* j = */ ((arg::_1 / (opts_init.nz + ext_z)) % (opts_init.ny + ext_y)) + 
-            arr.strides[2] * /* k = */ (arg::_1 % ((opts_init.nz + ext_z)))    
+            arr.strides[0] * /* i = */ (arg::_1 / ((nz + ext_z) * (ny + ext_y))) +  
+            arr.strides[1] * /* j = */ ((arg::_1 / (nz + ext_z)) % (ny + ext_y)) + 
+            arr.strides[2] * /* k = */ (arg::_1 % ((nz + ext_z)))    
           );
           max_stride = std::max(arr.strides[0], arr.strides[1]); // handles kji (C-style) and kij storage orders
-          max_stride_n_cell = max_stride == arr.strides[0] ? n_x_tot + ext_x : opts_init.ny + ext_y;
+          max_stride_n_cell = max_stride == arr.strides[0] ? n_x_tot + ext_x : ny + ext_y;
           break;
         default: assert(false);
       }

@@ -17,6 +17,7 @@ namespace libcloudphxx
       if (opts_init.ny != 0) j.reserve(opts_init.n_sd_max); //  > TODO: are they needed at all?
       if (opts_init.nz != 0) k.reserve(opts_init.n_sd_max); //
       ijk.reserve(opts_init.n_sd_max);
+      if(opts_init.n_ref > 1) ijk_ref.reserve(n_part);
 
       if (opts_init.nx != 0) x.reserve(opts_init.n_sd_max); 
       if (opts_init.ny != 0) y.reserve(opts_init.n_sd_max); 

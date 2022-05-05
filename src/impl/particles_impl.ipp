@@ -46,6 +46,7 @@ namespace libcloudphxx
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const thrust_size_t n_cell; 
+      const int ny_ref, nz_ref;        // number of refined cells 
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -107,6 +108,7 @@ namespace libcloudphxx
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
+        ijk_ref,      // ijk in refined cells
         sorted_id, sorted_ijk;
 
       // Arakawa-C grid helper vars
@@ -333,6 +335,8 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (_opts_init.nz + 1):                 // 2D
                         halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
+        ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
+        nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
@@ -467,7 +471,7 @@ namespace libcloudphxx
       void init_count_num_src(const thrust_size_t &);
       template <class arr_t>
       void conc_to_number(arr_t &arr); 
-      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);
+      void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const bool = false, const int = 0, const int = 0, const int = 0, const long int = 0);
       void init_wet();
       void init_sync();
       void init_grid();
@@ -487,9 +491,10 @@ namespace libcloudphxx
       void hskpng_sort();
       void hskpng_shuffle_and_sort();
       void hskpng_count();
-      void ravel_ijk(const thrust_size_t begin_shift = 0);
+      void ravel_ijk(const thrust_size_t begin_shift = 0, const bool refined = false);
       void unravel_ijk(const thrust_size_t begin_shift = 0);
       void hskpng_ijk();
+      void hskpng_ijk_ref(const thrust_size_t begin_shift = 0, const bool unravel_ijk = true);
       void hskpng_Tpr();
       void hskpng_mfp();
 

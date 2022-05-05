@@ -222,6 +222,7 @@ namespace libcloudphxx
           if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
           rd3.resize(n_part);
           n.resize(n_part);
+          if(opts_init.n_ref > 1) ijk_ref.resize(n_part);
 
           // --- init k ---
           thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);

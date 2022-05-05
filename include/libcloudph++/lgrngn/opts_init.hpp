@@ -46,6 +46,7 @@ namespace libcloudphxx
       // Eulerian component parameters
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
+      unsigned int n_ref; // number of grid refinements per 'normal' cell; refined cell size is (nx, ny, nz) / n_ref; tht and rv are on refined cells, rest on normal cells; condensation is resolved on refined cells
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
@@ -236,7 +237,8 @@ namespace libcloudphxx
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
-        rng_seed_init_switch(false)
+        rng_seed_init_switch(false),
+        n_ref(1)
       {}
 
       // dtor (just to silence -Winline warnings)
