@@ -15,15 +15,15 @@ namespace libcloudphxx
     {
       /// @brief returns ret_t(x/c) 
       template <typename arg_t, typename ret_t>
-      struct divide_by_constant_and_cast
+      struct add_and_divide_by_constant_and_cast
       {
-        arg_t c;
-        divide_by_constant_and_cast(arg_t c) : c(c) {}
+        arg_t c, s;
+        add_and_divide_by_constant_and_cast(arg_t c, arg_t s) : c(c), s(s) {}
 
         BOOST_GPU_ENABLED
         ret_t operator()(arg_t x) 
         { 
-          return ret_t(x/c); 
+          return ret_t((x+s)/c); 
         }
       };
     };
@@ -133,12 +133,13 @@ namespace libcloudphxx
         void operator()(
           thrust_device::vector<real_t> &vx,
           thrust_device::vector<thrust_size_t> &vi,
-          const real_t &vd
+          const real_t &vd,
+          const real_t pos_shift = 0
         ) {
           thrust::transform(
             vx.begin() + begin_shift, vx.end(),                                // input
             vi.begin() + begin_shift,                                          // output
-            detail::divide_by_constant_and_cast<double, thrust_size_t>(vd) // has to be done on doubles to avoid i==nx due to low precision of nvcc math; TODO: now that rand uniform has range [0,1), float might be good here?
+            detail::add_and_divide_by_constant_and_cast<double, thrust_size_t>(vd, pos_shift) // has to be done on doubles to avoid i==nx due to low precision of nvcc math; TODO: now that rand uniform has range [0,1), float might be good here?
           );
         }
 
@@ -149,6 +150,7 @@ namespace libcloudphxx
     };
 
     // ijk_ref - cell number in the refined grid
+    // begin_shift > 0 - used when we want to calculate ijk_ref for a subset of all particles (e.g. when initializing added particles)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_ijk_ref(const thrust_size_t begin_shift, const bool _unravel_ijk)
     {   
@@ -156,7 +158,9 @@ namespace libcloudphxx
 
       cell_idx_hlpr_t<real_t> helper(begin_shift);
 
-      if (opts_init.nx != 0) helper(x, i, opts_init.dx / opts_init.n_ref);
+      const real_t x_shift = mpi_rank == 0 ? 0 : opts_init.dx / opts_init.n_ref / 2.; // we shift position by half of the refined cell, because the MPI boundary cuts the refined cell in half
+
+      if (opts_init.nx != 0) helper(x, i, opts_init.dx / opts_init.n_ref, x_shift);
       if (opts_init.ny != 0) helper(y, j, opts_init.dy / opts_init.n_ref);
       if (opts_init.nz != 0) helper(z, k, opts_init.dz / opts_init.n_ref);
 
