@@ -46,7 +46,12 @@ namespace libcloudphxx
       // Eulerian component parameters
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
-      unsigned int n_ref; // number of grid refinements per 'normal' cell; refined cell size is (dx, dy, dz) / n_ref; tht and rv are on refined cells, courants on normal cells; condensation is resolved on refined cells, rest (coalescence, advection, etc.) on normal cells
+      unsigned int n_ref; // number of grid refinements per 'normal' cell; refined cell size is (dx, dy, dz) / n_ref; 
+      // condensation (and sedimentation?) is resolved on refined cells, rest (coalescence, advection, etc.) on normal cells
+      // input arrays on the refined grid: pressure p (if supplied), rv, tht
+      // input arrays that require two versions, on the normal and on the refined grid: density (rhod, rhod_ref)
+      // internal arrays on the refined grid: RH, T
+      // internal arrays that require two versions, on the normal and on the refined grid: dynamic viscosity eta (eta, eta_ref), cell volume dv (not sure...)
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
