@@ -35,6 +35,11 @@ namespace libcloudphxx
         sstp_tmp_th.resize(n_cell);
         sstp_tmp_rh.resize(n_cell);
       }
+      if(opts_init.n_ref > 1)
+      {
+        tmp_device_real_cell_ref.resize(n_cell_ref);
+        tmp_device_real_cell_ref1.resize(n_cell_ref);
+      }
     }
   };
 };

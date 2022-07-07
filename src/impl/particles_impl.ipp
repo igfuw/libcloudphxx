@@ -45,8 +45,8 @@ namespace libcloudphxx
       // member fields
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
-      const thrust_size_t n_cell; 
-      const int ny_ref, nz_ref;        // number of refined cells 
+      const int nx_ref, ny_ref, nz_ref;        // number of refined cells in each direction
+      const thrust_size_t n_cell, n_cell_ref;  // total number of normal and refined cells
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -221,6 +221,8 @@ namespace libcloudphxx
         tmp_device_real_cell,
         tmp_device_real_cell1,
         tmp_device_real_cell2,
+        tmp_device_real_cell_ref,
+        tmp_device_real_cell_ref1,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -335,8 +337,10 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (_opts_init.nz + 1):                 // 2D
                         halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
+        nx_ref(n_dims >= 1 ? (opts_init.nx - 1) * opts_init.n_ref + 1 : 0), // TODO: with MPI this is probably not true
         ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
+        n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
