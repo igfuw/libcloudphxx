@@ -13,8 +13,6 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_hskpng_ncell()
     {
       // memory allocation, p already resized in init_sync()
-      T.resize(n_cell);
-      RH.resize(n_cell); 
       eta.resize(n_cell); 
 
       count_ijk.resize(n_cell);
@@ -35,10 +33,21 @@ namespace libcloudphxx
         sstp_tmp_th.resize(n_cell);
         sstp_tmp_rh.resize(n_cell);
       }
+
+      // arrays on the refined grid
       if(opts_init.n_ref > 1)
       {
+        T.resize(n_cell_ref);
+        RH.resize(n_cell_ref); 
+        eta_ref.resize(n_cell); 
+       
         tmp_device_real_cell_ref.resize(n_cell_ref);
         tmp_device_real_cell_ref1.resize(n_cell_ref);
+
+        count_ijk_ref.resize(n_cell_ref);
+        count_num_ref.resize(n_cell_ref);
+        count_mom_ref.resize(n_cell_ref);
+        count_n_ref = 0;
       }
     }
   };

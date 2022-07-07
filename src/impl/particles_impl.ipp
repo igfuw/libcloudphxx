@@ -126,6 +126,15 @@ namespace libcloudphxx
         count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
       thrust_size_t count_n;
 
+      // moment-counting stuff on the refined grid
+      thrust_device::vector<thrust_size_t> 
+        count_ijk_ref; 
+      thrust_device::vector<n_t>
+        count_num_ref;
+      thrust_device::vector<real_t> 
+        count_mom_ref;
+      thrust_size_t count_n_ref;
+
       // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
         rhod,    // dry air density
@@ -151,6 +160,7 @@ namespace libcloudphxx
         p,  // pressure [Pa]
         RH, // relative humisity 
         eta,// dynamic viscosity 
+        eta_ref,// dynamic viscosity on the refined grid
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -342,7 +352,7 @@ namespace libcloudphxx
         nx_ref(n_dims >= 1 ? (opts_init.nx - 1) * opts_init.n_ref + 1 : 0), // TODO: with MPI this is probably not true
         ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
-        n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)),
+        n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
         ijk_ref_hlpr(opts_init.n_ref > 1 ? ijk_ref : ijk),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
