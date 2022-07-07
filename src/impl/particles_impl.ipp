@@ -110,30 +110,19 @@ namespace libcloudphxx
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         ijk_ref,      // ijk in refined cells
         sorted_id, sorted_ijk;
-      
-      thrust_device::vector<thrust_size_t> &ijk_ref_hlpr; // ijk_ref if refinement is done, ijk otherwise
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
         lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
-      // moment-counting stuff
+      // moment-counting stuff on normal and refined grid
       thrust_device::vector<thrust_size_t> 
-        count_ijk; // key-value pair for sorting particles by cell index
+        count_ijk, count_ijk_ref; // key-value pair for sorting particles by cell index
       thrust_device::vector<n_t>
-        count_num; // number of particles in a given grid cell
+        count_num, count_num_ref; // number of particles in a given grid cell
       thrust_device::vector<real_t> 
-        count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
-      thrust_size_t count_n;
-
-      // moment-counting stuff on the refined grid
-      thrust_device::vector<thrust_size_t> 
-        count_ijk_ref; 
-      thrust_device::vector<n_t>
-        count_num_ref;
-      thrust_device::vector<real_t> 
-        count_mom_ref;
-      thrust_size_t count_n_ref;
+        count_mom, count_mom_ref; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
+      thrust_size_t count_n, count_n_ref;
 
       // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
@@ -194,6 +183,11 @@ namespace libcloudphxx
         const thrust_device::vector<real_t>*, 
         thrust::host_vector<int> 
       > l2e; 
+
+      // helpers that reference refined arrays if refinement is done and non-refined otherwise 
+      thrust_device::vector<thrust_size_t> &ijk_ref_hlpr, &count_ijk_ref_hlpr; 
+      thrust_device::vector<n_t>           &count_num_ref_hlpr;
+      thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr;
 
       // chem stuff
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
@@ -353,13 +347,17 @@ namespace libcloudphxx
         ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
         n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
-        ijk_ref_hlpr(opts_init.n_ref > 1 ? ijk_ref : ijk),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
+        ijk_ref_hlpr      (opts_init.n_ref > 1 ? ijk_ref       : ijk),
+        count_ijk_ref_hlpr(opts_init.n_ref > 1 ? count_ijk_ref : count_ijk),
+        count_num_ref_hlpr(opts_init.n_ref > 1 ? count_num_ref : count_num),
+        count_mom_ref_hlpr(opts_init.n_ref > 1 ? count_mom_ref : count_mom),
+        eta_ref_hlpr      (opts_init.n_ref > 1 ? eta_ref       : eta)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn

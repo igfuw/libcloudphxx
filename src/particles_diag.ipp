@@ -147,14 +147,14 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->RH.begin(), 
-        pimpl->RH.end(), 
-        pimpl->count_mom.begin()
+        pimpl->RH_ref_hlpr.begin(), 
+        pimpl->RH_ref_hlpr.end(), 
+        pimpl->count_mom_ref_hlpr.begin()
       );
 
       // RH defined in all cells
-      pimpl->count_n = pimpl->n_cell;
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      pimpl->count_n_ref = pimpl->n_cell_ref;
+      thrust::sequence(pimpl->count_ijk_ref_hlpr.begin(), pimpl->count_ijk_ref_hlpr.end());
     }
 
     // records super-droplet concentration per grid cell
