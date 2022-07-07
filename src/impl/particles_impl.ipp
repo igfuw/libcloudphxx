@@ -147,11 +147,11 @@ namespace libcloudphxx
   
       // _ref means that the array is on the refined grid (which is the same as the normal grid if n_ref==1), some only need to be on one of the grids, some need to be on both
       thrust_device::vector<real_t> 
-        T_ref,  // temperature [K]
-        p_ref,  // pressure [Pa]
-        RH_ref, // relative humisity 
+        T_ref,     // temperature [K]
+        p_ref,     // pressure [Pa]
+        RH_ref,    // relative humisity 
         //eta,// dynamic viscosity, commented to show that we dont know how to calculate it! require input of non-refined tht? average from refined cells?
-        eta_ref,// dynamic viscosity
+        eta_ref,   // dynamic viscosity
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -191,7 +191,7 @@ namespace libcloudphxx
       // needed only for arrays that have both a refined and a normal version, not needed for arrays only on the refined grid
       thrust_device::vector<thrust_size_t> &ijk_ref_hlpr, &count_ijk_ref_hlpr; 
       thrust_device::vector<n_t>           &count_num_ref_hlpr;
-      thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr;
+      thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr, &rhod_ref_hlpr;
 
       // chem stuff
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
@@ -361,7 +361,8 @@ namespace libcloudphxx
         count_ijk_ref_hlpr(opts_init.n_ref > 1 ? count_ijk_ref : count_ijk),
         count_num_ref_hlpr(opts_init.n_ref > 1 ? count_num_ref : count_num),
         count_mom_ref_hlpr(opts_init.n_ref > 1 ? count_mom_ref : count_mom),
-        eta_ref_hlpr      (opts_init.n_ref > 1 ? eta_ref       : eta)
+        eta_ref_hlpr      (opts_init.n_ref > 1 ? eta_ref       : eta),
+        rhod_ref_hlpr     (opts_init.n_ref > 1 ? rhod_ref      : rhod)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
