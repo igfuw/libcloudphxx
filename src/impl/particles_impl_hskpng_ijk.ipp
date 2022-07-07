@@ -154,7 +154,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_ijk_ref(const thrust_size_t begin_shift, const bool _unravel_ijk)
     {   
-      if(opts_init.n_ref <= 1) return;
+      if(opts_init.n_ref == 1) return;
 
       cell_idx_hlpr_t<real_t> helper(begin_shift);
 

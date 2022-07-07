@@ -110,6 +110,8 @@ namespace libcloudphxx
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
         ijk_ref,      // ijk in refined cells
         sorted_id, sorted_ijk;
+      
+      thrust_device::vector<thrust_size_t> &ijk_ref_hlpr; // ijk_ref if refinement is done, ijk otherwise
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
@@ -341,6 +343,7 @@ namespace libcloudphxx
         ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
         n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)),
+        ijk_ref_hlpr(opts_init.n_ref > 1 ? ijk_ref : ijk),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
