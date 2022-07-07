@@ -176,7 +176,7 @@ namespace libcloudphxx
       {
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
-        //       that would make it easy to do in exact (per-cell) substepping
+        //       that would make it easy to do in exact (per-particle) substepping
         pimpl->hskpng_mfp(); 
 
         if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)

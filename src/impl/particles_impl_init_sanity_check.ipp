@@ -152,6 +152,26 @@ namespace libcloudphxx
         throw std::runtime_error("opts_init.n_ref > 1 works only in 2D and 3D");
       if(opts_init.n_ref == 0)
         throw std::runtime_error("opts_init.n_ref==0; set opts_init.n_ref=1 for no refinement");
+      // guard from using grid refinement with non-default options
+      // this is done because these combinations were not tested, some of them might actually work
+      if(opts_init.n_ref > 1 && opts_init.chem_switch)
+        throw std::runtime_error("grid refinement is not compatible with chemistry (opts_init.n_ref > 1 && chem_switch == 1)");
+      if(opts_init.n_ref > 1 && opts_init.rlx_switch)
+        throw std::runtime_error("grid refinement is not compatible with aerosol relaxation (opts_init.n_ref > 1 && rlx_switch == 1)");
+      if(opts_init.n_ref > 1 && opts_init.src_type!=src_t::off)
+        throw std::runtime_error("grid refinement is not compatible with aerosol sources (opts_init.n_ref > 1 && opts_init.src_type != src_t::off)");
+      if(opts_init.n_ref > 1 && opts_init.turb_adve_switch)
+        throw std::runtime_error("grid refinement is not compatible with SGS advection (opts_init.n_ref > 1 && opts_init.turb_adve_switch == 1)");
+      if(opts_init.n_ref > 1 && opts_init.turb_cond_switch)
+        throw std::runtime_error("grid refinement is not compatible with SGS condensation (opts_init.n_ref > 1 && opts_init.turb_cond_switch == 1)");
+      if(opts_init.n_ref > 1 && opts_init.turb_coal_switch)
+        throw std::runtime_error("grid refinement is not compatible with SGS coalescence kernels (opts_init.n_ref > 1 && opts_init.turb_coal_switch == 1)");
+      if(opts_init.n_ref > 1 && opts_init.exact_sstp_cond)
+        throw std::runtime_error("grid refinement is not compatible with per-particle condensation substepping (opts_init.n_ref > 1 && opts_init.exact_sstp_cond == 1)");
+      if(opts_init.n_ref > 1 && opts_init.diag_incloud_time)
+        throw std::runtime_error("grid refinement is not compatible with diagnosing incloud time (opts_init.n_ref > 1 && opts_init.diag_incloud_time == 1)");
+      if(opts_init.n_ref > 1 && const_p==0)
+        throw std::runtime_error("grid refinement is not compatible with variable pressure profile (opts_init.n_ref > 1, but pressure profile was not passed to particles.init())");
     }
   };
 };

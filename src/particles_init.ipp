@@ -25,14 +25,14 @@ namespace libcloudphxx
       const std::map<enum chem_species_t, const arrinfo_t<real_t> > ambient_chem
     )
     {
+      // is a constant pressure profile used?
+      pimpl->const_p = !p.is_null();
+
       pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
       // set rng seed to be used during init
       if(pimpl->opts_init.rng_seed_init_switch)
         pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
-
-      // is a constant pressure profile used?
-      pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
       if(pimpl->const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
         pimpl->distmem_real_vctrs.insert(&pimpl->sstp_tmp_p);
