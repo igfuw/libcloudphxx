@@ -126,9 +126,10 @@ namespace libcloudphxx
 
       // Eulerian-Lagrangian interface vars
       thrust_device::vector<real_t> 
-        rhod,    // dry air density
-        th,      // potential temperature (dry)
-        rv,      // water vapour mixing ratio
+        rhod,     // dry air density
+        rhod_ref, // same on the refined grid
+        th_ref,      // potential temperature (dry)
+        rv_ref,      // water vapour mixing ratio
         sstp_tmp_chem_0, // ditto for trace gases
         sstp_tmp_chem_1, // ditto for trace gases
         sstp_tmp_chem_2, // ditto for trace gases
@@ -149,7 +150,7 @@ namespace libcloudphxx
         T_ref,  // temperature [K]
         p_ref,  // pressure [Pa]
         RH_ref, // relative humisity 
-        eta,// dynamic viscosity 
+        //eta,// dynamic viscosity, commented to show that we dont know how to calculate it! require input of non-refined tht? average from refined cells?
         eta_ref,// dynamic viscosity
         diss_rate; // turbulent kinetic energy dissipation rate
 

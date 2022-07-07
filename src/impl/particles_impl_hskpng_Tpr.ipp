@@ -177,8 +177,8 @@ namespace libcloudphxx
       {
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
-          th.begin(), th.end(),      // input - first arg
-          rhod.begin(),              // input - second arg
+          th_ref.begin(), th_ref.end(),  // input - first arg
+          rhod_ref.begin(),              // input - second arg
           T_ref.begin(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
@@ -187,8 +187,8 @@ namespace libcloudphxx
       {
         // T = th * exner(p_tot)
         thrust::transform(
-          th.begin(), th.end(),      // input - first arg
-          thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args
+          th_ref.begin(), th_ref.end(),      // input - first arg
+          thrust::make_zip_iterator(thrust::make_tuple(rv_ref.begin(), p_ref.begin())), // input - second and third args
           T_ref.begin(),                 // output
           detail::common__theta_dry__T_p<real_t>() 
         );
@@ -207,16 +207,16 @@ namespace libcloudphxx
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           thrust::transform(
-            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T_ref.begin())), // input - begin
-            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T_ref.end()  )), // input - end
-            p.begin(),                                                         // output
+            zip_it_t(thrust::make_tuple(rhod_ref.begin(), rv_ref.begin(), T_ref.begin())), // input - begin
+            zip_it_t(thrust::make_tuple(rhod_ref.end(),   rv_ref.end(),   T_ref.end()  )), // input - end
+            p_ref.begin(),                                                         // output
             detail::common__theta_dry__p<real_t>()
           );
         }
 
         thrust::transform(
-          zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T_ref.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T_ref.end()  )),  // input - end
+          zip_it_t(thrust::make_tuple(p_ref.begin(), rv_ref.begin(), T_ref.begin())),  // input - begin
+          zip_it_t(thrust::make_tuple(p_ref.end(),   rv_ref.end(),   T_ref.end()  )),  // input - end
           RH_ref.begin(),                                                  // output
           detail::RH<real_t>(opts_init.RH_formula)
         );
@@ -224,11 +224,14 @@ namespace libcloudphxx
  
       // dynamic viscosity
       {
+        // on refined grid
         thrust::transform(
           T_ref.begin(), T_ref.end(), // 1st arg
-          eta.begin(),        // output
+          eta_ref.begin(),        // output
           detail::common__vterm__visc<real_t>()
         );
+        // on normal grid: how if we dont know T, because we dont know th?
+        // TODO: use averaging from refined to normal?
       }
 
       // adjusting dv if using a parcel set-up (1kg of dry air)
