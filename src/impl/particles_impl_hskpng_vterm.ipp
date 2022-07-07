@@ -172,7 +172,7 @@ namespace libcloudphxx
         thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
           zip_it_t(thrust::make_tuple(
-            thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(T_ref.begin(),    ijk_ref_hlpr.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
@@ -219,7 +219,7 @@ namespace libcloudphxx
         thrust::transform(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
           zip_it_t(thrust::make_tuple(
-            thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(T_ref.begin(),    ijk_ref_hlpr.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())

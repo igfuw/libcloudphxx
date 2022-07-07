@@ -130,14 +130,14 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->T.begin(), 
-        pimpl->T.end(), 
-        pimpl->count_mom.begin()
+        pimpl->T_ref.begin(), 
+        pimpl->T_ref.end(), 
+        pimpl->count_mom_ref_hlpr.begin()
       );
 
       // T defined in all cells
-      pimpl->count_n = pimpl->n_cell;
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      pimpl->count_n_ref = pimpl->n_cell_ref;
+      thrust::sequence(pimpl->count_ijk_ref_hlpr.begin(), pimpl->count_ijk_ref_hlpr.end());
     }
 
     // records relative humidity
@@ -147,8 +147,8 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->RH_ref_hlpr.begin(), 
-        pimpl->RH_ref_hlpr.end(), 
+        pimpl->RH_ref.begin(), 
+        pimpl->RH_ref.end(), 
         pimpl->count_mom_ref_hlpr.begin()
       );
 
@@ -256,12 +256,12 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T.begin(),
-            pimpl->ijk.begin()
+            pimpl->T_ref.begin(),
+            pimpl->ijk_ref_hlpr.begin()
           ),
           thrust::make_permutation_iterator(
-            pimpl->RH.begin(),
-            pimpl->ijk.begin()
+            pimpl->RH_ref.begin(),
+            pimpl->ijk_ref_hlpr.begin()
           )
         )),                                   // input - 2nd arg 
         RH_minus_Sc.begin(),                  // output
@@ -285,8 +285,8 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T.begin(),
-            pimpl->ijk.begin()
+            pimpl->T_ref.begin(),
+            pimpl->ijk_ref_hlpr.begin()
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output

@@ -179,7 +179,7 @@ namespace libcloudphxx
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
           rhod.begin(),              // input - second arg
-          T.begin(),                 // output
+          T_ref.begin(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
       }
@@ -189,7 +189,7 @@ namespace libcloudphxx
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args
-          T.begin(),                 // output
+          T_ref.begin(),                 // output
           detail::common__theta_dry__T_p<real_t>() 
         );
       }
@@ -207,17 +207,17 @@ namespace libcloudphxx
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           thrust::transform(
-            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())), // input - begin
-            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )), // input - end
+            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T_ref.begin())), // input - begin
+            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T_ref.end()  )), // input - end
             p.begin(),                                                         // output
             detail::common__theta_dry__p<real_t>()
           );
         }
 
         thrust::transform(
-          zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end
-          RH.begin(),                                                      // output
+          zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T_ref.begin())),  // input - begin
+          zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T_ref.end()  )),  // input - end
+          RH_ref.begin(),                                                  // output
           detail::RH<real_t>(opts_init.RH_formula)
         );
       }
@@ -225,7 +225,7 @@ namespace libcloudphxx
       // dynamic viscosity
       {
         thrust::transform(
-          T.begin(), T.end(), // 1st arg
+          T_ref.begin(), T_ref.end(), // 1st arg
           eta.begin(),        // output
           detail::common__vterm__visc<real_t>()
         );

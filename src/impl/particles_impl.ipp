@@ -144,12 +144,13 @@ namespace libcloudphxx
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
       std::map<enum common::output_t, real_t> output_puddle;
   
+      // _ref means that the array is on the refined grid (which is the same as the normal grid if n_ref==1), some only need to be on one of the grids, some need to be on both
       thrust_device::vector<real_t> 
-        T,  // temperature [K]
-        p,  // pressure [Pa]
-        RH, // relative humisity 
+        T_ref,  // temperature [K]
+        p_ref,  // pressure [Pa]
+        RH_ref, // relative humisity 
         eta,// dynamic viscosity 
-        eta_ref,// dynamic viscosity on the refined grid
+        eta_ref,// dynamic viscosity
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -185,6 +186,8 @@ namespace libcloudphxx
       > l2e; 
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
+      // used to conserve memory if n_ref==1 (no refinement)
+      // needed only for arrays that have both a refined and a normal version, not needed for arrays only on the refined grid
       thrust_device::vector<thrust_size_t> &ijk_ref_hlpr, &count_ijk_ref_hlpr; 
       thrust_device::vector<n_t>           &count_num_ref_hlpr;
       thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr;

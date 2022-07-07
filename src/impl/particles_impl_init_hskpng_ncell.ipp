@@ -37,8 +37,8 @@ namespace libcloudphxx
       // arrays on the refined grid
       if(opts_init.n_ref > 1)
       {
-        T.resize(n_cell_ref);
-        RH.resize(n_cell_ref); 
+        T_ref.resize(n_cell_ref);
+        RH_ref.resize(n_cell_ref); 
         eta_ref.resize(n_cell); 
        
         tmp_device_real_cell_ref.resize(n_cell_ref);

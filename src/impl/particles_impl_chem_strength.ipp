@@ -97,10 +97,10 @@ namespace libcloudphxx
         thrust::transform(
           zip_it_t(thrust::make_tuple(
             chem_bgn[SO2], chem_bgn[CO2], chem_bgn[HNO3], chem_bgn[NH3], chem_bgn[S_VI], chem_bgn[H],
-            V.begin(), thrust::make_permutation_iterator(T.begin(), ijk.begin()), rw2.begin())),                   // input - begin
+            V.begin(), thrust::make_permutation_iterator(T_ref.begin(), ijk_ref_hlpr.begin()), rw2.begin())),                   // input - begin
           zip_it_t(thrust::make_tuple(
             chem_end[SO2], chem_end[CO2], chem_end[HNO3], chem_end[NH3], chem_end[S_VI], chem_end[H],
-            V.end(), thrust::make_permutation_iterator(T.end(), ijk.end()), rw2.end())),                           // input - end
+            V.end(), thrust::make_permutation_iterator(T_ref.end(), ijk_ref_hlpr.end()), rw2.end())),                           // input - end
           chem_flag.begin(),               // output
           detail::set_chem_flag<real_t>()  // op
         );

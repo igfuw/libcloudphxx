@@ -44,8 +44,8 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           kpa.begin(), 
           thrust::make_permutation_iterator(
-            T.begin(),
-            ijk.begin()
+            T_ref.begin(),
+            ijk_ref_hlpr.begin()
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output

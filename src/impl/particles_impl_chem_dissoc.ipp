@@ -172,11 +172,11 @@ namespace libcloudphxx
           zip_it_t(thrust::make_tuple(
             chem_bgn[SO2], chem_bgn[CO2], chem_bgn[HNO3], chem_bgn[NH3], chem_bgn[S_VI], 
             V.begin(),
-            thrust::make_permutation_iterator(T.begin(), ijk.begin()))),                   // input - begin
+            thrust::make_permutation_iterator(T_ref.begin(), ijk_ref_hlpr.begin()))),                   // input - begin
           zip_it_t(thrust::make_tuple(
             chem_end[SO2], chem_end[CO2], chem_end[HNO3], chem_end[NH3], chem_end[S_VI], 
             V.end(),
-            thrust::make_permutation_iterator(T.end(), ijk.end()))),                       // input - end
+            thrust::make_permutation_iterator(T_ref.end(), ijk_ref_hlpr.end()))),                       // input - end
          chem_flag.begin(),                                                                // stencil
          chem_bgn[H],                                                                      // output
          detail::chem_electroneutral<real_t>(),                                            // op
