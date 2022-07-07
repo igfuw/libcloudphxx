@@ -44,9 +44,8 @@ namespace libcloudphxx
         // TODO: move these sanity checks to sanity_checks?
         
         if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
-  
-        if(glob_opts_init.nx == 0)
-          throw std::runtime_error("multi_CUDA doesn't work for 0D setup.");
+        if(glob_opts_init.nx == 0)     throw std::runtime_error("multi_CUDA doesn't work for 0D setup.");
+        if(glob_opts_init.n_ref > 1)   throw std::runtime_error("multi_CUDA doesn't work with grid refinement.");
   
         if (!(glob_opts_init.x1 > glob_opts_init.x0 && glob_opts_init.x1 <= glob_opts_init.nx * glob_opts_init.dx))
           throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
