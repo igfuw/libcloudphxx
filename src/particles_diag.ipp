@@ -137,7 +137,7 @@ namespace libcloudphxx
 
       // T defined in all cells
       pimpl->count_n_ref = pimpl->n_cell_ref;
-      thrust::sequence(pimpl->count_ijk_ref_hlpr.begin(), pimpl->count_ijk_ref_hlpr.end());
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records relative humidity
@@ -154,7 +154,7 @@ namespace libcloudphxx
 
       // RH defined in all cells
       pimpl->count_n_ref = pimpl->n_cell_ref;
-      thrust::sequence(pimpl->count_ijk_ref_hlpr.begin(), pimpl->count_ijk_ref_hlpr.end());
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records super-droplet concentration per grid cell
@@ -257,11 +257,11 @@ namespace libcloudphxx
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
             pimpl->T_ref.begin(),
-            pimpl->ijk_ref_hlpr.begin()
+            pimpl->ijk.begin_ref()
           ),
           thrust::make_permutation_iterator(
             pimpl->RH_ref.begin(),
-            pimpl->ijk_ref_hlpr.begin()
+            pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
         RH_minus_Sc.begin(),                  // output
@@ -286,7 +286,7 @@ namespace libcloudphxx
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
             pimpl->T_ref.begin(),
-            pimpl->ijk_ref_hlpr.begin()
+            pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output

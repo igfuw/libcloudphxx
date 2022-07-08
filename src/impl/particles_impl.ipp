@@ -107,7 +107,6 @@ namespace libcloudphxx
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, // Eulerian grid cell indices (always zero for 0D)
-        ijk_ref,      // ijk in refined cells
         sorted_id, sorted_ijk;
       part_ref<thrust_size_t> ijk; // ijk in the normal and in the refined grid
 

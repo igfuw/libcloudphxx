@@ -45,7 +45,7 @@ namespace libcloudphxx
           kpa.begin(), 
           thrust::make_permutation_iterator(
             T_ref.begin(),
-            ijk_ref_hlpr.begin()
+            ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output

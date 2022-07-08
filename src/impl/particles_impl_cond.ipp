@@ -43,7 +43,7 @@ namespace libcloudphxx
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
         thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(T_ref.begin(), ijk_ref_hlpr.begin()),
+        thrust::make_permutation_iterator(T_ref.begin(), ijk.begin_ref()),
         thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
         rd3.begin(),
         kpa.begin(),
@@ -59,7 +59,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &RH_plus_ssp(tmp_device_real_part2);
         thrust::transform(
           ssp.begin(), ssp.end(),
-          thrust::make_permutation_iterator(RH_ref.begin(), ijk_ref_hlpr.begin()),
+          thrust::make_permutation_iterator(RH_ref.begin(), ijk.begin_ref()),
           RH_plus_ssp.begin(),
           arg::_1 + arg::_2
         );
@@ -84,7 +84,7 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH_ref.begin(), ijk_ref_hlpr.begin())
+              thrust::make_permutation_iterator(RH_ref.begin(), ijk.begin_ref())
             )
           ), 
           rw2.begin(),                    // output

@@ -278,7 +278,7 @@ namespace libcloudphxx
         detail::chem_rhs<real_t>(
           dt,
           V,
-          thrust::make_permutation_iterator(T_ref.begin(), ijk_ref_hlpr.begin()), 
+          thrust::make_permutation_iterator(T_ref.begin(), ijk.begin_ref()), 
           chem_bgn[H], 
           chem_flag
         ), // TODO: make it an impl member field
