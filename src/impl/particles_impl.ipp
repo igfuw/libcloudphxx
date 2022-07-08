@@ -26,8 +26,7 @@ namespace libcloudphxx
     namespace detail
     {   
       enum { invalid = -1 };
-
-    };  
+    }; 
 
     // pimpl stuff 
     template <typename real_t, backend_t device>
@@ -107,9 +106,20 @@ namespace libcloudphxx
 
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
-        i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
+        i, j, k, // Eulerian grid cell indices (always zero for 0D)
         ijk_ref,      // ijk in refined cells
         sorted_id, sorted_ijk;
+      part_ref<thrust_size_t> ijk; // ijk in the normal and in the refined grid
+
+      // helpers that reference refined arrays if refinement is done and non-refined otherwise 
+      // used to conserve memory if n_ref==1 (no refinement)
+      // needed only for arrays that have both a refined and a normal version, not needed for arrays only on the refined grid
+//      thrust_device::vector<thrust_size_t> &ijk_ref_hlpr;
+      /*
+      , &count_ijk_ref_hlpr; 
+      thrust_device::vector<n_t>           &count_num_ref_hlpr;
+      thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr, &rhod_ref_hlpr;
+      */
 
       // Arakawa-C grid helper vars
       thrust_device::vector<thrust_size_t> 
@@ -185,13 +195,6 @@ namespace libcloudphxx
         const thrust_device::vector<real_t>*, 
         thrust::host_vector<int> 
       > l2e; 
-
-      // helpers that reference refined arrays if refinement is done and non-refined otherwise 
-      // used to conserve memory if n_ref==1 (no refinement)
-      // needed only for arrays that have both a refined and a normal version, not needed for arrays only on the refined grid
-      thrust_device::vector<thrust_size_t> &ijk_ref_hlpr, &count_ijk_ref_hlpr; 
-      thrust_device::vector<n_t>           &count_num_ref_hlpr;
-      thrust_device::vector<real_t>        &count_mom_ref_hlpr, &eta_ref_hlpr, &rhod_ref_hlpr;
 
       // chem stuff
       // TODO: consider changing the unit to AMU or alike (very small numbers!)
@@ -357,12 +360,7 @@ namespace libcloudphxx
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
-        ijk_ref_hlpr      (opts_init.n_ref > 1 ? ijk_ref       : ijk),
-        count_ijk_ref_hlpr(opts_init.n_ref > 1 ? count_ijk_ref : count_ijk),
-        count_num_ref_hlpr(opts_init.n_ref > 1 ? count_num_ref : count_num),
-        count_mom_ref_hlpr(opts_init.n_ref > 1 ? count_mom_ref : count_mom),
-        eta_ref_hlpr      (opts_init.n_ref > 1 ? eta_ref       : eta),
-        rhod_ref_hlpr     (opts_init.n_ref > 1 ? rhod_ref      : rhod)
+        ijk(opts_init.n_ref)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
