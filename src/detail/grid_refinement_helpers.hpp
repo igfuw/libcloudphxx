@@ -11,13 +11,47 @@ namespace libcloudphxx
     {
       private:
       const bool ref_flag; // true if refinement is actually done
-      thrust_device::vector<T> arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
 
       protected:
       // ctor
       ref_common(const bool ref_flag):
         ref_flag(ref_flag)
       {}
+    };
+
+    
+    // for single values of type T
+    template<class T>
+    class ref_val : ref_common<T>
+    {
+      private:
+      using parent_t = ref_common<T>;
+      T val, val_ref;
+
+      public:
+      using parent_t::parent_t;
+
+      T& val()
+      {
+        return val;
+      }
+
+      T& val_ref()
+      {
+        //return ref_flag ? val_ref : val;
+        return val_ref;
+      }
+    };
+
+    template<class T>
+    class ref_arr_common : ref_common<T>
+    {
+      private:
+      using parent_t = ref_common<T>;
+      thrust_device::vector<T> arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
+
+      protected:
+      using parent_t::parent_t;
 
       auto begin()
       {
@@ -35,27 +69,27 @@ namespace libcloudphxx
       {
         return ref_flag ? arr_ref.end() : arr.end();
       }
-      void resize(thrust_size_t n, thrust_size_t n_ref)
+      void resize(thrust_size_t size, thrust_size_t size_ref)
       {
-        arr.resize(n);
-        if(ref_flag) arr_ref.resize(n_ref);
+        arr.resize(size);
+        if(ref_flag) arr_ref.resize(size_ref);
       }
-      void reserve(thrust_size_t n, thrust_size_t n_ref)
+      void reserve(thrust_size_t size, thrust_size_t size_ref)
       {
-        arr.reserve(n);
-        if(ref_flag) arr_ref.reserve(n_ref);
+        arr.reserve(size);
+        if(ref_flag) arr_ref.reserve(size_ref);
       }
-    }
+    };
 
     // for arrays of the size of the grid
     template <class T>
-    class grid_ref : ref_common<T>
+    class ref_grid : ref_arr_common<T>
     {
-      using parent_t = ref_common<T>;
+      using parent_t = ref_arr_common<T>;
 
       public:
       // ctor
-      grid_ref(const int &n_cell, const int &n_cell_ref):
+      ref_grid(const int &n_cell, const int &n_cell_ref):
         parent_t(n_cell != n_cell_ref)
       {
         parent_t::resize(n_cell, n_cell_ref);
@@ -64,13 +98,13 @@ namespace libcloudphxx
 
     // for arrays of the size of the number of particles
     template <class T>
-    class part_ref
+    class ref_part : ref_arr_common<T>
     {
-      using parent_t = ref_common<T>;
+      using parent_t = ref_arr_common<T>;
 
       public:
       // ctor
-      part_ref(const int &n_ref):
+      ref_part(const int &n_ref):
         parent_t(n_ref > 1)
       {}
 

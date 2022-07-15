@@ -19,8 +19,8 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       // needs to be the same as in hskpng_mfp
-      thrust_device::vector<real_t> &lambda_D(opts_init.n_ref > 1 ? tmp_device_real_cell_ref  : tmp_device_real_cell1);
-      thrust_device::vector<real_t> &lambda_K(opts_init.n_ref > 1 ? tmp_device_real_cell_ref1 : tmp_device_real_cell2);
+      auto &lambda_D(tmp_device_real_cell1);
+      auto &lambda_K(tmp_device_real_cell2);
 
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
@@ -41,15 +41,15 @@ namespace libcloudphxx
       );
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(T_ref.begin(), ijk.begin_ref()),
-        thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(rhod.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(rv.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(T.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(eta.begin_ref(), ijk.begin_ref()),
         rd3.begin(),
         kpa.begin(),
         vt.begin(),
-        thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
+        thrust::make_permutation_iterator(lambda_D.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(lambda_K.begin_ref(), ijk.begin_ref())
       ));
 
       // calculating drop growth in a timestep using backward Euler 
@@ -59,7 +59,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &RH_plus_ssp(tmp_device_real_part2);
         thrust::transform(
           ssp.begin(), ssp.end(),
-          thrust::make_permutation_iterator(RH_ref.begin(), ijk.begin_ref()),
+          thrust::make_permutation_iterator(RH.begin_ref(), ijk.begin_ref()),
           RH_plus_ssp.begin(),
           arg::_1 + arg::_2
         );
@@ -69,7 +69,7 @@ namespace libcloudphxx
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
               hlpr_zip_iter,
-              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(p.begin_ref(), ijk.begin_ref()),
               RH_plus_ssp.begin()
             )
           ), 
@@ -83,8 +83,8 @@ namespace libcloudphxx
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
               hlpr_zip_iter,
-              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH_ref.begin(), ijk.begin_ref())
+              thrust::make_permutation_iterator(p.begin_ref(), ijk.begin_ref()),
+              thrust::make_permutation_iterator(RH.begin_ref(), ijk.begin_ref())
             )
           ), 
           rw2.begin(),                    // output

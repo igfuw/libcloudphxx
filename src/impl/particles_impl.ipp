@@ -45,7 +45,7 @@ namespace libcloudphxx
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int nx_ref, ny_ref, nz_ref;        // number of refined cells in each direction
-      const thrust_size_t n_cell, n_cell_ref;  // total number of normal and refined cells
+      const ref_val<thrust_size_t> n_cell;  // total number of normal and refined cells
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -108,7 +108,7 @@ namespace libcloudphxx
       thrust_device::vector<thrust_size_t> 
         i, j, k, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
-      part_ref<thrust_size_t> ijk; // ijk in the normal and in the refined grid
+      ref_part<thrust_size_t> ijk; // ijk in the normal and in the refined grid
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
       // used to conserve memory if n_ref==1 (no refinement)
@@ -125,26 +125,27 @@ namespace libcloudphxx
         lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
       // moment-counting stuff on normal and refined grid
-      thrust_device::vector<thrust_size_t> 
-        count_ijk, count_ijk_ref; // key-value pair for sorting particles by cell index
-      thrust_device::vector<n_t>
-        count_num, count_num_ref; // number of particles in a given grid cell
-      thrust_device::vector<real_t> 
-        count_mom, count_mom_ref; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
-      thrust_size_t count_n, count_n_ref;
+      ref_grid<thrust_size_t> 
+        count_ijk; // key-value pair for sorting particles by cell index
+      ref_grid<n_t>
+        count_num; // number of particles in a given grid cell
+      ref_grid<real_t> 
+        count_mom; // statistical moment // TODO (perhaps tmp_device_real_cell could be referenced?)
+      ref_val<thrust_size_t> count_n;
 
       // Eulerian-Lagrangian interface vars
-      thrust_device::vector<real_t> 
+      ref_grid<real_t>
         rhod,     // dry air density
-        rhod_ref, // same on the refined grid
-        th_ref,      // potential temperature (dry)
-        rv_ref,      // water vapour mixing ratio
-        sstp_tmp_chem_0, // ditto for trace gases
-        sstp_tmp_chem_1, // ditto for trace gases
-        sstp_tmp_chem_2, // ditto for trace gases
-        sstp_tmp_chem_3, // ditto for trace gases
-        sstp_tmp_chem_4, // ditto for trace gases
-        sstp_tmp_chem_5, // ditto for trace gases
+        th,      // potential temperature (dry)
+        rv;      // water vapour mixing ratio
+
+      thrust_device::vector<real_t> 
+        sstp_tmp_chem_0, // trace gases
+        sstp_tmp_chem_1, // trace gases
+        sstp_tmp_chem_2, // trace gases
+        sstp_tmp_chem_3, // trace gases
+        sstp_tmp_chem_4, // trace gases
+        sstp_tmp_chem_5, // trace gases
         courant_x, 
         courant_y, 
         courant_z;
@@ -154,13 +155,11 @@ namespace libcloudphxx
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
       std::map<enum common::output_t, real_t> output_puddle;
   
-      // _ref means that the array is on the refined grid (which is the same as the normal grid if n_ref==1), some only need to be on one of the grids, some need to be on both
-      thrust_device::vector<real_t> 
-        T_ref,     // temperature [K]
-        p_ref,     // pressure [Pa]
-        RH_ref,    // relative humisity 
-        //eta,// dynamic viscosity, commented to show that we dont know how to calculate it! require input of non-refined tht? average from refined cells?
-        eta_ref,   // dynamic viscosity
+      grid_ref<real_t> 
+        T,     // temperature [K]
+        p,     // pressure [Pa]
+        RH,    // relative humisity 
+        eta,   // dynamic viscosity
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -231,11 +230,10 @@ namespace libcloudphxx
         tmp_device_real_part4,
         tmp_device_real_part5,
         tmp_device_real_cell,
-        tmp_device_real_cell1,
-        tmp_device_real_cell2,
-        tmp_device_real_cell_ref,
-        tmp_device_real_cell_ref1,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
+      ref_grid<real_t>
+        tmp_device_real_cell1,
+        tmp_device_real_cell2;
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int

@@ -130,13 +130,13 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->T_ref.begin(), 
-        pimpl->T_ref.end(), 
-        pimpl->count_mom_ref_hlpr.begin()
+        pimpl->T.begin_ref(), 
+        pimpl->T.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // T defined in all cells
-      pimpl->count_n_ref = pimpl->n_cell_ref;
+      pimpl->count_n.val_ref() = pimpl->n_cell_ref.val_ref();
       thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
@@ -147,13 +147,13 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->RH_ref.begin(), 
-        pimpl->RH_ref.end(), 
-        pimpl->count_mom_ref_hlpr.begin()
+        pimpl->RH.begin_ref(), 
+        pimpl->RH.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // RH defined in all cells
-      pimpl->count_n_ref = pimpl->n_cell_ref;
+      pimpl->count_n.val_ref() = pimpl->n_cell_ref.val_ref();
       thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
@@ -256,11 +256,11 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T_ref.begin(),
+            pimpl->T.begin_ref(),
             pimpl->ijk.begin_ref()
           ),
           thrust::make_permutation_iterator(
-            pimpl->RH_ref.begin(),
+            pimpl->RH.begin_ref(),
             pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
