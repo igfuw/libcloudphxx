@@ -226,22 +226,22 @@ namespace libcloudphxx
         count_mom.begin()
       );  
 
-      count_n = it_pair.first - count_ijk.begin();
+      count_n.get() = it_pair.first - count_ijk.begin();
 #if !defined(NDEBUG)
       {
-        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n.get(), isnaninf(), 0, thrust::plus<bool>());
         if(nan_count>0)
         {
           std::cout << nan_count << " nan/inf numbers detected in count_mom after reduce_by_key " << std::endl;
         }
       }
 #endif
-      assert(count_n <= n_cell);
+      assert(count_n.get() <= n_cell.get());
       if(specific)
       {
         // dividing by dv
         thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+          count_mom.begin(), count_mom.begin() + count_n.get(),     // input - first arg
           thrust::make_permutation_iterator(                  // input - second arg
             dv.begin(),
             count_ijk.begin()
@@ -251,7 +251,7 @@ namespace libcloudphxx
         );
 #if !defined(NDEBUG)
         {
-          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n.get(), isnaninf(), 0, thrust::plus<bool>());
           if(nan_count>0)
           {
             std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by dv " << std::endl;
@@ -261,7 +261,7 @@ namespace libcloudphxx
         // dividing by rhod to get specific moments
         // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
         thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+          count_mom.begin(), count_mom.begin() + count_n.get(),     // input - first arg
           thrust::make_permutation_iterator(                  // input - second arg
             rhod.begin(),
             count_ijk.begin()
@@ -271,7 +271,7 @@ namespace libcloudphxx
         );
 #if !defined(NDEBUG)
         {
-          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n.get(), isnaninf(), 0, thrust::plus<bool>());
           if(nan_count>0)
           {
             std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by rhod " << std::endl;
@@ -281,15 +281,15 @@ namespace libcloudphxx
       }
 #if !defined(NDEBUG)
       {
-        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n.get(), isnaninf(), 0, thrust::plus<bool>());
         if(nan_count>0)
         {
           std::cout << nan_count << " nan/inf numbers detected in count_mom " << std::endl;
-          std::cout << "count_n:" << count_n << std::endl;
+          std::cout << "count_n:" << count_n.get() << std::endl;
           std::cout << "count_mom:" << std::endl;
-          debug::print(count_mom.begin(), count_mom.begin() + count_n);
+          debug::print(count_mom.begin(), count_mom.begin() + count_n.get());
           std::cout << "count_ijk:" << std::endl;
-          debug::print(count_ijk.begin(), count_ijk.begin() + count_n);
+          debug::print(count_ijk.begin(), count_ijk.begin() + count_n.get());
           std::cout << "n_filtered:" << std::endl;
           debug::print(n_filtered);
           std::cout << "sorted_ijk:" << std::endl;

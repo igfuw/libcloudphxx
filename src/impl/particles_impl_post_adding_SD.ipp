@@ -24,7 +24,7 @@ namespace libcloudphxx
 
       // drv = tot_vol_after -tot_vol_bfr + dry_vol_bfr
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()

@@ -18,7 +18,8 @@ namespace libcloudphxx
       count_ijk.resize(n_cell.get());
       count_num.resize(n_cell.get());
       count_mom.resize(n_cell.get());
-      count_n = 0;
+      count_n.get() = 0;
+      count_n.get_ref() = 0;
 
       // initialising device temporary arrays
       tmp_device_real_cell.resize(n_cell.get());
@@ -47,7 +48,6 @@ namespace libcloudphxx
         count_ijk_ref.resize(n_cell_ref);
         count_num_ref.resize(n_cell_ref);
         count_mom_ref.resize(n_cell_ref);
-        count_n_ref = 0;
       }
     }
   };

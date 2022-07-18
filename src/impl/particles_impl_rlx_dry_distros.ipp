@@ -166,10 +166,10 @@ namespace libcloudphxx
           // horizontal sum of this moment
           thrust::fill(hor_sum.begin(), hor_sum.end(), 0);
           thrust_device::vector<thrust_size_t> &count_k(tmp_device_size_cell);  // NOTE: tmp_device_size_cell is also used in some other inits, careful not to overwrite it!
-          thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
-          thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
+          thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n.get(), count_k.begin(), arg::_1 % opts_init.nz);
+          thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n.get(), count_mom.begin());
 
-          auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
+          auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n.get(), count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
           int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
           

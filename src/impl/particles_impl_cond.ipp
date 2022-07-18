@@ -29,14 +29,14 @@ namespace libcloudphxx
       // calculating the 3rd wet moment before condensation
       moms_all();
       moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n.get(), "count_mom (3rd wet moment) before condensation");
 
       // permute-copying the result to -dm_3
       // fill with 0s if not all cells will be updated in the following transform
-      if(count_n != n_cell.get())  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+      if(count_n.get() != n_cell.get())  thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::negate<real_t>()
       );
@@ -95,11 +95,11 @@ namespace libcloudphxx
 
       // calculating the 3rd wet moment after condensation
       moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n.get(), "count_mom (3rd wet moment) after condensation");
 
       // adding the third moment after condensation to dm_3
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()

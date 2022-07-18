@@ -29,7 +29,7 @@ namespace libcloudphxx
 
       thrust::copy(
 	count_mom.begin(),               // input - begin
-	count_mom.begin() + count_n,     // input - end
+	count_mom.begin() + count_n.get(),     // input - end
 	thrust::make_permutation_iterator(  // output
 	  tmp_host_real_cell.begin(),         // data
 	  pi.begin()                          // permutation

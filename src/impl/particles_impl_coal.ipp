@@ -265,11 +265,11 @@ namespace libcloudphxx
       
       // placing scale_factors in count_mom (of size count_n!)
       thrust::transform(
-        count_num.begin(), count_num.begin() + count_n, // input - 1st arg
+        count_num.begin(), count_num.begin() + count_n.get(), // input - 1st arg
         count_mom.begin(),                              // output
         detail::scale_factor<real_t, n_t>()
       );
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom storing scale_factors");
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n.get(), "count_mom storing scale_factors");
 
       // references to tmp data
       thrust_device::vector<real_t> 
@@ -281,11 +281,11 @@ namespace libcloudphxx
 
       // laying out scale factor onto ijk grid
       // fill with 0s if not all cells will be updated in the following copy
-      if(count_n != n_cell.get())  thrust::fill(scl.begin(), scl.end(), real_t(0.));
+      if(count_n.get() != n_cell.get())  thrust::fill(scl.begin(), scl.end(), real_t(0.));
       
       thrust::copy(
         count_mom.begin(),                    // input - begin
-        count_mom.begin() + count_n,          // input - end
+        count_mom.begin() + count_n.get(),          // input - end
         thrust::make_permutation_iterator(    // output
           scl.begin(),                        // data
           count_ijk.begin()                   // permutation
@@ -295,10 +295,10 @@ namespace libcloudphxx
 
       // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
       // fill with 0s if not all cells will be updated in the following copy
-      if(count_n != n_cell.get())  thrust::fill(off.begin(), off.end(), real_t(0.));
+      if(count_n.get() != n_cell.get())  thrust::fill(off.begin(), off.end(), real_t(0.));
       thrust::copy(
         count_num.begin(), 
-        count_num.begin() + count_n, 
+        count_num.begin() + count_n.get(), 
         thrust::make_permutation_iterator(    // output
           off.begin(),                        // data
           count_ijk.begin()                   // permutation

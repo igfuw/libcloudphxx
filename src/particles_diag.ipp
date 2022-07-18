@@ -119,7 +119,7 @@ namespace libcloudphxx
       );
 
       // p defined in all cells
-      pimpl->count_n = pimpl->n_cell.get();
+      pimpl->count_n.get() = pimpl->n_cell.get();
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
@@ -136,7 +136,7 @@ namespace libcloudphxx
       );
 
       // T defined in all cells
-      pimpl->count_n.val_ref() = pimpl->n_cell.get_ref();
+      pimpl->count_n.get_ref() = pimpl->n_cell.get_ref();
       thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
@@ -153,7 +153,7 @@ namespace libcloudphxx
       );
 
       // RH defined in all cells
-      pimpl->count_n.val_ref() = pimpl->n_cell.get_ref();
+      pimpl->count_n.get_ref() = pimpl->n_cell.get_ref();
       thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
@@ -179,7 +179,7 @@ namespace libcloudphxx
         pimpl->count_ijk.begin(),                      // output - keys
         pimpl->count_mom.begin()                      // output - values
       );
-      pimpl->count_n = n.first - pimpl->count_ijk.begin();
+      pimpl->count_n.get() = n.first - pimpl->count_ijk.begin();
     }
 
     // selected all particles
@@ -411,7 +411,7 @@ namespace libcloudphxx
           );
       }
       // divergence defined in all cells
-      pimpl->count_n = pimpl->n_cell.get();
+      pimpl->count_n.get() = pimpl->n_cell.get();
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
@@ -476,8 +476,8 @@ namespace libcloudphxx
         thrust::maximum<real_t>()
       );  
 
-      pimpl->count_n = n.first - pimpl->count_ijk.begin();
-      assert(pimpl->count_n > 0 && pimpl->count_n <= pimpl->n_cell.get());
+      pimpl->count_n.get() = n.first - pimpl->count_ijk.begin();
+      assert(pimpl->count_n.get() > 0 && pimpl->count_n.get() <= pimpl->n_cell.get());
     }
 
     // computes mean chemical properties for the selected particles

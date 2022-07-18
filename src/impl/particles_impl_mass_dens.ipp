@@ -80,8 +80,8 @@ namespace libcloudphxx
         count_mom.begin()
       );
 
-      count_n = it_pair.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell.get());
+      count_n.get() = it_pair.first - count_ijk.begin();
+      assert(count_n.get() > 0 && count_n.get() <= n_cell.get());
 
 #if !defined(__NVCC__)
       using std::sqrt;
@@ -97,7 +97,7 @@ namespace libcloudphxx
 
       //multiply by prefactor and divide by dv
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+        count_mom.begin(), count_mom.begin() + count_n.get(),     // input - first arg
         thrust::make_permutation_iterator(                  // input - second arg
           dv.begin(),
           count_ijk.begin()

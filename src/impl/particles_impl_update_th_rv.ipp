@@ -113,11 +113,11 @@ namespace libcloudphxx
         count_ijk.begin(),
         count_mom.begin()
       );
-      count_n = it_pair.first - count_ijk.begin();
+      count_n.get() = it_pair.first - count_ijk.begin();
 
       // add this sum to dstate
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
         thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // 2nd arg
         thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()

@@ -55,7 +55,7 @@ namespace libcloudphxx
       moms_calc(rw2.begin(), real_t(1./2), false);
       thrust::transform(
         count_mom.begin(),
-        count_mom.begin() + count_n,
+        count_mom.begin() + count_n.get(),
         thrust::make_permutation_iterator(
           dv.begin(),
           count_ijk.begin()
@@ -67,7 +67,7 @@ namespace libcloudphxx
       // copy the calculated relaxation times to the array of length n_cell
       thrust::copy(
         count_mom.begin(),
-        count_mom.begin() + count_n,
+        count_mom.begin() + count_n.get(),
         thrust::make_permutation_iterator(
           tau_rlx.begin(), 
           count_ijk.begin()
