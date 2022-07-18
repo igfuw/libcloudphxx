@@ -29,7 +29,7 @@ namespace libcloudphxx
           n_dims == 2 ? (halo_size + 1) * opts_init.nz:                       // 2D
                         (halo_size + 1) * opts_init.nz * opts_init.ny         // 3D
         );
-      const int cx_rgt_internal_idx = n_cell; 
+      const int cx_rgt_internal_idx = n_cell.get(); 
 
       const int cz_lft_internal_idx = halo_z; 
       const int cz_rgt_internal_idx( 

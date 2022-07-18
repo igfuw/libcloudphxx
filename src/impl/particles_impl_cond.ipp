@@ -33,7 +33,8 @@ namespace libcloudphxx
 
       // permute-copying the result to -dm_3
       // fill with 0s if not all cells will be updated in the following transform
-      if(count_n!=n_cell)  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+      if(count_n != n_cell.get())  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output

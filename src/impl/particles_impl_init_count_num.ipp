@@ -129,7 +129,7 @@ namespace libcloudphxx
         case 2:
           thrust::transform(
             zero,
-            zero + n_cell,
+            zero + n_cell.get(),
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)
@@ -141,7 +141,7 @@ namespace libcloudphxx
         case 3:
           thrust::transform(
             zero,
-            zero + n_cell,
+            zero + n_cell.get(),
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)

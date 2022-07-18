@@ -370,7 +370,7 @@ namespace libcloudphxx
           mass_new.begin()
         );
         count_n = it_pair.first - count_ijk.begin();
-        assert(count_n > 0 && count_n <= n_cell);
+        assert(count_n > 0 && count_n <= n_cell.get());
 
         // apply the change to the mixing ratios of trace gases
         thrust::transform(

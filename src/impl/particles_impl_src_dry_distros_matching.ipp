@@ -257,9 +257,9 @@ namespace libcloudphxx
         }
 
         // tmp vector to hold number of particles in a given size bin in a given cell
-        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell + 1); // needs space for out_of_bins
+        thrust_device::vector<thrust_size_t> bin_cell_count(n_part_tot_in_src +  n_cell.get() + 1); // needs space for out_of_bins
         // tmp vector for number of particles in bins up to this one
-        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell + 1);
+        thrust_device::vector<thrust_size_t> bin_cell_count_ptr(n_part_tot_in_src +  n_cell.get() + 1);
 
         thrust_size_t count_bins;
         {

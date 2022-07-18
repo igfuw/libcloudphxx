@@ -13,16 +13,16 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_sync()
     {
       // memory allocation for scalar fields
-      rhod.resize(n_cell);
+      rhod.resize(n_cell.get());
       rhod_ref.resize(n_cell_ref);
       p_ref.resize(n_cell_ref);
       th_ref.resize(n_cell_ref);
       rv_ref.resize(n_cell_ref);
       if(opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
-          ambient_chem[(chem_species_t)i].resize(n_cell);
+          ambient_chem[(chem_species_t)i].resize(n_cell.get());
       if(opts_init.turb_cond_switch || opts_init.turb_adve_switch || opts_init.turb_coal_switch)
-        diss_rate.resize(n_cell);
+        diss_rate.resize(n_cell.get());
 
       // memory allocation for vector fields (Arakawa-C grid)
       // halo in the x dimensions (which could be distmem boundary)

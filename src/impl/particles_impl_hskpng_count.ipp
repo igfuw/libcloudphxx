@@ -28,7 +28,7 @@ namespace libcloudphxx
         count_num.begin()                       // output - values
       );
       count_n = it_pair.first - count_ijk.begin();
-      assert(count_n <= n_cell);
+      assert(count_n <= n_cell.get());
     }   
   };  
 };

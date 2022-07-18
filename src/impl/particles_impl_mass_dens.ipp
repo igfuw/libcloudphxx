@@ -81,7 +81,7 @@ namespace libcloudphxx
       );
 
       count_n = it_pair.first - count_ijk.begin();
-      assert(count_n > 0 && count_n <= n_cell);
+      assert(count_n > 0 && count_n <= n_cell.get());
 
 #if !defined(__NVCC__)
       using std::sqrt;

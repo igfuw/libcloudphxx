@@ -38,12 +38,12 @@ namespace libcloudphxx
       if (!allow_sstp_chem) return;
 
       // memory allocation 
-      sstp_tmp_chem_0.resize(n_cell);
-      sstp_tmp_chem_1.resize(n_cell);
-      sstp_tmp_chem_2.resize(n_cell);
-      sstp_tmp_chem_3.resize(n_cell);
-      sstp_tmp_chem_4.resize(n_cell);
-      sstp_tmp_chem_5.resize(n_cell);
+      sstp_tmp_chem_0.resize(n_cell.get());
+      sstp_tmp_chem_1.resize(n_cell.get());
+      sstp_tmp_chem_2.resize(n_cell.get());
+      sstp_tmp_chem_3.resize(n_cell.get());
+      sstp_tmp_chem_4.resize(n_cell.get());
+      sstp_tmp_chem_5.resize(n_cell.get());
 
       // initialise _old values
       sstp_save_chem();

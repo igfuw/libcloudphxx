@@ -281,7 +281,7 @@ namespace libcloudphxx
 
       // laying out scale factor onto ijk grid
       // fill with 0s if not all cells will be updated in the following copy
-      if(count_n!=n_cell)  thrust::fill(scl.begin(), scl.end(), real_t(0.));
+      if(count_n != n_cell.get())  thrust::fill(scl.begin(), scl.end(), real_t(0.));
       
       thrust::copy(
         count_mom.begin(),                    // input - begin
@@ -295,7 +295,7 @@ namespace libcloudphxx
 
       // cumulative sum of count_num -> (i - cumsum(ijk(i))) gives droplet index in a given cell
       // fill with 0s if not all cells will be updated in the following copy
-      if(count_n!=n_cell)  thrust::fill(off.begin(), off.end(), real_t(0.));
+      if(count_n != n_cell.get())  thrust::fill(off.begin(), off.end(), real_t(0.));
       thrust::copy(
         count_num.begin(), 
         count_num.begin() + count_n, 
