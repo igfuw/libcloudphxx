@@ -312,11 +312,11 @@ namespace libcloudphxx
           _opts_init.ny/m1(_opts_init.ny) + 
           _opts_init.nz/m1(_opts_init.nz)
         ), 
-        n_cell(
-          m1(_opts_init.nx) * 
-          m1(_opts_init.ny) *
-          m1(_opts_init.nz)
-        ),
+        nx_ref(n_dims >= 1 ? (opts_init.nx - 1) * opts_init.n_ref + 1 : 0), // TODO: with MPI this is probably not true
+        ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
+        nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
+        n_cell(m1(_opts_init.nx) * m1(_opts_init.ny) * m1(_opts_init.nz),
+               m1(nx_ref)        * m1(ny_ref)        * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
         zero(0),
         n_part(0),
         sorted(false), 
@@ -347,10 +347,6 @@ namespace libcloudphxx
           n_dims == 2 ? halo_size * (_opts_init.nz + 1):                 // 2D
                         halo_size * (_opts_init.nz + 1) * _opts_init.ny   // 3D
         ),
-        nx_ref(n_dims >= 1 ? (opts_init.nx - 1) * opts_init.n_ref + 1 : 0), // TODO: with MPI this is probably not true
-        ny_ref(n_dims == 3 ? (opts_init.ny - 1) * opts_init.n_ref + 1 : 0),
-        nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
-        n_cell_ref(m1(nx_ref) * m1(ny_ref) * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
         adve_scheme(_opts_init.adve_scheme),
@@ -398,7 +394,7 @@ namespace libcloudphxx
               break;
             default: assert(false); 
           }
-          if (n_dims != 0) assert(n_grid > n_cell);
+          if (n_dims != 0) assert(n_grid > n_cell.get());
           tmp_host_real_grid.resize(n_grid);
         }
 

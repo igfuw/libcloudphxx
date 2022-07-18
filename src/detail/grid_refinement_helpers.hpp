@@ -29,14 +29,26 @@ namespace libcloudphxx
       T val, val_ref;
 
       public:
-      using parent_t::parent_t;
+      ref_val(T val, T val_ref):
+        val(val),
+        val_ref(val_ref),
+        parent_t(true)
+       {}
 
-      T& val()
+      T& get()
       {
         return val;
       }
-
-      T& val_ref()
+      const T& get()
+      {
+        return val;
+      }
+      T& get_ref()
+      {
+        //return ref_flag ? val_ref : val;
+        return val_ref;
+      }
+      const T& get_ref()
       {
         //return ref_flag ? val_ref : val;
         return val_ref;
