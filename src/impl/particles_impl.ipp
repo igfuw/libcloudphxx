@@ -45,7 +45,7 @@ namespace libcloudphxx
       opts_init_t<real_t> opts_init; // a copy
       const int n_dims;
       const int nx_ref, ny_ref, nz_ref;        // number of refined cells in each direction
-      const ref_val<thrust_size_t> n_cell;  // total number of normal and refined cells
+      ref_val<thrust_size_t> n_cell;  // total number of normal and refined cells
       thrust_size_t n_part,            // total number of SDs
                     n_part_old,        // total number of SDs before source
                     n_part_to_init;    // number of SDs to be initialized by source
@@ -85,9 +85,6 @@ namespace libcloudphxx
         wp,  // turbulent perturbation of velocity
         ssp, // turbulent perturbation of supersaturation
         dot_ssp, // time derivative of the turbulent perturbation of supersaturation
-        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta
-        sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
 
@@ -137,7 +134,10 @@ namespace libcloudphxx
       ref_grid<real_t>
         rhod,     // dry air density
         th,      // potential temperature (dry)
-        rv;      // water vapour mixing ratio
+        rv,      // water vapour mixing ratio
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_th, // ditto for theta
+        sstp_tmp_rh; // ditto for rho
 
       thrust_device::vector<real_t> 
         sstp_tmp_chem_0, // trace gases
@@ -155,7 +155,7 @@ namespace libcloudphxx
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
       std::map<enum common::output_t, real_t> output_puddle;
   
-      grid_ref<real_t> 
+      ref_grid<real_t> 
         T,     // temperature [K]
         p,     // pressure [Pa]
         RH,    // relative humisity 

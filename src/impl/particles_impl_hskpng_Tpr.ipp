@@ -177,9 +177,9 @@ namespace libcloudphxx
       {
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
-          th_ref.begin(), th_ref.end(),  // input - first arg
-          rhod_ref.begin(),              // input - second arg
-          T_ref.begin(),                 // output
+          th.begin_ref(), th.end_ref(),  // input - first arg
+          rhod.begin_ref(),              // input - second arg
+          T.begin_ref(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
       }
@@ -187,9 +187,9 @@ namespace libcloudphxx
       {
         // T = th * exner(p_tot)
         thrust::transform(
-          th_ref.begin(), th_ref.end(),      // input - first arg
-          thrust::make_zip_iterator(thrust::make_tuple(rv_ref.begin(), p_ref.begin())), // input - second and third args
-          T_ref.begin(),                 // output
+          th.begin_ref(), th.end_ref(),      // input - first arg
+          thrust::make_zip_iterator(thrust::make_tuple(rv.begin_ref(), p.begin_ref())), // input - second and third args
+          T.begin_ref(),                 // output
           detail::common__theta_dry__T_p<real_t>() 
         );
       }
@@ -207,17 +207,17 @@ namespace libcloudphxx
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           thrust::transform(
-            zip_it_t(thrust::make_tuple(rhod_ref.begin(), rv_ref.begin(), T_ref.begin())), // input - begin
-            zip_it_t(thrust::make_tuple(rhod_ref.end(),   rv_ref.end(),   T_ref.end()  )), // input - end
-            p_ref.begin(),                                                         // output
+            zip_it_t(thrust::make_tuple(rhod.begin_ref(), rv.begin_ref(), T.begin_ref())), // input - begin
+            zip_it_t(thrust::make_tuple(rhod.end_ref(),   rv.end_ref(),   T.end_ref()  )), // input - end
+            p.begin_ref(),                                                         // output
             detail::common__theta_dry__p<real_t>()
           );
         }
 
         thrust::transform(
-          zip_it_t(thrust::make_tuple(p_ref.begin(), rv_ref.begin(), T_ref.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(p_ref.end(),   rv_ref.end(),   T_ref.end()  )),  // input - end
-          RH_ref.begin(),                                                  // output
+          zip_it_t(thrust::make_tuple(p.begin_ref(), rv.begin_ref(), T.begin_ref())),  // input - begin
+          zip_it_t(thrust::make_tuple(p.end_ref(),   rv.end_ref(),   T.end_ref()  )),  // input - end
+          RH.begin_ref(),                                                  // output
           detail::RH<real_t>(opts_init.RH_formula)
         );
       }
@@ -226,8 +226,8 @@ namespace libcloudphxx
       {
         // on refined grid
         thrust::transform(
-          T_ref.begin(), T_ref.end(), // 1st arg
-          eta_ref.begin(),        // output
+          T.begin_ref(), T.end_ref(), // 1st arg
+          eta.begin_ref(),        // output
           detail::common__vterm__visc<real_t>()
         );
         // on normal grid: how if we dont know T, because we dont know th?

@@ -25,7 +25,7 @@ namespace libcloudphxx
       if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
       if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
 
-      std::set<part_ref<thrust_size_t>*> n_t_vctrs_ref;
+      std::set<ref_part<thrust_size_t>*> n_t_vctrs_ref;
       n_t_vctrs_ref.insert(&ijk);
 
       namespace arg = thrust::placeholders;

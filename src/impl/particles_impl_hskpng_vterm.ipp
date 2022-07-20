@@ -172,10 +172,10 @@ namespace libcloudphxx
         thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
           zip_it_t(thrust::make_tuple(
-            thrust::make_permutation_iterator(T_ref.begin(),    ijk.begin_ref()),
-            thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
-            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(T.begin_ref(),    ijk.begin_ref()),
+            thrust::make_permutation_iterator(p.begin_ref(),    ijk.begin_ref()),
+            thrust::make_permutation_iterator(rhod.begin_ref(), ijk.begin_ref()),
+            thrust::make_permutation_iterator(eta.begin_ref(),  ijk.begin_ref())
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // condition argument
           vt.begin(),                                             // output
@@ -219,10 +219,10 @@ namespace libcloudphxx
         thrust::transform(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
           zip_it_t(thrust::make_tuple(
-            thrust::make_permutation_iterator(T_ref.begin(),    ijk.begin_ref()),
-            thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
-            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(T.begin_ref(),    ijk.begin_ref()),
+            thrust::make_permutation_iterator(p.begin_ref(),    ijk.begin_ref()),
+            thrust::make_permutation_iterator(rhod.begin_ref(), ijk.begin_ref()),
+            thrust::make_permutation_iterator(eta.begin_ref(),  ijk.begin_ref())
           )),                                                     // input - 2nd arg
           vt.begin(),                                             // output
           detail::common__vterm__vt<real_t>(opts_init.terminal_velocity)

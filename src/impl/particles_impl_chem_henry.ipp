@@ -335,7 +335,7 @@ namespace libcloudphxx
           V.begin(), V.end(),                             // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(   // input - 2nd arg
             thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(T_ref.begin(), ijk.begin_ref()),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
             thrust::make_permutation_iterator(ambient_chem[(chem_species_t)i].begin(), ijk.begin()),
             chem_bgn[i],
             rw2.begin(),

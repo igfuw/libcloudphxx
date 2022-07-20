@@ -13,11 +13,10 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_sync()
     {
       // memory allocation for scalar fields
-      rhod.resize(n_cell.get());
-      rhod_ref.resize(n_cell_ref);
-      p_ref.resize(n_cell_ref);
-      th_ref.resize(n_cell_ref);
-      rv_ref.resize(n_cell_ref);
+      rhod.resize(n_cell);
+      p.resize(n_cell);
+      th.resize(n_cell);
+      rv.resize(n_cell);
       if(opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
           ambient_chem[(chem_species_t)i].resize(n_cell.get());

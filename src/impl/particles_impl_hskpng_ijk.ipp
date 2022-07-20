@@ -59,7 +59,7 @@ namespace libcloudphxx
             arg::_2 * opts_init.nz
           );
           thrust::transform(
-            k.begin()+begin_shift, k.end()
+            k.begin()+begin_shift, k.end(),
             ijk_begin+begin_shift,
             ijk_begin+begin_shift, // in-place!
             arg::_1 + arg::_2

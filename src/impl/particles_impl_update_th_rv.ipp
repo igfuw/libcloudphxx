@@ -77,7 +77,7 @@ namespace libcloudphxx
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(  
               drv.begin(),      // 
-              T_ref.begin(),        // dth = drv * d_th_d_rv(T, th)
+              T.begin(),        // dth = drv * d_th_d_rv(T, th)
               th.begin()        //
             )),
             detail::dth<real_t>()

@@ -39,20 +39,24 @@ namespace libcloudphxx
       {
         return val;
       }
+      /*
       const T& get()
       {
         return val;
       }
+      */
       T& get_ref()
       {
         //return ref_flag ? val_ref : val;
         return val_ref;
       }
+      /*
       const T& get_ref()
       {
         //return ref_flag ? val_ref : val;
         return val_ref;
       }
+      */
     };
 
     template<class T>
@@ -60,7 +64,8 @@ namespace libcloudphxx
     {
       private:
       using parent_t = ref_common<T>;
-      thrust_device::vector<T> arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
+      using vec_t = thrust_device::vector<T>;
+      vec_t arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
 
       protected:
       using parent_t::parent_t;
@@ -71,7 +76,7 @@ namespace libcloudphxx
       }
       auto begin_ref()
       {
-        return ref_flag ? arr_ref.begin() : arr.begin();
+        return this->ref_flag ? arr_ref.begin() : arr.begin();
       }
       auto end()
       {
@@ -79,23 +84,55 @@ namespace libcloudphxx
       }
       auto end_ref()
       {
-        return ref_flag ? arr_ref.end() : arr.end();
+        return this->ref_flag ? arr_ref.end() : arr.end();
       }
       void resize(thrust_size_t size, thrust_size_t size_ref)
       {
         arr.resize(size);
-        if(ref_flag) arr_ref.resize(size_ref);
+        if(this->ref_flag) arr_ref.resize(size_ref);
+      }
+      void resize(ref_val<thrust_size_t> size)
+      {
+        arr.resize(size.get());
+        if(this->ref_flag) arr_ref.resize(size.get_ref());
       }
       void reserve(thrust_size_t size, thrust_size_t size_ref)
       {
         arr.reserve(size);
-        if(ref_flag) arr_ref.reserve(size_ref);
+        if(this->ref_flag) arr_ref.reserve(size_ref);
+      }
+      void reserve(ref_val<thrust_size_t> size)
+      {
+        arr.reserve(size.get());
+        if(this->ref_flag) arr_ref.reserve(size.get_ref());
+      }
+
+      public:
+
+      auto ptr()
+      {
+        return &arr;
+      }
+
+      auto ptr_ref()
+      {
+        return &arr_ref;
+      }
+
+      vec_t& get()
+      {
+        return arr;
+      }
+
+      vec_t& get_ref()
+      {
+        return arr_ref;
       }
     };
 
     // for arrays of the size of the grid
     template <class T>
-    class ref_grid : ref_arr_common<T>
+    class ref_grid : public ref_arr_common<T>
     {
       using parent_t = ref_arr_common<T>;
 
@@ -106,6 +143,10 @@ namespace libcloudphxx
       {
         parent_t::resize(n_cell, n_cell_ref);
       }
+
+      ref_grid(ref_val<thrust_size_t> n):
+        ref_grid(n.get(), n.get_ref())
+        {}
     };
 
     // for arrays of the size of the number of particles
