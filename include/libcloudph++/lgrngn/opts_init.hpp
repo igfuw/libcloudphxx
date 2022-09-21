@@ -49,9 +49,11 @@ namespace libcloudphxx
       unsigned int n_ref; // number of grid refinements per 'normal' cell; refined cell size is (dx, dy, dz) / n_ref; 
       // condensation (and sedimentation?) is resolved on refined cells, rest (coalescence, advection, etc.) on normal cells
       // input arrays on the refined grid: pressure p (if supplied), rv, tht
-      // input arrays that require two versions, on the normal and on the refined grid: density (rhod, rhod_ref)
-      // internal arrays on the refined grid: RH, T
-      // internal arrays that require two versions, on the normal and on the refined grid: dynamic viscosity eta (eta, eta_ref), cell volume dv (not sure...)
+      // internal arrays on the refined grid: RH, T, eta
+      // TODO:
+      // dynamic viscosity eta on both grids?
+      // what about cell volume dv?
+      // what about density rhod?
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 

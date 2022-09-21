@@ -9,10 +9,9 @@ namespace libcloudphxx
     template<class T>
     class ref_common
     {
-      private:
+      protected:
       const bool ref_flag; // true if refinement is actually done
 
-      protected:
       // ctor
       ref_common(const bool ref_flag):
         ref_flag(ref_flag)
@@ -161,22 +160,22 @@ namespace libcloudphxx
       // grid size cant be 0, ensure that correct arrays are pointed to
       auto begin()
       {
-	assert(this->arr.size() > 0);
+        assert(this->arr.size() > 0);
         return parent_t::begin();
       }
       auto begin_ref()
       {
-	assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
+        assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
         return parent_t::begin_ref();
       }
       auto end()
       {
-	assert(this->arr.size() > 0);
+        assert(this->arr.size() > 0);
         return parent_t::end();
       }
       auto end_ref()
       {
-	assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
+        assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
         return parent_t::end_ref();
       }
     };

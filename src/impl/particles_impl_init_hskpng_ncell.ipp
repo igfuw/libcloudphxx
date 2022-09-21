@@ -36,6 +36,8 @@ namespace libcloudphxx
         sstp_tmp_th.resize(0, n_cell.get_ref());
         sstp_tmp_rh.resize(0, n_cell.get_ref());
       }
+
+      //TODO: init ijk_ref2ijk. it's size is already initialized
     }
   };
 };

@@ -28,13 +28,18 @@ namespace libcloudphxx
 #endif
 
       thrust::copy(
-	count_mom.begin(),               // input - begin
-	count_mom.begin() + count_n.get(),     // input - end
-	thrust::make_permutation_iterator(  // output
-	  tmp_host_real_cell.begin(),         // data
-	  pi.begin()                          // permutation
-	)
+        count_mom.begin(),               // input - begin
+        count_mom.begin() + count_n.get(),     // input - end
+        thrust::make_permutation_iterator(  // output
+          tmp_host_real_cell.begin(),         // data
+          pi.begin()                          // permutation
+        )
       );
+    }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::fill_outbuf_ref()
+    {
     }
   };
 };

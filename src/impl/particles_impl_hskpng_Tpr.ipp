@@ -178,7 +178,7 @@ namespace libcloudphxx
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
           th.begin_ref(), th.end_ref(),  // input - first arg
-          rhod.begin_ref(),              // input - second arg
+          thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin()),             // input - second arg
           T.begin_ref(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
@@ -206,10 +206,15 @@ namespace libcloudphxx
         if(!const_p)
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
+          zip_it_t it(thrust::make_tuple(
+            thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin()), 
+            rv.begin_ref(), 
+            T.begin_ref()
+          ));
           thrust::transform(
-            zip_it_t(thrust::make_tuple(rhod.begin_ref(), rv.begin_ref(), T.begin_ref())), // input - begin
-            zip_it_t(thrust::make_tuple(rhod.end_ref(),   rv.end_ref(),   T.end_ref()  )), // input - end
-            p.begin_ref(),                                                         // output
+            it,                    // input - begin
+            it + n_cell.get_ref(), // input - end
+            p.begin_ref(),         // output
             detail::common__theta_dry__p<real_t>()
           );
         }
@@ -231,8 +236,14 @@ namespace libcloudphxx
           detail::common__vterm__visc<real_t>()
         );
         // on normal grid: how if we dont know T, because we dont know th?
-        // TODO: use averaging from refined to normal?
+        // TODO: require input of normal th? 
+        // or use averaging from refined to normal?
+        // cumbersome: 
+        // 0. make copies of eta and ijk_ref2ijk
+        // 1. sort copies of eta by ijk_ref2ijk
+        // 2. reduce_by_key and add the result to normal eta
       }
+
 
       // adjusting dv if using a parcel set-up (1kg of dry air)
       if (n_dims == 0)

@@ -93,8 +93,8 @@ namespace libcloudphxx
       pimpl->var_rho = !rhod.is_null();
 
       // syncing in Eulerian fields (if not null)
-      pimpl->sync(th,             pimpl->th);
-      pimpl->sync(rv,             pimpl->rv);
+      pimpl->sync(th,             pimpl->th.get_ref());
+      pimpl->sync(rv,             pimpl->rv.get_ref());
       pimpl->sync(diss_rate,      pimpl->diss_rate);
       pimpl->sync(rhod,           pimpl->rhod);
       pimpl->sync(courant_x,      pimpl->courant_x);
@@ -259,8 +259,8 @@ namespace libcloudphxx
       if(opts.cond) // || (opts.src && pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) || (opts.rlx && pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
-        pimpl->sync(pimpl->th, th);
-        pimpl->sync(pimpl->rv, rv);
+        pimpl->sync(pimpl->th.get_ref(), th);
+        pimpl->sync(pimpl->rv.get_ref(), rv);
       }
 
       if (opts.chem_dsl == true)

@@ -113,9 +113,9 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->p.begin(), 
-        pimpl->p.end(), 
-        pimpl->count_mom.begin()
+        pimpl->p.begin_ref(), 
+        pimpl->p.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // p defined in all cells
@@ -285,7 +285,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T_ref.begin(),
+            pimpl->T.begin_ref(),
             pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 

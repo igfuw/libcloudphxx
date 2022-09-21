@@ -109,6 +109,7 @@ namespace libcloudphxx
         i, j, k, // Eulerian grid cell indices (always zero for 0D)
         sorted_id, sorted_ijk;
       ref_part<thrust_size_t> ijk; // ijk in the normal and in the refined grid
+      ref_grid<thrust_size_t> ijk_ref2ijk; // maps refined cell index to the index of the normal cell containing this refined cell
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
       // used to conserve memory if n_ref==1 (no refinement)
@@ -135,7 +136,6 @@ namespace libcloudphxx
 
       // Eulerian-Lagrangian interface vars
       ref_grid<real_t>
-        rhod,     // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
         sstp_pc_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio, per-cell substepping
@@ -159,6 +159,7 @@ namespace libcloudphxx
       std::map<enum common::output_t, real_t> output_puddle;
 
       thrust_device::vector<real_t> 
+        rhod,     // dry air density
         diss_rate; // turbulent kinetic energy dissipation rate
   
       ref_grid<real_t> 
@@ -330,19 +331,19 @@ namespace libcloudphxx
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
         n_cell(m1(_opts_init.nx) * m1(_opts_init.ny) * m1(_opts_init.nz),
                m1(nx_ref)        * m1(ny_ref)        * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
-	rhod(n_cell),
-	p(0, n_cell.get_ref()),
-	th(0, n_cell.get_ref()),
-	rv(0, n_cell.get_ref()),
-	count_ijk(n_cell),
-	count_num(n_cell),
-	count_mom(n_cell),
-	count_n(0,0),
-	tmp_device_real_cell1(n_cell),
-	tmp_device_real_cell2(n_cell),
-	T (0, n_cell.get_ref()),
-	RH(0, n_cell.get_ref()),
-	eta(n_cell),
+        p(0, n_cell.get_ref()),
+        th(0, n_cell.get_ref()),
+        rv(0, n_cell.get_ref()),
+        ijk_ref2ijk(0, n_cell.get_ref()),
+        count_ijk(n_cell),
+        count_num(n_cell),
+        count_mom(n_cell),
+        count_n(0,0),
+        tmp_device_real_cell1(n_cell),
+        tmp_device_real_cell2(n_cell),
+        T (0, n_cell.get_ref()),
+        RH(0, n_cell.get_ref()),
+        eta(0, n_cell.get_ref()),
         zero(0),
         n_part(0),
         sorted(false), 
@@ -378,13 +379,13 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-	sstp_pc_tmp_rv(0, n_cell.get_ref()),
-	sstp_pc_tmp_th(0, n_cell.get_ref()),
-	sstp_pc_tmp_rh(0, n_cell.get_ref()),
-	sstp_tmp_rv(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_rv : sstp_pc_tmp_rv.ptr()),
-	sstp_tmp_th(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_th : sstp_pc_tmp_th.ptr()),
-	sstp_tmp_rh(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_rh : sstp_pc_tmp_rh.ptr()),
-	sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
+	       sstp_pc_tmp_rv(0, n_cell.get_ref()),
+	       sstp_pc_tmp_th(0, n_cell.get_ref()),
+	       sstp_pc_tmp_rh(0, n_cell.get_ref()),
+	       sstp_tmp_rv(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rv : sstp_pc_tmp_rv.get_ref()),
+	       sstp_tmp_th(_opts_init.exact_sstp_cond ? sstp_pp_tmp_th : sstp_pc_tmp_th.get_ref()),
+	       sstp_tmp_rh(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rh : sstp_pc_tmp_rh.get_ref()),
+	       sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         ijk(opts_init.n_ref)
       {
@@ -611,6 +612,7 @@ namespace libcloudphxx
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void update_state(ref_grid<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_incloud_time(const real_t &dt);
 

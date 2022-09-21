@@ -134,6 +134,7 @@ namespace libcloudphxx
 
     // update cell state based on particle-specific cell state
     // particles have to be sorted
+    /*
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_state(
       thrust_device::vector<real_t> &state, // cell state
@@ -143,6 +144,18 @@ namespace libcloudphxx
      thrust::copy(
        pstate.begin(), pstate.end(),
        thrust::make_permutation_iterator(state.begin(), ijk.begin())
+     );   
+    }
+    */
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::update_state(
+      ref_grid<real_t> &state, // cell state
+      thrust_device::vector<real_t> &pstate // particle-specific cell state (same for all particles in one cell)
+    ) 
+    {
+     thrust::copy(
+       pstate.begin(), pstate.end(),
+       thrust::make_permutation_iterator(state.begin_ref(), ijk.begin_ref())
      );   
     }
   };  

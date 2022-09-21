@@ -42,7 +42,7 @@ namespace libcloudphxx
       );
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
-        thrust::make_permutation_iterator(rhod.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
         thrust::make_permutation_iterator(rv.begin_ref(), ijk.begin_ref()),
         thrust::make_permutation_iterator(T.begin_ref(), ijk.begin_ref()),
         thrust::make_permutation_iterator(eta.begin_ref(), ijk.begin_ref()),
