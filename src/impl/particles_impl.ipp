@@ -85,7 +85,10 @@ namespace libcloudphxx
         wp,  // turbulent perturbation of velocity
         ssp, // turbulent perturbation of supersaturation
         dot_ssp, // time derivative of the turbulent perturbation of supersaturation
-        sstp_tmp_p, // ditto for pressure
+        sstp_pp_tmp_rv, // helper for per-particle cond substepping
+        sstp_pp_tmp_rh, // ditto for density
+        sstp_pp_tmp_th, // ditto for temperature
+        sstp_pp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
 
       // dry radii distribution characteristics
@@ -135,9 +138,9 @@ namespace libcloudphxx
         rhod,     // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
-        sstp_tmp_th, // ditto for theta
-        sstp_tmp_rh; // ditto for rho
+        sstp_pc_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio, per-cell substepping
+        sstp_pc_tmp_th, // ditto for theta
+        sstp_pc_tmp_rh; // ditto for rho
 
       thrust_device::vector<real_t> 
         sstp_tmp_chem_0, // trace gases
@@ -154,13 +157,15 @@ namespace libcloudphxx
 
       // map of the accumulated volume/volume/mass of water/dry/chem that fell out of the domain
       std::map<enum common::output_t, real_t> output_puddle;
+
+      thrust_device::vector<real_t> 
+        diss_rate; // turbulent kinetic energy dissipation rate
   
       ref_grid<real_t> 
         T,     // temperature [K]
         p,     // pressure [Pa]
         RH,    // relative humisity 
-        eta,   // dynamic viscosity
-        diss_rate; // turbulent kinetic energy dissipation rate
+        eta;   // dynamic viscosity
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
@@ -183,6 +188,14 @@ namespace libcloudphxx
       // is it allowed to do substepping, if not, some memory can be saved
       bool allow_sstp_cond,
            allow_sstp_chem;
+		      
+      // aliases to substepping arrays, they point to per-cell or per-particle arrays
+      // depending on runtime options
+      thrust_device::vector<real_t> 
+        &sstp_tmp_rv,
+        &sstp_tmp_rh,
+        &sstp_tmp_th,
+        &sstp_tmp_p;
 
       // timestep counter
       n_t src_stp_ctr, rlx_stp_ctr;
@@ -317,6 +330,19 @@ namespace libcloudphxx
         nz_ref(n_dims >= 2 ? (opts_init.nz - 1) * opts_init.n_ref + 1 : 0),
         n_cell(m1(_opts_init.nx) * m1(_opts_init.ny) * m1(_opts_init.nz),
                m1(nx_ref)        * m1(ny_ref)        * m1(nz_ref)), // NOTE: needs to be equal to n_cell for n_ref == 1
+	rhod(n_cell),
+	p(0, n_cell.get_ref()),
+	th(0, n_cell.get_ref()),
+	rv(0, n_cell.get_ref()),
+	count_ijk(n_cell),
+	count_num(n_cell),
+	count_mom(n_cell),
+	count_n(0,0),
+	tmp_device_real_cell1(n_cell),
+	tmp_device_real_cell2(n_cell),
+	T (0, n_cell.get_ref()),
+	RH(0, n_cell.get_ref()),
+	eta(n_cell),
         zero(0),
         n_part(0),
         sorted(false), 
@@ -352,6 +378,13 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
+	sstp_pc_tmp_rv(0, n_cell.get_ref()),
+	sstp_pc_tmp_th(0, n_cell.get_ref()),
+	sstp_pc_tmp_rh(0, n_cell.get_ref()),
+	sstp_tmp_rv(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_rv : sstp_pc_tmp_rv.ptr()),
+	sstp_tmp_th(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_th : sstp_pc_tmp_th.ptr()),
+	sstp_tmp_rh(_opts_init.exact_sstp_cond ? &sstp_pp_tmp_rh : sstp_pc_tmp_rh.ptr()),
+	sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         ijk(opts_init.n_ref)
       {

@@ -86,8 +86,8 @@ namespace libcloudphxx
         if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, false, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
-      if (pimpl->l2e[pimpl->diss_rate.ptr()].size() == 0)
-        if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, pimpl->diss_rate.ptr());
+      if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
+        if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
 
       // did rhod change
       pimpl->var_rho = !rhod.is_null();

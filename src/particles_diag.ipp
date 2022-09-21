@@ -120,7 +120,7 @@ namespace libcloudphxx
 
       // p defined in all cells
       pimpl->count_n.get() = pimpl->n_cell.get();
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records temperature

@@ -108,7 +108,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::sstp_step_exact(
       const int &step
     )
-    {   
+    { 
       if (sstp_cond == 1) return;
 
       namespace arg = thrust::placeholders;

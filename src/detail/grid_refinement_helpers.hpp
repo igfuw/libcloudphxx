@@ -17,6 +17,8 @@ namespace libcloudphxx
       ref_common(const bool ref_flag):
         ref_flag(ref_flag)
       {}
+
+      ref_common() = delete;
     };
 
     
@@ -34,6 +36,7 @@ namespace libcloudphxx
         val_ref(val_ref),
         parent_t(true)
        {}
+      ref_val() = delete;
 
       T& get()
       {
@@ -65,27 +68,11 @@ namespace libcloudphxx
       private:
       using parent_t = ref_common<T>;
       using vec_t = thrust_device::vector<T>;
-      vec_t arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
 
       protected:
       using parent_t::parent_t;
+      vec_t arr, arr_ref; // actual data, arr_ref initialized only if refinement is actually done
 
-      auto begin()
-      {
-        return arr.begin();
-      }
-      auto begin_ref()
-      {
-        return this->ref_flag ? arr_ref.begin() : arr.begin();
-      }
-      auto end()
-      {
-        return arr.end();
-      }
-      auto end_ref()
-      {
-        return this->ref_flag ? arr_ref.end() : arr.end();
-      }
       void resize(thrust_size_t size, thrust_size_t size_ref)
       {
         arr.resize(size);
@@ -109,6 +96,26 @@ namespace libcloudphxx
 
       public:
 
+      auto begin()
+      {
+        return arr.begin();
+      }
+
+      auto begin_ref()
+      {
+        return this->ref_flag ? arr_ref.begin() : arr.begin();
+      }
+
+      auto end()
+      {
+        return arr.end();
+      }
+
+      auto end_ref()
+      {
+        return this->ref_flag ? arr_ref.end() : arr.end();
+      }
+
       auto ptr()
       {
         return &arr;
@@ -130,7 +137,8 @@ namespace libcloudphxx
       }
     };
 
-    // for arrays of the size of the grid
+    // for arrays of the size of the grid that need values
+    // in the normal grid and in the refined grid (or in only one of these)
     template <class T>
     class ref_grid : public ref_arr_common<T>
     {
@@ -147,11 +155,36 @@ namespace libcloudphxx
       ref_grid(ref_val<thrust_size_t> n):
         ref_grid(n.get(), n.get_ref())
         {}
+
+      ref_grid() = delete;
+
+      // grid size cant be 0, ensure that correct arrays are pointed to
+      auto begin()
+      {
+	assert(this->arr.size() > 0);
+        return parent_t::begin();
+      }
+      auto begin_ref()
+      {
+	assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
+        return parent_t::begin_ref();
+      }
+      auto end()
+      {
+	assert(this->arr.size() > 0);
+        return parent_t::end();
+      }
+      auto end_ref()
+      {
+	assert((this->ref_flag && this->arr_ref.size() > 0) || (!this->ref_flag && this->arr.size() > 0));
+        return parent_t::end_ref();
+      }
     };
 
-    // for arrays of the size of the number of particles
+    // for arrays of the size of the number of particles that need
+    // two independent values: for the normal and for the refined grid (e.g. ijk)
     template <class T>
-    class ref_part : ref_arr_common<T>
+    class ref_part : public ref_arr_common<T>
     {
       using parent_t = ref_arr_common<T>;
 
@@ -159,7 +192,9 @@ namespace libcloudphxx
       // ctor
       ref_part(const int &n_ref):
         parent_t(n_ref > 1)
-      {}
+      {assert(n_ref > 0);}
+
+      ref_part() = delete;
 
       void resize(int n)
       {
