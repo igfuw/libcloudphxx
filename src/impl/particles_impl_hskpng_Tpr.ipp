@@ -195,18 +195,10 @@ namespace libcloudphxx
       }
 
       {
-        typedef thrust::zip_iterator<
-          thrust::tuple<
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator,
-            typename thrust_device::vector<real_t>::iterator
-          >
-        > zip_it_t;
-
         if(!const_p)
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
-          zip_it_t it(thrust::make_tuple(
+          auto it = thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin()), 
             rv.begin_ref(), 
             T.begin_ref()
@@ -218,6 +210,14 @@ namespace libcloudphxx
             detail::common__theta_dry__p<real_t>()
           );
         }
+
+        typedef thrust::zip_iterator<
+          thrust::tuple<
+            typename thrust_device::vector<real_t>::iterator,
+            typename thrust_device::vector<real_t>::iterator,
+            typename thrust_device::vector<real_t>::iterator
+          >
+        > zip_it_t;
 
         thrust::transform(
           zip_it_t(thrust::make_tuple(p.begin_ref(), rv.begin_ref(), T.begin_ref())),  // input - begin

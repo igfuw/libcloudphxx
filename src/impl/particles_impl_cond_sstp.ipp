@@ -38,8 +38,8 @@ namespace libcloudphxx
       const RH_iter &rhi
     ) { 
 
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+      auto &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
+      auto &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
@@ -53,8 +53,8 @@ namespace libcloudphxx
         rd3.begin(),
         kpa.begin(),
         vt.begin(),
-        thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
+        thrust::make_permutation_iterator(lambda_D.begin_ref(), ijk.begin_ref()),
+        thrust::make_permutation_iterator(lambda_K.begin_ref(), ijk.begin_ref())
       ));
 
       // calculating drop growth in a timestep using backward Euler 
