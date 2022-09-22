@@ -28,8 +28,8 @@ namespace libcloudphxx
 //      tmp_device_real_cell1.resize(n_cell);
 //      tmp_device_real_cell2.resize(n_cell);
       tmp_device_size_cell.resize(n_cell.get());
-      tmp_host_size_cell.resize(n_cell.get());
-      tmp_host_real_cell.resize(n_cell.get());
+//      tmp_host_size_cell.resize(n_cell.get());
+//      tmp_host_real_cell.resize(n_cell.get());
       if(allow_sstp_cond && !opts_init.exact_sstp_cond)
       {
         sstp_tmp_rv.resize(0, n_cell.get_ref());

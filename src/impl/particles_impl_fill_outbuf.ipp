@@ -22,9 +22,9 @@ namespace libcloudphxx
 #endif
 
 #if !defined(__NVCC__)
-      thrust_device::vector<thrust_size_t> &pi(count_ijk);
+      auto &pi(count_ijk);
 #else
-      thrust::host_vector<thrust_size_t> &pi(tmp_host_size_cell);
+      auto &pi(tmp_host_size_cell);
 #endif
 
       thrust::copy(
@@ -40,6 +40,29 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::fill_outbuf_ref()
     {
+      thrust::fill(tmp_host_real_cell.begin_ref(), tmp_host_real_cell.end_ref(), 0);
+
+#if defined(__NVCC__)
+      thrust::copy(
+        count_ijk.begin_ref(), count_ijk.end_ref(), // from
+        tmp_host_size_cell.begin_ref()
+      );
+#endif
+
+#if !defined(__NVCC__)
+      auto &pi(count_ijk);
+#else
+      auto &pi(tmp_host_size_cell);
+#endif
+
+      thrust::copy(
+        count_mom.begin_ref(),               // input - begin
+        count_mom.begin_ref() + count_n.get_ref(),     // input - end
+        thrust::make_permutation_iterator(  // output
+          tmp_host_real_cell.begin_ref(),         // data
+          pi.begin_ref()                          // permutation
+        )
+      );
     }
   };
 };

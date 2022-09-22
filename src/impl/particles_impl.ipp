@@ -232,10 +232,7 @@ namespace libcloudphxx
 
       // temporary data
       thrust::host_vector<real_t>
-        tmp_host_real_grid,
-        tmp_host_real_cell;
-      thrust::host_vector<thrust_size_t>
-        tmp_host_size_cell;
+        tmp_host_real_grid;
       thrust_device::vector<real_t>
         tmp_device_real_part,
         tmp_device_real_part1,  
@@ -248,6 +245,10 @@ namespace libcloudphxx
       ref_grid<real_t>
         tmp_device_real_cell1,
         tmp_device_real_cell2;
+      ref_grid<real_t, true>
+        tmp_host_real_cell;
+      ref_grid<thrust_size_t, true>
+        tmp_host_size_cell;
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
         &un; // uniform natural random numbers between 0 and max value of unsigned int
@@ -341,6 +342,8 @@ namespace libcloudphxx
         count_n(0,0),
         tmp_device_real_cell1(n_cell),
         tmp_device_real_cell2(n_cell),
+        tmp_host_real_cell(n_cell),
+        tmp_host_size_cell(n_cell),
         T (0, n_cell.get_ref()),
         RH(0, n_cell.get_ref()),
         eta(0, n_cell.get_ref()),
@@ -529,6 +532,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      void fill_outbuf_ref();
       void mpi_exchange();
 
            // rename hskpng_ -> step_?

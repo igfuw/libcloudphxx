@@ -52,7 +52,7 @@ namespace libcloudphxx
       // temporary space on the host 
       thrust::host_vector<real_t> tmp_real(n_part_to_init);
       thrust::host_vector<thrust_size_t> tmp_ijk(n_part_to_init);
-      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
+      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell.get());
 
       thrust::copy(
       rhod.begin(), rhod.end(), // from

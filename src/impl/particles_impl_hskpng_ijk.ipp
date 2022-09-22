@@ -32,7 +32,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ravel_ijk(const thrust_size_t begin_shift, const bool refined)
     {
-      auto &ijk_begin = refined ? ijk.begin_ref() : ijk.begin();
+      auto ijk_begin = refined ? ijk.begin_ref() : ijk.begin();
       switch (n_dims)
       {
         case 0: 
