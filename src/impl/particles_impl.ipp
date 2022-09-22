@@ -614,7 +614,7 @@ namespace libcloudphxx
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<class pres_iter, class RH_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
-      void update_th_rv(thrust_device::vector<real_t> &);
+      void update_th_rv(ref_grid<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_state(ref_grid<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);

@@ -35,29 +35,29 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
-      thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
+      ref_grid<real_t> &drv // change in water vapor mixing ratio
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
-      nancheck(drv, "update_th_rv: input drv");
+      nancheck(drv.get_ref(), "update_th_rv: input drv");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
       thrust::transform(
-        drv.begin(), drv.end(),                  // input - 1st arg
+        drv.begin_ref(), drv.end_ref(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
         ),
-        drv.begin(),                             // output
+        drv.begin_ref(),                             // output
         thrust::multiplies<real_t>()
       );  
 
       // updating rv 
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
       thrust::transform(
-        rv.begin(), rv.end(),  // input - 1st arg
-        drv.begin(),           // input - 2nd arg
-        rv.begin(),            // output
+        rv.begin_ref(), rv.end_ref(),  // input - 1st arg
+        drv.begin_ref(),           // input - 2nd arg
+        rv.begin_ref(),            // output
         thrust::plus<real_t>() 
       );
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
@@ -76,9 +76,9 @@ namespace libcloudphxx
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(  
-              drv.begin(),      // 
-              T.begin(),        // dth = drv * d_th_d_rv(T, th)
-              th.begin()        //
+              drv.begin_ref(),      // 
+              T.begin_ref(),        // dth = drv * d_th_d_rv(T, th)
+              th.begin_ref()        //
             )),
             detail::dth<real_t>()
           ),
