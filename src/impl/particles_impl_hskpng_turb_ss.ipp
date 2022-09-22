@@ -41,10 +41,11 @@ namespace libcloudphxx
     };
 
     // calc the SGS turbulent supersaturation
+    // TODO: do it on refined grid
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_turb_dot_ss()
     {   
-      thrust_device::vector<real_t> &tau_rlx(tmp_device_real_cell); // tau_rlx needs to have length n_cell
+      thrust_device::vector<real_t> &tau_rlx(tmp_device_real_cell.get()); // tau_rlx needs to have length n_cell
 #if !defined(NDEBUG)
       // fill with a dummy value for debugging
       thrust::fill(tau_rlx.begin(), tau_rlx.end(), -44);

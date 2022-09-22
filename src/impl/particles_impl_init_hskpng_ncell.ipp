@@ -24,7 +24,7 @@ namespace libcloudphxx
 //      count_n.get_ref() = 0;
 
       // initialising device temporary arrays
-      tmp_device_real_cell.resize(n_cell.get());
+//      tmp_device_real_cell.resize(n_cell.get());
 //      tmp_device_real_cell1.resize(n_cell);
 //      tmp_device_real_cell2.resize(n_cell);
       tmp_device_size_cell.resize(n_cell.get());

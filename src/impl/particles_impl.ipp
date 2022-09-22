@@ -106,9 +106,8 @@ namespace libcloudphxx
 
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
-        i, j, k, // Eulerian grid cell indices (always zero for 0D)
-        sorted_id, sorted_ijk;
-      ref_part<thrust_size_t> ijk; // ijk in the normal and in the refined grid
+        i, j, k; // Eulerian grid cell indices (always zero for 0D)
+      ref_part<thrust_size_t> ijk, sorted_id, sorted_ijk; // ijk in the normal and in the refined grid
       ref_grid<thrust_size_t> ijk_ref2ijk; // maps refined cell index to the index of the normal cell containing this refined cell
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
@@ -240,9 +239,9 @@ namespace libcloudphxx
         tmp_device_real_part3,
         tmp_device_real_part4,
         tmp_device_real_part5,
-        tmp_device_real_cell,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       ref_grid<real_t>
+        tmp_device_real_cell,
         tmp_device_real_cell1,
         tmp_device_real_cell2;
       ref_grid<real_t, true>
@@ -340,6 +339,7 @@ namespace libcloudphxx
         count_num(n_cell),
         count_mom(n_cell),
         count_n(0,0),
+        tmp_device_real_cell(n_cell),
         tmp_device_real_cell1(n_cell),
         tmp_device_real_cell2(n_cell),
         tmp_host_real_cell(n_cell),
@@ -390,7 +390,9 @@ namespace libcloudphxx
 	       sstp_tmp_rh(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rh : sstp_pc_tmp_rh.get_ref()),
 	       sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
-        ijk(opts_init.n_ref)
+        ijk(opts_init.n_ref),
+        sorted_ijk(opts_init.n_ref),
+        sorted_id(opts_init.n_ref)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn

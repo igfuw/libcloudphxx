@@ -24,7 +24,7 @@ namespace libcloudphxx
 
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      ref_grid<real_t> &drv(tmp_device_real_cell);
 
       // calculating the 3rd wet moment before condensation
       moms_all();
@@ -33,11 +33,11 @@ namespace libcloudphxx
 
       // permute-copying the result to -dm_3
       // fill with 0s if not all cells will be updated in the following transform
-      if(count_n.get() != n_cell.get())  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+      if(count_n.get() != n_cell.get())  thrust::fill(drv.begin_ref(), drv.end_ref(), real_t(0.));
 
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // output
         thrust::negate<real_t>()
       );
 
@@ -100,8 +100,8 @@ namespace libcloudphxx
       // adding the third moment after condensation to dm_3
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // input - 2nd arg
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // output
         thrust::plus<real_t>()
       );
 

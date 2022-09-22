@@ -135,7 +135,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc)
     {
       namespace arg = thrust::placeholders;
-      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      thrust_device::vector<real_t> &concentration(tmp_device_real_cell.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
       thrust::transform(

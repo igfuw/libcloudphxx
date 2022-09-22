@@ -39,7 +39,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       // number of SD in each cell casted to real_t
-      thrust_device::vector<real_t> &count_num_real_t(tmp_device_real_cell);
+      thrust_device::vector<real_t> &count_num_real_t(tmp_device_real_cell.get());
 
       // get number of SD in each cell
       hskpng_count();

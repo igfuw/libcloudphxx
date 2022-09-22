@@ -100,9 +100,9 @@ namespace libcloudphxx
       if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
 
       // cell-wise change in state
-      thrust_device::vector<real_t> &dstate(tmp_device_real_cell);
+      ref_grid<real_t> &dstate(tmp_device_real_cell);
       // init dstate with 0s
-      thrust::fill(dstate.begin(), dstate.end(), real_t(0));
+      thrust::fill(dstate.begin_ref(), dstate.end_ref(), real_t(0));
       // calc sum of pdstate in each cell
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
@@ -118,15 +118,15 @@ namespace libcloudphxx
       // add this sum to dstate
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
-        thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // 2nd arg
-        thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // output
+        thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // 2nd arg
+        thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // output
         thrust::plus<real_t>()
       );
 
       // add dstate to pstate
       thrust::transform(
         pstate.begin(), pstate.end(),
-        thrust::make_permutation_iterator(dstate.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(dstate.begin_ref(), ijk.begin_ref()),
         pstate.begin(),
         thrust::plus<real_t>()
       );

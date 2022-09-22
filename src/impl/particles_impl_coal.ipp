@@ -273,7 +273,7 @@ namespace libcloudphxx
 
       // references to tmp data
       thrust_device::vector<real_t> 
-        &scl(tmp_device_real_cell), // scale factor for probablility
+        &scl(tmp_device_real_cell.get()), // scale factor for probablility
         &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
                                     // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
       thrust_device::vector<thrust_size_t> 
