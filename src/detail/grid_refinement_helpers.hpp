@@ -102,7 +102,17 @@ namespace libcloudphxx
         return arr.begin();
       }
 
+      const auto cbegin()
+      {
+        return arr.begin();
+      }
+
       auto begin_ref()
+      {
+        return this->ref_flag ? arr_ref.begin() : arr.begin();
+      }
+
+      auto cbegin_ref()
       {
         return this->ref_flag ? arr_ref.begin() : arr.begin();
       }
@@ -112,7 +122,17 @@ namespace libcloudphxx
         return arr.end();
       }
 
+      const auto cend()
+      {
+        return arr.end();
+      }
+
       auto end_ref()
+      {
+        return this->ref_flag ? arr_ref.end() : arr.end();
+      }
+
+      auto cend_ref()
       {
         return this->ref_flag ? arr_ref.end() : arr.end();
       }
