@@ -48,8 +48,8 @@ namespace libcloudphxx
 
       const int n = 4;
       thrust_device::vector<real_t>
-        *fr[n] = { rv.ptr_ref(), th.ptr_ref(),  &rhod,        p.ptr_ref() },
-        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th,  &sstp_tmp_rh, &sstp_tmp_p };
+        *fr[n] = { rv.ptr_ref(), th.ptr_ref(),  rhod.ptr_ref(), p.ptr_ref() },
+        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th,  &sstp_tmp_rh,   &sstp_tmp_p };
       for (int ix = 0; ix < ( (const_p) ? n : n-1); ++ix) // TODO: var_rho
       {
         thrust::copy(

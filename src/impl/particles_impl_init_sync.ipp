@@ -13,7 +13,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_sync()
     {
       // memory allocation for scalar fields
-      rhod.resize(n_cell.get());
+//      rhod.resize(n_cell.get());
 //      p.resize(n_cell);
 //      th.resize(n_cell);
 //      rv.resize(n_cell);

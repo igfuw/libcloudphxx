@@ -101,14 +101,11 @@ namespace libcloudphxx
       // sea level term velocity according to Beard 1977, compute once
       thrust_device::vector<real_t> vt_0; 
 
-      // grid-cell volumes (per grid cell)
-      thrust_device::vector<real_t> dv;
-
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, sorted_id; // Eulerian grid cell indices (always zero for 0D), one sorted_id needed, because its the same in normal and refined grids as we always sort them together
       ref_part<thrust_size_t> ijk, sorted_ijk; // ijk in the normal and in the refined grid
-      ref_grid<thrust_size_t> ijk_ref2ijk; // maps refined cell index to the index of the normal cell containing this refined cell
+//      ref_grid<thrust_size_t> ijk_ref2ijk; // maps refined cell index to the index of the normal cell containing this refined cell
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
       // used to conserve memory if n_ref==1 (no refinement)
@@ -139,7 +136,8 @@ namespace libcloudphxx
         rv,      // water vapour mixing ratio
         sstp_pc_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio, per-cell substepping
         sstp_pc_tmp_th, // ditto for theta
-        sstp_pc_tmp_rh; // ditto for rho
+        sstp_pc_tmp_rh, // ditto for rho
+        dv;             // cell volume
 
       thrust_device::vector<real_t> 
         sstp_tmp_chem_0, // trace gases
@@ -158,13 +156,13 @@ namespace libcloudphxx
       std::map<enum common::output_t, real_t> output_puddle;
 
       thrust_device::vector<real_t> 
-        rhod,     // dry air density
         diss_rate; // turbulent kinetic energy dissipation rate
   
       ref_grid<real_t> 
         T,     // temperature [K]
         p,     // pressure [Pa]
         RH,    // relative humisity 
+        rhod,     // dry air density
         eta;   // dynamic viscosity
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
@@ -334,7 +332,7 @@ namespace libcloudphxx
         p(0, n_cell.get_ref()),
         th(0, n_cell.get_ref()),
         rv(0, n_cell.get_ref()),
-        ijk_ref2ijk(0, n_cell.get_ref()),
+//        ijk_ref2ijk(0, n_cell.get_ref()),
         count_ijk(n_cell),
         count_num(n_cell),
         count_mom(n_cell),
@@ -347,6 +345,8 @@ namespace libcloudphxx
         T (0, n_cell.get_ref()),
         RH(0, n_cell.get_ref()),
         eta(0, n_cell.get_ref()),
+        rhod(n_cell),
+        dv(n_cell),
         zero(0),
         n_part(0),
         sorted(false), 
@@ -382,13 +382,13 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-	       sstp_pc_tmp_rv(0, n_cell.get_ref()),
-	       sstp_pc_tmp_th(0, n_cell.get_ref()),
-	       sstp_pc_tmp_rh(0, n_cell.get_ref()),
-	       sstp_tmp_rv(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rv : sstp_pc_tmp_rv.get_ref()),
-	       sstp_tmp_th(_opts_init.exact_sstp_cond ? sstp_pp_tmp_th : sstp_pc_tmp_th.get_ref()),
-	       sstp_tmp_rh(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rh : sstp_pc_tmp_rh.get_ref()),
-	       sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
+	      sstp_pc_tmp_rv(0, _opts_init.exact_sstp_cond ? 0 : n_cell.get_ref()),
+	      sstp_pc_tmp_th(0, _opts_init.exact_sstp_cond ? 0 : n_cell.get_ref()),
+	      sstp_pc_tmp_rh(0, _opts_init.exact_sstp_cond ? 0 : n_cell.get_ref()),
+	      sstp_tmp_rv(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rv : sstp_pc_tmp_rv.get_ref()),
+	      sstp_tmp_th(_opts_init.exact_sstp_cond ? sstp_pp_tmp_th : sstp_pc_tmp_th.get_ref()),
+	      sstp_tmp_rh(_opts_init.exact_sstp_cond ? sstp_pp_tmp_rh : sstp_pc_tmp_rh.get_ref()),
+	      sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         ijk(opts_init.n_ref),
         sorted_ijk(opts_init.n_ref)
@@ -580,12 +580,14 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const thrust_size_t npart,
         const real_t power,
-        const bool specific = true
+        const bool specific = true,
+        const bool refined = false
       );
       void moms_calc(
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
-        const bool specific = true
+        const bool specific = true,
+        const bool refined = false
       );
 
       void mass_dens_estim(

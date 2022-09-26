@@ -203,7 +203,6 @@ namespace libcloudphxx
 
       thrust_device::vector<thrust_size_t> 
         &_sorted_ijk ( refined ? sorted_ijk.get_ref() : sorted_ijk.get()),
-        &_sorted_id  ( refined ? sorted_id.get_ref()  : sorted_id.get()),
         &_count_ijk  ( refined ? count_ijk.get_ref()  : count_ijk.get());
       thrust_device::vector<real_t> 
         &_count_mom  ( refined ? count_mom.get_ref()  : count_mom.get()),
@@ -228,8 +227,8 @@ namespace libcloudphxx
         // input - values
         thrust::make_transform_iterator(
           zip_it_t(thrust::make_tuple(
-            pi_t(n_filtered.begin(),   _sorted_id.begin()),
-            pi_t(vec_bgn,              _sorted_id.begin())
+            pi_t(n_filtered.begin(),   sorted_id.begin()),
+            pi_t(vec_bgn,              sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
@@ -308,7 +307,7 @@ namespace libcloudphxx
           std::cout << "sorted_ijk:" << std::endl;
           debug::print(_sorted_ijk);
           std::cout << "sorted_id:" << std::endl;
-          debug::print(_sorted_id);
+          debug::print(sorted_id);
           std::cout << "vec:" << std::endl;
           debug::print(vec_bgn, vec_bgn + npart);
           std::cout << "dv:" << std::endl;

@@ -96,7 +96,7 @@ namespace libcloudphxx
       pimpl->sync(th,             pimpl->th.get_ref());
       pimpl->sync(rv,             pimpl->rv.get_ref());
       pimpl->sync(diss_rate,      pimpl->diss_rate);
-      pimpl->sync(rhod,           pimpl->rhod);
+      pimpl->sync(rhod,           pimpl->rhod.get_ref());
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
@@ -110,13 +110,13 @@ namespace libcloudphxx
       nancheck(pimpl->courant_y, " courant_y after sync-in");
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
-      nancheck(pimpl->rhod, " rhod after sync-in");
+      nancheck(pimpl->rhod.get_ref(), " rhod after sync-in");
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
       assert(*thrust::min_element(pimpl->rv.begin_ref(), pimpl->rv.end_ref()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin_ref(), pimpl->th.end_ref()) >= 0);
-      assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      assert(*thrust::min_element(pimpl->rhod.begin_ref(), pimpl->rhod.end_ref()) >= 0);
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 

@@ -58,9 +58,6 @@ namespace libcloudphxx
     {
       namespace arg = thrust::placeholders;
 
-      // filling in sample volume data
-      dv.resize(n_cell.get());
-
       int n_cell_halo(2 * halo_x); // number of halo cells
 
       if (n_dims > 0)

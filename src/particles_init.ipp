@@ -41,8 +41,8 @@ namespace libcloudphxx
       pimpl->init_sync();  // also, init of ambient_chem vectors
       pimpl->init_e2l(th,   pimpl->th.ptr_ref(), true);
       pimpl->init_e2l(rv,   pimpl->rv.ptr_ref(), true);
-      pimpl->init_e2l(rhod, &pimpl->rhod);
-      //pimpl->init_e2l(rhod, pimpl->rhod.ptr_ref(), true);
+//      pimpl->init_e2l(rhod, &pimpl->rhod);
+      pimpl->init_e2l(rhod, pimpl->rhod.ptr_ref(), true);
       if(pimpl->const_p)
         pimpl->init_e2l(p, pimpl->p.ptr_ref(), true);
 
@@ -60,8 +60,8 @@ namespace libcloudphxx
       // feeding in Eulerian fields
       pimpl->sync(th,   pimpl->th.get_ref());
       pimpl->sync(rv,   pimpl->rv.get_ref());
-      pimpl->sync(rhod, pimpl->rhod);
-      pimpl->sync(p,   pimpl->p.get_ref());
+      pimpl->sync(rhod, pimpl->rhod.get_ref());
+      pimpl->sync(p,    pimpl->p.get_ref());
 
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);

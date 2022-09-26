@@ -178,7 +178,7 @@ namespace libcloudphxx
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
           th.begin_ref(), th.end_ref(),  // input - first arg
-          thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin_ref()),             // input - second arg
+          rhod.begin_ref(),             // input - second arg
           T.begin_ref(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
@@ -199,7 +199,7 @@ namespace libcloudphxx
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           auto it = thrust::make_zip_iterator(thrust::make_tuple(
-            thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin_ref()), 
+            rhod.begin_ref(), 
             rv.begin_ref(), 
             T.begin_ref()
           ));
@@ -229,19 +229,53 @@ namespace libcloudphxx
  
       // dynamic viscosity
       {
-        // on refined grid
-        thrust::transform(
-          T.begin_ref(), T.end_ref(), // 1st arg
-          eta.begin_ref(),        // output
-          detail::common__vterm__visc<real_t>()
-        );
         // on normal grid: how if we dont know T, because we dont know th?
-        // TODO: require input of normal th? 
-        // or use averaging from refined to normal?
+        // OTHER OPTION: use averaging from refined to normal?
         // cumbersome: 
         // 0. make copies of eta and ijk_ref2ijk
         // 1. sort copies of eta by ijk_ref2ijk
         // 2. reduce_by_key and add the result to normal eta
+        //
+        // calc based on th on normal grid:
+        // T on normal grid:
+        thrust_device::vector<real_t> &Tn(tmp_device_real_cell.get());
+
+        // same code as for T on refined grid, TODO: DRY
+        if(!const_p) // variable pressure
+        {
+          // T  = common::theta_dry::T<real_t>(th, rhod);
+          thrust::transform(
+            th.begin(), th.end(),  // input - first arg
+            rhod.begin(),             // input - second arg
+            Tn.begin(),                 // output
+            detail::common__theta_dry__T_rhod<real_t>() 
+          );
+        }
+        else // external pressure profile
+        {
+          // T = th * exner(p_tot)
+          thrust::transform(
+            th.begin(), th.end(),      // input - first arg
+            thrust::make_tuple(rv.begin(), p.begin()), // input - second and third args
+            Tn.begin(),                 // output
+            detail::common__theta_dry__T_p<real_t>() 
+          );
+        }
+
+        thrust::transform(
+          Tn.begin(), Tn.end(), // 1st arg
+          eta.begin(),        // output
+          detail::common__vterm__visc<real_t>()
+        );
+ 
+        
+        // on refined grid
+        if(opts_init.n_ref > 1)
+          thrust::transform(
+            T.begin_ref(), T.end_ref(), // 1st arg
+            eta.begin_ref(),        // output
+            detail::common__vterm__visc<real_t>()
+          );
       }
 
 
