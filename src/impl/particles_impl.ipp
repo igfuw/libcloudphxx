@@ -356,7 +356,7 @@ namespace libcloudphxx
         rng(_opts_init.rng_seed),
         src_stp_ctr(0),
         rlx_stp_ctr(0),
-	bcond(bcond),
+        bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
         mpi_rank(mpi_rank),

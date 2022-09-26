@@ -375,7 +375,7 @@ namespace libcloudphxx
             // rhod
             thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
             // eta
-            thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+            thrust::make_permutation_iterator(eta.begin_ref(), sorted_ijk.begin_ref()),  // TODO: use eta.begin(), but right no we dont have et on normal grid
             // tke dissipation rate
             thrust::make_permutation_iterator(thrust::make_constant_iterator<real_t>(0), sorted_ijk.begin())
           )
@@ -388,7 +388,7 @@ namespace libcloudphxx
             // rhod
             thrust::make_permutation_iterator(rhod.begin(), sorted_ijk.begin()),
             // eta
-            thrust::make_permutation_iterator(eta.begin(), sorted_ijk.begin()),
+            thrust::make_permutation_iterator(eta.begin_ref(), sorted_ijk.begin_ref()),  // TODO: use eta.begin(), but right no we dont have et on normal grid
             // tke dissipation rate
             thrust::make_permutation_iterator(diss_rate.begin(), sorted_ijk.begin()) 
           )
