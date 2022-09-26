@@ -109,7 +109,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator
       > it_pair = thrust::reduce_by_key(
         sorted_ijk.begin_ref(), sorted_ijk.end_ref(),
-        thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin_ref()),
+        thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin()),
         count_ijk.begin_ref(),
         count_mom.begin_ref()
       );

@@ -106,8 +106,8 @@ namespace libcloudphxx
 
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
-        i, j, k; // Eulerian grid cell indices (always zero for 0D)
-      ref_part<thrust_size_t> ijk, sorted_id, sorted_ijk; // ijk in the normal and in the refined grid
+        i, j, k, sorted_id; // Eulerian grid cell indices (always zero for 0D), one sorted_id needed, because its the same in normal and refined grids as we always sort them together
+      ref_part<thrust_size_t> ijk, sorted_ijk; // ijk in the normal and in the refined grid
       ref_grid<thrust_size_t> ijk_ref2ijk; // maps refined cell index to the index of the normal cell containing this refined cell
 
       // helpers that reference refined arrays if refinement is done and non-refined otherwise 
@@ -391,8 +391,7 @@ namespace libcloudphxx
 	       sstp_tmp_p(sstp_pp_tmp_p), // not used in per-cell substepping
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         ijk(opts_init.n_ref),
-        sorted_ijk(opts_init.n_ref),
-        sorted_id(opts_init.n_ref)
+        sorted_ijk(opts_init.n_ref)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
