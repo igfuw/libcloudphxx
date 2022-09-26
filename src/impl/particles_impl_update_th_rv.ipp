@@ -89,7 +89,7 @@ namespace libcloudphxx
       nancheck(th, "update_th_rv: th after update");
     }
 
-    // update particle-specific cell state
+    // update particle-specific  cell state; done on refined grid
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_pstate(
@@ -97,7 +97,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &pdstate // change in cell characteristic
     ) 
     {   
-      if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
+      if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
 
       // cell-wise change in state
       ref_grid<real_t> &dstate(tmp_device_real_cell);
@@ -108,16 +108,16 @@ namespace libcloudphxx
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
       > it_pair = thrust::reduce_by_key(
-        sorted_ijk.begin(), sorted_ijk.end(),
-        thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin()),
-        count_ijk.begin(),
-        count_mom.begin()
+        sorted_ijk.begin_ref(), sorted_ijk.end_ref(),
+        thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin_ref()),
+        count_ijk.begin_ref(),
+        count_mom.begin_ref()
       );
-      count_n.get() = it_pair.first - count_ijk.begin();
+      count_n.get_ref() = it_pair.first - count_ijk.begin_ref();
 
       // add this sum to dstate
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
+        count_mom.begin_ref(), count_mom.begin_ref() + count_n.get_ref(),             // input - 1st arg
         thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // 2nd arg
         thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // output
         thrust::plus<real_t>()
