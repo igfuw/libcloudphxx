@@ -19,11 +19,11 @@ namespace libcloudphxx
 
       if (!shuffle)
       {
-	// making a copy of ijk
-	thrust::copy(
-	  ijk.begin(), ijk.end(), // from
-	  sorted_ijk.begin()      // to
-	);
+        // making a copy of ijk
+        thrust::copy(
+          ijk.begin(), ijk.end(), // from
+          sorted_ijk.begin()      // to
+        );
       }
       else
       {
@@ -46,8 +46,8 @@ namespace libcloudphxx
 
       // sorting sorted_ijk and sorted_id
       thrust::sort_by_key(
-	sorted_ijk.begin(), sorted_ijk.end(), // keys
-	sorted_id.begin()                     // values
+        sorted_ijk.begin(), sorted_ijk.end(), // keys
+        sorted_id.begin()                     // values
       );
 
       // flagging that particles are now sorted
