@@ -178,7 +178,7 @@ namespace libcloudphxx
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
           th.begin_ref(), th.end_ref(),  // input - first arg
-          thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin()),             // input - second arg
+          thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin_ref()),             // input - second arg
           T.begin_ref(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
@@ -199,7 +199,7 @@ namespace libcloudphxx
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           auto it = thrust::make_zip_iterator(thrust::make_tuple(
-            thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin()), 
+            thrust::make_permutation_iterator(rhod.begin(), ijk_ref2ijk.begin_ref()), 
             rv.begin_ref(), 
             T.begin_ref()
           ));

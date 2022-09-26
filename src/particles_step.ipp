@@ -104,8 +104,8 @@ namespace libcloudphxx
       // fill in mpi courant halos
       pimpl->xchng_courants();
 
-      nancheck(pimpl->th, " th after sync-in");
-      nancheck(pimpl->rv, " rv after sync-in");
+      nancheck(pimpl->th.get_ref(), " th after sync-in");
+      nancheck(pimpl->rv.get_ref(), " rv after sync-in");
       nancheck(pimpl->courant_x, " courant_x after sync-in");
       nancheck(pimpl->courant_y, " courant_y after sync-in");
       nancheck(pimpl->courant_z, " courant_z after sync-in");
@@ -114,8 +114,8 @@ namespace libcloudphxx
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
-      assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
-      assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
+      assert(*thrust::min_element(pimpl->rv.begin_ref(), pimpl->rv.end_ref()) >= 0);
+      assert(*thrust::min_element(pimpl->th.begin_ref(), pimpl->th.end_ref()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
@@ -206,8 +206,8 @@ namespace libcloudphxx
           }
         }
 
-        nancheck(pimpl->th, " th after cond");
-        nancheck(pimpl->rv, " rv after cond");
+        nancheck(pimpl->th.get_ref(), " th after cond");
+        nancheck(pimpl->rv.get_ref(), " rv after cond");
 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
