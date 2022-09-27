@@ -41,10 +41,11 @@ namespace libcloudphxx
     };
 
     // calc the SGS turbulent supersaturation
+    // TODO: do it on refined grid
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_turb_dot_ss()
     {   
-      thrust_device::vector<real_t> &tau_rlx(tmp_device_real_cell); // tau_rlx needs to have length n_cell
+      thrust_device::vector<real_t> &tau_rlx(tmp_device_real_cell.get()); // tau_rlx needs to have length n_cell
 #if !defined(NDEBUG)
       // fill with a dummy value for debugging
       thrust::fill(tau_rlx.begin(), tau_rlx.end(), -44);
@@ -55,7 +56,7 @@ namespace libcloudphxx
       moms_calc(rw2.begin(), real_t(1./2), false);
       thrust::transform(
         count_mom.begin(),
-        count_mom.begin() + count_n,
+        count_mom.begin() + count_n.get(),
         thrust::make_permutation_iterator(
           dv.begin(),
           count_ijk.begin()
@@ -67,7 +68,7 @@ namespace libcloudphxx
       // copy the calculated relaxation times to the array of length n_cell
       thrust::copy(
         count_mom.begin(),
-        count_mom.begin() + count_n,
+        count_mom.begin() + count_n.get(),
         thrust::make_permutation_iterator(
           tau_rlx.begin(), 
           count_ijk.begin()

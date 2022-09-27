@@ -44,9 +44,9 @@ namespace libcloudphxx
           count_num.begin(), ptr.begin(), zero
         )), 
         thrust::make_zip_iterator(thrust::make_tuple(
-          count_num.end(), ptr.end(), zero + n_cell
+          count_num.end(), ptr.end(), zero + n_cell.get()
         )), 
-        detail::arbitrary_sequence<thrust_size_t>(&(ijk[n_part_old]))
+        detail::arbitrary_sequence<thrust_size_t>(&(*(ijk.begin() + n_part_old)))
       );
     }
   };

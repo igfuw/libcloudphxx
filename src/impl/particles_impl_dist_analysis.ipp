@@ -35,7 +35,7 @@ namespace libcloudphxx
           / sd_conc
           * dt
           * (n_dims == 0
-            ? dv[0]
+            ? dv.get()[0]
             : (opts_init.dx * opts_init.dy * opts_init.dz)
           );
 

@@ -81,14 +81,9 @@ namespace libcloudphxx
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
       {
         // TODO: copy-pasted from init
-        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0, - pimpl->halo_x);
-        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) - pimpl->halo_z);
-        /*
-        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, 1, 0, 0);
-        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz );
-        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) );
-        */
+        if (!courant_x.is_null()) pimpl->init_e2l(courant_x, &pimpl->courant_x, false, 1, 0, 0, - pimpl->halo_x);
+        if (!courant_y.is_null()) pimpl->init_e2l(courant_y, &pimpl->courant_y, false, 0, 1, 0, pimpl->n_x_bfr * pimpl->opts_init.nz - pimpl->halo_y);
+        if (!courant_z.is_null()) pimpl->init_e2l(courant_z, &pimpl->courant_z, false, 0, 0, 1, pimpl->n_x_bfr * std::max(1, pimpl->opts_init.ny) - pimpl->halo_z);
       }
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
@@ -98,10 +93,10 @@ namespace libcloudphxx
       pimpl->var_rho = !rhod.is_null();
 
       // syncing in Eulerian fields (if not null)
-      pimpl->sync(th,             pimpl->th);
-      pimpl->sync(rv,             pimpl->rv);
+      pimpl->sync(th,             pimpl->th.get_ref());
+      pimpl->sync(rv,             pimpl->rv.get_ref());
       pimpl->sync(diss_rate,      pimpl->diss_rate);
-      pimpl->sync(rhod,           pimpl->rhod);
+      pimpl->sync(rhod,           pimpl->rhod.get_ref());
       pimpl->sync(courant_x,      pimpl->courant_x);
       pimpl->sync(courant_y,      pimpl->courant_y);
       pimpl->sync(courant_z,      pimpl->courant_z);
@@ -109,19 +104,19 @@ namespace libcloudphxx
       // fill in mpi courant halos
       pimpl->xchng_courants();
 
-      nancheck(pimpl->th, " th after sync-in");
-      nancheck(pimpl->rv, " rv after sync-in");
+      nancheck(pimpl->th.get_ref(), " th after sync-in");
+      nancheck(pimpl->rv.get_ref(), " rv after sync-in");
       nancheck(pimpl->courant_x, " courant_x after sync-in");
       nancheck(pimpl->courant_y, " courant_y after sync-in");
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
-      nancheck(pimpl->rhod, " rhod after sync-in");
+      nancheck(pimpl->rhod.get_ref(), " rhod after sync-in");
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
-      assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
-      assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
-      assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
+      assert(*thrust::min_element(pimpl->rv.begin_ref(), pimpl->rv.end_ref()) >= 0);
+      assert(*thrust::min_element(pimpl->th.begin_ref(), pimpl->th.end_ref()) >= 0);
+      assert(*thrust::min_element(pimpl->rhod.begin_ref(), pimpl->rhod.end_ref()) >= 0);
       if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
@@ -181,7 +176,7 @@ namespace libcloudphxx
       {
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
-        //       that would make it easy to do in exact (per-cell) substepping
+        //       that would make it easy to do in exact (per-particle) substepping
         pimpl->hskpng_mfp(); 
 
         if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)
@@ -211,8 +206,8 @@ namespace libcloudphxx
           }
         }
 
-        nancheck(pimpl->th, " th after cond");
-        nancheck(pimpl->rv, " rv after cond");
+        nancheck(pimpl->th.get_ref(), " th after cond");
+        nancheck(pimpl->rv.get_ref(), " rv after cond");
 
         // saving rv to be used as rv_old
         pimpl->sstp_save();
@@ -264,8 +259,8 @@ namespace libcloudphxx
       if(opts.cond) // || (opts.src && pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) || (opts.rlx && pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
-        pimpl->sync(pimpl->th, th);
-        pimpl->sync(pimpl->rv, rv);
+        pimpl->sync(pimpl->th.get_ref(), th);
+        pimpl->sync(pimpl->rv.get_ref(), rv);
       }
 
       if (opts.chem_dsl == true)

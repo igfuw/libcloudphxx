@@ -116,7 +116,7 @@ target_include_directories(cloudphxx_lgrngn
 # enabling c++14
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_14)
 # config-specific flags
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:                  -g -Og -DTHRUST_DEBUG>)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:                  -g -Og -DTHRUST_DEBUG -Wfatal-errors>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:                -Ofast -march=native -Winline -DNDEBUG >)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>:         -Ofast -march=native>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFOPORTABLE>>: -Ofast>)

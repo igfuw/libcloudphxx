@@ -28,6 +28,8 @@
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
 #include "detail/ran_with_mpi.hpp"
+#include "detail/grid_refinement_helpers.hpp"
+#include "detail/debug.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"

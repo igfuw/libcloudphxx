@@ -12,7 +12,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::post_adding_SD()
     {   
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called since ante_adding_SD() was called.....
+      auto &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called since ante_adding_SD() was called.....
 
       // --- after source particles are no longer sorted ---
       sorted = false;
@@ -24,9 +24,9 @@ namespace libcloudphxx
 
       // drv = tot_vol_after -tot_vol_bfr + dry_vol_bfr
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // 2nd arg
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // output
         thrust::plus<real_t>()
       );
 

@@ -53,7 +53,7 @@ namespace libcloudphxx
     {   
       namespace arg = thrust::placeholders;
 
-      thrust_device::vector<real_t> &tau(tmp_device_real_cell);
+      thrust_device::vector<real_t> &tau(tmp_device_real_cell.get());
       thrust_device::vector<real_t> &tke(diss_rate); // should be called after hskpng_tke, which replaces diss_rate with tke
 
       thrust::transform(tke.begin(), tke.end(),

@@ -71,7 +71,7 @@ namespace libcloudphxx
 #else
         static_assert(sizeof(thrust_size_t) == sizeof(n_t), "");
 #endif
-        thrust_device::vector<thrust_size_t> &tmp(sorted_ijk);
+        thrust_device::vector<thrust_size_t> &tmp(sorted_ijk.get());
         thrust::copy(n.begin(), n.end(), tmp.begin());
       
         thrust::sort_by_key(

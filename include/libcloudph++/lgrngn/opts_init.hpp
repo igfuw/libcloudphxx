@@ -46,6 +46,14 @@ namespace libcloudphxx
       // Eulerian component parameters
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
+      unsigned int n_ref; // number of grid refinements per 'normal' cell; refined cell size is (dx, dy, dz) / n_ref; 
+      // condensation (and sedimentation?) is resolved on refined cells, rest (coalescence, advection, etc.) on normal cells
+      // input arrays on the refined grid: pressure p (if supplied), rv, tht
+      // internal arrays on the refined grid: RH, T, eta
+      // TODO:
+      // dynamic viscosity eta on both grids?
+      // what about cell volume dv?
+      // what about density rhod?
 
       // no. of substeps 
       int sstp_cond, sstp_coal; 
@@ -65,7 +73,7 @@ namespace libcloudphxx
       // is it allowed to change dt during simulation through opts.dt
       bool variable_dt_switch;
 
-      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
+      // alternatively to sd_conc, multiplicity of all SDs = const
       unsigned long long  sd_const_multi;
 
       // max no. of super-droplets in the system
@@ -236,7 +244,8 @@ namespace libcloudphxx
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
-        rng_seed_init_switch(false)
+        rng_seed_init_switch(false),
+        n_ref(1)
       {}
 
       // dtor (just to silence -Winline warnings)

@@ -58,36 +58,33 @@ namespace libcloudphxx
     {
       namespace arg = thrust::placeholders;
 
-      // filling in sample volume data
-      dv.resize(n_cell);
-
       int n_cell_halo(2 * halo_x); // number of halo cells
 
       if (n_dims > 0)
       {
         // in parcel set-up hskpng_Tpr takes care of keeping dv up-to-date with rho (dealing with 1kg of dry air)
 	thrust::transform(
-	  zero, zero + n_cell, // input - 1st arg
+	  zero, zero + n_cell.get(), // input - 1st arg
 	  dv.begin(),          // output  
 	  detail::dv_eval<real_t>(opts_init)
 	);
 	// memory allocation
-	lft.resize(n_cell + n_cell_halo);
-	rgt.resize(n_cell + n_cell_halo);
+	lft.resize(n_cell.get() + n_cell_halo);
+	rgt.resize(n_cell.get() + n_cell_halo);
       }
 
       if (n_dims > 1)
       {
 	// memory allocation
-	abv.resize(n_cell + n_cell_halo);
-	blw.resize(n_cell + n_cell_halo);
+	abv.resize(n_cell.get() + n_cell_halo);
+	blw.resize(n_cell.get() + n_cell_halo);
       }
       
       if (n_dims == 3)
       {
         // memory allocation
-        fre.resize(n_cell + n_cell_halo);
-        hnd.resize(n_cell + n_cell_halo);
+        fre.resize(n_cell.get() + n_cell_halo);
+        hnd.resize(n_cell.get() + n_cell_halo);
       }
 
       // filling in neighbour info data
@@ -96,7 +93,7 @@ namespace libcloudphxx
         case 0: break;
 	case 2:
 	  thrust::transform(
-            zero, zero + n_cell + n_cell_halo,    // input - 1st arg
+            zero, zero + n_cell.get() + n_cell_halo,    // input - 1st arg
             blw.begin(),            // output
             arg::_1 + (arg::_1 / opts_init.nz)
 	  );
@@ -108,7 +105,7 @@ namespace libcloudphxx
           // intentionally no break!
         case 1:
 	  thrust::transform(
-            zero, zero + n_cell + n_cell_halo,    // input - 1st arg
+            zero, zero + n_cell.get() + n_cell_halo,    // input - 1st arg
             lft.begin(),            // output
             arg::_1
 	  );
@@ -120,7 +117,7 @@ namespace libcloudphxx
 	  break;
         case 3:
 	  thrust::transform(
-            zero, zero + n_cell + n_cell_halo,    // input - 1st arg
+            zero, zero + n_cell.get() + n_cell_halo,    // input - 1st arg
             lft.begin(),            // output
             arg::_1 
 	  );
@@ -130,7 +127,7 @@ namespace libcloudphxx
             arg::_1 + opts_init.nz * opts_init.ny
 	  );
 	  thrust::transform(
-            zero, zero + n_cell + n_cell_halo,    // input - 1st arg
+            zero, zero + n_cell.get() + n_cell_halo,    // input - 1st arg
             blw.begin(),            // output
             arg::_1 
             + opts_init.ny * (arg::_1 / (opts_init.nz * opts_init.ny)) 
@@ -142,7 +139,7 @@ namespace libcloudphxx
             arg::_1 + 1
 	  );
           thrust::transform(
-            zero, zero + n_cell + n_cell_halo,    // input - 1st arg
+            zero, zero + n_cell.get() + n_cell_halo,    // input - 1st arg
             fre.begin(),            // output
             arg::_1 + (arg::_1 / (opts_init.nz * opts_init.ny)) * opts_init.nz
           );

@@ -21,11 +21,12 @@ namespace libcloudphxx
     {
       // TODO: init these vctrs once per run
       std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
-      n_t_vctrs.insert(&ijk);
-
       if (opts_init.nx != 0)  n_t_vctrs.insert(&i);
       if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
       if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
+
+      std::set<ref_part<thrust_size_t>*> n_t_vctrs_ref;
+      n_t_vctrs_ref.insert(&ijk);
 
       namespace arg = thrust::placeholders;
 
@@ -73,6 +74,25 @@ namespace libcloudphxx
           n.begin(),
           arg::_1 == 0
         );
+      }
+
+      // remove from n_t efined vectors
+      for(auto vec: n_t_vctrs_ref)
+      { 
+        thrust::remove_if(
+          vec->begin(),
+          vec->begin() + n_part,
+          n.begin(),
+          arg::_1 == 0
+        );
+        // add conditional remove to the part_ref class?
+        if(opts_init.n_ref > 1)
+          thrust::remove_if(
+            vec->begin_ref(),
+            vec->begin_ref() + n_part,
+            n.begin(),
+            arg::_1 == 0
+          );
       }
 
       // remove from n and set new n_part

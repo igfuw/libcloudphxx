@@ -192,13 +192,25 @@ namespace libcloudphxx
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const thrust_size_t npart,
       const real_t power,
-      const bool specific
+      const bool specific,
+      const bool refined
     )
     {
       assert(selected_before_counting);
 
       // same as above
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+
+      thrust_device::vector<thrust_size_t> 
+        &_sorted_ijk ( refined ? sorted_ijk.get_ref() : sorted_ijk.get()),
+        &_count_ijk  ( refined ? count_ijk.get_ref()  : count_ijk.get());
+      thrust_device::vector<real_t> 
+        &_count_mom  ( refined ? count_mom.get_ref()  : count_mom.get()),
+        &_rhod       ( refined ? rhod.get_ref()       : rhod.get()),
+        &_dv         ( refined ? dv.get_ref()         : dv.get());
+      auto 
+        &_count_n    ( refined ? count_n.get_ref()    : count_n.get()),
+        &_n_cell     ( refined ? n_cell.get_ref()     : n_cell.get());
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,
@@ -211,7 +223,7 @@ namespace libcloudphxx
         typename thrust_device::vector<real_t>::iterator
       > it_pair = thrust::reduce_by_key(
         // input - keys
-        sorted_ijk.begin(), sorted_ijk.begin()+npart,  
+        _sorted_ijk.begin(), _sorted_ijk.begin()+npart,  
         // input - values
         thrust::make_transform_iterator(
           zip_it_t(thrust::make_tuple(
@@ -221,37 +233,37 @@ namespace libcloudphxx
           detail::moment_counter<real_t>(power)
         ),
         // output - keys
-        count_ijk.begin(),
+        _count_ijk.begin(),
         // output - values
-        count_mom.begin()
+        _count_mom.begin()
       );  
 
-      count_n = it_pair.first - count_ijk.begin();
+      _count_n = it_pair.first - _count_ijk.begin();
 #if !defined(NDEBUG)
       {
-        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        int nan_count = thrust::transform_reduce(_count_mom.begin(), _count_mom.begin() + _count_n, isnaninf(), 0, thrust::plus<bool>());
         if(nan_count>0)
         {
           std::cout << nan_count << " nan/inf numbers detected in count_mom after reduce_by_key " << std::endl;
         }
       }
 #endif
-      assert(count_n <= n_cell);
+      assert(_count_n <= _n_cell);
       if(specific)
       {
         // dividing by dv
         thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
+          _count_mom.begin(), _count_mom.begin() + _count_n,  // input - first arg
           thrust::make_permutation_iterator(                  // input - second arg
-            dv.begin(),
-            count_ijk.begin()
+            _dv.begin(),
+            _count_ijk.begin()
           ),
-          count_mom.begin(),                                  // output (in place)
+          _count_mom.begin(),                                  // output (in place)
           thrust::divides<real_t>()
         );
 #if !defined(NDEBUG)
         {
-          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          int nan_count = thrust::transform_reduce(_count_mom.begin(), _count_mom.begin() + _count_n, isnaninf(), 0, thrust::plus<bool>());
           if(nan_count>0)
           {
             std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by dv " << std::endl;
@@ -261,17 +273,17 @@ namespace libcloudphxx
         // dividing by rhod to get specific moments
         // (for compatibility with blk_1m and blk_2m reporting mixing ratios)
         thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,     // input - first arg
-          thrust::make_permutation_iterator(                  // input - second arg
-            rhod.begin(),
-            count_ijk.begin()
+          _count_mom.begin(), _count_mom.begin() + _count_n,     // input - first arg
+          thrust::make_permutation_iterator(                     // input - second arg
+            _rhod.begin(),                                       
+            _count_ijk.begin()
           ),
-          count_mom.begin(),                                  // output (in place)
+          _count_mom.begin(),                                  // output (in place)
           thrust::divides<real_t>()
         );
 #if !defined(NDEBUG)
         {
-          int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+          int nan_count = thrust::transform_reduce(_count_mom.begin(), _count_mom.begin() + _count_n, isnaninf(), 0, thrust::plus<bool>());
           if(nan_count>0)
           {
             std::cout << nan_count << " nan/inf numbers detected in count_mom after dividing by rhod " << std::endl;
@@ -281,27 +293,27 @@ namespace libcloudphxx
       }
 #if !defined(NDEBUG)
       {
-        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        int nan_count = thrust::transform_reduce(_count_mom.begin(), _count_mom.begin() + _count_n, isnaninf(), 0, thrust::plus<bool>());
         if(nan_count>0)
         {
           std::cout << nan_count << " nan/inf numbers detected in count_mom " << std::endl;
-          std::cout << "count_n:" << count_n << std::endl;
+          std::cout << "count_n:" << _count_n << std::endl;
           std::cout << "count_mom:" << std::endl;
-          debug::print(count_mom.begin(), count_mom.begin() + count_n);
+          debug::print(_count_mom.begin(), _count_mom.begin() + _count_n);
           std::cout << "count_ijk:" << std::endl;
-          debug::print(count_ijk.begin(), count_ijk.begin() + count_n);
+          debug::print(_count_ijk.begin(), _count_ijk.begin() + _count_n);
           std::cout << "n_filtered:" << std::endl;
           debug::print(n_filtered);
           std::cout << "sorted_ijk:" << std::endl;
-          debug::print(sorted_ijk);
+          debug::print(_sorted_ijk);
           std::cout << "sorted_id:" << std::endl;
           debug::print(sorted_id);
           std::cout << "vec:" << std::endl;
           debug::print(vec_bgn, vec_bgn + npart);
           std::cout << "dv:" << std::endl;
-          debug::print(dv);
+          debug::print(_dv);
           std::cout << "rhod:" << std::endl;
-          debug::print(rhod);
+          debug::print(_rhod);
         }
       }
 #endif
@@ -311,10 +323,11 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::moms_calc(
       const typename thrust_device::vector<real_t>::iterator &vec_bgn,
       const real_t power,
-      const bool specific
+      const bool specific,
+      const bool refined
     )
     {
-      moms_calc(vec_bgn, n_part, power, specific);
+      moms_calc(vec_bgn, n_part, power, specific, refined);
     }
   };  
 };

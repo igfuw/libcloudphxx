@@ -15,8 +15,8 @@ namespace libcloudphxx
         }
       }
       {
-        thrust_device::vector<thrust_size_t> *vec[] = {&ijk, &sorted_id, &sorted_ijk};
-        for(int i=0; i<3; ++i)
+        ref_part<thrust_size_t> *vec[] = {&ijk, &sorted_ijk};
+        for(int i=0; i<2; ++i)
         {
           vec[i]->resize(n_part);
         }
@@ -24,6 +24,7 @@ namespace libcloudphxx
       n.resize(n_part);
       tmp_device_n_part.resize(n_part);
       tmp_device_size_part.resize(n_part);
+      sorted_id.resize(n_part);
 
       vt.resize(n_part, detail::invalid);
 

@@ -18,8 +18,11 @@ namespace libcloudphxx
 
       const int n = 4;
       thrust_device::vector<real_t>
-        *fr[n] = { &rv,          &th,          &rhod,        &p          },
-        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
+        *fr[n]   = { rv.ptr_ref(),  th.ptr_ref(),  &rhod,        p.ptr_ref() },
+        *to[n]   = { &sstp_tmp_rv,  &sstp_tmp_th,  &sstp_tmp_rh, &sstp_tmp_p };
+      thrust_device::vector<thrust_size_t>
+        *_ijk[n] = { ijk.ptr_ref(), ijk.ptr_ref(), ijk.ptr(),    ijk.ptr_ref() };
+
       for (int ix = 0; ix < ( (const_p && opts_init.exact_sstp_cond) ? n : n-1); ++ix) // TODO: var_rho
       {
         if(opts_init.exact_sstp_cond) // per-particle version
@@ -45,8 +48,8 @@ namespace libcloudphxx
 
       const int n = 4;
       thrust_device::vector<real_t>
-        *fr[n] = { &rv,          &th,          &rhod,        &p          },
-        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
+        *fr[n] = { rv.ptr_ref(), th.ptr_ref(),  rhod.ptr_ref(), p.ptr_ref() },
+        *to[n] = { &sstp_tmp_rv, &sstp_tmp_th,  &sstp_tmp_rh,   &sstp_tmp_p };
       for (int ix = 0; ix < ( (const_p) ? n : n-1); ++ix) // TODO: var_rho
       {
         thrust::copy(
@@ -68,8 +71,8 @@ namespace libcloudphxx
 
       const int n = 3;
       thrust_device::vector<real_t>
-        *scl[n] = { &rv,          &th,          &rhod        },
-        *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh };
+        *scl[n] = { rv.ptr_ref(),           th.ptr_ref(),           &rhod        },
+        *tmp[n] = { &sstp_tmp_rv,           &sstp_tmp_th,           &sstp_tmp_rh };
 
       for (int ix = 0; ix < (var_rho ? n : n-1); ++ix)
       {
@@ -108,16 +111,18 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::sstp_step_exact(
       const int &step
     )
-    {   
+    { 
       if (sstp_cond == 1) return;
 
       namespace arg = thrust::placeholders;
 
       const int n = 4;
       thrust_device::vector<real_t>
-        *scl[n] = { &rv,          &th,          &rhod,        &p          },
-        *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
-        *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2, &tmp_device_real_part5 };
+        *scl[n]  = { rv.ptr_ref(),           th.ptr_ref(),           &rhod,                  p.ptr_ref()          },
+        *tmp[n]  = { &sstp_tmp_rv,           &sstp_tmp_th,           &sstp_tmp_rh,           &sstp_tmp_p },
+        *dlt[n]  = { &tmp_device_real_part,  &tmp_device_real_part1, &tmp_device_real_part2, &tmp_device_real_part5 };
+      thrust_device::vector<thrust_size_t>
+        *_ijk[n] = { ijk.ptr_ref(),          ijk.ptr_ref(),          ijk.ptr(),              ijk.ptr_ref() };
 
       for (int ix = 0; ix < (const_p ? n : n-1); ++ix)
       {
@@ -126,16 +131,16 @@ namespace libcloudphxx
       	{
       	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
       	  thrust::transform(
-      	    thrust::make_permutation_iterator(scl[ix]->begin(), ijk.begin()), // 1st arg: rv_new
-      	    thrust::make_permutation_iterator(scl[ix]->begin(), ijk.end()), // 1st arg: rv_new
+      	    thrust::make_permutation_iterator(scl[ix]->begin(), _ijk[ix]->begin()), // 1st arg: rv_new
+      	    thrust::make_permutation_iterator(scl[ix]->begin(), _ijk[ix]->end()), // 1st arg: rv_new
       	    tmp[ix]->begin(),                     // 2nd arg: rv_old
       	    dlt[ix]->begin(),                     // output 
       	    (arg::_1 - arg::_2) / sstp            // op: dscl_adv = (scl_new - scl_old) / sstp
       	  );
       	  // scl -= (sstp - 1) * dscl_adv / sstp
       	  thrust::transform(
-      	    thrust::make_permutation_iterator(scl[ix]->begin(), ijk.begin()), // 1st arg: rv_new
-      	    thrust::make_permutation_iterator(scl[ix]->begin(), ijk.end()), // 1st arg: rv_new
+      	    thrust::make_permutation_iterator(scl[ix]->begin(), _ijk[ix]->begin()), // 1st arg: rv_new
+      	    thrust::make_permutation_iterator(scl[ix]->begin(), _ijk[ix]->end()), // 1st arg: rv_new
       	    dlt[ix]->begin(),                     // 2nd arg
       	    tmp[ix]->begin(),                     // output 
       	    arg::_1 - (sstp - 1) * arg::_2        // op: rv = rv - (sstp - 1) * dscl_adv

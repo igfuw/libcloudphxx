@@ -177,9 +177,9 @@ namespace libcloudphxx
       {
         // T  = common::theta_dry::T<real_t>(th, rhod);
         thrust::transform(
-          th.begin(), th.end(),      // input - first arg
-          rhod.begin(),              // input - second arg
-          T.begin(),                 // output
+          th.begin_ref(), th.end_ref(),  // input - first arg
+          rhod.begin_ref(),             // input - second arg
+          T.begin_ref(),                 // output
           detail::common__theta_dry__T_rhod<real_t>() 
         );
       }
@@ -187,14 +187,30 @@ namespace libcloudphxx
       {
         // T = th * exner(p_tot)
         thrust::transform(
-          th.begin(), th.end(),      // input - first arg
-          thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args
-          T.begin(),                 // output
+          th.begin_ref(), th.end_ref(),      // input - first arg
+          thrust::make_zip_iterator(thrust::make_tuple(rv.begin_ref(), p.begin_ref())), // input - second and third args
+          T.begin_ref(),                 // output
           detail::common__theta_dry__T_p<real_t>() 
         );
       }
 
       {
+        if(!const_p)
+        {
+          // p  = common::theta_dry::p<real_t>(rhod, r, T); 
+          auto it = thrust::make_zip_iterator(thrust::make_tuple(
+            rhod.begin_ref(), 
+            rv.begin_ref(), 
+            T.begin_ref()
+          ));
+          thrust::transform(
+            it,                    // input - begin
+            it + n_cell.get_ref(), // input - end
+            p.begin_ref(),         // output
+            detail::common__theta_dry__p<real_t>()
+          );
+        }
+
         typedef thrust::zip_iterator<
           thrust::tuple<
             typename thrust_device::vector<real_t>::iterator,
@@ -203,33 +219,65 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-        if(!const_p)
-        {
-          // p  = common::theta_dry::p<real_t>(rhod, r, T); 
-          thrust::transform(
-            zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())), // input - begin
-            zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )), // input - end
-            p.begin(),                                                         // output
-            detail::common__theta_dry__p<real_t>()
-          );
-        }
-
         thrust::transform(
-          zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end
-          RH.begin(),                                                      // output
+          zip_it_t(thrust::make_tuple(p.begin_ref(), rv.begin_ref(), T.begin_ref())),  // input - begin
+          zip_it_t(thrust::make_tuple(p.end_ref(),   rv.end_ref(),   T.end_ref()  )),  // input - end
+          RH.begin_ref(),                                                  // output
           detail::RH<real_t>(opts_init.RH_formula)
         );
       }
  
       // dynamic viscosity
       {
+        // on normal grid: how if we dont know T, because we dont know th?
+        // OTHER OPTION: use averaging from refined to normal?
+        // cumbersome: 
+        // 0. make copies of eta and ijk_ref2ijk
+        // 1. sort copies of eta by ijk_ref2ijk
+        // 2. reduce_by_key and add the result to normal eta
+        //
+        // calc based on th on normal grid:
+        // T on normal grid:
+        thrust_device::vector<real_t> &Tn(tmp_device_real_cell.get());
+
+        // same code as for T on refined grid, TODO: DRY
+        if(!const_p) // variable pressure
+        {
+          // T  = common::theta_dry::T<real_t>(th, rhod);
+          thrust::transform(
+            th.begin(), th.end(),  // input - first arg
+            rhod.begin(),             // input - second arg
+            Tn.begin(),                 // output
+            detail::common__theta_dry__T_rhod<real_t>() 
+          );
+        }
+        else // external pressure profile
+        {
+          // T = th * exner(p_tot)
+          thrust::transform(
+            th.begin(), th.end(),      // input - first arg
+            thrust::make_tuple(rv.begin(), p.begin()), // input - second and third args
+            Tn.begin(),                 // output
+            detail::common__theta_dry__T_p<real_t>() 
+          );
+        }
+
         thrust::transform(
-          T.begin(), T.end(), // 1st arg
+          Tn.begin(), Tn.end(), // 1st arg
           eta.begin(),        // output
           detail::common__vterm__visc<real_t>()
         );
+ 
+        
+        // on refined grid
+        if(opts_init.n_ref > 1)
+          thrust::transform(
+            T.begin_ref(), T.end_ref(), // 1st arg
+            eta.begin_ref(),        // output
+            detail::common__vterm__visc<real_t>()
+          );
       }
+
 
       // adjusting dv if using a parcel set-up (1kg of dry air)
       if (n_dims == 0)

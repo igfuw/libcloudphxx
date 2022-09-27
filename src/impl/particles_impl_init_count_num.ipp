@@ -65,7 +65,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_hlpr(const real_t &conc, const thrust_size_t &const_multi)
     {
-      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      thrust_device::vector<real_t> &concentration(tmp_device_real_cell.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
 
@@ -129,7 +129,7 @@ namespace libcloudphxx
         case 2:
           thrust::transform(
             zero,
-            zero + n_cell,
+            zero + n_cell.get(),
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)
@@ -141,7 +141,7 @@ namespace libcloudphxx
         case 3:
           thrust::transform(
             zero,
-            zero + n_cell,
+            zero + n_cell.get(),
             count_num.begin(),
             real_t(number)    // no of SDs to create
               * ((arg::_1 % opts_init.nz) < k1)

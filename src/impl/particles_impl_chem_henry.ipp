@@ -307,8 +307,8 @@ namespace libcloudphxx
       hskpng_sort();
 
       // temporarily needed to store old mass per cell 
-      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
-      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
+      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell.get());
+      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1.get());
 
       for (int i = 0; i < chem_gas_n; ++i)
       {
@@ -369,12 +369,12 @@ namespace libcloudphxx
           count_ijk.begin(),
           mass_new.begin()
         );
-        count_n = it_pair.first - count_ijk.begin();
-        assert(count_n > 0 && count_n <= n_cell);
+        count_n.get() = it_pair.first - count_ijk.begin();
+        assert(count_n.get() > 0 && count_n.get() <= n_cell.get());
 
         // apply the change to the mixing ratios of trace gases
         thrust::transform(
-          mass_new.begin(), mass_new.begin() + count_n,                              // input - 1st arg
+          mass_new.begin(), mass_new.begin() + count_n.get(),                              // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(                              // input - 2nd arg
             mass_old.begin(),
             thrust::make_permutation_iterator(rhod.begin(), count_ijk.begin()), 

@@ -14,16 +14,16 @@ namespace libcloudphxx
     {   
       // --- calc liquid water content before src ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called before a call to after_adding_SD...
-      thrust::fill(drv.begin(), drv.end(), real_t(0.));
+      auto &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called before a call to after_adding_SD...
+      thrust::fill(drv.begin_ref(), drv.end_ref(), real_t(0.));
 
       moms_all();
       moms_calc(rw2.begin(), real_t(3./2.));
 
       // drv = - tot_vol_bfr
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        count_mom.begin(), count_mom.begin() + count_n.get(),                    // input - 1st arg
+        thrust::make_permutation_iterator(drv.begin_ref(), count_ijk.begin_ref()), // output
         thrust::negate<real_t>()
       );
 

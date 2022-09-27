@@ -52,7 +52,7 @@ namespace libcloudphxx
       // temporary space on the host 
       thrust::host_vector<real_t> tmp_real(n_part_to_init);
       thrust::host_vector<thrust_size_t> tmp_ijk(n_part_to_init);
-      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
+      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell.get());
 
       thrust::copy(
       rhod.begin(), rhod.end(), // from
@@ -135,7 +135,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc)
     {
       namespace arg = thrust::placeholders;
-      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      thrust_device::vector<real_t> &concentration(tmp_device_real_cell.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
       thrust::transform(

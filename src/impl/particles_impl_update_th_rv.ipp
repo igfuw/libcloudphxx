@@ -35,29 +35,29 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
-      thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
+      ref_grid<real_t> &drv // change in water vapor mixing ratio
     ) 
     {   
       if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
-      nancheck(drv, "update_th_rv: input drv");
+      nancheck(drv.get_ref(), "update_th_rv: input drv");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
       thrust::transform(
-        drv.begin(), drv.end(),                  // input - 1st arg
+        drv.begin_ref(), drv.end_ref(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
         ),
-        drv.begin(),                             // output
+        drv.begin_ref(),                             // output
         thrust::multiplies<real_t>()
       );  
 
       // updating rv 
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
       thrust::transform(
-        rv.begin(), rv.end(),  // input - 1st arg
-        drv.begin(),           // input - 2nd arg
-        rv.begin(),            // output
+        rv.begin_ref(), rv.end_ref(),  // input - 1st arg
+        drv.begin_ref(),           // input - 2nd arg
+        rv.begin_ref(),            // output
         thrust::plus<real_t>() 
       );
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
@@ -76,9 +76,9 @@ namespace libcloudphxx
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(  
-              drv.begin(),      // 
-              T.begin(),        // dth = drv * d_th_d_rv(T, th)
-              th.begin()        //
+              drv.begin_ref(),      // 
+              T.begin_ref(),        // dth = drv * d_th_d_rv(T, th)
+              th.begin_ref()        //
             )),
             detail::dth<real_t>()
           ),
@@ -89,7 +89,7 @@ namespace libcloudphxx
       nancheck(th, "update_th_rv: th after update");
     }
 
-    // update particle-specific cell state
+    // update particle-specific  cell state; done on refined grid
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_pstate(
@@ -97,36 +97,36 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &pdstate // change in cell characteristic
     ) 
     {   
-      if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
+      if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
 
       // cell-wise change in state
-      thrust_device::vector<real_t> &dstate(tmp_device_real_cell);
+      ref_grid<real_t> &dstate(tmp_device_real_cell);
       // init dstate with 0s
-      thrust::fill(dstate.begin(), dstate.end(), real_t(0));
+      thrust::fill(dstate.begin_ref(), dstate.end_ref(), real_t(0));
       // calc sum of pdstate in each cell
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
       > it_pair = thrust::reduce_by_key(
-        sorted_ijk.begin(), sorted_ijk.end(),
+        sorted_ijk.begin_ref(), sorted_ijk.end_ref(),
         thrust::make_permutation_iterator(pdstate.begin(), sorted_id.begin()),
-        count_ijk.begin(),
-        count_mom.begin()
+        count_ijk.begin_ref(),
+        count_mom.begin_ref()
       );
-      count_n = it_pair.first - count_ijk.begin();
+      count_n.get_ref() = it_pair.first - count_ijk.begin_ref();
 
       // add this sum to dstate
       thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // 2nd arg
-        thrust::make_permutation_iterator(dstate.begin(), count_ijk.begin()), // output
+        count_mom.begin_ref(), count_mom.begin_ref() + count_n.get_ref(),             // input - 1st arg
+        thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // 2nd arg
+        thrust::make_permutation_iterator(dstate.begin_ref(), count_ijk.begin_ref()), // output
         thrust::plus<real_t>()
       );
 
       // add dstate to pstate
       thrust::transform(
         pstate.begin(), pstate.end(),
-        thrust::make_permutation_iterator(dstate.begin(), ijk.begin()),
+        thrust::make_permutation_iterator(dstate.begin_ref(), ijk.begin_ref()),
         pstate.begin(),
         thrust::plus<real_t>()
       );
@@ -134,6 +134,7 @@ namespace libcloudphxx
 
     // update cell state based on particle-specific cell state
     // particles have to be sorted
+    /*
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_state(
       thrust_device::vector<real_t> &state, // cell state
@@ -143,6 +144,18 @@ namespace libcloudphxx
      thrust::copy(
        pstate.begin(), pstate.end(),
        thrust::make_permutation_iterator(state.begin(), ijk.begin())
+     );   
+    }
+    */
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::update_state(
+      ref_grid<real_t> &state, // cell state
+      thrust_device::vector<real_t> &pstate // particle-specific cell state (same for all particles in one cell)
+    ) 
+    {
+     thrust::copy(
+       pstate.begin(), pstate.end(),
+       thrust::make_permutation_iterator(state.begin_ref(), ijk.begin_ref())
      );   
     }
   };  

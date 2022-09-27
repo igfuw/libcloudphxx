@@ -113,14 +113,14 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->p.begin(), 
-        pimpl->p.end(), 
-        pimpl->count_mom.begin()
+        pimpl->p.begin_ref(), 
+        pimpl->p.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // p defined in all cells
-      pimpl->count_n = pimpl->n_cell;
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      pimpl->count_n.get() = pimpl->n_cell.get();
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records temperature
@@ -130,14 +130,14 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->T.begin(), 
-        pimpl->T.end(), 
-        pimpl->count_mom.begin()
+        pimpl->T.begin_ref(), 
+        pimpl->T.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // T defined in all cells
-      pimpl->count_n = pimpl->n_cell;
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      pimpl->count_n.get_ref() = pimpl->n_cell.get_ref();
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records relative humidity
@@ -147,14 +147,14 @@ namespace libcloudphxx
       pimpl->hskpng_Tpr(); 
 
       thrust::copy(
-        pimpl->RH.begin(), 
-        pimpl->RH.end(), 
-        pimpl->count_mom.begin()
+        pimpl->RH.begin_ref(), 
+        pimpl->RH.end_ref(), 
+        pimpl->count_mom.begin_ref()
       );
 
       // RH defined in all cells
-      pimpl->count_n = pimpl->n_cell;
-      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+      pimpl->count_n.get_ref() = pimpl->n_cell.get_ref();
+      thrust::sequence(pimpl->count_ijk.begin_ref(), pimpl->count_ijk.end_ref());
     }
 
     // records super-droplet concentration per grid cell
@@ -179,7 +179,7 @@ namespace libcloudphxx
         pimpl->count_ijk.begin(),                      // output - keys
         pimpl->count_mom.begin()                      // output - values
       );
-      pimpl->count_n = n.first - pimpl->count_ijk.begin();
+      pimpl->count_n.get() = n.first - pimpl->count_ijk.begin();
     }
 
     // selected all particles
@@ -256,12 +256,12 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T.begin(),
-            pimpl->ijk.begin()
+            pimpl->T.begin_ref(),
+            pimpl->ijk.begin_ref()
           ),
           thrust::make_permutation_iterator(
-            pimpl->RH.begin(),
-            pimpl->ijk.begin()
+            pimpl->RH.begin_ref(),
+            pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
         RH_minus_Sc.begin(),                  // output
@@ -285,8 +285,8 @@ namespace libcloudphxx
         thrust::make_zip_iterator(make_tuple(
           pimpl->kpa.begin(), 
           thrust::make_permutation_iterator(
-            pimpl->T.begin(),
-            pimpl->ijk.begin()
+            pimpl->T.begin_ref(),
+            pimpl->ijk.begin_ref()
           )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output
@@ -379,7 +379,7 @@ namespace libcloudphxx
         case 3:
           thrust::transform(
             pimpl->count_mom.begin(), //arg1
-            pimpl->count_mom.begin() + pimpl->n_cell,
+            pimpl->count_mom.begin() + pimpl->n_cell.get(),
             thrust::make_zip_iterator(thrust::make_tuple(
               thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->fre.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),   // fre counts from the start of halo, but here we need only real cells
               thrust::make_permutation_iterator(pimpl->courant_y.begin(), pi(pimpl->hnd.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
@@ -390,7 +390,7 @@ namespace libcloudphxx
         case 2:
           thrust::transform(
             pimpl->count_mom.begin(), //arg1
-            pimpl->count_mom.begin() + pimpl->n_cell,
+            pimpl->count_mom.begin() + pimpl->n_cell.get(),
             thrust::make_zip_iterator(thrust::make_tuple(
               thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->blw.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
               thrust::make_permutation_iterator(pimpl->courant_z.begin(), pi(pimpl->abv.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
@@ -401,7 +401,7 @@ namespace libcloudphxx
         case 1:
           thrust::transform(
             pimpl->count_mom.begin(), //arg1
-            pimpl->count_mom.begin() + pimpl->n_cell,
+            pimpl->count_mom.begin() + pimpl->n_cell.get(),
             thrust::make_zip_iterator(thrust::make_tuple(
               thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->lft.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x))),
               thrust::make_permutation_iterator(pimpl->courant_x.begin(), pi(pimpl->rgt.begin(), thrust::make_counting_iterator<thrust_size_t>(pimpl->halo_x)))
@@ -411,7 +411,7 @@ namespace libcloudphxx
           );
       }
       // divergence defined in all cells
-      pimpl->count_n = pimpl->n_cell;
+      pimpl->count_n.get() = pimpl->n_cell.get();
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
@@ -476,8 +476,8 @@ namespace libcloudphxx
         thrust::maximum<real_t>()
       );  
 
-      pimpl->count_n = n.first - pimpl->count_ijk.begin();
-      assert(pimpl->count_n > 0 && pimpl->count_n <= pimpl->n_cell);
+      pimpl->count_n.get() = n.first - pimpl->count_ijk.begin();
+      assert(pimpl->count_n.get() > 0 && pimpl->count_n.get() <= pimpl->n_cell.get());
     }
 
     // computes mean chemical properties for the selected particles

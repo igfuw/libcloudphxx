@@ -41,6 +41,15 @@ namespace libcloudphxx
   
           // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();
+      
+          // ijk -> i, j, k
+          unravel_ijk(n_part_old);
+  
+          // initialising particle positions
+          init_xyz();
+
+          // ijk of the refined cells
+          hskpng_ijk_ref(n_part_old);
   
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);
@@ -73,12 +82,6 @@ namespace libcloudphxx
           if (opts_init.chem_switch){
             chem_vol_ante();
           }
-      
-          // ijk -> i, j, k
-          unravel_ijk(n_part_old);
-  
-          // initialising particle positions
-          init_xyz();
         }
       }
     }

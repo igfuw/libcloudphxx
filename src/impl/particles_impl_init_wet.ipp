@@ -63,8 +63,8 @@ namespace libcloudphxx
           zip_it_t zip_it(thrust::make_tuple(
             rd3.begin() + n_part_old, 
             kpa.begin() + n_part_old, 
-            pi_t(RH.begin(), ijk.begin() + n_part_old),
-            pi_t(T.begin(),  ijk.begin() + n_part_old)
+            pi_t(RH.begin_ref(), ijk.begin_ref() + n_part_old),
+            pi_t(T.begin_ref(),  ijk.begin_ref() + n_part_old)
           ));
 
 	  thrust::transform(
