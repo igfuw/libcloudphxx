@@ -46,8 +46,8 @@ namespace libcloudphxx
       if (pimpl->should_now_run_async)
         throw std::runtime_error("please call step_async() before calling step_sync() again");
 
-      if (th.is_null() || rv.is_null())
-        throw std::runtime_error("passing th and rv is mandatory");
+//      if (th.is_null() || rv.is_null())
+//        throw std::runtime_error("passing th and rv is mandatory");
 
  // <TODO> - code duplicated from init() !
       if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
