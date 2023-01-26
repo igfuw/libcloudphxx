@@ -26,7 +26,7 @@ namespace libcloudphxx
         const kappa_t &kappa(dsi->first);
         const size_number_t &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration, multiplicity}" pairs for this kappa
+        // loop over the "size : {concentration, count}" pairs for this kappa
         for (typename size_number_t::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
         {
           // init number of SDs of this kappa in cells
