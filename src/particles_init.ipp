@@ -28,7 +28,8 @@ namespace libcloudphxx
       pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
       // set rng seed to be used during init
-      pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
+      if(pimpl->opts_init.rng_seed_init_switch)
+        pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
 
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();

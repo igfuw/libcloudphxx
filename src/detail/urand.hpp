@@ -21,7 +21,7 @@ namespace libcloudphxx
       {
 #if !defined(__NVCC__)
         // serial version using C++11's <random>
-        using engine_t = std::mt19937;
+        using engine_t = std::mt19937; // TODO: if real_t = double, use std::mt19937_64
         using dist_u01_t = std::uniform_real_distribution<real_t>;
         using dist_normal01_t = std::normal_distribution<real_t>;
         using dist_un_t = std::uniform_int_distribution<unsigned int>;
@@ -66,7 +66,7 @@ namespace libcloudphxx
           const thrust_size_t n
         ) {
           // note: generate_n copies the third argument!!!
-          std::generate_n(u01.begin(), n, fnctr_u01({engine, dist_u01})); 
+          std::generate_n(u01.begin(), n, fnctr_u01({engine, dist_u01})); // [0,1) range 
         }
 
         void generate_normal_n(
@@ -131,10 +131,12 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n);
+          int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
           assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
-
+          // shift into the expected [0,1) range
+          namespace arg = thrust::placeholders;
+          thrust::transform(v.begin(), v.begin() + n, v.begin(), float(1) - arg::_1);
         }
 
         void generate_n(
@@ -142,9 +144,12 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n);
+          int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
           assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
           _unused(status);
+          // shift into the expected [0,1) range
+          namespace arg = thrust::placeholders;
+          thrust::transform(v.begin(), v.begin() + n, v.begin(), double(1) - arg::_1);
         }
 
         void generate_normal_n(

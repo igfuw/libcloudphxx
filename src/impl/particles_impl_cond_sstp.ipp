@@ -16,7 +16,7 @@ namespace libcloudphxx
       {
         RH<real_t> resolved_RH;
 
-        RH_sgs(RH_formula_t::RH_formula_t RH_formula):
+        RH_sgs(RH_formula_t RH_formula):
           resolved_RH(RH_formula)
         {}
 
