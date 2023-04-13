@@ -31,7 +31,7 @@ namespace libcloudphxx
       size = 1;
       // throw an error if ran with mpi, but not compiled for mpi
       if ( ran_with_mpi() )
-        throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
+        throw std::runtime_error("libcloudph++: mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
 #endif
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
       if(size > 1)
