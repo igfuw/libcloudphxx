@@ -15,7 +15,7 @@ namespace libcloudphxx
         template<typename real_t>
         MPI_Datatype get_mpi_type()
         {
-          throw std::runtime_error("Unsupported MPI datatype");
+          throw std::runtime_error("libcloudph++: Unsupported MPI datatype");
         }
 
         template<>

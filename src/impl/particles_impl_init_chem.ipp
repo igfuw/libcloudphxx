@@ -138,7 +138,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_chem()
     {
       // don't do it if not using chem...
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
 
       // memory allocation
       chem_bgn.resize(chem_all);
@@ -177,7 +177,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_chem_aq()
     {
       // don't do it if not using chem...
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off in opts_init");
+      if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
        
       for (int i = 0; i < chem_all; ++i)
       {

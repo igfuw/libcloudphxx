@@ -18,24 +18,24 @@ namespace libcloudphxx
 #if defined(MULTICUDA_FOUND) // should be present through CMake's add_definitions(), TODO: some other check in CMake?
 	  return new particles_t<real_t, multi_CUDA>(opts_init);
 #else
-          throw std::runtime_error("multi_CUDA backend was not compiled");
+          throw std::runtime_error("libcloudph++: multi_CUDA backend was not compiled");
 #endif
 	case CUDA:
 #if defined(CUDA_FOUND) // should be present through CMake's add_definitions()
 	  return new particles_t<real_t, CUDA>(opts_init);
 #else
-          throw std::runtime_error("CUDA backend was not compiled");
+          throw std::runtime_error("libcloudph++: CUDA backend was not compiled");
 #endif
 	case OpenMP:
 #if defined(_OPENMP)
 	  return new particles_t<real_t, OpenMP>(opts_init);
 #else
-          throw std::runtime_error("OpenMP backend was not compiled"); 
+          throw std::runtime_error("libcloudph++: OpenMP backend was not compiled"); 
 #endif
 	case serial:
 	  return new particles_t<real_t, serial>(opts_init);
 	default:
-          throw std::runtime_error("unknown backend"); 
+          throw std::runtime_error("libcloudph++: unknown backend"); 
       }
     }
 
