@@ -53,20 +53,20 @@ namespace libcloudphxx
         if (dot_rr != NULL) // i.e. all but first (top) grid cell
         {
           // terminal momenta at grid-cell edge (to assure precip mass conservation)
-	  flux_t flux_out = -real_t(.5) * ( // averaging + axis orientation
-	    (*rhod_below * si::kilograms / si::cubic_metres) * formulae::v_term(
+          flux_t flux_out = -real_t(.5) * ( // averaging + axis orientation
+            (*rhod_below * si::kilograms / si::cubic_metres) * formulae::v_term(
               *rr_below          * si::kilograms / si::kilograms,
               *rhod_below        * si::kilograms / si::cubic_metres,
               *rhod_cont.begin() * si::kilograms / si::cubic_metres
             ) +
-	    (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term(
+            (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term(
               *rr                * si::kilograms / si::kilograms,
               *rhod              * si::kilograms / si::cubic_metres,
               *rhod_cont.begin() * si::kilograms / si::cubic_metres
             )
-	  ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
+          ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
 
-	  *dot_rr -= (flux_in - flux_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
+          *dot_rr -= (flux_in - flux_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
           flux_in = flux_out; // inflow = outflow from above
         }
 
@@ -77,9 +77,9 @@ namespace libcloudphxx
 
       // the bottom grid cell (with mid-cell vterm approximation)
       flux_t flux_out = - (*rhod * si::kilograms / si::cubic_metres) * formulae::v_term(
-	*rr                * si::kilograms / si::kilograms,
-	*rhod              * si::kilograms / si::cubic_metres,
-	*rhod_cont.begin() * si::kilograms / si::cubic_metres
+        *rr                * si::kilograms / si::kilograms,
+        *rhod              * si::kilograms / si::cubic_metres,
+        *rhod_cont.begin() * si::kilograms / si::cubic_metres
       ) * (*rr * si::kilograms / si::kilograms) / (dz * si::metres);
       *dot_rr -= (flux_in - flux_out) / (*rhod * si::kilograms / si::cubic_metres) / dot_rr_unit;
 

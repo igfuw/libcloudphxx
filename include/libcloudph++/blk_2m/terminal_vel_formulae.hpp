@@ -160,6 +160,7 @@ namespace libcloudphxx
           * si::cubic_metres / si::kilograms // to make it dimensionless
           * real_t(1000) // mass of the drop in grams
           * (
+<<<<<<< HEAD
 	    alpha_fall(d1<real_t>() / real_t(4)) // average radius between 0 and d1
             * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(4)))
 	    * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
@@ -174,6 +175,23 @@ namespace libcloudphxx
 	    +
 	    alpha_fall(d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
 	  ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
+=======
+            alpha_fall(d1<real_t>() / real_t(2))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
+            * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
+            +
+            alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
+            * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
+            +
+            alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
+            * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
+            +
+            alpha_fall(real_t(2) * d3<real_t>())
+            * (real_t(0) - int_4(lbd, d3<real_t>()))
+          ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
+>>>>>>> igfuw/master
 
 //return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
         assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
@@ -195,10 +213,10 @@ namespace libcloudphxx
         // eq A4 in Morrison 2005
         auto tmp = rho_stp<real_t>() / rhod
           * (
-	   alpha_fall(d1<real_t>() / real_t(4)) // average radius between 0 and d1
+           alpha_fall(d1<real_t>() / real_t(4)) // average radius between 0 and d1
            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(4)))
            * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
-	   +
+           +
            alpha_fall((d1<real_t>() + d2<real_t>()) / real_t(4)) // average radius between d1 and d2
            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall((d1<real_t>() + d2<real_t>()) / real_t(4)))
            * (nint_2(lbd, d2<real_t>()) - nint_2(lbd, d1<real_t>()))
