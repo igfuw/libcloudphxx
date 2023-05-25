@@ -30,7 +30,7 @@ namespace libcloudphxx
 
       template <typename real_t>
       inline quantity<si::dimensionless, real_t> alpha_fall(
-        const quantity<si::length, real_t> &drop_r 
+        const quantity<si::length, real_t> &drop_r
       ) {
          assert(drop_r >= 0 * si::metres  && "mean drop radius cannot be < 0");
 
@@ -61,7 +61,7 @@ namespace libcloudphxx
           const quantity<si::length, real_t> &D // diameter
         ) {
           auto tmp =  - std::pow(lbd * si::metres, -6) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 5) + 5 * std::pow(real_t(lbd * D), 4) * 20 * std::pow(real_t(lbd * D), 3) + 60 * std::pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
+            (pow(real_t(lbd * D), 5) + 5 * std::pow(real_t(lbd * D), 4) + 20 * std::pow(real_t(lbd * D), 3) + 60 * std::pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
 
           assert(finite(tmp) && "mint_1 is finite failed");
           return tmp;
@@ -73,7 +73,7 @@ namespace libcloudphxx
           const quantity<si::length, real_t> &D // diameter
         ) {
           auto tmp = - std::pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 4) + 4 * std::pow(real_t(lbd * D), 3) * 12 * std::pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
+            (pow(real_t(lbd * D), 4) + 4 * std::pow(real_t(lbd * D), 3) + 12 * std::pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
 
           assert(finite(tmp) && "mint_2 is finite failed");
           return tmp;
