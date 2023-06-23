@@ -21,7 +21,7 @@ namespace libcloudphxx
       {
 #if !defined(__NVCC__)
         // serial version using C++11's <random>
-        using engine_t = std::mt19937;
+        using engine_t = std::mt19937; // TODO: if real_t = double, use std::mt19937_64
         using dist_u01_t = std::uniform_real_distribution<real_t>;
         using dist_normal01_t = std::normal_distribution<real_t>;
         using dist_un_t = std::uniform_int_distribution<unsigned int>;

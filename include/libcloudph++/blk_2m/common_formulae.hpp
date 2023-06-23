@@ -62,11 +62,11 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod
       ) {
         auto tmp = std::pow(
-	  c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1))
+          c_md<real_t>() * n * std::tgamma(miu_c(n*rhod) + d_md<real_t>() + real_t(1))
           /
-	  (rc * std::tgamma(miu_c(n*rhod) + real_t(1))) * si::cubic_metres
-	  ,
-	  real_t(1) / d_md<real_t>()
+          (rc * std::tgamma(miu_c(n*rhod) + real_t(1))) * si::cubic_metres
+          ,
+          real_t(1) / d_md<real_t>()
         ) / si::metres;
         assert(finite(tmp * si::metres) && "slope lambda_c is finite failed");
         return tmp;
@@ -99,10 +99,10 @@ namespace libcloudphxx
          const quantity<si::dimensionless, real_t> &rr
       ) {
         auto tmp = std::pow(
-	  c_md<real_t>() * nr * std::tgamma(d_md<real_t>() + real_t(1)) / rr * si::cubic_metres
+          c_md<real_t>() * nr * std::tgamma(d_md<real_t>() + real_t(1)) / rr * si::cubic_metres
           ,
-	  real_t(1) / d_md<real_t>()
-	) / si::metres;
+          real_t(1) / d_md<real_t>()
+        ) / si::metres;
         assert(finite(tmp * si::metres) && "slope lambda_r is finite failed");
         return tmp;
       }

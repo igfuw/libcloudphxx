@@ -17,6 +17,7 @@ namespace libcloudphxx
     {   
       hskpng_sort();
 
+
       // computing count_* - number of particles per grid cell
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
@@ -28,6 +29,21 @@ namespace libcloudphxx
         count_num.begin()                       // output - values
       );
       count_n = it_pair.first - count_ijk.begin();
+#if !defined(NDEBUG)
+      if(count_n > n_cell)
+      {
+        std::cerr << "count_n: " << count_n << std::endl;
+        std::cerr << "n_cell: " << n_cell << std::endl;
+        /*
+        std::cerr << "ijk:" << std::endl;
+        debug::print(ijk);
+        */
+        std::cerr << "sorted_ijk:" << std::endl;
+        debug::print(sorted_ijk);
+        std::cerr << "count_ijk:" << std::endl;
+        debug::print(count_ijk);
+      }
+#endif
       assert(count_n <= n_cell);
     }   
   };  

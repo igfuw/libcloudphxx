@@ -39,7 +39,7 @@ namespace libcloudphxx
       typedef std::map<
         real_t,                  // kappa
         std::map<real_t,         // radius [m]
-          std::pair<real_t, int> // STP_concentration [1/m^3], SD multiplicity
+          std::pair<real_t, int> // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
         > 
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
@@ -138,7 +138,7 @@ namespace libcloudphxx
       // SGS mixing length profile [m]
       std::vector<real_t> SGS_mix_len;
 
-      real_t rd_min; // minimal dry radius of droplets (works only for init from spectrum)
+      real_t rd_min, rd_max; // min/max dry radius of droplets [m] 
 
       bool no_ccn_at_init; // if true, no ccn / SD are put at the start of the simulation
 
@@ -242,7 +242,8 @@ namespace libcloudphxx
         rlx_timescale(1),
         rlx_sd_per_bin(0),
         supstp_rlx(1),
-        rd_min(0.),
+        rd_min(-1), // negative means that rd_min will be automatically detected
+        rd_max(-1),
         diag_incloud_time(false),
         no_ccn_at_init(false),
         open_side_walls(false),

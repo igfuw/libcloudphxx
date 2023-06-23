@@ -61,7 +61,7 @@ namespace libcloudphxx
           const quantity<si::length, real_t> &D // diameter
         ) {
           auto tmp =  - std::pow(lbd * si::metres, -6) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 5) + 5 * std::pow(real_t(lbd * D), 4) * 20 * std::pow(real_t(lbd * D), 3) + 60 * std::pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
+            (pow(real_t(lbd * D), 5) + 5 * std::pow(real_t(lbd * D), 4) + 20 * std::pow(real_t(lbd * D), 3) + 60 * std::pow(real_t(lbd * D), 2) + 120 * real_t(lbd * D) + 120);
 
           assert(finite(tmp) && "mint_1 is finite failed");
           return tmp;
@@ -73,7 +73,7 @@ namespace libcloudphxx
           const quantity<si::length, real_t> &D // diameter
         ) {
           auto tmp = - std::pow(real_t(lbd * si::metres), -5) * exp(-lbd * D) *
-            (pow(real_t(lbd * D), 4) + 4 * std::pow(real_t(lbd * D), 3) * 12 * std::pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
+            (pow(real_t(lbd * D), 4) + 4 * std::pow(real_t(lbd * D), 3) + 12 * std::pow(real_t(lbd * D), 2) + 24 * real_t(lbd * D) + 24);
 
           assert(finite(tmp) && "mint_2 is finite failed");
           return tmp;
@@ -93,20 +93,23 @@ namespace libcloudphxx
           return tmp;
         }
 
-        // int( exp(-lbd * D) )
+        // int( D^3 exp(-lbd * D) )
         template <typename real_t>
-        inline quantity<si::dimensionless, real_t >int_4(
+        inline quantity<si::dimensionless, real_t >mint_4(
           const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
           const quantity<si::length, real_t> &D // diameter
         ) {
-          auto tmp = - std::pow(real_t(lbd * si::metres), -1) * exp(-lbd * D);
+          auto tmp = - std::pow(real_t(lbd * si::metres), -4) * exp(-lbd * D) *
+            (pow(real_t(lbd * D), 3) + 3 * std::pow(real_t(lbd * D), 2) + 6 * real_t(lbd * D) + 6);
 
-          assert(finite(tmp) && "int_4 is finite failed");
+          assert(finite(tmp) && "mint_4 is finite failed");
           return tmp;
         }
 
+
+
        // helper intergrals for vn
-       // int(D^(2) * exp(-lbd * D))
+       // int(D^2 * exp(-lbd * D))
        template <typename real_t>
        inline quantity<si::dimensionless, real_t >nint_1(
          const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, // slope of assumed exponential size distribution
@@ -143,6 +146,18 @@ namespace libcloudphxx
          return tmp;
        }
 
+        // int( exp(-lbd * D) )
+        template <typename real_t>
+        inline quantity<si::dimensionless, real_t >nint_4(
+          const quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> &lbd, //slope of assumed exponential size distribution
+          const quantity<si::length, real_t> &D // diameter
+        ) {
+          auto tmp = - std::pow(real_t(lbd * si::metres), -1) * exp(-lbd * D);
+
+          assert(finite(tmp) && "nint_4 is finite failed");
+          return tmp;
+        }
+
       template <typename real_t>
       inline quantity<si::velocity, real_t> v_term_m(
         const quantity<si::mass_density, real_t> &rhod,
@@ -155,28 +170,23 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(nr, rr);
 
         // eq. A4 in Morrison 2005
-        auto tmp = rho_stp<real_t>() / rhod
-          * lbd * si::metres * c_md<real_t>()
-          * si::cubic_metres / si::kilograms // to make it dimensionless
-          * real_t(1000) // mass of the drop in grams
+        auto tmp = rho_stp<real_t>() / rhod * std::pow(real_t(lbd * si::metres), real_t(4)) / real_t(6)
           * (
-	    alpha_fall(d1<real_t>() / real_t(2))
-            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
-	    * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
-	    +
-	    alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
-            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
-	    * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
-	    +
-	    alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
-            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
-	    * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
-	    +
-	    alpha_fall(real_t(2) * d3<real_t>())
-            * (real_t(0) - int_4(lbd, d3<real_t>()))
-	  ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
+            alpha_fall(d1<real_t>() / real_t(4)) // average radius between 0 and d1
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(4)))
+            * (mint_1(lbd, d1<real_t>()) - mint_1(lbd, real_t(0) * si::metres))
+            +
+            alpha_fall((d1<real_t>() + d2<real_t>()) / real_t(4)) // average radius between d1 and d2
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall((d1<real_t>() + d2<real_t>()) / real_t(4)))
+            * (mint_2(lbd, d2<real_t>()) - mint_2(lbd, d1<real_t>()))
+            +
+            alpha_fall((d2<real_t>() + d3<real_t>()) / real_t(4)) // average radius between d2 and d3
+            * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall((d2<real_t>() + d3<real_t>()) / real_t(4)))
+            * (mint_3(lbd, d3<real_t>()) - mint_3(lbd, d2<real_t>()))
+            +
+            alpha_fall(d3<real_t>()) * (real_t(0) - mint_4(lbd, d3<real_t>()))
+          ) * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
-//return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
         assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
         assert(finite(tmp * si::seconds / si::metres) && "v_term_m terminal velocity is finite failed");
         return tmp;
@@ -194,25 +204,41 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lbd = lambda_r(nr, rr);
 
         // eq A4 in Morrison 2005
-        auto tmp = rho_stp<real_t>() / rhod
+        auto tmp = rho_stp<real_t>() / rhod * real_t(lbd * si::metres)
           * (
-	   alpha_fall(d1<real_t>() / real_t(2))
-           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(2)))
+           alpha_fall(d1<real_t>() / real_t(4)) // average radius between 0 and d1
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() / real_t(4)))
            * (nint_1(lbd, d1<real_t>()) - nint_1(lbd, real_t(0) * si::metres))
-	   +
-           alpha_fall(d1<real_t>() + d2<real_t>() / real_t(2))
-           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d1<real_t>() + d2<real_t>() / real_t(2)))
+           +
+           alpha_fall((d1<real_t>() + d2<real_t>()) / real_t(4)) // average radius between d1 and d2
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall((d1<real_t>() + d2<real_t>()) / real_t(4)))
            * (nint_2(lbd, d2<real_t>()) - nint_2(lbd, d1<real_t>()))
            +
-           alpha_fall(d2<real_t>() + d3<real_t>() / real_t(2))
-           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall(d2<real_t>() + d3<real_t>() / real_t(2)))
+           alpha_fall((d2<real_t>() + d3<real_t>()) / real_t(4)) // average radius between d2 and d3
+           * std::pow(c_md<real_t>() * si::cubic_metres / si::kilograms * real_t(1000), beta_fall((d2<real_t>() + d3<real_t>()) / real_t(4)))
            * (nint_3(lbd, d3<real_t>()) - nint_3(lbd, d2<real_t>()))
            +
-           alpha_fall(real_t(2) * d3<real_t>()) * (real_t(0) - int_4(lbd, d3<real_t>()))
+           alpha_fall(d3<real_t>()) * (real_t(0) - nint_4(lbd, d3<real_t>()))
           )
           * real_t(1e-2) * si::metres/si::seconds;  // velocity in metres/seconds
 
-//return std::max(real_t(0), real_t(tmp / si::metres_per_second)) * si::metres_per_second;
+        assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
+        assert(finite(tmp * si::seconds / si::metres) && "v_term_n terminal velocity is finite failed");
+        return tmp;
+      }
+
+      template <typename real_t>
+      inline quantity<si::velocity, real_t> v_term_const(
+        const quantity<si::mass_density, real_t> &rhod,
+        const quantity<si::dimensionless, real_t> &rr,
+        const quantity<divide_typeof_helper<si::dimensionless, si::mass>::type, real_t> &nr
+      ) {
+        if (rr < rr_eps<real_t>() || nr < nr_eps<real_t>() / si::kilograms)
+          return 0 * si::metres_per_second;
+
+        // constant 1 m/s terminal velocity
+        auto tmp = real_t(1) * si::metres/si::seconds;  // velocity in metres/seconds
+
         assert(tmp * si::seconds / si::metres >= 0 && "negative terminal velocity!");
         assert(finite(tmp * si::seconds / si::metres) && "v_term_n terminal velocity is finite failed");
         return tmp;

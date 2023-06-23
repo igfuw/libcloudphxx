@@ -33,7 +33,7 @@ namespace libcloudphxx
 
       auto minmax = thrust::minmax_element(v.begin(), v.end());
       if (*minmax.first == *minmax.second)
-        throw std::runtime_error("OpenMP seems not to work properly!");
+        throw std::runtime_error("libcloudph++: OpenMP seems not to work properly!");
     }
 
     // instantiation 

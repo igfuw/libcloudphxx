@@ -14,7 +14,7 @@ namespace libcloudphxx
           // init device kernel parameters vector
           if(opts_init.kernel_parameters.size() != 1)
           {
-            throw std::runtime_error("Golovin kernel accepts exactly one parameter.");
+            throw std::runtime_error("libcloudph++: Golovin kernel accepts exactly one parameter.");
           }
           // init device kernel parameters vector
           kernel_parameters.resize(opts_init.kernel_parameters.size());
@@ -29,7 +29,7 @@ namespace libcloudphxx
           // init kernel parameters vector
           if(opts_init.kernel_parameters.size() > 1)
           {
-            throw std::runtime_error("Geometric kernel accepts up to one parameter.");
+            throw std::runtime_error("libcloudph++: Geometric kernel accepts up to one parameter.");
           }
           else if(opts_init.kernel_parameters.size() == 1)
           {
@@ -52,7 +52,7 @@ namespace libcloudphxx
           // init kernel parameters vector
           if(opts_init.kernel_parameters.size() > 0)
           {
-            throw std::runtime_error("Long kernel doesn't take parameters.");
+            throw std::runtime_error("libcloudph++: Long kernel doesn't take parameters.");
           }
             // init kernel
             k_long.resize(1, kernel_long<real_t, n_t> ());
@@ -63,7 +63,7 @@ namespace libcloudphxx
         case(kernel_t::hall):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Hall kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Hall kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_efficiencies<real_t> (tmp_kernel_eff);
@@ -102,7 +102,7 @@ namespace libcloudphxx
         case(kernel_t::hall_davis_no_waals):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Hall + Davis kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Hall + Davis kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
@@ -140,7 +140,7 @@ namespace libcloudphxx
         case(kernel_t::vohl_davis_no_waals):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Vohl + Davis kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Vohl + Davis kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::vohl_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
@@ -160,7 +160,7 @@ namespace libcloudphxx
         case(kernel_t::hall_pinsky_stratocumulus):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Hall + Pinsky (stratocumulus) kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Hall + Pinsky (stratocumulus) kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_pinsky_stratocumulus_efficiencies<real_t> (tmp_kernel_eff);
@@ -180,7 +180,7 @@ namespace libcloudphxx
         case(kernel_t::hall_pinsky_1000mb_grav):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Hall + Pinsky (gravitational 1000mb) kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Hall + Pinsky (gravitational 1000mb) kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_pinsky_1000mb_grav_efficiencies<real_t> (tmp_kernel_eff);
@@ -200,7 +200,7 @@ namespace libcloudphxx
         case(kernel_t::hall_pinsky_cumulonimbus):
           if(opts_init.kernel_parameters.size() != 0)
           {
-            throw std::runtime_error("Hall + Pinsky (cumulonimbus) kernel doesn't accept parameters.");
+            throw std::runtime_error("libcloudph++: Hall + Pinsky (cumulonimbus) kernel doesn't accept parameters.");
           }
           //read in kernel efficiencies to a temporary container
           detail::hall_pinsky_cumulonimbus_efficiencies<real_t> (tmp_kernel_eff);
@@ -220,10 +220,10 @@ namespace libcloudphxx
         case(kernel_t::onishi_hall_davis_no_waals):
           if(opts_init.kernel_parameters.size() != 2)
           {
-            throw std::runtime_error("Please supply one kernel parameter: Taylor microscale Reynolds number.");
+            throw std::runtime_error("libcloudph++: Please supply one kernel parameter: Taylor microscale Reynolds number.");
           }
           if(!opts_init.turb_coal_switch)
-            throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");
+            throw std::runtime_error("libcloudph++: To use the turbulent Onishis kernel, set turb_coal_switch=True");
           //read in kernel efficiencies to a temporary container
           detail::hall_davis_no_waals_efficiencies<real_t> (tmp_kernel_eff);
          
@@ -248,10 +248,10 @@ namespace libcloudphxx
         case(kernel_t::onishi_hall):
           if(opts_init.kernel_parameters.size() != 2)
           {
-            throw std::runtime_error("Please supply one kernel parameter: Taylor microscale Reynolds number.");
+            throw std::runtime_error("libcloudph++: Please supply one kernel parameter: Taylor microscale Reynolds number.");
           }
           if(!opts_init.turb_coal_switch)
-            throw std::runtime_error("To use the turbulent Onishis kernel, set turb_coal_switch=True");
+            throw std::runtime_error("libcloudph++: To use the turbulent Onishis kernel, set turb_coal_switch=True");
           //read in kernel efficiencies to a temporary container
           detail::hall_efficiencies<real_t> (tmp_kernel_eff);
          

@@ -46,7 +46,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_cleanup()
     {   
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+      if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
 
       for (int i = 0; i < chem_all; ++i)
         thrust::transform(
@@ -59,7 +59,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_vol_ante()
     {   
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+      if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
 
       //calculate new drop volumes (to be used in chem)
       thrust_device::vector<real_t> &V(tmp_device_real_part);
