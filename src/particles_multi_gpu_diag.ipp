@@ -50,6 +50,12 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    int particles_t<real_t, multi_CUDA>::diag_sstp_coal()
+    {   
+      throw std::runtime_error("diag_sstp_coal is not implemented yet for the multi_CUDA backend");
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_sd_conc()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_sd_conc);
@@ -249,6 +255,33 @@ namespace libcloudphxx
         res = add_puddle(res, futures[i].get());
       }
       return res;
+    }
+
+    template <typename real_t>
+    real_t particles_t<real_t, multi_CUDA>::diag_pair_separation_mean()
+    {
+      assert(false); // not implemented
+    }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_up_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
+    }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_vp_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
+    }
+
+    template <typename real_t>
+    std::pair<real_t, real_t> particles_t<real_t, multi_CUDA>::diag_wp_minmax()
+    {
+      assert(false); // not implemented
+      return std::pair<real_t, real_t>{0,0};
     }
   };
 };

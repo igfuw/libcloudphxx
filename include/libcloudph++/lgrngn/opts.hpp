@@ -19,7 +19,7 @@ namespace libcloudphxx
     struct opts_t 
     {
       // process toggling
-      bool adve, sedi, subs, cond, coal, src, rlx, rcyc, turb_adve, turb_cond, turb_coal;
+      bool adve, sedi, subs, cond, coal, src, rlx, rcyc, sgs_adve, turb_cond, turb_coal;
 
       // RH limit for drop growth
       real_t RH_max;       
@@ -35,7 +35,7 @@ namespace libcloudphxx
       opts_t() : 
         adve(true), sedi(true), subs(false), cond(true), coal(true), src(false), rlx(false), rcyc(false),
         chem_dsl(false), chem_dsc(false), chem_rct(false),
-        turb_adve(false), turb_cond(false), turb_coal(false),
+        sgs_adve(false), turb_cond(false), turb_coal(false),
         RH_max(44), // :) (anything greater than 1.1 would be enough
         dt(-1) // negative means that we do not override dt in this step
       {

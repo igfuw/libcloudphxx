@@ -26,16 +26,17 @@
 #include "detail/tpl_calc_wrapper.hpp"
 #include "detail/kernels.hpp"
 #include "detail/kernel_interpolation.hpp"
+#include "detail/synth_turb_periodic_box.hpp"
 #include "detail/functors_host.hpp"
 #include "detail/ran_with_mpi.hpp"
 
 //kernel definitions
-#include "detail/kernel_definitions/hall_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies.hpp"
-#include "detail/kernel_definitions/vohl_davis_no_waals_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_stratocumulus_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_cumulonimbus_efficiencies.hpp"
-#include "detail/kernel_definitions/hall_pinsky_1000mb_grav_efficiencies.hpp"
+#include "detail/kernel_definitions/hall_efficiencies_like_in_EFM.hpp"
+#include "detail/kernel_definitions/hall_davis_no_waals_efficiencies_like_in_EFM.hpp"
+#include "detail/kernel_definitions_Jon/vohl_davis_no_waals_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_stratocumulus_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_cumulonimbus_efficiencies.hpp"
+#include "detail/kernel_definitions_Jon/hall_pinsky_1000mb_grav_efficiencies.hpp"
 
 #if defined(USE_MPI)
   #include <mpi.h>
@@ -49,6 +50,7 @@
 #include "particles_init.ipp"
 #include "particles_step.ipp"
 #include "particles_diag.ipp"
+#include "particles_remove.ipp"
 
 // details
 #include "impl/particles_impl.ipp"
@@ -85,7 +87,9 @@
 #include "impl/particles_impl_hskpng_Tpr.ipp"
 #include "impl/particles_impl_hskpng_mfp.ipp"
 #include "impl/particles_impl_hskpng_vterm.ipp"
-#include "impl/particles_impl_hskpng_turb_vel.ipp"
+#include "impl/particles_impl_hskpng_sgs_vel.ipp"
+#include "impl/particles_impl_hskpng_sgs_vel_GA17.ipp"
+#include "impl/particles_impl_hskpng_sgs_vel_ST_periodic.ipp"
 #include "impl/particles_impl_hskpng_turb_ss.ipp"
 #include "impl/particles_impl_hskpng_tke.ipp"
 #include "impl/particles_impl_hskpng_sort.ipp"
@@ -99,7 +103,7 @@
 #include "impl/particles_impl_sync.ipp"
 #include "impl/particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 #include "impl/particles_impl_adve.ipp"
-#include "impl/particles_impl_turb_adve.ipp"
+#include "impl/particles_impl_sgs_adve.ipp"
 #include "impl/particles_impl_cond_common.ipp"
 #include "impl/particles_impl_cond.ipp"
 #include "impl/particles_impl_cond_sstp.ipp"
@@ -124,6 +128,7 @@
 #include "impl/particles_impl_rlx.ipp"
 #include "impl/particles_impl_rlx_dry_distros.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
+#include "impl/particles_impl_remove.ipp"
 #include "impl/particles_impl_adjust_timesteps.ipp"
 
 // MPI copy

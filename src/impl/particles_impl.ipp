@@ -64,11 +64,17 @@ namespace libcloudphxx
       thrust_device::vector<kernel_geometric_with_multiplier<real_t, n_t> > k_geometric_with_multiplier;
       thrust_device::vector<kernel_onishi<real_t, n_t> > k_onishi;
 
-      // device container for kernel parameters, could come from opts_init or a file depending on the kernel
-      thrust_device::vector<real_t> kernel_parameters;
+      // synthetic turbulence - TODO (only when used)
+      synth_turb_periodic_box::synth_turb<real_t, device> ST;
 
-      //number of kernel parameters defined by user in opts_init
-      const n_t n_user_params;
+      // device container for kernel parameters, comes from opts_init
+      thrust_device::vector<real_t> kernel_parameters;
+      // device container for kernel collision efficiencies
+      thrust_device::vector<real_t> kernel_coll_eff;
+      // device container for kernel collision efficiencies radii matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rad;
+      // device container for kernel collision efficiencies ratio matrix
+      thrust_device::vector<real_t> kernel_coll_eff_rat;
 
       // particle attributes
       thrust_device::vector<n_t>
@@ -307,7 +313,6 @@ namespace libcloudphxx
         n_part(0),
         sorted(false), 
         u01(tmp_device_real_part),
-        n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
         src_stp_ctr(0),
@@ -338,7 +343,8 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi ((_opts_init.sd_conc == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
+        ST(_opts_init.ST_eps, _opts_init.ST_Nmodes, _opts_init.ST_Nwaves_max, _opts_init.ST_Lmax, _opts_init.ST_Lmin, _opts_init.rng_seed, tmp_device_real_part)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -402,7 +408,7 @@ namespace libcloudphxx
            // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
         }
 
-        if(opts_init.turb_adve_switch)
+        if(opts_init.sgs_adve != sgs_adve_t::undefined)
         {
           if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
           if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
@@ -496,10 +502,17 @@ namespace libcloudphxx
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
       void hskpng_tke();
-      void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
+      void hskpng_sgs_vel(const real_t &dt, const bool only_vertical = false);
+      void hskpng_sgs_vel_GA17(const real_t &dt, const bool only_vertical = false);
+      void hskpng_sgs_vel_ST_periodic(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
       void hskpng_remove_n0();
       void hskpng_resize_npart();
+
+      void remove_rng(
+        const real_t &min, const real_t &max, 
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      ); 
 
       void moms_all();
    
@@ -549,7 +562,7 @@ namespace libcloudphxx
 
       void adjust_timesteps(const real_t &dt);
       void adve();
-      void turb_adve(const real_t &dt);
+      void sgs_adve(const real_t &dt);
       template<class adve_t>
       void adve_calc(bool, thrust_size_t = 0);
       void sedi(const real_t &dt);

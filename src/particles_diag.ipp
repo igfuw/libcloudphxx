@@ -38,6 +38,38 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct periodic_1d_dist_squared : public thrust::binary_function<real_t, real_t, real_t>
+      {
+        const real_t L;
+        periodic_1d_dist_squared(const real_t &L) : L(L) {}
+
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &x1, const real_t &x2)
+        {
+#if !defined(__NVCC__)
+          using std::abs;
+#endif
+          real_t dx = abs(x2-x1);
+          if(dx > L / 2.) dx = L - dx;
+          return dx*dx;
+        }
+      };
+
+
+      template <typename real_t>
+      struct sqrt_fctr : public thrust::unary_function<real_t, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &a)
+        {
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
+          return sqrt(a);
+        }
+      };
+
+      template <typename real_t>
       struct rw3_cr
       {
         BOOST_GPU_ENABLED
@@ -339,6 +371,30 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->wp.begin(), n);
     }   
 
+    // get min and max sgs vel along x
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_up_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->up.begin(),pimpl->up.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
+    // get min and max sgs vel along y
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_vp_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->vp.begin(),pimpl->vp.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
+    // get min and max sgs vel along z
+    template <typename real_t, backend_t device>
+    std::pair<real_t, real_t> particles_t<real_t, device>::diag_wp_minmax()
+    {   
+      auto it_pair = thrust::minmax_element(pimpl->wp.begin(),pimpl->wp.end());
+      return std::pair<real_t, real_t>{*(it_pair.first), *(it_pair.second)};
+    }   
+
     // compute n-th moment of incloud_time for selected particles
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_incloud_time_mom(const int &n)
@@ -413,6 +469,13 @@ namespace libcloudphxx
       // divergence defined in all cells
       pimpl->count_n = pimpl->n_cell;
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }
+
+    // to get current value of sstp_coal, as it can change in const_multi runs
+    template <typename real_t, backend_t device>
+    int particles_t<real_t, device>::diag_sstp_coal()
+    {   
+      return pimpl->opts_init.sstp_coal;
     }
 
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs
@@ -492,6 +555,61 @@ namespace libcloudphxx
     std::map<common::output_t, real_t> particles_t<real_t, device>::diag_puddle()
     {
       return pimpl->output_puddle;
+    }
+
+    // compute pair separation distance of all pairs, averaged over the whole domain
+    // NOTE: this function overwrites n_filtered!
+    template <typename real_t, backend_t device>
+    real_t particles_t<real_t, device>::diag_pair_separation_mean()
+    {
+      namespace arg = thrust::placeholders;
+
+      assert(pimpl->opts_init.periodic_topbot_walls); // all walls periodic assumed
+
+      thrust::fill(pimpl->tmp_device_real_part.begin(), pimpl->tmp_device_real_part.end(), real_t(0)); 
+      thrust::fill(pimpl->tmp_device_real_part1.begin(), pimpl->tmp_device_real_part1.end(), real_t(0)); 
+
+      thrust_device::vector<real_t>
+                  *v[3] = { &pimpl->x,           &pimpl->z,           &pimpl->y           };
+
+      real_t dx[3] = {pimpl->opts_init.dx, pimpl->opts_init.dz, pimpl->opts_init.dy};
+
+      for(int i=0; i<pimpl->n_dims; ++i)
+      {
+        thrust::transform_if(
+          v[i]->begin(),                                       // arg1
+          v[i]->begin() + pimpl->n_part - 1,
+          v[i]->begin() + 1,                                   // arg2
+          thrust::make_counting_iterator<thrust_size_t>(0),    // stencil
+          pimpl->tmp_device_real_part1.begin(),                // output
+          detail::periodic_1d_dist_squared<real_t>(dx[i]),     // operation
+          arg::_1 % thrust_size_t(2) == thrust_size_t(0)       // predicate
+        );
+
+        thrust::transform(
+          pimpl->tmp_device_real_part1.begin(),
+          pimpl->tmp_device_real_part1.end(),
+          pimpl->tmp_device_real_part.begin(),
+          pimpl->tmp_device_real_part.begin(),
+          thrust::plus<real_t>()
+        );
+      }
+
+      thrust::transform(
+        pimpl->tmp_device_real_part.begin(),
+        pimpl->tmp_device_real_part.end(),
+        pimpl->tmp_device_real_part.begin(),
+        detail::sqrt_fctr<real_t>()
+      );
+
+      real_t res = thrust::reduce(
+        pimpl->tmp_device_real_part.begin(),
+        pimpl->tmp_device_real_part.end()
+      );
+
+      diag_all(); // this function overwrote n_filtered, we reset n_filtered to all here
+
+      return res / (pimpl->n_part / real_t(2.));
     }
   };
 };

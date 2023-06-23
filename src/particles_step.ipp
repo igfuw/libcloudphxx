@@ -46,8 +46,8 @@ namespace libcloudphxx
       if (pimpl->should_now_run_async)
         throw std::runtime_error("libcloudph++: please call step_async() before calling step_sync() again");
 
-      if (th.is_null() || rv.is_null())
-        throw std::runtime_error("libcloudph++: passing th and rv is mandatory");
+//      if (th.is_null() || rv.is_null())
+//        throw std::runtime_error("libcloudph++: passing th and rv is mandatory");
 
  // <TODO> - code duplicated from init() !
       if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
@@ -71,11 +71,11 @@ namespace libcloudphxx
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
         throw std::runtime_error("libcloudph++: chemistry was switched off and ambient_chem is not empty");
 
-      if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && diss_rate.is_null())
-        throw std::runtime_error("libcloudph++: turbulent advection, coalescence and condesation are not switched off and diss_rate is empty");
+      if ( (pimpl->opts_init.sgs_adve==sgs_adve_t::GA17 || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && diss_rate.is_null())
+        throw std::runtime_error("libcloudph++: sgs advection model is GA17 or turbulent coalescence and condesation are not switched off and diss_rate is empty");
 
-      if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && !diss_rate.is_null())
-        throw std::runtime_error("libcloudph++: turbulent advection, coalescence and condesation are switched off and diss_rate is not empty");
+      if ( !(pimpl->opts_init.sgs_adve==sgs_adve_t::GA17 || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && !diss_rate.is_null())
+        throw std::runtime_error("libcloudph++: sgs advection model is not GA17 and turbulent coalescence and condesation are switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -116,13 +116,13 @@ namespace libcloudphxx
       nancheck(pimpl->courant_z, " courant_z after sync-in");
       nancheck(pimpl->diss_rate, " diss_rate after sync-in");
       nancheck(pimpl->rhod, " rhod after sync-in");
-      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
+      if(pimpl->opts_init.sgs_adve==sgs_adve_t::GA17 || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {nancheck(pimpl->diss_rate, " diss_rate after sync-in");}
 
       assert(*thrust::min_element(pimpl->rv.begin(), pimpl->rv.end()) >= 0);
       assert(*thrust::min_element(pimpl->th.begin(), pimpl->th.end()) >= 0);
       assert(*thrust::min_element(pimpl->rhod.begin(), pimpl->rhod.end()) >= 0);
-      if(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
+      if(pimpl->opts_init.sgs_adve==sgs_adve_t::GA17 || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)
         {assert(*thrust::min_element(pimpl->diss_rate.begin(), pimpl->diss_rate.end()) >= 0);}
 
       // check if courants are greater than 2 since it would break the predictor-corrector (halo of size 2 in the x direction) 
@@ -305,11 +305,11 @@ namespace libcloudphxx
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
         throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
 
-      if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
-        throw std::runtime_error("libcloudph++: turb_adve_switch=False, but turb_adve==True");
+      if(opts.sgs_adve && pimpl->opts_init.sgs_adve==sgs_adve_t::undefined) 
+        throw std::runtime_error("libcloudph++: sgs_adve==True, but opts_init.sgs_adve was not defined");
 
-      if(opts.turb_adve && pimpl->n_dims==0) 
-        throw std::runtime_error("libcloudph++: turbulent advection does not work in 0D");
+      if(opts.sgs_adve && pimpl->n_dims==0) 
+        throw std::runtime_error("libcloudph++: SGS advection does not work in 0D");
 
       // dt defined in opts_init can be overriden by dt in opts
       pimpl->adjust_timesteps(opts.dt);
@@ -350,20 +350,20 @@ namespace libcloudphxx
         }
       }
 
-      if (opts.turb_adve || opts.turb_cond)
+      if ((opts.sgs_adve || opts.turb_cond) && pimpl->opts_init.sgs_adve == sgs_adve_t::GA17) // GA17 takes TKE input
       {
         // calc tke (diss_rate now holds TKE, not dissipation rate! Hence this must be done after coal, which requires diss rate)
         pimpl->hskpng_tke();
       }
-      if (opts.turb_adve)
+      if (opts.sgs_adve)
       {
-        // calc turbulent perturbation of velocity
-        pimpl->hskpng_turb_vel(pimpl->dt);
+        // calc sgs velocity
+        pimpl->hskpng_sgs_vel(pimpl->dt);
       }
       else if (opts.turb_cond)
       {
-        // calc turbulent perturbation only of vertical velocity
-        pimpl->hskpng_turb_vel(pimpl->dt, true);
+        // calc sgs vertical velocity
+        pimpl->hskpng_sgs_vel(pimpl->dt, true);
       }
 
       if(opts.turb_cond)
@@ -377,8 +377,8 @@ namespace libcloudphxx
       // revert to the desired adve scheme (in case we used eulerian this timestep for halo reasons)
       pimpl->adve_scheme = pimpl->opts_init.adve_scheme;
 
-      // apply turbulent perturbation of velocity, TODO: add it to advection velocity (turb_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
-      if (opts.turb_adve) pimpl->turb_adve(pimpl->dt);
+      // apply turbulent perturbation of velocity, TODO: add it to advection velocity (sgs_vel_calc would need to be called couple times in the pred-corr advection + diss_rate would need a halo)
+      if (opts.sgs_adve) pimpl->sgs_adve(pimpl->dt);
 
       // sedimentation/subsidence has to be done after advection, so that negative z doesnt crash hskpng_ijk in adve
       if (opts.sedi) 
@@ -434,7 +434,7 @@ namespace libcloudphxx
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
-      if (opts.adve || opts.turb_adve)
+      if (opts.adve || opts.sgs_adve)
         pimpl->mpi_exchange();
 
       // stuff has to be done after distmem copy 

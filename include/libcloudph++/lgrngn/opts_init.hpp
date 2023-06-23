@@ -12,6 +12,7 @@
 #include "terminal_velocity.hpp"
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
+#include "sgs_adve.hpp"
 #include "ccn_source.hpp"
 #include "../common/chem.hpp"
 
@@ -93,13 +94,24 @@ namespace libcloudphxx
            sedi_switch,  // if false no sedimentation throughout the whole simulation
            subs_switch,  // if false no subsidence throughout the whole simulation
            rlx_switch,   // if false no relaxation throughout the whole simulation
-           turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+
+      sgs_adve_t sgs_adve; // model of SGS advection to be used. 
+      // parameters of the synthetic turbulence model (if used)
+      int ST_Nmodes,      // number of Fourier modes
+          ST_Nwaves_max;  // maximum number of wave numbers per mode
+      real_t ST_eps,      // TKE dissipation rate [m^2 / s^3], constant and uniform
+             ST_Lmax,     // maximum wave length of the ST modes [m]
+             ST_Lmin;     // minimum wave length of the ST modes [m]
            
       int sstp_chem;
       real_t chem_rho;
+
+      // initial distance between every second SD and the preceeding one [m],
+      // used in the pair separation test of the SGS advection model
+      real_t init_pair_separation;
 
       // do we want to track the time SDs spend inside clouds
       bool diag_incloud_time;
@@ -205,13 +217,13 @@ namespace libcloudphxx
         rlx_switch(false), 
         exact_sstp_cond(false),
         turb_cond_switch(false),
-        turb_adve_switch(false),
         turb_coal_switch(false),
         RH_max(.95), // value seggested in Lebo and Seinfeld 2011
         chem_rho(0), // dry particle density  //TODO add checking if the user gave a different value (np w init)  (was 1.8e-3)
         rng_seed(44),
         rng_seed_init(44),
         terminal_velocity(vt_t::undefined),
+        sgs_adve(sgs_adve_t::undefined),
         kernel(kernel_t::undefined),
         adve_scheme(as_t::implicit),
         RH_formula(RH_formula_t::pv_cc),
@@ -237,6 +249,12 @@ namespace libcloudphxx
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
+        init_pair_separation(-1),
+        ST_Nmodes(10),
+        ST_Nwaves_max(10),
+        ST_eps(-1),
+        ST_Lmax(100),
+        ST_Lmin(1e-3),
         rng_seed_init_switch(false)
       {}
 

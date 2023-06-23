@@ -84,6 +84,12 @@ namespace libcloudphxx
       if(opts_init.sd_const_multi > 0 && opts_init.src_type!=src_t::off)
         throw std::runtime_error("libcloudph++: aerosol source and constant multiplicity option are not compatible"); // NOTE: why not?
 
+      if(opts_init.init_pair_separation >= 0 && (opts_init.sd_conc == 0 || opts_init.sd_conc % 2 == 1))
+        throw std::runtime_error("init_pair_separation only works with positive, even sd_conc");
+
+      if(opts_init.init_pair_separation >= 0 && opts_init.ny==0)
+        throw std::runtime_error("init_pair_separation only works in 3D");
+
       if (n_dims > 0)
       {
         if (!(opts_init.x0 >= 0 && opts_init.x0 < m1(opts_init.nx) * opts_init.dx))
@@ -115,16 +121,24 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: opts_init.sedi_switch can be True only if n_dims > 1");
       if (opts_init.subs_switch && opts_init.nz == 0)
         throw std::runtime_error("libcloudph++: opts_init.subs_switch can be True only if n_dims > 1");
-      if (opts_init.turb_adve_switch && opts_init.nz == 0)
-        throw std::runtime_error("libcloudph++: opts_init.turb_adve_switch can be True only if n_dims > 1");
+      if (opts_init.sgs_adve != sgs_adve_t::undefined && opts_init.nz == 0)
+        throw std::runtime_error("libcloudph++: opts_init.sgs_adve can be defined only if n_dims > 1");
       if (opts_init.turb_cond_switch && opts_init.nz == 0)
         throw std::runtime_error("libcloudph++: opts_init.turb_cond_switch can be True only if n_dims > 1");
       if (opts_init.subs_switch && opts_init.nz != w_LS.size())
         throw std::runtime_error("libcloudph++: opts_init.subs_switch == True, but subsidence velocity profile size != nz");
-      if ((opts_init.turb_adve_switch || opts_init.turb_cond_switch) && opts_init.nz != SGS_mix_len.size())
-        throw std::runtime_error("libcloudph++: at least one of opts_init.turb_adve_switch, opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
+      if (opts_init.sgs_adve == sgs_adve_t::GA17 && opts_init.nz != SGS_mix_len.size())
+        throw std::runtime_error("libcloudph++: opts_init.sgs_adve is set to GA17, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("libcloudph++: SGS_mix_len <= 0");
+      if (opts_init.sgs_adve == sgs_adve_t::ST_periodic && opts_init.ny == 0)
+        throw std::runtime_error("libcloudph++: opts_init.sgs_adve==ST_periodic works only in 3 dims");
+      if (opts_init.sgs_adve == sgs_adve_t::ST_periodic && opts_init.ST_eps <= 0)
+        throw std::runtime_error("libcloudph++: opts_init.sgs_adve==ST_periodic but opts_init.ST_eps <= 0");
+#if defined(USE_MPI)
+      if (opts_init.sgs_adve == sgs_adve_t::ST_periodic)
+        throw std::runtime_error("libcloudph++: opts_init.sgs_adve==ST_periodic does not work with MPI");
+#endif
       #if defined(USE_MPI)
         if(opts_init.rlx_switch)
           std::cerr << "libcloudph++ WARNING: relaxation is not fully supported in MPI runs. Mean calculation and addition of SD will be done locally on each node." << std::endl;
@@ -144,4 +158,3 @@ namespace libcloudphxx
     }
   };
 };
-
