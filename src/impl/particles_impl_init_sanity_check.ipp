@@ -141,6 +141,11 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: rlx_timescale <= 0");        
       if(opts_init.rlx_switch && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: CCN relaxation does not work with chemistry");
+
+      if(opts_init.domain_sd_init && opts_init.dry_sizes.size() > 0)
+        throw std::runtime_error("libcloudph++: entire domain initialization (domain_sd_init==true) does not work with initializing from a dry sizes dictionary (dry_sizes.size > 0)");
+      if(opts_init.domain_sd_init && opts_init.sd_const_multi > 0)
+        throw std::runtime_error("libcloudph++: entire domain initialization (domain_sd_init==true) does not work with the constant-mutliplicity init (sd_const_multi > 0)");
     }
   };
 };

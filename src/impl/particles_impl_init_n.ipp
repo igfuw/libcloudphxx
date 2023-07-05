@@ -93,7 +93,7 @@ namespace libcloudphxx
 
        
         // adjust to cell volume
-        if(n_dims > 0)
+        if(n_dims > 0 && !opts_init.domain_sd_init)
         {
           // rhod not needed anymore, reuse it to store dv on host
           thrust::copy(

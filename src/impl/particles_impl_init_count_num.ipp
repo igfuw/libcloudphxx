@@ -31,7 +31,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_sd_conc(const real_t &ratio)
     {
-      thrust::fill(count_num.begin(), count_num.end(), ratio * opts_init.sd_conc);
+      if(!opts_init.domain_sd_init) // usual per-cell init
+        thrust::fill(count_num.begin(), count_num.end(), ratio * opts_init.sd_conc);
+      else // if initializing in the entire domain, pretend that the first cell is the entire domain
+      {
+        thrust::fill(count_num.begin(), count_num.end(), 0);
+        *(count_num.begin()) = ratio * opts_init.sd_conc;
+      }
     }
 
     // calculate number of droplets in a cell from concentration [1/m^3], taking into account cell volume and air density

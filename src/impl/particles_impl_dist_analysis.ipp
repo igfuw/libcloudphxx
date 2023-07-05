@@ -28,8 +28,9 @@ namespace libcloudphxx
           / sd_conc
           * dt
           * (n_dims == 0
-            ? dv[0]
-            : (opts_init.dx * opts_init.dy * opts_init.dz)
+            ? dv[0]                                                                          // 0D (box/parcel)
+            : (opts_init.dx * opts_init.dy * opts_init.dz)                                   // 1D 2D 3D
+              * (opts_init.domain_sd_init ? opts_init.nx * opts_init.ny * opts_init.nz : 1)  // if initializing in the entire domain, not per-cell
           );
 
         log_rd_min = log(rd_min);
@@ -52,8 +53,9 @@ namespace libcloudphxx
             / sd_conc
             * dt
             * (n_dims == 0
-              ? dv[0]
-              : (opts_init.dx * opts_init.dy * opts_init.dz)
+              ? dv[0]                                                                          // 0D (box/parcel)
+              : (opts_init.dx * opts_init.dy * opts_init.dz)                                   // 1D 2D 3D
+                * (opts_init.domain_sd_init ? opts_init.nx * opts_init.ny * opts_init.nz : 1)  // if initializing in the entire domain, not per-cell
             );
 
           log_rd_min = log(rd_min);
