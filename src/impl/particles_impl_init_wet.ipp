@@ -44,7 +44,7 @@ namespace libcloudphxx
     {
       // initialising values of rw2
       {
-	// calculating rw_eq
+        // calculating rw_eq
         {
           typedef thrust::permutation_iterator<
             typename thrust_device::vector<real_t>::iterator,
@@ -67,11 +67,11 @@ namespace libcloudphxx
             pi_t(T.begin(),  ijk.begin() + n_part_old)
           ));
 
-	  thrust::transform(
-	    zip_it, zip_it + n_part_to_init, // input
-	    rw2.begin() + n_part_old, // output
+          thrust::transform(
+            zip_it, zip_it + n_part_to_init, // input
+            rw2.begin() + n_part_old, // output
             detail::rw2_eq<real_t>(opts_init.RH_max) 
-	  );
+          );
         }
       }
     }
