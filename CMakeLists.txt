@@ -68,11 +68,12 @@ endif()
 #############################################################################################
 # see if OpenMP is available
 
-find_package(OpenMP)
+#find_package(OpenMP)
+set(OPENMP_CXX_FOUND 0)
 if(OPENMP_CXX_FOUND)
   message(STATUS " OpenMP found")
 else()
-  message(STATUS "CMAKE cant find OpenMP (known issue for AppleClang on OSX)")
+  message(STATUS "CMAKE can't find OpenMP (known issue for AppleClang on OSX)")
   # maybe some hints are here: https://github.com/src-d/kmcuda/issues/6
   set(OpenMP_CXX_FLAGS " ")
 endif()
