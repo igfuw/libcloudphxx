@@ -191,6 +191,14 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         // why we need those is beyond me, but apparently without it
         // strides in ambient_chem are wrong for some chemical species
         // the problem is not present in Debug mode
+        //
+        // NOTE: this is because advectee() called when inserting into ambient_chem_init
+        // returns a temporary blitz::Array, i.e. its strides vector 
+        // (which in make_arrinfo is copied to arrinfo) points to memory
+        // that is considered free afterwards and it may be overwritten by subsequent calls to
+        // advectee(), e.g. when creating arrinfo for th or rv. I'm not sure why this hack below works,
+        // but a better solution is to create all arrinfos in the call to prtcls->init().
+        // (See how it is done in UWLCM with chemistry)
         libcloudphxx::lgrngn::arrinfo_t<real_t> th(this->make_arrinfo(this->mem->advectee(ix::th)));
         libcloudphxx::lgrngn::arrinfo_t<real_t> rv(this->make_arrinfo(this->mem->advectee(ix::rv)));
         libcloudphxx::lgrngn::arrinfo_t<real_t> g( this->make_arrinfo(this->mem->g_factor()));

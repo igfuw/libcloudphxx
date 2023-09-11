@@ -211,6 +211,29 @@ namespace libcloudphxx
                                             acc_coeff * si::seconds / si::seconds, T, (M_gas * si::kilograms / si::moles)) 
                  / Henry / common::moist_air::kaBoNA<real_t>() / T)
           ) / si::kilograms ;
+#if !defined(NDEBUG)
+  #if !defined(__NVCC__)
+        using boost::math::isfinite;
+  #endif
+          if(mass_helper < real_t(0) || !isfinite(mass_helper))
+          {
+            printf("Henry's law computation: mass_helper negative or not finite, mass_helper: %g, Henry: %g [moles/(m^3*Pa)], m_old: %g [kg], mass_trans: %g [1/s], c: %g, rhod: %g, V: %g [m^3]\n", 
+              mass_helper, 
+              real_t(Henry / si::moles * si::cubic_metres * si::pascals),
+              real_t(m_old / si::kilograms),
+              real_t(common::henry::mass_trans(
+                rw2,
+                (D * si::metres * si::metres / si::seconds),
+                (acc_coeff * si::seconds/si::seconds),
+                T,
+                (M_gas * si::kilograms / si::moles)
+              ) * si::seconds),
+              real_t(c),
+              real_t(rhod * si::cubic_meters / si::kilograms),
+              V 
+            );
+          }
+#endif
 
           return mass_helper;// > 0 ? mass_helper : 0;
         }
@@ -348,6 +371,13 @@ namespace libcloudphxx
           thrust::identity<unsigned int>()
         );
 
+#if !defined(__NVCC__)
+        using boost::math::isfinite;
+#endif
+        //debug::print(chem_bgn[i], chem_end[i]);
+        assert(isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+        nancheck_range(chem_bgn[i], chem_end[i], "chem after Henrys law in chem_henry");
+
         // store the total mass of chem species in cloud droplets per cell after Henry
         thrust::pair<
           typename thrust_device::vector<thrust_size_t>::iterator,
@@ -388,14 +418,7 @@ namespace libcloudphxx
         assert(*thrust::min_element(
           ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end()
         ) >= 0);
-      }
-    
-#if !defined(__NVCC__)
-      using boost::math::isfinite;
-#endif
-      for (int i = 0; i < chem_gas_n; ++i){
-        //debug::print(chem_bgn[i], chem_end[i]);
-        assert(isfinite(*thrust::min_element(chem_bgn[i], chem_end[i])));
+        nancheck_range(ambient_chem[(chem_species_t)i].begin(), ambient_chem[(chem_species_t)i].end(), "ambient_chem after chem_henry");
       }
     }
   };  
