@@ -147,6 +147,8 @@ namespace libcloudphxx
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
+          nancheck_range(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end(), "ambient_chem after sync in");
+          assert(*thrust::min_element(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end()) >= 0);
         }
       }
   
@@ -227,9 +229,9 @@ namespace libcloudphxx
         {   
           // calculate new volume of droplets (needed for chemistry)
           pimpl->chem_vol_ante();
-
           // set flag for those SD that are big enough to have chemical reactions
           pimpl->chem_flag_ante();
+          // NOTE: volume and flag are stored in temporary arrays (tmp_device_real_part and tmp_device_n_part), so these arrays should not be changed until chemistry is done
 
           if (opts.chem_dsl)
           {

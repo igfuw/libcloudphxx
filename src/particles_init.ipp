@@ -76,10 +76,14 @@ namespace libcloudphxx
 
       if (pimpl->opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
+        {
           pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
+          nancheck_range(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end(), "ambient_chem after init");
+          assert(*thrust::min_element(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end()) >= 0);
+        }
 
       // initialising housekeeping data of the size ncell
       pimpl->init_hskpng_ncell(); 
