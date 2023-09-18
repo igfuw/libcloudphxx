@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.6) # for CMakePushCheckState
+cmake_minimum_required(VERSION 3.0)
 project(icicle CXX C)
 enable_testing()
 
