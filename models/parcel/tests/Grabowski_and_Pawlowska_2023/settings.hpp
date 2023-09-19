@@ -13,7 +13,7 @@ public:
     const real_t
         z_max = 1000, // [m]
         vertical_velocity,
-        dt = .01, // [s];
+        dt = 1., // [s];
         kappa = .666;
     const int n_sd = 64;
 

@@ -23,3 +23,10 @@ auto impl(
             libcloudphxx::lgrngn::particles_t<real_t, backend>::impl*
             >(prtcls_with_backend->pimpl.get());
 }
+
+
+template <typename real_t>
+auto arrinfo(real_t &var) {
+    static const ptrdiff_t strides[] = {0, 0, 1};
+    return libcloudphxx::lgrngn::arrinfo_t(&var, strides);
+}

@@ -1,10 +1,4 @@
-find_package(Boost COMPONENTS iostreams system REQUIRED)
-
-add_executable(plot plot.cpp)
-add_test(plot plot ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(plot ${Boost_LIBRARIES})
-target_include_directories(plot PUBLIC ${Boost_INCLUDE_DIRS})
-
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 add_executable(parcel parcel.cpp)
 target_link_libraries(parcel PRIVATE clphxx::cloudphxx_lgrngn)
