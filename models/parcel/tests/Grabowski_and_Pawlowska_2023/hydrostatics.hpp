@@ -9,8 +9,8 @@
 
 template <typename real_t>
 void step_hydrostatic(
-        const real_t &dz_arg, const real_t &thd_arg, const real_t &rv_arg,
-        real_t &rhod_arg
+    const real_t &dz_arg, const real_t &thd_arg, const real_t &rv_arg,
+    real_t &rhod_arg
 ) {
     auto dz = dz_arg * si::meter;
     auto thd = thd_arg * si::kelvin;
@@ -23,7 +23,7 @@ void step_hydrostatic(
     auto K = R/cp;
     auto g = libcloudphxx::common::earth::g<real_t>();
 
-    using boost::units::pow;
+    //using boost::units::pow;
     auto rho = rhod/(1-rv);
     auto T = libcloudphxx::common::theta_dry::T(thd, rhod);
     auto p = libcloudphxx::common::theta_dry::p(rhod, rv, T);

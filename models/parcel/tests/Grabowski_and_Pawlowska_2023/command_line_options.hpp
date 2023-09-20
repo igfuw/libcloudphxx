@@ -16,7 +16,9 @@ auto parse_options(int arg_count, char** arg_values) {
     opts_main.add_options()
             ("help", "produce a help message")
             ("aerosol", po::value<std::string>()->required(), "one of: pristine, polluted")
-            ("vertical_velocity", po::value<float>()->required(), "e.g., 0.25, 1 or 4 [m/s]");
+            ("vertical_velocity", po::value<float>()->required(), "e.g., 0.25, 1 or 4 [m/s]")
+            ("dt", po::value<float>()->required(), "e.g., 1 [s]")
+    ;
 
     po::variables_map vm;
     po::store(

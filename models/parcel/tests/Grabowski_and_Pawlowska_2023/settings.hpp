@@ -10,26 +10,33 @@ class settings_t {
         RH0 = .97,
         p0 = 90000; // [Pa]
 public:
+    const std::string aerosol;
     const real_t
         z_max = 1000, // [m]
         vertical_velocity,
-        dt = 1., // [s];
-        kappa = .666;
+        dt,
+        kappa = 1.28;
     const int n_sd = 64;
 
     std::shared_ptr<bimodal<real_t>> n_ln_rd_stp;
 
     settings_t(
         const real_t vertical_velocity,
-        const std::string aerosol = "pristine"
-    ) : vertical_velocity(vertical_velocity) {
+        const std::string aerosol,
+        const real_t dt
+    ) : vertical_velocity(vertical_velocity), aerosol(aerosol), dt(dt) {
         if (aerosol == "pristine") {
             n_ln_rd_stp = std::make_shared<bimodal<real_t>>(
-                    lognormal<real_t>(11*1e-9, 1.2, 125e6), //pristine
-                    lognormal<real_t>(60*1e-9, 1.7, 65e6)
-                    //lognormal(29*1e-9, 1.36, 160e6), //polluted
-                    //lognormal(71*1e-9, 1.57, 380e6)
-            ); // n(ln(rd)) @ STP
+                    lognormal<real_t>(11e-9, 1.2, 125e6), //pristine
+                    lognormal<real_t>(60e-9, 1.7, 65e6)
+            );
+        }
+        else if (aerosol == "polluted") {
+            n_ln_rd_stp = std::make_shared<bimodal<real_t>>(
+                    lognormal<real_t>(29e-9, 1.36, 160e6), //polluted
+                    lognormal<real_t>(71e-9, 1.57, 380e6)
+            );
+             // n(ln(rd)) @ STP
         }
         else assert(false);
     }

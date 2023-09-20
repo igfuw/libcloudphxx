@@ -3,7 +3,6 @@
 //
 
 #include <ranges>
-#include <fstream>
 
 #include "libcloud_hacks.hpp"
 #include "settings.hpp"
@@ -21,8 +20,9 @@ int main(int arg_count, char** arg_values)
 {
     auto vm = parse_options(arg_count, arg_values);
     settings_t<real_t> settings(
-            vm["vertical_velocity"].as<real_t>(),
-            vm["aerosol"].as<std::string>()
+        vm["vertical_velocity"].as<real_t>(),
+        vm["aerosol"].as<std::string>(),
+        vm["dt"].as<real_t>()
     );
 
     libcloudphxx::lgrngn::opts_init_t<real_t> params;
@@ -50,16 +50,18 @@ int main(int arg_count, char** arg_values)
         rv = settings.rv0(),
         rhod = settings.rhod0();
 
+    auto range_i = std::views::iota(0, settings.n_steps() + 1);
+    auto nc = output_init(settings.n_sd, range_i.size(), settings);
+
     prtcls->init(arrinfo(thd), arrinfo(rv), arrinfo(rhod));
     {
-        std::ofstream myfile("rw2.txt");
-        for (auto i: std::views::iota(0, settings.n_steps() + 1)) {
+        for (auto i: range_i) {
             if (i != 0) {
                 step_hydrostatic(settings.dt * settings.vertical_velocity, thd, rv, rhod);
                 prtcls->step_sync(opts, arrinfo(thd), arrinfo(rv), arrinfo(rhod));
                 prtcls->step_async(opts);
             }
-            output<backend>(*prtcls, myfile);
+            output_step<backend>(i, *prtcls, *nc);
         }
     }
 }
