@@ -50,8 +50,9 @@ int main(int arg_count, char** arg_values)
         rv = settings.rv0(),
         rhod = settings.rhod0();
 
+    auto filename=vm["filename"].as<std::string>();
     auto range_i = std::views::iota(0, settings.n_steps() + 1);
-    auto nc = output_init(settings.n_sd, range_i.size(), settings);
+    auto nc = output_init(settings.n_sd, range_i.size(), settings, filename);
 
     prtcls->init(arrinfo(thd), arrinfo(rv), arrinfo(rhod));
     {

@@ -11,9 +11,10 @@ template <typename real_t>
 auto output_init(
     const int &n_sd,
     const int &n_t,
-    const settings_t<real_t> &settings
+    const settings_t<real_t> &settings,
+    const std::string &filename
 ) {
-    auto nc = std::make_shared<netCDF::NcFile>("test.nc", netCDF::NcFile::replace);
+    auto nc = std::make_shared<netCDF::NcFile>(filename, netCDF::NcFile::replace);
 
     nc->putAtt("dt (s)", netCDF::ncFloat, settings.dt);
     nc->putAtt("vertical velocity (m s-1)", netCDF::ncFloat, settings.vertical_velocity);
