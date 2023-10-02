@@ -91,6 +91,23 @@ namespace libcloudphxx
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
 
+      // cell number of each SD at ijk_history_size hardcoded moments in time,
+      // used in diagnosing distance before collision
+      /*
+      constexpr int ijk_history_size = 11;
+      std::array<thrust_device::vector<real_t>, ijk_history_size> ijk_history;
+      // moments when ijk_history is stored [s]
+      const real_t ijk_history_start  = 5000,
+                   ijk_history_intrvl = 500;
+      int ijk_history_itr = 0; // helper iterator
+//      std::array<real_t, ijk_history_size> = {5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000};
+//      */
+
+      // alternatively, don't hardocde it here but add a function 'store_ijk'?
+      // TODO: with distmem, ijk_history needs to account for domains (ijk starts from 0 in each?)
+      std::vector<thrust_device::vector<real_t>> ijk_history;
+      std::vector<real_t> ijk_history_time; // time at which history was saved
+
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
              log_rd_max, // logarithm of the upper bound of the distr

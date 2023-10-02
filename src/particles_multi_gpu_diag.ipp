@@ -250,5 +250,11 @@ namespace libcloudphxx
       }
       return res;
     }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::store_ijk()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::store_ijk);
+    }
   };
 };

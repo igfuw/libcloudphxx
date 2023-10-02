@@ -493,5 +493,15 @@ namespace libcloudphxx
     {
       return pimpl->output_puddle;
     }
+
+    // TODO: add a similar function to store activated or not?
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::store_ijk(const real_t &t)
+    {
+      pimpl->ijk_history_time.push_back(t);
+      pimpl->ijk_history.emplace_back(pimpl->n_part);
+      pimpl->distmem_real_vctrs.insert(&(pimpl->ijk_history.back()));
+      thrust::copy(pimpl->ijk.begin(), pimpl->ijk.end(), pimpl->ijk_history.back().begin());
+    }
   };
 };
