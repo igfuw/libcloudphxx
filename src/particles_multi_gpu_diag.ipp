@@ -254,7 +254,8 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::store_ijk()
     {
-      pimpl->mcuda_run(&particles_t<real_t, CUDA>::store_ijk);
+      throw std::runtime_error("Store_ijk does not work with multi_CUDA.");
+//      pimpl->mcuda_run(&particles_t<real_t, CUDA>::store_ijk);
     }
   };
 };

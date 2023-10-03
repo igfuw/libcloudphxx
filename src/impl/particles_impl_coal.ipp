@@ -5,6 +5,8 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <thrust/count.h>
+
 
 namespace libcloudphxx
 {
@@ -92,6 +94,59 @@ namespace libcloudphxx
           return n>1 ? (real_t(n*(n-1))/2) / (n/2) : 0; 
         }
       };
+
+      template<class real_t>
+      struct precoal_distance
+      {
+        const real_t dx, dy, dz;
+        const int ny, nz;
+
+        precoal_distance(const opts_init_t<real_t> &opts_init):
+          dx(opts_init.dx),
+          dy(opts_init.dy),
+          dz(opts_init.dz),
+          ny(opts_init.ny),
+          nz(opts_init.nz)
+        {}
+
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+          #if !defined(__NVCC__)
+          using std::floor, std::pow, std::sqrt;
+          #endif
+
+          if(thrust::get<2>(tpl) <= 0)// no collisions or first one passed was a SD with an uneven number in the cell
+          {
+            thrust::get<4>(tpl) = 0;
+            return; 
+          }
+          
+          if(ny > 0) // 3 dims
+          {
+            thrust::get<4>(tpl) = sqrt(
+              pow( (floor(thrust::get<0>(tpl) / (ny*nz))    - floor(thrust::get<1>(tpl) / (ny*nz))) * dx, 2) +  // difference in x
+              pow( (int(floor(thrust::get<0>(tpl) / nz)) % ny    - int(floor(thrust::get<1>(tpl) / nz)) % ny) * dy, 2) +  // difference in y
+              pow( (thrust::get<0>(tpl) % nz - thrust::get<1>(tpl) % nz) * dz, 2)                               // difference in z
+            );
+          }
+          else
+            throw std::runtime_error("precoal_distance works only for n_dims=3");
+        }
+      };
+
+/*
+      template <class real_t>
+      struct is_positive
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const real_t &x)
+        {
+          return x > real_t(0);
+        }
+      };
+      */
 
       // assumes _a have higher multiplicities
       template <typename real_t, typename n_t,
@@ -257,7 +312,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::coal(const real_t &dt, const bool &turb_coal)
+    void particles_t<real_t, device>::impl::coal(const real_t &dt, const bool &turb_coal, const real_t &time)
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
@@ -502,6 +557,39 @@ namespace libcloudphxx
           detail::selector()
         );
         nancheck(incloud_time, "incloud_time - post coalescence");
+      }
+
+      // update precoal_distance
+      {
+        thrust_device::vector<real_t> &distance(tmp_device_real_part1);
+
+        // loop over ijk history + ijk_hitory_time
+        for(int i=0; i < ijk_history.size(); ++i)
+        {
+          int precoal_time_bin_number = (time - ijk_history_time[i]) / (config.precoal_stats_tmax / config.precoal_stats_bins);
+          if(precoal_time_bin_number > config.precoal_stats_bins) continue;
+
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin()),   
+              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin())+1,
+              col.begin(),                                                        
+              col.begin()+1,
+              distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin()),
+              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1,
+              distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
+            )) + n_part -1,
+            detail::precoal_distance<real_t>(opts_init)
+          );
+
+          precoal_mean_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end());
+          precoal_mean_distance_count.at(precoal_time_bin_number) += thrust::count_if(distance.begin(), distance.end(), detail::is_positive<real_t>());
+        }
       }
     }
   };  

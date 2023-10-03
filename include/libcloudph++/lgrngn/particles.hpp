@@ -69,7 +69,8 @@ namespace libcloudphxx
 
       // returns accumulated rainfall
       virtual void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       ) { 
         assert(false); 
       }  
@@ -168,7 +169,8 @@ namespace libcloudphxx
       );
 
       void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       );
 
       // diagnostic methods
@@ -265,7 +267,8 @@ namespace libcloudphxx
       );
 
       void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       );
 
       // diagnostic methods

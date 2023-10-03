@@ -494,9 +494,10 @@ namespace libcloudphxx
       return pimpl->output_puddle;
     }
 
-    // TODO: add a similar function to store activated or not?
+    // TODO: add a similar function to store activated or not; or for mean radius difference?
+    // TODO: in distmem, ijk needs to be the one for the entire domain
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::store_ijk(const real_t &t)
+    void particles_t<real_t, device>::store_ijk(const real_t &t) // time
     {
       pimpl->ijk_history_time.push_back(t);
       pimpl->ijk_history.emplace_back(pimpl->n_part);

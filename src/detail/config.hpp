@@ -32,6 +32,10 @@ namespace libcloudphxx
 
         const real_t rlx_conc_tolerance = 0.1; // tolerance of the relaxation scheme; new SD will be created if missing_conc/expected_conc > tolerance
 
+        // bins to store data about distance (and other attributes?) before collision
+        const real_t precoal_stats_tmax = 7200; // [s]
+        const int precoal_stats_bins = 100;
+
         // ctor
         config():
           vt0_ln_r_min(log(5e-7)),
