@@ -268,10 +268,13 @@ namespace libcloudphxx
 
       // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
       std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
-      std::set<thrust_device::vector<n_t>*>            distmem_n_vctrs;
+      std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
 //      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
-      // vetors that need to be removed/resizes/recycled when the number of SDs changes 
+//
+      // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
       std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
+//      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
+      std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
 
 
       // --- methods ---
@@ -422,6 +425,28 @@ namespace libcloudphxx
 
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
+
+        // real vctrs that need to be resized but do need to be copied in distmem
+        resize_real_vctrs.insert(&tmp_device_real_part);
+        if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
+          resize_real_vctrs.insert(&tmp_device_real_part1);
+        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+          resize_real_vctrs.insert(&tmp_device_real_part2);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
+        {
+          resize_real_vctrs.insert(&tmp_device_real_part3);
+          resize_real_vctrs.insert(&tmp_device_real_part4);
+          if(const_p)
+            resize_real_vctrs.insert(&tmp_device_real_part5);
+        }
+
+        resize_size_vctrs.insert(&ijk);
+        resize_size_vctrs.insert(&sorted_ijk);
+        resize_size_vctrs.insert(&sorted_id);
+        resize_size_vctrs.insert(&tmp_device_size_part);
+        if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
+        if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
+        if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
       }
 
       void sanity_checks();
