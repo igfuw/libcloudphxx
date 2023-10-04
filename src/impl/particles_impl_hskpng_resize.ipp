@@ -2,7 +2,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // TODO: use distmem_real_vctrs instead of each one manually?
     // resize vectors to n_part
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_resize_npart()
@@ -29,8 +28,9 @@ namespace libcloudphxx
       // its unsigned int vector, probably only one we will use, hence no resize_t_vctrs helper used
       tmp_device_n_part.resize(n_part);
 
-      for(auto &arr : ijk_history)
-        arr.resize(n_part);
+//    not needed, since ijk_history is already in distmem_n_vctrs
+//      for(auto &arr : ijk_history)
+//        arr.resize(n_part);
     }
   };
 };

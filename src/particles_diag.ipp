@@ -501,7 +501,7 @@ namespace libcloudphxx
     {
       pimpl->ijk_history_time.push_back(t);
       pimpl->ijk_history.emplace_back(pimpl->n_part);
-      pimpl->distmem_real_vctrs.insert(&(pimpl->ijk_history.back()));
+      pimpl->distmem_n_vctrs.insert(&(pimpl->ijk_history.back()));
       thrust::copy(pimpl->ijk.begin(), pimpl->ijk.end(), pimpl->ijk_history.back().begin());
     }
   };

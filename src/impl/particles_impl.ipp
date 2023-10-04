@@ -228,7 +228,10 @@ namespace libcloudphxx
       // --- stuff for diagnosing distance (and other attributes?) before collision ---
       // cell number of each SD at moments in time when store_ijk was called,
       // TODO: with distmem, ijk_history needs to account for domains (ijk starts from 0 in each?)
-      std::vector<thrust_device::vector<thrust_size_t>> ijk_history;
+      // NOTE: ijk_history would better be thrust_size_t type, not n_t, but then we couldnt use distmem_n_vctrs 
+      //       to manage it and to add distmem_size_vctrs would require adding more MPI communications as there currently are none for thrust_size_t
+      //std::vector<thrust_device::vector<thrust_size_t>> ijk_history;
+      std::vector<thrust_device::vector<n_t>> ijk_history;
       std::vector<real_t> ijk_history_time; // time at which history was saved
       std::vector<real_t> precoal_mean_distance;
       std::vector<n_t> precoal_mean_distance_count;
@@ -278,8 +281,8 @@ namespace libcloudphxx
       // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
       std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
       std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
-//      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
-//
+      //std::set<thrust_device::vector<thrust_size_t>*>                     distmem_size_vctrs; 
+
       // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
       std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
 //      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;

@@ -114,7 +114,7 @@ namespace libcloudphxx
         void operator()(tpl_t tpl)
         {
           #if !defined(__NVCC__)
-          using std::floor, std::pow, std::sqrt;
+//          using std::floor, std::pow, std::sqrt;
           #endif
 
           if(thrust::get<2>(tpl) <= 0)// no collisions or first one passed was a SD with an uneven number in the cell
@@ -125,14 +125,15 @@ namespace libcloudphxx
           
           if(ny > 0) // 3 dims
           {
+            // assume casting to int gives a floor
             thrust::get<4>(tpl) = sqrt(
-              pow( (floor(thrust::get<0>(tpl) / (ny*nz))    - floor(thrust::get<1>(tpl) / (ny*nz))) * dx, 2) +  // difference in x
-              pow( (int(floor(thrust::get<0>(tpl) / nz)) % ny    - int(floor(thrust::get<1>(tpl) / nz)) % ny) * dy, 2) +  // difference in y
+              pow( (int(thrust::get<0>(tpl) / (ny*nz))    - int(thrust::get<1>(tpl) / (ny*nz))) * dx, 2) +  // difference in x
+              pow( (int(int(thrust::get<0>(tpl) / nz)) % ny    - int(int(thrust::get<1>(tpl) / nz)) % ny) * dy, 2) +  // difference in y
               pow( (thrust::get<0>(tpl) % nz - thrust::get<1>(tpl) % nz) * dz, 2)                               // difference in z
             );
           }
           else
-            throw std::runtime_error("precoal_distance works only for n_dims=3");
+            return; // throw std::runtime_error("precoal_distance works only for n_dims=3");
         }
       };
 
