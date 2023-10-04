@@ -72,8 +72,8 @@ namespace libcloudphxx
       while (it != distmem_real_vctrs.end())
       {
         thrust::copy(
-          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()),
-          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()) + lft_count,
+          thrust::make_permutation_iterator((*it).first->begin(), lft_id.begin()),
+          thrust::make_permutation_iterator((*it).first->begin(), lft_id.begin()) + lft_count,
           out_real_bfr.begin() + std::distance(distmem_real_vctrs.begin(), it) * lft_count
         );
         it++;
@@ -90,8 +90,8 @@ namespace libcloudphxx
       while (it != distmem_real_vctrs.end())
       {
         thrust::copy(
-          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()),
-          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()) + rgt_count,
+          thrust::make_permutation_iterator((*it).first->begin(), rgt_id.begin()),
+          thrust::make_permutation_iterator((*it).first->begin(), rgt_id.begin()) + rgt_count,
           out_real_bfr.begin() + std::distance(distmem_real_vctrs.begin(), it) * rgt_count
         );
         it++;

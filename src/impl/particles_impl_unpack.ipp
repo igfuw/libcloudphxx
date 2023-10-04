@@ -76,9 +76,9 @@ namespace libcloudphxx
       auto it = distmem_real_vctrs.begin();
       while (it != distmem_real_vctrs.end())
       {
-        (*it)->resize(n_part);
+        (*it).first->resize(n_part);
         auto distance = std::distance(distmem_real_vctrs.begin(), it);
-        thrust::copy( in_real_bfr.begin() + distance * n_copied, in_real_bfr.begin() + (distance+1) * n_copied, (*it)->begin() + n_part_old);
+        thrust::copy( in_real_bfr.begin() + distance * n_copied, in_real_bfr.begin() + (distance+1) * n_copied, (*it).first->begin() + n_part_old);
         it++;
       }
 

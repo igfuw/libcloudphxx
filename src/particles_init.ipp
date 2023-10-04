@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   * @brief initialisation routine for super droplets
   */
-#include<thrust/extrema.h>
+#include <thrust/extrema.h>
 
 namespace libcloudphxx
 {
@@ -35,7 +35,7 @@ namespace libcloudphxx
       pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
       if(pimpl->const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
-        pimpl->distmem_real_vctrs.insert(&pimpl->sstp_tmp_p);
+        pimpl->distmem_real_vctrs.insert({&pimpl->sstp_tmp_p, detail::no_initial_value});
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
