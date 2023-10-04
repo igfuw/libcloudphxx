@@ -4,6 +4,8 @@
 
 #pragma once
 #include <netcdf>
+#include <valarray>
+#include <boost/range/combine.hpp>
 #include "libcloud_hacks.hpp"
 #include "settings.hpp"
 
@@ -28,6 +30,8 @@ auto output_init(
 
     nc->addVar("wet radius squared", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^2");
     nc->addVar("dry radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
+    nc->addVar("critical radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
+    nc->addVar("critical radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
     nc->addVar("kappa", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "1");
 
     return nc;
@@ -35,13 +39,15 @@ auto output_init(
 
 
 template <typename real_t>
-void save_scalar(
+auto save_scalar(
     const int i,
     libcloudphxx::lgrngn::particles_proto_t<real_t> &prtcls,
     const netCDF::NcFile &nc,
     const std::string &name
 ) {
-    nc.getVar(name).putVar(std::vector{size_t(i)}, prtcls.outbuf()[0]);
+    auto value = prtcls.outbuf()[0];
+    nc.getVar(name).putVar(std::vector{size_t(i)}, value);
+    return value;
 }
 
 
@@ -57,6 +63,26 @@ void save_vector(
         nc.getVar(name).putVar(std::vector{size_t(i), j++}, item);
 }
 
+template <libcloudphxx::lgrngn::backend_t backend, typename real_t>
+const auto rw3_cr(
+        libcloudphxx::lgrngn::particles_proto_t<real_t> &prtcls,
+        const size_t &n_sd,
+        const real_t &T
+) {
+    std::valarray<real_t> values(n_sd);
+    for (size_t j = 0; const auto& [rd3, kpa]: boost::combine(
+            impl<backend, real_t>(prtcls)->rd3,
+            impl<backend, real_t>(prtcls)->kpa
+    )) {
+        values[j++] = libcloudphxx::common::kappa_koehler::rw3_cr(
+                real_t(rd3) * si::cubic_meter,
+                real_t(kpa) * si::dimensionless(),
+                T * si::kelvin
+        ) / si::cubic_meter;
+    }
+    return values;
+}
+
 template <
         libcloudphxx::lgrngn::backend_t backend,
         typename real_t
@@ -70,9 +96,12 @@ void output_step(
     save_scalar(i, prtcls, nc, "RH");
 
     prtcls.diag_temperature();
-    save_scalar(i, prtcls, nc, "T");
+    auto T = save_scalar(i, prtcls, nc, "T");
 
     save_vector(i, impl<backend, real_t>(prtcls)->rw2, nc, "wet radius squared");
     save_vector(i, impl<backend, real_t>(prtcls)->rd3, nc, "dry radius cubed");
     save_vector(i, impl<backend, real_t>(prtcls)->kpa, nc, "kappa");
+
+    auto n_sd = nc.getDim("droplet_id").getSize();
+    save_vector(i, rw3_cr<backend>(prtcls, n_sd, T), nc, "critical radius cubed");
 }

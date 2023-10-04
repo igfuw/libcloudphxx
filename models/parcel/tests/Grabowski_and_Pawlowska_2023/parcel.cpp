@@ -34,6 +34,7 @@ int main(int arg_count, char** arg_values)
     params.dt = settings.dt;
     params.sd_conc = params.n_sd_max = settings.n_sd;
     params.dry_distros.emplace(settings.kappa, settings.n_ln_rd_stp);
+    params.sstp_cond = 10;
 
     params.coal_switch = opts.coal = false;
     params.sedi_switch = opts.sedi = false;
