@@ -270,11 +270,15 @@ namespace libcloudphxx
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
+      // --- containters with vector pointers to help resize and copy vectors ---
+
       // real_t vectors copied in distributed memory case
-      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
+      std::set<thrust_device::vector<real_t>*>         distmem_real_vctrs;
+      std::set<thrust_device::vector<n_t>*>            distmem_n_vctrs;
+//      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
 
 
-      // methods
+      // --- methods ---
 
       // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -384,7 +388,6 @@ namespace libcloudphxx
         }
 
         // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
-        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
         ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
@@ -418,6 +421,9 @@ namespace libcloudphxx
          
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert(&incloud_time);
+
+        // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        distmem_n_vctrs.insert(&n);
       }
 
       void sanity_checks();

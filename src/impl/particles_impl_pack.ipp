@@ -29,25 +29,37 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_n_lft()
     {
-      assert(out_n_bfr.size() >= lft_count);
-      assert(in_n_bfr.size() >= lft_count);
-      thrust::copy(
-        thrust::make_permutation_iterator(n.begin(), lft_id.begin()),
-        thrust::make_permutation_iterator(n.begin(), lft_id.begin()) + lft_count,
-        out_n_bfr.begin()
-      );
+      assert(out_n_bfr.size() >= lft_count * distmem_n_vctrs.size());
+      assert(in_n_bfr.size() >= lft_count * distmem_n_vctrs.size());
+
+      auto it = distmem_n_vctrs.begin();
+      while (it != distmem_n_vctrs.end())
+      {
+        thrust::copy(
+          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()),
+          thrust::make_permutation_iterator((*it)->begin(), lft_id.begin()) + lft_count,
+          out_n_bfr.begin() + std::distance(distmem_n_vctrs.begin(), it) * lft_count
+        );
+        it++;
+      }
     }
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::pack_n_rgt()
     {
-      assert(out_n_bfr.size() >= rgt_count);
-      assert(in_n_bfr.size() >= rgt_count);
-      thrust::copy(
-        thrust::make_permutation_iterator(n.begin(), rgt_id.begin()),
-        thrust::make_permutation_iterator(n.begin(), rgt_id.begin()) + rgt_count,
-        out_n_bfr.begin()
-      );
+      assert(out_n_bfr.size() >= rgt_count * distmem_n_vctrs.size());
+      assert(in_n_bfr.size() >= rgt_count * distmem_n_vctrs.size());
+
+      auto it = distmem_n_vctrs.begin();
+      while (it != distmem_n_vctrs.end())
+      {
+        thrust::copy(
+          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()),
+          thrust::make_permutation_iterator((*it)->begin(), rgt_id.begin()) + rgt_count,
+          out_n_bfr.begin() + std::distance(distmem_n_vctrs.begin(), it) * rgt_count
+        );
+        it++;
+      }
     }
 
     template <typename real_t, backend_t device>
@@ -57,7 +69,6 @@ namespace libcloudphxx
       assert(in_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
 
       auto it = distmem_real_vctrs.begin();
-
       while (it != distmem_real_vctrs.end())
       {
         thrust::copy(
@@ -76,7 +87,6 @@ namespace libcloudphxx
       assert(in_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
 
       auto it = distmem_real_vctrs.begin();
-
       while (it != distmem_real_vctrs.end())
       {
         thrust::copy(

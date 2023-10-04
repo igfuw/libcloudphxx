@@ -56,8 +56,15 @@ namespace libcloudphxx
         return;
 
       assert(opts_init.n_sd_max >= n_part);
-      n.resize(n_part);
-      thrust::copy(in_n_bfr.begin(), in_n_bfr.begin() + n_copied, n.begin() + n_part_old);
+
+      auto it = distmem_n_vctrs.begin();
+      while (it != distmem_n_vctrs.end())
+      {
+        (*it)->resize(n_part);
+        auto distance = std::distance(distmem_n_vctrs.begin(), it);
+        thrust::copy( in_n_bfr.begin() + distance * n_copied, in_n_bfr.begin() + (distance+1) * n_copied, (*it)->begin() + n_part_old);
+        it++;
+      }
     }
 
     template <typename real_t, backend_t device>
@@ -67,7 +74,6 @@ namespace libcloudphxx
         return;
 
       auto it = distmem_real_vctrs.begin();
-
       while (it != distmem_real_vctrs.end())
       {
         (*it)->resize(n_part);
