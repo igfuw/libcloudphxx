@@ -31,12 +31,10 @@ auto output_init(
     nc->addVar("wet radius squared", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^2");
     nc->addVar("dry radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
     nc->addVar("critical radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
-    nc->addVar("critical radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
     nc->addVar("kappa", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "1");
 
     return nc;
 }
-
 
 template <typename real_t>
 auto save_scalar(
