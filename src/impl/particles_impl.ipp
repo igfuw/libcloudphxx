@@ -231,10 +231,11 @@ namespace libcloudphxx
       // NOTE: ijk_history would better be thrust_size_t type, not n_t, but then we couldnt use distmem_n_vctrs 
       //       to manage it and to add distmem_size_vctrs would require adding more MPI communications as there currently are none for thrust_size_t
       //std::vector<thrust_device::vector<thrust_size_t>> ijk_history;
-      std::vector<thrust_device::vector<n_t>> ijk_history;
+//      std::vector<thrust_device::vector<n_t>> ijk_history;
+      std::vector<std::unique_ptr<thrust_device::vector<n_t>>> ijk_history;
       std::vector<real_t> ijk_history_time; // time at which history was saved
-      std::vector<real_t> precoal_mean_distance;
-      std::vector<n_t> precoal_mean_distance_count;
+      std::vector<real_t> precoal_distance;
+      std::vector<n_t> precoal_distance_count;
 
       // -- distributed memory stuff --
       // TODO: move to a separate struct?
@@ -434,10 +435,10 @@ namespace libcloudphxx
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
 
-        precoal_mean_distance.resize(config.precoal_stats_bins);
-        precoal_mean_distance_count.resize(config.precoal_stats_bins);
-        thrust::fill(precoal_mean_distance.begin(), precoal_mean_distance.end(), real_t(0));
-        thrust::fill(precoal_mean_distance_count.begin(), precoal_mean_distance_count.end(), n_t(0));
+        precoal_distance.resize(config.precoal_stats_bins);
+        precoal_distance_count.resize(config.precoal_stats_bins);
+        thrust::fill(precoal_distance.begin(), precoal_distance.end(), real_t(0));
+        thrust::fill(precoal_distance_count.begin(), precoal_distance_count.end(), n_t(0));
 
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);

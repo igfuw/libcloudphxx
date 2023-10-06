@@ -113,13 +113,13 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         void operator()(tpl_t tpl)
         {
-          #if !defined(__NVCC__)
+//          #if !defined(__NVCC__)
 //          using std::floor, std::pow, std::sqrt;
-          #endif
+//          #endif
 
           if(thrust::get<2>(tpl) <= 0)// no collisions or first one passed was a SD with an uneven number in the cell
           {
-            thrust::get<4>(tpl) = 0;
+            thrust::get<4>(tpl) = 0; 
             return; 
           }
           
@@ -127,13 +127,25 @@ namespace libcloudphxx
           {
             // assume casting to int gives a floor
             thrust::get<4>(tpl) = sqrt(
-              pow( (int(thrust::get<0>(tpl) / (ny*nz))    - int(thrust::get<1>(tpl) / (ny*nz))) * dx, 2) +  // difference in x
-              pow( (int(int(thrust::get<0>(tpl) / nz)) % ny    - int(int(thrust::get<1>(tpl) / nz)) % ny) * dy, 2) +  // difference in y
-              pow( (thrust::get<0>(tpl) % nz - thrust::get<1>(tpl) % nz) * dz, 2)                               // difference in z
+              pow( real_t(int(thrust::get<0>(tpl) / (ny*nz))    - int(thrust::get<1>(tpl) / (ny*nz))) * dx, real_t(2)) +  // difference in x
+              pow( real_t(int(int(thrust::get<0>(tpl) / nz)) % ny    - int(int(thrust::get<1>(tpl) / nz)) % ny) * dy, real_t(2)) +  // difference in y
+              pow( real_t(thrust::get<0>(tpl) % nz - thrust::get<1>(tpl) % nz) * dz, real_t(2))                               // difference in z
             );
           }
-          else
-            return; // throw std::runtime_error("precoal_distance works only for n_dims=3");
+          else if(nz > 0) // 2 dims
+          {
+            // assume casting to int gives a floor
+            thrust::get<4>(tpl) = sqrt(
+              pow( real_t(int(int(thrust::get<0>(tpl)) / nz)    - int(int(thrust::get<1>(tpl)) / nz)) * dx, real_t(2)) +  // difference in x
+              pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2))                 // difference in z
+            );
+//            printf("ijk %d ijk %d nz %d dx %g dz %g result %g\n", thrust::get<0>(tpl), thrust::get<1>(tpl), nz, dx, dz, thrust::get<4>(tpl));
+          }
+          else // other dims not implemented yet
+          {
+            thrust::get<4>(tpl) = 0;
+            return; 
+          }
         }
       };
 
@@ -572,15 +584,15 @@ namespace libcloudphxx
 
           thrust::for_each(
             thrust::make_zip_iterator(thrust::make_tuple(
-              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin()),   
-              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin())+1,
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin()),   
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin())+1,
               col.begin(),                                                        
               col.begin()+1,
               distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
             )),
             thrust::make_zip_iterator(thrust::make_tuple(
-              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin()),
-              thrust::make_permutation_iterator(ijk_history[i].begin(), sorted_id.begin())+1,
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin()),
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin())+1,
               col.begin(),
               col.begin()+1,
               distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
@@ -588,8 +600,10 @@ namespace libcloudphxx
             detail::precoal_distance<real_t>(opts_init)
           );
 
-          precoal_mean_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end());
-          precoal_mean_distance_count.at(precoal_time_bin_number) += thrust::count_if(distance.begin(), distance.end(), detail::is_positive<real_t>());
+//          std::cerr << "distance: " << std::endl;
+//          debug::print(distance);
+          precoal_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end());
+          precoal_distance_count.at(precoal_time_bin_number) += thrust::count_if(col.begin(), col.end(), detail::is_positive<real_t>());
         }
       }
     }

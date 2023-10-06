@@ -92,6 +92,15 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         rng_num++;
       }
     }
+
+    // recording precoal distance
+    prtcls->store_ijk(this->timestep * params.dt);
+    std::vector<real_t> precoal_distance = prtcls->diag_precoal_distance();
+//    for(int i=0; i<precoal_distance.size(); ++i)
+//    {
+//      std::cout << (i+0.5) * 72. << " " << precoal_distance.at(i)*1e-6 << std::endl; // tmax=7200 /  nbins=100 = 72
+//    }
+//    std::cout << std::endl;
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
@@ -252,6 +261,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
+/*
         if (params.async)
         {
           assert(!ftr.valid());
@@ -261,19 +271,22 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
               std::launch::async, 
               &particles_t<real_t, multi_CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
-              params.cloudph_opts
+              params.cloudph_opts,
+              this->timestep * params.dt
             );
           else if(params.backend == CUDA)
             ftr = std::async(
               std::launch::async, 
               &particles_t<real_t, CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
-              params.cloudph_opts
+              params.cloudph_opts,
+              this->timestep * params.dt
             );
           assert(ftr.valid());
         } else 
+        */
 #endif
-          prtcls->step_async(params.cloudph_opts);
+          prtcls->step_async(params.cloudph_opts, this->timestep * params.dt);
       }
 
       // performing diagnostics

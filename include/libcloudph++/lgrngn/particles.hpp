@@ -110,6 +110,7 @@ namespace libcloudphxx
       virtual void diag_max_rw()                                                { assert(false); }
       virtual void diag_vel_div()                                               { assert(false); }
       virtual void store_ijk(const real_t&)                                     { assert(false); }
+      virtual std::vector<real_t> diag_precoal_distance()                       { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
 
@@ -201,6 +202,7 @@ namespace libcloudphxx
       void diag_max_rw();
       void diag_vel_div();
       void store_ijk(const real_t&);
+      std::vector<real_t> diag_precoal_distance();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       real_t *outbuf();
 
@@ -300,6 +302,7 @@ namespace libcloudphxx
       void diag_max_rw();
       void diag_vel_div();
       void store_ijk(const real_t&);
+      std::vector<real_t> diag_precoal_distance();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
 
       struct impl;

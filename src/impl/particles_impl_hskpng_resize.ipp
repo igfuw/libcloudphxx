@@ -9,7 +9,14 @@ namespace libcloudphxx
       if(n_part > opts_init.n_sd_max) throw std::runtime_error(detail::formatter() << "n_sd_max (" << opts_init.n_sd_max << ") < n_part (" << n_part << ")");
 
       for(auto &vec: distmem_n_vctrs)
+      {
+//        std::cerr << "resize distmem_n_vctrs vec address: " << vec << std::endl;
+//        std::cerr << "vec pre resize: " << std::endl;
+//        debug::print(*vec);
         vec->resize(n_part);
+//        std::cerr << "vec post resize: " << std::endl;
+//        debug::print(*vec);
+      }
 
       for(auto &pair: distmem_real_vctrs)
       {
