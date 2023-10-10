@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(icicle CXX C)
+project(parcel_cxx CXX C)
 enable_testing()
 
 find_package(libcloudph++)

@@ -11,37 +11,38 @@
 
 template <typename real_t>
 auto output_init(
-    const int &n_sd,
-    const int &n_t,
-    const settings_t<real_t> &settings,
-    const std::string &filename
+        const int &n_sd,
+        const int &n_t,
+        const settings_t<real_t> &settings,
+        const std::string &filename
 ) {
     auto nc = std::make_shared<netCDF::NcFile>(filename, netCDF::NcFile::replace);
 
     nc->putAtt("dt (s)", netCDF::ncFloat, settings.dt);
     nc->putAtt("vertical velocity (m s-1)", netCDF::ncFloat, settings.vertical_velocity);
     nc->putAtt("aerosol", settings.aerosol);
+    nc->putAtt("init", settings.init);
 
     nc->addDim("step",n_t);
     nc->addDim("droplet_id",n_sd);
 
-    nc->addVar("RH", "float", "step").putAtt("unit", "1");
-    nc->addVar("T", "float", "step").putAtt("unit", "K");
+    nc->addVar("RH", "double", "step").putAtt("unit", "1");
+    nc->addVar("T", "double", "step").putAtt("unit", "K");
 
-    nc->addVar("wet radius squared", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^2");
-    nc->addVar("dry radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
-    nc->addVar("critical radius cubed", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
-    nc->addVar("kappa", "float", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "1");
+    nc->addVar("wet radius squared", "double", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^2");
+    nc->addVar("dry radius cubed", "double", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
+    nc->addVar("critical radius cubed", "double", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "m^3");
+    nc->addVar("kappa", "double", std::vector<std::string>{"step", "droplet_id"}).putAtt("unit", "1");
 
     return nc;
 }
 
 template <typename real_t>
 auto save_scalar(
-    const int i,
-    libcloudphxx::lgrngn::particles_proto_t<real_t> &prtcls,
-    const netCDF::NcFile &nc,
-    const std::string &name
+        const int i,
+        libcloudphxx::lgrngn::particles_proto_t<real_t> &prtcls,
+        const netCDF::NcFile &nc,
+        const std::string &name
 ) {
     auto value = prtcls.outbuf()[0];
     nc.getVar(name).putVar(std::vector{size_t(i)}, value);
