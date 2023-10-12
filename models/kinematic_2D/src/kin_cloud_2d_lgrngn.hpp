@@ -92,15 +92,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         rng_num++;
       }
     }
-
-    // recording precoal distance
-    prtcls->store_ijk(this->timestep * params.dt);
-    std::vector<real_t> precoal_distance = prtcls->diag_precoal_distance();
-//    for(int i=0; i<precoal_distance.size(); ++i)
-//    {
-//      std::cout << (i+0.5) * 72. << " " << precoal_distance.at(i)*1e-6 << std::endl; // tmax=7200 /  nbins=100 = 72
-//    }
-//    std::cout << std::endl;
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
