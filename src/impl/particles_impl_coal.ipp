@@ -579,7 +579,7 @@ namespace libcloudphxx
         // loop over ijk history + ijk_hitory_time
         for(int i=0; i < ijk_history.size(); ++i)
         {
-          int precoal_time_bin_number = (time - ijk_history_time[i]) / (config.precoal_stats_tmax / config.precoal_stats_bins);
+          int precoal_time_bin_number = (time - ijk_history_time[i]) / (opts_init.precoal_stats_tmax / config.precoal_stats_bins);
           if(precoal_time_bin_number > config.precoal_stats_bins) continue;
 
           thrust::for_each(
