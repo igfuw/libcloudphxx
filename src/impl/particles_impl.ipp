@@ -227,9 +227,9 @@ namespace libcloudphxx
 
       // --- stuff for diagnosing distance (and other attributes?) before collision ---
       // cell number of each SD at moments in time when store_ijk was called,
-      // TODO: with distmem, ijk_history needs to account for domains (ijk starts from 0 in each?)
+      // TODO: with MPI, ijk_history needs to account for domains 
       // NOTE: ijk_history would better be thrust_size_t type, not n_t, but then we couldnt use distmem_n_vctrs 
-      //       to manage it and to add distmem_size_vctrs would require adding more MPI communications as there currently are none for thrust_size_t
+      //       to manage it and to add distmem_size_vctrs would require adding more GPU/MPI communications as there currently are none for thrust_size_t
       //std::vector<thrust_device::vector<thrust_size_t>> ijk_history;
 //      std::vector<thrust_device::vector<n_t>> ijk_history;
       std::vector<std::unique_ptr<thrust_device::vector<n_t>>> ijk_history;
