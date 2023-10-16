@@ -234,7 +234,6 @@ namespace libcloudphxx
 
       std::vector<std::future<pudmap_t>> futures(this->opts_init->dev_count);
       for (int i = 0; i < this->opts_init->dev_count; ++i)
-      {
         futures[i] = std::async(
           std::launch::async,
           [i, this](){
@@ -242,12 +241,11 @@ namespace libcloudphxx
             return this->pimpl->particles[i]->diag_puddle();
           }
         );
-      }
+
       // TODO: optimize this...
       for (int i = 0; i < this->opts_init->dev_count; ++i)
-      {
         res = add_puddle(res, futures[i].get());
-      }
+
       return res;
     }
 
@@ -256,6 +254,50 @@ namespace libcloudphxx
     {
 //      throw std::runtime_error("Store_ijk does not work with multi_CUDA.");
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::store_ijk, t);
+    }
+
+    template <typename real_t>
+    std::vector<real_t> particles_t<real_t, multi_CUDA>::diag_precoal_distance()
+    {
+//      std::cerr << "precoal_distance: " << std::endl;
+//      debug::print(pimpl->precoal_distance);
+//      std::cerr << "precoal_distance_count: " << std::endl;
+//      debug::print(pimpl->precoal_distance_count);
+//
+//
+      using n_t = typename particles_t<real_t, CUDA>::impl::n_t;
+      using p_t = std::pair<real_t, n_t>;
+      const auto precoal_stats_bins = pimpl->particles[0]->pimpl->config.precoal_stats_bins;
+
+      std::vector<p_t> precoal_distance_and_count(precoal_stats_bins, {0,0});
+      std::vector<real_t> precoal_mean_distance(precoal_stats_bins);
+
+      std::vector<std::future<std::vector<p_t>>> futures(this->opts_init->dev_count);
+      for (int i = 0; i < this->opts_init->dev_count; ++i)
+        futures[i] = std::async(
+          std::launch::async,
+          [i, this, precoal_stats_bins](){
+            gpuErrchk(cudaSetDevice(i));
+            std::vector<p_t> res(precoal_stats_bins);
+            for (unsigned i = 0; i < res.size(); i++)
+              res.at(i) = std::make_pair(this->pimpl->particles[i]->pimpl->precoal_distance[i], this->pimpl->particles[i]->pimpl->precoal_distance_count[i]);
+            return res;
+          }
+        );
+
+      for (int i = 0; i < this->opts_init->dev_count; ++i)
+        std::transform(precoal_distance_and_count.begin(), precoal_distance_and_count.end(), futures[i].get().begin(), precoal_distance_and_count.begin(),
+          [](p_t &A, const p_t &B) {return std::make_pair(A.first + B.first, A.second + B.second);}
+          );
+
+      std::transform(
+        precoal_distance_and_count.begin(), 
+        precoal_distance_and_count.end(),
+        precoal_mean_distance.begin(),
+        [](const p_t &A) {return A.first / A.second;}
+      );
+
+      return precoal_mean_distance;
     }
   };
 };
