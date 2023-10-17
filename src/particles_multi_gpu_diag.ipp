@@ -269,35 +269,51 @@ namespace libcloudphxx
       using p_t = std::pair<real_t, n_t>;
       const auto precoal_stats_bins = pimpl->particles[0]->pimpl->config.precoal_stats_bins;
 
-      std::vector<p_t> precoal_distance_and_count(precoal_stats_bins, {0,0});
-      std::vector<real_t> precoal_mean_distance(precoal_stats_bins);
+      std::vector<real_t> precoal_distance_local(precoal_stats_bins);
+      std::vector<real_t> precoal_distance(precoal_stats_bins, 0);
+      std::vector<n_t> precoal_distance_count_local(precoal_stats_bins);
+      std::vector<n_t> precoal_distance_count(precoal_stats_bins, 0);
 
-      std::vector<std::future<std::vector<p_t>>> futures(this->opts_init->dev_count);
       for (int i = 0; i < this->opts_init->dev_count; ++i)
-        futures[i] = std::async(
-          std::launch::async,
-          [i, this, precoal_stats_bins](){
-            gpuErrchk(cudaSetDevice(i));
-            std::vector<p_t> res(precoal_stats_bins);
-            for (unsigned i = 0; i < res.size(); i++)
-              res.at(i) = std::make_pair(this->pimpl->particles[i]->pimpl->precoal_distance[i], this->pimpl->particles[i]->pimpl->precoal_distance_count[i]);
-            return res;
-          }
+      {
+        gpuErrchk(cudaSetDevice(i));
+        thrust::copy(
+          this->pimpl->particles[i]->pimpl->precoal_distance.begin(),
+          this->pimpl->particles[i]->pimpl->precoal_distance.end(),
+          precoal_distance_local.begin()
+        );
+        thrust::copy(
+          this->pimpl->particles[i]->pimpl->precoal_distance_count.begin(),
+          this->pimpl->particles[i]->pimpl->precoal_distance_count.end(),
+          precoal_distance_count_local.begin()
         );
 
-      for (int i = 0; i < this->opts_init->dev_count; ++i)
-        std::transform(precoal_distance_and_count.begin(), precoal_distance_and_count.end(), futures[i].get().begin(), precoal_distance_and_count.begin(),
-          [](p_t &A, const p_t &B) {return std::make_pair(A.first + B.first, A.second + B.second);}
-          );
+        std::transform(
+          precoal_distance_local.begin(), 
+          precoal_distance_local.end(), 
+          precoal_distance.begin(),
+          precoal_distance.begin(),
+          std::plus<real_t>()
+        );
+
+        std::transform(
+          precoal_distance_count_local.begin(), 
+          precoal_distance_count_local.end(), 
+          precoal_distance_count.begin(),
+          precoal_distance_count.begin(),
+          std::plus<n_t>()
+        );
+      }
 
       std::transform(
-        precoal_distance_and_count.begin(), 
-        precoal_distance_and_count.end(),
-        precoal_mean_distance.begin(),
-        [](const p_t &A) {return A.first / A.second;}
+        precoal_distance.begin(), 
+        precoal_distance.end(),
+        precoal_distance_count.begin(),
+        precoal_distance.begin(), 
+        [](const real_t &A, const n_t &B) {return A/real_t(B);}
       );
 
-      return precoal_mean_distance;
+      return precoal_distance;
     }
   };
 };

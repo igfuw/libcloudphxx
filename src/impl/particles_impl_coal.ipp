@@ -98,8 +98,11 @@ namespace libcloudphxx
       template<class real_t>
       struct precoal_distance
       {
+        using n_t = int; // unsigned long long; // TODO: make it a template arg
         const real_t dx, dy, dz;
-        const int ny, nz;
+        const n_t ny, nz;
+
+        int i_d, j_d, k_d;
 
         precoal_distance(const opts_init_t<real_t> &opts_init):
           dx(opts_init.dx),
@@ -113,9 +116,13 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         void operator()(tpl_t tpl)
         {
-//          #if !defined(__NVCC__)
-//          using std::floor, std::pow, std::sqrt;
-//          #endif
+          #if !defined(__NVCC__)
+            using std::pow; 
+            using std::sqrt; 
+            using std::isnan; 
+            using std::isinf;
+            using std::abs;
+          #endif
 
           if(thrust::get<2>(tpl) <= 0)// no collisions or first one passed was a SD with an uneven number in the cell
           {
@@ -125,11 +132,20 @@ namespace libcloudphxx
           
           if(ny > 0) // 3 dims
           {
-            // assume casting to int gives a floor
+            // we cast to int to calculate floor...
+            i_d = int(int(thrust::get<0>(tpl)) / (ny*nz))    - int(int(thrust::get<1>(tpl)) / (ny*nz));
+            j_d = n_t(int(int(thrust::get<0>(tpl)) / nz)) % ny    - n_t(int(int(thrust::get<1>(tpl)) / nz)) % ny;
+            k_d = int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz;
+
             thrust::get<4>(tpl) = sqrt(
-              pow( real_t(int(thrust::get<0>(tpl) / (ny*nz))    - int(thrust::get<1>(tpl) / (ny*nz))) * dx, real_t(2)) +  // difference in x
-              pow( real_t(int(int(thrust::get<0>(tpl) / nz)) % ny    - int(int(thrust::get<1>(tpl) / nz)) % ny) * dy, real_t(2)) +  // difference in y
-              pow( real_t(thrust::get<0>(tpl) % nz - thrust::get<1>(tpl) % nz) * dz, real_t(2))                               // difference in z
+              pow( real_t(abs(i_d)) * dx, real_t(2)) +
+              pow( real_t(abs(j_d)) * dy, real_t(2)) +
+              pow( real_t(abs(k_d)) * dz, real_t(2))
+            /*
+              pow( real_t(int(int(thrust::get<0>(tpl)) / (ny*nz))    - int(int(thrust::get<1>(tpl)) / (ny*nz))) * dx, real_t(2)) +
+              pow( real_t(n_t(int(int(thrust::get<0>(tpl)) / nz)) % ny    - n_t(int(int(thrust::get<1>(tpl)) / nz)) % ny) * dy, real_t(2)) +
+              pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2))
+              */
             );
           }
           else if(nz > 0) // 2 dims
@@ -139,12 +155,20 @@ namespace libcloudphxx
               pow( real_t(int(int(thrust::get<0>(tpl)) / nz)    - int(int(thrust::get<1>(tpl)) / nz)) * dx, real_t(2)) +  // difference in x
               pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2))                 // difference in z
             );
-//            printf("ijk %d ijk %d nz %d dx %g dz %g result %g\n", thrust::get<0>(tpl), thrust::get<1>(tpl), nz, dx, dz, thrust::get<4>(tpl));
           }
           else // other dims not implemented yet
           {
             thrust::get<4>(tpl) = 0;
             return; 
+          }
+          if(isnan(thrust::get<4>(tpl)) || isinf(thrust::get<4>(tpl)))
+          {
+            printf("precoal_distance nan/inf; ijk %llu ijk %llu ny %d nz %d dx %f dy %f dz %f result %f pow1 %f pow2 %f pow3 %f i_d %d j_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), ny, nz, dx, dy, dz, thrust::get<4>(tpl), 
+            pow( real_t(int(real_t(thrust::get<0>(tpl)) / real_t(ny*nz))    - int(real_t(thrust::get<1>(tpl)) / real_t(ny*nz))) * dx, real_t(2)),
+            pow( real_t(n_t(int(real_t(thrust::get<0>(tpl)) / real_t(nz))) % ny    - n_t(int(real_t(thrust::get<1>(tpl)) / real_t(nz))) % ny) * dy, real_t(2)),
+            pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2)),
+            i_d, j_d, k_d
+            );
           }
         }
       };
@@ -600,11 +624,19 @@ namespace libcloudphxx
             detail::precoal_distance<real_t>(opts_init)
           );
 
-//          std::cerr << "distance: " << std::endl;
-//          debug::print(distance);
+          nancheck(distance, "precoal distance");
+
           precoal_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end());
+          //precoal_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end(), real_t(0), );
+          //precoal_distance.at(precoal_time_bin_number) += thrust::count_if(distance.begin(), distance.end(), detail::is_positive<real_t>());
           precoal_distance_count.at(precoal_time_bin_number) += thrust::count_if(col.begin(), col.end(), detail::is_positive<real_t>());
         }
+        /*
+        std::cerr << "precoal_distance after coal: " << std::endl;
+        debug::print(precoal_distance);
+        std::cerr << "precoal_distance_count after coal: " << std::endl;
+        debug::print(precoal_distance_count);
+        */
       }
     }
   };  
