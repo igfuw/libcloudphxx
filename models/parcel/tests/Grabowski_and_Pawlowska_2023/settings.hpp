@@ -7,7 +7,7 @@ template <typename real_t>
 class settings_t {
     const real_t
             T0 = 283, // [K]
-    RH0 = .97,
+            RH0 = .97,
             p0 = 90000; // [Pa]
 public:
     const std::string aerosol, init;
