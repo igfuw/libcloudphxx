@@ -150,10 +150,13 @@ namespace libcloudphxx
           }
           else if(nz > 0) // 2 dims
           {
+            i_d = int(int(thrust::get<0>(tpl)) / nz)    - int(int(thrust::get<1>(tpl)) / nz);
+            k_d = int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz;
+
             // assume casting to int gives a floor
             thrust::get<4>(tpl) = sqrt(
-              pow( real_t(int(int(thrust::get<0>(tpl)) / nz)    - int(int(thrust::get<1>(tpl)) / nz)) * dx, real_t(2)) +  // difference in x
-              pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2))                 // difference in z
+              pow( real_t(abs(i_d)) * dx, real_t(2)) +
+              pow( real_t(abs(k_d)) * dz, real_t(2))
             );
           }
           else // other dims not implemented yet
@@ -161,14 +164,27 @@ namespace libcloudphxx
             thrust::get<4>(tpl) = 0;
             return; 
           }
+
+          // error check
           if(isnan(thrust::get<4>(tpl)) || isinf(thrust::get<4>(tpl)))
           {
-            printf("precoal_distance nan/inf; ijk %llu ijk %llu ny %d nz %d dx %f dy %f dz %f result %f pow1 %f pow2 %f pow3 %f i_d %d j_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), ny, nz, dx, dy, dz, thrust::get<4>(tpl), 
-            pow( real_t(int(real_t(thrust::get<0>(tpl)) / real_t(ny*nz))    - int(real_t(thrust::get<1>(tpl)) / real_t(ny*nz))) * dx, real_t(2)),
-            pow( real_t(n_t(int(real_t(thrust::get<0>(tpl)) / real_t(nz))) % ny    - n_t(int(real_t(thrust::get<1>(tpl)) / real_t(nz))) % ny) * dy, real_t(2)),
-            pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2)),
-            i_d, j_d, k_d
-            );
+            if(ny>0)
+            {
+              printf("precoal_distance nan/inf; ijk %llu ijk %llu ny %d nz %d dx %f dy %f dz %f result %f pow1 %f pow2 %f pow3 %f i_d %d j_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), ny, nz, dx, dy, dz, thrust::get<4>(tpl), 
+                pow( real_t(abs(i_d)) * dx, real_t(2)),
+                pow( real_t(abs(j_d)) * dy, real_t(2)),
+                pow( real_t(abs(k_d)) * dz, real_t(2)),
+                i_d, j_d, k_d
+              );
+            }
+            else if(nz > 0) // 2 dims
+            {
+              printf("precoal_distance nan/inf; ijk %llu ijk %llu nz %d dx %f dz %f result %f pow1 %f pow3 %f i_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), nz, dx, dz, thrust::get<4>(tpl), 
+                pow( real_t(abs(i_d)) * dx, real_t(2)),
+                pow( real_t(abs(k_d)) * dz, real_t(2)),
+                i_d, k_d
+              );
+            }
           }
         }
       };
