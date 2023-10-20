@@ -6,6 +6,7 @@
 
 #include "error.hpp" 
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp> // for vector_indexing_suite (wrappping std::vector)
 #include <libcloudph++/lgrngn/factory.hpp>
 
 #include "../../src/detail/ran_with_mpi.hpp"

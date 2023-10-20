@@ -8,7 +8,7 @@ sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose
+from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose, asarray
 
 from math import exp, log, sqrt, pi
 
@@ -662,6 +662,10 @@ prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 from sizes
 
+# test if get_attr work and if kappas are set correctly
+kappa = asarray(prtcls.get_attr("kappa"))
+assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
+assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
 
 
 # ----------
@@ -677,6 +681,7 @@ prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf())[0] > 64 + 20).all() # 64 from dry_distro and 20 from sizes + tail
+
 
 # go back to distros init
 opts_init.sd_conc_large_tail = 0
