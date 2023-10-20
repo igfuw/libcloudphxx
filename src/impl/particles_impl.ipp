@@ -480,6 +480,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      std::vector<real_t> fill_attr_outbuf(const std::string&);
       void mpi_exchange();
 
            // rename hskpng_ -> step_?

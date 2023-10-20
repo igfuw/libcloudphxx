@@ -36,5 +36,30 @@ namespace libcloudphxx
 	)
       );
     }
+
+    template <typename real_t, backend_t device>
+    std::vector<real_t> particles_t<real_t, device>::impl::fill_attr_outbuf(const std::string &name)
+    {
+      const std::set<std::string> attr_names = {"rw3", "rd2", "kappa", "x", "y", "z"}; // TODO implement "n" - it is n_t type and others are real_t
+      if (std::find(std::begin(attr_names), std::end(attr_names), name) == std::end(attr_names))
+        throw std::runtime_error("Unknown attribute name passed to get_attr.");
+
+      const thrust_device::vector<real_t> &dv(
+        name == "rw2" ? rw2 : 
+        name == "rd3" ? rd3 : 
+        name == "kappa" ? kpa : 
+        name == "x" ? x : 
+        name == "y" ? y : 
+        z); 
+
+      // NOTE: for host backends (i.e. undefined __NVCC__) we could return the vector directly, without a copy;
+      //       however, if output was done concurrently, values in the diagnosed vector might change after the call to fill_attr_outbuf.
+      std::vector<real_t> out(n_part);
+      thrust::copy(
+        dv.begin(), dv.end(),
+        out.begin()
+      );
+      return out;
+    }
   };
 };
