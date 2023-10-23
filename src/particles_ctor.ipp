@@ -87,5 +87,11 @@ namespace libcloudphxx
       pimpl->hskpng_count();
       return &(*(pimpl->tmp_host_real_cell.begin()));
     }
+
+    template <typename real_t, backend_t device>
+    std::vector<real_t> particles_t<real_t, device>::get_attr(const std::string &attr_name) 
+    {
+      return std::move(pimpl->fill_attr_outbuf(attr_name));
+    }
   };
 };

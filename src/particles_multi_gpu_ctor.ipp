@@ -45,5 +45,11 @@ namespace libcloudphxx
         th, rv, rhod, p, courant_1, courant_2, courant_3, ambient_chem
       );
     }
+
+    template <typename real_t>
+    std::vector<real_t> particles_t<real_t, multi_CUDA>::get_attr(const std::string &attr_name) 
+    {
+      throw std::runtime_error("get_attr doesnt work in multi_CUDA backend.");
+    }
   };
 };
