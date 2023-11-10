@@ -422,9 +422,9 @@ namespace libcloudphxx
 
       void sanity_checks();
       void init_SD_with_distros();
-      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
-      void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
-      void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
+      void init_SD_with_distros_sd_conc(const common::unary_function<double> &, const real_t &);
+      void init_SD_with_distros_tail(const common::unary_function<double> &, const real_t);
+      void init_SD_with_distros_const_multi(const common::unary_function<double> &);
       void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
@@ -436,23 +436,23 @@ namespace libcloudphxx
 
       void init_dry_sd_conc();
       void init_dry_const_multi(
-        const common::unary_function<real_t> &n_of_lnrd
+        const common::unary_function<double> &n_of_lnrd
       );
       void init_dry_dry_sizes(real_t);
 
       void init_n_sd_conc(
-        const common::unary_function<real_t> &n_of_lnrd
+        const common::unary_function<double> &n_of_lnrd
       );
       void init_n_const_multi(const thrust_size_t &);
       void init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc);
 
       void dist_analysis_sd_conc(
-        const common::unary_function<real_t> &n_of_lnrd,
+        const common::unary_function<double> &n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
       void dist_analysis_const_multi(
-        const common::unary_function<real_t> &n_of_lnrd 
+        const common::unary_function<double> &n_of_lnrd 
       );
       void reserve_hskpng_npart();
       void init_ijk();
@@ -460,8 +460,8 @@ namespace libcloudphxx
       void init_kappa(const real_t &);
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
-      void init_count_num_const_multi(const common::unary_function<real_t> &);
-      void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
+      void init_count_num_const_multi(const common::unary_function<double> &);
+      void init_count_num_const_multi(const common::unary_function<double> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
       void init_count_num_src(const thrust_size_t &);
