@@ -53,7 +53,7 @@ namespace libcloudphxx
       {
         tmp_device_real_part1.resize(n_part);
       }
-      if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+      if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || opts_init.diag_coal_tele_mass_flux)
       {
         tmp_device_real_part2.resize(n_part);
       }

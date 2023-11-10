@@ -104,6 +104,9 @@ namespace libcloudphxx
       // do we want to track the time SDs spend inside clouds
       bool diag_incloud_time;
 
+      // do we want to calculate mass flux caused by mass teleportation in the coalescence algorithm 
+      bool diag_coal_tele_mass_flux;
+
       // RH threshold for calculating equilibrium condition at t=0
       real_t RH_max;
 
@@ -233,6 +236,7 @@ namespace libcloudphxx
         rd_min(-1), // negative means that rd_min will be automatically detected
         rd_max(-1),
         diag_incloud_time(false),
+        diag_coal_tele_mass_flux(true),
         no_ccn_at_init(false),
         open_side_walls(false),
         periodic_topbot_walls(false),

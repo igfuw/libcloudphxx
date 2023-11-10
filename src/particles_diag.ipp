@@ -349,6 +349,18 @@ namespace libcloudphxx
         assert(0 && "diag_incloud_time_mom called, but opts_init.diag_incloud_time==false");
     }   
 
+    // output accumulated mass flux due to coalescence teleportation
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_coal_tele_mass_flux()
+    {   
+      assert(pimpl->opts_init.diag_coal_tele_mass_flux && "diag_coal_tele_mass_flux called, but opts_init.diag_coal_tele_mass_flux==false");
+      thrust::copy(pimpl->coal_tele_mass_flux.begin(), pimpl->coal_tele_mass_flux.end(), pimpl->count_mom.begin());
+
+      // mass flux defined in all cells
+      pimpl->count_n = pimpl->n_cell;
+      thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
+    }   
+
     // computes mass density function for wet radii using estimator from Shima et al. (2009)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_wet_mass_dens(const real_t &rad, const real_t &sig0)
