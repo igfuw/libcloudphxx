@@ -29,7 +29,7 @@ namespace libcloudphxx
           using std::min;
           using std::max;
 #endif
-        	
+                
           return u01 * min(p1, (ii+1) * dp) + (1. - u01) * max(p0, ii * dp); 
         }
       };
@@ -55,17 +55,27 @@ namespace libcloudphxx
         // tossing random numbers
         rand_u01(n_part_to_init);
 
-	// shifting from [0,1] to random position within respective cell 
-  // TODO: now the rand range is [0,1), include this here
+        // shifting from [0,1] to random position within respective cell 
+        // TODO: now the rand range is [0,1), include this here
+        if(!opts_init.domain_sd_init)
+        {
+          thrust::transform(
+            u01.begin(), 
+            u01.begin() + n_part_to_init,
+            ii[ix]->begin() + n_part_old, 
+            v[ix]->begin() + n_part_old, 
+            detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
+          );
+        }
+        else // random position in the entire domain
         {
           namespace arg = thrust::placeholders;
-	  thrust::transform(
-	    u01.begin(), 
-	    u01.begin() + n_part_to_init,
-            ii[ix]->begin() + n_part_old, 
-	    v[ix]->begin() + n_part_old, 
-            detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
-	  );
+          thrust::transform(
+            u01.begin(), 
+            u01.begin() + n_part_to_init,
+            v[ix]->begin() + n_part_old, 
+            a[ix] + arg::_1 * (b[ix] - a[ix])
+          );
         }
       }
     }

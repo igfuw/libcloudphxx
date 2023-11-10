@@ -31,7 +31,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_sd_conc(const real_t &ratio)
     {
-      thrust::fill(count_num.begin(), count_num.end(), ratio * opts_init.sd_conc);
+      if(!opts_init.domain_sd_init) // usual per-cell init
+        thrust::fill(count_num.begin(), count_num.end(), ratio * opts_init.sd_conc);
+      else // if initializing in the entire domain, pretend that the first cell is the entire domain
+      {
+        thrust::fill(count_num.begin(), count_num.end(), 0);
+        *(count_num.begin()) = ratio * opts_init.sd_conc;
+      }
     }
 
     // calculate number of droplets in a cell from concentration [1/m^3], taking into account cell volume and air density
@@ -44,22 +50,49 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       using common::earth::rho_stp;
 
-      // cell volume
-      thrust::transform(
-        dv.begin(), dv.end(), 
-        arr.begin(), 
-        arr.begin(),
-        arg::_2 * arg::_1 
-      );
-
-      // correct for density with respect to STP
-      if(!opts_init.aerosol_independent_of_rhod)
+      if(!opts_init.domain_sd_init || n_dims==0) // usual per-cell init
+      {
+        // cell volume
         thrust::transform(
-          rhod.begin(), rhod.end(), 
+          dv.begin(), dv.end(), 
           arr.begin(), 
           arr.begin(),
-          arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
+          arg::_2 * arg::_1 
         );
+
+        // correct for density with respect to STP
+        if(!opts_init.aerosol_independent_of_rhod)
+          thrust::transform(
+            rhod.begin(), rhod.end(), 
+            arr.begin(), 
+            arr.begin(),
+            arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
+          );
+      }
+      else // full-domain init 1D 2D 3D
+      {
+        // all SDs are initialized as if they were in 0-th cell, so set zero number in other cells
+        thrust::fill(arr.begin()+1, arr.end(), 0);
+
+        // domain volume
+        thrust::transform(
+          arr.begin(), arr.begin()+1, 
+          arr.begin(), 
+          arg::_1
+            * (opts_init.x1 - opts_init.x0)
+            * (n_dims >= 2 ? opts_init.z1 - opts_init.z0 : 1)
+            * (n_dims == 3 ? opts_init.y1 - opts_init.y0 : 1)
+        );
+
+        // correct for density with respect to STP; TODO: 0-th cell density is used, although later these SDs are spread around entire domain... 
+        if(!opts_init.aerosol_independent_of_rhod)
+          thrust::transform(
+            rhod.begin(), rhod.begin()+1, 
+            arr.begin(), 
+            arr.begin(),
+            arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
+          );
+      }
     }
 
     template <typename real_t, backend_t device>

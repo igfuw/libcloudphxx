@@ -53,7 +53,7 @@ namespace libcloudphxx
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
-      // no. of super-droplets per cell
+      // no. of super-droplets per cell (or in the entire domain if domain_sd_init==true)
       unsigned long long sd_conc; 
  
       // should more SDs be added to better represent large tail of the distribution
@@ -128,9 +128,9 @@ namespace libcloudphxx
 
       real_t rd_min, rd_max; // min/max dry radius of droplets [m] 
 
-      bool no_ccn_at_init; // if true, no ccn / SD are put at the start of the simulation
-
-      bool open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
+      bool no_ccn_at_init,        // if true, no ccn / SD are put at the start of the simulation
+           domain_sd_init,        // if true, SDs are initialized in the entire domain as if it was a single cell (experimental, could mess with SD sources and other things...)
+           open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
            periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
 
 
@@ -234,6 +234,7 @@ namespace libcloudphxx
         rd_max(-1),
         diag_incloud_time(false),
         no_ccn_at_init(false),
+        domain_sd_init(false),
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
