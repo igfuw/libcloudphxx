@@ -493,5 +493,66 @@ namespace libcloudphxx
     {
       return pimpl->output_puddle;
     }
+
+    // TODO: add a similar function to store activated or not; or for mean radius difference?
+    // TODO: in distmem, ijk needs to be the one for the entire domain
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::store_ijk(const real_t &t) // time
+    {
+      #if defined(USE_MPI)
+        // TODO: ijk stored is local only to a MPI domain (ijk in each domain starts with 0)
+        std::cerr << "libcloudph++ WARNING: store_ijk is not fully supported in MPI runs, pre-collision statistics may be wrong" << std::endl;
+      #endif
+
+      using n_t = typename particles_t<real_t, device>::impl::n_t;
+      pimpl->ijk_history_time.push_back(t);
+      //pimpl->ijk_history.emplace_back(pimpl->n_part);
+      pimpl->ijk_history.push_back(std::make_unique<thrust_device::vector<n_t>>(pimpl->n_part));
+
+            thrust::copy(pimpl->ijk.begin(), pimpl->ijk.end(), (*pimpl->ijk_history.back()).begin());
+
+      // store global ijk, i.e. take into account domains of other GPUs (in multi_CUDA backend), but not those of other MPI processes!
+      /*
+      thrust::transform(
+        pimpl->ijk.begin(), 
+        pimpl->ijk.end(),
+        thrust::make_constant_iterator<thrust_size_t>(pimpl->n_cell_bfr),
+        (*pimpl->ijk_history.back()).begin(),
+        thrust::plus<thrust_size_t>()
+      );
+      */
+
+//      std::cerr << "address of the last element in ijk_history: " << &(*pimpl->ijk_history.back()) << std::endl;
+//      std::cerr << "last element in ijk_history: " << std::endl;
+//      debug::print(*pimpl->ijk_history.back());
+//      std::cerr << "ijk: " << std::endl;
+//      debug::print(pimpl->ijk);
+      pimpl->distmem_n_vctrs.insert(&(*pimpl->ijk_history.back()));
+//      for(auto *vec: pimpl->distmem_n_vctrs)
+//      {
+//        std::cerr << "distmem_n_vctrs after adding last element of ijk_history; address: " << vec << " array: " << std::endl;
+//        debug::print(*vec);
+//      }
+    }
+
+    template <typename real_t, backend_t device>
+    std::vector<real_t> particles_t<real_t, device>::diag_precoal_distance()
+    {
+    /*
+      std::cerr << "precoal_distance: " << std::endl;
+      debug::print(pimpl->precoal_distance);
+      std::cerr << "precoal_distance_count: " << std::endl;
+      debug::print(pimpl->precoal_distance_count);
+      */
+      std::vector<real_t> precoal_mean_distance(pimpl->config.precoal_stats_bins);
+      thrust::transform(
+        pimpl->precoal_distance.begin(), 
+        pimpl->precoal_distance.end(),
+        pimpl->precoal_distance_count.begin(),
+        precoal_mean_distance.begin(),
+        thrust::divides<real_t>()
+      );
+      return precoal_mean_distance;
+    }
   };
 };

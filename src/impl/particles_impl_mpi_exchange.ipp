@@ -74,7 +74,7 @@ namespace libcloudphxx
         // start async copy of n buffer to the left
         MPI_CHECK(MPI_Isend(
           out_n_bfr.data().get(),       // raw pointer to the buffer
-          lft_count,                    // no of values to send
+          lft_count * distmem_n_vctrs.size(),                    // no of values to send
           detail::get_mpi_type<n_t>(),    // type
           lft_rank,                     // dest comm
           detail::tag_n_lft,              // message tag
@@ -218,7 +218,7 @@ namespace libcloudphxx
         // start async copy of n buffer to the right
         MPI_CHECK(MPI_Isend(
           out_n_bfr.data().get(),       // raw pointer to the buffer
-          rgt_count,                    // no of values to send
+          rgt_count * distmem_n_vctrs.size(),                    // no of values to send
           detail::get_mpi_type<n_t>(),    // type
           rgt_rank,                     // dest comm
           detail::tag_n_rgt,              // message tag

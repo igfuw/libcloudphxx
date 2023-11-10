@@ -32,6 +32,9 @@ namespace libcloudphxx
 
         const real_t rlx_conc_tolerance = 0.1; // tolerance of the relaxation scheme; new SD will be created if missing_conc/expected_conc > tolerance
 
+        // number of bins to store data about distance (and other attributes?) before collision
+        const int precoal_stats_bins = 100;
+
         // ctor
         config():
           vt0_ln_r_min(log(5e-7)),
@@ -39,6 +42,9 @@ namespace libcloudphxx
           eps_tolerance(sizeof(real_t) * 8 / 4)
           {}
       };
+
+      // just some constant, not related to config but had to put them somewhere
+      enum { invalid = -1, no_initial_value = -44 };
     };
   };
 };

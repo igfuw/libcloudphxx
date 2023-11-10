@@ -25,6 +25,7 @@ namespace libcloudphxx
 
       void step_async_and_copy(
         const opts_t<real_t> &opts,
+        const real_t &time,
         const int dev_id,
         std::vector<cudaStream_t> &streams,
         std::vector<cudaEvent_t> &events,

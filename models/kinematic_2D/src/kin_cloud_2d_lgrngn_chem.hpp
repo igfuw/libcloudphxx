@@ -279,6 +279,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         using libcloudphxx::lgrngn::CUDA;
         using libcloudphxx::lgrngn::multi_CUDA;
 
+/*
 #if defined(STD_FUTURE_WORKS)
         if (parent_t::params.async)
         {
@@ -302,6 +303,7 @@ class kin_cloud_2d_lgrngn_chem : public kin_cloud_2d_lgrngn<ct_params_t>
         } else 
 #endif
           parent_t::prtcls->step_async(parent_t::params.cloudph_opts);
+          */
       }
 
       // performing diagnostics
