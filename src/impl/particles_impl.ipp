@@ -143,10 +143,11 @@ namespace libcloudphxx
       std::map<enum common::output_t, real_t> output_puddle;
   
       thrust_device::vector<real_t> 
-        T,  // temperature [K]
-        p,  // pressure [Pa]
-        RH, // relative humisity 
-        eta,// dynamic viscosity 
+        T,    // temperature [K]
+        p,    // pressure [Pa]
+        RH,   // relative humisity 
+        RH_i, // relative humisity w.r.t. ice
+        eta,  // dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile

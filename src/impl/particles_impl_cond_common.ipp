@@ -136,6 +136,8 @@ namespace libcloudphxx
             a_w(rw3, rd3, kpa),
             klvntrm(rw, T)
           );
+          
+          // TODO: rdrdt_i if ice
         }
 
         // backward Euler scheme:
