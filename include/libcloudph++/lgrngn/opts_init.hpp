@@ -29,16 +29,16 @@ namespace libcloudphxx
       // defined with a distribution
       // uses shared_ptr to make opts_init copyable
       typedef std::unordered_map<
-        real_t,                // kappa
+        std::pair<real_t, real_t>,              // (kappa, ice)
         std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
       > dry_distros_t;
       dry_distros_t dry_distros;
 
       // defined with a size-number pair
       typedef std::map<
-        real_t,                  // kappa
-        std::map<real_t,         // radius [m]
-          std::pair<real_t, int> // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
+        std::pair<real_t, real_t>, // (kappa, ice)
+        std::map<real_t,           // radius [m]
+          std::pair<real_t, int>   // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
         > 
       > dry_sizes_t;
       dry_sizes_t dry_sizes;
@@ -96,6 +96,7 @@ namespace libcloudphxx
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
+           ice_switch,         // if true, ice is allowed
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
            
       int sstp_chem;
@@ -203,6 +204,7 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
+        ice_switch(false),
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),

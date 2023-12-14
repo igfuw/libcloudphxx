@@ -44,7 +44,10 @@ namespace libcloudphxx
 
       // init other peoperties of SDs that didnt have a match
       init_kappa(
-        opts_init.src_dry_distros.begin()->first
+        opts_init.src_dry_distros.begin()->first.first
+      ); 
+      init_ice(
+        opts_init.src_dry_distros.begin()->first.second
       ); 
 
       if(opts_init.diag_incloud_time)

@@ -113,7 +113,7 @@ namespace libcloudphxx
       // initialize SDs of each kappa-type
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
-        const auto &kappa(ddi->first);
+        const auto &kappa(ddi->first.first);
         assert(kappa >= 0);
         const auto &n_of_lnrd_stp(*(std::get<0>(ddi->second)));
 

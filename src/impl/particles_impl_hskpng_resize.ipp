@@ -49,6 +49,8 @@ namespace libcloudphxx
         dot_ssp.resize(n_part, 0);
       }
 
+      if(opts_init.ice_switch) ice.resize(n_part);
+
       if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
       {
         tmp_device_real_part1.resize(n_part);

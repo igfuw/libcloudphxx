@@ -89,7 +89,8 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
-        incloud_time; // time this SD has been within a cloud
+        incloud_time, // time this SD has been within a cloud
+        ice; // 0 - water 1 - ice; bool would suffice, but we are lazy
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -419,6 +420,9 @@ namespace libcloudphxx
          
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert(&incloud_time);
+
+        if(opts_init.ice_switch)
+          distmem_real_vctrs.insert(&ice);
       }
 
       void sanity_checks();
@@ -459,6 +463,7 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
+      void init_ice(const real_t &);
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);

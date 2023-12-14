@@ -15,18 +15,18 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_SD_with_sizes()
     {
       using dry_sizes_t = typename opts_init_t<real_t>::dry_sizes_t;
-      using kappa_t  = typename dry_sizes_t::key_type;
       using size_number_t = typename dry_sizes_t::mapped_type;
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
-      // loop over kappas
+      // loop over (kappa, ice) pairs
       for (typename dry_sizes_t::const_iterator dsi = opts_init.dry_sizes.begin(); dsi != opts_init.dry_sizes.end(); ++dsi)
       {
-        const kappa_t &kappa(dsi->first);
+        const real_t &kappa(dsi->first.first);
+        const real_t &ice(dsi->first.second);
         const size_number_t &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration, count}" pairs for this kappa
+        // loop over the "size : {concentration, count}" pairs for this (kappa, ice) pair
         for (typename size_number_t::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
         {
           // init number of SDs of this kappa in cells
@@ -45,8 +45,9 @@ namespace libcloudphxx
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);
 
-          // init kappa
+          // init kappa and ice
           init_kappa(kappa);
+          init_ice(ice);
   
           // init multiplicities
           init_n_dry_sizes(sni->second.first, sni->second.second); 

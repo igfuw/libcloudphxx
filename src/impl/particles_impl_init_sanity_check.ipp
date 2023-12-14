@@ -141,6 +141,16 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: rlx_timescale <= 0");        
       if(opts_init.rlx_switch && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: CCN relaxation does not work with chemistry");
+
+      if(opts_init.ice_switch)
+      {
+        if(opts_init.coal_switch) // because we dont know what to do when ice collides with water
+          throw std::runtime_error("libcloudph++: coalescence does not work with ice (turn off ice_switch or coal_switch).");
+        if(opts_init.rlx_switch) // because we dont account for ice/water when matching and initializing aerosols from relaxation
+          throw std::runtime_error("libcloudph++: relaxation does not work with ice.");
+        if(opts_init.src_type==src_t::matching) // because we dont account for ice/water when matching and initializing aerosols from this type of source
+          throw std::runtime_error("libcloudph++: 'matching' source type does not work with ice.");
+      }
     }
   };
 };
