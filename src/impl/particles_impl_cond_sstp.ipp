@@ -35,7 +35,8 @@ namespace libcloudphxx
       const real_t &RH_max,
       const thrust_device::vector<real_t> &Tp,
       const pres_iter &pi,
-      const RH_iter &rhi
+      const RH_iter &rhi,
+      const RH_iter &rhii
     ) { 
 
       thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
@@ -54,7 +55,8 @@ namespace libcloudphxx
         kpa.begin(),
         vt.begin(),
         thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin()),
+        ice.begin()  // ice can be nonsense if ice_swtich==0, because it is not assigned...
       ));
 
       // calculating drop growth in a timestep using backward Euler 
@@ -149,7 +151,9 @@ namespace libcloudphxx
                 ssp.begin()
               )),
               detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
+            ),        
+            // particle-specific RH_i, resolved + SGS
+            thrust::make_constant_iterator<real_t>(0) // dummy, ice is not allowed with turb_cond
           ); 
         else // no RH SGS
           cond_sstp_hlpr(dt, RH_max, Tp,
@@ -163,6 +167,15 @@ namespace libcloudphxx
                 Tp.begin()
               )),
               detail::RH<real_t>(opts_init.RH_formula)
+            ),        
+            // particle-specific RH_i, resolved
+            thrust::make_transform_iterator(
+              thrust::make_zip_iterator(thrust::make_tuple(
+                pressure_iter,
+                sstp_tmp_rv.begin(),
+                Tp.begin()
+              )),
+              detail::RH_i<real_t>(opts_init.RH_formula)
             )        
           ); 
       }
@@ -181,7 +194,9 @@ namespace libcloudphxx
                 ssp.begin()
               )),
               detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
+            ),        
+            // particle-specific RH_i, resolved + SGS
+            thrust::make_constant_iterator<real_t>(0) // dummy, ice is not allowed with turb_cond
           ); 
         else // no RH SGS
           cond_sstp_hlpr(dt, RH_max, Tp,
@@ -195,6 +210,15 @@ namespace libcloudphxx
                 Tp.begin()
               )),
               detail::RH<real_t>(opts_init.RH_formula)
+            ),        
+            // particle-specific RH_i, resolved
+            thrust::make_transform_iterator(
+              thrust::make_zip_iterator(thrust::make_tuple(
+                sstp_tmp_p.begin(),
+                sstp_tmp_rv.begin(),
+                Tp.begin()
+              )),
+              detail::RH_i<real_t>(opts_init.RH_formula)
             )        
           ); 
       }

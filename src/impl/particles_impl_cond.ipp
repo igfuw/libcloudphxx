@@ -48,7 +48,8 @@ namespace libcloudphxx
         kpa.begin(),
         vt.begin(),
         thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin()),
+        ice.begin()
       ));
 
       // calculating drop growth in a timestep using backward Euler 
@@ -63,13 +64,15 @@ namespace libcloudphxx
           arg::_1 + arg::_2
         );
 
+        // no RH_i, because we dont allow ice with turb_cond
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              RH_plus_ssp.begin()
+              RH_plus_ssp.begin(),
+              thrust::make_constant_iterator<real_t>(0) // dummy RH_i just to make it compile
             )
           ), 
           rw2.begin(),                    // output
@@ -83,7 +86,8 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
             )
           ), 
           rw2.begin(),                    // output

@@ -69,13 +69,15 @@ namespace libcloudphxx
         const quantity<si::dimensionless,     real_t> RH_max;
         const quantity<si::length,            real_t> lambda_D;
         const quantity<si::length,            real_t> lambda_K;
+        const bool ice;
+        const quantity<si::dimensionless,     real_t> RH_i;
 
         // ctor
         BOOST_GPU_ENABLED
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
@@ -91,6 +93,8 @@ namespace libcloudphxx
           RH(      thrust::get<2>(tpl)),
           lambda_D(thrust::get<7>(thrust::get<0>(tpl)) * si::metres),
           lambda_K(thrust::get<8>(thrust::get<0>(tpl)) * si::metres),
+          ice(thrust::get<9>(thrust::get<0>(tpl))),
+          RH_i(    thrust::get<3>(tpl)),
           RH_max(RH_max)
         {}
 
@@ -126,18 +130,26 @@ namespace libcloudphxx
           const quantity<common::thermal_conductivity, real_t> 
             K = K_0<real_t>() * beta(lambda_K / rw) * (Nu(Pr, Re) / 2);
 
-          return real_t(2) * rdrdt( 
-            D,
-            K,
-            rhod * rv, 
-            T, 
-            p, 
-            RH > RH_max ? RH_max : RH, 
-            a_w(rw3, rd3, kpa),
-            klvntrm(rw, T)
-          );
-          
-          // TODO: rdrdt_i if ice
+          if(!ice)
+            return real_t(2) * rdrdt( 
+              D,
+              K,
+              rhod * rv, 
+              T, 
+              p, 
+              RH > RH_max ? RH_max : RH, 
+              a_w(rw3, rd3, kpa),
+              klvntrm(rw, T)
+            );
+          else
+            return real_t(2) * rdrdt_i( 
+              D,
+              K,
+              rhod * rv, 
+              T, 
+              p, 
+              RH_i > RH_max ? RH_max : RH_i 
+            );
         }
 
         // backward Euler scheme:
@@ -194,7 +206,9 @@ namespace libcloudphxx
               "kpa: %g  "
               "vt: %g  "
               "lambda_D: %g  "
-              "lambda_K: %g\n",
+              "lambda_K: %g  "
+              "ice: %g  "
+              "RH_i: %g\n",
                drw2, rw2_old, dt, RH_max, 
                thrust::get<0>(tpl_in), // rhod
                thrust::get<1>(tpl_in), // rv
@@ -206,7 +220,9 @@ namespace libcloudphxx
                thrust::get<5>(tpl_in), // kpa
                thrust::get<6>(tpl_in), // vt
                thrust::get<7>(tpl_in), // lambda_D
-               thrust::get<8>(tpl_in)  // lambda_K
+               thrust::get<8>(tpl_in), // lambda_K
+               thrust::get<9>(tpl_in), // ice
+               thrust::get<3>(tpl)     // RH_i
             );
             assert(0);
           }
