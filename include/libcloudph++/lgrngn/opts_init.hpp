@@ -13,6 +13,7 @@
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
 #include "ccn_source.hpp"
+#include "distro_t.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
@@ -28,20 +29,20 @@ namespace libcloudphxx
       // initial dry sizes of aerosol
       // defined with a distribution
       // uses shared_ptr to make opts_init copyable
-      typedef std::unordered_map<
-        std::pair<real_t, real_t>,              // (kappa, ice)
-        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
-      > dry_distros_t;
-      dry_distros_t dry_distros;
-
-      // defined with a size-number pair
-      typedef std::map<
-        std::pair<real_t, real_t>, // (kappa, ice)
-        std::map<real_t,           // radius [m]
-          std::pair<real_t, int>   // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
-        > 
-      > dry_sizes_t;
-      dry_sizes_t dry_sizes;
+//      typedef std::unordered_map<
+//        std::pair<real_t, real_t>,              // (kappa, ice)
+//        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
+//      > dry_distros_t;
+      dry_distros_t<real_t> dry_distros;
+//
+//      // defined with a size-number pair
+//      typedef std::map<
+//        std::pair<real_t, real_t>, // (kappa, ice)
+//        std::map<real_t,           // radius [m]
+//          std::pair<real_t, int>   // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
+//        > 
+//      > dry_sizes_t;
+      dry_sizes_t<real_t> dry_sizes;
 
       // Eulerian component parameters
       int nx, ny, nz;
@@ -141,13 +142,13 @@ namespace libcloudphxx
       src_t src_type;
 
       // source distro per unit time
-      dry_distros_t src_dry_distros;
+//      dry_distros_t src_dry_distros;
 
       // number of SDs created from src_dry_distros per cell per source iteration
       unsigned long long src_sd_conc;
 
       // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
-      dry_sizes_t src_dry_sizes;
+ //     dry_sizes_t src_dry_sizes;
 
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform

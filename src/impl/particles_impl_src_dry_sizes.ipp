@@ -14,21 +14,22 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src_dry_sizes(const real_t &dt)
     {
-      using dry_sizes_t = typename opts_init_t<real_t>::dry_sizes_t;
+//      using dry_sizes_t = typename opts_t<real_t>::dry_sizes_t;
       using real_t  = typename dry_sizes_t::key_type;
-      using size_number_t = typename dry_sizes_t::mapped_type;
+//      using size_number_t = typename dry_sizes_t::mapped_type;
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
       // loop over (kappa, ice) pairs
-      for (typename dry_sizes_t::const_iterator dsi = opts_init.src_dry_sizes.begin(); dsi != opts_init.src_dry_sizes.end(); ++dsi)
+     // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
+      for (auto dsi = opts.src_dry_sizes.cbegin(); dsi != opts.src_dry_sizes.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.first);
         const real_t &ice(dsi->first.second);
-        const size_number_t &size_number_map(dsi->second);
+        const auto &size_number_map(dsi->second);
 
         // loop over the "size : {concentration per second, multiplicity}" pairs for this (kappa, ice) pair
-        for (typename size_number_t::const_iterator sni = size_number_map.begin(); sni != size_number_map.end(); ++sni)
+        for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // init number of SDs of this kappa in cells
           init_count_num_src(sni->second.second);

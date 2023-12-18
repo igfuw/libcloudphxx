@@ -16,6 +16,12 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src_dry_distros(const real_t &dt)
     { 
+      if (opts.src_dry_distros.size() > 1)
+        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
+
+      if (opts_init.src_type == src_t::matching && !opts.src_dry_distros.empty() &&
+          opts.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
+
       if(opts_init.src_type == src_t::matching)
         src_dry_distros_matching(dt);
       if(opts_init.src_type == src_t::simple)

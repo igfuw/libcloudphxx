@@ -14,10 +14,10 @@ namespace libcloudphxx
     {   
   //    ante_adding_SD();
 
-      if(!opts_init.src_dry_distros.empty())
+      if(!opts.src_dry_distros.empty())
         src_dry_distros(dt);
 
-      if(!opts_init.src_dry_sizes.empty())
+      if(!opts.src_dry_sizes.empty())
         src_dry_sizes(dt);
 
 //      post_adding_SD();

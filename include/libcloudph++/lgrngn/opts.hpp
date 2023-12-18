@@ -8,6 +8,7 @@
 #pragma once
 
 #include "extincl.hpp"
+#include "distro_t.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
@@ -30,6 +31,12 @@ namespace libcloudphxx
 
       // overriding dt from opts_init
       real_t dt;
+
+      // aerosol source distro per unit time
+      dry_distros_t<real_t> src_dry_distros;
+
+      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration
+      dry_sizes_t<real_t> src_dry_sizes;
 
       // ctor with defaults (C++03 compliant) ...
       opts_t() : 

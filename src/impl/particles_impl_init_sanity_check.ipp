@@ -57,11 +57,11 @@ namespace libcloudphxx
       if (opts_init.chem_switch && opts_init.src_type!=src_t::off)
         throw std::runtime_error("libcloudph++: chemistry and aerosol source are not compatible");
 
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
-        throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
-
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
-        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
+//      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
+//        throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
+//
+//      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
+//        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
 
       if (opts_init.src_type==src_t::matching && opts_init.dry_distros.size() > 1)
         throw std::runtime_error("libcloudph++: For 'matching' CCN source, the initial aerosol distribution can only have one kappa value (na kappa matching done).");
@@ -69,8 +69,8 @@ namespace libcloudphxx
       if (opts_init.src_type!=src_t::off && n_dims<2)
         throw std::runtime_error("libcloudph++: CCN source works in 2D and 3D only.");
 
-      if (opts_init.src_type==src_t::matching && !opts_init.src_dry_distros.empty() &&
-          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
+//      if (opts_init.src_type==src_t::matching && !opts_init.src_dry_distros.empty() &&
+//          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
 
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: chemistry and multiple kappa distributions are not compatible");
