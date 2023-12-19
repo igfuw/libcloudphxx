@@ -430,7 +430,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
+      void init_SD_with_distros_finalize(const std::pair<real_t, real_t> &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -565,8 +565,8 @@ namespace libcloudphxx
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
-      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      template<class pres_iter, class RH_iter, class RHi_iter>
+      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi, const RHi_iter &rhii);
       void update_th_rv(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
@@ -584,11 +584,11 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       void bcnd();
 
-      void src(const real_t &dt);
-      void src_dry_distros_simple(const real_t &dt);
-      void src_dry_distros_matching(const real_t &dt);
-      void src_dry_distros(const real_t &dt);
-      void src_dry_sizes(const real_t &dt);
+      void src(const real_t &dt, const dry_distros_t<real_t> &, const dry_sizes_t<real_t> &);
+      void src_dry_distros_simple(const real_t &dt, const dry_distros_t<real_t> &);
+      void src_dry_distros_matching(const real_t &dt, const dry_distros_t<real_t> &);
+      void src_dry_distros(const real_t &dt, const dry_distros_t<real_t> &);
+      void src_dry_sizes(const real_t &dt,  const dry_sizes_t<real_t> &);
 
       void rlx(const real_t);
       void rlx_dry_distros(const real_t);

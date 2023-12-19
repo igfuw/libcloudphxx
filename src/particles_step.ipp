@@ -406,7 +406,7 @@ namespace libcloudphxx
         // introduce new particles with the given time interval
         if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
         {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt, opts.src_dry_distros, opts.src_dry_sizes);
         }
       }
 

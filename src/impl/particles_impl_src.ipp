@@ -10,15 +10,15 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src(const real_t &dt)
+    void particles_t<real_t, device>::impl::src(const real_t &dt, const dry_distros_t<real_t> &sdd, const dry_sizes_t<real_t> &sds)
     {   
   //    ante_adding_SD();
 
-      if(!opts.src_dry_distros.empty())
-        src_dry_distros(dt);
+      if(!sdd.empty())
+        src_dry_distros(dt, sdd);
 
-      if(!opts.src_dry_sizes.empty())
-        src_dry_sizes(dt);
+      if(!sds.empty())
+        src_dry_sizes(dt, sds);
 
 //      post_adding_SD();
     }

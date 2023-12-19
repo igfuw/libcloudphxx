@@ -34,7 +34,7 @@ namespace libcloudphxx
 //        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
 //      > dry_distros_t;
       dry_distros_t<real_t> dry_distros;
-//
+
 //      // defined with a size-number pair
 //      typedef std::map<
 //        std::pair<real_t, real_t>, // (kappa, ice)

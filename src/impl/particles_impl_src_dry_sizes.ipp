@@ -12,17 +12,17 @@ namespace libcloudphxx
   {
     // initialize SD parameters with dry_radius-concentration pairs (i.e. dry_sizes)
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_sizes(const real_t &dt)
+    void particles_t<real_t, device>::impl::src_dry_sizes(const real_t &dt, const dry_sizes_t<real_t> &sds)
     {
 //      using dry_sizes_t = typename opts_t<real_t>::dry_sizes_t;
-      using real_t  = typename dry_sizes_t::key_type;
+//      using real_t  = typename dry_sizes_t::key_type;
 //      using size_number_t = typename dry_sizes_t::mapped_type;
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
       // loop over (kappa, ice) pairs
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
-      for (auto dsi = opts.src_dry_sizes.cbegin(); dsi != opts.src_dry_sizes.cend(); ++dsi)
+      for (auto dsi = sds.cbegin(); dsi != sds.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.first);
         const real_t &ice(dsi->first.second);

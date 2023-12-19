@@ -14,7 +14,7 @@ namespace libcloudphxx
   {
     // create new aerosol particles based on a size distribution
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_distros_simple(const real_t &dt)
+    void particles_t<real_t, device>::impl::src_dry_distros_simple(const real_t &dt, const dry_distros_t<real_t> &sdd)
     {   
       // set number of SDs to init; use count_num as storage
       init_count_num_src(opts_init.src_sd_conc);
@@ -22,7 +22,7 @@ namespace libcloudphxx
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
       dist_analysis_sd_conc(
-        *(opts_init.src_dry_distros.begin()->second),
+        *(sdd.begin()->second),
         opts_init.src_sd_conc,
         dt
       ); 
@@ -44,17 +44,17 @@ namespace libcloudphxx
 
       // init other peoperties of SDs that didnt have a match
       init_kappa(
-        opts_init.src_dry_distros.begin()->first.first
+        sdd.begin()->first.first
       ); 
       init_ice(
-        opts_init.src_dry_distros.begin()->first.second
+        sdd.begin()->first.second
       ); 
 
       if(opts_init.diag_incloud_time)
         init_incloud_time();
 
       init_n_sd_conc(
-        *(opts_init.src_dry_distros.begin()->second)
+        *(sdd.begin()->second)
       ); // TODO: document that n_of_lnrd_stp is expected!
 
       // init rw

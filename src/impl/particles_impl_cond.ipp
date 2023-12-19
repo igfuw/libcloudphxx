@@ -65,6 +65,7 @@ namespace libcloudphxx
         );
 
         // no RH_i, because we dont allow ice with turb_cond
+        /*
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -78,6 +79,7 @@ namespace libcloudphxx
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt, RH_max)
         );
+        */
       }
       else
         thrust::transform(

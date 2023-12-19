@@ -182,7 +182,7 @@ namespace libcloudphxx
       {   
         const RH_formula_t RH_formula;
         // the type of formula to be used for RH
-        RH(RH_formula_t RH_formula):
+        RH_i(RH_formula_t RH_formula):
           RH_formula(RH_formula)
         {}
 
