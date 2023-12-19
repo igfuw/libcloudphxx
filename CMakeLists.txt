@@ -241,7 +241,7 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(cloudphxx_lgrngn PRIVATE  -Wfatal-errors $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic>)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic,-Wfatal-errors>)
   # Release mode cuda flags
   else()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp>)

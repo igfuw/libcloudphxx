@@ -45,17 +45,20 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
+
+          real_t vt;
+
           // TODO: move the formula selection to the functor's constructor to avoid the switch in each function call,
           //       see how it is done in RH calculation in hskpng_Tpr
           switch(vt_eq)
           {
             case(vt_t::beard76):
-              return common::vterm::vt_beard76(
+              vt = common::vterm::vt_beard76(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<1>(tpl) * si::pascals,
@@ -64,7 +67,7 @@ namespace libcloudphxx
               ) / si::metres_per_second;
 
             case(vt_t::beard77):
-              return 
+              vt = 
                 common::vterm::vt_beard77_fact(
                   sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                   thrust::get<1>(tpl) * si::pascals,
@@ -73,7 +76,7 @@ namespace libcloudphxx
                 ) * (common::vterm::vt_beard77_v0(sqrt(rw2) * si::metres) / si::metres_per_second);
 
             case(vt_t::khvorostyanov_spherical):
-              return common::vterm::vt_khvorostyanov(
+              vt = common::vterm::vt_khvorostyanov(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
@@ -82,7 +85,7 @@ namespace libcloudphxx
               ) / si::metres_per_second;
 
             case(vt_t::khvorostyanov_nonspherical):
-              return common::vterm::vt_khvorostyanov(
+              vt = common::vterm::vt_khvorostyanov(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
@@ -90,8 +93,14 @@ namespace libcloudphxx
                 false
               ) / si::metres_per_second;
             default:
-              return 0.; //sanity checks done in pimpl constructor
+              vt = 0.; //sanity checks done in pimpl constructor
           }
+
+          // ice terminal velocity = droplet terminal velocity * rho_ice/rho_water
+          if(thrust::get<4>(tpl) == 1)
+            vt *= real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
+
+          return vt;
         }   
       }; 
 
@@ -106,15 +115,18 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
+
+          real_t vt;
+
           switch(vt_eq)
           {
             case(vt_t::beard77fast):
-              return 
+              vt = 
                 common::vterm::vt_beard77_fact(
                   sqrt(rw2)           * si::metres,
                   thrust::get<1>(tpl) * si::pascals,
@@ -123,8 +135,14 @@ namespace libcloudphxx
                 ) * thrust::get<0>(tpl); // cached vt_0
 
             default:
-              return 0.; //sanity checks done in pimpl constructor
+              vt = 0.; //sanity checks done in pimpl constructor
           }
+
+          // ice terminal velocity = droplet terminal velocity * rho_ice/rho_water
+          if(thrust::get<4>(tpl) == 1)
+            vt *= real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
+
+          return vt;
         }   
       }; 
    };
@@ -133,12 +151,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
     {   
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
-
       namespace arg = thrust::placeholders;
 
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
@@ -155,11 +167,12 @@ namespace libcloudphxx
         // calc the vt
         thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
+            ice.begin()
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // condition argument
           vt.begin(),                                             // output
@@ -171,11 +184,12 @@ namespace libcloudphxx
       else
         thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
+            ice.begin()
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // condition argument
           vt.begin(),                                             // output
@@ -187,12 +201,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_all()
     {   
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
-
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
         thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
@@ -205,11 +213,12 @@ namespace libcloudphxx
         // calc the vt
         thrust::transform(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
+            ice.begin()
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // output
           detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity)
@@ -218,11 +227,12 @@ namespace libcloudphxx
       else
         thrust::transform(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
+            ice.begin()
           )),                                                     // input - 2nd arg
           vt.begin(),                                             // output
           detail::common__vterm__vt<real_t>(opts_init.terminal_velocity)
