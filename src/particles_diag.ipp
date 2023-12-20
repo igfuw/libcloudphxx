@@ -216,6 +216,20 @@ namespace libcloudphxx
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
     }
 
+    // selects ice particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice()
+    {
+      pimpl->moms_rng(1., 1.0001, pimpl->ice.begin(), false); // TODO: nextafter instead of 1.0001
+    }
+
+    // selects water particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water()
+    {
+      pimpl->moms_rng(0., 0.0001, pimpl->ice.begin(), false);
+    }
+
     // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng_cons(const real_t &r_min, const real_t &r_max)
@@ -241,6 +255,20 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
     {
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
+    }
+
+    // selects ice particles from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_cons()
+    {
+      pimpl->moms_rng(1., 1.0001, pimpl->ice.begin(), true); 
+    }
+
+    // selects water particles from particles previously selected 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water_cons()
+    {
+      pimpl->moms_rng(0., 0.0001, pimpl->ice.begin(), true);
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
