@@ -131,6 +131,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
     bp::def("r_vs", &common::r_vs<real_t>);
+    bp::def("r_vsi", &common::r_vsi<real_t>);
     bp::def("p_vs_tet", &common::p_vs_tet<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
     bp::def("T", &common::T<real_t>);
@@ -264,8 +265,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::class_<lgr::opts_init_t<real_t>>("opts_init_t")
       .add_property("dry_distros", &lgrngn::get_dd<real_t>, &lgrngn::set_dd<real_t>)
       .add_property("dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_ds<real_t>)
-      .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
-      .add_property("src_dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_sds<real_t>)
+  //    .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
+  //    .add_property("src_dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_sds<real_t>)
       .add_property("rlx_dry_distros", &lgrngn::get_rdd<real_t>, &lgrngn::set_rdd<real_t>)
       .def_readwrite("nx", &lgr::opts_init_t<real_t>::nx)
       .def_readwrite("ny", &lgr::opts_init_t<real_t>::ny)

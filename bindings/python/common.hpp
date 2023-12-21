@@ -69,6 +69,12 @@ namespace libcloudphxx
       {
 	return cmn::const_cp::r_vs(T * si::kelvins, p * si::pascals);
       }
+      
+      template <typename real_t>
+      real_t r_vsi(const real_t &T, const real_t &p)
+      {
+	return cmn::const_cp::r_vsi(T * si::kelvins, p * si::pascals);
+      }
 	    
       template <typename real_t>
       real_t l_v(const real_t &T)

@@ -371,7 +371,7 @@ enable_testing()
 
 add_subdirectory(tests)
 add_subdirectory(include) 
-#add_subdirectory(bindings) 
+add_subdirectory(bindings) 
 
 ############################################################################################
 

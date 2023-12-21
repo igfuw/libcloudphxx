@@ -242,11 +242,13 @@ namespace libcloudphxx
         arg->dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
           arg->dry_distros.emplace(
-            bp::extract<real_t>(kappa_func.keys()[i]), 
+            std::make_pair(real_t(bp::extract<real_t>(kappa_func.keys()[i])), 0),  // assume ice=0
             std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
       }
 
+// src_dry_distros moved from opts_init to opts
+/*
       template <typename real_t>
       void set_sdd( // src_dry_distro
         lgr::opts_init_t<real_t> *arg,
@@ -255,10 +257,11 @@ namespace libcloudphxx
         arg->src_dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
           arg->src_dry_distros.emplace(
-            bp::extract<real_t>(kappa_func.keys()[i]), 
+            std::make_pair(bp::extract<real_t>(kappa_func.keys()[i]), 0),  // assume ice=0
             std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
       }
+      */
 
       template <typename real_t>
       void set_ds( // dry_sizes
@@ -283,13 +286,15 @@ namespace libcloudphxx
             assert(len(conc_count_list) == 2);
             const real_t conc = bp::extract<real_t>(conc_count_list[0]);
             const int count   = bp::extract<int>   (conc_count_list[1]);
-            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count);
+            size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count); 
           }
           const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
-          arg->dry_sizes[kappa] = size_conc_map;
+          arg->dry_sizes[std::make_pair(kappa, 0)] = size_conc_map; // assume ice=0
         }
       }
 
+// src_dry_sizes moved from opts_init to opts
+/*
       template <typename real_t>
       void set_sds( // src_dry_sizes
         lgr::opts_init_t<real_t> *arg,
@@ -319,6 +324,7 @@ namespace libcloudphxx
           arg->src_dry_sizes[kappa] = size_conc_map;
         }
       }
+      */
 
       template <typename real_t>
       void set_rdd( // rlx_dry_distros
