@@ -17,7 +17,9 @@ namespace libcloudphxx
       outH = chem::H,                          
       outliq_vol,
       outdry_vol,
-      outprtcl_num
+      outice_vol,
+      outliq_num,
+      outice_num
     };
 
     const std::map<output_t, std::string> output_names
@@ -30,9 +32,11 @@ namespace libcloudphxx
       {outO3     , "O3"},
       {outS_VI   , "S_VI"},                        
       {outH      , "H"},                          
-      {outliq_vol, "liquid_volume"},
+      {outliq_vol, "water_volume"},
       {outdry_vol, "dry_volume"},
-      {outprtcl_num, "particle_number"}
+      {outice_vol, "ice_volume"},
+      {outliq_num, "water_number"},
+      {outice_num, "ice_number"}
     };
   };
 };

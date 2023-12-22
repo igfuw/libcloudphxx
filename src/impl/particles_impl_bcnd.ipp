@@ -25,11 +25,14 @@ namespace libcloudphxx
       struct count_vol
       {   
         real_t exponent;
-        count_vol(real_t exponent) : exponent(exponent){};
+        int ice; // 0 - water only, 1 - ice only, 2 - both
+        count_vol(real_t exponent, int ice) : exponent(exponent), ice(ice){assert(ice == 0 || ice == 1 || ice == 2);};
         template <typename tuple>
         BOOST_GPU_ENABLED
         real_t operator()(const tuple &tup)
         {
+          if(ice != 2 && thrust::get<2>(tup) != ice) return 0.;
+
 #if !defined(__NVCC__)
           using std::pow;
 #endif
@@ -43,6 +46,20 @@ namespace libcloudphxx
             * pow(
                 thrust::get<1>(tup),  // radius at some power
                 exponent);
+        }
+      };  
+
+      template<class real_t>
+      struct count_num
+      {   
+        int ice; // 0 - water only, 1 - ice only, 2 - both
+        count_num(int ice) : ice(ice){assert(ice == 0 || ice == 1 || ice == 2);}; // TODO: ice enum
+        template <typename tuple>
+        BOOST_GPU_ENABLED
+        real_t operator()(const tuple &tup)
+        {
+          if(ice != 2 && thrust::get<1>(tup) != ice) return 0.;
+          return thrust::get<0>(tup);
         }
       };  
 
@@ -211,10 +228,22 @@ namespace libcloudphxx
                 output_puddle[common::outliq_vol] += 
                   thrust::transform_reduce(
                     thrust::make_zip_iterator(thrust::make_tuple(
-                      n_filtered.begin(), rw2.begin())),           // input start
+                      n_filtered.begin(), rw2.begin(), ice.begin())),           // input start
                     thrust::make_zip_iterator(thrust::make_tuple(
-                      n_filtered.begin(), rw2.begin())) + n_part,  // input end
-                    detail::count_vol<real_t>(3./2.),              // operation
+                      n_filtered.begin(), rw2.begin(), ice.begin())) + n_part,  // input end
+                    detail::count_vol<real_t>(3./2., 0),              // operation
+                    real_t(0),                                     // init val
+                    thrust::plus<real_t>()
+                  );
+
+                // add total ice volume that fell out in this step
+                output_puddle[common::outliq_vol] += 
+                  thrust::transform_reduce(
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rw2.begin(), ice.begin())),           // input start
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), rw2.begin(), ice.begin())) + n_part,  // input end
+                    detail::count_vol<real_t>(3./2., 1),              // operation
                     real_t(0),                                     // init val
                     thrust::plus<real_t>()
                   );
@@ -223,20 +252,45 @@ namespace libcloudphxx
                 output_puddle[common::outdry_vol] += 
                   thrust::transform_reduce(
                     thrust::make_zip_iterator(thrust::make_tuple(
-                      n_filtered.begin(), rd3.begin())),           // input start
+                      n_filtered.begin(), rd3.begin(), ice.begin())),           // input start
                     thrust::make_zip_iterator(thrust::make_tuple(
-                      n_filtered.begin(), rd3.begin())) + n_part,  // input end
-                    detail::count_vol<real_t>(1.),                 // operation
+                      n_filtered.begin(), rd3.begin(), ice.begin())) + n_part,  // input end
+                    detail::count_vol<real_t>(1., 2),                 // operation
                     real_t(0),                                     // init val
                     thrust::plus<real_t>()
                   );
 
-                // add total number of particles that fell out in this step
-                output_puddle[common::outprtcl_num] += 
+                // add total number of water droplets that fell out in this step
+                output_puddle[common::outliq_num] += 
+                  thrust::transform_reduce(
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), ice.begin())),           // input start
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), ice.begin())) + n_part,  // input end
+                    detail::count_num<real_t>(0),                 // operation
+                    real_t(0),                                     // init val
+                    thrust::plus<real_t>()
+                  );
+
+                // add total number of ice droplets that fell out in this step
+                output_puddle[common::outice_num] += 
+                  thrust::transform_reduce(
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), ice.begin())),           // input start
+                    thrust::make_zip_iterator(thrust::make_tuple(
+                      n_filtered.begin(), ice.begin())) + n_part,  // input end
+                    detail::count_num<real_t>(1),                 // operation
+                    real_t(0),                                     // init val
+                    thrust::plus<real_t>()
+                  );
+                
+                /*
+                output_puddle[common::outliq_num] += 
                   thrust::reduce(
                     n_filtered.begin(),            // input start
                     n_filtered.begin() + n_part    // input end
                   );
+                  */
 
                 if(opts_init.chem_switch)
                 {
