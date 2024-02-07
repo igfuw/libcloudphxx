@@ -125,12 +125,15 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: at least one of opts_init.turb_adve_switch, opts_init.turb_cond_switch is true, but SGS mixing length profile size != nz");
       if(opts_init.SGS_mix_len.size() > 0 && *std::min(opts_init.SGS_mix_len.begin(), opts_init.SGS_mix_len.end()) <= 0)
         throw std::runtime_error("libcloudph++: SGS_mix_len <= 0");
-      if (opts_init.nz != opts_init.aerosol_conc_factor.size() && n_dims<2)
+      if (!opts_init.aerosol_conc_factor.empty() && n_dims<2)
         throw std::runtime_error("libcloudph++: aerosol_conc_factor can only be used in 2D and 3D");
-      if (opts_init.nz != opts_init.aerosol_conc_factor.size() && opts_init.aerosol_conc_factor.size()!=0)
+      if (!opts_init.aerosol_conc_factor.empty() && opts_init.nz != opts_init.aerosol_conc_factor.size())
         throw std::runtime_error("libcloudph++: aerosol_conc_factor size needs to be either 0 or nz");
-      if (opts_init.nz == opts_init.aerosol_conc_factor.size() && opts_init.aerosol_independent_of_rhod!=true)
+      if (!opts_init.aerosol_conc_factor.empty() && opts_init.aerosol_independent_of_rhod==false)
+      {
+        std::cerr << "aerosol conc factor size: " << opts_init.aerosol_conc_factor.size() << std::endl;
         throw std::runtime_error("libcloudph++: aerosol_conc_factor can only be used if aerosol_independent_of_rhod==true");
+        }
       #if defined(USE_MPI)
         if(opts_init.rlx_switch)
           std::cerr << "libcloudph++ WARNING: relaxation is not fully supported in MPI runs. Mean calculation and addition of SD will be done locally on each node." << std::endl;
