@@ -60,6 +60,18 @@ namespace libcloudphxx
           arr.begin(),
           arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
         );
+
+      // accounting for the aerosol concentration profile
+      if(opts_init.aerosol_conc_factor.size()>0)
+        thrust::transform(
+          arr.begin(), arr.end(),            // input - 1st arg
+          thrust::make_permutation_iterator( // input - 2nd arg
+            aerosol_conc_factor.begin(),
+            thrust::make_transform_iterator(thrust::make_counting_iterator<thrust_size_t>(0), arg::_1 % opts_init.nz) // k index
+          ),
+          arr.begin(),                       // output
+          arg::_1 * arg::_2
+        );
     }
 
     template <typename real_t, backend_t device>

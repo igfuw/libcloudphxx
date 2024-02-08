@@ -151,6 +151,7 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
+      thrust_device::vector<real_t> aerosol_conc_factor; // profile of aerosol concentration factor
 
       // time steps to be used, considering that opts.dt can override opts_init.dt
       real_t dt;
@@ -335,6 +336,7 @@ namespace libcloudphxx
         ),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
+        aerosol_conc_factor(_opts_init.aerosol_conc_factor),
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
