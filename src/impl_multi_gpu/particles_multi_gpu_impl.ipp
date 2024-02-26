@@ -43,13 +43,13 @@ namespace libcloudphxx
         int dev_count;
         // TODO: move these sanity checks to sanity_checks?
         
-        if(glob_opts_init.chem_switch) throw std::runtime_error("multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
+        if(glob_opts_init.chem_switch) throw std::runtime_error("libcloudph++: multi_CUDA is not yet compatible with chemistry. Use other backend or turn off opts_init.chem_switch.");
   
         if(glob_opts_init.nx == 0)
-          throw std::runtime_error("multi_CUDA doesn't work for 0D setup.");
+          throw std::runtime_error("libcloudph++: multi_CUDA doesn't work for 0D setup.");
   
         if (!(glob_opts_init.x1 > glob_opts_init.x0 && glob_opts_init.x1 <= glob_opts_init.nx * glob_opts_init.dx))
-          throw std::runtime_error("!(x1 > x0 & x1 <= min(1,nx)*dx)");
+          throw std::runtime_error("libcloudph++: !(x1 > x0 & x1 <= min(1,nx)*dx)");
   
         // get number of available devices
         gpuErrchk(cudaGetDeviceCount(&dev_count)); 
@@ -83,9 +83,9 @@ namespace libcloudphxx
           cudaDeviceProp devProp;
           gpuErrchk(cudaGetDeviceProperties(&devProp, i));
           if(!devProp.unifiedAddressing)
-            throw std::runtime_error("All GPUs have to support Unified Virtual Addressing.");
+            throw std::runtime_error("libcloudph++: All GPUs have to support Unified Virtual Addressing.");
           if(devProp.computeMode != 0)
-            throw std::runtime_error("All GPUs have to be in the \"shared\" compute mode.");
+            throw std::runtime_error("libcloudph++: All GPUs have to be in the \"shared\" compute mode.");
         }
   
         // allow direct memory access between nieghbouring devices
@@ -119,13 +119,13 @@ namespace libcloudphxx
           // initialize mpi with threading support, TODO: only if it has not been initialize before
           const int prov_tlvl = detail::mpi_init(MPI_THREAD_MULTIPLE);
           if(prov_tlvl < MPI_THREAD_MULTIPLE)
-            throw std::runtime_error("MPI was initialized with threading support lower than MPI_THREAD_MULTIPLE, multi_CUDA backend won't work");
+            throw std::runtime_error("libcloudph++: MPI was initialized with threading support lower than MPI_THREAD_MULTIPLE, multi_CUDA backend won't work");
 
           // check if it's the main thread of MPI in order to MULTIPLE to work
           int main;
           MPI_Is_thread_main(&main);
           if(!main)
-            throw std::runtime_error("particles multi_CUDA ctor was called by a thread that is not the main thread of MPI (the mpi_init caller); aborting");
+            throw std::runtime_error("libcloudph++: particles multi_CUDA ctor was called by a thread that is not the main thread of MPI (the mpi_init caller); aborting");
         #endif
        
         

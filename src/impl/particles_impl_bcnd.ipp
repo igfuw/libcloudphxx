@@ -124,8 +124,8 @@ namespace libcloudphxx
               arg::_1 >= opts_init.x1
             ) - rgt_id.begin();
 
-            const auto no_of_n_vctrs_copied(int(1));
-            const auto no_of_real_vctrs_copied(distmem_real_vctrs.size());
+            const int no_of_n_vctrs_copied(distmem_n_vctrs.size());
+            const int no_of_real_vctrs_copied(distmem_real_vctrs.size());
 
             if(lft_count*no_of_n_vctrs_copied > in_n_bfr.size() || rgt_count*no_of_n_vctrs_copied  > in_n_bfr.size())
             {

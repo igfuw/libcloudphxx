@@ -8,7 +8,7 @@ sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
-from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose
+from numpy import array as arr_t, frombuffer, repeat, zeros, float64, ones, isclose, asarray
 
 from math import exp, log, sqrt, pi
 
@@ -34,7 +34,9 @@ opts_init.sd_conc = 64
 opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.rng_seed_init = 456
+opts_init.rng_seed_init_switch = True
 opts_init.src_dry_distros = {kappa1:lognormal}
+opts_init.rlx_dry_distros = {kappa1:[lognormal, [0,2], [0,opts_init.dz]]}
 opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
 opts_init.diag_incloud_time = True
@@ -67,7 +69,7 @@ print("chem_switch = ", opts_init.chem_switch)
 print("coal_switch = ", opts_init.coal_switch)
 print("sedi_switch = ", opts_init.sedi_switch)
 print("subs_switch = ", opts_init.subs_switch)
-print("src_switch = ", opts_init.src_switch)
+print("src_type = ", opts_init.src_type)
 
 print("exact_sstp_cond = ", opts_init.exact_sstp_cond)
 print("sstp_cond =", opts_init.sstp_cond)
@@ -660,6 +662,10 @@ prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 from sizes
 
+# test if get_attr work and if kappas are set correctly
+kappa = asarray(prtcls.get_attr("kappa"))
+assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
+assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
 
 
 # ----------
@@ -675,6 +681,7 @@ prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf())[0] > 64 + 20).all() # 64 from dry_distro and 20 from sizes + tail
+
 
 # go back to distros init
 opts_init.sd_conc_large_tail = 0

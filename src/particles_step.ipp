@@ -42,40 +42,40 @@ namespace libcloudphxx
     {
       // sanity checks
       if (!pimpl->init_called)
-        throw std::runtime_error("please call init() before calling step_sync()");
+        throw std::runtime_error("libcloudph++: please call init() before calling step_sync()");
       if (pimpl->should_now_run_async)
-        throw std::runtime_error("please call step_async() before calling step_sync() again");
+        throw std::runtime_error("libcloudph++: please call step_async() before calling step_sync() again");
 
       if (th.is_null() || rv.is_null())
-        throw std::runtime_error("passing th and rv is mandatory");
+        throw std::runtime_error("libcloudph++: passing th and rv is mandatory");
 
  // <TODO> - code duplicated from init() !
       if (!courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null())
       {
 	if (pimpl->n_dims == 0)
-	  throw std::runtime_error("Courant numbers passed in 0D setup");
+	  throw std::runtime_error("libcloudph++: Courant numbers passed in 0D setup");
 
 	if (pimpl->n_dims == 1 && (courant_x.is_null() || !courant_y.is_null() || !courant_z.is_null()))
-	  throw std::runtime_error("Only X Courant number allowed in 1D setup");
+	  throw std::runtime_error("libcloudph++: Only X Courant number allowed in 1D setup");
 
 	if (pimpl->n_dims == 2 && (courant_x.is_null() || !courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("Only X and Z Courant numbers allowed in 2D setup");
+	  throw std::runtime_error("libcloudph++: Only X and Z Courant numbers allowed in 2D setup");
 
 	if (pimpl->n_dims == 3 && (courant_x.is_null() || courant_y.is_null() || courant_z.is_null()))
-	  throw std::runtime_error("All XYZ Courant number components required in 3D setup");
+	  throw std::runtime_error("libcloudph++: All XYZ Courant number components required in 3D setup");
       }
 
       if (pimpl->opts_init.chem_switch && ambient_chem.size() != chem_gas_n)
-        throw std::runtime_error("chemistry was not switched off and ambient_chem is empty");
+        throw std::runtime_error("libcloudph++: chemistry was not switched off and ambient_chem is empty");
 
       if (!pimpl->opts_init.chem_switch && ambient_chem.size() != 0)
-        throw std::runtime_error("chemistry was switched off and ambient_chem is not empty");
+        throw std::runtime_error("libcloudph++: chemistry was switched off and ambient_chem is not empty");
 
       if ( (pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && diss_rate.is_null())
-        throw std::runtime_error("turbulent advection, coalescence and condesation are not switched off and diss_rate is empty");
+        throw std::runtime_error("libcloudph++: turbulent advection, coalescence and condesation are not switched off and diss_rate is empty");
 
       if ( !(pimpl->opts_init.turb_adve_switch || pimpl->opts_init.turb_cond_switch || pimpl->opts_init.turb_coal_switch)  && !diss_rate.is_null())
-        throw std::runtime_error("turbulent advection, coalescence and condesation are switched off and diss_rate is not empty");
+        throw std::runtime_error("libcloudph++: turbulent advection, coalescence and condesation are switched off and diss_rate is not empty");
 // </TODO>
 
       if (pimpl->l2e[&pimpl->courant_x].size() == 0) // TODO: y, z,...
@@ -147,6 +147,8 @@ namespace libcloudphxx
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
+          nancheck_range(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end(), "ambient_chem after sync in");
+          assert(*thrust::min_element(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end()) >= 0);
         }
       }
   
@@ -163,10 +165,10 @@ namespace libcloudphxx
     {
       //sanity checks
       if (!pimpl->should_now_run_cond)
-        throw std::runtime_error("please call sync_in() before calling step_cond()");
+        throw std::runtime_error("libcloudph++: please call sync_in() before calling step_cond()");
 
       if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
-        throw std::runtime_error("turb_cond_swtich=False, but turb_cond==True");
+        throw std::runtime_error("libcloudph++: turb_cond_swtich=False, but turb_cond==True");
 
       pimpl->should_now_run_cond = false;
 
@@ -311,9 +313,9 @@ namespace libcloudphxx
         {   
           // calculate new volume of droplets (needed for chemistry)
           pimpl->chem_vol_ante();
-
           // set flag for those SD that are big enough to have chemical reactions
           pimpl->chem_flag_ante();
+          // NOTE: volume and flag are stored in temporary arrays (tmp_device_real_part and tmp_device_n_part), so these arrays should not be changed until chemistry is done
 
           if (opts.chem_dsl)
           {
@@ -345,29 +347,12 @@ namespace libcloudphxx
         }
       }
 
-      // aerosol source, in sync since it changes th/rv
-      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
-      {
-        // sanity check
-        if (pimpl->opts_init.src_switch == false) throw std::runtime_error("aerosol source was switched off in opts_init");
-
-        // introduce new particles with the given time interval
-        if(pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
-        }
-      }
-
-      if(opts.cond || (opts.src && pimpl->stp_ctr % pimpl->opts_init.supstp_src == 0))
+      if(opts.cond) // || (opts.src && pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) || (opts.rlx && pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0))
       {
         // syncing out // TODO: this is not necesarry in off-line mode (see coupling with DALES)
         pimpl->sync(pimpl->th, th);
         pimpl->sync(pimpl->rv, rv);
       }
-
-      // update the step counter since src was turned on
-      if (opts.src) ++pimpl->stp_ctr;
-      else pimpl->stp_ctr = 0; //reset the counter if source was turned off
 
       if (opts.chem_dsl == true)
       {
@@ -394,23 +379,23 @@ namespace libcloudphxx
     ) {
       //sanity checks
       if (!pimpl->should_now_run_async)
-        throw std::runtime_error("please call step_sync() before calling step_async() again");
+        throw std::runtime_error("libcloudph++: please call step_sync() before calling step_async() again");
 
       pimpl->should_now_run_async = false;
 
       //sanity checks
-      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("all chemistry was switched off in opts_init");
-      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("coalescence was switched off in opts_init");
-      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("sedimentation was switched off in opts_init");
-      if(opts.subs && !pimpl->opts_init.subs_switch) throw std::runtime_error("subsidence was switched off in opts_init");
+      if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
+      if(opts.coal && !pimpl->opts_init.coal_switch) throw std::runtime_error("libcloudph++: coalescence was switched off in opts_init");
+      if(opts.sedi && !pimpl->opts_init.sedi_switch) throw std::runtime_error("libcloudph++: sedimentation was switched off in opts_init");
+      if(opts.subs && !pimpl->opts_init.subs_switch) throw std::runtime_error("libcloudph++: subsidence was switched off in opts_init");
       if((opts.chem_dsl || opts.chem_dsc || opts.chem_rct) && !pimpl->opts_init.chem_switch) 
-        throw std::runtime_error("all chemistry was switched off in opts_init");
+        throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
 
       if(opts.turb_adve && !pimpl->opts_init.turb_adve_switch) 
-        throw std::runtime_error("turb_adve_switch=False, but turb_adve==True");
+        throw std::runtime_error("libcloudph++: turb_adve_switch=False, but turb_adve==True");
 
       if(opts.turb_adve && pimpl->n_dims==0) 
-        throw std::runtime_error("turbulent advection does not work in 0D");
+        throw std::runtime_error("libcloudph++: turbulent advection does not work in 0D");
 
       // dt defined in opts_init can be overriden by dt in opts
       pimpl->adjust_timesteps(opts.dt);
@@ -616,6 +601,42 @@ namespace libcloudphxx
         // advection with subsidence velocity, TODO: add it to the advection velocity (makes a difference for predictor-corrector)
         pimpl->subs(pimpl->dt);
       }
+
+      // NOTE: source and relax should affect th and rv (because we add humidifed aerosols), but these changes are minimal and we neglect them.
+      //       otherwise src and rlx should be don in step_sync
+
+      // aerosol source, in sync since it changes th/rv
+      if (opts.src && !(pimpl->opts_init.src_x0 == 0 && pimpl->opts_init.src_x1 == 0)) // src_x0=0 and src_x1=0 is a way of disabling source in some domains in distmem simulations
+      {
+        // sanity check
+        if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("libcloudph++: aerosol source was switched off in opts_init");
+
+        // introduce new particles with the given time interval
+        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
+        {
+          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
+        }
+      }
+
+      // aerosol relaxation, in sync since it changes th/rv
+      // TODO: more sanity checks for rlx! 3D only, values of rlx_bins etc. check that appa ranges are exclusive, zmin<zmax, kpamin<kpamax,...
+      if (opts.rlx)
+      {
+        // sanity check
+        if (pimpl->opts_init.rlx_switch == false) throw std::runtime_error("libcloudph++: aerosol relaxation was switched off in opts_init");
+
+        // introduce new particles with the given time interval
+        if(pimpl->rlx_stp_ctr % pimpl->opts_init.supstp_rlx == 0) 
+        {
+          pimpl->rlx(pimpl->opts_init.supstp_rlx * pimpl->dt);
+        }
+      }
+
+      // update the step counter since src/rlx was turned on
+      if (opts.src) ++pimpl->src_stp_ctr;
+      else pimpl->src_stp_ctr = 0; //reset the counter if source was turned off
+      if (opts.rlx) ++pimpl->rlx_stp_ctr;
+      else pimpl->rlx_stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
       // distmem version overwrites i and tmp_device_size_part

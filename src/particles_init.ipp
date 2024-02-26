@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   * @brief initialisation routine for super droplets
   */
-#include<thrust/extrema.h>
+#include <thrust/extrema.h>
 
 namespace libcloudphxx
 {
@@ -28,13 +28,14 @@ namespace libcloudphxx
       pimpl->init_sanity_check(th, rv, rhod, p, courant_x, courant_y, courant_z, ambient_chem);
 
       // set rng seed to be used during init
-      pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
+      if(pimpl->opts_init.rng_seed_init_switch)
+        pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
 
       // is a constant pressure profile used?
       pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
       if(pimpl->const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
-        pimpl->distmem_real_vctrs.insert(&pimpl->sstp_tmp_p);
+        pimpl->distmem_real_vctrs.insert({&pimpl->sstp_tmp_p, detail::no_initial_value});
 
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
@@ -75,10 +76,14 @@ namespace libcloudphxx
 
       if (pimpl->opts_init.chem_switch)
         for (int i = 0; i < chem_gas_n; ++i)
+        {
           pimpl->sync(
             ambient_chem.at((chem_species_t)i), 
             pimpl->ambient_chem[(chem_species_t)i]
           );
+          nancheck_range(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end(), "ambient_chem after init");
+          assert(*thrust::min_element(pimpl->ambient_chem[(chem_species_t)i].begin(), pimpl->ambient_chem[(chem_species_t)i].end()) >= 0);
+        }
 
       // initialising housekeeping data of the size ncell
       pimpl->init_hskpng_ncell(); 

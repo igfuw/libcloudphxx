@@ -11,9 +11,9 @@
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
+//#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
+//#include <boost/numeric/odeint/util/resizer.hpp>
+#include <boost/numeric/odeint/external/thrust/thrust.hpp>
 
 #include <map>
 #include <set>
@@ -23,12 +23,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {   
-      enum { invalid = -1 };
-
-    };  
-
     // pimpl stuff 
     template <typename real_t, backend_t device>
     struct particles_t<real_t, device>::impl
@@ -51,7 +45,7 @@ namespace libcloudphxx
                     n_part_to_init;    // number of SDs to be initialized by source
       detail::rng<real_t, device> rng;
       detail::config<real_t> config;
-      as_t::as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
+      as_t adve_scheme;         // actual advection scheme used, might be different from opts_init.adve_scheme if courant>halo
 
       // pointer to collision kernel
       kernel_base<real_t, n_t> *p_kernel;
@@ -169,6 +163,7 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
       thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
+      thrust_device::vector<real_t> aerosol_conc_factor; // profile of aerosol concentration factor
 
       // time steps to be used, considering that opts.dt can override opts_init.dt
       real_t dt;
@@ -190,7 +185,7 @@ namespace libcloudphxx
            allow_sstp_chem;
 
       // timestep counter
-      n_t stp_ctr;
+      n_t src_stp_ctr, rlx_stp_ctr;
 
       // maps linear Lagrangian component indices into Eulerian component linear indices
       // the map key is the address of the Thrust vector
@@ -288,16 +283,25 @@ namespace libcloudphxx
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
-      // real_t vectors copied in distributed memory case
-      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
+      // --- containters with vector pointers to help resize and copy vectors ---
+
+      // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
+      std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
+      std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
+//      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
+//
+      // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
+      std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
+//      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
+      std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
 
 
-      // methods
+      // --- methods ---
 
-      // fills u01[0:n] with random numbers
+      // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
 
-      // fills un[0:n] with random numbers
+      // fills un with n random integers uniformly distributed on the whole integer range
       void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
 
       // max(1, n)
@@ -328,7 +332,8 @@ namespace libcloudphxx
         n_user_params(_opts_init.kernel_parameters.size()),
         un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
-        stp_ctr(0),
+        src_stp_ctr(0),
+        rlx_stp_ctr(0),
 	bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
@@ -352,6 +357,7 @@ namespace libcloudphxx
         ),
         w_LS(_opts_init.w_LS),
         SGS_mix_len(_opts_init.SGS_mix_len),
+        aerosol_conc_factor(_opts_init.aerosol_conc_factor),
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
@@ -401,40 +407,75 @@ namespace libcloudphxx
         }
 
         // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
-        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
-        typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &delta_revp20, &delta_revp25, &delta_revp32, &delta_accr20, &delta_accr25, &delta_acnv20, &delta_acnv25, &delta_accr32, &delta_acnv32};
-        distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+        distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
+        distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
+        distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_revp20, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_revp25, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_revp32, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_accr20, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_accr25, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_accr32, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_acnv20, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_acnv25, detail::no_initial_value});
+        distmem_real_vctrs.insert({&delta_acnv32, detail::no_initial_value});
 
-        if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
-        if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
-        if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
+        distmem_real_vctrs.insert({&vt,  detail::invalid});
+
+        if (opts_init.nx != 0)  distmem_real_vctrs.insert({&x, detail::no_initial_value});
+        if (opts_init.ny != 0)  distmem_real_vctrs.insert({&y, detail::no_initial_value});
+        if (opts_init.nz != 0)  distmem_real_vctrs.insert({&z, detail::no_initial_value});
 
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
-           distmem_real_vctrs.insert(&sstp_tmp_rv);
-           distmem_real_vctrs.insert(&sstp_tmp_th);
-           distmem_real_vctrs.insert(&sstp_tmp_rh);
+           distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
+           distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
+           distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
            // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
         }
 
         if(opts_init.turb_adve_switch)
         {
-          if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
-          if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
-          if(opts_init.nz != 0) distmem_real_vctrs.insert(&wp);
+          if(opts_init.nx != 0) distmem_real_vctrs.insert({&up, 0});
+          if(opts_init.ny != 0) distmem_real_vctrs.insert({&vp, 0});
+          if(opts_init.nz != 0) distmem_real_vctrs.insert({&wp, 0});
         }
 
         if(opts_init.turb_cond_switch)
         {
-          distmem_real_vctrs.insert(&wp);
-          distmem_real_vctrs.insert(&ssp);
-          distmem_real_vctrs.insert(&dot_ssp);
+          distmem_real_vctrs.insert({&wp, 0});
+          distmem_real_vctrs.insert({&ssp, 0});
+          distmem_real_vctrs.insert({&dot_ssp, 0});
         }
          
         if(opts_init.diag_incloud_time)
-          distmem_real_vctrs.insert(&incloud_time);
+          distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
+
+        // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        distmem_n_vctrs.insert(&n);
+
+        // real vctrs that need to be resized but do need to be copied in distmem
+        resize_real_vctrs.insert(&tmp_device_real_part);
+        if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
+          resize_real_vctrs.insert(&tmp_device_real_part1);
+        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+          resize_real_vctrs.insert(&tmp_device_real_part2);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
+        {
+          resize_real_vctrs.insert(&tmp_device_real_part3);
+          resize_real_vctrs.insert(&tmp_device_real_part4);
+          if(const_p)
+            resize_real_vctrs.insert(&tmp_device_real_part5);
+        }
+
+        resize_size_vctrs.insert(&ijk);
+        resize_size_vctrs.insert(&sorted_ijk);
+        resize_size_vctrs.insert(&sorted_id);
+        resize_size_vctrs.insert(&tmp_device_size_part);
+        if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
+        if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
+        if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
       }
 
       void sanity_checks();
@@ -442,7 +483,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const real_t &);
+      void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -497,6 +538,7 @@ namespace libcloudphxx
       void init_vterm();
 
       void fill_outbuf();
+      std::vector<real_t> fill_attr_outbuf(const std::string&);
       void mpi_exchange();
 
            // rename hskpng_ -> step_?
@@ -504,6 +546,8 @@ namespace libcloudphxx
       void hskpng_sort();
       void hskpng_shuffle_and_sort();
       void hskpng_count();
+      void ravel_ijk(const thrust_size_t begin_shift = 0);
+      void unravel_ijk(const thrust_size_t begin_shift = 0);
       void hskpng_ijk();
       void hskpng_Tpr();
       void hskpng_mfp();
@@ -528,8 +572,20 @@ namespace libcloudphxx
       void moms_rng(
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const thrust_size_t npart,
         const bool cons
       ); 
+      void moms_rng(
+        const real_t &min, const real_t &max, 
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const bool cons
+      ); 
+      void moms_calc(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const thrust_size_t npart,
+        const real_t power,
+        const bool specific = true
+      );
       void moms_calc(
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const real_t power,
@@ -581,8 +637,13 @@ namespace libcloudphxx
       void bcnd();
 
       void src(const real_t &dt);
+      void src_dry_distros_simple(const real_t &dt);
+      void src_dry_distros_matching(const real_t &dt);
       void src_dry_distros(const real_t &dt);
       void src_dry_sizes(const real_t &dt);
+
+      void rlx(const real_t);
+      void rlx_dry_distros(const real_t);
 
       void sstp_step(const int &step);
       void sstp_step_exact(const int &step);
@@ -592,6 +653,11 @@ namespace libcloudphxx
       void sstp_save_chem();
 
       void post_copy(const opts_t<real_t>&);
+
+      // two functions for calculating changes in rv and th due to condensation on SDs initialized during simulation, e.g. via source or relaxation
+      // NOTE: curently not used, because of small sizes of these droplets
+      void ante_adding_SD();
+      void post_adding_SD();
 
       // distmem stuff
       void xchng_domains();

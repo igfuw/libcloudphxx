@@ -87,8 +87,8 @@ namespace libcloudphxx
       // done using resize, because _bfr.end() is never used and we want to assert that buffer is large enough using the .size() function
       if(distmem())
       {
-        const auto no_of_n_vctrs_copied(int(1));
-        const auto no_of_real_vctrs_copied(distmem_real_vctrs.size());
+        const int no_of_n_vctrs_copied(distmem_n_vctrs.size());
+        const int no_of_real_vctrs_copied(distmem_real_vctrs.size());
 
         in_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);     // for n
         out_n_bfr.resize(no_of_n_vctrs_copied * opts_init.n_sd_max / opts_init.nx / config.bfr_fraction);

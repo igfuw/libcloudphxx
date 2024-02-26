@@ -62,7 +62,7 @@ namespace libcloudphxx
     {
       // sanity checks
       if(opts.rcyc)
-        throw std::runtime_error("Particle recycling can't be used in the multi_CUDA backend (it would consume whole memory quickly");
+        throw std::runtime_error("libcloudph++: Particle recycling can't be used in the multi_CUDA backend (it would consume whole memory quickly");
 
       // cuda streams and events to control asynchronous copies
       // note: storing them in particles_multi_t caused errors

@@ -12,6 +12,7 @@
 #include <cfloat>
 #include <cassert>
 #include <stdio.h>
+#include <stdint.h>
 
 namespace libcloudphxx {
 namespace common {
@@ -317,7 +318,13 @@ T toms748_solve(F f, const T& ax, const T& bx, const T& fax, const T& fbx, Tol t
       return (a + b)/2;
    }
 
-   assert(copysign(T(1), fa * fb) < 0);
+#if !defined(NDEBUG)
+   if(!(copysign(T(1), fa * fb) < 0))
+   {
+     printf("toms fa * fb >= 0; a = %g b = %g fa = %g fb = %g\n", a, b, fa, fb);
+     assert(0);
+   }
+#endif
 
    // dummy value for fd, e and fe:
    fe = e = fd = 1e5F;

@@ -4,9 +4,15 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // to make inclusion of Thrust not neccesarry here
 //<listing>
-    enum backend_t { serial, OpenMP, CUDA, multi_CUDA }; 
+    enum backend_t { undefined, serial, OpenMP, CUDA, multi_CUDA }; 
 //</listing>
+    const std::unordered_map<backend_t, std::string> backend_name = {
+      {undefined, "undefined"},
+      {serial, "serial"},
+      {OpenMP, "OpenMP"},
+      {CUDA, "CUDA"},
+      {multi_CUDA, "multi_CUDA"}
+    };
   };
 };

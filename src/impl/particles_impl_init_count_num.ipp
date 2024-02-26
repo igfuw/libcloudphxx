@@ -60,6 +60,18 @@ namespace libcloudphxx
           arr.begin(),
           arg::_1 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres) * arg::_2  
         );
+
+      // accounting for the aerosol concentration profile
+      if(opts_init.aerosol_conc_factor.size()>0)
+        thrust::transform(
+          arr.begin(), arr.end(),            // input - 1st arg
+          thrust::make_permutation_iterator( // input - 2nd arg
+            aerosol_conc_factor.begin(),
+            thrust::make_transform_iterator(thrust::make_counting_iterator<thrust_size_t>(0), arg::_1 % opts_init.nz) // k index
+          ),
+          arr.begin(),                       // output
+          arg::_1 * arg::_2
+        );
     }
 
     template <typename real_t, backend_t device>
@@ -78,9 +90,9 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_multi)
+    void particles_t<real_t, device>::impl::init_count_num_dry_sizes(const std::pair<real_t, int> &conc_count)
     {
-      thrust::fill(count_num.begin(), count_num.end(), conc_multi.second);
+      thrust::fill(count_num.begin(), count_num.end(), conc_count.second);
       //init_count_num_hlpr(conc_multi.first, conc_multi.second);
     }
 
@@ -124,8 +136,8 @@ namespace libcloudphxx
 
       switch(n_dims)
       {
-        case 0 : throw std::runtime_error("init_count_num_src called in 0D");
-        case 1 : throw std::runtime_error("init_count_num_src called in 1D");
+        case 0 : throw std::runtime_error("libcloudph++: init_count_num_src called in 0D");
+        case 1 : throw std::runtime_error("libcloudph++: init_count_num_src called in 1D");
         case 2:
           thrust::transform(
             zero,

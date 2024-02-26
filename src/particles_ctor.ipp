@@ -9,11 +9,6 @@
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
-#include <boost/numeric/odeint.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_algebra.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_operations.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust_resize.hpp>
-
 #include <map>
 
 namespace libcloudphxx
@@ -36,7 +31,7 @@ namespace libcloudphxx
       size = 1;
       // throw an error if ran with mpi, but not compiled for mpi
       if ( ran_with_mpi() )
-        throw std::runtime_error("mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
+        throw std::runtime_error("libcloudph++: mpirun environment variable detected but libcloudphxx was compiled with MPI disabled");
 #endif
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
       if(size > 1)
@@ -91,6 +86,12 @@ namespace libcloudphxx
       // restore the count_num and count_ijk arrays
       pimpl->hskpng_count();
       return &(*(pimpl->tmp_host_real_cell.begin()));
+    }
+
+    template <typename real_t, backend_t device>
+    std::vector<real_t> particles_t<real_t, device>::get_attr(const std::string &attr_name) 
+    {
+      return std::move(pimpl->fill_attr_outbuf(attr_name));
     }
   };
 };

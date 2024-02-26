@@ -91,6 +91,18 @@ namespace libcloudphxx
             arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
           );
 
+        // accounting for the aerosol concentration profile
+        if(opts_init.aerosol_conc_factor.size()>0)
+          thrust::transform(
+            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+            thrust::make_permutation_iterator( // input - 2nd arg
+              opts_init.aerosol_conc_factor.begin(), 
+              thrust::make_transform_iterator(tmp_ijk.begin(), arg::_1 % opts_init.nz) // k index
+            ),
+            tmp_real.begin(),                       // output
+            arg::_1 * arg::_2
+          );
+
        
         // adjust to cell volume
         if(n_dims > 0)
@@ -132,7 +144,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc)
+    void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_count)
     {
       namespace arg = thrust::placeholders;
       thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
@@ -142,7 +154,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(concentration.begin(), ijk.begin() + n_part_old),
         thrust::make_permutation_iterator(concentration.begin(), ijk.end()),
         n.begin() + n_part_old,
-        arg::_1 / sd_conc + real_t(.5)
+        arg::_1 / sd_count + real_t(.5)
       ); 
     }
   };

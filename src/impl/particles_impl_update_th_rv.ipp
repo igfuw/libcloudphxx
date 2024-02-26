@@ -38,7 +38,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
     ) 
     {   
-      if(!sorted) throw std::runtime_error("update_th_rv called on an unsorted set");
+      if(!sorted) throw std::runtime_error("libcloudph++: update_th_rv called on an unsorted set");
       nancheck(drv, "update_th_rv: input drv");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
@@ -99,7 +99,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &pdstate // change in cell characteristic
     ) 
     {   
-      if(!sorted) throw std::runtime_error("update_uh_rv called on an unsorted set");
+      if(!sorted) throw std::runtime_error("libcloudph++: update_uh_rv called on an unsorted set");
 
       // cell-wise change in state
       thrust_device::vector<real_t> &dstate(tmp_device_real_cell);

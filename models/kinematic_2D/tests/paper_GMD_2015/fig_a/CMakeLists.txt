@@ -24,17 +24,12 @@ add_test(calc calc ${CMAKE_BINARY_DIR})
 #  done  
 #")
 
-foreach(micro blk_1m blk_2m lgrngn)
+foreach(micro blk_1m blk_2m lgrngn lgrngn_spec)
   add_executable(plot_${micro} plot_${micro}.cpp)
   add_test(plot_${micro} plot_${micro} ${CMAKE_CURRENT_BINARY_DIR})
   target_link_libraries(plot_${micro} ${libmpdataxx_LIBRARIES})
   target_include_directories(plot_${micro} PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 endforeach()
-
-add_executable(plot_lgrngn_spec plot_lgrngn_spec.cpp)
-add_test(plot_lgrngn_spec plot_lgrngn_spec ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(plot_lgrngn_spec ${libmpdataxx_LIBRARIES})
-target_include_directories(plot_lgrngn_spec PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
 # tests for travis (or any other case where libcloud can't use CUDA)
 add_executable(travis_calc_blk travis_calc_blk.cpp)

@@ -148,7 +148,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &V(tmp_device_real_part);
       const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
 
-      if (opts_init.chem_switch == false) throw std::runtime_error("all chemistry was switched off");
+      if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::iterator,
