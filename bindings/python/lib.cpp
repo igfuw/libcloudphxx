@@ -192,6 +192,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::object nested_module(bp::handle<>(bp::borrowed(PyImport_AddModule(nested_name.c_str()))));
     bp::scope().attr("lgrngn") = nested_module;
     bp::scope parent = nested_module;
+    // for handling std::vector<real_t>
+    bp::class_<std::vector<real_t> >("DoubleVec")
+        .def(bp::vector_indexing_suite<std::vector<real_t> >());
     // enums
     bp::enum_<lgr::backend_t>("backend_t")
       .value("serial", lgr::serial)
@@ -386,6 +389,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_precip_rate",    &lgr::particles_proto_t<real_t>::diag_precip_rate)
       .def("diag_puddle",    &lgrngn::diag_puddle<real_t>)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
+      .def("get_attr",    &lgr::particles_proto_t<real_t>::get_attr)
     ;
     // functions
     bp::def("factory", lgrngn::factory<real_t>, bp::return_value_policy<bp::manage_new_object>());

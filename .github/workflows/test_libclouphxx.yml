@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2-beta
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -53,7 +53,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2-beta
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -100,7 +100,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@v0.1
+      uses: igfuw/load_UWLCM_singularity_image@v0.1b
       with:
         path: ${{ github.workspace }}/singularity_images
         tag: ${{ matrix.tag }}
@@ -145,7 +145,7 @@ jobs:
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.4
+      uses: igfuw/libmpdataxx_install@v0.5
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
@@ -204,7 +204,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@v0.1
+      uses: igfuw/load_UWLCM_singularity_image@v0.1b
       with:
         path: ${{ github.workspace }}/singularity_images
 
@@ -263,7 +263,7 @@ jobs:
     - run: grep diag_accr include/libcloudph++/lgrngn/particles.hpp
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2-beta
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}

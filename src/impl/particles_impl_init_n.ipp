@@ -91,6 +91,18 @@ namespace libcloudphxx
             arg::_1 * arg::_2 / real_t(rho_stp<real_t>() / si::kilograms * si::cubic_metres)
           );
 
+        // accounting for the aerosol concentration profile
+        if(opts_init.aerosol_conc_factor.size()>0)
+          thrust::transform(
+            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+            thrust::make_permutation_iterator( // input - 2nd arg
+              opts_init.aerosol_conc_factor.begin(), 
+              thrust::make_transform_iterator(tmp_ijk.begin(), arg::_1 % opts_init.nz) // k index
+            ),
+            tmp_real.begin(),                       // output
+            arg::_1 * arg::_2
+          );
+
        
         // adjust to cell volume
         if(n_dims > 0)
