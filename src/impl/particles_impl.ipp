@@ -23,12 +23,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {   
-      enum { invalid = -1 };
-
-    };  
-
     // pimpl stuff 
     template <typename real_t, backend_t device>
     struct particles_t<real_t, device>::impl
@@ -271,11 +265,20 @@ namespace libcloudphxx
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
-      // real_t vectors copied in distributed memory case
-      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
+      // --- containters with vector pointers to help resize and copy vectors ---
+
+      // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
+      std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
+      std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
+//      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
+//
+      // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
+      std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
+//      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
+      std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
 
 
-      // methods
+      // --- methods ---
 
       // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -386,40 +389,66 @@ namespace libcloudphxx
         }
 
         // initializing distmem_real_vctrs - list of real_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
-        // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
-        typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
-        distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
+        distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
+        distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
+        distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
 
-        if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
-        if (opts_init.ny != 0)  distmem_real_vctrs.insert(&y);
-        if (opts_init.nz != 0)  distmem_real_vctrs.insert(&z);
+        distmem_real_vctrs.insert({&vt,  detail::invalid});
+
+        if (opts_init.nx != 0)  distmem_real_vctrs.insert({&x, detail::no_initial_value});
+        if (opts_init.ny != 0)  distmem_real_vctrs.insert({&y, detail::no_initial_value});
+        if (opts_init.nz != 0)  distmem_real_vctrs.insert({&z, detail::no_initial_value});
 
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
-           distmem_real_vctrs.insert(&sstp_tmp_rv);
-           distmem_real_vctrs.insert(&sstp_tmp_th);
-           distmem_real_vctrs.insert(&sstp_tmp_rh);
+           distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
+           distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
+           distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
            // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
         }
 
         if(opts_init.turb_adve_switch)
         {
-          if(opts_init.nx != 0) distmem_real_vctrs.insert(&up);
-          if(opts_init.ny != 0) distmem_real_vctrs.insert(&vp);
-          if(opts_init.nz != 0) distmem_real_vctrs.insert(&wp);
+          if(opts_init.nx != 0) distmem_real_vctrs.insert({&up, 0});
+          if(opts_init.ny != 0) distmem_real_vctrs.insert({&vp, 0});
+          if(opts_init.nz != 0) distmem_real_vctrs.insert({&wp, 0});
         }
 
         if(opts_init.turb_cond_switch)
         {
-          distmem_real_vctrs.insert(&wp);
-          distmem_real_vctrs.insert(&ssp);
-          distmem_real_vctrs.insert(&dot_ssp);
+          distmem_real_vctrs.insert({&wp, 0});
+          distmem_real_vctrs.insert({&ssp, 0});
+          distmem_real_vctrs.insert({&dot_ssp, 0});
         }
          
         if(opts_init.diag_incloud_time)
-          distmem_real_vctrs.insert(&incloud_time);
+          distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
+
+        // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
+        distmem_n_vctrs.insert(&n);
+
+        // real vctrs that need to be resized but do need to be copied in distmem
+        resize_real_vctrs.insert(&tmp_device_real_part);
+        if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
+          resize_real_vctrs.insert(&tmp_device_real_part1);
+        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+          resize_real_vctrs.insert(&tmp_device_real_part2);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond)
+        {
+          resize_real_vctrs.insert(&tmp_device_real_part3);
+          resize_real_vctrs.insert(&tmp_device_real_part4);
+          if(const_p)
+            resize_real_vctrs.insert(&tmp_device_real_part5);
+        }
+
+        resize_size_vctrs.insert(&ijk);
+        resize_size_vctrs.insert(&sorted_ijk);
+        resize_size_vctrs.insert(&sorted_id);
+        resize_size_vctrs.insert(&tmp_device_size_part);
+        if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
+        if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
+        if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
       }
 
       void sanity_checks();
