@@ -47,11 +47,12 @@ namespace libcloudphxx
     // we increase their multiplicity instead of adding new SDs
     // TODO: make it work for sdd.size()>1
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_distros_matching(const dry_distros_t<real_t> &sdd)
+    void particles_t<real_t, device>::impl::src_dry_distros_matching(const src_dry_distros_t<real_t> &sdd)
     {   
-      const auto p_sdd = sdd.begin()
+      auto p_sdd = sdd.cbegin();
 
       // add the source only once every number of steps
+      assert(get<2>(p_sdd->second) > 0);
       if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
 
       const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;

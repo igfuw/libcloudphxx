@@ -28,7 +28,7 @@ namespace libcloudphxx
     template<typename real_t>
     using src_dry_distros_t = std::map<
       std::pair<real_t, real_t>,              // (kappa, ice)
-      std::tuple<std::shared_ptr<unary_function<real_t>, int, int>> // 1st: n(ln(rd)) @ STP created per second; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true; 2nd: sd_conc for this distribution ; 3rd: supstp for this aerosol (interval in timesteps beween addition of these aerosols)
+      std::tuple<std::shared_ptr<unary_function<real_t>>, int, int> // 1st: n(ln(rd)) @ STP created per second; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true; 2nd: sd_conc for this distribution ; 3rd: supstp for this aerosol (interval in timesteps beween addition of these aerosols)
     >;
 
     // defined with a size-number pair

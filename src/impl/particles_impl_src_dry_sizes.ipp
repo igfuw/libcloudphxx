@@ -12,7 +12,7 @@ namespace libcloudphxx
   {
     // initialize SD parameters with dry_radius-concentration pairs (i.e. dry_sizes)
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_sizes(const real_t &dt, const dry_sizes_t<real_t> &sds)
+    void particles_t<real_t, device>::impl::src_dry_sizes(const src_dry_sizes_t<real_t> &sds)
     {
 //      using dry_sizes_t = typename opts_t<real_t>::dry_sizes_t;
 //      using real_t  = typename dry_sizes_t::key_type;
@@ -28,11 +28,17 @@ namespace libcloudphxx
         const real_t &ice(dsi->first.second);
         const auto &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration per second, multiplicity}" pairs for this (kappa, ice) pair
+        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, ice) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
+          // add the source only once every number of steps
+          assert(get<2>(sni->second) > 0);
+          if(src_stp_ctr % get<2>(sni->second) != 0) continue;
+
+          const real_t sup_dt = get<2>(sni->second) * opts_init.dt;
+
           // init number of SDs of this kappa in cells
-          init_count_num_src(sni->second.second);
+          init_count_num_src(get<1>(sni->second));
   
           // update no of particles
           // TODO: move to a separate function
@@ -52,7 +58,7 @@ namespace libcloudphxx
           init_ice(ice);
   
           // init multiplicities
-          init_n_dry_sizes(sni->second.first*dt, sni->second.second); 
+          init_n_dry_sizes(get<0>(sni->second)*sup_dt, get<1>(sni->second)); 
   
           // initialising wet radii
           init_wet();

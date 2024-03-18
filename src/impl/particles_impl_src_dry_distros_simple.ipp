@@ -20,9 +20,10 @@ namespace libcloudphxx
     {   
       // We assume that sdd size is 1
       // TODO: add a loop to allow sdd.size>1
-      const auto p_sdd = sdd.begin()
+      auto p_sdd = sdd.cbegin();
 
       // add the source only once every number of steps
+      assert(get<2>(p_sdd->second) > 0);
       if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
 
       const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;

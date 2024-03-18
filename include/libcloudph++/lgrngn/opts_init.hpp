@@ -141,15 +141,6 @@ namespace libcloudphxx
       // type of CCN source
       src_t src_type;
 
-      // source distro per unit time
-//      dry_distros_t src_dry_distros;
-
-      // number of SDs created from src_dry_distros per cell per source iteration
-      unsigned long long src_sd_conc;
-
-      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
- //     dry_sizes_t src_dry_sizes;
-
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
@@ -218,7 +209,6 @@ namespace libcloudphxx
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),
-        src_sd_conc(0),
         src_x0(0),
         src_x1(0),
         src_y0(0),

@@ -584,11 +584,11 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       void bcnd();
 
-      void src(const real_t &dt, const dry_distros_t<real_t> &, const dry_sizes_t<real_t> &);
-      void src_dry_distros_simple(const real_t &dt, const dry_distros_t<real_t> &);
-      void src_dry_distros_matching(const real_t &dt, const dry_distros_t<real_t> &);
-      void src_dry_distros(const real_t &dt, const dry_distros_t<real_t> &);
-      void src_dry_sizes(const real_t &dt,  const dry_sizes_t<real_t> &);
+      void src(const src_dry_distros_t<real_t> &, const src_dry_sizes_t<real_t> &);
+      void src_dry_distros_simple(const src_dry_distros_t<real_t> &);
+      void src_dry_distros_matching(const src_dry_distros_t<real_t> &);
+      void src_dry_distros(const src_dry_distros_t<real_t> &);
+      void src_dry_sizes( const src_dry_sizes_t<real_t> &);
 
       void rlx(const real_t);
       void rlx_dry_distros(const real_t);
