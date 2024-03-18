@@ -403,11 +403,8 @@ namespace libcloudphxx
         // sanity check
         if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("libcloudph++: aerosol source was switched off in opts_init");
 
-        // introduce new particles with the given time interval
-        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt, opts.src_dry_distros, opts.src_dry_sizes);
-        }
+        // introduce new particles
+        pimpl->src(opts.src_dry_distros, opts.src_dry_sizes);
       }
 
       // aerosol relaxation, in sync since it changes th/rv

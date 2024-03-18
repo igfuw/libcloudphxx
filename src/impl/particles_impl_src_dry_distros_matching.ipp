@@ -45,11 +45,20 @@ namespace libcloudphxx
     // create new aerosol particles based on a size distribution
     // if any SDs with dry radius similar to the one to be added are present,
     // we increase their multiplicity instead of adding new SDs
+    // TODO: make it work for sdd.size()>1
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_distros_matching(const real_t &dt, const dry_distros_t<real_t> &sdd)
+    void particles_t<real_t, device>::impl::src_dry_distros_matching(const dry_distros_t<real_t> &sdd)
     {   
+      const auto p_sdd = sdd.begin()
+
+      // add the source only once every number of steps
+      if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
+
+      const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;
+
       // set number of SDs to init; use count_num as storage
-      init_count_num_src(opts_init.src_sd_conc);
+      init_count_num_src(get<1>(p_sdd->second));
+
 
       // -------- TODO: match not only sizes of old particles, but also kappas and chemical composition... --------
 
@@ -91,9 +100,9 @@ namespace libcloudphxx
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
       dist_analysis_sd_conc(
-        *(sdd.begin()->second),
-        opts_init.src_sd_conc,
-        dt
+        *get<0>(p_sdd->second),
+        get<1>(p_sdd->second),
+        sup_dt
       ); 
 
       // --- see how many already existing SDs match size bins ---
@@ -209,14 +218,14 @@ namespace libcloudphxx
 
           // init other peoperties of SDs that didnt have a match
           init_kappa(
-            sdd.begin()->first.first
+            p_sdd->first.first
           ); 
 
           if(opts_init.diag_incloud_time)
             init_incloud_time();
 
           init_n_sd_conc(
-            *(sdd.begin()->second)
+            *get<0>(p_sdd->second)
           ); // TODO: document that n_of_lnrd_stp is expected!
 
           // init rw
@@ -366,7 +375,7 @@ namespace libcloudphxx
 
         // init n of the copied SDs, but using the src distribution
         init_n_sd_conc(
-          *(sdd.begin()->second)
+          *get<0>(p_sdd->second)
         ); // TODO: document that n_of_lnrd_stp is expected!
 
         // add the just-initialized multiplicities to the old ones

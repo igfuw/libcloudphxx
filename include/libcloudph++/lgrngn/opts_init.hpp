@@ -153,9 +153,6 @@ namespace libcloudphxx
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
-  
-      // timestep interval at which source will be applied
-      int supstp_src;
 
 
       // --- aerosol relaxation stuff ---
@@ -228,7 +225,6 @@ namespace libcloudphxx
         src_y1(0),
         src_z0(0),
         src_z1(0),
-        supstp_src(1),
         rlx_bins(0),
         rlx_timescale(1),
         rlx_sd_per_bin(0),
