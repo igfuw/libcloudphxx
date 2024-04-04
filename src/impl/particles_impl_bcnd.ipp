@@ -237,7 +237,7 @@ namespace libcloudphxx
                   );
 
                 // add total ice volume that fell out in this step
-                output_puddle[common::outliq_vol] += 
+                output_puddle[common::outice_vol] += 
                   thrust::transform_reduce(
                     thrust::make_zip_iterator(thrust::make_tuple(
                       n_filtered.begin(), rw2.begin(), ice.begin())),           // input start
