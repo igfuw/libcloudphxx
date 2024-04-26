@@ -65,6 +65,7 @@ namespace libcloudphxx
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                 thrust::get<3>(tpl) * si::pascals * si::seconds
               ) / si::metres_per_second;
+              break;
 
             case(vt_t::beard77):
               vt = 
@@ -74,6 +75,7 @@ namespace libcloudphxx
                   thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                   thrust::get<3>(tpl) * si::pascals * si::seconds
                 ) * (common::vterm::vt_beard77_v0(sqrt(rw2) * si::metres) / si::metres_per_second);
+              break;
 
             case(vt_t::khvorostyanov_spherical):
               vt = common::vterm::vt_khvorostyanov(
@@ -83,6 +85,7 @@ namespace libcloudphxx
                 thrust::get<3>(tpl) * si::pascals * si::seconds,
                 true
               ) / si::metres_per_second;
+              break;
 
             case(vt_t::khvorostyanov_nonspherical):
               vt = common::vterm::vt_khvorostyanov(
@@ -92,8 +95,11 @@ namespace libcloudphxx
                 thrust::get<3>(tpl) * si::pascals * si::seconds,
                 false
               ) / si::metres_per_second;
+              break;
+
             default:
               vt = 0.; //sanity checks done in pimpl constructor
+              break;
           }
 
           // ice terminal velocity = droplet terminal velocity * rho_ice/rho_water
@@ -133,6 +139,7 @@ namespace libcloudphxx
                   thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                   thrust::get<3>(tpl) * si::pascals * si::seconds
                 ) * thrust::get<0>(tpl); // cached vt_0
+              break;
 
             default:
               vt = 0.; //sanity checks done in pimpl constructor
