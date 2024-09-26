@@ -57,7 +57,8 @@ namespace libcloudphxx
 
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::step_async(
-      const opts_t<real_t> &opts
+      const opts_t<real_t> &opts,
+      const real_t &time
     )
     {
       // sanity checks
@@ -77,7 +78,7 @@ namespace libcloudphxx
       for (int i = 0; i < this->opts_init->dev_count; ++i)
       {
         threads.emplace_back(
-          &particles_t<real_t, multi_CUDA>::impl::step_async_and_copy, pimpl.get(), opts, i, std::ref(streams), std::ref(events), std::ref(barrier)
+          &particles_t<real_t, multi_CUDA>::impl::step_async_and_copy, pimpl.get(), opts, time, i, std::ref(streams), std::ref(events), std::ref(barrier)
         );
       }
       for (auto &th : threads) th.join();

@@ -27,6 +27,7 @@ namespace libcloudphxx
     template <typename real_t>
     void particles_t<real_t, multi_CUDA>::impl::step_async_and_copy(
       const opts_t<real_t> &opts,
+      const real_t &time,
       const int dev_id,
       std::vector<cudaStream_t> &streams,
       std::vector<cudaEvent_t> &events,
@@ -36,7 +37,7 @@ namespace libcloudphxx
       gpuErrchk(cudaSetDevice(dev_id));
 
       // do step async on each device
-      particles[dev_id]->step_async(opts);
+      particles[dev_id]->step_async(opts, time);
 
       // --- copy advected SDs to other devices on the same node ---
       if((opts.adve || opts.turb_adve) && glob_opts_init.dev_count>1)

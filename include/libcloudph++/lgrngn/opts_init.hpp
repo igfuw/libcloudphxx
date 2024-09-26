@@ -188,6 +188,9 @@ namespace libcloudphxx
       // relaxation time scale [s]
       real_t rlx_timescale;
 
+      // pre-collision statistics are diagnosed up to precoal_stats_tmax [s] before collision
+      real_t precoal_stats_tmax;
+
       // -- ctors ---
 
       // ctor with defaults (C++03 compliant) ...
@@ -242,7 +245,8 @@ namespace libcloudphxx
         open_side_walls(false),
         periodic_topbot_walls(false),
         variable_dt_switch(false),
-        rng_seed_init_switch(false)
+        rng_seed_init_switch(false),
+        precoal_stats_tmax(3600)
       {}
 
       // dtor (just to silence -Winline warnings)
