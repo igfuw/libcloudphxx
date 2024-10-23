@@ -19,25 +19,37 @@ namespace libcloudphxx
       const opts_t<real_t> &opts,
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
+      cont_t &dot_ra_cont,
       const cont_t &rc_cont,
-      const cont_t &rr_cont
+      const cont_t &rr_cont,
+      const cont_t &ra_cont,
+      const cont_t &th_cont,
+      const cont_t &p_cont,
+      const cont_t &rhod_cont,
+      const real_t &dt
     )
 //</listing>
     {
-      for (auto tup : zip(dot_rc_cont, dot_rr_cont, rc_cont, rr_cont))
+      for (auto tup : zip(dot_rc_cont, dot_rr_cont, dot_ra_cont, rc_cont, rr_cont, ra_cont, th_cont, p_cont, rhod_cont))
       {
         real_t
-          tmp = 0,
+          rc_to_rr = 0,
+          rc_to_ra = 0,
           &dot_rc = std::get<0>(tup),
-          &dot_rr = std::get<1>(tup);
+          &dot_rr = std::get<1>(tup),
+          &dot_ra = std::get<2>(tup);
         const real_t
-          &rc     = std::get<2>(tup),
-          &rr     = std::get<3>(tup);
+          &rc     = std::get<3>(tup),
+          &rr     = std::get<4>(tup),
+          &ra     = std::get<5>(tup),
+          &th     = std::get<6>(tup),
+          &p      = std::get<7>(tup),
+          &rhod   = std::get<8>(tup);
 
         // autoconversion
         if (opts.conv)
         {
-	  tmp += (
+	  rc_to_rr += (
 	    formulae::autoconversion_rate(
               rc        * si::dimensionless(),
               opts.r_c0 * si::dimensionless(),
@@ -49,7 +61,7 @@ namespace libcloudphxx
         // collection
         if (opts.accr)
         {
-	  tmp += (
+	  rc_to_rr += (
 	    formulae::collection_rate(
               rc * si::dimensionless(),
               rr * si::dimensionless()
@@ -57,8 +69,38 @@ namespace libcloudphxx
 	  );
         }
 
-	dot_rr += tmp;
-	dot_rc -= tmp;
+        // ice A heterogeneous nucleation
+        //if (opts.hetA)
+        //{
+          rc_to_ra += (
+            formulae::het_A_nucleation(
+                    ra * si::dimensionless(),
+                    rc * si::dimensionless(),
+                    th * si::kelvin,
+                	p * si::pascal,
+                    rhod * si::mass_density,
+                    dt * si::time
+                  ) * si::seconds // to make it dimensionless
+          );
+        //}
+
+        // ice A homogeneous nucleation 2
+        //if (opts.homA2)
+        //{
+        rc_to_ra += (
+          formulae::hom_A_nucleation_2(
+                  rc * si::dimensionless(),
+                  th * si::kelvin,
+                  p * si::pascal,
+                  dt * si::time
+                ) * si::seconds // to make it dimensionless
+        );
+        //}
+
+	dot_rr += rc_to_rr;
+	dot_rc -= rc_to_rr;
+  dot_rc -= rc_to_ra;
+  dot_ra += rc_to_ra;
       }
     }
 
@@ -69,16 +111,18 @@ namespace libcloudphxx
       cont_t &dot_rv_cont,
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
+      cont_t &dot_ra_cont,
       const cont_t &rhod_cont,
       const cont_t &p_cont,
       const cont_t &th_cont,
       const cont_t &rv_cont,
       const cont_t &rc_cont,
       const cont_t &rr_cont,
+      const cont_t &ra_cont,
       const real_t &dt // time step in seconds
     )
     {
-      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont, rc_cont, rr_cont);
+      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont, dot_ra_cont, rc_cont, rr_cont, ra_cont, th_cont, p_cont, rhod_cont, dt); //calculate T from theta
 
       // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
       for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rr_cont))

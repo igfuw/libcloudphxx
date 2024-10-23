@@ -106,8 +106,10 @@ namespace libcloudphxx
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
 	bp_array &dot_rc,
 	bp_array &dot_rr,
+	bp_array &dot_ra,
 	const bp_array &rc,
-	const bp_array &rr
+	const bp_array &rr,
+	const bp_array &ra,
       ) 
       {
 	arr_t
