@@ -26,6 +26,7 @@ namespace libcloudphxx
       libcloudphxx_const(energy_over_temperature_mass, c_pd, 1005, si::joules / si::kilograms / si::kelvins) // dry air
       libcloudphxx_const(energy_over_temperature_mass, c_pv, 1850, si::joules / si::kilograms / si::kelvins) // water vapour
       libcloudphxx_const(energy_over_temperature_mass, c_pw, 4218, si::joules / si::kilograms / si::kelvins) // liquid water
+      libcloudphxx_const(energy_over_temperature_mass, c_pi, 2107, si::joules / si::kilograms / si::kelvins) // ice
 
       // molar masses
       libcloudphxx_const(mass_over_amount, M_d, 0.02897, si::kilograms / si::moles) // dry air (Curry & Webster / Seinfeld & Pandis)

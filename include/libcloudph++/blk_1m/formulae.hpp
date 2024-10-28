@@ -99,22 +99,16 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rv,
         const quantity<si::dimensionless, real_t> &rvs,
         const quantity<si::dimensionless, real_t> &rvsi,
-        const quantity<si::kelvins, real_t> &th,
-        const quantity<si::pascals, real_t> &p,
+        const quantity<si::temperature, real_t> &th,
+        const quantity<si::pressure, real_t> &p,
         const quantity<si::time, real_t> &dt
       ) {
-        const quantity<si::kelvin, real_t> T = std::pow((p/real_t(100000)/si::pascal), 0.286);
-        const quantity<si::time, real_t> taunuc = dt; // time scale for nucleation
-        //homogeneous part
-        if (T < real_t(233.16) * si::kelvins) { // only if T < -40 C
-        real_t beta = (T > real_t(213.16)*si::kelvins) ? real_t(0.1)+real_t(0.9)*(T-real_t(213.16)*si::kelvins)/(real_t(20)*si::kelvins) : real_t(0.1);
+        const quantity<si::temperature, real_t> T = th * std::pow((p/real_t(100000)/si::pascal), 0.286);
+        const quantity<si::time, real_t> taunuc = dt; // timescale for nucleation
+        real_t beta = (T/si::kelvins > real_t(213.16)*si::dimensionless()) ? real_t(0.1)+real_t(0.9)*(T-real_t(213.16)*si::kelvins)/(real_t(20)*si::kelvins) : real_t(0.1);
         quantity<si::dimensionless, real_t> rv_adj = beta * rvs + (1-beta) * rvsi;
-        //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom1 = (real_t(1)-std::exp(-dt/taunuc)) * std::max(real_t(0), rv-rv_adj) / dt;
-        }
-        else {
-          quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom1 = real_t(0);
-        }
+        //homogeneous nucleation rate (only if T < -40 C):
+        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom1 = (T/si::kelvins < real_t(233.16)*si::dimensionless()) ? (real_t(1)-std::exp(-dt/taunuc)) * std::max(real_t(0)*si::dimensionless(), rv-rv_adj) / dt : real_t(0)/si::seconds;
         return hom1;
       }
 
@@ -122,57 +116,51 @@ namespace libcloudphxx
       template <typename real_t>
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom_A_nucleation_2(
         const quantity<si::dimensionless, real_t> &rc,
-        const quantity<si::kelvins, real_t> &th,
-        const quantity<si::pascals, real_t> &p,
+        const quantity<si::temperature, real_t> &th,
+        const quantity<si::pressure, real_t> &p,
         const quantity<si::time, real_t> &dt
       ) {
-        const quantity<si::kelvin, real_t> T = std::pow((p/real_t(100000)/si::pascal), 0.286);
+        const quantity<si::temperature, real_t> T = th * std::pow((p/real_t(100000)/si::pascal), 0.286);
         const quantity<si::time, real_t> taunuc = dt; // time scale for nucleation
-        //homogeneous part
-        if (T < real_t(233.16) * si::kelvins) { // only if T < -40 C
-        //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom2 = (real_t(1)-std::exp(-dt/taunuc)) * rc / dt;
-        }
-        else {
-          quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom2 = real_t(0);
-        }
+        //homogeneous nucleation rate (only if T < -40 C)
+        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom2 = (T/si::kelvins < real_t(233.16)*si::dimensionless()) ? (real_t(1)-std::exp(-dt/taunuc)) * rc / dt : real_t(0)/si::seconds;
         return hom2;
       }
 
       //ice A heterogeneous nucleation
       template <typename real_t>
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het_A_nucleation(
-        const quantity<si::dimensionless, real_t> &ra,
+        const quantity<si::dimensionless, real_t> &ria,
         const quantity<si::dimensionless, real_t> &rc,
-        const quantity<si::kelvins, real_t> &th,
-        const quantity<si::pascals, real_t> &p,
+        const quantity<si::temperature, real_t> &th,
+        const quantity<si::pressure, real_t> &p,
         const quantity<si::mass_density, real_t> &rhod_0,
         const quantity<si::time, real_t> &dt
       ) {
-        const quantity<si::kelvin, real_t> T = std::pow((p/real_t(100000)/si::pascal), 0.286);
-        const quantity<si::time, real_t> taunuc = dt; // time scale for nucleation
+        const quantity<si::temperature, real_t> T = th * std::pow((p/real_t(100000)/si::pascal), 0.286);
+        const quantity<si::time, real_t> taunuc = dt; // timescale for nucleation
         //heterogeneous part
         //calculating the mass of small ice A particle:
-        real_t IWCS = std::min(real_t(1e-3), rhod_0*ra/si::mass_density, real_t(2.52e-4)*std::pow(real_t(1e3)*rhod_0*ra/si::mass_density,real_t(0.837)));
-        real_t rho_i = real_t(916.8); //ice density
-        real_t alpha = std::max(real_t(2.2e4), real_t(-4.99e3)-real_t(4.94e4)*std::log10(real_t(1e3)*IWCS));
-        quantity<si::mass, real_t> m_as = real_t(2*std::numbers::pi)*rho_i/std::pow(alpha,3) *si::mass;
+        quantity<si::mass_density, real_t> IWCS = std::min(std::min(real_t(1e-3)*si::dimensionless(), rhod_0*ria/(si::kilogram/si::cubic_metres)), real_t(2.52e-4)*std::pow(real_t(1e3)*rhod_0*ria/(si::kilogram/si::cubic_metres),real_t(0.837)) *si::dimensionless()) * si::kilograms / si::cubic_meters;
+        quantity<si::mass_density, real_t> rho_i = real_t(916.8) *si::kilograms / si::cubic_meters; //ice density
+        quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> alpha = std::max(real_t(2.2e4), real_t(-4.99e3)-real_t(4.94e4)*std::log10(real_t(1e3)*IWCS/si::kilograms*si::cubic_meters)) / si::meters;
+        quantity<si::mass, real_t> m_as = real_t(2)*pi<real_t>()*rho_i/(std::pow(alpha*si::meters,3)/si::cubic_meters);
         //calculating the mass of large ice A particle:
-        real_t IWCL = rhod_0*ra - IWCS;
+        quantity<si::mass_density, real_t> IWCL = rhod_0*ria - IWCS;
         real_t a_mu = real_t(5.2) + real_t(1.3e-3)*(T/si::kelvin-273.16);
         real_t b_mu = real_t(0.026) - real_t(1.2e-3)*(T/si::kelvin-273.16);
         real_t a_sigma = real_t(0.47) + real_t(2.1e-3)*(T/si::kelvin-273.16);
         real_t b_sigma = real_t(0.018) - real_t(2.1e-4)*(T/si::kelvin-273.16);
-        real_t mu = a_mu + b_mu*std::log10(real_t(1e3)*IWCL);
-        real_t sigma = a_sigma + b_sigma*std::log10(real_t(1e3)*IWCL);
-        quantity<si::mass, real_t> m_al = real_t(1.67e17*pi<real_t>())*rho_i*std::exp(3*mu +9/2*std::pow(sigma,2))*si::mass;
+        real_t mu = a_mu + b_mu*std::log10(real_t(1e3)*IWCL/si::kilograms*si::cubic_meters);
+        real_t sigma = a_sigma + b_sigma*std::log10(real_t(1e3)*IWCL/si::kilograms*si::cubic_meters);
+        quantity<si::mass, real_t> m_al = real_t(1.67e17)*pi<real_t>()*rho_i*std::exp(3*mu +9/2*std::pow(sigma,2))*si::cubic_meters;
         //mass of average ice A particle
-        real_t delta = IWCS/(ra*rhod_0/si::mass_density);
+        real_t delta = IWCS/(ria*rhod_0);
         quantity<si::mass, real_t> ma = delta*m_as + (real_t(1)-delta)*m_al;
         //concentration of ice nuclei:
-        quantity<divide_typeof_helper<si::dimensionless, si::cubic_meters>::type, real_t> N_in = std::min(real_t(1e5), real_t(1e-2)*std::exp(real_t(0.6)*(real_t(273.16)-T/si::kelvins)));
+        quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_in = std::min(real_t(1e5), real_t(1e-2)*std::exp(real_t(0.6)*(real_t(273.16)-T/si::kelvins))) / si::cubic_meters;
         //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het = (real_t(1)-std::exp(-dt/taunuc)) * std::min(rc, std::max(real_t(0), N_in*std::max(real_t(1e-12)*si::mass, ma)/rhod_0 - ra)) / dt;
+        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het = (real_t(1)-std::exp(-dt/taunuc)) * std::min(rc, std::max(real_t(0)*si::dimensionless(), N_in*std::max(real_t(1e-12)*si::dimensionless(), ma/si::kilograms)/rhod_0*si::kilograms - ria)) / dt;
         return het;
       }
 

@@ -43,7 +43,7 @@ namespace libcloudphxx
 	  np2bz_th, 
 	  np2bz_rv, 
 	  np2bz_rc, 
-	  np2bz_rr, 
+	  np2bz_rr,
 	  dt
 	);
       }
@@ -100,27 +100,64 @@ namespace libcloudphxx
 	  dt
 	);
       }
+
+		template <class arr_t>
+    	void rhs_cellwise(
+		  const b1m::opts_t<typename arr_t::T_numtype> &opts,
+		  bp_array &dot_rc,
+		  bp_array &dot_rr,
+		  const bp_array &rc,
+		  const bp_array &rr
+			)
+      {
+      	arr_t
+			np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+			np2bz_dot_rr(np2bz<arr_t>(dot_rr));
+      	b1m::rhs_cellwise(
+			opts,
+			np2bz_dot_rc,
+			np2bz_dot_rr,
+			np2bz<arr_t>(rc),
+			np2bz<arr_t>(rr)
+		  );
+      }
       
       template <class arr_t>
-      void rhs_cellwise(
+      void rhs_cellwise_ice(
 	const b1m::opts_t<typename arr_t::T_numtype> &opts,
 	bp_array &dot_rc,
 	bp_array &dot_rr,
-	bp_array &dot_ra,
+	bp_array &dot_rv,
+	bp_array &dot_ria,
 	const bp_array &rc,
 	const bp_array &rr,
-	const bp_array &ra,
+	const bp_array &rv,
+	const bp_array &ria,
+	const bp_array &theta,
+	const bp_array &p,
+	const bp_array &rhod,
+	const typename arr_t::T_numtype &dt
       ) 
       {
 	arr_t
 	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr));
-	b1m::rhs_cellwise(
+	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+      np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+      np2bz_dot_ria(np2bz<arr_t>(dot_ria));
+	b1m::rhs_cellwise_ice(
 	  opts,
 	  np2bz_dot_rc,
 	  np2bz_dot_rr,
+	  np2bz_dot_rv,
+	  np2bz_dot_ria,
 	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(rr)
+	  np2bz<arr_t>(rr),
+	  np2bz<arr_t>(rv),
+	  np2bz<arr_t>(ria),
+	  np2bz<arr_t>(theta),
+	  np2bz<arr_t>(p),
+	  np2bz<arr_t>(rhod),
+	  dt
 	);
       } 
 
@@ -131,16 +168,19 @@ namespace libcloudphxx
 	bp_array &dot_rv,
 	bp_array &dot_rc,
 	bp_array &dot_rr,
+	bp_array &dot_ria,
 	const bp_array &rhod,
 	const bp_array &p,
 	const bp_array &th,
 	const bp_array &rv,
 	const bp_array &rc,
 	const bp_array &rr,
+	const bp_array &ria,
 	const typename arr_t::T_numtype &dt
       ) 
       {
 	arr_t
+      np2bz_dot_ria(np2bz<arr_t>(dot_ria)),
 	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
 	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
 	  np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
@@ -151,13 +191,15 @@ namespace libcloudphxx
 	  np2bz_dot_rv,
 	  np2bz_dot_rc,
 	  np2bz_dot_rr,
+	  np2bz_dot_ria,
 	  np2bz<arr_t>(rhod),
 	  np2bz<arr_t>(p),
 	  np2bz<arr_t>(th),
 	  np2bz<arr_t>(rv),
 	  np2bz<arr_t>(rc),
 	  np2bz<arr_t>(rr),
-          dt
+	  np2bz<arr_t>(ria),
+	  dt
 	);
       } 
 
