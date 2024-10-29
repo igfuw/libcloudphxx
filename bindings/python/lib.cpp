@@ -155,7 +155,6 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("conv", &b1m::opts_t<real_t>::conv)
       .def_readwrite("accr", &b1m::opts_t<real_t>::accr)
       .def_readwrite("sedi", &b1m::opts_t<real_t>::sedi)
-      .def_readwrite("ice", &b1m::opts_t<real_t>::ice)
       .def_readwrite("homA1", &b1m::opts_t<real_t>::homA1)
       .def_readwrite("homA2", &b1m::opts_t<real_t>::homA2)
       .def_readwrite("hetA", &b1m::opts_t<real_t>::hetA)
@@ -167,8 +166,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("adj_cellwise_constp", blk_1m::adj_cellwise_constp<arr_t>);
     bp::def("adj_cellwise_nwtrph", blk_1m::adj_cellwise_nwtrph<arr_t>);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>);
-    bp::def("rhs_cellwise_ice", blk_1m::rhs_cellwise_ice<arr_t>);
-    bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>); 
+    bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>);
+    bp::def("rhs_cellwise_nwtrph_ice", blk_1m::rhs_cellwise_nwtrph_ice<arr_t>);
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
   }
 

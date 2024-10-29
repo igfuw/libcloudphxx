@@ -21,7 +21,6 @@ namespace libcloudphxx
         conv = true,    // autoconversion
         accr = true,    // accretion
         sedi = true,    // sedimentation
-        ice = true,    // enable ice processes
         homA1 = true,    // homogeneous nucleation 1 of ice A
         homA2 = true,    // homogeneous nucleation 2 of ice A
         hetA = true;    // heterogeneous nucleation of ice A
