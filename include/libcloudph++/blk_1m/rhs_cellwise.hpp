@@ -135,6 +135,7 @@ namespace libcloudphxx
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
       cont_t &dot_ria_cont,
+      //cont_t &dot_rib_cont,
       const cont_t &rhod_cont,
       const cont_t &p_cont,
       const cont_t &th_cont,
@@ -142,10 +143,12 @@ namespace libcloudphxx
       const cont_t &rc_cont,
       const cont_t &rr_cont,
       const cont_t &ria_cont,
+      //const cont_t &rib_cont,
       const real_t &dt
     )
     {
-      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
+      // autoconversion, collection and rain evaporation:
+      rhs_cellwise_nwtrph<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont,  dot_rc_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt);
 
       // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
       for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont))
@@ -153,7 +156,6 @@ namespace libcloudphxx
         using namespace common;
 
         real_t
-          rr_to_rv = 0,
           rv_to_ria = 0,
           rc_to_ria = 0,
         &dot_th = std::get<0>(tup),
@@ -181,20 +183,6 @@ namespace libcloudphxx
         real_t rvs = const_cp::r_vs(T, p);
         real_t rvsi = const_cp::r_vsi(T, p);
 
-        // rain evaporation
-        rr_to_rv += (
-        formulae::evaporation_rate(
-          rv * si::dimensionless(),
-          rvs * si::dimensionless(),
-          rr * si::dimensionless(),
-          rhod,
-          p
-        ) * si::seconds * dt
-        );
-
-        // limiting
-        rr_to_rv = std::min(rr, rr_to_rv) / dt;
-
         // ice A heterogeneous nucleation
         if (opts.hetA)
         {
@@ -202,8 +190,7 @@ namespace libcloudphxx
             formulae::het_A_nucleation(
                     ria * si::dimensionless(),
                     rc * si::dimensionless(),
-                    th,
-                    p,
+                    T,
                     rhod,
                     dt * si::seconds
                   ) * si::seconds // to make it dimensionless
@@ -218,8 +205,7 @@ namespace libcloudphxx
                     rv * si::dimensionless(),
                     rvs * si::dimensionless(),
                     rvsi * si::dimensionless(),
-                    th,
-                    p,
+                    T,
                     dt * si::seconds
                   ) * si::seconds // to make it dimensionless
           );
@@ -231,21 +217,19 @@ namespace libcloudphxx
           rc_to_ria += (
             formulae::hom_A_nucleation_2(
                     rc * si::dimensionless(),
-                    th,
-                    p,
+                    T,
                     dt * si::seconds
                   ) * si::seconds // to make it dimensionless
           );
         }
 
-        dot_rr -= rr_to_rv;
         dot_rc -= rc_to_ria;
-        dot_rv += rr_to_rv - rv_to_ria;
+        dot_rv -= rv_to_ria;
         dot_ria += rc_to_ria + rv_to_ria;
-        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rr_to_rv / si::kelvins; //heat of vaporisation
-        dot_th += const_cp::l_sublim(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rv_to_ria / si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_freez(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rc_to_ria / si::kelvins; //heat of freezing
+        dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rv_to_ria / si::kelvins; //heat of sublimation
+        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rc_to_ria / si::kelvins; //heat of freezing
       }
     }
+
   }
 }

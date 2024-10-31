@@ -15,6 +15,7 @@ print("sedi =", opts.sedi)
 print("homA1 =", opts.homA1)
 print("homA2 =", opts.homA2)
 print("hetA =", opts.hetA)
+print("hetB =", opts.hetB)
 print("r_c0 =", opts.r_c0)
 print("r_eps =", opts.r_eps)
 
@@ -25,6 +26,7 @@ rc   = arr_t([0.01])
 rv   = arr_t([0.  ])
 rr   = arr_t([0.  ])
 ria   = arr_t([0.  ])
+rib   = arr_t([0.  ])
 dt   = 1
 dz   = 1
 
@@ -90,5 +92,6 @@ dot_rc = arr_t([0.])
 dot_rr = arr_t([0.])
 dot_rv = arr_t([0.])
 dot_ria = arr_t([0.])
+dot_rib = arr_t([0.])
 blk_1m.rhs_cellwise_nwtrph_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, rhod, p, th, rv, rc, rr, ria, dt)
 assert dot_ria != 0
