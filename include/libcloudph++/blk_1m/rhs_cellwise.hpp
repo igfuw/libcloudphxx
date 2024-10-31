@@ -135,7 +135,7 @@ namespace libcloudphxx
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
       cont_t &dot_ria_cont,
-      //cont_t &dot_rib_cont,
+      cont_t &dot_rib_cont,
       const cont_t &rhod_cont,
       const cont_t &p_cont,
       const cont_t &th_cont,
@@ -143,41 +143,44 @@ namespace libcloudphxx
       const cont_t &rc_cont,
       const cont_t &rr_cont,
       const cont_t &ria_cont,
-      //const cont_t &rib_cont,
+      const cont_t &rib_cont,
       const real_t &dt
     )
     {
       // autoconversion, collection and rain evaporation:
       rhs_cellwise_nwtrph<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont,  dot_rc_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt);
 
-      // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
-      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont))
+      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, dot_rib_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont, rib_cont))
       {
         using namespace common;
 
         real_t
           rv_to_ria = 0,
           rc_to_ria = 0,
+          rr_to_rib = 0,
+          ria_to_rib = 0,
         &dot_th = std::get<0>(tup),
         &dot_rv = std::get<1>(tup),
         &dot_rc = std::get<2>(tup),
         &dot_rr = std::get<3>(tup),
-        &dot_ria = std::get<4>(tup);
+        &dot_ria = std::get<4>(tup),
+        &dot_rib = std::get<5>(tup);
 
         const quantity<si::mass_density, real_t>
-          rhod = std::get<5>(tup) * si::kilograms / si::cubic_metres;
+          rhod = std::get<6>(tup) * si::kilograms / si::cubic_metres;
 
         const quantity<si::pressure, real_t>
-          p   = std::get<6>(tup) * si::pascals;
+          p   = std::get<7>(tup) * si::pascals;
 
         const quantity<si::temperature, real_t>
-          th = std::get<7>(tup) * si::kelvins;
+          th = std::get<8>(tup) * si::kelvins;
 
         const real_t
-          &rv     = std::get<8>(tup),
-          &rc     = std::get<9>(tup),
-          &rr     = std::get<10>(tup),
-          &ria     = std::get<11>(tup);
+          &rv     = std::get<9>(tup),
+          &rc     = std::get<10>(tup),
+          &rr     = std::get<11>(tup),
+          &ria    = std::get<12>(tup),
+          &rib    = std::get<13>(tup);
 
         quantity<si::temperature, real_t> T = th * theta_std::exner(p);
         real_t rvs = const_cp::r_vs(T, p);
@@ -223,11 +226,34 @@ namespace libcloudphxx
           );
         }
 
+        // ice B heterogeneous nucleation
+        if (opts.hetB)
+        {
+          rr_to_rib += (
+            formulae::het_B_nucleation_1(
+                    rr * si::dimensionless(),
+                    ria * si::dimensionless(),
+                    T,
+                    rhod
+                  ) * si::seconds // to make it dimensionless
+          );
+          ria_to_rib += (
+            formulae::het_B_nucleation_2(
+                    rr * si::dimensionless(),
+                    ria * si::dimensionless(),
+                    T,
+                    rhod
+                  ) * si::seconds // to make it dimensionless
+          );
+        }
+
         dot_rc -= rc_to_ria;
         dot_rv -= rv_to_ria;
-        dot_ria += rc_to_ria + rv_to_ria;
+        dot_rr -= rr_to_rib;
+        dot_ria += rc_to_ria + rv_to_ria - ria_to_rib;
+        dot_rib += rr_to_rib + ria_to_rib;
         dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rv_to_ria / si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rc_to_ria / si::kelvins; //heat of freezing
+        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria+rr_to_rib) / si::kelvins; //heat of freezing
       }
     }
 

@@ -93,5 +93,6 @@ dot_rr = arr_t([0.])
 dot_rv = arr_t([0.])
 dot_ria = arr_t([0.])
 dot_rib = arr_t([0.])
-blk_1m.rhs_cellwise_nwtrph_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, rhod, p, th, rv, rc, rr, ria, dt)
+blk_1m.rhs_cellwise_nwtrph_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib, rhod, p, th, rv, rc, rr, ria, rib, dt)
 assert dot_ria != 0
+assert dot_rib != 0

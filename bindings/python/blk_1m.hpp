@@ -29,10 +29,10 @@ namespace libcloudphxx {
         const typename arr_t::T_numtype &dt
       ) {
         arr_t
-            np2bz_th(np2bz<arr_t>(th)),
-            np2bz_rv(np2bz<arr_t>(rv)),
-            np2bz_rc(np2bz<arr_t>(rc)),
-            np2bz_rr(np2bz<arr_t>(rr));
+          np2bz_th(np2bz<arr_t>(th)),
+          np2bz_rv(np2bz<arr_t>(rv)),
+          np2bz_rc(np2bz<arr_t>(rc)),
+          np2bz_rr(np2bz<arr_t>(rr));
         b1m::adj_cellwise(
           opts,
           np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
@@ -56,10 +56,10 @@ namespace libcloudphxx {
         const typename arr_t::T_numtype &dt
       ) {
         arr_t
-            np2bz_th(np2bz<arr_t>(th)),
-            np2bz_rv(np2bz<arr_t>(rv)),
-            np2bz_rc(np2bz<arr_t>(rc)),
-            np2bz_rr(np2bz<arr_t>(rr));
+          np2bz_th(np2bz<arr_t>(th)),
+          np2bz_rv(np2bz<arr_t>(rv)),
+          np2bz_rc(np2bz<arr_t>(rc)),
+          np2bz_rr(np2bz<arr_t>(rr));
         b1m::adj_cellwise_constp(
           opts,
           np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
@@ -82,9 +82,9 @@ namespace libcloudphxx {
         const typename arr_t::T_numtype &dt
       ) {
         arr_t
-            np2bz_th(np2bz<arr_t>(th)),
-            np2bz_rv(np2bz<arr_t>(rv)),
-            np2bz_rc(np2bz<arr_t>(rc));
+          np2bz_th(np2bz<arr_t>(th)),
+          np2bz_rv(np2bz<arr_t>(rv)),
+          np2bz_rc(np2bz<arr_t>(rc));
         b1m::adj_cellwise_nwtrph(
           opts,
           np2bz<arr_t>(p),
@@ -104,8 +104,8 @@ namespace libcloudphxx {
         const bp_array &rr
       ) {
         arr_t
-            np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
-            np2bz_dot_rr(np2bz<arr_t>(dot_rr));
+          np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+          np2bz_dot_rr(np2bz<arr_t>(dot_rr));
         b1m::rhs_cellwise(
           opts,
           np2bz_dot_rc,
@@ -131,10 +131,10 @@ namespace libcloudphxx {
         const typename arr_t::T_numtype &dt
       ) {
         arr_t
-            np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
-            np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
-            np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
-            np2bz_dot_th(np2bz<arr_t>(dot_th));
+          np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+          np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+          np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+          np2bz_dot_th(np2bz<arr_t>(dot_th));
         b1m::rhs_cellwise_nwtrph(
           opts,
           np2bz_dot_th,
@@ -160,7 +160,7 @@ namespace libcloudphxx {
         bp_array &dot_rc,
         bp_array &dot_rr,
         bp_array &dot_ria,
-        //bp_array &dot_rib,
+        bp_array &dot_rib,
         const bp_array &rhod,
         const bp_array &p,
         const bp_array &th,
@@ -168,16 +168,16 @@ namespace libcloudphxx {
         const bp_array &rc,
         const bp_array &rr,
         const bp_array &ria,
-        //const bp_array &rib,
+        const bp_array &rib,
         const typename arr_t::T_numtype &dt
       ) {
         arr_t
-            np2bz_dot_ria(np2bz<arr_t>(dot_ria)),
-            //np2bz_dot_rib(np2bz<arr_t>(dot_rib)),
-            np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
-            np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
-            np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
-            np2bz_dot_th(np2bz<arr_t>(dot_th));
+          np2bz_dot_ria(np2bz<arr_t>(dot_ria)),
+          np2bz_dot_rib(np2bz<arr_t>(dot_rib)),
+          np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+          np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+          np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+          np2bz_dot_th(np2bz<arr_t>(dot_th));
         b1m::rhs_cellwise_nwtrph_ice(
           opts,
           np2bz_dot_th,
@@ -185,7 +185,7 @@ namespace libcloudphxx {
           np2bz_dot_rc,
           np2bz_dot_rr,
           np2bz_dot_ria,
-          //np2bz_dot_rib,
+          np2bz_dot_rib,
           np2bz<arr_t>(rhod),
           np2bz<arr_t>(p),
           np2bz<arr_t>(th),
@@ -193,7 +193,7 @@ namespace libcloudphxx {
           np2bz<arr_t>(rc),
           np2bz<arr_t>(rr),
           np2bz<arr_t>(ria),
-          //np2bz<arr_t>(rib),
+          np2bz<arr_t>(rib),
           dt
         );
       }
