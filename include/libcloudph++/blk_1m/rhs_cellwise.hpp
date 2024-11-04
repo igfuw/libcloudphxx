@@ -159,6 +159,7 @@ namespace libcloudphxx
           rc_to_ria = 0,
           rr_to_rib = 0,
           ria_to_rib = 0,
+          ria_to_rr = 0,
         &dot_th = std::get<0>(tup),
         &dot_rv = std::get<1>(tup),
         &dot_rc = std::get<2>(tup),
@@ -247,13 +248,25 @@ namespace libcloudphxx
           );
         }
 
+        // melting of ice A
+        if (opts.melA)
+        {
+          ria_to_rr += (
+            formulae::melting_A(
+                    ria * si::dimensionless(),
+                    T,
+                    rhod
+                  ) * si::seconds // to make it dimensionless
+          );
+        }
+
         dot_rc -= rc_to_ria;
         dot_rv -= rv_to_ria;
-        dot_rr -= rr_to_rib;
-        dot_ria += rc_to_ria + rv_to_ria - ria_to_rib;
+        dot_rr += ria_to_rr - rr_to_rib;
+        dot_ria += rc_to_ria + rv_to_ria - ria_to_rib - ria_to_rr;
         dot_rib += rr_to_rib + ria_to_rib;
         dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rv_to_ria / si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria+rr_to_rib) / si::kelvins; //heat of freezing
+        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria+rr_to_rib-ria_to_rr) / si::kelvins; //heat of freezing
       }
     }
 

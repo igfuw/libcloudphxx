@@ -24,7 +24,9 @@ namespace libcloudphxx
         homA1 = true,   // homogeneous nucleation 1 of ice A
         homA2 = true,   // homogeneous nucleation 2 of ice A
         hetA = true,    // heterogeneous nucleation of ice A
-        hetB = true;   // heterogeneous nucleation of ice B
+        hetB = true,   // heterogeneous nucleation of ice B
+        melA = true,   // melting of ice A
+        melB = true;   // melting of ice B
       real_t 
         r_c0   = 5e-4,   // autoconv. threshold
         k_acnv = 0.001,  // Kessler autoconversion (eq. 5a in Grabowski & Smolarkiewicz 1996)

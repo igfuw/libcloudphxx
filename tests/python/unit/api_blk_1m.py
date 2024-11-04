@@ -16,6 +16,8 @@ print("homA1 =", opts.homA1)
 print("homA2 =", opts.homA2)
 print("hetA =", opts.hetA)
 print("hetB =", opts.hetB)
+print("melA =", opts.melA)
+print("melB =", opts.melB)
 print("r_c0 =", opts.r_c0)
 print("r_eps =", opts.r_eps)
 
