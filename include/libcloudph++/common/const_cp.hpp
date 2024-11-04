@@ -21,7 +21,7 @@ namespace libcloudphxx
       // water triple point parameters
       libcloudphxx_const(si::pressure, p_tri, 611.73, si::pascals) // pressure
       libcloudphxx_const(si::temperature, T_tri, 273.16, si::kelvins) // temperature
-      libcloudphxx_const(energy_over_mass, lv_tri, 2.5e6, si::joules / si::kilograms)   // latent heat of evaporation
+      libcloudphxx_const(energy_over_mass, l_tri, 2.5e6, si::joules / si::kilograms)   // latent heat of evaporation
       libcloudphxx_const(energy_over_mass, ls_tri, 2.834e6, si::joules / si::kilograms) // latent heat of sublimation
       libcloudphxx_const(energy_over_mass, lf_tri, 3.34e5, si::joules / si::kilograms) // latent heat of freezing
 
@@ -37,7 +37,7 @@ namespace libcloudphxx
 //</listing-1>
       {
         return p_tri<real_t>() * exp(
-          (lv_tri<real_t>() + (c_pw<real_t>() - c_pv<real_t>()) * T_tri<real_t>()) / R_v<real_t>() * (real_t(1) / T_tri<real_t>() - real_t(1) / T)
+          (l_tri<real_t>() + (c_pw<real_t>() - c_pv<real_t>()) * T_tri<real_t>()) / R_v<real_t>() * (real_t(1) / T_tri<real_t>() - real_t(1) / T)
           - (c_pw<real_t>() - c_pv<real_t>()) / R_v<real_t>() * std::log(T / T_tri<real_t>())
         );
       }
@@ -82,7 +82,7 @@ namespace libcloudphxx
       quantity<divide_typeof_helper<si::energy, si::mass>::type , real_t> l_v(
         const quantity<si::temperature, real_t> &T
       ) {
-        return lv_tri<real_t>() + (c_pv<real_t>() - c_pw<real_t>()) * (T - T_tri<real_t>());
+        return l_tri<real_t>() + (c_pv<real_t>() - c_pw<real_t>()) * (T - T_tri<real_t>());
       }
 
       // latent heat of sublimation for constant c_p
