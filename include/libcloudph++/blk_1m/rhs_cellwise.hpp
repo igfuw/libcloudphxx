@@ -260,6 +260,24 @@ namespace libcloudphxx
           );
         }
 
+        // melting of ice B
+        if (opts.melB)
+        {
+          rr_to_rib -= (
+            formulae::melting_B(
+                    rib * si::dimensionless(),
+                    T,
+                    rhod
+                  ) * si::seconds // to make it dimensionless
+          );
+        }
+        //limiting
+        rv_to_ria = std::min(rv, rv_to_ria) / dt;
+        rc_to_ria = std::min(rc, rc_to_ria) / dt;
+        rr_to_rib = std::min(rr, rr_to_rib) / dt;
+        ria_to_rib = std::min(ria, ria_to_rib) / dt;
+        ria_to_rr = std::min(ria, ria_to_rr) / dt;
+
         dot_rc -= rc_to_ria;
         dot_rv -= rv_to_ria;
         dot_rr += ria_to_rr - rr_to_rib;

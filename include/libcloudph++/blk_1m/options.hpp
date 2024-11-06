@@ -21,12 +21,16 @@ namespace libcloudphxx
         conv = true,    // autoconversion
         accr = true,    // accretion
         sedi = true,    // sedimentation
-        homA1 = true,   // homogeneous nucleation 1 of ice A
-        homA2 = true,   // homogeneous nucleation 2 of ice A
+        homA1 = true,   // homogeneous nucleation of ice A from water vapor
+        homA2 = true,   // homogeneous nucleation of ice A from cloud droplets
         hetA = true,    // heterogeneous nucleation of ice A
-        hetB = true,   // heterogeneous nucleation of ice B
-        melA = true,   // melting of ice A
-        melB = true;   // melting of ice B
+        hetB = true,    // heterogeneous nucleation of ice B
+        depA = true,    // depositional growth of ice A
+        depB = true,    // depositional growth of ice B
+        rimA = true,    // growth of ice A by riming
+        rimB = true,    // growth of ice B by riming
+        melA = true,    // melting of ice A
+        melB = true;    // melting of ice B
       real_t 
         r_c0   = 5e-4,   // autoconv. threshold
         k_acnv = 0.001,  // Kessler autoconversion (eq. 5a in Grabowski & Smolarkiewicz 1996)

@@ -239,6 +239,10 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
+        if (ria == 0) // ice B is formed only if ice A is present
+        {
+          return real_t(0) / si::seconds;
+        }
         //parameters of Marshall & Palmer distribution for rain:
         real_t N_0r = real_t(1e7);
         real_t gamma_r = std::pow(pi<real_t>() * moist_air::rho_w<real_t>() * N_0r / (rhod_0 * rr), real_t(0.25));
@@ -271,6 +275,10 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
+        if (ria == 0) // ice B is formed only if ice A is present
+        {
+          return real_t(0) / si::seconds;
+        }
         //parameters of Marshall & Palmer distribution for rain:
         real_t N_0r = real_t(1e7);
         real_t gamma_r = std::pow(pi<real_t>() * moist_air::rho_w<real_t>() * N_0r / (rhod_0 * rr), real_t(0.25));
@@ -299,18 +307,60 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
+        if (ria == 0) // calculating melting rate only if ice A is present
+        {
+          return real_t(0) / si::seconds;
+        }
         //mass of average ice A particle:
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
         //diameter of average ice A particle:
         quantity<si::length, real_t> D_a = std::pow(m_a / real_t(0.025) / si::kilograms, real_t(0.5)) * si::meters;
         //fall velocity of avg. ice A particle:
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t>  v_a = real_t(4) * std::pow(D_a / si::meters, real_t(0.25)) *si::meters/si::seconds;
+        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_a = real_t(4) * std::pow(
+          D_a / si::meters, real_t(0.25)) * si::meters / si::seconds;
         //Reynolds number:
         real_t Re = D_a * v_a * rhod_0 / vterm::visc(T);
+        //ventilation factor:
         real_t F_a = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
         quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> mela = real_t(4.5e-7) * rhod_0 * ria /
           m_a * D_a * (273.16 - T / si::kelvins) * F_a * si::square_meters / si::seconds;
         return mela;
+      }
+
+      //melting of ice B (rib -> rr)
+      // eq. A.26 in Grabowski 1999
+      template <typename real_t>
+      quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> melting_B(
+        const quantity<si::dimensionless, real_t> &rib,
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::mass_density, real_t> &rhod_0
+      ) {
+        using namespace common;
+        if (rib == 0) // calculating melting rate only if ice B is present
+        {
+          return real_t(0) / si::seconds;
+        }
+        quantity<si::mass_density, real_t> rho_b = real_t(400) * si::kilograms / si::cubic_meters;
+        //graupel density (from Grabowski 1999)
+        // ice B distribution parameters
+        real_t N_0b = real_t(4e6);
+        real_t gamma_b = std::pow(pi<real_t>() * rho_b * N_0b / (rhod_0 * rib), real_t(0.25));
+        //mass of average ice B particle:
+        quantity<si::mass, real_t> m_b = pi<real_t>() * rho_b / (real_t(6) * std::pow(gamma_b, real_t(3))) *
+          si::cubic_meters;
+        //diameter of average ice B particle:
+        quantity<si::length, real_t> D_b = real_t(1) / gamma_b * si::meters;
+        //fall velocity of avg. ice B particle:
+        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_b = real_t(31.2) *
+          std::pow(gamma_b, real_t(-0.37)) * std::pow(rhod_0 / si::kilograms * si::cubic_meters, real_t(-0.5)) *
+          si::meters / si::seconds;
+        //Reynolds number:
+        real_t Re = D_b * v_b * rhod_0 / vterm::visc(T);
+        //ventilation factor:
+        real_t F_b = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
+        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> melb = real_t(4.5e-7) * rhod_0 * rib /
+          m_b * D_b * (273.16 - T / si::kelvins) * F_b * si::square_meters / si::seconds;
+        return melb;
       }
     };
   };
