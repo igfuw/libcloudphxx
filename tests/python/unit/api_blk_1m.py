@@ -92,6 +92,8 @@ assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip
 
 th   = arr_t([230.])  #testing ice physics
+ria = arr_t([0.1])
+rib = arr_t([0.1])
 dot_rc = arr_t([0.])
 dot_rr = arr_t([0.])
 dot_rv = arr_t([0.])

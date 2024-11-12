@@ -50,6 +50,8 @@ namespace libcloudphxx
       libcloudphxx_const(si::mass_density, rho_w, 1e3, si::kilograms / si::cubic_metres)
       // ice density
       libcloudphxx_const(si::mass_density, rho_i, 910, si::kilograms / si::cubic_metres)
+      // graupel density used for ice B (from Grabowski 1999)
+      libcloudphxx_const(si::mass_density, rho_ib, 400, si::kilograms / si::cubic_metres)
 
       // mixing rule for extensive quantitites (i.e. using mass mixing ratio)
       template <typename real_t, typename quant>
