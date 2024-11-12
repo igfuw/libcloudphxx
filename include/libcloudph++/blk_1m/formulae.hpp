@@ -41,7 +41,7 @@ namespace libcloudphxx
         return k_2<real_t>() * rc * std::pow(rr, real_t(.875));
       }
 
-      // Kessler evaporation rate
+      // Kessler rain evaporation rate
       // eq. 5c in Grabowski & Smolarkiewicz 1996 (multiplied by rho!)
       template <typename real_t>
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> evaporation_rate(
@@ -70,7 +70,7 @@ namespace libcloudphxx
           / si::seconds * si::kilograms / si::cubic_metres;
       }
 
-      // Kessler/Beard terminal velocity
+      // Kessler/Beard rain terminal velocity
       // eq. 5d in Grabowski & Smolarkiewicz 1996
       libcloudphxx_const(si::velocity, vterm_A, 36.34, si::metre_per_second)
 
@@ -91,6 +91,18 @@ namespace libcloudphxx
             )
             * sqrt(rhod_0 / rhod)
           );
+      }
+
+      // slope of Marshall Palmer distribution for rain
+      // eq. A.1 in Grabowski 1999
+      template <typename real_t>
+      quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lambda_rain(
+        const quantity<si::dimensionless, real_t> &rr,
+        const quantity<si::mass_density, real_t> &rhod_0
+      ) {
+        using namespace common;
+        real_t N_0r = real_t(1e7);
+        return std::pow(pi<real_t>() * moist_air::rho_w<real_t>() * N_0r / (rhod_0 * rr), real_t(0.25)) / si::meters;
       }
 
       // mean mass of ice A particle
@@ -127,20 +139,19 @@ namespace libcloudphxx
           3 * mu + 9 / 2 * std::pow(sigma, 2)) * si::cubic_meters;
         //mass of the average ice A particle:
         real_t delta = IWCS / (ria * rhod_0);
-        quantity<si::mass, real_t> m_a = delta * m_as + (real_t(1) - delta) * m_al;
-        return m_a;
+        return delta * m_as + (real_t(1) - delta) * m_al;
       }
 
-      // mean velocity of ice A particle
+      // mean terminal velocity of ice A particle
       // eq. A.15b in Grabowski 1999
       template <typename real_t>
-      quantity<divide_typeof_helper<si::length, si::time>::type, real_t> velocity_a(
+      quantity<si::velocity, real_t> velocity_iceA(
         const quantity<si::dimensionless, real_t> &ria,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
         //velocity of small ice A particle:
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_as =
+        quantity<si::velocity, real_t> v_as =
           real_t(0.1) * si::meters / si::seconds;
         //velocity of large ice A particle:
         quantity<si::mass_density, real_t> IWCS = std::min(
@@ -151,28 +162,18 @@ namespace libcloudphxx
               real_t(0.837)) * si::dimensionless()) * si::kilograms /
           si::cubic_meters;
         quantity<si::mass_density, real_t> IWCL = rhod_0 * ria - IWCS;
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_al =
+        quantity<si::velocity, real_t> v_al =
           (real_t(0.9) + real_t(0.1) * std::log10(real_t(1e3) * IWCL / si::kilograms * si::cubic_meters)) * si::meters
           / si::seconds;
         //average velocity of ice A particle:
         real_t delta = IWCS / (ria * rhod_0);
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_a =
-          (delta * v_as + (real_t(1) - delta) * v_al) * std::pow(
-            real_t(0.3) / rhod_0 * si::kilograms / si::cubic_meters, real_t(0.5));
-        return v_a;
+        return (delta * v_as + (real_t(1) - delta) * v_al) * std::pow(
+          real_t(0.3) / rhod_0 * si::kilograms / si::cubic_meters, real_t(0.5));
       }
 
-      // slope of Marshall Palmer distribution for rain
-      // eq. A.1 in Grabowski 1999
-      template <typename real_t>
-      quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lambda_rain(
-        const quantity<si::dimensionless, real_t> &rr,
-        const quantity<si::mass_density, real_t> &rhod_0
-      ) {
-        using namespace common;
-        real_t N_0r = real_t(1e7);
-        return std::pow(pi<real_t>() * moist_air::rho_w<real_t>() * N_0r / (rhod_0 * rr), real_t(0.25)) / si::meters;
-      }
+
+      // graupel density used for ice B (from Grabowski 1999)
+      libcloudphxx_const(si::mass_density, rho_ib, 400, si::kilograms / si::cubic_metres)
 
       // slope of Marshall Palmer distribution for ice B
       // eq. A.4 in Grabowski 1999
@@ -183,7 +184,7 @@ namespace libcloudphxx
       ) {
         using namespace common;
         real_t N_0b = real_t(4e6);
-        return std::pow(pi<real_t>() * moist_air::rho_ib<real_t>() * N_0b / (rhod_0 * rib), real_t(0.25)) / si::meters;
+        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib), real_t(0.25)) / si::meters;
       }
 
 
@@ -195,8 +196,22 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        return pi<real_t>() * moist_air::rho_ib<real_t>() / (real_t(6) * std::pow(
-          lambda_ice_b(rib, rhod_0) * si::meters, real_t(3))) * si::cubic_meters;
+        return pi<real_t>() * rho_ib<real_t>() / (real_t(6) * std::pow(lambda_ice_b(rib, rhod_0) * si::meters,
+                                                                       real_t(3))) * si::cubic_meters;
+      }
+
+      // mean terminal velocity of ice B particle
+      // eq. A.6 in Grabowski 1999
+      template <typename real_t>
+      quantity<si::velocity, real_t> velocity_iceB(
+        const quantity<si::dimensionless, real_t> &rib,
+        const quantity<si::mass_density, real_t> &rhod_0
+      ) {
+        return real_t(31.2) *
+          std::pow(lambda_ice_b(rib, rhod_0) * si::meters, real_t(-0.37)) * std::pow(
+            rhod_0 / si::kilograms * si::cubic_meters,
+            real_t(-0.5)) *
+          si::meters / si::seconds;
       }
 
       //coefficients for ice growth by deposition/riming
@@ -218,7 +233,7 @@ namespace libcloudphxx
         //temperature in Celsius:
         real_t Tc = T / si::kelvins - real_t(273.16);
         //limiting the temerature to (-31, 0):
-        real_t ttcoe = std::min(real_t(-0.), std::max(real_t(-31), Tc));
+        real_t ttcoe = std::min(real_t(0.), std::max(real_t(-31), Tc));
         int index1 = static_cast<int>(std::trunc(-ttcoe)); //index between 0 and 31
         int index2 = index1 + 1; // index between 1 and 32
         real_t del = -ttcoe - real_t(index1);
@@ -265,11 +280,9 @@ namespace libcloudphxx
                         : real_t(0.1);
         quantity<si::dimensionless, real_t> rv_adj = beta * rvs + (1 - beta) * rvsi;
         //homogeneous nucleation rate (only if T < -40 C)
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom1 =
-          (T < real_t(233.16) * si::kelvins)
-            ? (real_t(1) - std::exp(-dt / taunuc)) * std::max(real_t(0) * si::dimensionless(), rv - rv_adj) / dt
-            : real_t(0) / si::seconds;
-        return hom1;
+        return (T < real_t(233.16) * si::kelvins)
+                 ? (real_t(1) - std::exp(-dt / taunuc)) * std::max(real_t(0) * si::dimensionless(), rv - rv_adj) / dt
+                 : real_t(0) / si::seconds;
       }
 
       //ice A homogeneous nucleation 2 (rc -> ria)
@@ -282,11 +295,9 @@ namespace libcloudphxx
       ) {
         const quantity<si::time, real_t> taunuc = dt; // time scale for nucleation
         //homogeneous nucleation rate (only if T < -40 C)
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> hom2 =
-          (T < real_t(233.16) * si::kelvins)
-            ? (real_t(1) - std::exp(-dt / taunuc)) * rc / dt
-            : real_t(0) / si::seconds;
-        return hom2;
+        return (T < real_t(233.16) * si::kelvins)
+                 ? (real_t(1) - std::exp(-dt / taunuc)) * rc / dt
+                 : real_t(0) / si::seconds;
       }
 
       //ice A heterogeneous nucleation (rc-> ria)
@@ -307,13 +318,11 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_in = std::min(real_t(1e5),
           real_t(1e-2) * std::exp(real_t(0.6) * (real_t(273.16) - T / si::kelvins))) / si::cubic_meters;
         //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het =
-          (real_t(1) - std::exp(-dt / taunuc)) * std::min(rc, std::max(real_t(0) * si::dimensionless(),
-                                                                       N_in * std::max(
-                                                                         real_t(1e-12) * si::kilograms,
-                                                                         m_a) / rhod_0
-                                                                       - ria)) / dt;
-        return het;
+        return (real_t(1) - std::exp(-dt / taunuc)) * std::min(rc, std::max(real_t(0) * si::dimensionless(),
+                                                                            N_in * std::max(
+                                                                              real_t(1e-12) * si::kilograms,
+                                                                              m_a) / rhod_0
+                                                                            - ria)) / dt;
       }
 
       // ice B heterogeneous nucleation 1 (rr -> rib)
@@ -342,14 +351,12 @@ namespace libcloudphxx
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
         //mean ice A velocity
-        real_t v_a = velocity_a(ria, rhod_0) * si::seconds / si::meters;
+        real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
         quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = real_t(1e7) / si::cubic_meters /
           si::meters / lambda_r * std::abs(v_r - v_a) * si::meters / si::seconds * pi<real_t>() * R_r * R_r * ria / m_a;
         //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het1 =
-          N_ra * m_r;
-        return het1;
+        return N_ra * m_r;
       }
 
       //ice B heterogeneous nucleation 2 (ria -> rib)
@@ -375,14 +382,12 @@ namespace libcloudphxx
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
         //mean ice A velocity
-        real_t v_a = velocity_a(ria, rhod_0) * si::seconds / si::meters;
+        real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
         quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = real_t(1e7) / si::cubic_meters /
           si::meters / lambda_r * abs(v_r - v_a) * si::meters / si::seconds * pi<real_t>() * R_r * R_r * ria / m_a;
         //nucleation rate:
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> het2 =
-          N_ra * m_a;
-        return het2;
+        return N_ra * m_a;
       }
 
       //melting of ice A (ria -> rr)
@@ -403,15 +408,13 @@ namespace libcloudphxx
         //diameter of average ice A particle:
         quantity<si::length, real_t> D_a = std::pow(m_a / real_t(0.025) / si::kilograms, real_t(0.5)) * si::meters;
         //fall velocity of avg. ice A particle:
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_a = real_t(4) * std::pow(
-          D_a / si::meters, real_t(0.25)) * si::meters / si::seconds;
+        quantity<si::velocity, real_t> v_a = velocity_iceA(ria, rhod_0);
         //Reynolds number:
         real_t Re = D_a * v_a * rhod_0 / vterm::visc(T);
         //ventilation factor:
         real_t F_a = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> mela = real_t(4.5e-7) * ria /
+        return real_t(4.5e-7) * ria /
           m_a * D_a * (273.16 - T / si::kelvins) * F_a * si::kilograms / si::meters / si::seconds;
-        return mela;
       }
 
       //melting of ice B (rib -> rr)
@@ -434,17 +437,13 @@ namespace libcloudphxx
         //diameter of average ice B particle:
         quantity<si::length, real_t> D_b = real_t(1) / lambda_b;
         //fall velocity of avg. ice B particle:
-        quantity<divide_typeof_helper<si::length, si::time>::type, real_t> v_b = real_t(31.2) *
-          std::pow(lambda_b * si::meters, real_t(-0.37)) * std::pow(rhod_0 / si::kilograms * si::cubic_meters,
-                                                                    real_t(-0.5)) *
-          si::meters / si::seconds;
+        quantity<si::velocity, real_t> v_b = velocity_iceB(rib, rhod_0);
         //Reynolds number:
         real_t Re = D_b * v_b * rhod_0 / vterm::visc(T);
         //ventilation factor:
         real_t F_b = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> melb = real_t(4.5e-7) * rib /
+        return real_t(4.5e-7) * rib /
           m_b * D_b * (273.16 - T / si::kelvins) * F_b * si::kilograms / si::meters / si::seconds;
-        return melb;
       }
 
 
@@ -470,8 +469,7 @@ namespace libcloudphxx
         // growth rate for a single particle:
         quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
           std::pow(m_a / si::kilograms, beta) * si::kilograms / si::seconds;
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> depa = ria / m_a * dm_dt_AE;
-        return depa;
+        return ria / m_a * dm_dt_AE;
       }
 
 
@@ -545,8 +543,7 @@ namespace libcloudphxx
         // growth rate for a single particle:
         quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
           std::pow(m_b / si::kilograms, beta) * si::kilograms / si::seconds;
-        quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> depb = rib / m_b * dm_dt_AE;
-        return depb;
+        return rib / m_b * dm_dt_AE;
       }
 
       //growth of ice B by riming  (rc, rr ->rib)

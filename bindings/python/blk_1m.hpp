@@ -201,19 +201,21 @@ namespace libcloudphxx {
       template<class arr_t>
       typename arr_t::T_numtype rhs_columnwise(
         const b1m::opts_t<typename arr_t::T_numtype> &opts,
-        bp_array &dot_rr,
+        bp_array &dot_r,
         const bp_array &rhod,
-        const bp_array &rr,
-        const typename arr_t::T_numtype &dz
+        const bp_array &r,
+        const typename arr_t::T_numtype &dz,
+        const std::string& precip_type = "rain"
       ) {
         arr_t
-        np2bz_dot_rr(np2bz<arr_t>(dot_rr));
+        np2bz_dot_r(np2bz<arr_t>(dot_r));
         return b1m::rhs_columnwise(
           opts,
-          np2bz_dot_rr,
+          np2bz_dot_r,
           np2bz<arr_t>(rhod),
-          np2bz<arr_t>(rr),
-          dz
+          np2bz<arr_t>(r),
+          dz,
+          precip_type
         );
       }
     };
