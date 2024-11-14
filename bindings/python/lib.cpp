@@ -176,6 +176,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>);
     bp::def("rhs_cellwise_nwtrph_ice", blk_1m::rhs_cellwise_nwtrph_ice<arr_t>);
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
+    bp::def("rhs_columnwise_ice", blk_1m::rhs_columnwise_ice<arr_t>);
   }
 
   // blk_2m stuff

@@ -87,7 +87,7 @@ assert dot_rv != 0
 
 rr   = arr_t([0.])
 dot_rr_old = dot_rr.copy()
-flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz, "rain")
+flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
 assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip
 
@@ -104,7 +104,7 @@ assert dot_ria != 0
 assert dot_rib != 0
 
 #testing sedimentation of ice
-flux_iceA = blk_1m.rhs_columnwise(opts, dot_ria, rhod, ria, dz, "iceA")
-flux_iceB = blk_1m.rhs_columnwise(opts, dot_rib, rhod, rib, dz, "iceB")
+flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, "iceA")
+flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, "iceB")
 assert flux_iceA != 0
 assert flux_iceB != 0

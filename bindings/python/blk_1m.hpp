@@ -201,21 +201,40 @@ namespace libcloudphxx {
       template<class arr_t>
       typename arr_t::T_numtype rhs_columnwise(
         const b1m::opts_t<typename arr_t::T_numtype> &opts,
-        bp_array &dot_r,
+        bp_array &dot_rr,
         const bp_array &rhod,
-        const bp_array &r,
-        const typename arr_t::T_numtype &dz,
-        const std::string& precip_type = "rain"
+        const bp_array &rr,
+        const typename arr_t::T_numtype &dz
       ) {
         arr_t
-        np2bz_dot_r(np2bz<arr_t>(dot_r));
+        np2bz_dot_rr(np2bz<arr_t>(dot_rr));
         return b1m::rhs_columnwise(
           opts,
-          np2bz_dot_r,
+          np2bz_dot_rr,
           np2bz<arr_t>(rhod),
-          np2bz<arr_t>(r),
+          np2bz<arr_t>(rr),
+          dz
+        );
+      }
+
+      template <class arr_t>
+      typename arr_t::T_numtype rhs_columnwise_ice(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_ri,
+        const bp_array &rhod,
+        const bp_array &ri,
+        const typename arr_t::T_numtype &dz,
+        const std::string ice_type
+      ) {
+        arr_t
+        np2bz_dot_ri(np2bz<arr_t>(dot_ri));
+        return b1m::rhs_columnwise_ice(
+          opts,
+          np2bz_dot_ri,
+          np2bz<arr_t>(rhod),
+          np2bz<arr_t>(ri),
           dz,
-          precip_type
+          ice_type
         );
       }
     };

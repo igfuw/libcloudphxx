@@ -106,7 +106,7 @@ namespace libcloudphxx
       }
 
       // mean mass of ice A particle
-      // eq. A.15a in Grabowski 1999
+      // eq. A.7 - A.15a in Grabowski 1999
       template <typename real_t>
       quantity<si::mass, real_t> mass_a(
         const quantity<si::dimensionless, real_t> &ria,
@@ -257,7 +257,7 @@ namespace libcloudphxx
         //temperature in Celsius:
         real_t Tc = T / si::kelvins - real_t(273.16);
         //limiting the temerature to (-31, 0):
-        real_t ttcoe = std::min(real_t(-0.), std::max(real_t(-31), Tc));
+        real_t ttcoe = std::min(real_t(0.), std::max(real_t(-31), Tc));
         int index1 = static_cast<int>(std::trunc(-ttcoe)); //index between 0 and 31
         int index2 = index1 + 1; // index between 1 and 32
         real_t del = -ttcoe - real_t(index1);
@@ -335,25 +335,26 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == 0) // ice B is formed only if ice A is present
+        if (ria == 0 || rr == 0) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lambda_r = lambda_rain(rr, rhod_0);
-        //mean raindrop mass
+        //mean raindrop mass (eq. A2 in Grabowski 1999)
         quantity<si::mass, real_t> m_r = pi<real_t>() * moist_air::rho_w<real_t>() / (real_t(6) * std::pow(
           lambda_r * si::meters, 3)) * si::cubic_meters;
-        //mean raindrop velocity
+        //mean raindrop velocity (eq. A3 in Grabowski 1999)
         real_t v_r = real_t(251) * std::pow(lambda_r * si::meters * rhod_0 / si::kilograms * si::cubic_meters,
                                             real_t(-0.5));
-        //mean raindrop radius
+        //mean raindrop radius (eq. A2 in Grabowski 1999)
         quantity<si::length, real_t> R_r = real_t(0.5) / lambda_r;
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
         //mean ice A velocity
         real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
-        quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = real_t(1e7) / si::cubic_meters /
+        real_t N_0r = real_t(1e7);
+        quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = N_0r / si::cubic_meters /
           si::meters / lambda_r * std::abs(v_r - v_a) * si::meters / si::seconds * pi<real_t>() * R_r * R_r * ria / m_a;
         //nucleation rate:
         return N_ra * m_r;
@@ -369,22 +370,23 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == 0) // ice B is formed only if ice A is present
+        if (ria == 0 || rr == 0) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lambda_r = lambda_rain(rr, rhod_0);
-        //mean raindrop velocity
+        //mean raindrop velocity (eq. A3 in Grabowski 1999)
         real_t v_r = real_t(251) * std::pow(lambda_r * si::meters * rhod_0 / si::kilograms * si::cubic_meters,
                                             real_t(-0.5));
-        //mean raindrop radius
+        //mean raindrop radius (eq. A2 in Grabowski 1999)
         quantity<si::length, real_t> R_r = real_t(0.5) / lambda_r;
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
         //mean ice A velocity
         real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
-        quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = real_t(1e7) / si::cubic_meters /
+        real_t N_0r = real_t(1e7);
+        quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> N_ra = N_0r / si::cubic_meters /
           si::meters / lambda_r * abs(v_r - v_a) * si::meters / si::seconds * pi<real_t>() * R_r * R_r * ria / m_a;
         //nucleation rate:
         return N_ra * m_a;
@@ -399,7 +401,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == 0) // calculating melting rate only if ice A is present
+        if (ria == 0 || T < 273.16 * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -426,7 +428,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (rib == 0) // calculating melting rate only if ice B is present
+        if (rib == 0 || T < 273.16 * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -434,7 +436,7 @@ namespace libcloudphxx
           lambda_ice_b(rib, rhod_0);
         //mass of average ice B particle:
         quantity<si::mass, real_t> m_b = mass_b(rib, rhod_0);
-        //diameter of average ice B particle:
+        //diameter of average ice B particle (eq. A5 in Grabowski 1999):
         quantity<si::length, real_t> D_b = real_t(1) / lambda_b;
         //fall velocity of avg. ice B particle:
         quantity<si::velocity, real_t> v_b = velocity_iceB(rib, rhod_0);
@@ -467,8 +469,8 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
-          std::pow(m_a / si::kilograms, beta) * si::kilograms / si::seconds;
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+          std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return ria / m_a * dm_dt_AE;
       }
 
@@ -494,27 +496,27 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
-          std::pow(m_a / si::kilograms, beta) * si::kilograms / si::seconds;
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+          std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
           rhod_0 * rc * real_t(1e3) / si::kilograms * si::cubic_meters);
         real_t gamma = alpha * std::pow(real_t(5e-8), beta);
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_BC = gamma * std::pow(
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_BC = real_t(1e-3) * gamma * std::pow(
           m_a / real_t(5e-11) / si::kilograms, tan_theta) * si::kilograms / si::seconds;
         //regime CD
         real_t dzeta = gamma * std::pow(real_t(2e3), tan_theta);
         real_t xi = std::log(rc * rhod_0 / si::kilograms * si::cubic_meters * real_t(1e9) / dzeta) / std::log(
           real_t(1e4));
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_CD = dzeta * std::pow(
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_CD = real_t(1e-3) * dzeta * std::pow(
           m_a * real_t(1e7) / si::kilograms, xi) * si::kilograms / si::seconds;
         //total growth
         quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> rima = real_t(0) / si::seconds;
-        if (m_a > real_t(5e-11) * si::kilograms && m_a < real_t(1e-7) * si::kilograms)
+        if (m_a > real_t(5e-11) * si::kilograms && m_a <= real_t(1e-7) * si::kilograms)
         {
           rima += std::max(real_t(0) * si::kilograms / si::seconds, dm_dt_BC - dm_dt_AE) * ria / m_a;
         }
-        if (m_a >= real_t(1e-7) * si::kilograms)
+        if (m_a > real_t(1e-7) * si::kilograms)
         {
           rima += std::max(real_t(0) * si::kilograms / si::seconds, dm_dt_CD - dm_dt_AE) * ria / m_a;
         }
@@ -541,8 +543,8 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
-          std::pow(m_b / si::kilograms, beta) * si::kilograms / si::seconds;
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+          std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return rib / m_b * dm_dt_AE;
       }
 
@@ -567,27 +569,27 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = (rv - rvsi) / (rvs - rvsi) * alpha *
-          std::pow(m_b / si::kilograms, beta) * si::kilograms / si::seconds;
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+          std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
           rhod_0 * rc * real_t(1e3) / si::kilograms * si::cubic_meters);
         real_t gamma = alpha * std::pow(real_t(5e-8), beta);
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_BC = gamma * std::pow(
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_BC = real_t(1e-3) * gamma * std::pow(
           m_b / real_t(5e-11) / si::kilograms, tan_theta) * si::kilograms / si::seconds;
         //regime CD
         real_t dzeta = gamma * std::pow(real_t(2e3), tan_theta);
         real_t xi = std::log(rc * rhod_0 / si::kilograms * si::cubic_meters * real_t(1e9) / dzeta) / std::log(
           real_t(1e4));
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_CD = dzeta * std::pow(
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_CD = real_t(1e-3) * dzeta * std::pow(
           m_b * real_t(1e7) / si::kilograms, xi) * si::kilograms / si::seconds;
         //total growth
         quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> rimb = real_t(0) / si::seconds;
-        if (m_b > real_t(5e-11) * si::kilograms && m_b < real_t(1e-7) * si::kilograms)
+        if (m_b > real_t(5e-11) * si::kilograms && m_b <= real_t(1e-7) * si::kilograms)
         {
           rimb += std::max(real_t(0) * si::kilograms / si::seconds, dm_dt_BC - dm_dt_AE) * rib / m_b;
         }
-        if (m_b >= real_t(1e-7) * si::kilograms)
+        if (m_b > real_t(1e-7) * si::kilograms)
         {
           rimb += std::max(real_t(0) * si::kilograms / si::seconds, dm_dt_CD - dm_dt_AE) * rib / m_b;
         }
