@@ -119,7 +119,7 @@ namespace libcloudphxx
         );
 
         // limiting
-        rr_to_rv = std::min(rr, rr_to_rv) / dt;
+        rr_to_rv = std::min(rr/dt, rr_to_rv);
 
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;
@@ -350,13 +350,13 @@ namespace libcloudphxx
         }
 
         //limiting
-        rv_to_ria = std::min(rv, rv_to_ria) / dt;
-        rv_to_rib = std::min(rv, rv_to_rib) / dt;
-        rc_to_ria = std::min(rc, rc_to_ria) / dt;
-        rc_to_rib = std::min(rc, rc_to_rib) / dt;
-        rr_to_rib = std::min(rr, rr_to_rib) / dt;
-        ria_to_rib = std::min(ria, ria_to_rib) / dt;
-        ria_to_rr = std::min(ria, ria_to_rr) / dt;
+        rv_to_ria = std::min(rv / dt, rv_to_ria);
+        rv_to_rib = std::min(rv / dt, rv_to_rib);
+        rc_to_ria = std::min(rc / dt, rc_to_ria);
+        rc_to_rib = std::min(rc  / dt, rc_to_rib);
+        rr_to_rib = std::min(rr / dt, rr_to_rib);
+        ria_to_rib = std::min(ria / dt, ria_to_rib);
+        ria_to_rr = std::min(ria / dt, ria_to_rr);
 
         dot_rc += - rc_to_ria - rc_to_rib;
         dot_rv += - rv_to_ria - rv_to_rib;
