@@ -14,6 +14,8 @@ namespace libcloudphxx
 {
   namespace blk_1m
   {
+    enum class ice_t {iceA, iceB};
+
     // expects the arguments to be columns with begin() pointing to the lowest level
     // returns rain flux out of the domain
 //<listing>
@@ -96,7 +98,7 @@ namespace libcloudphxx
       const cont_t &rhod_cont,
       const cont_t &ri_cont,
       const real_t &dz,
-      const std::string& ice_type
+      const ice_t& ice_type
     )
 //</listing>
     {
@@ -126,7 +128,7 @@ namespace libcloudphxx
         if (dot_ri != NULL) // i.e. all but first (top) grid cell
         {
           flux_t flux_out = real_t(0) * si::kilograms / si::cubic_metres / si::seconds;
-          if (ice_type == "iceA")
+          if (ice_type == ice_t::iceA)
           {
             // terminal momenta at grid-cell edge (to assure precip mass conservation)
             flux_out += -real_t(.5) * ( // averaging + axis orientation
@@ -140,7 +142,7 @@ namespace libcloudphxx
               )
             ) * (*ri * si::kilograms / si::kilograms) / (dz * si::metres);
           }
-          else if (ice_type == "iceB")
+          else if (ice_type == ice_t::iceB)
           {
             // terminal momenta at grid-cell edge (to assure precip mass conservation)
             flux_out += -real_t(.5) * ( // averaging + axis orientation
@@ -166,14 +168,14 @@ namespace libcloudphxx
 
       // the bottom grid cell (with mid-cell vterm approximation)
       flux_t flux_out = real_t(0) * si::kilograms / si::cubic_metres / si::seconds;
-      if (ice_type == "iceA")
+      if (ice_type == ice_t::iceA)
       {
         flux_out += - (*rhod * si::kilograms / si::cubic_metres) * formulae::velocity_iceA(
           *ri                * si::kilograms / si::kilograms,
           *rhod              * si::kilograms / si::cubic_metres
         ) * (*ri * si::kilograms / si::kilograms) / (dz * si::metres);
       }
-      else if (ice_type == "iceB")
+      else if (ice_type == ice_t::iceB)
       {
         flux_out += - (*rhod * si::kilograms / si::cubic_metres) * formulae::velocity_iceB(
           *ri                * si::kilograms / si::kilograms,
