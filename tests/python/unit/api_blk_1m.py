@@ -6,6 +6,7 @@ from numpy import array as arr_t # ndarray dtype default to float64, while array
 from libcloudphxx import blk_1m
 
 opts = blk_1m.opts_t()
+ice_t = blk_1m.ice_t()
 print("cond =", opts.cond)
 print("cevp =", opts.cevp)
 print("revp =", opts.revp) 
@@ -104,7 +105,7 @@ assert dot_ria != 0
 assert dot_rib != 0
 
 #testing sedimentation of ice
-flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, "iceA")
-flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, "iceB")
+flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, ice_t.iceA)
+flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, ice_t.iceB)
 assert flux_iceA != 0
 assert flux_iceB != 0

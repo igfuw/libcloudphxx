@@ -224,7 +224,7 @@ namespace libcloudphxx {
         const bp_array &rhod,
         const bp_array &ri,
         const typename arr_t::T_numtype &dz,
-        const std::string ice_type
+        const b1m::ice_t ice_type
       ) {
         arr_t
         np2bz_dot_ri(np2bz<arr_t>(dot_ri));
