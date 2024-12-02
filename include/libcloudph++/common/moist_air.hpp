@@ -26,6 +26,7 @@ namespace libcloudphxx
       libcloudphxx_const(energy_over_temperature_mass, c_pd, 1005, si::joules / si::kilograms / si::kelvins) // dry air
       libcloudphxx_const(energy_over_temperature_mass, c_pv, 1850, si::joules / si::kilograms / si::kelvins) // water vapour
       libcloudphxx_const(energy_over_temperature_mass, c_pw, 4218, si::joules / si::kilograms / si::kelvins) // liquid water
+      libcloudphxx_const(energy_over_temperature_mass, c_pi, 2114, si::joules / si::kilograms / si::kelvins) // ice // ice
 
       // molar masses
       libcloudphxx_const(mass_over_amount, M_d, 0.02897, si::kilograms / si::moles) // dry air (Curry & Webster / Seinfeld & Pandis)
@@ -47,6 +48,8 @@ namespace libcloudphxx
 
       // water density
       libcloudphxx_const(si::mass_density, rho_w, 1e3, si::kilograms / si::cubic_metres)
+      // ice density
+      libcloudphxx_const(si::mass_density, rho_i, 910, si::kilograms / si::cubic_metres)
 
       // mixing rule for extensive quantitites (i.e. using mass mixing ratio)
       template <typename real_t, typename quant>
