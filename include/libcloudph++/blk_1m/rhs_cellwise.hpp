@@ -123,7 +123,7 @@ namespace libcloudphxx
 
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;
-        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * dot_rv / si::kelvins;
+        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rr_to_rv / si::kelvins;
       }
     }
 
