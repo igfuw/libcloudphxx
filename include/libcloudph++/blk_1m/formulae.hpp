@@ -26,6 +26,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> rc_thresh,
         const quantity<si::frequency, real_t> k_autoconv
       ) {
+        // if (rc <= real_t(0))
+        // {
+        //   return real_t(0) / si::seconds;
+        // }
         return k_autoconv * std::max(real_t(0) * si::dimensionless(), rc - rc_thresh);
       }
 
@@ -38,6 +42,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rc,
         const quantity<si::dimensionless, real_t> &rr
       ) {
+        // if (rr <= real_t(0) || rc <= real_t(0))
+        // {
+        //   return real_t(0) / si::seconds;
+        // }
         return k_2<real_t>() * rc * std::pow(rr, real_t(.875));
       }
 
@@ -51,6 +59,10 @@ namespace libcloudphxx
         quantity<si::mass_density, real_t> rhod,
         quantity<si::pressure, real_t> p
       ) {
+        // if (rr <= real_t(0))
+        // {
+        //   return real_t(0) / si::seconds;
+        // }
         return
           (1 - rv / rvs) / rhod
           * (
@@ -83,6 +95,10 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (rr <= real_t(0))
+        {
+          return real_t(0) * si::meters/ si::seconds;
+        }
         return
           vterm_A<real_t>()
           * real_t(std::pow(
@@ -113,6 +129,10 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (ria <= real_t(0))
+        {
+          return real_t(0) * si::kilograms;
+        }
         using namespace common;
         //calculating the mass of small ice A particle:
         quantity<si::mass_density, real_t> IWCS = std::min(
@@ -149,6 +169,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &ria,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (ria <= real_t(0))
+        {
+          return real_t(0) * si::meters/ si::seconds;
+        }
         using namespace common;
         //velocity of small ice A particle:
         quantity<si::velocity, real_t> v_as =
@@ -161,7 +185,7 @@ namespace libcloudphxx
               real_t(1e3) * rhod_0 * ria / (si::kilogram / si::cubic_metres),
               real_t(0.837)) * si::dimensionless()) * si::kilograms /
           si::cubic_meters;
-        quantity<si::mass_density, real_t> IWCL = rhod_0 * ria - IWCS;
+        quantity<si::mass_density, real_t> IWCL = std::max(real_t(1e-10)*si::kilograms/si::cubic_meters, rhod_0 * ria - IWCS);
         quantity<si::velocity, real_t> v_al =
           (real_t(0.9) + real_t(0.1) * std::log10(real_t(1e3) * IWCL / si::kilograms * si::cubic_meters)) * si::meters
           / si::seconds;
@@ -195,6 +219,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rib,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (rib <= real_t(0))
+        {
+          return real_t(0) * si::kilograms;
+        }
         using namespace common;
         return pi<real_t>() * rho_ib<real_t>() / (real_t(6) * std::pow(lambda_ice_b(rib, rhod_0) * si::meters,
                                                                        real_t(3))) * si::cubic_meters;
@@ -207,6 +235,10 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rib,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (rib <= real_t(0))
+        {
+          return real_t(0) * si::meters/ si::seconds;
+        }
         return real_t(31.2) *
           std::pow(lambda_ice_b(rib, rhod_0) * si::meters, real_t(-0.37)) * std::pow(
             rhod_0 / si::kilograms * si::cubic_meters,
@@ -274,6 +306,10 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::time, real_t> &dt
       ) {
+        if (rv <= real_t(0))
+        {
+          return real_t(0) / si::seconds;
+        }
         const quantity<si::time, real_t> taunuc = dt; // timescale for nucleation
         real_t beta = (T > real_t(213.16) * si::kelvins)
                         ? real_t(0.1) + real_t(0.9) * (T - real_t(213.16) * si::kelvins) / (real_t(20) * si::kelvins)
@@ -281,7 +317,7 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> rv_adj = beta * rvs + (real_t(1) - beta) * rvsi;
         //homogeneous nucleation rate (only if T < -40 C)
         return (T < real_t(233.16) * si::kelvins)
-                 ? (real_t(1) - std::exp(-dt / taunuc)) * std::max(real_t(0) * si::dimensionless(), rv - rv_adj) / dt
+                 ? (real_t(1) - std::exp(-dt / taunuc)) * std::max(real_t(0) * si::dimensionless(), rv - rv_adj) / si::seconds
                  : real_t(0) / si::seconds;
       }
 
@@ -293,10 +329,14 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::time, real_t> &dt
       ) {
+        if (rc <= real_t(0))
+        {
+          return real_t(0) / si::seconds;
+        }
         const quantity<si::time, real_t> taunuc = dt; // time scale for nucleation
         //homogeneous nucleation rate (only if T < -40 C)
         return (T < real_t(233.16) * si::kelvins)
-                 ? (real_t(1) - std::exp(-dt / taunuc)) * rc / dt
+                 ? (real_t(1) - std::exp(-dt / taunuc)) * rc / si::seconds
                  : real_t(0) / si::seconds;
       }
 
@@ -310,19 +350,21 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0,
         const quantity<si::time, real_t> &dt
       ) {
+        if (rc <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        {
+          return real_t(0) / si::seconds;
+        }
         using namespace common;
         const quantity<si::time, real_t> taunuc = dt; // timescale for nucleation
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a_prim = std::max(real_t(1e-12)*si::kilograms, m_a);
         //concentration of ice nuclei:
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_in = std::min(real_t(1e5),
           real_t(1e-2) * std::exp(real_t(0.6) * (real_t(273.16) - T / si::kelvins))) / si::cubic_meters;
         //nucleation rate:
-        return (real_t(1) - std::exp(-dt / taunuc)) * std::min(rc, std::max(real_t(0) * si::dimensionless(),
-                                                                            N_in * std::max(
-                                                                              real_t(1e-12) * si::kilograms,
-                                                                              m_a) / rhod_0
-                                                                            - ria)) / dt;
+        real_t t_term = real_t(1) - std::exp(-dt / taunuc);
+        return t_term * std::min(rc, std::max(real_t(0) * si::dimensionless(), (N_in * m_a_prim / rhod_0) - ria)) / si::seconds;
       }
 
       // ice B heterogeneous nucleation 1 (rr -> rib)
@@ -335,7 +377,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == real_t(0) || rr == real_t(0)) // ice B is formed only if ice A and rain are present
+        if (ria <= real_t(1e-10) || rr <= real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
@@ -370,7 +412,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == real_t(0) || rr == real_t(0)) // ice B is formed only if ice A and rain are present
+        if (ria <= real_t(1e-10) || rr <= real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
@@ -401,7 +443,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria == real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
+        if (ria <= real_t(1e-10) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -414,7 +456,7 @@ namespace libcloudphxx
         //Reynolds number:
         real_t Re = D_a * v_a * rhod_0 / vterm::visc(T);
         //ventilation factor:
-        real_t F_a = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
+        real_t F_a = real_t(0.78) + real_t(0.27) * std::pow(std::max(Re,real_t(0)), real_t(0.5));
         return real_t(4.5e-7) * ria /
           m_a * D_a * (real_t(273.16) - T / si::kelvins) * F_a * si::kilograms / si::meters / si::seconds;
       }
@@ -428,7 +470,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (rib == real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
+        if (rib <= real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -460,7 +502,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria == real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (ria <= real_t(1e-10) || rv <= real_t(0) || T > real_t(273.16) * si::kelvins)
         {
           return real_t(0) / si::seconds;
         }
@@ -487,7 +529,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria == real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (ria <= real_t(1e-10) || rc <= real_t(0) || T > real_t(273.16) * si::kelvins)
         {
           return real_t(0) / si::seconds;
         }
@@ -534,7 +576,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib == real_t(0) || T > real_t(273.16) * si::kelvins) // calculating growth rate only if ice A is present
+        if (rib <= real_t(0) || rv<=real_t(0) || T > real_t(273.16) * si::kelvins) // calculating growth rate only if ice A is present
         {
           return real_t(0) / si::seconds;
         }
@@ -560,7 +602,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib == real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (rib <= real_t(0) || T > real_t(273.16) * si::kelvins)
         {
           return real_t(0) / si::seconds;
         }
@@ -609,6 +651,10 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (rc <= real_t(0))
+        {
+          return real_t(0) / si::seconds;
+        }
         real_t coeff_rc = rc / (rc + rr + real_t(1e-10));
         return coeff_rc * riming_B(rib, rc, rv, rvs, rvsi, T, rhod_0);
       }
@@ -626,6 +672,10 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
+        if (rr <= real_t(0))
+        {
+          return real_t(0) / si::seconds;
+        }
         real_t coeff_rc = rc / (rc + rr + real_t(1e-10));
         return (real_t(1) - coeff_rc) * riming_B(rib, rc, rv, rvs, rvsi, T, rhod_0);
       }

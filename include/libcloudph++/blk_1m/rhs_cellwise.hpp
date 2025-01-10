@@ -21,7 +21,8 @@ namespace libcloudphxx
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
       const cont_t &rc_cont,
-      const cont_t &rr_cont
+      const cont_t &rr_cont,
+      const real_t &dt
     )
 //</listing>
     {
@@ -58,6 +59,9 @@ namespace libcloudphxx
           );
         }
 
+        // limiting
+        rc_to_rr = std::min(std::max(real_t(0),rc) / dt, rc_to_rr);
+
         dot_rr += rc_to_rr;
         dot_rc -= rc_to_rr;
       }
@@ -79,7 +83,7 @@ namespace libcloudphxx
       const real_t &dt
     )
     {
-      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
+      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont, dt);
 
       // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
       for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rr_cont))
@@ -119,7 +123,7 @@ namespace libcloudphxx
         );
 
         // limiting
-        rr_to_rv = std::min(rr/dt, rr_to_rv);
+        rr_to_rv = std::min(std::max(real_t(0),rr) / dt, rr_to_rv);
 
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;
@@ -162,6 +166,7 @@ namespace libcloudphxx
           rr_to_rib = 0,
           ria_to_rib = 0,
           ria_to_rr = 0,
+          rib_to_rr = 0,
         &dot_th = std::get<0>(tup),
         &dot_rv = std::get<1>(tup),
         &dot_rc = std::get<2>(tup),
@@ -265,7 +270,7 @@ namespace libcloudphxx
         // melting of ice B
         if (opts.melB)
         {
-          rr_to_rib -= (
+          rib_to_rr += (
             formulae::melting_B(
                     rib * si::dimensionless(),
                     T,
@@ -350,21 +355,47 @@ namespace libcloudphxx
         }
 
         //limiting
-        rv_to_ria = std::min(rv / dt, rv_to_ria);
-        rv_to_rib = std::min(rv / dt, rv_to_rib);
-        rc_to_ria = std::min(rc / dt, rc_to_ria);
-        rc_to_rib = std::min(rc  / dt, rc_to_rib);
-        rr_to_rib = std::min(rr / dt, rr_to_rib);
-        ria_to_rib = std::min(ria / dt, ria_to_rib);
-        ria_to_rr = std::min(ria / dt, ria_to_rr);
+        // rv_to_ria = std::min(std::max(real_t(0),rv) / dt, rv_to_ria);
+        // rv_to_rib = std::min(std::max(real_t(0),rv) / dt, rv_to_rib);
+        // rc_to_ria = std::min(std::max(real_t(0),rc) / dt, rc_to_ria);
+        // rc_to_rib = std::min(std::max(real_t(0),rc)  / dt, rc_to_rib);
+        // rr_to_rib = std::min(std::max(real_t(0),rr) / dt, rr_to_rib);
+        // ria_to_rib = std::min(std::max(real_t(0),ria) / dt, ria_to_rib);
+        // ria_to_rr = std::min(std::max(real_t(0),ria) / dt, ria_to_rr);
+
+
+        rv_to_ria = std::min(rv_to_ria, rv/dt + dot_rv);
+        rv_to_rib = std::min(rv_to_rib, rv/dt + dot_rv - rv_to_ria);
+        rc_to_ria = std::min(rc_to_ria, rc/dt + dot_rc);
+        rc_to_rib = std::min(rc_to_rib, rc/dt + dot_rc - rc_to_ria);
+        rr_to_rib = std::min(rr_to_rib, rr/dt + dot_rr);
+        ria_to_rib = std::min(ria_to_rib, ria/dt + dot_ria);
+        ria_to_rr = std::min(ria_to_rr, ria/dt + dot_ria - ria_to_rib);
+        rib_to_rr = std::min(rib_to_rr, rib/dt + dot_rib);
 
         dot_rc += - rc_to_ria - rc_to_rib;
         dot_rv += - rv_to_ria - rv_to_rib;
-        dot_rr += ria_to_rr - rr_to_rib;
+        dot_rr += ria_to_rr - rr_to_rib + rib_to_rr;
         dot_ria += rc_to_ria + rv_to_ria - ria_to_rib - ria_to_rr;
-        dot_rib += rr_to_rib + ria_to_rib + rv_to_rib + rc_to_rib;
+        dot_rib += rr_to_rib + ria_to_rib + rv_to_rib + rc_to_rib - rib_to_rr;
         dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rv_to_ria + rv_to_rib) / si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria + rc_to_rib + rr_to_rib - ria_to_rr) / si::kelvins; //heat of freezing
+        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria + rc_to_rib + rr_to_rib - rib_to_rr - ria_to_rr) / si::kelvins; //heat of freezing
+
+
+        //limiting as in eq. 2a in Grabowski 1999
+        // real_t delta_dot_rv = std::max(dot_rv, -rv/dt) - dot_rv;
+        // real_t delta_dot_rc = std::max(dot_rc, -rc/dt) - dot_rc;
+        // real_t delta_dot_rr = std::max(dot_rr, -rr/dt) - dot_rr;
+        // real_t delta_dot_ria = std::max(dot_ria, -ria/dt) - dot_ria;
+        // real_t delta_dot_rib = std::max(dot_rib, -rib/dt) - dot_rib;
+        // dot_rv += delta_dot_rv;
+        // dot_rc += delta_dot_rc;
+        // dot_rr += delta_dot_rr;
+        // dot_ria += delta_dot_ria;
+        // dot_rib += delta_dot_rib;
+        //dot_rv += - delta_dot_rc - delta_dot_rr - delta_dot_ria - delta_dot_rib;
+        //dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (delta_dot_ria + delta_dot_rib) / si::kelvins + const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (delta_dot_rc + delta_dot_rr) / si::kelvins;
+
       }
     }
 
