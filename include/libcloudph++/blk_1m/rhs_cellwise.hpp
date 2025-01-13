@@ -119,7 +119,7 @@ namespace libcloudphxx
         );
 
         // limiting
-        rr_to_rv = std::min(std::max(real_t(0),rr) / dt, rr_to_rv);
+        rr_to_rv = std::min(rr / dt, rr_to_rv);
 
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;

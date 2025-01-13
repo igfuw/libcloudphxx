@@ -37,12 +37,6 @@ for _ in range(100):
     ria += dt * dot_ria
     rib += dt * dot_rib
 
-assert rv >= 0
-assert rc >= 0
-assert rr >= 0
-assert ria >= 0
-assert rib >= 0
-
 print('dot_rv='+str(dot_rv))
 print('dot_rc='+str(dot_rc))
 print('dot_rr='+str(dot_rr))
@@ -57,3 +51,9 @@ print('rib='+str(rib))
 print('rain_flux='+str(flux_rain))
 print('iceA_flux='+str(flux_iceA))
 print('iceB_flux='+str(flux_iceB))
+
+assert rv >= 0
+assert rc >= 0
+assert rr >= 0
+assert ria >= 0
+assert rib >= 0
