@@ -101,8 +101,7 @@ namespace libcloudphxx {
         bp_array &dot_rc,
         bp_array &dot_rr,
         const bp_array &rc,
-        const bp_array &rr,
-        const typename arr_t::T_numtype &dt
+        const bp_array &rr
       ) {
         arr_t
         np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
@@ -112,8 +111,7 @@ namespace libcloudphxx {
           np2bz_dot_rc,
           np2bz_dot_rr,
           np2bz<arr_t>(rc),
-          np2bz<arr_t>(rr),
-          dt
+          np2bz<arr_t>(rr)
         );
       }
 
