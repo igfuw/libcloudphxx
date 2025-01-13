@@ -262,7 +262,8 @@ namespace libcloudphxx
             formulae::melting_A(
                     ria * si::dimensionless(),
                     T,
-                    rhod
+                    rhod,
+                    dt * si::seconds
                   ) * si::seconds // to make it dimensionless
           );
         }
@@ -274,7 +275,8 @@ namespace libcloudphxx
             formulae::melting_B(
                     rib * si::dimensionless(),
                     T,
-                    rhod
+                    rhod,
+                    dt * si::seconds
                   ) * si::seconds // to make it dimensionless
           );
         }
@@ -355,23 +357,23 @@ namespace libcloudphxx
         }
 
         //limiting
-        // rv_to_ria = std::min(std::max(real_t(0),rv) / dt, rv_to_ria);
-        // rv_to_rib = std::min(std::max(real_t(0),rv) / dt, rv_to_rib);
-        // rc_to_ria = std::min(std::max(real_t(0),rc) / dt, rc_to_ria);
-        // rc_to_rib = std::min(std::max(real_t(0),rc)  / dt, rc_to_rib);
-        // rr_to_rib = std::min(std::max(real_t(0),rr) / dt, rr_to_rib);
-        // ria_to_rib = std::min(std::max(real_t(0),ria) / dt, ria_to_rib);
-        // ria_to_rr = std::min(std::max(real_t(0),ria) / dt, ria_to_rr);
+        rv_to_ria = std::min(rv / dt, rv_to_ria);
+        rv_to_rib = std::min(rv / dt, rv_to_rib);
+        rc_to_ria = std::min(rc / dt, rc_to_ria);
+        rc_to_rib = std::min(rc / dt, rc_to_rib);
+        rr_to_rib = std::min(rr / dt, rr_to_rib);
+        ria_to_rib = std::min(ria / dt, ria_to_rib);
+        ria_to_rr = std::min(ria / dt, ria_to_rr);
 
 
-        rv_to_ria = std::min(rv_to_ria, rv/dt + dot_rv);
-        rv_to_rib = std::min(rv_to_rib, rv/dt + dot_rv - rv_to_ria);
-        rc_to_ria = std::min(rc_to_ria, rc/dt + dot_rc);
-        rc_to_rib = std::min(rc_to_rib, rc/dt + dot_rc - rc_to_ria);
-        rr_to_rib = std::min(rr_to_rib, rr/dt + dot_rr);
-        ria_to_rib = std::min(ria_to_rib, ria/dt + dot_ria);
-        ria_to_rr = std::min(ria_to_rr, ria/dt + dot_ria - ria_to_rib);
-        rib_to_rr = std::min(rib_to_rr, rib/dt + dot_rib);
+        // rv_to_ria = std::min(rv_to_ria, rv/dt + dot_rv);
+        // rv_to_rib = std::min(rv_to_rib, rv/dt + dot_rv - rv_to_ria);
+        // rc_to_ria = std::min(rc_to_ria, rc/dt + dot_rc);
+        // rc_to_rib = std::min(rc_to_rib, rc/dt + dot_rc - rc_to_ria);
+        // rr_to_rib = std::min(rr_to_rib, rr/dt + dot_rr + ria_to_rr + rib_to_rr);
+        // ria_to_rib = std::min(ria_to_rib, ria/dt + dot_ria + rc_to_ria + rv_to_ria);
+        // ria_to_rr = std::min(ria_to_rr, ria/dt + dot_ria + rc_to_ria + rv_to_ria - ria_to_rib);
+        // rib_to_rr = std::min(rib_to_rr, rib/dt + dot_rib + rr_to_rib + ria_to_rib + rv_to_rib + rc_to_rib);
 
         dot_rc += - rc_to_ria - rc_to_rib;
         dot_rv += - rv_to_ria - rv_to_rib;

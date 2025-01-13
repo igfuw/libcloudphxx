@@ -129,38 +129,33 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria <= real_t(0))
-        {
-          return real_t(0) * si::kilograms;
-        }
-        using namespace common;
-        //calculating the mass of small ice A particle:
-        quantity<si::mass_density, real_t> IWCS = std::min(
-            std::min(real_t(1e-3) * si::dimensionless(),
-                     rhod_0 * ria / (si::kilogram / si::cubic_metres)),
-            real_t(2.52e-4) * std::pow(
-              real_t(1e3) * rhod_0 * ria / (si::kilogram / si::cubic_metres),
-              real_t(0.837)) * si::dimensionless()) * si::kilograms /
-          si::cubic_meters;
-        quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> alpha = std::max(real_t(2.2e4),
-            real_t(-4.99e3) - real_t(4.94e4) * std::log10(real_t(1e3) * IWCS / si::kilograms * si::cubic_meters)) /
-          si::meters;
-        quantity<si::mass, real_t> m_as = real_t(2) * pi<real_t>() * moist_air::rho_i<real_t>() / (
-          std::pow(alpha * si::meters, real_t(3)) / si::cubic_meters);
-        //calculating the mass of large ice A particle:
-        quantity<si::mass_density, real_t> IWCL = rhod_0 * ria - IWCS;
-        real_t a_mu = real_t(5.2) + real_t(1.3e-3) * (T / si::kelvin - real_t(273.16));
-        real_t b_mu = real_t(0.026) - real_t(1.2e-3) * (T / si::kelvin - real_t(273.16));
-        real_t a_sigma = real_t(0.47) + real_t(2.1e-3) * (T / si::kelvin - real_t(273.16));
-        real_t b_sigma = real_t(0.018) - real_t(2.1e-4) * (T / si::kelvin - real_t(273.16));
-        real_t mu = a_mu + b_mu * std::log10(real_t(1e3) * IWCL / si::kilograms * si::cubic_meters);
-        real_t sigma = a_sigma + b_sigma * std::log10(real_t(1e3) * IWCL / si::kilograms * si::cubic_meters);
-        quantity<si::mass, real_t> m_al = real_t(1.67e17) * pi<real_t>() * moist_air::rho_i<real_t>() * std::exp(
-          real_t(3) * mu + real_t(9) / real_t(2) * std::pow(sigma, real_t(2))) * si::cubic_meters;
-        //mass of the average ice A particle:
-        real_t delta = IWCS / (ria * rhod_0);
-        return delta * m_as + (real_t(1) - delta) * m_al;
+      if (ria <= real_t(0))
+      {
+        return real_t(0) * si::kilograms;
       }
+      using namespace common;
+      real_t tempc = T / si::kelvin - real_t(273.16);
+      real_t IWC = std::max(real_t(1.e-9) * si::dimensionless(), rhod_0 / si::kilograms * si::cubic_meters * ria);
+      real_t IWCS = std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837)));
+      real_t IWCL = std::max(real_t(1.e-9), IWC - IWCS);
+      //mass of small ice A:
+      real_t alpha = std::max(real_t(1.e3), real_t(4.99e3) - real_t(4.94e4) * std::log10(IWCS/real_t(1.e-3)));
+      real_t m_as = real_t(6.28) * moist_air::rho_i<real_t>() / si::kilograms * si::cubic_meters / std::pow(alpha, real_t(3));
+      //mass of large ice A:
+      real_t ami = real_t(5.20) + real_t(1.3e-3) * tempc;
+      real_t bmi = real_t(0.026) - real_t(1.2e-3) * tempc;
+      real_t asi = real_t(0.47) + real_t(2.1e-3) * tempc;
+      real_t bsi = real_t(0.018) - real_t(2.1e-4) * tempc;
+      real_t alorat = std::log10(IWCL/real_t(1.e-3));
+      real_t miu = std::max(real_t(4.6), std::min(real_t(5.4), ami+bmi*alorat));
+      real_t sig = std::max(real_t(0.), std::min(real_t(0.5), asi+bsi*alorat));
+      real_t exp_mas = real_t(3.) * miu + real_t(4.5) * std::pow(sig,2);
+      real_t m_al = real_t(5.24e-19) * moist_air::rho_i<real_t>() / si::kilograms * si::cubic_meters * std::exp(exp_mas);
+      //mass weight mass, size and terminal velocity:
+      real_t delta = IWCS / (IWCS + IWCL);
+      real_t amass = delta * m_as + (real_t(1) - delta) * m_al;
+      return amass * si::kilograms;
+    }
 
       // mean terminal velocity of ice A particle
       // eq. A.15b in Grabowski 1999
@@ -174,25 +169,16 @@ namespace libcloudphxx
           return real_t(0) * si::meters/ si::seconds;
         }
         using namespace common;
+        real_t IWC = std::max(real_t(1.e-9) * si::dimensionless(), rhod_0 / si::kilograms * si::cubic_meters * ria);
+        real_t IWCS = std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837)));
+        real_t IWCL = std::max(real_t(1.e-9), IWC - IWCS);
         //velocity of small ice A particle:
-        quantity<si::velocity, real_t> v_as =
-          real_t(0.1) * si::meters / si::seconds;
+        real_t v_as = real_t(0.1);
         //velocity of large ice A particle:
-        quantity<si::mass_density, real_t> IWCS = std::min(
-            std::min(real_t(1e-3) * si::dimensionless(),
-                     rhod_0 * ria / (si::kilogram / si::cubic_metres)),
-            real_t(2.52e-4) * std::pow(
-              real_t(1e3) * rhod_0 * ria / (si::kilogram / si::cubic_metres),
-              real_t(0.837)) * si::dimensionless()) * si::kilograms /
-          si::cubic_meters;
-        quantity<si::mass_density, real_t> IWCL = std::max(real_t(1e-10)*si::kilograms/si::cubic_meters, rhod_0 * ria - IWCS);
-        quantity<si::velocity, real_t> v_al =
-          (real_t(0.9) + real_t(0.1) * std::log10(real_t(1e3) * IWCL / si::kilograms * si::cubic_meters)) * si::meters
-          / si::seconds;
+        real_t v_al = real_t(0.9) + real_t(0.1) * std::log10(real_t(1e3) * IWCL);
         //average velocity of ice A particle:
-        real_t delta = IWCS / (ria * rhod_0);
-        return (delta * v_as + (real_t(1) - delta) * v_al) * std::pow(
-          real_t(0.3) / rhod_0 * si::kilograms / si::cubic_meters, real_t(0.5));
+        real_t delta = IWCS / (IWCS + IWCL);
+        return (delta * v_as + (real_t(1) - delta) * v_al) * std::pow(real_t(1.) / rhod_0 * si::kilograms / si::cubic_meters, real_t(0.5)) * si::meters / si::seconds;
       }
 
 
@@ -440,10 +426,11 @@ namespace libcloudphxx
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> melting_A(
         const quantity<si::dimensionless, real_t> &ria,
         const quantity<si::temperature, real_t> &T,
-        const quantity<si::mass_density, real_t> &rhod_0
+        const quantity<si::mass_density, real_t> &rhod_0,
+        const quantity<si::time, real_t> &dt
       ) {
         using namespace common;
-        if (ria <= real_t(1e-10) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
+        if (ria <= real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -456,9 +443,12 @@ namespace libcloudphxx
         //Reynolds number:
         real_t Re = D_a * v_a * rhod_0 / vterm::visc(T);
         //ventilation factor:
-        real_t F_a = real_t(0.78) + real_t(0.27) * std::pow(std::max(Re,real_t(0)), real_t(0.5));
-        return real_t(4.5e-7) * ria /
-          m_a * D_a * (real_t(273.16) - T / si::kelvins) * F_a * si::kilograms / si::meters / si::seconds;
+        real_t F_a = std::max(real_t(1), real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5)));
+        //melting rate:
+        real_t dma_dt = real_t(9.e-7) * D_a / real_t(2) / si::meters * F_a * std::max(real_t(0) * si::dimensionless(), T / si::kelvins - real_t(273.16) * si::dimensionless());
+        return std::min(ria / dt * si::seconds, dma_dt * ria / m_a * si::kilograms) / si::seconds;
+        //return real_t(4.5e-7) * ria /
+        //  m_a * D_a * (T / si::kelvins - real_t(273.16)) * F_a * si::kilograms / si::meters / si::seconds;
       }
 
       //melting of ice B (rib -> rr)
@@ -467,7 +457,8 @@ namespace libcloudphxx
       quantity<divide_typeof_helper<si::dimensionless, si::time>::type, real_t> melting_B(
         const quantity<si::dimensionless, real_t> &rib,
         const quantity<si::temperature, real_t> &T,
-        const quantity<si::mass_density, real_t> &rhod_0
+        const quantity<si::mass_density, real_t> &rhod_0,
+        const quantity<si::time, real_t> &dt
       ) {
         using namespace common;
         if (rib <= real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
@@ -485,9 +476,12 @@ namespace libcloudphxx
         //Reynolds number:
         real_t Re = D_b * v_b * rhod_0 / vterm::visc(T);
         //ventilation factor:
-        real_t F_b = real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5));
-        return real_t(4.5e-7) * rib /
-          m_b * D_b * (real_t(273.16) - T / si::kelvins) * F_b * si::kilograms / si::meters / si::seconds;
+        real_t F_b = std::max(real_t(1), real_t(0.78) + real_t(0.27) * std::pow(Re, real_t(0.5)));
+        //melting rate
+        real_t dmb_dt = real_t(9.e-7) * D_b / real_t(2) / si::meters * F_b * std::max(real_t(0) * si::dimensionless(), T / si::kelvins - real_t(273.16) * si::dimensionless());
+        return std::min(rib / dt * si::seconds, dmb_dt * rib / m_b * si::kilograms) / si::seconds;
+        //return real_t(4.5e-7) * rib /
+        //  m_b * D_b * (T / si::kelvins - real_t(273.16)) * F_b * si::kilograms / si::meters / si::seconds;
       }
 
 
@@ -502,7 +496,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria <= real_t(1e-10) || rv <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (ria <= real_t(0) || rv <= real_t(0) || T > real_t(273.16) * si::kelvins)
         {
           return real_t(0) / si::seconds;
         }

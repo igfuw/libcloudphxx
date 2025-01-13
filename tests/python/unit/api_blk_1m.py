@@ -92,36 +92,32 @@ flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
 # flux == 0
 # assert dot_rr == dot_rr_old # no rain water -> no precip
 
-th   = arr_t([273.])  #testing ice physics
+th   = arr_t([263.])  #testing ice physics
 rv   = arr_t([0.1 ])
 rc   = arr_t([0.01])
 rr   = arr_t([0.01])
 ria = arr_t([0.])
 rib = arr_t([0.])
-dot_th = arr_t([0.])
-dot_rc = arr_t([0.])
-dot_rr = arr_t([0.])
-dot_rv = arr_t([0.])
-dot_ria = arr_t([0.])
-dot_rib = arr_t([0.])
-dt=0.01
+dt=0.1
 
 for i in range(100):
+    dot_th = arr_t([0.])
+    dot_rc = arr_t([0.])
+    dot_rr = arr_t([0.])
+    dot_rv = arr_t([0.])
+    dot_ria = arr_t([0.])
+    dot_rib = arr_t([0.])
     blk_1m.rhs_cellwise_nwtrph_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib, rhod, p, th, rv, rc, rr, ria, rib, dt)
-    # flux_rain = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
-    # flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, ice_t.iceA)
-    # flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, ice_t.iceB)
-    #blk_1m.rhs_cellwise_nwtrph(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p, th, rv, rc, rr, dt)
+    flux_rain = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
+    flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, ice_t.iceA)
+    flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, ice_t.iceB)
     th += dt*dot_th
     rv += dt*dot_rv
     rc += dt*dot_rc
     rr += dt*dot_rr
     ria += dt*dot_ria
     rib += dt*dot_rib
-    #assert dot_ria != 0
-    #assert dot_rib != 0
 
-    #print('dot_th='+str(dot_th))
     print('dot_rv='+str(dot_rv))
     print('dot_rc='+str(dot_rc))
     print('dot_rr='+str(dot_rr))
@@ -133,10 +129,6 @@ for i in range(100):
     print('rr='+str(rr))
     print('ria='+str(ria))
     print('rib='+str(rib))
-
-
-    #assert flux_iceA != 0
-    #assert flux_iceB != 0
-    # print('rain_flux='+str(flux_rain))
-    # print('iceA_flux='+str(flux_iceA))
-    # print('iceB_flux='+str(flux_iceB))
+    print('rain_flux='+str(flux_rain))
+    print('iceA_flux='+str(flux_iceA))
+    print('iceB_flux='+str(flux_iceB))
