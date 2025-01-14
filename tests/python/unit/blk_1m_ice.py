@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0, "../../bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
+import numpy as np
 
 from libcloudphxx import blk_1m
 
@@ -52,8 +53,17 @@ print('rain_flux='+str(flux_rain))
 print('iceA_flux='+str(flux_iceA))
 print('iceB_flux='+str(flux_iceB))
 
+assert np.isnan(rv) == False
+assert np.isnan(rc) == False
+assert np.isnan(rr) == False
+assert np.isnan(ria) == False
+assert np.isnan(rib) == False
+
 assert rv >= 0
 assert rc >= 0
 assert rr >= 0
 assert ria >= 0
 assert rib >= 0
+
+assert np.isclose(ria, 2.7564e-05, rtol=1e-5, atol=1e-8)
+assert np.isclose(rib, 3.2808e-06, rtol=1e-5, atol=1e-8)
