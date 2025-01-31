@@ -83,10 +83,6 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rr <= real_t(0))
-        {
-          return real_t(0) * si::meters/ si::seconds;
-        }
         return
           vterm_A<real_t>()
           * real_t(std::pow(
@@ -184,10 +180,6 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rib,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib <= real_t(0))
-        {
-          return real_t(0) * si::kilograms;
-        }
         using namespace common;
         return pi<real_t>() * rho_ib<real_t>() / (real_t(6) * std::pow(lambda_ice_b(rib, rhod_0) * si::meters,
                                                                        real_t(3))) * si::cubic_meters;
@@ -200,10 +192,6 @@ namespace libcloudphxx
         const quantity<si::dimensionless, real_t> &rib,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib <= real_t(0))
-        {
-          return real_t(0) * si::meters / si::seconds;
-        }
         return real_t(31.2) *
           std::pow(lambda_ice_b(rib, rhod_0) * si::meters, real_t(-0.37)) * std::pow(
             rhod_0 / si::kilograms * si::cubic_meters,
@@ -307,7 +295,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0,
         const quantity<si::time, real_t> &dt
       ) {
-        if (rc <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (rc == real_t(0) || T > real_t(273.16) * si::kelvins)
         {
           return real_t(0) / si::seconds;
         }
@@ -334,7 +322,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria <= real_t(0) || rr <= real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
+        if (ria == real_t(0) || rr == real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
@@ -369,7 +357,7 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
         using namespace common;
-        if (ria <= real_t(0) || rr <= real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
+        if (ria == real_t(0) || rr == real_t(0) || T > real_t(273.16) * si::kelvins) // ice B is formed only if ice A and rain are present
         {
           return real_t(0) / si::seconds;
         }
@@ -401,7 +389,7 @@ namespace libcloudphxx
         const quantity<si::time, real_t> &dt
       ) {
         using namespace common;
-        if (ria <= real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
+        if (ria == real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice A is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -430,7 +418,7 @@ namespace libcloudphxx
         const quantity<si::time, real_t> &dt
       ) {
         using namespace common;
-        if (rib <= real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
+        if (rib == real_t(0) || T < real_t(273.16) * si::kelvin) // calculating melting rate only if ice B is present and T > 0 C
         {
           return real_t(0) / si::seconds;
         }
@@ -463,7 +451,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria <= real_t(0) || rv <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (ria == real_t(0) || T > real_t(273.16) * si::kelvins) // growth only if ice A is present
         {
           return real_t(0) / si::seconds;
         }
@@ -490,7 +478,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (ria <= real_t(0) || rc <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (ria == real_t(0) || rc == real_t(0) || T > real_t(273.16) * si::kelvins) // growth only if ice A and cloud droplets present
         {
           return real_t(0) / si::seconds;
         }
@@ -537,7 +525,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib <= real_t(0) || rv<=real_t(0) || T > real_t(273.16) * si::kelvins) // calculating growth rate only if ice A is present
+        if (rib == real_t(0) || T > real_t(273.16) * si::kelvins) // calculating growth rate only if ice B is present
         {
           return real_t(0) / si::seconds;
         }
@@ -563,7 +551,7 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T,
         const quantity<si::mass_density, real_t> &rhod_0
       ) {
-        if (rib <= real_t(0) || T > real_t(273.16) * si::kelvins)
+        if (rib == real_t(0) || T > real_t(273.16) * si::kelvins) // calculating growth rate only if ice B is present
         {
           return real_t(0) / si::seconds;
         }
