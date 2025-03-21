@@ -460,7 +460,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
           std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return ria / m_a * dm_dt_AE;
       }
@@ -487,7 +487,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
           std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
@@ -534,7 +534,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
           std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return rib / m_b * dm_dt_AE;
       }
@@ -560,7 +560,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
           std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
