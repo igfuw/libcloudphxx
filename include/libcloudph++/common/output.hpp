@@ -36,5 +36,16 @@ namespace libcloudphxx
       {outprtcl_num, "particle_number"},
       {outice_vol, "ice_volume"}
     };
+
+    inline output_t get_output_enum(const std::string& name)
+    {
+      for (const auto& pair : output_names) {
+        if (pair.second == name) {
+          return pair.first;
+        }
+      }
+      throw std::runtime_error("Incorrect name for puddle: " + name);
+    }
+
   };
 };
