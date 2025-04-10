@@ -116,7 +116,7 @@ namespace libcloudphxx
       using namespace common;
       real_t tempc = T / si::kelvin - real_t(273.16);
       real_t IWC = std::max(real_t(1.e-9) * si::dimensionless(), rhod_0 / si::kilograms * si::cubic_meters * ria);
-      real_t IWCS = std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837)));
+      real_t IWCS = std::max(real_t(1.e-9), std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837))));
       real_t IWCL = std::max(real_t(1.e-9), IWC - IWCS);
       //mass of small ice A:
       real_t alpha = std::max(real_t(1.e3), real_t(4.99e3) - real_t(4.94e4) * std::log10(IWCS/real_t(1.e-3)));
@@ -146,7 +146,7 @@ namespace libcloudphxx
       ) {
         using namespace common;
         real_t IWC = std::max(real_t(1.e-9) * si::dimensionless(), rhod_0 * ria / si::kilograms * si::cubic_meters);
-        real_t IWCS = std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837)));
+        real_t IWCS = std::max(real_t(1.e-9), std::min(std::min(real_t(1.e-3), IWC), real_t(2.52e-4)*std::pow((IWC/real_t(1.e-3)), real_t(0.837))));
         real_t IWCL = std::max(real_t(1.e-9), IWC - IWCS);
         //velocity of small ice A particle:
         real_t v_as = real_t(0.1);
@@ -170,7 +170,7 @@ namespace libcloudphxx
       ) {
         using namespace common;
         real_t N_0b = real_t(4e6);
-        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib), real_t(0.25)) / si::meters;
+        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib + real_t(1e-12)), real_t(0.25)) / si::meters;
       }
 
       // mean mass of ice B particle
@@ -336,7 +336,7 @@ namespace libcloudphxx
         //mean raindrop radius (eq. A2 in Grabowski 1999)
         quantity<si::length, real_t> R_r = real_t(0.5) / lambda_r;
         //mean ice A particle mass
-        quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a = std::max(real_t(1e-12), mass_a(ria, T, rhod_0));
         //mean ice A velocity
         real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
@@ -368,7 +368,7 @@ namespace libcloudphxx
         //mean raindrop radius (eq. A2 in Grabowski 1999)
         quantity<si::length, real_t> R_r = real_t(0.5) / lambda_r;
         //mean ice A particle mass
-        quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a = std::max(real_t(1e-12), mass_a(ria, T, rhod_0));
         //mean ice A velocity
         real_t v_a = velocity_iceA(ria, rhod_0) * si::seconds / si::meters;
         //rate of collisions between raindrops and ice A
@@ -394,7 +394,7 @@ namespace libcloudphxx
           return real_t(0) / si::seconds;
         }
         //mass of average ice A particle:
-        quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a = std::max(real_t(1e-12), mass_a(ria, T, rhod_0));
         //diameter of average ice A particle:
         quantity<si::length, real_t> D_a = std::pow(m_a / real_t(0.025) / si::kilograms, real_t(0.5)) * si::meters;
         //fall velocity of avg. ice A particle:
@@ -425,7 +425,7 @@ namespace libcloudphxx
         quantity<divide_typeof_helper<si::dimensionless, si::length>::type, real_t> lambda_b =
           lambda_ice_b(rib, rhod_0);
         //mass of average ice B particle:
-        quantity<si::mass, real_t> m_b = mass_b(rib, rhod_0);
+        quantity<si::mass, real_t> m_b = std::max(real_t(1e-12), mass_b(rib, rhod_0));
         //diameter of average ice B particle (eq. A5 in Grabowski 1999):
         quantity<si::length, real_t> D_b = real_t(1) / lambda_b;
         //fall velocity of avg. ice B particle:
@@ -456,7 +456,7 @@ namespace libcloudphxx
           return real_t(0) / si::seconds;
         }
         //mass of average ice A particle:
-        quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a = std::max(real_t(1e-12), mass_a(ria, T, rhod_0));
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
@@ -483,7 +483,7 @@ namespace libcloudphxx
           return real_t(0) / si::seconds;
         }
         //mass of average ice A particle:
-        quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
+        quantity<si::mass, real_t> m_a = std::max(real_t(1e-12), mass_a(ria, T, rhod_0));
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
@@ -530,7 +530,7 @@ namespace libcloudphxx
           return real_t(0) / si::seconds;
         }
         //mass of average ice B particle:
-        quantity<si::mass, real_t> m_b = mass_b(rib, rhod_0);
+        quantity<si::mass, real_t> m_b = std::max(real_t(1e-12), mass_b(rib, rhod_0));
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
@@ -556,7 +556,7 @@ namespace libcloudphxx
           return real_t(0) / si::seconds;
         }
         //mass of average ice B particle:
-        quantity<si::mass, real_t> m_b = mass_a(rib, T, rhod_0);
+        quantity<si::mass, real_t> m_b = std::max(real_t(1e-12), mass_b(rib, rhod_0));
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
