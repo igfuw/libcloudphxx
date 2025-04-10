@@ -170,7 +170,7 @@ namespace libcloudphxx
       ) {
         using namespace common;
         real_t N_0b = real_t(4e6);
-        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib + real_t(1e-12)), real_t(0.25)) / si::meters;
+        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib + real_t(1e-12)*si::kilograms/si::cubic_meters), real_t(0.25)) / si::meters;
       }
 
       // mean mass of ice B particle
