@@ -134,7 +134,7 @@ namespace libcloudphxx
       //mass weight mass, size and terminal velocity:
       real_t delta = IWCS / (IWCS + IWCL);
       real_t amass = delta * m_as + (real_t(1) - delta) * m_al;
-      return std::max(real_t(1e-12), amass) * si::kilograms;
+      return std::max(real_t(1e-18), amass) * si::kilograms;
     }
 
       // mean terminal velocity of ice A particle
@@ -170,7 +170,7 @@ namespace libcloudphxx
       ) {
         using namespace common;
         real_t N_0b = real_t(4e6);
-        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib + real_t(1e-12)*si::kilograms/si::cubic_meters), real_t(0.25)) / si::meters;
+        return std::pow(pi<real_t>() * rho_ib<real_t>() * N_0b / (rhod_0 * rib + std::numeric_limits<real_t>::epsilon()*si::kilograms/si::cubic_meters), real_t(0.25)) / si::meters;
       }
 
       // mean mass of ice B particle
@@ -183,7 +183,7 @@ namespace libcloudphxx
         using namespace common;
         real_t bmass = pi<real_t>() * rho_ib<real_t>() / (real_t(6) * std::pow(lambda_ice_b(rib, rhod_0) * si::meters,
                                                                        real_t(3))) * si::cubic_meters / si::kilograms;
-        return std::max(real_t(1e-12), bmass) * si::kilograms;
+        return std::max(real_t(1e-18), bmass) * si::kilograms;
       }
 
       // mean terminal velocity of ice B particle
@@ -304,13 +304,12 @@ namespace libcloudphxx
         const quantity<si::time, real_t> taunuc = dt; // timescale for nucleation
         //mean ice A particle mass
         quantity<si::mass, real_t> m_a = mass_a(ria, T, rhod_0);
-        quantity<si::mass, real_t> m_a_prim = std::max(real_t(1e-12)*si::kilograms, m_a);
         //concentration of ice nuclei:
         quantity<divide_typeof_helper<si::dimensionless, si::volume>::type, real_t> N_in = std::min(real_t(1e5),
           real_t(1e-2) * std::exp(real_t(0.6) * (real_t(273.16) - T / si::kelvins))) / si::cubic_meters;
         //nucleation rate:
         real_t t_term = real_t(1) - std::exp(-dt / taunuc);
-        return t_term * std::min(rc, std::max(real_t(0) * si::dimensionless(), (N_in * m_a_prim / rhod_0) - ria)) / si::seconds;
+        return t_term * std::min(rc, std::max(real_t(0) * si::dimensionless(), (N_in * m_a / rhod_0) - ria)) / si::seconds;
       }
 
       // ice B heterogeneous nucleation 1 (rr -> rib)
@@ -461,7 +460,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + std::numeric_limits<real_t>::epsilon()) * alpha *
           std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return ria / m_a * dm_dt_AE;
       }
@@ -488,7 +487,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + std::numeric_limits<real_t>::epsilon()) * alpha *
           std::pow(m_a * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
@@ -535,7 +534,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // growth rate for a single particle:
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + std::numeric_limits<real_t>::epsilon()) * alpha *
           std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         return rib / m_b * dm_dt_AE;
       }
@@ -561,7 +560,7 @@ namespace libcloudphxx
         real_t alpha = coeff_alpha(T);
         real_t beta = coeff_beta(T);
         // regime AE
-        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + real_t(1e-12)) * alpha *
+        quantity<divide_typeof_helper<si::mass, si::time>::type, real_t> dm_dt_AE = real_t(1e-3) * (rv - rvsi) / (rvs - rvsi + std::numeric_limits<real_t>::epsilon()) * alpha *
           std::pow(m_b * real_t(1e3) / si::kilograms, beta) * si::kilograms / si::seconds; //1e-3 comes from conversion g/sec into kg/sec
         // regime BC
         real_t tan_theta = real_t(1.) + real_t(0.1) * std::log(
