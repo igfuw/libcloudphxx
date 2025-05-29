@@ -148,9 +148,11 @@ namespace libcloudphxx
     )
     {
       // autoconversion, collection and rain evaporation:
-      rhs_cellwise_nwtrph<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont,  dot_rc_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt);
+      rhs_cellwise_nwtrph<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, rhod_cont, p_cont,
+                                          th_cont, rv_cont, rc_cont, rr_cont, dt);
 
-      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, dot_rib_cont, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont, rib_cont))
+      for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, dot_rib_cont, rhod_cont,
+                          p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont, rib_cont))
       {
         using namespace common;
 
@@ -204,7 +206,7 @@ namespace libcloudphxx
           );
         }
 
-        // ice A homogeneous nucleation 1
+        // ice A homogeneous nucleation rv -> ria
         if (opts.homA1)
         {
           rv_to_ria += (
@@ -218,7 +220,7 @@ namespace libcloudphxx
           );
         }
 
-        // ice A homogeneous nucleation 2
+        // ice A homogeneous nucleation rc -> ria
         if (opts.homA2)
         {
           rc_to_ria += (
@@ -367,8 +369,10 @@ namespace libcloudphxx
         dot_rr += ria_to_rr - rr_to_rib + rib_to_rr;
         dot_ria += rc_to_ria + rv_to_ria - ria_to_rib - ria_to_rr;
         dot_rib += rr_to_rib + ria_to_rib + rv_to_rib + rc_to_rib - rib_to_rr;
-        dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rv_to_ria + rv_to_rib) / si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria + rc_to_rib + rr_to_rib - rib_to_rr - ria_to_rr) / si::kelvins; //heat of freezing
+        dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rv_to_ria + rv_to_rib) /
+          si::kelvins; //heat of sublimation
+        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria + rc_to_rib +
+          rr_to_rib - rib_to_rr - ria_to_rr) / si::kelvins; //heat of freezing
 
       }
     }
