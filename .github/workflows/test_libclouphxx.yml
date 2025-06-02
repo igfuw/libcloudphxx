@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_CUDA:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         name: ["CUDA"]
@@ -31,7 +31,7 @@ jobs:
         path: ${{ github.workspace }}
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         name: ["no_CUDA"]
@@ -43,10 +43,10 @@ jobs:
           disable_cuda: true
           threads: 4
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "ubuntu_24_04_cuda_11_4"
           cxx: "g++"
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "ubuntu_24_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
 
     steps:
@@ -76,7 +76,7 @@ jobs:
   # test jobs
   unit_test:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
@@ -84,9 +84,9 @@ jobs:
         mpi: ["none", "mvapich2"]
         include:
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "ubuntu_24_04_cuda_11_4"
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "ubuntu_24_04_cuda_11_4_mvapich2"
 
     steps:
     - uses: actions/checkout@v2
@@ -113,7 +113,7 @@ jobs:
 
   kinematic_2D_test:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
@@ -177,7 +177,7 @@ jobs:
     needs: build
 # do after kinematic_2D_test, because otherwise we occasionally get "illegal instruction" errors, probably because libcloudphxx is installed simultaneously on the same runner at the same location by two different jobs (?)
 #    needs: kinematic_2D_test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
@@ -236,7 +236,7 @@ jobs:
       run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
 
   build_and_test_KiD-A:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         name: ["no_CUDA"]
