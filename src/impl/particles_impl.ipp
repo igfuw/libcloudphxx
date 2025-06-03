@@ -6,14 +6,23 @@
   * @brief Thrust-based CPU/GPU particle-tracking logic for Lagrangian microphysics
   */
 
+// #define THRUST_PROVIDE_LEGACY_ARCH_MACROS
+// #define THRUST_IS_HOST_CODE 1
+// #define THRUST_IS_DEVICE_CODE 1
+// #define THRUST_INCLUDE_HOST_CODE 1
+// #define THRUST_INCLUDE_DEVICE_CODE 1
+
 #include <thrust/host_vector.h>
 #include <thrust/iterator/constant_iterator.h>
 
 #include <boost/array.hpp>
-#include <boost/numeric/odeint.hpp>
+//#include <boost/numeric/odeint.hpp>
+#include "/home/piotr/tmp/odeint_copy/odeint.hpp"
 //#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 //#include <boost/numeric/odeint/util/resizer.hpp>
-#include <boost/numeric/odeint/external/thrust/thrust.hpp>
+
+//#include <boost/numeric/odeint/external/thrust/thrust.hpp>
+#include "/home/piotr/tmp/odeint_copy/odeint/external/thrust/thrust.hpp"
 
 #include <map>
 #include <set>

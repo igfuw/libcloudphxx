@@ -2,8 +2,9 @@
 #TODO: local search path for python modules (to make it work before make install)
 
 # find_interp first, find_libs should find a matching version of libs
-find_package(PythonInterp 3)
-find_package(PythonLibs)
+#find_package(PythonInterp 3)
+#find_package(PythonLibs)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 
 
 if (NOT PYTHON_VERSION_STRING VERSION_EQUAL PYTHONLIBS_VERSION_STRING)
