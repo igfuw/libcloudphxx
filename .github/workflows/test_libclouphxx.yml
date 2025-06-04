@@ -43,10 +43,10 @@ jobs:
           disable_cuda: true
           threads: 4
         - mpi: "none"
-          tag: "ubuntu_24_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - mpi: "mvapich2"
-          tag: "ubuntu_24_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
           cxx: "mpic++"
 
     steps:
@@ -84,9 +84,9 @@ jobs:
         mpi: ["none", "mvapich2"]
         include:
         - mpi: "none"
-          tag: "ubuntu_24_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
         - mpi: "mvapich2"
-          tag: "ubuntu_24_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
 
     steps:
     - uses: actions/checkout@v2
@@ -100,7 +100,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@v0.1b
+      uses: igfuw/load_UWLCM_singularity_image@latest
       with:
         path: ${{ github.workspace }}/singularity_images
         tag: ${{ matrix.tag }}
