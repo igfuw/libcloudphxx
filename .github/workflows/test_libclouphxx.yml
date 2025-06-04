@@ -204,7 +204,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@v0.1b
+      uses: igfuw/load_UWLCM_singularity_image@latest
       with:
         path: ${{ github.workspace }}/singularity_images
 
