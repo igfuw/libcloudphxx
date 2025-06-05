@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@latest
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@latest
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -53,7 +53,7 @@ jobs:
     - uses: actions/checkout@latest
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@latest
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -263,7 +263,7 @@ jobs:
     - run: grep diag_accr include/libcloudph++/lgrngn/particles.hpp
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@latest
+      uses: igfuw/libcloudphxx_build@v0.3
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
