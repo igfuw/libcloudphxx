@@ -18,6 +18,7 @@ jobs:
           disable_cuda: false
           # not enough RAM to compile Debug CUDA on 4 threads
           threads: 1
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
 
     steps:
     - uses: actions/checkout@v2
@@ -29,6 +30,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        tag: ${{ matrix.tag }}
 
   build:
     runs-on: ubuntu-24.04
