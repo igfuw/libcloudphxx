@@ -17,7 +17,7 @@ namespace libcloudphxx
       bool 
         cond = true,    // condensation
         cevp = true,    // evaporation of cloud
-        revp = true,    // evaporation of rain 
+        revp = true,    // evaporation of rain
         conv = true,    // autoconversion
         accr = true,    // accretion
         sedi = true,    // sedimentation
