@@ -20,7 +20,7 @@ jobs:
           threads: 1
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@v0.3
@@ -50,7 +50,7 @@ jobs:
           cxx: "mpic++"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@v0.3
@@ -89,7 +89,7 @@ jobs:
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -121,7 +121,7 @@ jobs:
         mpi: ["none"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -139,7 +139,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++ repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: igfuw/libmpdataxx
         path: libmpdataxx
@@ -193,7 +193,7 @@ jobs:
 
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -212,7 +212,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout parcel repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: igfuw/parcel
         path: parcel
@@ -249,7 +249,7 @@ jobs:
 
     steps:
     - name: Checkout libcloudphxx PR
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0 
 
@@ -275,7 +275,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout KiD-libcloud repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: igfuw/kid-libcloud
         path: kid-libcloud
