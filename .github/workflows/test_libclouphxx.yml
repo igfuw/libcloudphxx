@@ -102,7 +102,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@master
+      uses: igfuw/load_UWLCM_singularity_image@main
       with:
         path: ${{ github.workspace }}/singularity_images
         tag: ${{ matrix.tag }}
@@ -206,7 +206,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: load UWLCM Singularity image
-      uses: igfuw/load_UWLCM_singularity_image@master
+      uses: igfuw/load_UWLCM_singularity_image@main
       with:
         path: ${{ github.workspace }}/singularity_images
 
