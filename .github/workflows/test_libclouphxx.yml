@@ -101,16 +101,16 @@ jobs:
     - name: Decompress libcloudph++ build
       run: tar -xvf build.tar
 
-    - name: load UWLCM Singularity image
+    - name: load UWLCM Apptainer image
       uses: igfuw/load_UWLCM_singularity_image@main
       with:
-        path: ${{ github.workspace }}/singularity_images
+        path: ${{ github.workspace }}/apptainer_images
         tag: ${{ matrix.tag }}
 
     - name: Run unit tests
       working-directory: ${{github.workspace}}/build
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: OMP_NUM_THREADS=4 singularity exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+      run: OMP_NUM_THREADS=4 apptainer exec $SI ctest -C ${{matrix.build_type}} || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
 
   kinematic_2D_test:
@@ -156,17 +156,17 @@ jobs:
 
     - name: Configure kinematic_2D CMake
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: singularity exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
+      run: apptainer exec -B ${{ github.workspace }}/installed/ $SI cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++
 
   
     - name: Build kinematic_2D 
       working-directory: ${{github.workspace}}/models/kinematic_2D
-      run: VERBOSE=1 singularity exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
+      run: VERBOSE=1 apptainer exec -B ${{ github.workspace }}/installed/ $SI cmake --build build --config ${{matrix.build_type}} 
 
     - name: Run kinematic_2D tests
       working-directory: ${{github.workspace}}/models/kinematic_2D/build
       run: |
-        singularity exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
+        apptainer exec -B ${{ github.workspace }}/installed/ $SI ctest -VV -R travis # compare icicle results against reference data (done for full simulation for bulk schemes and a couple of steps for lagrangian)
         cat Testing/Temporary/LastTest.log
 
     # Debugging with a ssh session on failure
@@ -205,10 +205,10 @@ jobs:
     - name: Decompress libcloudph++ build
       run: tar -xvf build.tar
 
-    - name: load UWLCM Singularity image
+    - name: load UWLCM Apptainer image
       uses: igfuw/load_UWLCM_singularity_image@main
       with:
-        path: ${{ github.workspace }}/singularity_images
+        path: ${{ github.workspace }}/apptainer_images
 
     - name: Install libcloudph++
       run: sudo cmake --install build
@@ -224,18 +224,18 @@ jobs:
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
 
     - name: run parcel long_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
 
     - name: run parcel unit_test_debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
 
   build_and_test_KiD-A:
     runs-on: ubuntu-24.04
@@ -284,7 +284,7 @@ jobs:
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
+      run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
 
   call_test_uwlcm_hlpr:
     uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
