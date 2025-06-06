@@ -14,7 +14,7 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct dth : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct dth //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const

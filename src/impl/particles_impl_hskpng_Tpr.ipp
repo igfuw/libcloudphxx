@@ -49,7 +49,7 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__p : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct common__theta_dry__p// : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
        BOOST_GPU_ENABLED
        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)
@@ -103,7 +103,7 @@ namespace libcloudphxx
       }
 
       template <typename real_t>
-      struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct RH //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
         /*
  *      on CUDA 8.0 the code below compiles, but gives memory errors at runtime
@@ -160,7 +160,7 @@ namespace libcloudphxx
       }; 
       
       template <typename real_t>
-      struct common__vterm__visc : thrust::unary_function<const real_t&, real_t>// TODO: rename it! (vterm) visc_eta?
+      struct common__vterm__visc //: thrust::unary_function<const real_t&, real_t>// TODO: rename it! (vterm) visc_eta?
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &T)

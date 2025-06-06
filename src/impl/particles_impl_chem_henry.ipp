@@ -368,7 +368,7 @@ namespace libcloudphxx
           chem_flag.begin(),                                                                         //stencil
           chem_bgn[i],                                                                               // output
           detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt), // op
-          thrust::identity<unsigned int>()
+          cuda::std::identity()
         );
 
 #if !defined(__NVCC__)
