@@ -174,7 +174,8 @@ if (CMAKE_CUDA_COMPILER)
 
       if (error_id != cudaSuccess && error_id != 100) { // 100 is 'no CUDA-capable device is detected'
         std::cerr << \"cudaGetDeviceCount returned \" <<  static_cast<int>(error_id) << \" -> \" << cudaGetErrorString(error_id) << std::endl;
-        exit(EXIT_FAILURE);
+        DeviceCount = 0;
+  //      exit(EXIT_FAILURE);
       }
 
       int driverVersion, runtimeVersion;
@@ -198,7 +199,7 @@ if (CMAKE_CUDA_COMPILER)
         {   
           std::cerr << \"cudaGetDeviceProperties returned \" <<  static_cast<int>(error_id) << \" -> \" << cudaGetErrorString(error_id) << std::endl;
           // std::cout << \"? \";
-          exit(EXIT_FAILURE);
+   //       exit(EXIT_FAILURE);
         }   
       }
     }
