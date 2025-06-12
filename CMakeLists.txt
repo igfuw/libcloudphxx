@@ -172,9 +172,9 @@ if (CMAKE_CUDA_COMPILER)
       std::ofstream fdev(\"${tmpdir}/device_capability.txt\");
       cudaError_t error_id = cudaGetDeviceCount(&DeviceCount);
 
-      if (error_id != cudaSuccess && error_id != 100) { // 100 is 'no CUDA-capable device is detected'
+      if (error_id != cudaSuccess) { // error_id==100 is 'no CUDA-capable device is detected'
         std::cerr << \"cudaGetDeviceCount returned \" <<  static_cast<int>(error_id) << \" -> \" << cudaGetErrorString(error_id) << std::endl;
-        DeviceCount = 0;
+        return 0;
   //      exit(EXIT_FAILURE);
       }
 
