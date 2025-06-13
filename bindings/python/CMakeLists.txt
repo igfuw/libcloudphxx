@@ -90,10 +90,9 @@ target_link_options(cloudphxx PRIVATE "-Wl,--disable-new-dtags") # otherwise BUI
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# Python_SITEARCH is an absolute path, we manually prepend install prefix
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION "${Python3_SITEARCH}"
+     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python3_SITEARCH}"
      COMPONENT library
 )
-# Python_SITELIB is an absolute path, we manually prepend install prefix
-#     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python3_SITEARCH}"
