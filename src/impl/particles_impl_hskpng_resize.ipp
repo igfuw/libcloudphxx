@@ -8,8 +8,8 @@ namespace libcloudphxx
     {
       if(n_part > opts_init.n_sd_max) throw std::runtime_error(detail::formatter() << "n_sd_max (" << opts_init.n_sd_max << ") < n_part (" << n_part << ")");
       {
-        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &tmp_device_real_part};
-        for(int i=0; i<4; ++i)
+        thrust_device::vector<real_t> *vec[] = {&rw2, &rd3, &kpa, &rd3_insol, &T_freeze, &tmp_device_real_part};
+        for(int i=0; i<6; ++i)
         {
           vec[i]->resize(n_part);
         }

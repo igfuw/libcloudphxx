@@ -391,7 +391,7 @@ namespace libcloudphxx
         // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &rd3_insol, &T_freeze};
         distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
 
         if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);

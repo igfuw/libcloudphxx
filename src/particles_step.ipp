@@ -194,6 +194,7 @@ namespace libcloudphxx
             pimpl->sstp_step_exact(step);
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
+            // pimpl->freez
             pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
           // copy sstp_tmp_rv and th to rv and th
@@ -208,7 +209,8 @@ namespace libcloudphxx
             pimpl->sstp_step(step);
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->hskpng_Tpr(); 
+            pimpl->hskpng_Tpr();
+            // pimpl->freez
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
           }
         }
