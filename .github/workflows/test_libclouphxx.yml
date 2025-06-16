@@ -223,26 +223,28 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
+    - name: add libcloudhphxx.so to PYTHONPATH
+      run: export PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+
     - name: check PYTHONPATH
-      working-directory: ${{github.workspace}}/parcel
-      run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH printenv 
+      run: echo ${PYTHONPATH}
 
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
+      run: apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
 
     - name: run parcel long_test
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
-      run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
+      run: apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v long_test
 
     - name: run parcel unit_test_debug
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.debug_tests}}
-      run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
+      run: apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
 
   build_and_test_KiD-A:
     runs-on: ubuntu-24.04
@@ -283,6 +285,9 @@ jobs:
     - name: Install libcloudph++
       run: sudo cmake --install build
 
+    - name: add libcloudhphxx.so to PYTHONPATH
+      run: export PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+
     - name: checkout KiD-libcloud repo
       uses: actions/checkout@v2
       with:
@@ -291,7 +296,7 @@ jobs:
 
     - name: run KiD LWP test
       working-directory: ${{github.workspace}}/kid-libcloud
-      run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH apptainer exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
+      run: apptainer exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
 
   call_test_uwlcm_hlpr:
     uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
