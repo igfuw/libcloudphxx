@@ -223,10 +223,14 @@ jobs:
 
     - run: mkdir parcel/plots/outputs
 
-    - name: run parcel unit_test
+    - name: check PYTHONPATH
       working-directory: ${{github.workspace}}/parcel
       if: ${{matrix.long_tests}}
       run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH printenv 
+
+    - name: run parcel unit_test
+      working-directory: ${{github.workspace}}/parcel
+      if: ${{matrix.long_tests}}
       run: PYTHONPATH=$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test
       #run: PYTHONPATH=${{ github.workspace }}/installed/usr/lib/python3/dist-packages singularity exec -B${{ github.workspace }}/installed,/usr/lib/python3/dist-packages/Gnuplot $SI python3 -m pytest -v unit_test
