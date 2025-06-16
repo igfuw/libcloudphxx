@@ -215,6 +215,18 @@ jobs:
     - name: Install libcloudph++
       run: sudo cmake --install build
 
+    - name: add libcloudhphxx.so to PYTHONPATH
+      uses: alsosee/envset@v1
+      with:
+        name: PYTHONPATH
+        value: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH
+#      uses: allenevans/set-env@v2.0.0
+#      with:
+#        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+
+    - name: check PYTHONPATH
+      run: echo ${PYTHONPATH}
+
     - name: checkout parcel repo
       uses: actions/checkout@v2
       with:
@@ -222,12 +234,6 @@ jobs:
         path: parcel
 
     - run: mkdir parcel/plots/outputs
-
-    - name: add libcloudhphxx.so to PYTHONPATH
-      run: export PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
-
-    - name: check PYTHONPATH
-      run: echo ${PYTHONPATH}
 
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
@@ -286,7 +292,9 @@ jobs:
       run: sudo cmake --install build
 
     - name: add libcloudhphxx.so to PYTHONPATH
-      run: export PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+      uses: allenevans/set-env@v2.0.0
+      with:
+        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
 
     - name: checkout KiD-libcloud repo
       uses: actions/checkout@v2
