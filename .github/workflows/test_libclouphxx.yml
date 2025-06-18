@@ -216,9 +216,10 @@ jobs:
       run: sudo cmake --install build
 
     - name: add libcloudhphxx.so to PYTHONPATH
-      uses: allenevans/set-env@v2.0.0
-      with:
-        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+      run: echo "PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))")" >> $GITHUB_ENV
+#      uses: allenevans/set-env@v2.0.0
+#      with:
+#        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
 #      uses: alsosee/envset@v1
 #      with:
 #        name: PYTHONPATH
@@ -292,9 +293,17 @@ jobs:
       run: sudo cmake --install build
 
     - name: add libcloudhphxx.so to PYTHONPATH
-      uses: allenevans/set-env@v2.0.0
-      with:
-        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+      run: echo "PYTHONPATH=${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))")" >> $GITHUB_ENV
+#      uses: allenevans/set-env@v2.0.0
+#      with:
+#        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+#      uses: alsosee/envset@v1
+#      with:
+#        name: PYTHONPATH
+#        value: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH
+
+    - name: check PYTHONPATH
+      run: echo ${PYTHONPATH}
 
     - name: checkout KiD-libcloud repo
       uses: actions/checkout@v2
