@@ -216,13 +216,13 @@ jobs:
       run: sudo cmake --install build
 
     - name: add libcloudhphxx.so to PYTHONPATH
-      uses: alsosee/envset@v1
+      uses: allenevans/set-env@v2.0.0
       with:
-        name: PYTHONPATH
-        value: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH
-#      uses: allenevans/set-env@v2.0.0
+        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+#      uses: alsosee/envset@v1
 #      with:
-#        PYTHONPATH: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH 
+#        name: PYTHONPATH
+#        value: ${{ github.workspace }}/installed$(python3 -c "import sysconfig; print(sysconfig.get_path('platlib'))"):$PYTHONPATH
 
     - name: check PYTHONPATH
       run: echo ${PYTHONPATH}
