@@ -291,7 +291,8 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::step_async(
-      const opts_t<real_t> &opts
+      const opts_t<real_t> &opts,
+      const real_t &time
     ) {
       //sanity checks
       if (!pimpl->should_now_run_async)
@@ -336,7 +337,7 @@ namespace libcloudphxx
         for (int step = 0; step < pimpl->sstp_coal; ++step) 
         {
           // collide
-          pimpl->coal(pimpl->dt / pimpl->sstp_coal, opts.turb_coal);
+          pimpl->coal(pimpl->dt / pimpl->sstp_coal, opts.turb_coal, time);
 
           // update invalid vterm 
           if (step + 1 != pimpl->sstp_coal)

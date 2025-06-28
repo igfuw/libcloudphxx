@@ -234,7 +234,6 @@ namespace libcloudphxx
 
       std::vector<std::future<pudmap_t>> futures(this->opts_init->dev_count);
       for (int i = 0; i < this->opts_init->dev_count; ++i)
-      {
         futures[i] = std::async(
           std::launch::async,
           [i, this](){
@@ -242,13 +241,79 @@ namespace libcloudphxx
             return this->pimpl->particles[i]->diag_puddle();
           }
         );
-      }
+
       // TODO: optimize this...
       for (int i = 0; i < this->opts_init->dev_count; ++i)
-      {
         res = add_puddle(res, futures[i].get());
-      }
+
       return res;
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::store_ijk(const real_t &t)
+    {
+//      throw std::runtime_error("Store_ijk does not work with multi_CUDA.");
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::store_ijk, t);
+    }
+
+    template <typename real_t>
+    std::vector<real_t> particles_t<real_t, multi_CUDA>::diag_precoal_distance()
+    {
+//      std::cerr << "precoal_distance: " << std::endl;
+//      debug::print(pimpl->precoal_distance);
+//      std::cerr << "precoal_distance_count: " << std::endl;
+//      debug::print(pimpl->precoal_distance_count);
+//
+//
+      using n_t = typename particles_t<real_t, CUDA>::impl::n_t;
+      using p_t = std::pair<real_t, n_t>;
+      const auto precoal_stats_bins = pimpl->particles[0]->pimpl->config.precoal_stats_bins;
+
+      std::vector<real_t> precoal_distance_local(precoal_stats_bins);
+      std::vector<real_t> precoal_distance(precoal_stats_bins, 0);
+      std::vector<n_t> precoal_distance_count_local(precoal_stats_bins);
+      std::vector<n_t> precoal_distance_count(precoal_stats_bins, 0);
+
+      for (int i = 0; i < this->opts_init->dev_count; ++i)
+      {
+        gpuErrchk(cudaSetDevice(i));
+        thrust::copy(
+          this->pimpl->particles[i]->pimpl->precoal_distance.begin(),
+          this->pimpl->particles[i]->pimpl->precoal_distance.end(),
+          precoal_distance_local.begin()
+        );
+        thrust::copy(
+          this->pimpl->particles[i]->pimpl->precoal_distance_count.begin(),
+          this->pimpl->particles[i]->pimpl->precoal_distance_count.end(),
+          precoal_distance_count_local.begin()
+        );
+
+        std::transform(
+          precoal_distance_local.begin(), 
+          precoal_distance_local.end(), 
+          precoal_distance.begin(),
+          precoal_distance.begin(),
+          std::plus<real_t>()
+        );
+
+        std::transform(
+          precoal_distance_count_local.begin(), 
+          precoal_distance_count_local.end(), 
+          precoal_distance_count.begin(),
+          precoal_distance_count.begin(),
+          std::plus<n_t>()
+        );
+      }
+
+      std::transform(
+        precoal_distance.begin(), 
+        precoal_distance.end(),
+        precoal_distance_count.begin(),
+        precoal_distance.begin(), 
+        [](const real_t &A, const n_t &B) {return A/real_t(B);}
+      );
+
+      return precoal_distance;
     }
   };
 };

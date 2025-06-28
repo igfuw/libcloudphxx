@@ -69,7 +69,8 @@ namespace libcloudphxx
 
       // returns accumulated rainfall
       virtual void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       ) { 
         assert(false); 
       }  
@@ -108,6 +109,8 @@ namespace libcloudphxx
       virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
       virtual void diag_max_rw()                                                { assert(false); }
       virtual void diag_vel_div()                                               { assert(false); }
+      virtual void store_ijk(const real_t&)                                     { assert(false); }
+      virtual std::vector<real_t> diag_precoal_distance()                       { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
       virtual std::vector<real_t> get_attr(const std::string &)                 { assert(false); return std::vector<real_t>(); }
       virtual real_t *outbuf()                                                  { assert(false); return NULL; }
@@ -168,7 +171,8 @@ namespace libcloudphxx
       );
 
       void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       );
 
       // diagnostic methods
@@ -198,6 +202,8 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      void store_ijk(const real_t&);
+      std::vector<real_t> diag_precoal_distance();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
       std::vector<real_t> get_attr(const std::string &);
       real_t *outbuf();
@@ -265,7 +271,8 @@ namespace libcloudphxx
       );
 
       void step_async(
-        const opts_t<real_t> &
+        const opts_t<real_t> &,
+        const real_t &
       );
 
       // diagnostic methods
@@ -297,6 +304,8 @@ namespace libcloudphxx
       void diag_precip_rate();
       void diag_max_rw();
       void diag_vel_div();
+      void store_ijk(const real_t&);
+      std::vector<real_t> diag_precoal_distance();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
 
       struct impl;

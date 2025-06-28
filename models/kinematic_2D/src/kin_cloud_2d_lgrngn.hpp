@@ -252,6 +252,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
+/*
         if (params.async)
         {
           assert(!ftr.valid());
@@ -261,19 +262,22 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
               std::launch::async, 
               &particles_t<real_t, multi_CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
-              params.cloudph_opts
+              params.cloudph_opts,
+              this->timestep * params.dt
             );
           else if(params.backend == CUDA)
             ftr = std::async(
               std::launch::async, 
               &particles_t<real_t, CUDA>::step_async, 
               dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
-              params.cloudph_opts
+              params.cloudph_opts,
+              this->timestep * params.dt
             );
           assert(ftr.valid());
         } else 
+        */
 #endif
-          prtcls->step_async(params.cloudph_opts);
+          prtcls->step_async(params.cloudph_opts, this->timestep * params.dt);
       }
 
       // performing diagnostics

@@ -5,6 +5,8 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
+#include <thrust/count.h>
+
 
 namespace libcloudphxx
 {
@@ -92,6 +94,112 @@ namespace libcloudphxx
           return n>1 ? (real_t(n*(n-1))/2) / (n/2) : 0; 
         }
       };
+
+      template<class real_t>
+      struct precoal_distance
+      {
+        using n_t = int; // unsigned long long; // TODO: make it a template arg
+        const real_t dx, dy, dz;
+        const n_t ny, nz;
+
+        int i_d, j_d, k_d;
+
+        precoal_distance(const opts_init_t<real_t> &opts_init):
+          dx(opts_init.dx),
+          dy(opts_init.dy),
+          dz(opts_init.dz),
+          ny(opts_init.ny),
+          nz(opts_init.nz)
+        {}
+
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+          #if !defined(__NVCC__)
+            using std::pow; 
+            using std::sqrt; 
+            using std::isnan; 
+            using std::isinf;
+            using std::abs;
+          #endif
+
+          if(thrust::get<2>(tpl) <= 0)// no collisions or first one passed was a SD with an uneven number in the cell
+          {
+            thrust::get<4>(tpl) = 0; 
+            return; 
+          }
+          
+          if(ny > 0) // 3 dims
+          {
+            // we cast to int to calculate floor...
+            i_d = int(int(thrust::get<0>(tpl)) / (ny*nz))    - int(int(thrust::get<1>(tpl)) / (ny*nz));
+            j_d = n_t(int(int(thrust::get<0>(tpl)) / nz)) % ny    - n_t(int(int(thrust::get<1>(tpl)) / nz)) % ny;
+            k_d = int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz;
+
+            thrust::get<4>(tpl) = sqrt(
+              pow( real_t(abs(i_d)) * dx, real_t(2)) +
+              pow( real_t(abs(j_d)) * dy, real_t(2)) +
+              pow( real_t(abs(k_d)) * dz, real_t(2))
+            /*
+              pow( real_t(int(int(thrust::get<0>(tpl)) / (ny*nz))    - int(int(thrust::get<1>(tpl)) / (ny*nz))) * dx, real_t(2)) +
+              pow( real_t(n_t(int(int(thrust::get<0>(tpl)) / nz)) % ny    - n_t(int(int(thrust::get<1>(tpl)) / nz)) % ny) * dy, real_t(2)) +
+              pow( real_t(int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz) * dz, real_t(2))
+              */
+            );
+          }
+          else if(nz > 0) // 2 dims
+          {
+            i_d = int(int(thrust::get<0>(tpl)) / nz)    - int(int(thrust::get<1>(tpl)) / nz);
+            k_d = int(thrust::get<0>(tpl)) % nz - int(thrust::get<1>(tpl)) % nz;
+
+            // assume casting to int gives a floor
+            thrust::get<4>(tpl) = sqrt(
+              pow( real_t(abs(i_d)) * dx, real_t(2)) +
+              pow( real_t(abs(k_d)) * dz, real_t(2))
+            );
+          }
+          else // other dims not implemented yet
+          {
+            thrust::get<4>(tpl) = 0;
+            return; 
+          }
+
+          // error check
+          if(isnan(thrust::get<4>(tpl)) || isinf(thrust::get<4>(tpl)))
+          {
+            if(ny>0)
+            {
+              printf("precoal_distance nan/inf; ijk %llu ijk %llu ny %d nz %d dx %f dy %f dz %f result %f pow1 %f pow2 %f pow3 %f i_d %d j_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), ny, nz, dx, dy, dz, thrust::get<4>(tpl), 
+                pow( real_t(abs(i_d)) * dx, real_t(2)),
+                pow( real_t(abs(j_d)) * dy, real_t(2)),
+                pow( real_t(abs(k_d)) * dz, real_t(2)),
+                i_d, j_d, k_d
+              );
+            }
+            else if(nz > 0) // 2 dims
+            {
+              printf("precoal_distance nan/inf; ijk %llu ijk %llu nz %d dx %f dz %f result %f pow1 %f pow3 %f i_d %d k_d %d\n", thrust::get<0>(tpl), thrust::get<1>(tpl), nz, dx, dz, thrust::get<4>(tpl), 
+                pow( real_t(abs(i_d)) * dx, real_t(2)),
+                pow( real_t(abs(k_d)) * dz, real_t(2)),
+                i_d, k_d
+              );
+            }
+          }
+        }
+      };
+
+/*
+      template <class real_t>
+      struct is_positive
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const real_t &x)
+        {
+          return x > real_t(0);
+        }
+      };
+      */
 
       // assumes _a have higher multiplicities
       template <typename real_t, typename n_t,
@@ -257,7 +365,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::coal(const real_t &dt, const bool &turb_coal)
+    void particles_t<real_t, device>::impl::coal(const real_t &dt, const bool &turb_coal, const real_t &time)
     {   
       // prerequisites
       hskpng_shuffle_and_sort(); // to get random neighbours by default
@@ -502,6 +610,49 @@ namespace libcloudphxx
           detail::selector()
         );
         nancheck(incloud_time, "incloud_time - post coalescence");
+      }
+
+      // update precoal_distance
+      {
+        thrust_device::vector<real_t> &distance(tmp_device_real_part1);
+
+        // loop over ijk history + ijk_hitory_time
+        for(int i=0; i < ijk_history.size(); ++i)
+        {
+          int precoal_time_bin_number = (time - ijk_history_time[i]) / (opts_init.precoal_stats_tmax / config.precoal_stats_bins);
+          if(precoal_time_bin_number >= config.precoal_stats_bins) continue;
+
+          thrust::for_each(
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin()),   
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin())+1,
+              col.begin(),                                                        
+              col.begin()+1,
+              distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
+            )),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin()),
+              thrust::make_permutation_iterator((*ijk_history[i]).begin(), sorted_id.begin())+1,
+              col.begin(),
+              col.begin()+1,
+              distance.begin()                // output, dont want to use transform because we had bad experiences with it in coal in the past...  
+            )) + n_part -1,
+            detail::precoal_distance<real_t>(opts_init)
+          );
+
+          nancheck(distance, "precoal distance");
+
+          precoal_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end());
+          //precoal_distance.at(precoal_time_bin_number) += thrust::reduce(distance.begin(), distance.end(), real_t(0), );
+          //precoal_distance.at(precoal_time_bin_number) += thrust::count_if(distance.begin(), distance.end(), detail::is_positive<real_t>());
+          precoal_distance_count.at(precoal_time_bin_number) += thrust::count_if(col.begin(), col.end(), detail::is_positive<real_t>());
+        }
+        /*
+        std::cerr << "precoal_distance after coal: " << std::endl;
+        debug::print(precoal_distance);
+        std::cerr << "precoal_distance_count after coal: " << std::endl;
+        debug::print(precoal_distance_count);
+        */
       }
     }
   };  

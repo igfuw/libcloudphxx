@@ -85,6 +85,7 @@ namespace libcloudphxx
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
 
+
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
              log_rd_max, // logarithm of the upper bound of the distr
@@ -225,6 +226,18 @@ namespace libcloudphxx
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
+      // --- stuff for diagnosing distance (and other attributes?) before collision ---
+      // cell number of each SD at moments in time when store_ijk was called,
+      // TODO: with MPI, ijk_history needs to account for domains 
+      // NOTE: ijk_history would better be thrust_size_t type, not n_t, but then we couldnt use distmem_n_vctrs 
+      //       to manage it and to add distmem_size_vctrs would require adding more GPU/MPI communications as there currently are none for thrust_size_t
+      //std::vector<thrust_device::vector<thrust_size_t>> ijk_history;
+//      std::vector<thrust_device::vector<n_t>> ijk_history;
+      std::vector<std::unique_ptr<thrust_device::vector<n_t>>> ijk_history;
+      std::vector<real_t> ijk_history_time; // time at which history was saved
+      std::vector<real_t> precoal_distance;
+      std::vector<n_t> precoal_distance_count;
+
       // -- distributed memory stuff --
       // TODO: move to a separate struct?
 
@@ -270,13 +283,12 @@ namespace libcloudphxx
       // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
       std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
       std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
-//      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
-//
+      //std::set<thrust_device::vector<thrust_size_t>*>                     distmem_size_vctrs; 
+
       // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
       std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
 //      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
       std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
-
 
       // --- methods ---
 
@@ -316,7 +328,7 @@ namespace libcloudphxx
         rng(_opts_init.rng_seed),
         src_stp_ctr(0),
         rlx_stp_ctr(0),
-	bcond(bcond),
+        bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
@@ -424,6 +436,11 @@ namespace libcloudphxx
          
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
+
+        precoal_distance.resize(config.precoal_stats_bins);
+        precoal_distance_count.resize(config.precoal_stats_bins);
+        thrust::fill(precoal_distance.begin(), precoal_distance.end(), real_t(0));
+        thrust::fill(precoal_distance_count.begin(), precoal_distance_count.end(), n_t(0));
 
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
@@ -597,7 +614,7 @@ namespace libcloudphxx
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_incloud_time(const real_t &dt);
 
-      void coal(const real_t &dt, const bool &turb_coal);
+      void coal(const real_t &dt, const bool &turb_coal, const real_t &time);
 
       void chem_vol_ante();
       void chem_flag_ante();
