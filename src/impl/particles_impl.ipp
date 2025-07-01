@@ -470,7 +470,7 @@ namespace libcloudphxx
       void init_xyz();
       void init_kappa(const real_t &);
       void init_rd3_insol(const real_t &);
-      void init_T_freeze(const int &);
+      void init_T_freeze(int rng_seed);
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
