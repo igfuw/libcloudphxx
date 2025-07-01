@@ -28,5 +28,3 @@ namespace libcloudphxx
   };
 };
 
-//TODO: 0.05 of insoluble particles should be inactive (for inactive the freezing temperature is -38)
-

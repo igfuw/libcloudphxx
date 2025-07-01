@@ -25,13 +25,13 @@ namespace libcloudphxx
         real_t Y = dis(gen); // random number between [0, 1]
 
         // Sampling T_freez from its CDF using inverse transform sampling
-        if (A > std::numeric_limits<real_t>::epsilon && INP_type == INP_t::mineral)
+        if (INP_type == INP_t::mineral && A > std::numeric_limits<real_t>::epsilon() && dis(gen) > 0.05) // 5% of mineral dust particles are inactive
         {
           return (real_t(273.15) + (real_t(8.934) - std::log(- std::log(1-Y) / A) ) / real_t(0.517)) * si::kelvins;
         }
         else
         {
-          return real_t(235.15) * si::kelvin; // if rd_insol = 0  or INP type is unknown, the default freezing temperature is -38 C
+          return real_t(235.15) * si::kelvin; // the default freezing temperature is -38 C
         }
       }
 
