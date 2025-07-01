@@ -469,8 +469,8 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
-//      void init_ice(const real_t &);
       void init_rd3_insol(const real_t &);
+      void init_T_freeze(const int &);
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
@@ -568,6 +568,8 @@ namespace libcloudphxx
       void adve_calc(bool, thrust_size_t = 0);
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
+
+      void nucleation();
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
