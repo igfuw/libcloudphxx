@@ -45,5 +45,7 @@ namespace libcloudphxx
         real_t(1)
       );
     }
+
+    //TODO: latent heat of freezing
   }
 }
