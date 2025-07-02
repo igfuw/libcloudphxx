@@ -1,4 +1,4 @@
-// vim:filetype=cppAdd commentMore actions
+// vim:filetype=cpp
 /** @file
   * @copyright University of Warsaw
   * @section LICENSE

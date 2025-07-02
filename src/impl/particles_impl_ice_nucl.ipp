@@ -32,7 +32,7 @@ namespace libcloudphxx
 
     // Immersion freezing
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::nucleation() {
+    void particles_t<real_t, device>::impl::ice_nucl() {
       thrust::replace_if(ice.begin(), ice.end(),                        // Replacing values of ice with 1 if immersion_freeze_cond is satisfied.
         thrust::make_zip_iterator(
           thrust::make_tuple(                                           // Creating a zip iterator to access multiple vectors:
