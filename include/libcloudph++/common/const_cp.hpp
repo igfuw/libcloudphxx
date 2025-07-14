@@ -23,6 +23,7 @@ namespace libcloudphxx
       libcloudphxx_const(si::temperature, T_tri, 273.16, si::kelvins) // temperature
       libcloudphxx_const(energy_over_mass, lv_tri, 2.5e6, si::joules / si::kilograms)   // latent heat of evaporation
       libcloudphxx_const(energy_over_mass, ls_tri, 2.834e6, si::joules / si::kilograms) // latent heat of sublimation
+      libcloudphxx_const(energy_over_mass, lf_tri, 3.34e5, si::joules / si::kilograms) // latent heat of freezing
 
       // saturation vapour pressure for water assuming constant c_p_v and c_p_w
       // with constants taken at triple point
@@ -92,6 +93,15 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &T
       ) {
         return ls_tri<real_t>() + (c_pv<real_t>() - c_pi<real_t>()) * (T - T_tri<real_t>());
+      }
+
+      // latent heat of freezing for constant c_p
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<divide_typeof_helper<si::energy, si::mass>::type , real_t> l_f(
+        const quantity<si::temperature, real_t> &T
+      ) {
+        return lf_tri<real_t>() + (c_pw<real_t>() - c_pi<real_t>()) * (T - T_tri<real_t>());
       }
     };
   };
