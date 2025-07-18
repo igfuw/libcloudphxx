@@ -29,6 +29,41 @@ namespace libcloudphxx
           return drv * common::theta_dry::d_th_d_rv(T, th) / si::kelvins;
         }
       };
+
+      template <typename real_t>
+      struct dth_subl : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+        {
+          BOOST_GPU_ENABLED
+          real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
+          {
+            const quantity<si::dimensionless, real_t>
+              drv      = thrust::get<0>(tpl);
+            const quantity<si::temperature, real_t>
+              T        = thrust::get<1>(tpl) * si::kelvins;
+            const quantity<si::temperature, real_t>
+              th       = thrust::get<2>(tpl) * si::kelvins;
+
+            return drv * common::theta_dry::d_th_d_rv_subl(T, th) / si::kelvins;
+          }
+        };
+
+
+      template <typename real_t>
+      struct dth_freezing : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
+        {
+          const quantity<si::dimensionless, real_t>
+            dri      = thrust::get<0>(tpl);
+          const quantity<si::temperature, real_t>
+            T        = thrust::get<1>(tpl) * si::kelvins;
+          const quantity<si::temperature, real_t>
+            th       = thrust::get<2>(tpl) * si::kelvins;
+
+          return dri * common::theta_dry::d_th_d_ri(T, th) / si::kelvins;
+        }
+      };
     };
 
     // update th and rv according to change in 3rd specific wet moments
@@ -87,6 +122,53 @@ namespace libcloudphxx
         );
       }
       nancheck(th, "update_th_rv: th after update");
+    }
+
+      // update th for freezing
+    // particles have to be sorted
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::update_th_freezing(
+      thrust_device::vector<real_t> &dri // change in ice mixing ratio
+    )
+    {
+      if(!sorted) throw std::runtime_error("libcloudph++: update_th_freezing called on an unsorted set");
+      nancheck(dri, "update_th_freezing: input dri");
+
+      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+      thrust::transform(
+        dri.begin(), dri.end(),                  // input - 1st arg
+        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+          * real_t(4./3) * pi<real_t>()
+        ),
+        dri.begin(),                             // output
+        thrust::multiplies<real_t>()
+      );
+
+      // updating th
+      {
+        typedef thrust::zip_iterator<thrust::tuple<
+          typename thrust_device::vector<real_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator
+        > > zip_it_t;
+
+        // apply dth
+        thrust::transform(
+          th.begin(), th.end(),          // input - 1st arg
+          thrust::make_transform_iterator(
+            zip_it_t(thrust::make_tuple(
+              dri.begin(),      //
+              T.begin(),        // dth = drv * d_th_d_rv(T, th)
+              th.begin()        //
+            )),
+            detail::dth_freezing<real_t>()
+          ),
+          th.begin(),                 // output
+          thrust::plus<real_t>()
+        );
+      }
+      nancheck(th, "update_th_freezing: th after update");
     }
 
     // update particle-specific cell state

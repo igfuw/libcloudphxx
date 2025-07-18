@@ -54,6 +54,7 @@ namespace libcloudphxx
         //     rho/(1+r)      R(r)*(1+r)
       }
 
+      // heat of condensation
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> d_th_d_rv(
@@ -61,6 +62,26 @@ namespace libcloudphxx
         const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
         return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
+      }
+
+      // heat of sublimation
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> d_th_d_rv_subl(
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::temperature, real_t> &th // theta dry!!!
+      ) {
+        return - th / T * const_cp::l_s<real_t>(T) / c_pd<real_t>();
+      }
+
+      // heat of freezing
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> d_th_d_ri_freeze(
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::temperature, real_t> &th // theta dry!!!
+      ) {
+        return th / T * const_cp::l_f<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>

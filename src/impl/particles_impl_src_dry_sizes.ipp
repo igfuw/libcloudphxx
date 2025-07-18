@@ -55,7 +55,7 @@ namespace libcloudphxx
 
           // init kappa and ice
           init_kappa(kappa);
-          init_ice(ice);
+          init_rd3_insol(ice);
   
           // init multiplicities
           init_n_dry_sizes(get<0>(sni->second)*sup_dt, get<1>(sni->second)); 

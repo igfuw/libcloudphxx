@@ -58,7 +58,7 @@ namespace libcloudphxx
       init_kappa(
         p_sdd->first.first
       ); 
-      init_ice(
+      init_rd3_insol(
         p_sdd->first.second
       ); 
 

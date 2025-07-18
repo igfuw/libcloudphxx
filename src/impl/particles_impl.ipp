@@ -90,7 +90,9 @@ namespace libcloudphxx
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time, // time this SD has been within a cloud
-        ice; // 0 - water 1 - ice; bool would suffice, but we are lazy
+        ice, // 0 - water 1 - ice; bool would suffice, but we are lazy
+        rd3_insol, // dry radii of insoluble aerosol cubed
+        T_freeze; // freezing temperature
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -389,7 +391,7 @@ namespace libcloudphxx
         // TODO: add to that list vectors of other types (e.g integer pimpl->n)
         // NOTE: this does not include chemical stuff due to the way chem vctrs are organized! multi_CUDA / MPI does not work with chemistry as of now
         typedef thrust_device::vector<real_t>* ptr_t;
-        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt};
+        ptr_t arr[] = {&rd3, &rw2, &kpa, &vt, &rd3_insol, &T_freeze};
         distmem_real_vctrs = std::set<ptr_t>(arr, arr + sizeof(arr) / sizeof(ptr_t) );
 
         if (opts_init.nx != 0)  distmem_real_vctrs.insert(&x);
@@ -422,7 +424,11 @@ namespace libcloudphxx
           distmem_real_vctrs.insert(&incloud_time);
 
         if(opts_init.ice_switch)
+        {
           distmem_real_vctrs.insert(&ice);
+          distmem_real_vctrs.insert(&rd3_insol);
+          distmem_real_vctrs.insert(&T_freeze);
+        }
       }
 
       void sanity_checks();
@@ -464,6 +470,8 @@ namespace libcloudphxx
       void init_xyz();
       void init_kappa(const real_t &);
       void init_ice(const real_t &);
+      void init_rd3_insol(const real_t &);
+      void init_T_freeze();
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
@@ -562,12 +570,15 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      void ice_nucl();
+
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<class pres_iter, class RH_iter, class RHi_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi, const RHi_iter &rhii);
       void update_th_rv(thrust_device::vector<real_t> &);
+      void update_th_freezing(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_incloud_time(const real_t &dt);
