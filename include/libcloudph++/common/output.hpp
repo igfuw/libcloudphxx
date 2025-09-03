@@ -17,7 +17,8 @@ namespace libcloudphxx
       outH = chem::H,                          
       outliq_vol,
       outdry_vol,
-      outprtcl_num
+      outprtcl_num,
+      outice_vol
     };
 
     const std::map<output_t, std::string> output_names
@@ -32,7 +33,19 @@ namespace libcloudphxx
       {outH      , "H"},                          
       {outliq_vol, "liquid_volume"},
       {outdry_vol, "dry_volume"},
-      {outprtcl_num, "particle_number"}
+      {outprtcl_num, "particle_number"},
+      {outice_vol, "ice_volume"}
     };
+
+    inline output_t get_output_enum(const std::string& name)
+    {
+      for (const auto& pair : output_names) {
+        if (pair.second == name) {
+          return pair.first;
+        }
+      }
+      throw std::runtime_error("Incorrect name for puddle: " + name);
+    }
+
   };
 };

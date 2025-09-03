@@ -98,7 +98,7 @@ namespace libcloudphxx
       const cont_t &rhod_cont,
       const cont_t &ri_cont,
       const real_t &dz,
-      const ice_t& ice_type
+      const ice_t& ice_type // ice A or ice B (from Grabowski 1999)
     )
 //</listing>
     {
