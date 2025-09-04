@@ -9,7 +9,7 @@ namespace libcloudphxx
   {
     //
     template <typename real_t>
-    struct unary_function : std::unary_function<real_t, real_t>
+    struct unary_function // : std::unary_function<real_t, real_t>
     {
       BOOST_GPU_ENABLED
       virtual real_t funval(const real_t) const = 0;

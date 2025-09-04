@@ -12,7 +12,7 @@ namespace libcloudphxx
     namespace detail
     {
       template<class real_t>
-      struct RH_sgs : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t, real_t>&, real_t>
+      struct RH_sgs// : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t, real_t>&, real_t>
       {
         RH<real_t> resolved_RH;
 
