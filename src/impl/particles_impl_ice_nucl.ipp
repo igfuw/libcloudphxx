@@ -28,17 +28,18 @@ namespace libcloudphxx
             return false;
         };
       };
-      // Functor to compute r^3 only for ice
+      // Functor to compute r^3 only for newly frozen particles
       template<class real_t>
-      class compute_r3_if_ice
+      class compute_r3_if_frozen
       {
       public:
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, int> &tpl) const // tpl is a tuple of 2 elements: (r2, ice)
+        real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (r2, ice, ice_old)
         {
           real_t r2 = thrust::get<0>(tpl);
           int ice_flag = thrust::get<1>(tpl);
-          return ice_flag == 1 ? pow(r2, real_t(1.5)) : real_t(0);
+          int ice_flag_old = thrust::get<2>(tpl);
+          return (ice_flag==1 && ice_flag_old==0) ? pow(r2, real_t(1.5)) : real_t(0);
         }
       };
 
@@ -47,6 +48,9 @@ namespace libcloudphxx
     // Immersion freezing
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ice_nucl() {
+
+      // Copy current ice flags
+      thrust_device::vector<int> ice_old = ice;
 
       // Change liquid droplets to ice under the freezing condition
       thrust::replace_if(ice.begin(), ice.end(),                        // Replacing values of ice with 1 if immersion_freeze_cond is satisfied.
@@ -67,15 +71,17 @@ namespace libcloudphxx
       // Compute r^3 only for newly frozen droplets
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple( // first input
-          rw2.begin(),   // droplet radius squared
-          ice.begin()    // ice flag
+          rw2.begin(),    // droplet radius squared
+          ice.begin(),    // ice flag
+          ice_old.begin() // old ice flag
         )),
         thrust::make_zip_iterator(thrust::make_tuple( // last input
           rw2.end(),
-          ice.end()
+          ice.end(),
+          ice_old.end()
         )),
         mom3.begin(),                 // output
-        detail::compute_r3_if_ice<real_t>()   // functor for computing r3 of newly frozen droplets
+        detail::compute_r3_if_frozen<real_t>()   // functor for computing r3 of newly frozen droplets
       );
 
       // Reuse a temporary device vector for cell-wise 3rd moment
