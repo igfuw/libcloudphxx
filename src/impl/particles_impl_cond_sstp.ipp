@@ -98,7 +98,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
 
       // calc Tp
-      if(!const_p) // variable pressure
+      if(opts_init.th_dry)
       {
         thrust::transform(
           sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
@@ -107,7 +107,7 @@ namespace libcloudphxx
           detail::common__theta_dry__T_rhod<real_t>() 
         );  
       }
-      else // external pressure profile
+      else // th_std
       {
         // T = dry2std(th_d, rv) * exner(p_tot)
         thrust::transform(
@@ -117,13 +117,13 @@ namespace libcloudphxx
             sstp_tmp_p.begin()                                         // input - third arg
           )),
           Tp.begin(),                                                  // output
-          detail::common__theta_dry__T_p<real_t>() 
+          detail::common__theta_std__T_p<real_t>() 
         );
       }
 
 
       // calculating drop growth in a timestep using backward Euler 
-      if(!const_p)
+      if(!opts_init.const_p)
       {
         // particle-specific pressure iterator, used twice
         // TODO: store the value somewhere?
@@ -166,7 +166,7 @@ namespace libcloudphxx
             )        
           ); 
       }
-      else // const_p
+      else // opts_init.const_p
       {
         if(turb_cond)
           cond_sstp_hlpr(dt, RH_max, Tp,

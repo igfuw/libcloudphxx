@@ -37,7 +37,7 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__T_p 
+      struct common__theta_std__T_p 
       {
        template <class tpl_t>
        BOOST_GPU_ENABLED 
@@ -173,9 +173,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_Tpr()
     {   
-      if(!const_p) // variable pressure
+      if(opts_init.th_dry) // th is th_dry
       {
-        // T  = common::theta_dry::T<real_t>(th, rhod);
+        // T  = common::theta_dry::T<real_t>(th, rhod), so th is assumed to be the dry-air potential temperature
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
           rhod.begin(),              // input - second arg
@@ -183,14 +183,14 @@ namespace libcloudphxx
           detail::common__theta_dry__T_rhod<real_t>() 
         );
       }
-      else // external pressure profile
+      else // th is th_std
       {
-        // T = th * exner(p_tot)
+        // T = th * exner(p_tot), so th is considered to be the "standard" potential temperature
         thrust::transform(
           th.begin(), th.end(),      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(rv.begin(), p.begin())), // input - second and third args
           T.begin(),                 // output
-          detail::common__theta_dry__T_p<real_t>() 
+          detail::common__theta_std__T_p<real_t>() 
         );
       }
 
@@ -203,7 +203,7 @@ namespace libcloudphxx
           >
         > zip_it_t;
 
-        if(!const_p)
+        if(!opts_init.const_p)
         {
           // p  = common::theta_dry::p<real_t>(rhod, r, T); 
           thrust::transform(
