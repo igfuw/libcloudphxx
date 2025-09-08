@@ -28,11 +28,27 @@ namespace libcloudphxx
             return false;
         };
       };
+      // Functor to compute r^3 only for ice
+      template<class real_t>
+      class compute_r3_if_ice
+      {
+      public:
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, int> &tpl) const // tpl is a tuple of 2 elements: (r2, ice)
+        {
+          real_t r2 = thrust::get<0>(tpl);
+          int ice_flag = thrust::get<1>(tpl);
+          return ice_flag == 1 ? pow(r2, real_t(1.5)) : real_t(0);
+        }
+      };
+
     };
 
     // Immersion freezing
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ice_nucl() {
+
+      // Change liquid droplets to ice under the freezing condition
       thrust::replace_if(ice.begin(), ice.end(),                        // Replacing values of ice with 1 if immersion_freeze_cond is satisfied.
         thrust::make_zip_iterator(
           thrust::make_tuple(                                           // Creating a zip iterator to access multiple vectors:
@@ -44,8 +60,39 @@ namespace libcloudphxx
         detail::immersion_freeze_cond<real_t>(),
         real_t(1)
       );
+
+      // Temporary vector for 3rd moment contribution of each droplet
+      thrust_device::vector<real_t> mom3(count_n);
+
+      // Compute r^3 only for newly frozen droplets
+      thrust::transform(
+        thrust::make_zip_iterator(thrust::make_tuple( // first input
+          rw2.begin(),   // droplet radius squared
+          ice.begin()    // ice flag
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple( // last input
+          rw2.end(),
+          ice.end()
+        )),
+        mom3.begin(),                 // output
+        detail::compute_r3_if_ice<real_t>()   // functor for computing r3 of newly frozen droplets
+      );
+
+      // Reuse a temporary device vector for cell-wise 3rd moment
+      thrust_device::vector<real_t> &dri(tmp_device_real_cell);
+      thrust::fill(dri.begin(), dri.end(), real_t(0));  // reset to 0
+
+      // add contributions to cell-wise 3rd moment
+      thrust::transform(
+        mom3.begin(), mom3.end(),                       // input
+        thrust::make_permutation_iterator(dri.begin(), count_ijk.begin()), // output per cell
+        thrust::make_permutation_iterator(dri.begin(), count_ijk.begin()),
+        thrust::plus<real_t>()
+      );
+
+      // update th according to changes in ri
+      update_th_freezing(dri);
     }
 
-    //TODO: latent heat of freezing
   }
 }

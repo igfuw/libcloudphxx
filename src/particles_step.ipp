@@ -195,7 +195,7 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
             if (opts.ice_nucl)
-              pimpl->ice_nucl_sstp();
+              pimpl->ice_nucl();
             pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
           // copy sstp_tmp_rv and th to rv and th

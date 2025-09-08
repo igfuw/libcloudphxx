@@ -61,7 +61,7 @@ namespace libcloudphxx
           const quantity<si::temperature, real_t>
             th       = thrust::get<2>(tpl) * si::kelvins;
 
-          return dri * common::theta_dry::d_th_d_ri(T, th) / si::kelvins;
+          return dri * common::theta_dry::d_th_d_ri_freeze(T, th) / si::kelvins;
         }
       };
     };
