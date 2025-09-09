@@ -57,8 +57,8 @@ namespace libcloudphxx
       for(auto vec: distmem_real_vctrs)
       { 
         thrust::remove_if(
-          vec->begin(),
-          vec->begin() + n_part,
+          vec.first->begin(),
+          vec.first->begin() + n_part,
           n.begin(),
           arg::_1 == 0
         );

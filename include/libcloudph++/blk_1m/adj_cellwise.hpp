@@ -106,7 +106,7 @@ namespace libcloudphxx
           &rc = std::get<3>(tup);
 
         // double-checking....
-	assert(th >= 273.15); // TODO: that's theta, not T!
+	//assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
 
@@ -150,7 +150,7 @@ namespace libcloudphxx
         th += L0 / (moist_air::c_pd<real_t>() * exner_p) * drc / si::kelvins;
 
 	// triple-checking....
-	assert(th >= 273.15); // that is theta, not T ! TODO
+	//assert(th >= 273.15); // that is theta, not T ! TODO
 	assert(rc >= 0);
 	assert(rv >= 0);
       }
@@ -199,7 +199,7 @@ namespace libcloudphxx
           &rr = std::get<5>(tup);
 
 	// double-checking....
-	assert(th >= 273.15); // TODO: that's theta, not T!
+	//assert(th >= 273.15); // TODO: that's theta, not T!
 	assert(rc >= 0);
 	assert(rv >= 0);
 	assert(rr >= 0);
@@ -281,7 +281,7 @@ namespace libcloudphxx
 	// hopefully true for RK4
 	assert(F.r == rv);
 	// triple-checking....
-	assert(th >= 273.15); // that is theta, not T ! TODO
+	//assert(th >= 273.15); // that is theta, not T ! TODO
 	assert(rc >= 0);
 	assert(rv >= 0);
 	assert(rr >= 0);

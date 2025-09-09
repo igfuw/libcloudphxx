@@ -12,6 +12,7 @@
 #include <blitz/tv2fastiter.h> // otherwise Clang fails in debug mode
 #include <blitz/array.h>
 
+#define BOOST_PYTHON_MAX_ARITY 20 // max number of arguments in a function
 #include <boost/python.hpp>
 #ifdef BPNUMPY
 #include <boost/python/numpy.hpp>

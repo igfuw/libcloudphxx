@@ -20,8 +20,8 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         bool operator()(const thrust::tuple<t_a, t_b> &a, const thrust::tuple<t_a, t_b> &b)
         {
-          if(a.head < b.head) return true;
-          if(a.head == b.head) return a.tail < b.tail;
+          if(thrust::get<0>(a) <  thrust::get<0>(b)) return true;
+          if(thrust::get<0>(a) == thrust::get<0>(b)) return thrust::get<1>(a) < thrust::get<1>(b);
           return false;
         }
       };

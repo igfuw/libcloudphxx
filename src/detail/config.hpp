@@ -39,6 +39,9 @@ namespace libcloudphxx
           eps_tolerance(sizeof(real_t) * 8 / 4)
           {}
       };
+
+      // just some constant, not related to config but had to put them somewhere
+      enum { invalid = -1, no_initial_value = -44 };
     };
   };
 };

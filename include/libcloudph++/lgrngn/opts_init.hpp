@@ -61,6 +61,7 @@ namespace libcloudphxx
       bool sd_conc_large_tail;
 
       // should aerosol concentration init be independent of rhod (assumed to be in cm^{-3} and not at STP)
+      // NOTE: it also affects aerosol sources (not sure if all types of sources...)
       bool aerosol_independent_of_rhod;
 
       // is it allowed to change dt during simulation through opts.dt
@@ -127,6 +128,10 @@ namespace libcloudphxx
 
       // SGS mixing length profile [m]
       std::vector<real_t> SGS_mix_len;
+
+      // profile of aerosol concentration factor
+      // NOTE: it also affects aerosol sources (not sure if all types of sources...)
+      std::vector<real_t> aerosol_conc_factor;
 
       real_t rd_min, rd_max; // min/max dry radius of droplets [m] 
 

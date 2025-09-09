@@ -13,170 +13,230 @@
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
-namespace libcloudphxx
-{
-  namespace python
-  {
+namespace libcloudphxx {
+  namespace python {
     namespace b1m = libcloudphxx::blk_1m;
 
-    namespace blk_1m
-    {
-      template <class arr_t>
+    namespace blk_1m {
+      template<class arr_t>
       void adj_cellwise(
-	const b1m::opts_t<typename arr_t::T_numtype>& opts,
-	const bp_array &rhod,
-	bp_array &th,
-	bp_array &rv,
-	bp_array &rc,
-	bp_array &rr,
-	const typename arr_t::T_numtype &dt
-      )
-      {
-	arr_t 
-	  np2bz_th(np2bz<arr_t>(th)), 
-	  np2bz_rv(np2bz<arr_t>(rv)),
-	  np2bz_rc(np2bz<arr_t>(rc)), 
-	  np2bz_rr(np2bz<arr_t>(rr));
-	b1m::adj_cellwise(
-	  opts, 
-	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
-	  np2bz_th, 
-	  np2bz_rv, 
-	  np2bz_rc, 
-	  np2bz_rr, 
-	  dt
-	);
-      }
-
-      template <class arr_t>
-      void adj_cellwise_constp(
-	const b1m::opts_t<typename arr_t::T_numtype>& opts,
-	const bp_array &rhod,
-	const bp_array &p,
-	bp_array &th,
-	bp_array &rv,
-	bp_array &rc,
-	bp_array &rr,
-	const typename arr_t::T_numtype &dt
-      )
-      {
-	arr_t 
-	  np2bz_th(np2bz<arr_t>(th)), 
-	  np2bz_rv(np2bz<arr_t>(rv)),
-	  np2bz_rc(np2bz<arr_t>(rc)), 
-	  np2bz_rr(np2bz<arr_t>(rr));
-	b1m::adj_cellwise_constp(
-	  opts, 
-	  np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
-	  np2bz<arr_t>(p), 
-	  np2bz_th, 
-	  np2bz_rv, 
-	  np2bz_rc, 
-	  np2bz_rr, 
-	  dt
-	);
-      }
-      
-      template <class arr_t>
-      void adj_cellwise_nwtrph(
-	const b1m::opts_t<typename arr_t::T_numtype>& opts,
-	const bp_array &p,
-	bp_array &th,
-	bp_array &rv,
-	bp_array &rc,
-	const typename arr_t::T_numtype &dt
-      )
-      {
-	arr_t 
-	  np2bz_th(np2bz<arr_t>(th)), 
-	  np2bz_rv(np2bz<arr_t>(rv)),
-	  np2bz_rc(np2bz<arr_t>(rc));
-	b1m::adj_cellwise_nwtrph(
-	  opts, 
-	  np2bz<arr_t>(p), 
-	  np2bz_th, 
-	  np2bz_rv, 
-	  np2bz_rc, 
-	  dt
-	);
-      }
-      
-      template <class arr_t>
-      void rhs_cellwise(
-	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp_array &dot_rc,
-	bp_array &dot_rr,
-	const bp_array &rc,
-	const bp_array &rr
-      ) 
-      {
-	arr_t
-	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr));
-	b1m::rhs_cellwise(
-	  opts,
-	  np2bz_dot_rc,
-	  np2bz_dot_rr,
-	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(rr)
-	);
-      } 
-
-      template <class arr_t>
-      void rhs_cellwise_nwtrph(
-	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp_array &dot_th,
-	bp_array &dot_rv,
-	bp_array &dot_rc,
-	bp_array &dot_rr,
-	const bp_array &rhod,
-	const bp_array &p,
-	const bp_array &th,
-	const bp_array &rv,
-	const bp_array &rc,
-	const bp_array &rr,
-	const typename arr_t::T_numtype &dt
-      ) 
-      {
-	arr_t
-	  np2bz_dot_rc(np2bz<arr_t>(dot_rc)), 
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
-	  np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
-	  np2bz_dot_th(np2bz<arr_t>(dot_th));
-	b1m::rhs_cellwise_nwtrph(
-	  opts,
-	  np2bz_dot_th,
-	  np2bz_dot_rv,
-	  np2bz_dot_rc,
-	  np2bz_dot_rr,
-	  np2bz<arr_t>(rhod),
-	  np2bz<arr_t>(p),
-	  np2bz<arr_t>(th),
-	  np2bz<arr_t>(rv),
-	  np2bz<arr_t>(rc),
-	  np2bz<arr_t>(rr),
-          dt
-	);
-      } 
-
-      template <class arr_t>
-      typename arr_t::T_numtype rhs_columnwise(
-	const b1m::opts_t<typename arr_t::T_numtype> &opts,
-	bp_array &dot_rr,
-	const bp_array &rhod,
-	const bp_array &rr,
-	const typename arr_t::T_numtype &dz
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        const bp_array &rhod,
+        bp_array &th,
+        bp_array &rv,
+        bp_array &rc,
+        bp_array &rr,
+        const typename arr_t::T_numtype &dt
       ) {
-	arr_t
-	  np2bz_dot_rr(np2bz<arr_t>(dot_rr));
-	return b1m::rhs_columnwise(
-	  opts,
-	  np2bz_dot_rr,
-	  np2bz<arr_t>(rhod),
-	  np2bz<arr_t>(rr),
-	  dz
-	);
-      } 
+        arr_t
+        np2bz_th(np2bz<arr_t>(th)),
+        np2bz_rv(np2bz<arr_t>(rv)),
+        np2bz_rc(np2bz<arr_t>(rc)),
+        np2bz_rr(np2bz<arr_t>(rr));
+        b1m::adj_cellwise(
+          opts,
+          np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
+          np2bz_th,
+          np2bz_rv,
+          np2bz_rc,
+          np2bz_rr,
+          dt
+        );
+      }
+
+      template<class arr_t>
+      void adj_cellwise_constp(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        const bp_array &rhod,
+        const bp_array &p,
+        bp_array &th,
+        bp_array &rv,
+        bp_array &rc,
+        bp_array &rr,
+        const typename arr_t::T_numtype &dt
+      ) {
+        arr_t
+        np2bz_th(np2bz<arr_t>(th)),
+        np2bz_rv(np2bz<arr_t>(rv)),
+        np2bz_rc(np2bz<arr_t>(rc)),
+        np2bz_rr(np2bz<arr_t>(rr));
+        b1m::adj_cellwise_constp(
+          opts,
+          np2bz<arr_t>(rhod), // since it is const, it may be a temporary object
+          np2bz<arr_t>(p),
+          np2bz_th,
+          np2bz_rv,
+          np2bz_rc,
+          np2bz_rr,
+          dt
+        );
+      }
+
+      template<class arr_t>
+      void adj_cellwise_nwtrph(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        const bp_array &p,
+        bp_array &th,
+        bp_array &rv,
+        bp_array &rc,
+        const typename arr_t::T_numtype &dt
+      ) {
+        arr_t
+        np2bz_th(np2bz<arr_t>(th)),
+        np2bz_rv(np2bz<arr_t>(rv)),
+        np2bz_rc(np2bz<arr_t>(rc));
+        b1m::adj_cellwise_nwtrph(
+          opts,
+          np2bz<arr_t>(p),
+          np2bz_th,
+          np2bz_rv,
+          np2bz_rc,
+          dt
+        );
+      }
+
+      template<class arr_t>
+      void rhs_cellwise(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_rc,
+        bp_array &dot_rr,
+        const bp_array &rc,
+        const bp_array &rr
+      ) {
+        arr_t
+        np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+        np2bz_dot_rr(np2bz<arr_t>(dot_rr));
+        b1m::rhs_cellwise(
+          opts,
+          np2bz_dot_rc,
+          np2bz_dot_rr,
+          np2bz<arr_t>(rc),
+          np2bz<arr_t>(rr)
+        );
+      }
+
+      template<class arr_t>
+      void rhs_cellwise_nwtrph(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_th,
+        bp_array &dot_rv,
+        bp_array &dot_rc,
+        bp_array &dot_rr,
+        const bp_array &rhod,
+        const bp_array &p,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rc,
+        const bp_array &rr,
+        const typename arr_t::T_numtype &dt
+      ) {
+        arr_t
+        np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+        np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+        np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+        np2bz_dot_th(np2bz<arr_t>(dot_th));
+        b1m::rhs_cellwise_nwtrph(
+          opts,
+          np2bz_dot_th,
+          np2bz_dot_rv,
+          np2bz_dot_rc,
+          np2bz_dot_rr,
+          np2bz<arr_t>(rhod),
+          np2bz<arr_t>(p),
+          np2bz<arr_t>(th),
+          np2bz<arr_t>(rv),
+          np2bz<arr_t>(rc),
+          np2bz<arr_t>(rr),
+          dt
+        );
+      }
+
+
+      template<class arr_t>
+      void rhs_cellwise_nwtrph_ice(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_th,
+        bp_array &dot_rv,
+        bp_array &dot_rc,
+        bp_array &dot_rr,
+        bp_array &dot_ria,
+        bp_array &dot_rib,
+        const bp_array &rhod,
+        const bp_array &p,
+        const bp_array &th,
+        const bp_array &rv,
+        const bp_array &rc,
+        const bp_array &rr,
+        const bp_array &ria,
+        const bp_array &rib,
+        const typename arr_t::T_numtype &dt
+      ) {
+        arr_t
+        np2bz_dot_ria(np2bz<arr_t>(dot_ria)),
+        np2bz_dot_rib(np2bz<arr_t>(dot_rib)),
+        np2bz_dot_rc(np2bz<arr_t>(dot_rc)),
+        np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
+        np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
+        np2bz_dot_th(np2bz<arr_t>(dot_th));
+        b1m::rhs_cellwise_nwtrph_ice(
+          opts,
+          np2bz_dot_th,
+          np2bz_dot_rv,
+          np2bz_dot_rc,
+          np2bz_dot_rr,
+          np2bz_dot_ria,
+          np2bz_dot_rib,
+          np2bz<arr_t>(rhod),
+          np2bz<arr_t>(p),
+          np2bz<arr_t>(th),
+          np2bz<arr_t>(rv),
+          np2bz<arr_t>(rc),
+          np2bz<arr_t>(rr),
+          np2bz<arr_t>(ria),
+          np2bz<arr_t>(rib),
+          dt
+        );
+      }
+
+      template<class arr_t>
+      typename arr_t::T_numtype rhs_columnwise(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_rr,
+        const bp_array &rhod,
+        const bp_array &rr,
+        const typename arr_t::T_numtype &dz
+      ) {
+        arr_t
+        np2bz_dot_rr(np2bz<arr_t>(dot_rr));
+        return b1m::rhs_columnwise(
+          opts,
+          np2bz_dot_rr,
+          np2bz<arr_t>(rhod),
+          np2bz<arr_t>(rr),
+          dz
+        );
+      }
+
+      template <class arr_t>
+      typename arr_t::T_numtype rhs_columnwise_ice(
+        const b1m::opts_t<typename arr_t::T_numtype> &opts,
+        bp_array &dot_ri,
+        const bp_array &rhod,
+        const bp_array &ri,
+        const typename arr_t::T_numtype &dz,
+        const b1m::ice_t ice_type
+      ) {
+        arr_t
+        np2bz_dot_ri(np2bz<arr_t>(dot_ri));
+        return b1m::rhs_columnwise_ice(
+          opts,
+          np2bz_dot_ri,
+          np2bz<arr_t>(rhod),
+          np2bz<arr_t>(ri),
+          dz,
+          ice_type
+        );
+      }
     };
   };
 };
