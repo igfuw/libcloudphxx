@@ -205,7 +205,7 @@ namespace libcloudphxx
 
         if(!opts_init.const_p)
         {
-          // p  = common::theta_dry::p<real_t>(rhod, r, T); 
+          // p  = common::theta_dry::p<real_t>(rhod, r, T); works for both th = th_dry and th = th_std 
           thrust::transform(
             zip_it_t(thrust::make_tuple(rhod.begin(), rv.begin(), T.begin())), // input - begin
             zip_it_t(thrust::make_tuple(rhod.end(),   rv.end(),   T.end()  )), // input - end
