@@ -141,7 +141,7 @@ namespace libcloudphxx
             quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
               activation_rate<real_t>(n_ccn, nc / si::kilograms, dt * si::seconds);
 
-	    local_dot_nc += tmp * si::kilograms * si::seconds;
+            local_dot_nc += tmp * si::kilograms * si::seconds;
             local_dot_rc += tmp * ccnmass<real_t>() * si::seconds;
           }
 
