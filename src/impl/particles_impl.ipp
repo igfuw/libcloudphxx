@@ -23,11 +23,11 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {
-      enum { invalid = -1 };
-
-    };
+    // namespace detail
+    // {
+    //   enum { invalid = -1 };
+    //
+    // };
 
     // pimpl stuff
     template <typename real_t, backend_t device>
@@ -148,7 +148,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        RH, // relative humisity 
+        RH, // relative humisity
+        RH_i, // relative humisity w.r.t. ice
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
@@ -273,9 +274,6 @@ namespace libcloudphxx
 
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
-
-      // real_t vectors copied in distributed memory case
-      std::set<thrust_device::vector<real_t>*> distmem_real_vctrs;
 
       // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
       std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
@@ -461,9 +459,9 @@ namespace libcloudphxx
 
         if(opts_init.ice_switch)
         {
-          distmem_real_vctrs.insert(&ice);
-          distmem_real_vctrs.insert(&rd3_insol);
-          distmem_real_vctrs.insert(&T_freeze);
+          distmem_real_vctrs.insert({&ice, detail::no_initial_value});
+          distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
+          distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});
         }
       }
 
