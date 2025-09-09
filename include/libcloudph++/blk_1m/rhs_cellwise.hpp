@@ -14,16 +14,14 @@ namespace libcloudphxx
 {
   namespace blk_1m
   {
-    //<listing>
     template <typename real_t, class cont_t>
-    void rhs_cellwise(
+    void rhs_cellwise_hlpr(
       const opts_t<real_t> &opts,
       cont_t &dot_rc_cont,
       cont_t &dot_rr_cont,
       const cont_t &rc_cont,
       const cont_t &rr_cont
     )
-//</listing>
     {
       for (auto tup : zip(dot_rc_cont, dot_rr_cont, rc_cont, rr_cont))
       {
@@ -64,7 +62,20 @@ namespace libcloudphxx
     }
 
     template <typename real_t, class cont_t>
-    void rhs_cellwise_nwtrph(
+    void rhs_cellwise(
+      const opts_t<real_t> &opts,
+      cont_t &dot_rc_cont,
+      cont_t &dot_rr_cont,
+      const cont_t &rc_cont,
+      const cont_t &rr_cont
+    )
+    {
+      assert(!opts.adj_nwtrph && "libcloudph++: rhs_cellwise without rain evap requires RK4 in adj_cellwise");
+      rhs_cellwise_hlpr<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
+    }
+
+    template <typename real_t, class cont_t>
+    void rhs_cellwise(
       const opts_t<real_t> &opts,
       cont_t &dot_th_cont,
       cont_t &dot_rv_cont,
@@ -79,7 +90,8 @@ namespace libcloudphxx
       const real_t &dt
     )
     {
-      rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
+      assert(opts.adj_nwtrph && "libcloudph++: rhs_cellwise with rain evap requires Newton-Raphson in adj_cellwise");
+      rhs_cellwise_hlpr<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
 
       // rain evaporation treated as a force in Newthon-Raphson saturation adjustment
       for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rr_cont, rhod_cont, p_cont, th_cont, rv_cont, rr_cont))
@@ -95,8 +107,8 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t>
           rhod = std::get<3>(tup) * si::kilograms / si::cubic_metres;
 
-        const quantity<si::pressure, real_t>
-          p   = std::get<4>(tup) * si::pascals;
+        // const quantity<si::pressure, real_t>
+        //   p   = std::get<4>(tup) * si::pascals;
 
         const quantity<si::temperature, real_t>
           th = std::get<5>(tup) * si::kelvins;
@@ -105,7 +117,22 @@ namespace libcloudphxx
           &rv = std::get<6>(tup),
           &rr = std::get<7>(tup);
 
-        quantity<si::temperature, real_t> T = th * theta_std::exner(p);
+        // quantity<si::temperature, real_t> T = th * theta_std::exner(p);
+        quantity<si::temperature, real_t> T;
+        quantity<si::pressure, real_t>    p;
+
+        if(!opts.const_p && opts.th_dry)
+        {
+          T = common::theta_dry::T<real_t>(th, rhod);
+          p = common::theta_dry::p<real_t>(rhod, rv, T);
+        }
+        else if(opts.const_p && !opts.th_dry)
+        {
+          p = std::get<4>(tup) * si::pascals;
+          T = th * common::theta_std::exner(p);
+        }
+        else throw std::runtime_error("rhs_cellwise: one (and only one) of opts.const_p and opts.th_dry must be true");
+
         real_t r_vs = const_cp::r_vs(T, p);
 
         rr_to_rv += (
@@ -123,12 +150,13 @@ namespace libcloudphxx
 
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;
-        dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rr_to_rv / si::kelvins;
+        //dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rr_to_rv / si::kelvins;
+        dot_th += d_th_d_rv<real_t>(T, th) * rr_to_rv / si::kelvins;
       }
     }
 
     template <typename real_t, class cont_t>
-    void rhs_cellwise_nwtrph_ice(
+    void rhs_cellwise_ice(
       const opts_t<real_t> &opts,
       cont_t &dot_th_cont,
       cont_t &dot_rv_cont,
@@ -148,8 +176,11 @@ namespace libcloudphxx
     )
     {
       // autoconversion, collection and rain evaporation:
-      rhs_cellwise_nwtrph<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, rhod_cont, p_cont,
-                                          th_cont, rv_cont, rc_cont, rr_cont, dt);
+      if(opts.adj_nwtrph)
+        rhs_cellwise<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, rhod_cont, p_cont,
+                                     th_cont, rv_cont, rc_cont, rr_cont, dt);
+      else
+        rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);
 
       for (auto tup : zip(dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, dot_ria_cont, dot_rib_cont, rhod_cont,
                           p_cont, th_cont, rv_cont, rc_cont, rr_cont, ria_cont, rib_cont))
@@ -175,8 +206,8 @@ namespace libcloudphxx
         const quantity<si::mass_density, real_t>
           rhod = std::get<6>(tup) * si::kilograms / si::cubic_metres;
 
-        const quantity<si::pressure, real_t>
-          p   = std::get<7>(tup) * si::pascals;
+        // const quantity<si::pressure, real_t>
+        //   p   = std::get<7>(tup) * si::pascals;
 
         const quantity<si::temperature, real_t>
           th = std::get<8>(tup) * si::kelvins;
@@ -188,7 +219,22 @@ namespace libcloudphxx
           &ria    = std::get<12>(tup),
           &rib    = std::get<13>(tup);
 
-        quantity<si::temperature, real_t> T = th * theta_std::exner(p);
+        // quantity<si::temperature, real_t> T = th * theta_std::exner(p);
+        quantity<si::temperature, real_t> T;
+        quantity<si::pressure, real_t>    p;
+
+        if(!opts.const_p && opts.th_dry)
+        {
+          T = common::theta_dry::T<real_t>(th, rhod);
+          p = common::theta_dry::p<real_t>(rhod, rv, T);
+        }
+        else if(opts.const_p && !opts.th_dry)
+        {
+          p = std::get<7>(tup) * si::pascals;
+          T = th * common::theta_std::exner(p);
+        }
+        else throw std::runtime_error("rhs_cellwise: one (and only one) of opts.const_p and opts.th_dry must be true");
+
         real_t rvs = const_cp::r_vs(T, p);
         real_t rvsi = const_cp::r_vsi(T, p);
 
@@ -369,9 +415,9 @@ namespace libcloudphxx
         dot_rr += ria_to_rr - rr_to_rib + rib_to_rr;
         dot_ria += rc_to_ria + rv_to_ria - ria_to_rib - ria_to_rr;
         dot_rib += rr_to_rib + ria_to_rib + rv_to_rib + rc_to_rib - rib_to_rr;
-        dot_th += const_cp::l_s(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rv_to_ria + rv_to_rib) /
+        dot_th += th / T * const_cp::l_s(T) / (moist_air::c_pd<real_t>()) * (rv_to_ria + rv_to_rib) /
           si::kelvins; //heat of sublimation
-        dot_th += const_cp::l_f(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * (rc_to_ria + rc_to_rib +
+        dot_th += th / T * const_cp::l_f(T) / (moist_air::c_pd<real_t>()) * (rc_to_ria + rc_to_rib +
           rr_to_rib - rib_to_rr - ria_to_rr) / si::kelvins; //heat of freezing
 
       }

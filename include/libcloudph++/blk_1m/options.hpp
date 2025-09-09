@@ -36,7 +36,7 @@ namespace libcloudphxx
         k_acnv = 0.001,  // Kessler autoconversion (eq. 5a in Grabowski & Smolarkiewicz 1996)
         r_eps  = 2e-5;   // absolute tolerance
 
-      bool adj_nwtrph = true; // if true, use simpler Newton-Raphson iteration in saturation adjustment and rhs_cellwise; otherwise use RK4 from boost.odeint
+      bool adj_nwtrph = true; // if true, use simpler Newton-Raphson iteration in saturation adjustment; otherwise use RK4 from boost.odeint
       int nwtrph_iters = 3; // number of iterations in Newton-Raphson saturation adjustment
 
       // NOTE: only tested combinations are: th_dry == true && const_p == false; th_dry == false && const_p == true
