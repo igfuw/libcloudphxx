@@ -128,20 +128,20 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_freezing(
-      thrust_device::vector<real_t> &dri // change in ice mixing ratio
+      thrust_device::vector<real_t> &drw // change in 3rd mom of liquid
     )
     {
       if(!sorted) throw std::runtime_error("libcloudph++: update_th_freezing called on an unsorted set");
-      nancheck(dri, "update_th_freezing: input dri");
+      nancheck(drw, "update_th_freezing: input drw");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
       thrust::transform(
-        dri.begin(), dri.end(),                  // input - 1st arg
+        drw.begin(), drw.end(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
         ),
-        dri.begin(),                             // output
+        drw.begin(),                             // output
         thrust::multiplies<real_t>()
       );
 
@@ -158,9 +158,9 @@ namespace libcloudphxx
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(
-              dri.begin(),      //
-              T.begin(),        // dth = drv * d_th_d_rv(T, th)
-              th.begin()        //
+              drw.begin(),
+              T.begin(),
+              th.begin()
             )),
             detail::dth_freezing<real_t>()
           ),
