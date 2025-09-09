@@ -348,12 +348,12 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise(
       const opts_t<real_t> &opts,
-      const cont_t &rhod_cont,
+      const cont_t &rhod_cont, // used only if opts_adj_nwtrph == false
       const cont_t &p_cont, // used only if opts.const_p == true
       cont_t &th_cont,
       cont_t &rv_cont,
       cont_t &rc_cont,
-      cont_t &rr_cont,
+      cont_t &rr_cont, // used only if opts_adj_nwtrph == false
       const real_t &dt
     )
 //</listing>
