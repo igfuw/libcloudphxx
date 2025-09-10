@@ -117,7 +117,7 @@ target_include_directories(cloudphxx_lgrngn
 target_compile_features(cloudphxx_lgrngn PUBLIC cxx_std_14)
 # config-specific flags
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:DEBUG>>:                  -g -Og -DTHRUST_DEBUG>)
-target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:                -Ofast -march=native -Winline -DNDEBUG >)
+target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELEASE>>:                -Ofast -march=native -DNDEBUG >)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFO>>:         -Ofast -march=native>)
 target_compile_options(cloudphxx_lgrngn PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CONFIG:RELWITHDEBINFOPORTABLE>>: -Ofast>)
 
@@ -158,26 +158,48 @@ if (CMAKE_CUDA_COMPILER)
   message(STATUS "Trying to obtain CUDA capability of local hardware...")
   set(pfx "compute cabability check")
   execute_process(COMMAND "mktemp" "-d" "/tmp/tmp.XXX" RESULT_VARIABLE status OUTPUT_VARIABLE tmpdir)
+  string(STRIP "${tmpdir}" tmpdir)  # Removes leading/trailing whitespace and newlines
   if (NOT status EQUAL 0) 
     message(FATAL_ERROR "${pfx}: mkdtemp failed")
   endif()
   file(WRITE "${tmpdir}/test.cu" "
     #include <iostream>
+    #include <fstream>
     
     int main() 
     {
       int DeviceCount;
-      cudaGetDeviceCount(&DeviceCount);
+      std::ofstream fdev(\"${tmpdir}/device_capability.txt\");
+      cudaError_t error_id = cudaGetDeviceCount(&DeviceCount);
+
+      if (error_id != cudaSuccess) { // error_id==100 is 'no CUDA-capable device is detected'
+        std::cerr << \"cudaGetDeviceCount returned \" <<  static_cast<int>(error_id) << \" -> \" << cudaGetErrorString(error_id) << std::endl;
+        return 0;
+  //      exit(EXIT_FAILURE);
+      }
+
+      int driverVersion, runtimeVersion;
       for(int i = 0 ; i < DeviceCount; ++i)
       {
+        cudaSetDevice(i);
         cudaDeviceProp prop; 
-        cudaError_t err = cudaGetDeviceProperties(&prop, i); 
-        if (err == cudaSuccess)
-          std::cout << prop.major << prop.minor << \" \" ;
+        cudaError_t error_id = cudaGetDeviceProperties(&prop, i); 
+        if (error_id == cudaSuccess)
+        {
+          std::cout << \"    Device \" << i << \": \" << prop.name << std::endl;
+          cudaDriverGetVersion(&driverVersion);
+          cudaRuntimeGetVersion(&runtimeVersion);
+          std::cout << \"      CUDA Driver Version / Runtime Version  \" 
+            << driverVersion / 1000 << \".\" << (driverVersion % 100) / 10 << \" / \" 
+            <<  runtimeVersion / 1000 << \".\" << (runtimeVersion % 100) / 10 << std::endl;
+          std::cout << \"      CUDA Capability Major/Minor version number: \" << prop.major << \".\" << prop.minor << std::endl;
+          fdev << prop.major << prop.minor << \" \" ;
+        }
         else
         {   
-          std::cerr << cudaGetErrorString(err);
-          std::cout << \"? \";
+          std::cerr << \"cudaGetDeviceProperties returned \" <<  static_cast<int>(error_id) << \" -> \" << cudaGetErrorString(error_id) << std::endl;
+          // std::cout << \"? \";
+   //       exit(EXIT_FAILURE);
         }   
       }
     }
@@ -186,13 +208,18 @@ if (CMAKE_CUDA_COMPILER)
   if (NOT status EQUAL 0) 
     message(FATAL_ERROR "${pfx}: nvcc failed\n ${msg}")
   endif()
-  execute_process(COMMAND "./a.out" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status OUTPUT_VARIABLE msg)
+  execute_process(COMMAND "./a.out" WORKING_DIRECTORY ${tmpdir} RESULT_VARIABLE status OUTPUT_VARIABLE msg ERROR_VARIABLE err)
+  message(STATUS "error output of CUDA devices detection: ${err}")
   if (NOT status EQUAL 0)
     message(FATAL_ERROR "${pfx}: test program failed")
   endif()
+  message(STATUS "output of CUDA devices detection:\n ${msg}")
+  # read device capabilites from the file created by test.cu
+  file(READ "${tmpdir}/device_capability.txt" msg)
   separate_arguments(msg)
   list(REMOVE_ITEM msg "")
   list(LENGTH msg gpu_count)
+  message(STATUS "number of CUDA devices detected: ${gpu_count}")
   if(gpu_count GREATER 1 OR LIBCLOUDPHXX_FORCE_MULTI_CUDA)
     # compile the multi_CUDA backend
     message(STATUS "Detected more than 1 GPU or LIBCLOUDPHXX_FORCE_MULTI_CUDA set, the multi_CUDA backend will be built.")
@@ -208,12 +235,15 @@ if (CMAKE_CUDA_COMPILER)
     # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-compilation
     list(SORT msg)
     list(GET msg 0 VIRT)
-    if (VIRT STREQUAL "?")
-      set (VIRT "35")
-    endif()
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
+#    if (VIRT STREQUAL "?")
+#      set (VIRT "35")
+#    endif()
+    set_target_properties(cloudphxx_lgrngn PROPERTIES CUDA_ARCHITECTURES ${VIRT}-virtual)
+#    set_property(TARGET  PROPERTY CUDA_ARCHITECTURES 70-real 72-virtual)
 
-    set(GPU_CODE_OPTIONS  --gpu-code=)
+#    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --gpu-architecture=compute_${VIRT}>)
+
+    #set(GPU_CODE_OPTIONS  --gpu-code=)
     foreach(code ${msg})
       message(STATUS "CUDA capability: ${code}")
       if (code STREQUAL "?")
@@ -224,9 +254,11 @@ if (CMAKE_CUDA_COMPILER)
       if (arch EQUAL "21") # see https://devtalk.nvidia.com/default/topic/606195/-solved-nvcc-fatal-unsupported-gpu-architecture-compute_21-/
         set(arch "20")
       endif()
-      set(GPU_CODE_OPTIONS ${GPU_CODE_OPTIONS}sm_${arch},)
+      set_property(TARGET cloudphxx_lgrngn APPEND PROPERTY CUDA_ARCHITECTURES ${arch}-real)
+      #set_target_properties(cloudphxx_lgrngn PROPERTIES CUDA_ARCHITECTURES ${arch}-real)
+      #set(GPU_CODE_OPTIONS ${GPU_CODE_OPTIONS}sm_${arch},)
     endforeach(code)
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>:${GPU_CODE_OPTIONS}>)
+#    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>:${GPU_CODE_OPTIONS}>)
   else()
     message(STATUS "CUDA capability check didn't find any devices")
   endif()

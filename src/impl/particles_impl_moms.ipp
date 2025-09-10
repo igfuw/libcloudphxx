@@ -151,7 +151,7 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct moment_counter : thrust::unary_function<const thrust::tuple<real_t, real_t>&, real_t>
+      struct moment_counter //: thrust::unary_function<const thrust::tuple<real_t, real_t>&, real_t>
       {
         real_t xp;
 

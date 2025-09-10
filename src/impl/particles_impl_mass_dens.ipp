@@ -5,7 +5,7 @@ namespace libcloudphxx
     namespace detail
     {   
       template <typename real_t>
-      struct mass_dens_estimator : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct mass_dens_estimator //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
 
         real_t rad, sig0, xp;

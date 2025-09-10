@@ -12,7 +12,7 @@ namespace libcloudphxx
     namespace detail
     {
       template<class T>
-      struct add_val : public thrust::unary_function<T, T>
+      struct add_val //: public thrust::unary_function<T, T>
       {
         T val;
         add_val(T val): val(val) {}

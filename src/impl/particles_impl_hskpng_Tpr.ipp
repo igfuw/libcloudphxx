@@ -49,7 +49,7 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct common__theta_dry__p : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct common__theta_dry__p// : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
        BOOST_GPU_ENABLED
        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)
@@ -106,7 +106,7 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       real_t RHi_pv_cc(const real_t &p, const real_t &rv, const real_t &T)
       {
-        return real_t( 
+        return real_t(
           common::moist_air::p_v(p * si::pascals, quantity<si::dimensionless, real_t>(rv))
           / common::const_cp::p_vsi(T * si::kelvins));
       }
@@ -117,11 +117,11 @@ namespace libcloudphxx
       {
         return real_t(
           rv
-          / common::const_cp::r_vsi(T * si::kelvins, p * si::pascals)); 
+          / common::const_cp::r_vsi(T * si::kelvins, p * si::pascals));
       }
 
       template <typename real_t>
-      struct RH : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct RH //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {   
         /*
  *      on CUDA 8.0 the code below compiles, but gives memory errors at runtime
@@ -178,15 +178,15 @@ namespace libcloudphxx
       }; 
 
       template <typename real_t>
-      struct RH_i : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
-      {   
+      struct RH_i //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      {
         const RH_formula_t RH_formula;
         // the type of formula to be used for RH
         RH_i(RH_formula_t RH_formula):
           RH_formula(RH_formula)
         {}
 
-        BOOST_GPU_ENABLED 
+        BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)  // p, rv, T
         {
           switch (RH_formula)
@@ -201,10 +201,10 @@ namespace libcloudphxx
               return 0.;
           }
         }
-      }; 
-      
+      };
+
       template <typename real_t>
-      struct common__vterm__visc : thrust::unary_function<const real_t&, real_t>// TODO: rename it! (vterm) visc_eta?
+      struct common__vterm__visc //: thrust::unary_function<const real_t&, real_t>// TODO: rename it! (vterm) visc_eta?
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &T)
@@ -266,7 +266,7 @@ namespace libcloudphxx
           detail::RH<real_t>(opts_init.RH_formula)
         );
 
-        // RH_i 
+        // RH_i
         thrust::transform(
           zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
           zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end

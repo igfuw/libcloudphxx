@@ -210,7 +210,7 @@ namespace libcloudphxx
               ijk.begin() + n_part_old
             )) + n_part_to_init,
             have_match.begin(),
-            thrust::identity<bool>()
+            cuda::std::identity()
           );
 
           n_part_to_init -= count_bins;

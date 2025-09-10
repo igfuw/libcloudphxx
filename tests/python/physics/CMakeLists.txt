@@ -6,7 +6,7 @@ foreach(test test_coal coalescence_golovin coalescence_hall_davis_no_waals lgrng
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bindings/python" 
-    COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/physics/${test}.py"
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/physics/${test}.py"
   )
 endforeach()
 
