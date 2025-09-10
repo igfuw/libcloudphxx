@@ -17,8 +17,8 @@ namespace libcloudphxx {
   namespace python {
     namespace b1m = libcloudphxx::blk_1m;
 
-/*
     namespace blk_1m {
+/*
       template<class arr_t>
       void adj_cellwise(
         const b1m::opts_t<typename arr_t::T_numtype> &opts,
@@ -89,7 +89,7 @@ namespace libcloudphxx {
         np2bz_th(np2bz<arr_t>(th)),
         np2bz_rv(np2bz<arr_t>(rv)),
         np2bz_rc(np2bz<arr_t>(rc)),
-        np2bz_rc(np2bz<arr_t>(rr));
+        np2bz_rr(np2bz<arr_t>(rr));
         b1m::adj_cellwise(
           opts,
           np2bz<arr_t>(rhod),
@@ -123,7 +123,7 @@ namespace libcloudphxx {
       }
 
       template<class arr_t>
-      void rhs_cellwise(
+      void rhs_cellwise_revap(
         const b1m::opts_t<typename arr_t::T_numtype> &opts,
         bp_array &dot_th,
         bp_array &dot_rv,
@@ -142,7 +142,7 @@ namespace libcloudphxx {
         np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
         np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
         np2bz_dot_th(np2bz<arr_t>(dot_th));
-        b1m::rhs_cellwise_nwtrph(
+        b1m::rhs_cellwise_revap(
           opts,
           np2bz_dot_th,
           np2bz_dot_rv,
@@ -185,7 +185,7 @@ namespace libcloudphxx {
         np2bz_dot_rr(np2bz<arr_t>(dot_rr)),
         np2bz_dot_rv(np2bz<arr_t>(dot_rv)),
         np2bz_dot_th(np2bz<arr_t>(dot_th));
-        b1m::rhs_cellwise_nwtrph_ice(
+        b1m::rhs_cellwise_ice(
           opts,
           np2bz_dot_th,
           np2bz_dot_rv,

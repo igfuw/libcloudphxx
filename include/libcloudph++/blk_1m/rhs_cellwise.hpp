@@ -75,7 +75,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, class cont_t>
-    void rhs_cellwise(
+    void rhs_cellwise_revap(
       const opts_t<real_t> &opts,
       cont_t &dot_th_cont,
       cont_t &dot_rv_cont,
@@ -151,7 +151,7 @@ namespace libcloudphxx
         dot_rv += rr_to_rv;
         dot_rr -= rr_to_rv;
         //dot_th -= const_cp::l_v(T) / (moist_air::c_pd<real_t>() * theta_std::exner(p)) * rr_to_rv / si::kelvins;
-        dot_th += d_th_d_rv<real_t>(T, th) * rr_to_rv / si::kelvins;
+        dot_th += common::theta_dry::d_th_d_rv<real_t>(T, th) * rr_to_rv / si::kelvins;
       }
     }
 
@@ -177,7 +177,7 @@ namespace libcloudphxx
     {
       // autoconversion, collection and rain evaporation:
       if(opts.adj_nwtrph)
-        rhs_cellwise<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, rhod_cont, p_cont,
+        rhs_cellwise_revap<real_t, cont_t>(opts, dot_th_cont, dot_rv_cont, dot_rc_cont, dot_rr_cont, rhod_cont, p_cont,
                                      th_cont, rv_cont, rc_cont, rr_cont, dt);
       else
         rhs_cellwise<real_t, cont_t>(opts, dot_rc_cont, dot_rr_cont,  rc_cont, rr_cont);

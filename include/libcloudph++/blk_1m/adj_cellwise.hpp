@@ -90,6 +90,7 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise_nwtrph(
       const opts_t<real_t> &opts,
+      const cont_t &rhod_cont,
       const cont_t &p_cont,
       cont_t &th_cont,
       cont_t &rv_cont,
@@ -100,12 +101,12 @@ namespace libcloudphxx
       using namespace common;
       if (!opts.cond) return; // ignoring values of opts.cevp
 
-      for (auto tup : zip(p_cont, th_cont, rv_cont, rc_cont))
+      for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont))
       {
         real_t
-          &th = std::get<1>(tup),
-          &rv = std::get<2>(tup),
-          &rc = std::get<3>(tup);
+          &th = std::get<2>(tup),
+          &rv = std::get<3>(tup),
+          &rc = std::get<4>(tup);
 
         // double-checking....
         //assert(th >= 273.15); // TODO: that's theta, not T!
@@ -117,18 +118,20 @@ namespace libcloudphxx
         real_t rv_tmp = rv;
         quantity<si::temperature, real_t> th_tmp = th * si::kelvins;
 
-        quantity<si::temperature, real_t> T, T_tmp;
-        quantity<si::pressure, real_t>    p;
+        quantity<si::temperature, real_t>   T, T_tmp;
+        quantity<si::mass_density, real_t>  rhod;
+        quantity<si::pressure, real_t>      p;
         quantity<si::dimensionless, real_t> exner;
 
         if(!opts.const_p && opts.th_dry)
         {
+          rhod = std::get<2>(tup) * si::kilograms / si::cubic_metres;
           T = common::theta_dry::T<real_t>(th_tmp, rhod);
           p = common::theta_dry::p<real_t>(rhod, rv, T);
         }
         else if(opts.const_p && !opts.th_dry)
         {
-          p = std::get<0>(tup) * si::pascals;
+          p = std::get<1>(tup) * si::pascals;
           exner = common::theta_std::exner(p);
           T = th_tmp * exner;
         }
@@ -137,10 +140,11 @@ namespace libcloudphxx
         // constant l_v used in theta update
         auto L0 = const_cp::l_v(T);
 
-        for (int iter = 0, T_tmp = T; iter < opts.nwtrph_iters; ++iter)
+        T_tmp = T;
+        for (int iter = 0; iter < opts.nwtrph_iters; ++iter)
         {
           // TODO: use the approximate Tetens formulas for p_vs and r_vs from tetens.hpp?
-          quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T_Tmp);
+          quantity<si::pressure, real_t> p_vs = const_cp::p_vs(T_tmp);
 
           // tricky, constant L0 comes from theta = theta + L0 / (c_pd * exner_p) * drc
           // while variable L comes from dp_vs/dT
@@ -165,7 +169,7 @@ namespace libcloudphxx
 
         rv -= drc;
         rc += drc;
-        th += th / T * L0 / (moist_air::c_pd<real_t>()) * drc / si::kelvins;
+        th += th / T * L0 / (moist_air::c_pd<real_t>()) * drc;
 
         // triple-checking....
         //assert(th >= 273.15); // that is theta, not T ! TODO
@@ -348,7 +352,7 @@ namespace libcloudphxx
     template <typename real_t, class cont_t>
     void adj_cellwise(
       const opts_t<real_t> &opts,
-      const cont_t &rhod_cont, // used only if opts_adj_nwtrph == false
+      const cont_t &rhod_cont, // used only if opts.th_dry == true
       const cont_t &p_cont, // used only if opts.const_p == true
       cont_t &th_cont,
       cont_t &rv_cont,
@@ -359,7 +363,7 @@ namespace libcloudphxx
 //</listing>
     {
       if(opts.adj_nwtrph)
-        adj_cellwise_nwtrph(opts, p_cont, th_cont, rv_cont, rc_cont, dt);
+        adj_cellwise_nwtrph(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, dt);
       else
         adj_cellwise_rk4(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt);
     }
