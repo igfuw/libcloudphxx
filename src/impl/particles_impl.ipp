@@ -23,11 +23,6 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // namespace detail
-    // {
-    //   enum { invalid = -1 };
-    //
-    // };
 
     // pimpl stuff
     template <typename real_t, backend_t device>

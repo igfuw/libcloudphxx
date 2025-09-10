@@ -37,7 +37,7 @@ namespace libcloudphxx
       {outdry_vol, "dry_volume"},
       {outprtcl_num, "particle_number"},
       {outice_vol, "ice_volume"},
-      {outliq_num, "water_number"},
+      {outliq_num, "liquid_number"},
       {outice_num, "ice_number"}
     };
 

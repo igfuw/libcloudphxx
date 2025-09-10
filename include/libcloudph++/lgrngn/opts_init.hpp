@@ -146,10 +146,15 @@ namespace libcloudphxx
       // type of CCN source
       src_t src_type;
 
+      // number of SDs created from src_dry_distros per cell per source iteration
+      //unsigned long long src_sd_conc;
+
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
 
+      // timestep interval at which source will be applied
+      //int supstp_src;
 
       // --- aerosol relaxation stuff ---
       // initial dry sizes of aerosol
