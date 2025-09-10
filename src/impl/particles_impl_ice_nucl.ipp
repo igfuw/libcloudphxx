@@ -28,18 +28,18 @@ namespace libcloudphxx
             return false;
         };
       };
-      // Functor to compute r^3 only for newly frozen particles
+      // Functor to return rw2 of newly frozen droplets, otherwise 0
       template<class real_t>
-      class compute_r3_if_frozen
+      class rw2_if_newfrozen
       {
       public:
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (r2, ice, ice_old)
+        real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (rw2, ice, ice_old)
         {
-          real_t r2 = thrust::get<0>(tpl);
+          real_t rw2 = thrust::get<0>(tpl);
           int ice_flag = thrust::get<1>(tpl);
           int ice_flag_old = thrust::get<2>(tpl);
-          return (ice_flag==1 && ice_flag_old==0) ? pow(r2, real_t(1.5)) : real_t(0);
+          return (ice_flag==1 && ice_flag_old==0) ? rw2 : real_t(0);
         }
       };
 
@@ -48,6 +48,8 @@ namespace libcloudphxx
     // Immersion freezing
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ice_nucl() {
+
+      hskpng_sort();
 
       // Copy current ice flags
       thrust_device::vector<int> ice_old = ice;
@@ -65,10 +67,9 @@ namespace libcloudphxx
         real_t(1)
       );
 
-      // Temporary vector for 3rd moment contribution of each droplet
-      thrust_device::vector<real_t> mom3(count_n);
+      // Temporary vector for rw2 of newly frozen droplets
+      thrust_device::vector<real_t> rw2_frozen(count_n);
 
-      // Compute r^3 only for newly frozen droplets
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple( // first input
           rw2.begin(),    // droplet radius squared
@@ -80,24 +81,28 @@ namespace libcloudphxx
           ice.end(),
           ice_old.end()
         )),
-        mom3.begin(),                 // output
-        detail::compute_r3_if_frozen<real_t>()   // functor for computing r3 of newly frozen droplets
+        rw2_frozen.begin(),                 // output
+        detail::rw2_if_newfrozen<real_t>()   // functor for r2 of newly frozen droplets
       );
 
-      // Reuse a temporary device vector for cell-wise 3rd moment
-      thrust_device::vector<real_t> &dri(tmp_device_real_cell);
-      thrust::fill(dri.begin(), dri.end(), real_t(0));  // reset to 0
+      // Compute per-cell 3rd moment of newly frozen droplets (sum of n*r^3). It is stored in count_mom
+      moms_all();
+      moms_calc(rw2_frozen.begin(), count_n, real_t(1.5), true);
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) of newly frozen droplets");
 
-      // add contributions to cell-wise 3rd moment
+      // Copy to frozen_mom3 array
+      thrust_device::vector<real_t> &frozen_mom3(tmp_device_real_cell);
+      if (count_n != n_cell)
+        thrust::fill(frozen_mom3.begin(), frozen_mom3.end(), real_t(0.));
+
       thrust::transform(
-        mom3.begin(), mom3.end(),                       // input
-        thrust::make_permutation_iterator(dri.begin(), count_ijk.begin()), // output per cell
-        thrust::make_permutation_iterator(dri.begin(), count_ijk.begin()),
-        thrust::plus<real_t>()
+          count_mom.begin(), count_mom.begin() + count_n,
+          thrust::make_permutation_iterator(frozen_mom3.begin(), count_ijk.begin()),
+          thrust::identity<real_t>()  // just copy values
       );
 
-      // update th according to changes in ri
-      update_th_freezing(dri);
+      // update th according to the frozen volume per cell
+      update_th_freezing(frozen_mom3);
     }
 
   }

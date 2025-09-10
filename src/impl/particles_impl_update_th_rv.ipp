@@ -31,7 +31,7 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
-      struct dth_subl : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct dth_subl //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
         {
           BOOST_GPU_ENABLED
           real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
@@ -49,7 +49,7 @@ namespace libcloudphxx
 
 
       template <typename real_t>
-      struct dth_freezing : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct dth_freezing //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
       {
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
@@ -128,20 +128,20 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_freezing(
-      thrust_device::vector<real_t> &drw // change in 3rd mom of liquid
+      thrust_device::vector<real_t> &frozen_mom3 // specific 3rd moment of newly frozen droplets per cell
     )
     {
       if(!sorted) throw std::runtime_error("libcloudph++: update_th_freezing called on an unsorted set");
-      nancheck(drw, "update_th_freezing: input drw");
+      nancheck(frozen_mom3, "update_th_freezing: input frozen_mom3");
 
-      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+      // Calculating the mixing ratio of frozen water per cell (multiplying specific 3rd mom by rho_w*4/3*pi)
       thrust::transform(
-        drw.begin(), drw.end(),                  // input - 1st arg
+        frozen_mom3.begin(), frozen_mom3.end(),   // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+          common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
         ),
-        drw.begin(),                             // output
+        frozen_mom3.begin(),                             // output
         thrust::multiplies<real_t>()
       );
 
@@ -158,7 +158,7 @@ namespace libcloudphxx
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(
-              drw.begin(),
+              frozen_mom3.begin(),
               T.begin(),
               th.begin()
             )),
