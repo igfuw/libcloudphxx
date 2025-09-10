@@ -22,7 +22,7 @@ jobs:
           app_opts: "--nv"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@master
@@ -54,7 +54,7 @@ jobs:
           cxx: "mpic++"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@master
@@ -93,7 +93,7 @@ jobs:
           tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -125,7 +125,7 @@ jobs:
         mpi: ["none"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -143,7 +143,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++ repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/libmpdataxx
         path: libmpdataxx
@@ -197,7 +197,7 @@ jobs:
 
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
 
     - name: Download libcloudph++ build
       uses: actions/download-artifact@v4
@@ -229,7 +229,7 @@ jobs:
       run: echo ${PYTHONPATH}
 
     - name: checkout parcel repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/parcel
         path: parcel
@@ -267,7 +267,7 @@ jobs:
 
     steps:
     - name: Checkout libcloudphxx PR
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0 
 
@@ -306,7 +306,7 @@ jobs:
       run: echo ${PYTHONPATH}
 
     - name: checkout KiD-libcloud repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/kid-libcloud
         path: kid-libcloud
