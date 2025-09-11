@@ -87,7 +87,10 @@ namespace libcloudphxx
         incloud_time, // time this SD has been within a cloud
         ice, // 0 - water 1 - ice; bool would suffice, but we are lazy
         rd3_insol, // dry radii of insoluble aerosol cubed
-        T_freeze; // freezing temperature
+        T_freeze, // freezing temperature
+        a_ice, // equatorial radius of ice
+        c_ice, // polar radius of ice
+        rho_i; // ice apparent density
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -457,6 +460,9 @@ namespace libcloudphxx
           distmem_real_vctrs.insert({&ice, detail::no_initial_value});
           distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});
+          distmem_real_vctrs.insert({&a_ice, detail::no_initial_value});
+          distmem_real_vctrs.insert({&c_ice, detail::no_initial_value});
+          distmem_real_vctrs.insert({&rho_i, detail::no_initial_value});
         }
       }
 
@@ -501,6 +507,9 @@ namespace libcloudphxx
       void init_ice(const real_t &);
       void init_rd3_insol(const real_t &);
       void init_T_freeze();
+      void init_a_ice();
+      void init_c_ice();
+      void init_rho_i();
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
