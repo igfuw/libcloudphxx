@@ -43,6 +43,22 @@ namespace libcloudphxx
         }
       };
 
+        // Functor to update r2 of newly frozen droplets, because ice has different density
+        template<class real_t>
+        class rw2_update
+        {
+        public:
+          BOOST_GPU_ENABLED
+          real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (rw2, ice, ice_old)
+          {
+            real_t rw2 = thrust::get<0>(tpl);
+            int ice_flag = thrust::get<1>(tpl);
+            int ice_flag_old = thrust::get<2>(tpl);
+            return (ice_flag==1 && ice_flag_old==0) ?
+              rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3)) : rw2;
+          }
+        };
+
     };
 
     // Immersion freezing
@@ -103,6 +119,24 @@ namespace libcloudphxx
 
       // update th according to the frozen volume per cell
       update_th_freezing(frozen_mom3);
+
+
+      // update the radius of newly frozen particles - taking into account different density of ice
+      thrust::transform(
+        thrust::make_zip_iterator(thrust::make_tuple( // first input
+          rw2.begin(),    // droplet radius squared
+          ice.begin(),    // ice flag
+          ice_old.begin() // old ice flag
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple( // last input
+          rw2.end(),
+          ice.end(),
+          ice_old.end()
+        )),
+        rw2.begin(),                 // output
+        detail::rw2_update<real_t>()   // functor for updating rw2
+    );
+
     }
 
   }
