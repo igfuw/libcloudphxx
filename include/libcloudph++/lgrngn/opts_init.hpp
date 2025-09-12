@@ -13,6 +13,7 @@
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
 #include "ccn_source.hpp"
+#include "distro_t.hpp"
 #include "../common/chem.hpp"
 
 namespace libcloudphxx
@@ -28,20 +29,20 @@ namespace libcloudphxx
       // initial dry sizes of aerosol
       // defined with a distribution
       // uses shared_ptr to make opts_init copyable
-      typedef std::unordered_map<
-        real_t,                // kappa
-        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
-      > dry_distros_t;
-      dry_distros_t dry_distros;
+//      typedef std::unordered_map<
+//        std::pair<real_t, real_t>,              // (kappa, ice)
+//        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
+//      > dry_distros_t;
+      dry_distros_t<real_t> dry_distros;
 
-      // defined with a size-number pair
-      typedef std::map<
-        real_t,                  // kappa
-        std::map<real_t,         // radius [m]
-          std::pair<real_t, int> // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
-        > 
-      > dry_sizes_t;
-      dry_sizes_t dry_sizes;
+//      // defined with a size-number pair
+//      typedef std::map<
+//        std::pair<real_t, real_t>, // (kappa, ice)
+//        std::map<real_t,           // radius [m]
+//          std::pair<real_t, int>   // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
+//        > 
+//      > dry_sizes_t;
+      dry_sizes_t<real_t> dry_sizes;
 
       // Eulerian component parameters
       int nx, ny, nz;
@@ -97,6 +98,7 @@ namespace libcloudphxx
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
+           ice_switch,         // if true, ice is allowed
            exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
            
       int sstp_chem;
@@ -144,22 +146,15 @@ namespace libcloudphxx
       // type of CCN source
       src_t src_type;
 
-      // source distro per unit time
-      dry_distros_t src_dry_distros;
-
       // number of SDs created from src_dry_distros per cell per source iteration
-      unsigned long long src_sd_conc;
-
-      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
-      dry_sizes_t src_dry_sizes;
+      //unsigned long long src_sd_conc;
 
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
-  
-      // timestep interval at which source will be applied
-      int supstp_src;
 
+      // timestep interval at which source will be applied
+      //int supstp_src;
 
       // --- aerosol relaxation stuff ---
       // initial dry sizes of aerosol
@@ -208,6 +203,7 @@ namespace libcloudphxx
         coal_switch(true),  // coalescence turned on by default
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
+        ice_switch(false),
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
@@ -223,14 +219,12 @@ namespace libcloudphxx
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),
-        src_sd_conc(0),
         src_x0(0),
         src_x1(0),
         src_y0(0),
         src_y1(0),
         src_z0(0),
         src_z1(0),
-        supstp_src(1),
         rlx_bins(0),
         rlx_timescale(1),
         rlx_sd_per_bin(0),

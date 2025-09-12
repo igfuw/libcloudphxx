@@ -273,7 +273,7 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic>)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic,-Wfatal-errors>)
   # Release mode cuda flags
   else()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp>)
@@ -291,6 +291,8 @@ if (CMAKE_CUDA_COMPILER)
 endif()
 
 ############################################################################################
+# find Thrust using libcloudphxx/cmake/obsolete/FindThrust.cmake
+
 # Thrust, location of Thrust can be hinted by setting THRUST_INCLUDE_DIR
 find_package(Thrust REQUIRED)
 
@@ -306,6 +308,13 @@ find_package(Thrust REQUIRED)
 
 # include thrust found here instead of the one shipped with cuda
 #target_include_directories(cloudphxx_lgrngn PRIVATE ${THRUST_INCLUDE_DIR})
+
+## alternative based on libcloudphxx/cmake/alternative/thrust-config.cmake
+## TODO: doesn't work
+#SET(Thrust_DIR ${PROJECT_SOURCE_DIR}/cmake)
+#find_package(Thrust REQUIRED)
+#thrust_create_target(Thrust)
+#target_link_libraries(cloudphxx_lgrngn Thrust)
 
 ############################################################################################
 # Boost libraries
@@ -394,7 +403,7 @@ enable_testing()
 
 add_subdirectory(tests)
 add_subdirectory(include) 
-add_subdirectory(bindings) 
+#add_subdirectory(bindings)
 
 ############################################################################################
 
