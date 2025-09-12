@@ -222,6 +222,7 @@ namespace libcloudphxx
         tmp_device_real_cell,
         tmp_device_real_cell1,
         tmp_device_real_cell2,
+        tmp_device_real_cell3,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -617,6 +618,7 @@ namespace libcloudphxx
       template<class pres_iter, class RH_iter, class RHi_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi, const RHi_iter &rhii);
       void update_th_rv(thrust_device::vector<real_t> &);
+      void update_th_rv_subl(thrust_device::vector<real_t> &);
       void update_th_freezing(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);

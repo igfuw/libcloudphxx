@@ -66,7 +66,7 @@ namespace libcloudphxx
       };
     };
 
-    // update th and rv according to change in 3rd specific wet moments
+    // update th and rv after condensation according to change in 3rd specific wet moments
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
@@ -116,6 +116,65 @@ namespace libcloudphxx
               th.begin()        //
             )),
             detail::dth<real_t>()
+          ),
+          th.begin(),                 // output
+          thrust::plus<real_t>()
+        );
+      }
+      nancheck(th, "update_th_rv: th after update");
+    }
+
+
+    // update th and rv after sublimation according to change in 3rd specific wet moments
+    // particles have to be sorted
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::update_th_rv_subl(
+      thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
+    )
+    {
+      if(!sorted) throw std::runtime_error("libcloudph++: update_th_rv called on an unsorted set");
+      nancheck(drv, "update_th_rv: input drv");
+
+      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+      thrust::transform(
+        drv.begin(), drv.end(),                  // input - 1st arg
+        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+          - common::moist_air::rho_i<real_t>() / si::kilograms * si::cubic_metres
+          * real_t(4./3) * pi<real_t>()
+        ),
+        drv.begin(),                             // output
+        thrust::multiplies<real_t>()
+      );
+
+      // updating rv
+      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+      thrust::transform(
+        rv.begin(), rv.end(),  // input - 1st arg
+        drv.begin(),           // input - 2nd arg
+        rv.begin(),            // output
+        thrust::plus<real_t>()
+      );
+      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+      nancheck(rv, "update_th_rv: rv after update");
+
+      // updating th
+      {
+        typedef thrust::zip_iterator<thrust::tuple<
+          typename thrust_device::vector<real_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator,
+          typename thrust_device::vector<real_t>::iterator
+        > > zip_it_t;
+
+        // apply dth
+        thrust::transform(
+          th.begin(), th.end(),          // input - 1st arg
+          thrust::make_transform_iterator(
+            zip_it_t(thrust::make_tuple(
+              drv.begin(),      //
+              T.begin(),        // dth = drv * d_th_d_rv(T, th)
+              th.begin()        //
+            )),
+            detail::dth_subl<real_t>()
           ),
           th.begin(),                 // output
           thrust::plus<real_t>()
