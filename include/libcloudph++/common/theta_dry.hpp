@@ -77,11 +77,11 @@ namespace libcloudphxx
       // heat of freezing
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::temperature, real_t> d_th_d_ri_freeze(
+      quantity<si::temperature, real_t> d_th_d_rw_freeze(
         const quantity<si::temperature, real_t> &T,
         const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {
-        return th / T * const_cp::l_f<real_t>(T) / c_pd<real_t>();
+        return - th / T * const_cp::l_f<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>

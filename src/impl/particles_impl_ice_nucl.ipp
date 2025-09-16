@@ -28,38 +28,40 @@ namespace libcloudphxx
             return false;
         };
       };
-      // Functor to return rw2 of newly frozen droplets, otherwise 0
-      template<class real_t>
-      class rw2_if_newfrozen
-      {
-      public:
-        BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (rw2, ice, ice_old)
-        {
-          real_t rw2 = thrust::get<0>(tpl);
-          int ice_flag = thrust::get<1>(tpl);
-          int ice_flag_old = thrust::get<2>(tpl);
-          return (ice_flag==1 && ice_flag_old==0) ? rw2 : real_t(0);
-        }
-      };
 
-        // Functor to update r2 of newly frozen droplets, because ice has different density
+        // Functor to update ice flag, rw2, a, c, rho_i, of frozen droplets
         template<class real_t>
-        class rw2_update
+        class freezing_update
         {
         public:
           BOOST_GPU_ENABLED
-          real_t operator()(const thrust::tuple<real_t, int, int> &tpl) const // tpl is a tuple of 3 elements: (rw2, ice, ice_old)
+          void operator()(thrust::tuple<
+              int&, real_t&, real_t&, real_t&, real_t&, // to be updated (ice, rw2, a, c, rho_i)
+              const real_t&, const real_t&, const real_t& // T_freeze, T, RH
+            > tpl) const
           {
-            real_t rw2 = thrust::get<0>(tpl);
-            int ice_flag = thrust::get<1>(tpl);
-            int ice_flag_old = thrust::get<2>(tpl);
-            return (ice_flag==1 && ice_flag_old==0) ?
-              rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3)) : rw2;
+            auto& ice   = thrust::get<0>(tpl);
+            auto& rw2   = thrust::get<1>(tpl);
+            auto& a     = thrust::get<2>(tpl);
+            auto& c     = thrust::get<3>(tpl);
+            auto& rho_i = thrust::get<4>(tpl);
+
+            const real_t T_freeze = thrust::get<5>(tpl);
+            const real_t T        = thrust::get<6>(tpl);
+            const real_t RH       = thrust::get<7>(tpl);
+
+            if (detail::immersion_freeze_cond<real_t>()(thrust::make_tuple(T_freeze, T, RH)))
+            {
+              ice = 1;
+              rw2  = real_t(0);
+              rho_i = common::moist_air::rho_i<real_t>();
+              a   = rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3));
+              c   = rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3));
+            }
           }
         };
 
-    };
+         }
 
     // Immersion freezing
     template <typename real_t, backend_t device>
@@ -67,75 +69,62 @@ namespace libcloudphxx
 
       hskpng_sort();
 
-      // Copy current ice flags
-      thrust_device::vector<int> ice_old = ice;
+      // A vector to store liquid 3rd moments
+      thrust_device::vector<real_t> &drw(tmp_device_real_cell);
+      if (count_n != n_cell)
+        thrust::fill(drw.begin(), drw.end(), real_t(0.));
+
+      // Compute per-cell 3rd moment of liquid droplets (sum of n*r^3) before freezing. It is stored in count_mom
+      moms_eq0(ice.begin()); // choose particles with ice=0
+      moms_calc(rw2.begin(), real_t(1.5));
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) of droplets before freezing");
+
+      thrust::transform(
+        count_mom.begin(), count_mom.begin() + count_n,
+        thrust::make_permutation_iterator(drw.begin(), count_ijk.begin()),
+        thrust::negate<real_t>()
+      );
 
       // Change liquid droplets to ice under the freezing condition
-      thrust::replace_if(ice.begin(), ice.end(),                        // Replacing values of ice with 1 if immersion_freeze_cond is satisfied.
-        thrust::make_zip_iterator(
-          thrust::make_tuple(                                           // Creating a zip iterator to access multiple vectors:
-            T_freeze.begin(),                                               // freezing temperature for each droplet
-            thrust::make_permutation_iterator(T.begin(), ijk.begin()),      // ambient temperature
-            thrust::make_permutation_iterator(RH.begin(), ijk.begin())      // ambient RH
-          )
-        ),
-        detail::immersion_freeze_cond<real_t>(),
-        real_t(1)
+      thrust::for_each(
+        thrust::make_zip_iterator(thrust::make_tuple(
+          ice.begin(),
+          rw2.begin(),
+          a_ice.begin(),
+          c_ice.begin(),
+          rho_i.begin(),
+          T_freeze.begin(),
+          thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+          thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple(
+          ice.begin(),
+          rw2.begin(),
+          a_ice.begin(),
+          c_ice.begin(),
+          rho_i.begin(),
+          T_freeze.begin(),
+          thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+          thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+        )) + n_part,
+          detail::freezing_update<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if freezing condition satisfied
       );
 
-      // Temporary vector for rw2 of newly frozen droplets
-      thrust_device::vector<real_t> rw2_frozen(count_n);
+      // Compute per-cell 3rd moment of liquid droplets after freezing. It is stored in count_mom
+      moms_eq0(ice.begin()); // choose particles with ice=0
+      moms_calc(rw2.begin(), real_t(1.5));
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) of droplets after freezing");
 
+      // Compute the difference between liquid moments before and after freezing
       thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple( // first input
-          rw2.begin(),    // droplet radius squared
-          ice.begin(),    // ice flag
-          ice_old.begin() // old ice flag
-        )),
-        thrust::make_zip_iterator(thrust::make_tuple( // last input
-          rw2.end(),
-          ice.end(),
-          ice_old.end()
-        )),
-        rw2_frozen.begin(),                 // output
-        detail::rw2_if_newfrozen<real_t>()   // functor for r2 of newly frozen droplets
+        count_mom.begin(), count_mom.begin() + count_n,
+        thrust::make_permutation_iterator(drw.begin(), count_ijk.begin()),
+        thrust::make_permutation_iterator(drw.begin(), count_ijk.begin()),
+        thrust::plus<real_t>()
       );
 
-      // Compute per-cell 3rd moment of newly frozen droplets (sum of n*r^3). It is stored in count_mom
-      moms_all();
-      moms_calc(rw2_frozen.begin(), count_n, real_t(1.5), true);
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) of newly frozen droplets");
-
-      // Copy to frozen_mom3 array
-      thrust_device::vector<real_t> &frozen_mom3(tmp_device_real_cell);
-      if (count_n != n_cell)
-        thrust::fill(frozen_mom3.begin(), frozen_mom3.end(), real_t(0.));
-
-      thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,
-          thrust::make_permutation_iterator(frozen_mom3.begin(), count_ijk.begin()),
-          thrust::identity<real_t>()  // just copy values
-      );
-
-      // update th according to the frozen volume per cell
-      update_th_freezing(frozen_mom3);
-
-
-      // update the radius of newly frozen particles - taking into account different density of ice
-      thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple( // first input
-          rw2.begin(),    // droplet radius squared
-          ice.begin(),    // ice flag
-          ice_old.begin() // old ice flag
-        )),
-        thrust::make_zip_iterator(thrust::make_tuple( // last input
-          rw2.end(),
-          ice.end(),
-          ice_old.end()
-        )),
-        rw2.begin(),                 // output
-        detail::rw2_update<real_t>()   // functor for updating rw2
-    );
+      // Update th according to the frozen volume per cell
+        update_th_freezing(drw);
 
     }
 

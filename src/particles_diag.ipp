@@ -220,14 +220,14 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice()
     {
-      pimpl->moms_rng(1., 1.0001, pimpl->ice.begin(), false); // TODO: nextafter instead of 1.0001
+      pimpl->moms_gt0(pimpl->ice.begin()); // ice flag greater than 0
     }
 
     // selects water particles 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_water()
     {
-      pimpl->moms_rng(0., 0.0001, pimpl->ice.begin(), false);
+      pimpl->moms_eq0(pimpl->ice.begin()); // ice flag equal to 0
     }
 
     // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
