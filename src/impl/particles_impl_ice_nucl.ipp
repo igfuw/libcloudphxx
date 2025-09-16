@@ -36,7 +36,7 @@ namespace libcloudphxx
         public:
           BOOST_GPU_ENABLED
           void operator()(thrust::tuple<
-              int&, real_t&, real_t&, real_t&, real_t&, // to be updated (ice, rw2, a, c, rho_i)
+              real_t&, real_t&, real_t&, real_t&, real_t&, // to be updated (ice, rw2, a, c, rho_i)
               const real_t&, const real_t&, const real_t& // T_freeze, T, RH
             > tpl) const
           {
@@ -52,11 +52,11 @@ namespace libcloudphxx
 
             if (detail::immersion_freeze_cond<real_t>()(thrust::make_tuple(T_freeze, T, RH)))
             {
-              ice = 1;
+              ice = real_t(1);
               rw2  = real_t(0);
-              rho_i = common::moist_air::rho_i<real_t>();
-              a   = rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3));
-              c   = rw2 * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(2/3));
+              rho_i = common::moist_air::rho_i<real_t>().value();
+              a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
+              c   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
             }
           }
         };
