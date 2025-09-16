@@ -9,91 +9,51 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-
-    namespace detail
-    {
-      // Functor to select moment of only liquid droplets
-      template<class real_t>
-      class select_liq
-      {
-      public:
-        BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, int> &tpl) const // tpl is a tuple of 2 elements: (count_mom, ice)
-        {
-          real_t count_mom = thrust::get<0>(tpl);
-          int ice_flag = thrust::get<1>(tpl);
-          return (ice_flag==0) ? count_mom : real_t(0);
-        }
-      };
-
-      // Functor to select moment of only ice particles
-      template<class real_t>
-      class select_ice
-      {
-      public:
-        BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, int> &tpl) const // tpl is a tuple of 2 elements: (count_mom, ice)
-        {
-          real_t count_mom = thrust::get<0>(tpl);
-          int ice_flag = thrust::get<1>(tpl);
-          return (ice_flag==1) ? count_mom : real_t(0);
-        }
-      };
-
-    }
-
-
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond(
       const real_t &dt,
       const real_t &RH_max,
       const bool turb_cond
-    ) {   
+    ) {
 
       namespace arg = thrust::placeholders;
 
       thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
       thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
 
-      // --- calc liquid water content before cond ---
-      hskpng_sort(); 
-      //thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      hskpng_sort();
+
+      // Vectors to store 3rd moments
       thrust_device::vector<real_t> &drv_liq(tmp_device_real_cell);
       thrust_device::vector<real_t> &drv_ice(tmp_device_real_cell3);
-
-      // Compute per-cell 3rd wet moment before condensation (sum of n*r^3). It is stored in count_mom
-      moms_all();
-      moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
-
-      // permute-copying the result to -dm_3
-      // fill with 0s if not all cells will be updated in the following transform
       if(count_n!=n_cell) {
         thrust::fill(drv_liq.begin(), drv_liq.end(), real_t(0.));
         thrust::fill(drv_ice.begin(), drv_ice.end(), real_t(0.));
       }
 
-      // fill drv_liq with liquid moment before conde
+      // Compute per-cell 3rd moment of liquid droplets before condensation. It is stored in count_mom
+      moms_eq0(ice.begin()); // choose particles with ice=0
+      moms_calc(rw2.begin(), real_t(3./2.));
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
+
       thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin(), ice.begin())),
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin() + count_n, ice.begin() + count_n)), // input - 1st arg
-        thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()), // output
-        detail::select_liq<real_t>()
+        count_mom.begin(), count_mom.begin() + count_n,
+        thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()),
+        thrust::negate<real_t>()
       );
 
-      // fill drv_ice with ice moment before cond
+      // TODO: how to calculate 3rd ice moment
+      // Compute per-cell 3rd moment of ice before sublimation. It is stored in count_mom
+      moms_gt0(ice.begin()); // choose particles with ice=1
+      moms_calc(rw2.begin(), real_t(3./2.));
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) before sublimation");
+
       thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin(), ice.begin())),
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin() + count_n, ice.begin() + count_n)), // input - 1st arg
-        thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // output
-        detail::select_ice<real_t>()
+        count_mom.begin(), count_mom.begin() + count_n,
+        thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()),
+        thrust::negate<real_t>()
       );
 
-      // thrust::transform(
-      //   count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-      //   thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
-      //   thrust::negate<real_t>()
-      // );
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
@@ -108,7 +68,7 @@ namespace libcloudphxx
         ice.begin()
       ));
 
-      // calculating drop growth in a timestep using backward Euler 
+      // calculating drop growth in a timestep using backward Euler
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
       {
@@ -153,58 +113,36 @@ namespace libcloudphxx
         );
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
-      //  Compute per-cell 3rd wet moment after condensation. It is stored in count_mom
+      // Compute per-cell 3rd moment of liquid droplets after condensation. It is stored in count_mom
+      moms_eq0(ice.begin()); // choose particles with ice=0
       moms_calc(rw2.begin(), real_t(3./2.));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
-      // fill count_mom with liquid only
-      thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin(), ice.begin())),
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin() + count_n, ice.begin() + count_n)), // input - 1st arg
-        thrust::make_permutation_iterator(count_mom.begin(), count_ijk.begin()), // output
-        detail::select_liq<real_t>()
-      );
-
-      // calculating the change in liquid moment
+      // Adding the third liquid moment after condensation to drv_liq
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()), // input - 2nd arg
         thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()), // output
-        thrust::minus<real_t>()
+        thrust::plus<real_t>()
       );
 
-
-      //  Compute again the per-cell 3rd wet moment after condensation. It is stored in count_mom
+      // TODO: how to calculate 3rd ice moment
+      // Compute per-cell 3rd moment of ice after sublimation. It is stored in count_mom
+      moms_gt0(ice.begin()); // choose particles with ice=1
       moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
+      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) after sublimation");
 
-      // fill count_mom_ with ice only
-      thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin(), ice.begin())),
-        thrust::make_zip_iterator(thrust::make_tuple(count_mom.begin() + count_n, ice.begin() + count_n)), // input - 1st arg
-        thrust::make_permutation_iterator(count_mom.begin(), count_ijk.begin()), // output
-        detail::select_ice<real_t>()
-      );
-
-      // calculating the change in ice moment
+      // Adding the third ice moment after sublimation to drv_ice
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
         thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // input - 2nd arg
         thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // output
-        thrust::minus<real_t>()
+        thrust::plus<real_t>()
       );
-
-      // // adding the third moment after condensation to dm_3
-      // thrust::transform(
-      //   count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-      //   thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
-      //   thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
-      //   thrust::plus<real_t>()
-      // );
 
       // update th and rv according to changes in third specific wet moments
       update_th_rv(drv_liq);
       update_th_rv_subl(drv_ice);
     }
-  };  
+  };
 };
