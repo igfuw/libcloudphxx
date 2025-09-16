@@ -88,9 +88,9 @@ namespace libcloudphxx
         ice, // 0 - water 1 - ice; bool would suffice, but we are lazy
         rd3_insol, // dry radii of insoluble aerosol cubed
         T_freeze, // freezing temperature
-        a_ice, // equatorial radius of ice
-        c_ice, // polar radius of ice
-        rho_i; // ice apparent density
+        ice_a, // equatorial radius of ice
+        ice_c, // polar radius of ice
+        ice_rho; // ice apparent density
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -461,9 +461,9 @@ namespace libcloudphxx
           distmem_real_vctrs.insert({&ice, detail::no_initial_value});
           distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});
-          distmem_real_vctrs.insert({&a_ice, detail::no_initial_value});
-          distmem_real_vctrs.insert({&c_ice, detail::no_initial_value});
-          distmem_real_vctrs.insert({&rho_i, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
         }
       }
 

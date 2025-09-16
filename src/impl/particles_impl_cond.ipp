@@ -9,6 +9,27 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+
+    namespace detail
+    {
+
+      template<class real_t>
+      class ice_vol
+      {
+      public:
+        using result_type = real_t;
+        template <typename Tuple>
+        BOOST_GPU_ENABLED
+        real_t operator()(Tuple const &tpl) const
+        {
+          real_t a = thrust::get<0>(tpl);
+          real_t c = thrust::get<1>(tpl);
+          return a * a * c;
+        }
+      };
+    }
+
+
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond(
       const real_t &dt,
@@ -26,15 +47,14 @@ namespace libcloudphxx
       // Vectors to store 3rd moments
       thrust_device::vector<real_t> &drv_liq(tmp_device_real_cell);
       thrust_device::vector<real_t> &drv_ice(tmp_device_real_cell3);
-      if(count_n!=n_cell) {
-        thrust::fill(drv_liq.begin(), drv_liq.end(), real_t(0.));
-        thrust::fill(drv_ice.begin(), drv_ice.end(), real_t(0.));
-      }
 
       // Compute per-cell 3rd moment of liquid droplets before condensation. It is stored in count_mom
       moms_eq0(ice.begin()); // choose particles with ice=0
       moms_calc(rw2.begin(), real_t(3./2.));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
+      if(count_n!=n_cell) {
+        thrust::fill(drv_liq.begin(), drv_liq.end(), real_t(0.));
+      }
 
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,
@@ -42,11 +62,17 @@ namespace libcloudphxx
         thrust::negate<real_t>()
       );
 
-      // TODO: how to calculate 3rd ice moment
       // Compute per-cell 3rd moment of ice before sublimation. It is stored in count_mom
       moms_gt0(ice.begin()); // choose particles with ice=1
-      moms_calc(rw2.begin(), real_t(3./2.));
+      moms_calc(thrust::make_transform_iterator(
+        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
+        ),
+        real_t(1));
+
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) before sublimation");
+      if(count_n!=n_cell) {
+        thrust::fill(drv_ice.begin(), drv_ice.end(), real_t(0.));
+      }
 
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,
@@ -126,11 +152,12 @@ namespace libcloudphxx
         thrust::plus<real_t>()
       );
 
-      // TODO: how to calculate 3rd ice moment
       // Compute per-cell 3rd moment of ice after sublimation. It is stored in count_mom
       moms_gt0(ice.begin()); // choose particles with ice=1
-      moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) after sublimation");
+      moms_calc(thrust::make_transform_iterator(
+        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
+        ),
+        real_t(1));
 
       // Adding the third ice moment after sublimation to drv_ice
       thrust::transform(

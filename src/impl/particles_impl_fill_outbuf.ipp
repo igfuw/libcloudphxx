@@ -50,9 +50,9 @@ namespace libcloudphxx
         name == "kappa" ? kpa :
         name == "rd3_insol" ? rd3_insol :
         name == "T_freeze" ? T_freeze :
-        name == "a_ice" ? a_ice :
-        name == "c_ice" ? c_ice :
-        name == "rho_i" ? rho_i :
+        name == "ice_a" ? ice_a :
+        name == "ice_c" ? ice_c :
+        name == "ice_rho" ? ice_rho :
         name == "x" ? x :
         name == "y" ? y :
         z); 

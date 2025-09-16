@@ -90,9 +90,9 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           ice.begin(),
           rw2.begin(),
-          a_ice.begin(),
-          c_ice.begin(),
-          rho_i.begin(),
+          ice_a.begin(),
+          ice_c.begin(),
+          ice_rho.begin(),
           T_freeze.begin(),
           thrust::make_permutation_iterator(T.begin(), ijk.begin()),
           thrust::make_permutation_iterator(RH.begin(), ijk.begin())
@@ -100,9 +100,9 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           ice.begin(),
           rw2.begin(),
-          a_ice.begin(),
-          c_ice.begin(),
-          rho_i.begin(),
+          ice_a.begin(),
+          ice_c.begin(),
+          ice_rho.begin(),
           T_freeze.begin(),
           thrust::make_permutation_iterator(T.begin(), ijk.begin()),
           thrust::make_permutation_iterator(RH.begin(), ijk.begin())

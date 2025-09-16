@@ -14,9 +14,9 @@ namespace libcloudphxx
         void particles_t<real_t, device>::impl::init_a_c_rho_ice()
         {
             // filling a and c with zeros initially
-            thrust::fill(a_ice.begin() + n_part_old, a_ice.end(), real_t(0));
-            thrust::fill(c_ice.begin() + n_part_old, c_ice.end(), real_t(0));
-            thrust::fill(rho_i.begin() + n_part_old, rho_i.end(), real_t(0));
+            thrust::fill(ice_a.begin() + n_part_old, ice_a.end(), real_t(0));
+            thrust::fill(ice_c.begin() + n_part_old, ice_c.end(), real_t(0));
+            thrust::fill(ice_rho.begin() + n_part_old, ice_rho.end(), real_t(0));
         }
     };
 };

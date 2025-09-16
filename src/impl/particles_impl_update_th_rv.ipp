@@ -229,7 +229,7 @@ namespace libcloudphxx
       }
       nancheck(th, "update_th_freezing: th after update");
     }
-
+    
     // update particle-specific cell state
     // particles have to be sorted
     template <typename real_t, backend_t device>

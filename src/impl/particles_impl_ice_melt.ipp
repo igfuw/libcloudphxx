@@ -83,17 +83,17 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(
           ice.begin(),
           rw2.begin(),
-          a_ice.begin(),
-          c_ice.begin(),
-          rho_i.begin(),
+          ice_a.begin(),
+          ice_c.begin(),
+          ice_rho.begin(),
           thrust::make_permutation_iterator(T.begin(), ijk.begin())
         )),
         thrust::make_zip_iterator(thrust::make_tuple(
           ice.begin(),
           rw2.begin(),
-          a_ice.begin(),
-          c_ice.begin(),
-          rho_i.begin(),
+          ice_a.begin(),
+          ice_c.begin(),
+          ice_rho.begin(),
           thrust::make_permutation_iterator(T.begin(), ijk.begin())
         )) + n_part,
           detail::melting_update<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if melting condition satisfied

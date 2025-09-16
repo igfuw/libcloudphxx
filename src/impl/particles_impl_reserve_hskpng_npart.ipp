@@ -41,9 +41,9 @@ namespace libcloudphxx
         ice.reserve(opts_init.n_sd_max);
         rd3_insol.reserve(opts_init.n_sd_max);
         T_freeze.reserve(opts_init.n_sd_max);
-        a_ice.reserve(opts_init.n_sd_max);
-        c_ice.reserve(opts_init.n_sd_max);
-        rho_i.reserve(opts_init.n_sd_max);
+        ice_a.reserve(opts_init.n_sd_max);
+        ice_c.reserve(opts_init.n_sd_max);
+        ice_rho.reserve(opts_init.n_sd_max);
       }
 
       vt.reserve(opts_init.n_sd_max);
