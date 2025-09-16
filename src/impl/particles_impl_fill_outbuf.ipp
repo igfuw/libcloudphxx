@@ -40,7 +40,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     std::vector<real_t> particles_t<real_t, device>::impl::fill_attr_outbuf(const std::string &name)
     {
-      const std::set<std::string> attr_names = {"rw2", "rd3", "kappa", "rd3_insol", "T_freeze", "a_ice", "c_ice", "rho_i", "x", "y", "z"}; // TODO implement "n" - it is n_t type and others are real_t
+      const std::set<std::string> attr_names = {"rw2", "rd3", "kappa", "rd3_insol", "T_freeze", "ice_a", "ice_c", "ice_rho", "x", "y", "z"}; // TODO implement "n" - it is n_t type and others are real_t
       if (std::find(std::begin(attr_names), std::end(attr_names), name) == std::end(attr_names))
         throw std::runtime_error("Unknown attribute name passed to get_attr.");
 
