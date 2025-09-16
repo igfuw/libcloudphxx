@@ -62,12 +62,24 @@ namespace libcloudphxx
         thrust::negate<real_t>()
       );
 
+      // Vector for ice volumes
+      thrust_device::vector<real_t> ice_vols(tmp_device_real_part);
+
+      thrust::transform(
+        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())),
+        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin() + n_part, ice_c.begin() + n_part)),
+        ice_vols.begin(),
+        detail::ice_vol<real_t>()
+    );
+
       // Compute per-cell 3rd moment of ice before sublimation. It is stored in count_mom
       moms_gt0(ice.begin()); // choose particles with ice=1
-      moms_calc(thrust::make_transform_iterator(
-        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
-        ),
-        real_t(1));
+      moms_calc(ice_vols.begin(), real_t(1));
+      
+      // moms_calc(thrust::make_transform_iterator(
+      //   thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
+      //   ),
+      //   real_t(1));
 
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) before sublimation");
       if(count_n!=n_cell) {
@@ -152,12 +164,22 @@ namespace libcloudphxx
         thrust::plus<real_t>()
       );
 
+      // Calculate ice volumes
+      thrust::transform(
+          thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())),
+          thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin() + n_part, ice_c.begin() + n_part)),
+          ice_vols.begin(),
+          detail::ice_vol<real_t>()
+        );
+
       // Compute per-cell 3rd moment of ice after sublimation. It is stored in count_mom
       moms_gt0(ice.begin()); // choose particles with ice=1
-      moms_calc(thrust::make_transform_iterator(
-        thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
-        ),
-        real_t(1));
+      moms_calc(ice_vols.begin(), real_t(1));
+
+      // moms_calc(thrust::make_transform_iterator(
+      //   thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
+      //   ),
+      //   real_t(1));
 
       // Adding the third ice moment after sublimation to drv_ice
       thrust::transform(
