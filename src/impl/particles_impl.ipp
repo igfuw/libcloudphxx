@@ -295,6 +295,8 @@ namespace libcloudphxx
       // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
 
+      enum class phase_change { condensation, sublimation }; // enum for choosing between phase change types
+
       // ctor 
       impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const int &n_x_tot) : 
         init_called(false),
@@ -620,8 +622,7 @@ namespace libcloudphxx
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<class pres_iter, class RH_iter, class RHi_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi, const RHi_iter &rhii);
-      void update_th_rv(thrust_device::vector<real_t> &);
-      void update_th_rv_subl(thrust_device::vector<real_t> &);
+      void update_th_rv(thrust_device::vector<real_t> &, phase_change = phase_change::condensation);
       void update_th_freezing(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);

@@ -103,7 +103,7 @@ namespace libcloudphxx
 
     }
 
-    // Immersion freezing
+    // Immersion freezing and melting
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ice_nucl_melt() {
 

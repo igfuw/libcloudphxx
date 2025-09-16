@@ -168,8 +168,8 @@ namespace libcloudphxx
       );
 
       // update th and rv according to changes in third specific wet moments
-      update_th_rv(drv_liq);
-      update_th_rv_subl(drv_ice);
+      update_th_rv(drv_liq, impl::phase_change::condensation);
+      update_th_rv(drv_ice, impl::phase_change::sublimation);
     }
   };
 };
