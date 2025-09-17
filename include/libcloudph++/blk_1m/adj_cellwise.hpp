@@ -125,7 +125,7 @@ namespace libcloudphxx
 
         if(!opts.const_p && opts.th_dry)
         {
-          rhod = std::get<2>(tup) * si::kilograms / si::cubic_metres;
+          rhod = std::get<0>(tup) * si::kilograms / si::cubic_metres;
           T = common::theta_dry::T<real_t>(th_tmp, rhod);
           p = common::theta_dry::p<real_t>(rhod, rv, T);
         }
@@ -162,6 +162,9 @@ namespace libcloudphxx
             T_tmp = common::theta_dry::T<real_t>(th_tmp, rhod);
           else
             T_tmp = th_tmp * exner;
+            
+          if(!opts.const_p)
+            p = common::theta_dry::p<real_t>(rhod, rv_tmp, T_tmp);
         }
 
         // limiting
