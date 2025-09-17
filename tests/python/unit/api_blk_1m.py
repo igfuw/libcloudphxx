@@ -65,27 +65,22 @@ for name, opt in test_cases.items():
   test_sat_adj(opts, name)
 
 # test RHS cellwise
-dot_th = arr_t([0.])
-dot_rv = arr_t([0.])
-dot_rc = arr_t([0.])
-dot_rr = arr_t([0.])
-
 def test_rhs_cell(opts, name):
   print("Testing RHS cellwise with " + name)
-  dot_th_new = dot_th.copy()
-  dot_rv_new = dot_rv.copy()
-  dot_rc_new = dot_rc.copy()
-  dot_rr_new = dot_rr.copy()
+  dot_th = arr_t([0.])
+  dot_rv = arr_t([0.])
+  dot_rc = arr_t([0.])
+  dot_rr = arr_t([0.])
   if opts.adj_nwtrph:
     rr = arr_t([0.01])
-    blk_1m.rhs_cellwise_revap(opts, dot_th_new, dot_rv_new, dot_rc_new, dot_rr_new, rhod, p, th, rv, rc, rr, dt)
-    assert dot_th_new != 0 # some rain should have evaporated
-    assert dot_rv_new != 0
+    blk_1m.rhs_cellwise_revap(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p, th, rv, rc, rr, dt)
+    assert dot_th != 0 # some rain should have evaporated
+    assert dot_rv != 0
   else:
     rr = arr_t([0.00])
-    blk_1m.rhs_cellwise(opts, dot_rc_new, dot_rr_new, rc, rr)
-  assert dot_rc_new != 0 # some water should have coalesced
-  assert dot_rr_new != 0
+    blk_1m.rhs_cellwise(opts, dot_rc, dot_rr, rc, rr)
+  assert dot_rc != 0 # some water should have coalesced
+  assert dot_rr != 0
 
 for name, opt in test_cases.items():
   opts.adj_nwtrph = opt[0]
@@ -96,30 +91,26 @@ for name, opt in test_cases.items():
 # test RHS columnwise
 print("Testing RHS columnwise")
 rr   = arr_t([0.])
+dot_rr = arr_t([0.])
 dot_rr_old = dot_rr.copy()
 flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
 assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip
 
 #test ice, TODO: separate file/test?
-th   = arr_t([230.])  #testing ice physics
-ria = arr_t([0.1])
-rib = arr_t([0.1])
-dot_rc = arr_t([0.])
-dot_rr = arr_t([0.])
-dot_rv = arr_t([0.])
-dot_ria = arr_t([0.])
-dot_rib = arr_t([0.])
-
 def test_rhs_cell_ice(opts, name):
   print("Testing RHS cellwise ice with " + name)
-  dot_th_new = dot_th.copy()
-  dot_rv_new = dot_rv.copy()
-  dot_rc_new = dot_rc.copy()
-  dot_rr_new = dot_rr.copy()
-  dot_ria_new = dot_ria.copy()
-  dot_rib_new = dot_rib.copy()
-  blk_1m.rhs_cellwise_ice(opts, dot_th_new, dot_rv_new, dot_rc_new, dot_rr_new, dot_ria_new, dot_rib_new, rhod, p, th, rv, rc, rr, ria, rib, dt)
+  th   = arr_t([230.])  #testing ice physics
+  ria = arr_t([0.1])
+  rib = arr_t([0.1])
+  dot_th = arr_t([0.])
+  dot_rv = arr_t([0.])
+  dot_rc = arr_t([0.])
+  dot_rr = arr_t([0.])
+  dot_rv = arr_t([0.])
+  dot_ria = arr_t([0.])
+  dot_rib = arr_t([0.])
+  blk_1m.rhs_cellwise_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib, rhod, p, th, rv, rc, rr, ria, rib, dt)
   assert dot_ria != 0
   assert dot_rib != 0
 
@@ -130,6 +121,15 @@ for name, opt in test_cases.items():
   test_rhs_cell_ice(opts, name)
 
 #testing sedimentation of ice
+print("Testing RHS columnwise ice")
+th   = arr_t([230.])  #testing ice physics
+ria = arr_t([0.1])
+rib = arr_t([0.1])
+dot_rc = arr_t([0.])
+dot_rr = arr_t([0.])
+dot_rv = arr_t([0.])
+dot_ria = arr_t([0.])
+dot_rib = arr_t([0.])
 flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, ice_t.iceA)
 flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, ice_t.iceB)
 assert flux_iceA != 0
