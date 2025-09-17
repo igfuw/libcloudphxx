@@ -40,6 +40,7 @@ namespace libcloudphxx
       int nwtrph_iters = 3; // number of iterations in Newton-Raphson saturation adjustment
 
       // NOTE: only tested combinations are: th_dry == true && const_p == false; th_dry == false && const_p == true
+      // NOTE:  th_dry == true && const_p == false doesn't work very well with Newton-Raphson, e.g. sat_adj_blk_1m test (TODO: probably Newton-Raphson needs to be fixed)
       bool th_dry  = true, // if true, input and output theta are dry-air potential temperature; if false, they are 'standard' potential temperature
            const_p = false; // if true, pressure is equal to a supplied profile except for solving velocity (e.g. anelastic model); if false, pressure comes from the gas equation
     };
