@@ -7,6 +7,9 @@ import numpy as np
 from libcloudphxx import blk_1m
 
 opts = blk_1m.opts_t()
+opts.adj_nwtrph = True
+opts.const_p = True
+opts.th_dry = False
 ice_t = blk_1m.ice_t()
 
 rhod = arr_t([1.  ])
@@ -27,7 +30,7 @@ for _ in range(100):
     dot_rv = arr_t([0.])
     dot_ria = arr_t([0.])
     dot_rib = arr_t([0.])
-    blk_1m.rhs_cellwise_nwtrph_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib, rhod, p, th, rv, rc, rr, ria, rib, dt)
+    blk_1m.rhs_cellwise_ice(opts, dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib, rhod, p, th, rv, rc, rr, ria, rib, dt)
     flux_rain = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
     flux_iceA = blk_1m.rhs_columnwise_ice(opts, dot_ria, rhod, ria, dz, ice_t.iceA)
     flux_iceB = blk_1m.rhs_columnwise_ice(opts, dot_rib, rhod, rib, dz, ice_t.iceB)
