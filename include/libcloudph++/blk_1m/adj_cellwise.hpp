@@ -180,41 +180,6 @@ namespace libcloudphxx
         assert(rv >= 0);
       }
     }
-/*
-// saturation adjustment with variable pressure calculated using rhod, rv and T; and th=th_dry
-//<listing>
-    template <typename real_t, class cont_t>
-    void adj_cellwise_nwtrph(
-      const opts_t<real_t> &opts,
-      const cont_t &p_cont,
-      cont_t &th_cont,
-      cont_t &rv_cont,
-      cont_t &rc_cont,
-      const real_t &dt
-    )
-//</listing>
-    {
-      adj_cellwise_nwtrph_hlpr(opts, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
-    }
-
-// saturation adjustment with a constant pressure profile (e.g. anleastic model) and th=th_std
-//<listing>
-    template <typename real_t, class cont_t>
-    void adj_cellwise_constp(
-      const opts_t<real_t> &opts,
-      const cont_t &rhod_cont,
-      const cont_t &p_cont,
-      cont_t &th_cont,  // th_std
-      cont_t &rv_cont,
-      cont_t &rc_cont,
-      cont_t &rr_cont,
-      const real_t &dt
-    )
-//</listing>
-    {
-      adj_cellwise_hlpr(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
-    }
-*/
 
 // Below are saturation adjustment functions that use RK4 integration (from boost.odeint)
 
@@ -251,13 +216,16 @@ namespace libcloudphxx
       for (auto tup : zip(rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont))
       {
         const real_t
-          &rhod = std::get<0>(tup),
-          &p    = std::get<1>(tup);
+          &rhod = std::get<0>(tup);
+//          p     = opts.const_p ? std::get<1>(tup) : 0;
         real_t
           &th = std::get<2>(tup),
           &rv = std::get<3>(tup),
           &rc = std::get<4>(tup),
-          &rr = std::get<5>(tup);
+          &rr = std::get<5>(tup),
+          p = 0;
+
+        if(opts.const_p) p = std::get<1>(tup);
 
         // double-checking....
         //assert(th >= 273.15); // TODO: that's theta, not T!
@@ -371,44 +339,4 @@ namespace libcloudphxx
         adj_cellwise_rk4(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt);
     }
   }
-
-  /*
-
-// saturation adjustment with variable pressure calculated using rhod, rv and T
-//<listing>
-    template <typename real_t, class cont_t>
-    void adj_cellwise(
-      const opts_t<real_t> &opts,
-      const cont_t &rhod_cont,
-      cont_t &th_cont,  // th_dry
-      cont_t &rv_cont,
-      cont_t &rc_cont,
-      cont_t &rr_cont,
-      const real_t &dt
-    )
-//</listing>
-    {
-      // rhod_cont passed twice on purpose - it's a dummy var for pressures to make the tuple compile
-      adj_cellwise_hlpr(opts, rhod_cont, rhod_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, false);
-    }
-
-// saturation adjustment with a constant pressure profile (e.g. anleastic model)
-// needs a different name, because boost python got confused (TODO: fix it)
-//<listing>
-    template <typename real_t, class cont_t>
-    void adj_cellwise_constp(
-      const opts_t<real_t> &opts,
-      const cont_t &rhod_cont,
-      const cont_t &p_cont,
-      cont_t &th_cont,  // th_std
-      cont_t &rv_cont,
-      cont_t &rc_cont,
-      cont_t &rr_cont,
-      const real_t &dt
-    )
-//</listing>
-    {
-      adj_cellwise_hlpr(opts, rhod_cont, p_cont, th_cont, rv_cont, rc_cont, rr_cont, dt, true);
-    }
-      */
 };

@@ -59,6 +59,9 @@ void setopts_micro(
     .chem_b  = setup.chem_b
   });
 
+  rt_params.cloudph_opts.th_dry = true;
+  rt_params.cloudph_opts.const_p = false;
+
   // output variables
   rt_params.outvars = {
     // <TODO>: make it common among all three micro?
