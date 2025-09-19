@@ -12,19 +12,31 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    using std::get;
+
     // create new aerosol particles based on a size distribution
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::src_dry_distros_simple(const real_t &dt)
+    void particles_t<real_t, device>::impl::src_dry_distros_simple(const src_dry_distros_t<real_t> &sdd)
     {   
+      // We assume that sdd size is 1
+      // TODO: add a loop to allow sdd.size>1
+      auto p_sdd = sdd.cbegin();
+
+      // add the source only once every number of steps
+      assert(get<2>(p_sdd->second) > 0);
+      if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
+
+      const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;
+
       // set number of SDs to init; use count_num as storage
-      init_count_num_src(opts_init.src_sd_conc);
+      init_count_num_src(get<1>(p_sdd->second));
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
       dist_analysis_sd_conc(
-        *(opts_init.src_dry_distros.begin()->second),
-        opts_init.src_sd_conc,
-        dt
+        *(get<0>(p_sdd->second)),
+        get<1>(p_sdd->second),
+        sup_dt
       ); 
 
       namespace arg = thrust::placeholders;
@@ -44,15 +56,18 @@ namespace libcloudphxx
 
       // init other peoperties of SDs that didnt have a match
       init_kappa(
-        opts_init.src_dry_distros.begin()->first
+        p_sdd->first.first
+      ); 
+      init_rd3_insol(
+        p_sdd->first.second
       ); 
 
       if(opts_init.diag_incloud_time)
         init_incloud_time();
 
       init_n_sd_conc(
-        *(opts_init.src_dry_distros.begin()->second)
-      ); // TODO: document that n_of_lnrd_stp is expected!
+        *get<0>(p_sdd->second)
+      ); 
 
       // init rw
       init_wet();
