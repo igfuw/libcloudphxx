@@ -232,8 +232,9 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
     void particles_t<real_t, device>::impl::moms_calc(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const it_t &vec_bgn,
       const thrust_size_t npart,
       const real_t power,
       const bool specific
@@ -244,12 +245,6 @@ namespace libcloudphxx
       // same as above
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::const_iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t> > zip_it_t;
-
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
@@ -258,9 +253,9 @@ namespace libcloudphxx
         sorted_ijk.begin(), sorted_ijk.begin()+npart,  
         // input - values
         thrust::make_transform_iterator(
-          zip_it_t(thrust::make_tuple(
-            pi_t(n_filtered.begin(),   sorted_id.begin()),
-            pi_t(vec_bgn,              sorted_id.begin())
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(n_filtered.begin(),   sorted_id.begin()),
+            thrust::make_permutation_iterator(vec_bgn,              sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
@@ -352,8 +347,9 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
     void particles_t<real_t, device>::impl::moms_calc(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const it_t &vec_bgn,
       const real_t power,
       const bool specific
     )
