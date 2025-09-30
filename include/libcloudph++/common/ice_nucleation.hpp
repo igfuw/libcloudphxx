@@ -42,12 +42,12 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl) const
         {
-          const real_t &rd3_insol = thrust::get<0>(tpl);  // from rd3 vector
+          const real_t &rd2_insol = thrust::get<0>(tpl);  // from rd2 vector
           const real_t &rand         = thrust::get<1>(tpl);  // from rand vector
 
           return ice_nucleation::T_freeze_CDF_inv<real_t>(
             INP_type,
-            rd3_insol * si::meters,
+            rd2_insol * si::meters,
             rand
           ).value();
         }
