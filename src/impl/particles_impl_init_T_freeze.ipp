@@ -23,8 +23,8 @@ namespace libcloudphxx
       rand_u01(n_part_to_init);
 
       thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(rd3_insol.begin() + n_part_old, u01.begin() + n_part_old)),
-        thrust::make_zip_iterator(thrust::make_tuple(rd3_insol.end(),   u01.end())),
+        thrust::make_zip_iterator(thrust::make_tuple(rd2_insol.begin() + n_part_old, u01.begin() + n_part_old)),
+        thrust::make_zip_iterator(thrust::make_tuple(rd2_insol.end(),   u01.end())),
         T_freeze.begin() + n_part_old,
         T_freeze_CDF_inv_functor<real_t>(inp_type)
       );

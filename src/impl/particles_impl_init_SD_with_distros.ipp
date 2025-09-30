@@ -50,13 +50,13 @@ namespace libcloudphxx
 
     // final inits common for tail/sd_conc/const_multi
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const std::pair<real_t, real_t> &kpa_rd3_insol, const bool unravel_ijk_switch)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const std::pair<real_t, real_t> &kpa_rd2_insol, const bool unravel_ijk_switch)
     {
       // init kappa
-      init_kappa(kpa_rd3_insol.first);
+      init_kappa(kpa_rd2_insol.first);
 
-      // init rd3_insol
-      init_rd3_insol(kpa_rd3_insol.second);
+      // init rd2_insol
+      init_insol_dry_sizes(kpa_rd2_insol.second);
       
       // initialising wet radii
       init_wet();

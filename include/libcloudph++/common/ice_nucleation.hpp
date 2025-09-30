@@ -15,10 +15,10 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> T_freeze_CDF_inv(
       const INP_t& INP_type,                          // type of ice nucleating particle
-      const quantity<si::length, real_t> rd3_insol,    // radius cubed of ice nucleating (insoluble) particle
+      const quantity<si::length, real_t> rd2_insol,    // radius squared of ice nucleating (insoluble) particle
       const real_t rand                                    // random number between [0, 1]
         ) {
-        real_t A = real_t(4) * pi<real_t>() * std::pow(rd3_insol/si::meters, 2/3); // surface area of the insoluble particle
+        real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
 
         if (INP_type == INP_t::mineral && A > std::numeric_limits<real_t>::epsilon())
         {
