@@ -23,7 +23,8 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    // pimpl stuff 
+
+    // pimpl stuff
     template <typename real_t, backend_t device>
     struct particles_t<real_t, device>::impl
     { 
@@ -83,7 +84,13 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
-        incloud_time; // time this SD has been within a cloud
+        incloud_time, // time this SD has been within a cloud
+        ice, // 0 - water 1 - ice; bool would suffice, but we are lazy
+        rd2_insol, // dry radii squared of insoluble aerosol
+        T_freeze, // freezing temperature
+        ice_a, // equatorial radius of ice
+        ice_c, // polar radius of ice
+        ice_rho; // ice apparent density
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -139,7 +146,8 @@ namespace libcloudphxx
       thrust_device::vector<real_t> 
         T,  // temperature [K]
         p,  // pressure [Pa]
-        RH, // relative humisity 
+        RH, // relative humisity
+        RH_i, // relative humisity w.r.t. ice
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
@@ -214,6 +222,7 @@ namespace libcloudphxx
         tmp_device_real_cell,
         tmp_device_real_cell1,
         tmp_device_real_cell2,
+        tmp_device_real_cell3,
         &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
       thrust_device::vector<unsigned int>
         tmp_device_n_part,
@@ -265,8 +274,6 @@ namespace libcloudphxx
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
-      // --- containters with vector pointers to help resize and copy vectors ---
-
       // vectors copied between distributed memories (MPI, multi_CUDA), these are SD attributes
       std::set<std::pair<thrust_device::vector<real_t>*, real_t>>         distmem_real_vctrs; // pair of vector and its initial value
       std::set<thrust_device::vector<n_t>*>                               distmem_n_vctrs;
@@ -277,8 +284,7 @@ namespace libcloudphxx
 //      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
       std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
 
-
-      // --- methods ---
+      // methods
 
       // fills u01 with n random real numbers uniformly distributed in range [0,1)
       void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
@@ -288,6 +294,8 @@ namespace libcloudphxx
 
       // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
+
+      enum class phase_change { condensation, sublimation }; // enum for choosing between phase change types
 
       // ctor 
       impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const int &n_x_tot) : 
@@ -449,6 +457,16 @@ namespace libcloudphxx
         if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
         if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
         if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
+
+        if(opts_init.ice_switch)
+        {
+          distmem_real_vctrs.insert({&ice, detail::no_initial_value});
+          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
+          distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
+        }
       }
 
       void sanity_checks();
@@ -456,7 +474,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const real_t &, const bool unravel_ijk = true);
+      void init_SD_with_distros_finalize(const std::pair<real_t, real_t> &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -489,6 +507,10 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
+      void init_ice(const real_t &);
+      void init_insol_dry_sizes(real_t);
+      void init_T_freeze();
+      void init_a_c_rho_ice();
       void init_incloud_time();
       void init_count_num_sd_conc(const real_t & = 1);
       void init_count_num_const_multi(const common::unary_function<real_t> &);
@@ -542,6 +564,12 @@ namespace libcloudphxx
       void moms_ge0(
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       );
+      void moms_gt0(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      );
+      void moms_eq0(
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      );
       void moms_rng(
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
@@ -552,15 +580,17 @@ namespace libcloudphxx
         const real_t &min, const real_t &max, 
         const typename thrust_device::vector<real_t>::iterator &vec_bgn,
         const bool cons
-      ); 
+      );
+      template<typename it_t> // iterator type
       void moms_calc(
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const it_t &vec_bgn,
         const thrust_size_t npart,
         const real_t power,
         const bool specific = true
       );
+      template<typename it_t> // iterator type
       void moms_calc(
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const it_t &vec_bgn,
         const real_t power,
         const bool specific = true
       );
@@ -587,12 +617,15 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      void ice_nucl_melt();
+
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
-      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
-      void update_th_rv(thrust_device::vector<real_t> &);
+      template<class pres_iter, class RH_iter, class RHi_iter>
+      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi, const RHi_iter &rhii);
+      void update_th_rv(thrust_device::vector<real_t> &, phase_change = phase_change::condensation);
+      void update_th_freezing(thrust_device::vector<real_t> &);
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_incloud_time(const real_t &dt);
@@ -609,11 +642,11 @@ namespace libcloudphxx
       thrust_size_t rcyc();
       void bcnd();
 
-      void src(const real_t &dt);
-      void src_dry_distros_simple(const real_t &dt);
-      void src_dry_distros_matching(const real_t &dt);
-      void src_dry_distros(const real_t &dt);
-      void src_dry_sizes(const real_t &dt);
+      void src(const src_dry_distros_t<real_t> &, const src_dry_sizes_t<real_t> &);
+      void src_dry_distros_simple(const src_dry_distros_t<real_t> &);
+      void src_dry_distros_matching(const src_dry_distros_t<real_t> &);
+      void src_dry_distros(const src_dry_distros_t<real_t> &);
+      void src_dry_sizes( const src_dry_sizes_t<real_t> &);
 
       void rlx(const real_t);
       void rlx_dry_distros(const real_t);

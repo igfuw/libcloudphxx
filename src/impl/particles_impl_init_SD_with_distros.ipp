@@ -17,7 +17,7 @@ namespace libcloudphxx
       // calc sum of ln(rd) ranges of all distributions
       real_t tot_lnrd_rng = 0.;
       if(opts_init.sd_conc > 0)
-        for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = opts_init.dry_distros.begin(); ddi != opts_init.dry_distros.end(); ++ddi)
+        for (auto ddi = opts_init.dry_distros.cbegin(); ddi != opts_init.dry_distros.cend(); ++ddi)
         {
             dist_analysis_sd_conc(
               *(ddi->second),
@@ -27,7 +27,7 @@ namespace libcloudphxx
         }
 
       // initialize SDs of each kappa-type
-      for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = opts_init.dry_distros.begin(); ddi != opts_init.dry_distros.end(); ++ddi)
+      for (auto ddi = opts_init.dry_distros.cbegin(); ddi != opts_init.dry_distros.cend(); ++ddi)
       {
         if(opts_init.sd_conc > 0)
         {
@@ -50,10 +50,13 @@ namespace libcloudphxx
 
     // final inits common for tail/sd_conc/const_multi
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const real_t &kappa, const bool unravel_ijk_switch)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_finalize(const std::pair<real_t, real_t> &kpa_rd2_insol, const bool unravel_ijk_switch)
     {
       // init kappa
-      init_kappa(kappa);
+      init_kappa(kpa_rd2_insol.first);
+
+      // init rd2_insol
+      init_insol_dry_sizes(kpa_rd2_insol.second);
       
       // initialising wet radii
       init_wet();
