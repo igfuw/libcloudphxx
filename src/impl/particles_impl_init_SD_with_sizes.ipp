@@ -19,14 +19,14 @@ namespace libcloudphxx
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
-      // loop over (kappa, ice) pairs
+      // loop over (kappa, rd_insol) pairs
       for (auto dsi = opts_init.dry_sizes.cbegin(); dsi != opts_init.dry_sizes.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.first);
-        const real_t &ice(dsi->first.second);
+        const real_t &rd_insol(dsi->first.second);
         const auto &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration, count}" pairs for this (kappa, ice) pair
+        // loop over the "size : {concentration, count}" pairs for this (kappa, rd_insol) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // init number of SDs of this kappa in cells
@@ -45,9 +45,9 @@ namespace libcloudphxx
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);
 
-          // init kappa and ice
+          // init kappa and rd_insol
           init_kappa(kappa);
-          init_insol_dry_sizes(ice);
+          init_insol_dry_sizes(rd_insol);
   
           // init multiplicities
           init_n_dry_sizes(sni->second.first, sni->second.second); 

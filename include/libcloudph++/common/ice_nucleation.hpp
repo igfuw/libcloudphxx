@@ -15,7 +15,7 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> T_freeze_CDF_inv(
       const INP_t& INP_type,                          // type of ice nucleating particle
-      const quantity<si::length, real_t> rd2_insol,    // radius squared of ice nucleating (insoluble) particle
+      const real_t rd2_insol,    // radius squared of insoluble particle in meters
       const real_t rand                                    // random number between [0, 1]
         ) {
         real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
@@ -47,7 +47,7 @@ namespace libcloudphxx
 
           return ice_nucleation::T_freeze_CDF_inv<real_t>(
             INP_type,
-            rd2_insol * si::meters,
+            rd2_insol,
             rand
           ).value();
         }

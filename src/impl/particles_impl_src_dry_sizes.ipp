@@ -20,15 +20,15 @@ namespace libcloudphxx
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
-      // loop over (kappa, ice) pairs
+      // loop over (kappa, rd_insol) pairs
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
       for (auto dsi = sds.cbegin(); dsi != sds.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.first);
-        const real_t &ice(dsi->first.second);
+        const real_t &rd_insol(dsi->first.second);
         const auto &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, ice) pair
+        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, rd_insol) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // add the source only once every number of steps
@@ -53,9 +53,9 @@ namespace libcloudphxx
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);
 
-          // init kappa and ice
+          // init kappa and rd_insol
           init_kappa(kappa);
-          init_insol_dry_sizes(ice);
+          init_insol_dry_sizes(rd_insol);
   
           // init multiplicities
           init_n_dry_sizes(get<0>(sni->second)*sup_dt, get<1>(sni->second)); 
