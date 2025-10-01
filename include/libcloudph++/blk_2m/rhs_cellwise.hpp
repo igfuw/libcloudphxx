@@ -34,7 +34,6 @@ namespace libcloudphxx
       const cont_t &rr_cont,
       const cont_t &nr_cont,
       const real_t &dt,
-      const bool const_p = false,         // is pressure constant (e.g. anelastic approximation on UWLCM)?
       const cont_t &p_cont = cont_t()     // pressure, required if const_p == true
     )
 //</listing>
@@ -46,8 +45,9 @@ namespace libcloudphxx
       assert(min(rr_cont) >= 0);
       assert(min(nc_cont) >= 0);
       assert(min(nr_cont) >= 0);
-      assert(!const_p || p_cont.size() == th_cont.size());
-      assert(!const_p || min(p_cont) > 0);
+      assert(!opts.const_p || p_cont.size() == th_cont.size());
+      assert(!opts.const_p || min(p_cont) > 0);
+      assert(opts.const_p != opts.th_dry); // either const_p or th_dry
 
       using namespace formulae;
       using namespace common::moist_air;
@@ -96,16 +96,17 @@ namespace libcloudphxx
         quantity<si::temperature, real_t> T;
         quantity<si::pressure, real_t>    p;
 
-        if(!const_p)
+        if(!opts.const_p && opts.th_dry)
         {
           T = common::theta_dry::T<real_t>(th, rhod);
           p = common::theta_dry::p<real_t>(rhod, rv, T);
         }
-        else
+        else if(opts.const_p && !opts.th_dry)
         {
           p = std::get<13>(tup) * si::pascals;
           T = th * common::theta_std::exner(p);
         }
+        else throw std::runtime_error("rhs_cellwise: one (and only one) of opts.const_p and opts.th_dry must be true");
 
         // rhs only due to rhs_cellwise microphysics functions (needed for limiting)
         real_t local_dot_rc = 0,
@@ -140,7 +141,7 @@ namespace libcloudphxx
             quantity<divide_typeof_helper<si::frequency, si::mass>::type, real_t> tmp =
               activation_rate<real_t>(n_ccn, nc / si::kilograms, dt * si::seconds);
 
-	    local_dot_nc += tmp * si::kilograms * si::seconds;
+            local_dot_nc += tmp * si::kilograms * si::seconds;
             local_dot_rc += tmp * ccnmass<real_t>() * si::seconds;
           }
 
@@ -198,10 +199,7 @@ namespace libcloudphxx
         }
 
         dot_rv -= (local_dot_rc + local_dot_rr);
-        if(!const_p)
-          dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
-        else
-          dot_th += common::const_cp::l_v(T) / (common::moist_air::c_pd<real_t>() * common::theta_std::exner(p)) * (local_dot_rc + local_dot_rr) / si::kelvins;
+        dot_th -= (local_dot_rc + local_dot_rr) * d_th_d_rv<real_t>(T, th) / si::kelvins;
         dot_rc += local_dot_rc;
         dot_rr += local_dot_rr;
         dot_nc += local_dot_nc;

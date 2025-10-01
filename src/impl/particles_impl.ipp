@@ -159,9 +159,6 @@ namespace libcloudphxx
       // is it a pure const_multi run, i.e. no sd_conc
       bool pure_const_multi;
 
-      // is a constant, external pressure profile used? (e.g. anelastic model)
-      bool const_p;
-
       // is it allowed to do substepping, if not, some memory can be saved
       bool allow_sstp_cond,
            allow_sstp_chem;
@@ -438,7 +435,7 @@ namespace libcloudphxx
         {
           resize_real_vctrs.insert(&tmp_device_real_part3);
           resize_real_vctrs.insert(&tmp_device_real_part4);
-          if(const_p)
+          if(opts_init.const_p)
             resize_real_vctrs.insert(&tmp_device_real_part5);
         }
 

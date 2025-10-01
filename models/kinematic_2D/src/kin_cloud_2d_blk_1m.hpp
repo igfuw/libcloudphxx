@@ -29,7 +29,7 @@ class kin_cloud_2d_blk_1m : public kin_cloud_2d_common<ct_params_t>
       rhod = (*this->mem->G)(this->ijk);
       
     libcloudphxx::blk_1m::adj_cellwise<real_t>( 
-      opts, rhod, th, rv, rc, rr, this->dt
+      opts, rhod, typename parent_t::arr_t(), th, rv, rc, rr, this->dt
     );
     this->mem->barrier(); 
   }

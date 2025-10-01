@@ -58,7 +58,7 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> d_th_d_rv(
         const quantity<si::temperature, real_t> &T,
-        const quantity<si::temperature, real_t> &th // theta dry!!!
+        const quantity<si::temperature, real_t> &th // theta dry OR theta std (depends how T was calculated from th)
       ) {
         return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
