@@ -68,7 +68,7 @@ tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(Opts_init.nx, Opts_init
 
 assert(tab_out[0][0] == 0.)
 
-puddle_expected_per_cell = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 7.087802417148837e-05, 9: 5.630090090571395e-06, 10: 815411.5}
+puddle_expected_per_cell = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 7.087802417148837e-05, 9: 5.630090090571395e-06, 10: 815411.5, 11: 0.0}
 
 for a in puddle:
   print(puddle[a], Opts_init.nx * puddle_expected_per_cell[a])
