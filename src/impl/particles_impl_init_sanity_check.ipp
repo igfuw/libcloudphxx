@@ -155,6 +155,13 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: In const_p option, pressure profile must be passed (p in init())");
       if(!opts_init.const_p && !p.is_null())
         throw std::runtime_error("libcloudph++: pressure profile was passed in init(), but the constant pressure option was not used");
+
+      if(opts_init.sstp_cond < 1)
+        throw std::runtime_error("libcloudph++: opts_init.sstp_cond needs to be greater than 0");
+      if(opts_init.adaptive_sstp_cond && opts_init.exact_sstp_cond)
+        throw std::runtime_error("libcloudph++: Adaptive condensation substepping does not work for per-particle substepping (yet) (opts_init.adaptive_sstp_cond and opts_init.exact_sstp_cond can't both be true");
+      if(opts_init.adaptive_sstp_cond && opts_init.sstp_cond > 1 && (opts_init.sstp_cond & (opts_init.sstp_cond-1) != 0))
+        throw std::runtime_error("libcloudph++: In adaptive condensation substepping, number of substeps has to be either 1 or a power of 2. Adjust initial number of substeps (opts_init.sstp_cond)");
     }
   };
 };

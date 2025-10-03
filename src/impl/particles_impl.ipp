@@ -83,6 +83,15 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
+        sstp_tmp_chem_0, // ditto for trace gases
+        sstp_tmp_chem_1, // ditto for trace gases
+        sstp_tmp_chem_2, // ditto for trace gases
+        sstp_tmp_chem_3, // ditto for trace gases
+        sstp_tmp_chem_4, // ditto for trace gases
+        sstp_tmp_chem_5, // ditto for trace gases
+        vt,  // terminal velocity
+        vt_0, // sea level term velocity according to Beard 1977, compute once
+        dv,  // grid-cell volumes (per grid cell)
         incloud_time; // time this SD has been within a cloud
 
       // dry radii distribution characteristics
@@ -90,22 +99,11 @@ namespace libcloudphxx
              log_rd_max, // logarithm of the upper bound of the distr
              multiplier; // multiplier calculated for the above values
 
-      // terminal velocity (per particle)
-      thrust_device::vector<real_t> vt; 
-      // sea level term velocity according to Beard 1977, compute once
-      thrust_device::vector<real_t> vt_0; 
-
-      // grid-cell volumes (per grid cell)
-      thrust_device::vector<real_t> dv;
-
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
+        lft, rgt, abv, blw, fre, hnd, // Arakawa-C grid helper vars TODO: could be reused after advection!
         sorted_id, sorted_ijk;
-
-      // Arakawa-C grid helper vars
-      thrust_device::vector<thrust_size_t> 
-        lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
       // moment-counting stuff
       thrust_device::vector<thrust_size_t> 
@@ -121,12 +119,6 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        sstp_tmp_chem_0, // ditto for trace gases
-        sstp_tmp_chem_1, // ditto for trace gases
-        sstp_tmp_chem_2, // ditto for trace gases
-        sstp_tmp_chem_3, // ditto for trace gases
-        sstp_tmp_chem_4, // ditto for trace gases
-        sstp_tmp_chem_5, // ditto for trace gases
         courant_x, 
         courant_y, 
         courant_z;
@@ -143,9 +135,9 @@ namespace libcloudphxx
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
-      thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
-      thrust_device::vector<real_t> aerosol_conc_factor; // profile of aerosol concentration factor
+      thrust_device::vector<real_t> w_LS, // large-scale subsidence velocity profile
+                                    SGS_mix_len, // SGS mixing length profile
+                                    aerosol_conc_factor; // profile of aerosol concentration factor
 
       // time steps to be used, considering that opts.dt can override opts_init.dt
       real_t dt;
@@ -261,6 +253,8 @@ namespace libcloudphxx
 
       // ids of sds to be copied with distmem
       thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      thrust_device::vector<int> sstp_cond_per_cell; // number of cond substeps per cell (used in adaptive substepping)
 
       // --- containters with vector pointers to help resize and copy vectors ---
 

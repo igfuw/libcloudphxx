@@ -203,11 +203,34 @@ namespace libcloudphxx
         else
         // apply per-cell sstp logic
         {
+          // look for correct number of substeps
+//          if(opts_init.adaptive_sstp_cond)
+//          {
+//            pimpl->sstp_step(0);
+//            save_dth_change
+//            save_state
+//            sstp_cond_found=0
+//            do
+//            {
+//              if(!sstp_cond_found /* per-cell! */):
+//                double_sstp_cond
+//                pimpl->sstp_step(0); // step 0 again, may cause troubles!
+//                save_dth_change
+//                sstp_cound_found = calc_diff(2*newdth - dth) < rel_eps;
+//                if(!sstp_cond_found)
+//                  save_state
+//                else
+//                  restore_state
+//            }
+//            while(sstp_cound_found.any==0)
+//            
+//          }
+//          for (int step = opts_init.adaptive_sstp_cond ? 1 : 0; step < opts_init.adaptive_sstp_cond ? pimpl->sstp_cond_per_cell.max() : pimpl->sstp_cond; ++step) 
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {   
+          {
             pimpl->sstp_step(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
+              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond); // how can we make it work with adaptive? 0-th step, calculated for adaptation, was done without ssp
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
           }

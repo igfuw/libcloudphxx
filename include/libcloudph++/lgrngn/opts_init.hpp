@@ -97,7 +97,8 @@ namespace libcloudphxx
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
-           exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           adaptive_sstp_cond;    // if true, use adaptive number of substeps for condensation
            
       int sstp_chem;
       real_t chem_rho;
@@ -213,6 +214,7 @@ namespace libcloudphxx
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
         exact_sstp_cond(false),
+        adaptive_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
         turb_coal_switch(false),
