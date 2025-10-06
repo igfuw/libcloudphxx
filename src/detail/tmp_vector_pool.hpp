@@ -17,10 +17,10 @@ namespace libcloudphxx
         };
         std::vector<entry> pool;
     public:
-        // tmp_vector_pool(size_t pool_size, size_t vec_size) {
-        //     for (size_t i = 0; i < pool_size; ++i)
-        //         pool.emplace_back(vec_size);
-        // }
+        tmp_vector_pool(size_t pool_size = 1) {
+            for (size_t i = 0; i < pool_size; ++i)
+                pool.emplace_back();
+        }
 
         // Add a new vector to the pool
         // void add_vector(size_t vec_size) {

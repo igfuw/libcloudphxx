@@ -336,7 +336,9 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
-        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)) // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
+        tmp_device_real_part(6),
+        tmp_device_real_cell(3)
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -503,7 +505,7 @@ namespace libcloudphxx
       void init_kernel();
       void init_vterm();
 
-      void fill_outbuf();
+      void fill_outbuf(thrust::host_vector<real_t>&);
       std::vector<real_t> fill_attr_outbuf(const std::string&);
       void mpi_exchange();
 
