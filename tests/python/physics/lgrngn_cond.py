@@ -129,6 +129,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     rv_diff = rv_init.copy() - rv[0].copy()
   
     # change to subsaturated air - test evaporation
+    rv[0]   = 0.006 # 0.002
     rv[0]   = 0.002
     rv_init = rv.copy()
 
@@ -136,7 +137,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
+      #print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
 
     ss_post_evap = supersaturation(prtcls)
     print("supersaturation after evaporation", ss_post_evap, th[0], rv[0])
@@ -152,22 +153,28 @@ for constp in [False, True]:
         ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp, opts_dt)
         print(ss, th_diff_1  , rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp, opts_dt)
         print(ss, th_diff_10 , rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp, opts_dt)
         print(ss, th_diff_100, rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         if constp == False:
+#          assert(abs(th_diff_1) < 8e-2)
+#          assert(abs(th_diff_10) < 8e-3)
+#          assert(abs(th_diff_100) < 6e-3) # little gain
           assert(abs(th_diff_1) < 4.2e-2)
           assert(abs(th_diff_10) < 4.2e-3)
-          assert(abs(th_diff_100) < 4.2e-4)
+          assert(abs(th_diff_100) < 4.2e-4) 
         else :
           # TODO: why with constant pressure the error doesn't scale so well?
           #       is there a systematic error caused by the fact that with constant pressure,

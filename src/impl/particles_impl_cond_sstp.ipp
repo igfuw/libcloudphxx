@@ -223,8 +223,15 @@ namespace libcloudphxx
         )
       );  
 
-      // apply change in rv to sstp_tmp_rv
-      update_pstate(sstp_tmp_rv, pdrv);
+      if(opts_init.sstp_cond_mix)
+        update_pstate(sstp_tmp_rv, pdrv); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
+      else  // thermodynamic changes between substeps are local to the droplet
+        thrust::transform(
+          pdrv.begin(), pdrv.end(),
+          sstp_tmp_rv.begin(),
+          sstp_tmp_rv.begin(),
+          thrust::plus<real_t>()
+        );
 
       // calc particle-specific change in th based on pdrv
       thrust::transform(
@@ -242,8 +249,15 @@ namespace libcloudphxx
         detail::dth<real_t>()
       );
 
-      // apply change in th to sstp_tmp_th
-      update_pstate(sstp_tmp_th, pdrv);
+      if(opts_init.sstp_cond_mix)
+        update_pstate(sstp_tmp_th, pdrv); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
+      else  // thermodynamic changes between substeps are local to the droplet
+        thrust::transform(
+          pdrv.begin(), pdrv.end(),
+          sstp_tmp_th.begin(),
+          sstp_tmp_th.begin(),
+          thrust::plus<real_t>()
+        );
     }
   };  
 };

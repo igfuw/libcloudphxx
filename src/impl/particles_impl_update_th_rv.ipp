@@ -140,6 +140,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &pstate // particle-specific cell state (same for all particles in one cell)
     ) 
     {
+     // TODO: we copy from all SDs in a single cell to the same position; wasteful and possibly with memory races (?); do it once 
      thrust::copy(
        pstate.begin(), pstate.end(),
        thrust::make_permutation_iterator(state.begin(), ijk.begin())

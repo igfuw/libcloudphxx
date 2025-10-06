@@ -186,9 +186,28 @@ namespace libcloudphxx
         //       that would make it easy to do in exact (per-cell) substepping
         pimpl->hskpng_mfp(); 
 
-        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)
-        // apply substeps per-particle logic
+        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1) // apply substeps per-particle logic
         {
+          if(!pimpl->opts_init.sstp_cond_mix)
+          {
+            // --- calc liquid water content before cond ---
+            thrust_device::vector<real_t> &drv(pimpl->tmp_device_real_cell);
+    
+            // calculating the 3rd wet moment before condensation
+            diag_all();
+            diag_wet_mom(3);
+    
+            // permute-copying the result to -dm_3
+            // fill with 0s if not all cells will be updated in the following transform
+            if(pimpl->count_n!=pimpl->n_cell)  thrust::fill(drv.begin(), drv.end(), real_t(0.));
+            thrust::transform(
+              pimpl->count_mom.begin(), pimpl->count_mom.begin() + pimpl->count_n,                    // input - 1st arg
+              thrust::make_permutation_iterator(drv.begin(), pimpl->count_ijk.begin()), // output
+              thrust::negate<real_t>()
+            );
+          }
+
+          // actual condensation calculation
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {   
             pimpl->sstp_step_exact(step);
@@ -196,12 +215,32 @@ namespace libcloudphxx
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
             pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
           } 
-          // copy sstp_tmp_rv and th to rv and th
-          pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
-          pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+
+          // post condensation - update th and rv
+          if(pimpl->opts_init.sstp_cond_mix)
+          {
+            pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
+            pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+          }
+          else
+          {
+            thrust_device::vector<real_t> &drv(pimpl->tmp_device_real_cell);
+            diag_all();
+            diag_wet_mom(3);
+
+            // adding the third moment after condensation to dm_3
+            thrust::transform(
+              pimpl->count_mom.begin(), pimpl->count_mom.begin() + pimpl->count_n,                    // input - 1st arg
+              thrust::make_permutation_iterator(drv.begin(), pimpl->count_ijk.begin()), // input - 2nd arg
+              thrust::make_permutation_iterator(drv.begin(), pimpl->count_ijk.begin()), // output
+              thrust::plus<real_t>()
+            );
+  
+            // update th and rv according to changes in third specific wet moment
+            pimpl->update_th_rv(drv);
+          }
         }
-        else
-        // apply per-cell sstp logic
+        else // apply per-cell sstp logic
         {
           // look for correct number of substeps
 //          if(opts_init.adaptive_sstp_cond)
