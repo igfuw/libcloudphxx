@@ -209,9 +209,12 @@ namespace libcloudphxx
 
       for(auto &p : pimpl->particles) // TODO: perform this copy in parallell?
       {
+        auto outbuf_g = p->pimpl->tmp_host_real_cell.get_guard();
+        thrust::host_vector<real_t> &outbuf = outbuf_g.get();
+
         thrust::copy(
-          p->pimpl->tmp_host_real_cell.begin(),
-          p->pimpl->tmp_host_real_cell.end(),
+          outbuf.begin(),
+          outbuf.end(),
           pimpl->real_n_cell_tot.begin() + p->pimpl->n_cell_bfr
         );
       }
