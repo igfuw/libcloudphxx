@@ -310,9 +310,6 @@ namespace libcloudphxx
       );
 //      nancheck(off, "off - droplet index within a cell");
 
-      // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      rand_u01(n_part);
-
       // colliding
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<thrust_size_t>::iterator,
@@ -352,22 +349,29 @@ namespace libcloudphxx
         >
       > zip_rw_t;
 
-      zip_ro_t zip_ro_it(
-        thrust::make_tuple(
-          // u01
-          u01.begin(),
-          // scl
-          thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
-          // ix
-          zero,
-          zero+1,
-          // cid
-          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
-          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
-          // dv
-          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
-        )
-      );
+      // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
+      {
+        auto u01g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &u01 = u01g.get();
+        rand_u01(u01, n_part);
+  
+        zip_ro_t zip_ro_it(
+          thrust::make_tuple(
+            // u01
+            u01.begin(),
+            // scl
+            thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
+            // ix
+            zero,
+            zero+1,
+            // cid
+            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
+            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
+            // dv
+            thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+          )
+        );
+      }
 
       auto zip_ro_calc_it = 
         thrust::make_zip_iterator(

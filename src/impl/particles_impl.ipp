@@ -196,26 +196,24 @@ namespace libcloudphxx
       > chem_stepper;
 
       // temporary data
-      thrust::host_vector<real_t>
+      tmp_vector_pool<thrust::host_vector<real_t>> 
         tmp_host_real_grid,
         tmp_host_real_cell;
-      thrust::host_vector<thrust_size_t>
+      tmp_vector_pool<thrust::host_vector<thrust_size_t>> 
         tmp_host_size_cell;
-      thrust_device::vector<real_t>
+      tmp_vector_pool<thrust_device::vector<real_t>>       
         tmp_device_real_part,
-        tmp_device_real_part1,  
-        tmp_device_real_part2,  
-        tmp_device_real_part3,
-        tmp_device_real_part4,
-        tmp_device_real_part5,
-        tmp_device_real_cell,
-        tmp_device_real_cell1,
-        tmp_device_real_cell2,
-        &u01;  // uniform random numbers between 0 and 1 // TODO: use the tmp array as rand argument?
-      thrust_device::vector<unsigned int>
-        tmp_device_n_part,
-        &un; // uniform natural random numbers between 0 and max value of unsigned int
-      thrust_device::vector<thrust_size_t>
+        // tmp_device_real_part1,  
+        // tmp_device_real_part2,  
+        // tmp_device_real_part3,
+        // tmp_device_real_part4,
+        // tmp_device_real_part5,
+        tmp_device_real_cell;
+        // tmp_device_real_cell1,
+        // tmp_device_real_cell2,
+      tmp_vector_pool<thrust_device::vector<unsigned int>>
+        tmp_device_n_part;
+      tmp_vector_pool<thrust_device::vector<thrust_size_t>>
         tmp_device_size_cell,
         tmp_device_size_part;
 
@@ -278,10 +276,10 @@ namespace libcloudphxx
       // --- methods ---
 
       // fills u01 with n random real numbers uniformly distributed in range [0,1)
-      void rand_u01(thrust_size_t n) { rng.generate_n(u01, n); }
+      void rand_u01(thrust_device::vector<real_t> &u01, thrust_size_t n) { rng.generate_n(u01, n); }
 
       // fills un with n random integers uniformly distributed on the whole integer range
-      void rand_un(thrust_size_t n) { rng.generate_n(un, n); }
+      void rand_un(thrust_device::vector<unsigned int> &un, thrust_size_t n) { rng.generate_n(un, n); }
 
       // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
@@ -307,9 +305,7 @@ namespace libcloudphxx
         zero(0),
         n_part(0),
         sorted(false), 
-        u01(tmp_device_real_part),
         n_user_params(_opts_init.kernel_parameters.size()),
-        un(tmp_device_n_part),
         rng(_opts_init.rng_seed),
         src_stp_ctr(0),
         rlx_stp_ctr(0),
