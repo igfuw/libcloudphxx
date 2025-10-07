@@ -36,6 +36,12 @@ namespace libcloudphxx
             }
         }
 
+        void reserve(size_t n) {
+            for (size_t i = 0; i < pool.size(); ++i) {
+                pool[i].vec.reserve(n);
+            }
+        }
+
         // Acquire an available vector, returns its index
         size_t acquire() {
             for (size_t i = 0; i < pool.size(); ++i) {

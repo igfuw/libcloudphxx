@@ -221,7 +221,11 @@ namespace libcloudphxx
       std::uniqe_ptr<
         tmp_vector_pool<thrust_device::vector<real_t>>::guard
       > n_filtered_gp,
-        V_gp;
+        V_gp,
+        sstp_dlt_rv_gp,
+        sstp_dlt_th_gp,
+        sstp_dlt_rhod_gp,
+        sstp_dlt_p_gp;
 
 
       // to simplify foreach calls

@@ -53,24 +53,14 @@ namespace libcloudphxx
       if(opts_init.diag_incloud_time)
         incloud_time.reserve(opts_init.n_sd_max);
 
-      {
-        tmp_device_real_part1.reserve(opts_init.n_sd_max); 
-      }
-      if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
-      {
-        tmp_device_real_part2.reserve(opts_init.n_sd_max); 
-      }
       if(allow_sstp_cond && opts_init.exact_sstp_cond)
       {
-        tmp_device_real_part3.reserve(opts_init.n_sd_max); 
-        tmp_device_real_part4.reserve(opts_init.n_sd_max);  
         sstp_tmp_rv.reserve(opts_init.n_sd_max);
         sstp_tmp_th.reserve(opts_init.n_sd_max);
         sstp_tmp_rh.reserve(opts_init.n_sd_max);
         if(opts_init.const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
         {
           sstp_tmp_p.reserve(opts_init.n_sd_max);
-          tmp_device_real_part5.reserve(opts_init.n_sd_max);  
         }
       }
       // reserve memory for in/out buffers

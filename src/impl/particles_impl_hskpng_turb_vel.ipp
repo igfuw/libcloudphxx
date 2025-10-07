@@ -67,7 +67,8 @@ namespace libcloudphxx
         detail::common__turbulence__tau<real_t>()
       );
 
-      thrust_device::vector<real_t> &r_normal(tmp_device_real_part);
+      auto r_normal_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &r_normal = r_normal_g.get();
       thrust_device::vector<real_t> * vel_turbs_vctrs_a[] = {&up, &wp, &vp};
       for(int i = (only_vertical ? 1 : 0); i < (only_vertical ? 2 : n_dims); ++i)
       {

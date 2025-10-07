@@ -272,12 +272,16 @@ namespace libcloudphxx
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom storing scale_factors");
 
       // references to tmp data
+      auto scl_g = tmp_device_real_cell.get_guard(),
+           col_g = tmp_device_real_part.get_guard();
+      auto off_g = tmp_device_size_cell.get_guard(),
+
       thrust_device::vector<real_t> 
-        &scl(tmp_device_real_cell), // scale factor for probablility
-        &col(tmp_device_real_part); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
-                                    // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
+        &scl(scl_g.get()), // scale factor for probablility
+        &col(col_g.get()); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
+                           // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
       thrust_device::vector<thrust_size_t> 
-        &off(tmp_device_size_cell); // offset for getting index of particle within a cell
+        &off(off_g.get()); // offset for getting index of particle within a cell
 
       // laying out scale factor onto ijk grid
       // fill with 0s if not all cells will be updated in the following copy

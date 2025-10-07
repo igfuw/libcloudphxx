@@ -36,7 +36,8 @@ namespace libcloudphxx
       assert(selected_before_counting); //TODO: force moms_all() before mass density estimation?
 
       // same as above
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      auto n_filtered_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &n_filtered = n_filtered_g.get();
 
       // number of SD in each cell casted to real_t
       thrust_device::vector<real_t> &count_num_real_t(tmp_device_real_cell);

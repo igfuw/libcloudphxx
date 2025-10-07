@@ -55,7 +55,8 @@ namespace libcloudphxx
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
       {
-        thrust_device::vector<real_t> &RH_plus_ssp(tmp_device_real_part2);
+        auto RH_plus_ssp_g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &RH_plus_ssp = RH_plus_ssp_g.get();
         thrust::transform(
           ssp.begin(), ssp.end(),
           thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
