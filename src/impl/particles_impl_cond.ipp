@@ -18,12 +18,15 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
-
+      auto lambda_D_g = tmp_device_real_cell.get_guard();
+      auto lambda_K_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &lambda_D(lambda_D_g->get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_g->get()); 
+      
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      auto drv_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &drv = drv_g->get();
 
       // calculating the 3rd wet moment before condensation
       moms_all();

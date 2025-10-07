@@ -40,9 +40,11 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_mfp()
-    {   
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+    { 
+      auto lambda_D_g = tmp_device_real_cell.get_guard();
+      auto lambda_K_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &lambda_D(lambda_D_g->get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_g->get()); 
 
       thrust::transform(T.begin(), T.end(), lambda_D.begin(), detail::common__mean_free_path__lambda_D<real_t>());
       thrust::transform(T.begin(), T.end(), p.begin(), lambda_K.begin(), detail::common__mean_free_path__lambda_K<real_t>());

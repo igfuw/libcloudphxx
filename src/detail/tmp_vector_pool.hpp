@@ -66,11 +66,11 @@ namespace libcloudphxx
             return pool[idx].vec;
         }
 
-        std::pair<size_t, vec_t&> get() {
-            const size_t idx = acquire();
-            assert(idx < pool.size() && pool[idx].in_use);
-            return std::make_pair(idx, pool[idx].vec);
-        }
+        // std::pair<size_t, vec_t&> get() {
+        //     const size_t idx = acquire();
+        //     assert(idx < pool.size() && pool[idx].in_use);
+        //     return std::make_pair(idx, pool[idx].vec);
+        // }
 
         // RAII guard
         class guard {

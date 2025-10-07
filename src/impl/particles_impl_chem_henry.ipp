@@ -330,8 +330,10 @@ namespace libcloudphxx
       hskpng_sort();
 
       // temporarily needed to store old mass per cell 
-      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
-      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
+      auto mass_old_g = tmp_device_real_cell.get_guard();
+      auto mass_new_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &mass_old(mass_old_g->get());
+      thrust_device::vector<real_t> &mass_new(mass_new_g->get());
 
       for (int i = 0; i < chem_gas_n; ++i)
       {

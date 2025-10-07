@@ -44,7 +44,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_turb_dot_ss()
     {   
-      thrust_device::vector<real_t> &tau_rlx(tmp_device_real_cell); // tau_rlx needs to have length n_cell
+      auto tau_rlx_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &tau_rlx = tau_rlx_g->get();
 #if !defined(NDEBUG)
       // fill with a dummy value for debugging
       thrust::fill(tau_rlx.begin(), tau_rlx.end(), -44);
