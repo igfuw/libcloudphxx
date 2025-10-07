@@ -194,7 +194,8 @@ namespace libcloudphxx
               {
                 namespace arg = thrust::placeholders;
 
-                thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+                auto n_filtered_g = tmp_device_real_part.get_guard();
+                thrust_device::vector<real_t> &n_filtered = n_filtered_g.get();
 
                 thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
 

@@ -51,7 +51,8 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::copy(
         n.begin(), n.end(),
@@ -72,7 +73,8 @@ namespace libcloudphxx
       hskpng_sort(); 
 
       // transforming n -> n if within range, else 0
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       if(!cons)
         thrust::transform(
@@ -111,7 +113,8 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::transform(
         n.begin(), n.end(),                      // input - 1st arg
@@ -133,7 +136,8 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
       
       {
         namespace arg = thrust::placeholders;
@@ -197,8 +201,7 @@ namespace libcloudphxx
     {
       assert(selected_before_counting);
 
-      // same as above
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,
@@ -225,6 +228,8 @@ namespace libcloudphxx
         // output - values
         count_mom.begin()
       );  
+
+      n_filtered_gp.reset(); // n_filtered not needed anymore, destroy the guard to a tmp array that stored it
 
       count_n = it_pair.first - count_ijk.begin();
 #if !defined(NDEBUG)

@@ -164,7 +164,8 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       assert(pimpl->selected_before_counting);
 
-      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+      auto n_filtered_g = pimpl->tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &n_filtered = n_filtered_g.get();
 
       // similar to hskpng_count
       pimpl->hskpng_sort();
@@ -249,6 +250,9 @@ namespace libcloudphxx
     {
       // intentionally using the same tmp vector as inside moms_cmp below
       thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
+
+      auto RH_minus_Sc_g = pimpl->tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &RH_minus_Sc = RH_minus_Sc_g.get();
 
       // computing RH_minus_Sc for each particle
       thrust::transform(

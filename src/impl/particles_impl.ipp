@@ -217,6 +217,13 @@ namespace libcloudphxx
         tmp_device_size_cell,
         tmp_device_size_part;
 
+      // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
+      std::uniqe_ptr<
+        tmp_vector_pool<thrust_device::vector<real_t>>::guard
+      > n_filtered_gp,
+        V_gp;
+
+
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
@@ -268,7 +275,7 @@ namespace libcloudphxx
 //      std::set<thrust_device::vector<thrust_size_t>*>  distmem_size_vctrs; // no size vectors copied?
 //
       // vetors that are not in distmem_real_vctrs that need to be resized when the number of SDs changes, these are helper variables
-      std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
+//      std::set<thrust_device::vector<real_t>*>         resize_real_vctrs;
 //      std::set<thrust_device::vector<n_t>*>            resize_n_vctrs;
       std::set<thrust_device::vector<thrust_size_t>*>  resize_size_vctrs;
 
@@ -337,8 +344,8 @@ namespace libcloudphxx
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
-        tmp_device_real_part(6),
-        tmp_device_real_cell(3)
+        //tmp_device_real_part(6),
+        tmp_device_real_cell(3) // 3 temporary vectors of this type; NOTE: default is 1
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -423,18 +430,17 @@ namespace libcloudphxx
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
 
-        // real vctrs that need to be resized but do need to be copied in distmem
-        resize_real_vctrs.insert(&tmp_device_real_part);
+        // init number of temporary real vctrs
         if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
-          resize_real_vctrs.insert(&tmp_device_real_part1);
+          tmp_device_real_part.add_vector();
         if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
-          resize_real_vctrs.insert(&tmp_device_real_part2);
+          tmp_device_real_part.add_vector();
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
-          resize_real_vctrs.insert(&tmp_device_real_part3);
-          resize_real_vctrs.insert(&tmp_device_real_part4);
+          tmp_device_real_part.add_vector();
+          tmp_device_real_part.add_vector();
           if(opts_init.const_p)
-            resize_real_vctrs.insert(&tmp_device_real_part5);
+            tmp_device_real_part.add_vector();
         }
 
         resize_size_vctrs.insert(&ijk);
@@ -600,6 +606,7 @@ namespace libcloudphxx
       void chem_dissoc();
       void chem_react(const real_t &dt);
       void chem_cleanup();
+      void chem_post_step();
  
       thrust_size_t rcyc();
       void bcnd();

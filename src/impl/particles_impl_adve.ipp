@@ -179,10 +179,13 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
 
       // old positions storage
+      auto x_old_g = tmp_device_real_part.get_guard(),
+           y_old_g = tmp_device_real_part.get_guard(),
+           z_old_g = tmp_device_real_part.get_guard();
       thrust_device::vector<real_t> 
-        &x_old(tmp_device_real_part),
-        &y_old(tmp_device_real_part2),
-        &z_old(tmp_device_real_part1);
+        &x_old(x_old_g.get()),
+        &y_old(y_old_g.get()),
+        &z_old(z_old_g.get());
 
       // shift to coordiante system starting at halo's left edge
       thrust::transform(x.begin(), x.end(), x.begin(), arg::_1 + real_t(halo_size) * opts_init.dx);

@@ -260,6 +260,7 @@ namespace libcloudphxx
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
           }
+          pimpl->chem_post_step();
         }
       }
 

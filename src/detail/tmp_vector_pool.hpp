@@ -90,6 +90,11 @@ namespace libcloudphxx
                 }
                 return *this;
             }
+            // void release() {
+            //   pool = nullptr;
+            //   idx = 4444444;
+            //   valid = false;
+            // }
             vec_t& get() { return pool.get(idx); }
             // vec_t* operator->() { return &pool.get(idx); }
             vec_t& operator*() { return pool.get(idx); }

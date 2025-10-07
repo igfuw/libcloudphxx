@@ -71,7 +71,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::chem_flag_ante()
     { 
       thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
-      thrust_device::vector<real_t> &V(tmp_device_real_part);
+      thrust_device::vector<real_t> &V = V_gp->get();
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::iterator,
