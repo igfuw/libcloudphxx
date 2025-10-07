@@ -84,6 +84,7 @@ namespace libcloudphxx
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
+      // TODO: sstp_tmp_X could be reused after condensation; create additional temporary arrays within tmp_device_real_part and use them as sstp_tmp (add a guard that protects them during condesnation, just like sstp_tmp_X_gp). same goes for sstp_tmp_chem_X 
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -203,11 +204,6 @@ namespace libcloudphxx
         tmp_host_size_cell;
       tmp_vector_pool<thrust_device::vector<real_t>>       
         tmp_device_real_part,
-        // tmp_device_real_part1,  
-        // tmp_device_real_part2,  
-        // tmp_device_real_part3,
-        // tmp_device_real_part4,
-        // tmp_device_real_part5,
         tmp_device_real_cell;
         // tmp_device_real_cell1,
         // tmp_device_real_cell2,
@@ -225,7 +221,8 @@ namespace libcloudphxx
         sstp_dlt_rv_gp,
         sstp_dlt_th_gp,
         sstp_dlt_rhod_gp,
-        sstp_dlt_p_gp;
+        sstp_dlt_p_gp,
+        drv_gp;
 
 
       // to simplify foreach calls
