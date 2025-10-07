@@ -61,6 +61,7 @@ namespace libcloudphxx
     {   
       if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
       V_gp.reset(); // release temorary array used to store volume in chemistry
+      chem_flag_gp.reset(); // release temorary array used to store chem flag
     }
 
     template <typename real_t, backend_t device>
@@ -71,8 +72,6 @@ namespace libcloudphxx
       //calculate new drop volumes (to be used in chem)
       V_gp.reset(&(tmp_device_real_part.get_guard()));
       thrust_device::vector<real_t> &V = V_gp->get();
-
-
 
       thrust::transform(
         rw2.begin(), rw2.end(),         // input

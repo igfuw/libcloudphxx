@@ -205,8 +205,6 @@ namespace libcloudphxx
       tmp_vector_pool<thrust_device::vector<real_t>>       
         tmp_device_real_part,
         tmp_device_real_cell;
-        // tmp_device_real_cell1,
-        // tmp_device_real_cell2,
       tmp_vector_pool<thrust_device::vector<unsigned int>>
         tmp_device_n_part;
       tmp_vector_pool<thrust_device::vector<thrust_size_t>>
@@ -223,6 +221,10 @@ namespace libcloudphxx
         sstp_dlt_rhod_gp,
         sstp_dlt_p_gp,
         drv_gp;
+
+      std::uniqe_ptr<
+        tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
+      > chem_flag_gp,
 
 
       // to simplify foreach calls

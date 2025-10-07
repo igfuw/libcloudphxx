@@ -231,7 +231,6 @@ namespace libcloudphxx
           pimpl->chem_vol_ante();
           // set flag for those SD that are big enough to have chemical reactions
           pimpl->chem_flag_ante();
-          // NOTE: volume and flag are stored in temporary arrays (tmp_device_real_part and tmp_device_n_part), so these arrays should not be changed until chemistry is done
 
           if (opts.chem_dsl)
           {
