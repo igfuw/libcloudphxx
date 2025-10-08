@@ -265,7 +265,9 @@ namespace libcloudphxx
 
           // --- init of i and j ---
           // tossing random numbers [0,1)  TODO: do it once for all bins
-          rand_u01(n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
+          auto u01g = tmp_device_real_part.get_guard();
+          thrust_device::vector<real_t> &u01 = u01g.get();
+          rand_u01(u01, n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
           thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
           if(n_dims==3) thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));

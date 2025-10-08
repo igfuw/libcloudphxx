@@ -43,13 +43,15 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_dry_sd_conc()
     {
       // tossing random numbers
-      rand_u01(n_part_to_init);
+      auto u01g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &u01 = u01g.get();
+      rand_u01(u01, n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);
       
       auto ptr_g = tmp_device_size_cell.get_guard();
-      thrust_device::vector<thrust_size_t> &ptr(ptr_g->get());
+      thrust_device::vector<thrust_size_t> &ptr(ptr_g.get());
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs to init in cells up to (i-1), TODO: same is done in init_xyz, store it?
       
       // shifting from [0,1] to [log(rd_min),log(rd_max)] and storing into rd3

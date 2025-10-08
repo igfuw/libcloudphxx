@@ -114,15 +114,15 @@ namespace libcloudphxx
 };
 
 
-// Usage example 1:
-{
-    tmp_vector_pool<float>::guard tmp(pool);
-    thrust::device_vector<float>& tmp = guard.get();
-    // Use *tmp or tmp.get() as a thrust::device_vector<float>&
-} // Automatically released here
+// // Usage example 1:
+// {
+//     tmp_vector_pool<float>::guard tmp(pool);
+//     thrust::device_vector<float>& tmp = guard.get();
+//     // Use *tmp or tmp.get() as a thrust::device_vector<float>&
+// } // Automatically released here
 
-// Usage example 2:
-size_t idx = pool.acquire();
-thrust::device_vector<float>& tmp = pool.get(idx);
-// Use tmp...
-pool.release(idx); // Mark as available again
+// // Usage example 2:
+// size_t idx = pool.acquire();
+// thrust::device_vector<float>& tmp = pool.get(idx);
+// // Use tmp...
+// pool.release(idx); // Mark as available again

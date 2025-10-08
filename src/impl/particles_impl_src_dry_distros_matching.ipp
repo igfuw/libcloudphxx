@@ -309,7 +309,9 @@ namespace libcloudphxx
 
         // randomly select which old SD will be increased
         // overwrites sorted_rd3
-        rand_u01(count_bins);
+        auto u01g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &u01 = u01g.get();
+        rand_u01(u01, count_bins);
 
         // TODO: merge the following transforms into one
         

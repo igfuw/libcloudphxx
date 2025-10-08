@@ -212,8 +212,9 @@ namespace libcloudphxx
         tmp_device_size_part;
 
       // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
-      std::uniqe_ptr<
-        tmp_vector_pool<thrust_device::vector<real_t>>::guard
+      // tmp_vector_pool<thrust_device::vector<real_t>>::guard asd;
+      std::unique_ptr<
+        typename tmp_vector_pool<thrust_device::vector<real_t>>::guard
       > n_filtered_gp,
         V_gp,
         sstp_dlt_rv_gp,
@@ -222,10 +223,9 @@ namespace libcloudphxx
         sstp_dlt_p_gp,
         drv_gp;
 
-      std::uniqe_ptr<
-        tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
-      > chem_flag_gp,
-
+      std::unique_ptr<
+        typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
+      > chem_flag_gp;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
