@@ -198,9 +198,11 @@ namespace libcloudphxx
 
       // temporary data
       tmp_vector_pool<thrust::host_vector<real_t>> 
+        tmp_host_real_part,
         tmp_host_real_grid,
         tmp_host_real_cell;
       tmp_vector_pool<thrust::host_vector<thrust_size_t>> 
+        tmp_host_size_part,
         tmp_host_size_cell;
       tmp_vector_pool<thrust_device::vector<real_t>>       
         tmp_device_real_part,

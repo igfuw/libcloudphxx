@@ -70,7 +70,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_flag_ante()
     { 
-      chem_flag_gp.reset(&(tmp_device_n_part.get_guard()));
+      chem_flag_gp = std::move(tmp_device_n_part.get_guard());
       thrust_device::vector<unsigned int> &chem_flag(chem_flag_gp->get());
       thrust_device::vector<real_t> &V = V_gp->get();
 

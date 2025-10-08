@@ -51,7 +51,7 @@ namespace libcloudphxx
     {
       // temporary space on the host 
       auto tmp_real_g = tmp_host_real_part.get_guard();
-      thrust::host_vector<thrust_size_t> &tmp_real = tmp_real_g.get();
+      thrust::host_vector<real_t> &tmp_real = tmp_real_g.get();
 
       auto tmp_ijk_g = tmp_host_size_part.get_guard();
       thrust::host_vector<thrust_size_t> &tmp_ijk = tmp_ijk_g.get();

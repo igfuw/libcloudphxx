@@ -165,8 +165,8 @@ namespace libcloudphxx
 
           // horizontal sum of this moment
           thrust::fill(hor_sum.begin(), hor_sum.end(), 0);
-          auto count_k_gp = tmp_device_size_cell.get_guard();
-          thrust_device::vector<thrust_size_t> &count_k(count_k_gp->get());
+          auto count_k_g = tmp_device_size_cell.get_guard();
+          thrust_device::vector<thrust_size_t> &count_k(count_k_g.get());
           thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
           thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
 
@@ -226,7 +226,7 @@ namespace libcloudphxx
 
           // --- init k ---
           auto ptr_g = tmp_device_size_cell.get_guard();
-          thrust_device::vector<thrust_size_t> &ptr(ptr_g->get());
+          thrust_device::vector<thrust_size_t> &ptr(ptr_g.get());
           thrust::exclusive_scan(n_SD_to_create.begin(), n_SD_to_create.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
           thrust::for_each(

@@ -36,7 +36,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_ijk()
     {
       auto ptr_g = tmp_device_size_cell.get_guard();
-      thrust_device::vector<thrust_size_t> &ptr(ptr_g->get());
+      thrust_device::vector<thrust_size_t> &ptr(ptr_g.get());
       thrust::exclusive_scan(count_num.begin(), count_num.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
       // fill ijk with cell number of each SD

@@ -274,7 +274,7 @@ namespace libcloudphxx
       // references to tmp data
       auto scl_g = tmp_device_real_cell.get_guard(),
            col_g = tmp_device_real_part.get_guard();
-      auto off_g = tmp_device_size_cell.get_guard(),
+      auto off_g = tmp_device_size_cell.get_guard();
 
       thrust_device::vector<real_t> 
         &scl(scl_g.get()), // scale factor for probablility
@@ -354,28 +354,26 @@ namespace libcloudphxx
       > zip_rw_t;
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      {
-        auto u01g = tmp_device_real_part.get_guard();
-        thrust_device::vector<real_t> &u01 = u01g.get();
-        rand_u01(u01, n_part);
-  
-        zip_ro_t zip_ro_it(
-          thrust::make_tuple(
-            // u01
-            u01.begin(),
-            // scl
-            thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
-            // ix
-            zero,
-            zero+1,
-            // cid
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
-            thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
-            // dv
-            thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
-          )
-        );
-      }
+      auto u01g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &u01 = u01g.get();
+      rand_u01(u01, n_part);
+
+      zip_ro_t zip_ro_it(
+        thrust::make_tuple(
+          // u01
+          u01.begin(),
+          // scl
+          thrust::make_permutation_iterator(scl.begin(), sorted_ijk.begin()), 
+          // ix
+          zero,
+          zero+1,
+          // cid
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin()), 
+          thrust::make_permutation_iterator(off.begin(), sorted_ijk.begin())+1,
+          // dv
+          thrust::make_permutation_iterator(dv.begin(), sorted_ijk.begin())
+        )
+      );
 
       auto zip_ro_calc_it = 
         thrust::make_zip_iterator(
