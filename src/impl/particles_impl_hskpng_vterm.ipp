@@ -143,8 +143,8 @@ namespace libcloudphxx
 
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
-        auto vt0_bin_g = tmp_device_size_part.get_guard();
-        thrust_device::vector<thrust_size_t> &vt0_bin(vt0_bin_g.get());
+        auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
+        thrust_device::vector<real_t> &vt0_bin(vt0_bin_g.get());
         // get cached bin number
         thrust::transform_if(
           rw2.begin(), rw2.end(),
@@ -196,8 +196,10 @@ namespace libcloudphxx
 
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
-        auto vt0_bin_g = tmp_device_size_part.get_guard();
-        thrust_device::vector<thrust_size_t> &vt0_bin(vt0_bin_g.get());
+        // auto vt0_bin_g = tmp_device_size_part.get_guard();
+        // thrust_device::vector<thrust_size_t> &vt0_bin(vt0_bin_g.get());
+        auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
+        thrust_device::vector<real_t> &vt0_bin(vt0_bin_g.get());
         // get cached bin number
         thrust::transform(
           rw2.begin(), rw2.end(),

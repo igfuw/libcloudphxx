@@ -210,8 +210,8 @@ namespace libcloudphxx
       tmp_vector_pool<thrust_device::vector<unsigned int>>
         tmp_device_n_part;
       tmp_vector_pool<thrust_device::vector<thrust_size_t>>
-        tmp_device_size_cell,
-        tmp_device_size_part;
+        tmp_device_size_cell;
+        // tmp_device_size_part;
 
       // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
       // tmp_vector_pool<thrust_device::vector<real_t>>::guard asd;
@@ -223,7 +223,9 @@ namespace libcloudphxx
         sstp_dlt_th_gp,
         sstp_dlt_rhod_gp,
         sstp_dlt_p_gp,
-        drv_gp;
+        drv_gp,
+        lft_id_gp,
+        rgt_id_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
@@ -270,7 +272,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> in_real_bfr, out_real_bfr;
 
       // ids of sds to be copied with distmem
-      thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+      // thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
       // --- containters with vector pointers to help resize and copy vectors ---
 
@@ -321,15 +323,15 @@ namespace libcloudphxx
         rng(_opts_init.rng_seed),
         src_stp_ctr(0),
         rlx_stp_ctr(0),
-	bcond(bcond),
+	      bcond(bcond),
         n_x_bfr(0),
         n_cell_bfr(0),
         mpi_rank(mpi_rank),
         mpi_size(mpi_size),
         lft_x1(-1),  // default to no
         rgt_x0(-1),  // MPI boudanry
-        lft_id(i),   // note: reuses i vector
-        rgt_id(tmp_device_size_part),
+        // lft_id(i),   // note: reuses i vector
+        // rgt_id(tmp_device_size_part),
         n_x_tot(n_x_tot),
         halo_size(_opts_init.adve_scheme == as_t::pred_corr ? 2 : 0), 
         halo_x( 

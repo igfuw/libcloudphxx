@@ -23,7 +23,7 @@ namespace libcloudphxx
 //        vec->resize(n_part);
       tmp_device_real_part.resize(n_part);
       tmp_device_n_part.resize(n_part);
-      tmp_device_size_part.resize(n_part);
+      // tmp_device_size_part.resize(n_part);
       tmp_host_size_part.resize(n_part);
       tmp_host_real_part.resize(n_part);
 

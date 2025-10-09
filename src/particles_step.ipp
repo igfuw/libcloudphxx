@@ -431,8 +431,6 @@ namespace libcloudphxx
       else pimpl->rlx_stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
-      // distmem version overwrites i and tmp_device_size_part
-      // and they both need to be unchanged untill distmem copies
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
