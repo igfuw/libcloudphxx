@@ -51,7 +51,7 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::copy(
@@ -73,7 +73,9 @@ namespace libcloudphxx
       hskpng_sort(); 
 
       // transforming n -> n if within range, else 0
-      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      if(!cons)
+        n_filtered_gp = std::move(tmp_device_real_part.get_guard());
+
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       if(!cons)
@@ -113,7 +115,7 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::transform(
@@ -136,7 +138,7 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      n_filtered_gp.reset(&(tmp_device_real_part.get_guard()));
+      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
       
       {
@@ -228,8 +230,6 @@ namespace libcloudphxx
         // output - values
         count_mom.begin()
       );  
-
-      n_filtered_gp.reset(); // n_filtered not needed anymore, destroy the guard to a tmp array that stored it
 
       count_n = it_pair.first - count_ijk.begin();
 #if !defined(NDEBUG)
