@@ -228,6 +228,10 @@ namespace libcloudphxx
         rgt_id_gp;
 
       std::unique_ptr<
+        typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
+      > outbuf_gp;
+
+      std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
       > chem_flag_gp;
 
