@@ -165,16 +165,19 @@ namespace libcloudphxx
 
           // horizontal sum of this moment
           thrust::fill(hor_sum.begin(), hor_sum.end(), 0);
-          thrust_device::vector<thrust_size_t> &count_k(tmp_device_size_cell);  // NOTE: tmp_device_size_cell is also used in some other inits, careful not to overwrite it!
-          thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
-          thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
+          {
+            auto count_k_g = tmp_device_size_cell.get_guard();
+            thrust_device::vector<thrust_size_t> &count_k(count_k_g.get());
+            thrust::transform(count_ijk.begin(), count_ijk.begin() + count_n, count_k.begin(), arg::_1 % opts_init.nz);
+            thrust::sort_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin());
 
-          auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
+            auto new_end = thrust::reduce_by_key(count_k.begin(), count_k.begin() + count_n, count_mom.begin(), hor_sum_k.begin(), hor_sum_count.begin()); 
 
-          int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
-          
-          assert(number_of_levels_with_droplets <= opts_init.nz);
-          thrust::copy(hor_sum_count.begin(), hor_sum_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_sum.begin(), hor_sum_k.begin()));
+            int number_of_levels_with_droplets = new_end.first - hor_sum_k.begin(); // number of levels with any SD, not with SD in this size and kappa range
+            
+            assert(number_of_levels_with_droplets <= opts_init.nz);
+            thrust::copy(hor_sum_count.begin(), hor_sum_count.begin() + number_of_levels_with_droplets, thrust::make_permutation_iterator(hor_sum.begin(), hor_sum_k.begin()));
+          }
           // divide sum by the number of cells at this level
 //          thrust::transform(hor_sum.begin(), hor_sum.end(), hor_sum.begin(), arg::_1 / (opts_init.nx * m1(opts_init.ny)));
           
@@ -224,36 +227,39 @@ namespace libcloudphxx
           n.resize(n_part);
 
           // --- init k ---
-          thrust_device::vector<thrust_size_t> &ptr(tmp_device_size_cell);
-          thrust::exclusive_scan(n_SD_to_create.begin(), n_SD_to_create.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
+          {
+            auto ptr_g = tmp_device_size_cell.get_guard();
+            thrust_device::vector<thrust_size_t> &ptr(ptr_g.get());
+            thrust::exclusive_scan(n_SD_to_create.begin(), n_SD_to_create.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
-          thrust::for_each(
-            thrust::make_zip_iterator(thrust::make_tuple(
-              n_SD_to_create.begin(), ptr.begin(), zero
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              n_SD_to_create.end(), ptr.end(), zero + opts_init.nz
-            )),
-            detail::arbitrary_sequence<thrust_size_t>(&(k[n_part_old]))
-          );
+            thrust::for_each(
+              thrust::make_zip_iterator(thrust::make_tuple(
+                n_SD_to_create.begin(), ptr.begin(), zero
+              )),
+              thrust::make_zip_iterator(thrust::make_tuple(
+                n_SD_to_create.end(), ptr.end(), zero + opts_init.nz
+              )),
+              detail::arbitrary_sequence<thrust_size_t>(&(k[n_part_old]))
+            );
 
 
-          // --- init multiplicities (includes casting from real to n) ---
+            // --- init multiplicities (includes casting from real to n) ---
 #if !defined(__NVCC__)
-          using std::min;
+            using std::min;
 #endif
 
-          thrust::for_each(
-            thrust::make_zip_iterator(thrust::make_tuple(
-              n_SD_to_create.begin(), ptr.begin(), 
-              thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
-            )),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              n_SD_to_create.end(), ptr.end(),
-              thrust::make_transform_iterator(hor_missing.end(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
-            )),
-            detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
-          );
+            thrust::for_each(
+              thrust::make_zip_iterator(thrust::make_tuple(
+                n_SD_to_create.begin(), ptr.begin(), 
+                thrust::make_transform_iterator(hor_missing.begin(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
+              )),
+              thrust::make_zip_iterator(thrust::make_tuple(
+                n_SD_to_create.end(), ptr.end(),
+                thrust::make_transform_iterator(hor_missing.end(), arg::_1 / real_t(opts_init.rlx_sd_per_bin) * min(dt / opts_init.rlx_timescale, real_t(1)) + real_t(0.5))
+              )),
+              detail::arbitrary_sequence<n_t>(&(n[n_part_old]))
+            );
+          }
 
           // detecting possible overflows of n type
           {
@@ -263,7 +269,9 @@ namespace libcloudphxx
 
           // --- init of i and j ---
           // tossing random numbers [0,1)  TODO: do it once for all bins
-          rand_u01(n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
+          auto u01g = tmp_device_real_part.get_guard();
+          thrust_device::vector<real_t> &u01 = u01g.get();
+          rand_u01(u01, n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
           thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
           if(n_dims==3) thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));

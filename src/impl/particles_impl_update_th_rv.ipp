@@ -100,7 +100,8 @@ namespace libcloudphxx
       if(!sorted) throw std::runtime_error("libcloudph++: update_uh_rv called on an unsorted set");
 
       // cell-wise change in state
-      thrust_device::vector<real_t> &dstate(tmp_device_real_cell);
+      auto dstate_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &dstate(dstate_g.get());
       // init dstate with 0s
       thrust::fill(dstate.begin(), dstate.end(), real_t(0));
       // calc sum of pdstate in each cell

@@ -36,7 +36,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::update_incloud_time(const real_t &dt)
     {   
       // tmp vector to store crit radius of each SD
-      thrust_device::vector<real_t> &rc2(tmp_device_real_part);
+      auto rc2_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &rc2 = rc2_g.get();
 
       // computing rc2
       thrust::transform(

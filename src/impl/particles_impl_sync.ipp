@@ -21,10 +21,13 @@ namespace libcloudphxx
 
       assert(to.size() >= l2e[&to].size());
 
+      auto host_consec_g = tmp_host_real_grid.get_guard();
+      thrust::host_vector<real_t> &host_consec = host_consec_g.get();
+
       thrust::transform(
         l2e[&to].begin(), l2e[&to].end(),
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
-        tmp_host_real_grid.begin(), 
+        host_consec.begin(), 
 #else
         to.begin(),
 #endif
@@ -32,7 +35,7 @@ namespace libcloudphxx
       );
 
 #if defined(__NVCC__)
-      thrust::copy(tmp_host_real_grid.begin(), tmp_host_real_grid.begin() + l2e[&to].size(), to.begin());
+      thrust::copy(host_consec.begin(), host_consec.begin() + l2e[&to].size(), to.begin());
 #endif
     }   
 
@@ -44,15 +47,18 @@ namespace libcloudphxx
     {   
       if (to.is_null()) return;
 
+      auto host_consec_g = tmp_host_real_grid.get_guard();
+      thrust::host_vector<real_t> &host_consec = host_consec_g.get();
+
 #if defined(__NVCC__)
-      assert(from.size() <= tmp_host_real_grid.size());
-      thrust::copy(from.begin(), from.end(), tmp_host_real_grid.begin());
+      assert(from.size() <= host_consec.size());
+      thrust::copy(from.begin(), from.end(), host_consec.begin());
 #endif
 
       thrust::transform(
         l2e[&from].begin(), l2e[&from].end(), 
 #if defined(__NVCC__) // TODO: better condition (same addressing space)
-        tmp_host_real_grid.begin(), 
+        host_consec.begin(), 
 #else
         from.begin(),
 #endif

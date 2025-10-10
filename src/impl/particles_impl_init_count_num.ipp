@@ -77,7 +77,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_hlpr(const real_t &conc, const thrust_size_t &const_multi)
     {
-      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      auto concentration_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &concentration(concentration_g.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
 

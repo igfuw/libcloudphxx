@@ -55,7 +55,9 @@ namespace libcloudphxx
       detail::calc_CDF(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision, cdf);
 
       // tossing random numbers
-      rand_u01(n_part_to_init);
+      auto u01g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &u01 = u01g.get();
+      rand_u01(u01, n_part_to_init);
 
       // rd3 temporarily means logarithm of radius!
       thrust_device::vector<real_t> &lnrd(rd3);

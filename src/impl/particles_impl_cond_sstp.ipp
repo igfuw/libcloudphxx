@@ -38,8 +38,10 @@ namespace libcloudphxx
       const RH_iter &rhi
     ) { 
 
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+      auto lambda_D_g = tmp_device_real_cell.get_guard();
+      auto lambda_K_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &lambda_D(lambda_D_g.get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_g.get()); 
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
@@ -85,7 +87,8 @@ namespace libcloudphxx
       // prerequisite
       hskpng_sort(); 
       // particle's local change in rv
-      thrust_device::vector<real_t> &pdrv(tmp_device_real_part4);
+      auto pdrv_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &pdrv = pdrv_g.get();
       // -rw3_old
       thrust::transform(
         thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
@@ -95,7 +98,8 @@ namespace libcloudphxx
       );
 
       // vector for each particle's T
-      thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
+      auto Tp_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &Tp = Tp_g.get();
 
       // calc Tp
       if(opts_init.th_dry)

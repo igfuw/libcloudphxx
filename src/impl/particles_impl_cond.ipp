@@ -18,12 +18,15 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
-
+      auto lambda_D_g = tmp_device_real_cell.get_guard();
+      auto lambda_K_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &lambda_D(lambda_D_g.get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_g.get()); 
+      
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell);
+      auto drv_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &drv = drv_g.get();
 
       // calculating the 3rd wet moment before condensation
       moms_all();
@@ -55,7 +58,8 @@ namespace libcloudphxx
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
       {
-        thrust_device::vector<real_t> &RH_plus_ssp(tmp_device_real_part2);
+        auto RH_plus_ssp_g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &RH_plus_ssp = RH_plus_ssp_g.get();
         thrust::transform(
           ssp.begin(), ssp.end(),
           thrust::make_permutation_iterator(RH.begin(), ijk.begin()),

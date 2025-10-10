@@ -249,8 +249,8 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
       using namespace common::dissoc;     // K-prefixed
 
-      const thrust_device::vector<unsigned int> &chem_flag(tmp_device_n_part);
-      const thrust_device::vector<real_t> &V(tmp_device_real_part);
+      thrust_device::vector<unsigned int> &chem_flag(chem_flag_gp->get());
+      const thrust_device::vector<real_t> &V = V_gp->get();
 
       if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
 
@@ -330,8 +330,10 @@ namespace libcloudphxx
       hskpng_sort();
 
       // temporarily needed to store old mass per cell 
-      thrust_device::vector<real_t> &mass_old(tmp_device_real_cell);
-      thrust_device::vector<real_t> &mass_new(tmp_device_real_cell1);
+      auto mass_old_g = tmp_device_real_cell.get_guard();
+      auto mass_new_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &mass_old(mass_old_g.get());
+      thrust_device::vector<real_t> &mass_new(mass_new_g.get());
 
       for (int i = 0; i < chem_gas_n; ++i)
       {

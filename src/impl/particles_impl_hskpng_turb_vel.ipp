@@ -53,7 +53,8 @@ namespace libcloudphxx
     {   
       namespace arg = thrust::placeholders;
 
-      thrust_device::vector<real_t> &tau(tmp_device_real_cell);
+      auto tau_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &tau(tau_g.get());
       thrust_device::vector<real_t> &tke(diss_rate); // should be called after hskpng_tke, which replaces diss_rate with tke
 
       thrust::transform(tke.begin(), tke.end(),
@@ -67,7 +68,8 @@ namespace libcloudphxx
         detail::common__turbulence__tau<real_t>()
       );
 
-      thrust_device::vector<real_t> &r_normal(tmp_device_real_part);
+      auto r_normal_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &r_normal = r_normal_g.get();
       thrust_device::vector<real_t> * vel_turbs_vctrs_a[] = {&up, &wp, &vp};
       for(int i = (only_vertical ? 1 : 0); i < (only_vertical ? 2 : n_dims); ++i)
       {

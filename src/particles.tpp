@@ -28,6 +28,7 @@
 #include "detail/kernel_interpolation.hpp"
 #include "detail/functors_host.hpp"
 #include "detail/ran_with_mpi.hpp"
+#include "detail/tmp_vector_pool.hpp"
 
 //kernel definitions
 #include "detail/kernel_definitions/hall_efficiencies.hpp"

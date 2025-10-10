@@ -28,7 +28,9 @@ namespace libcloudphxx
       else
       {
         // generating a random sorting key
-        rand_un(n_part);
+        auto un_g = tmp_device_n_part.get_guard();
+        thrust_device::vector<unsigned int> &un = un_g.get();
+        rand_un(un, n_part);
 
         // sorting the sequence with the random key
         thrust::sort_by_key(
