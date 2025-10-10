@@ -156,7 +156,7 @@ namespace libcloudphxx
         // calc the vt
         thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
@@ -209,7 +209,7 @@ namespace libcloudphxx
         // calc the vt
         thrust::transform(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
-          zip_it_t(thrust::make_tuple(
+          thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),

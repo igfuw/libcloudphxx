@@ -109,9 +109,9 @@ namespace libcloudphxx
           {
 	          namespace arg = thrust::placeholders;
 
-            lft_id_gp = std::move(tmp_device_real_part.get_guard());
+            reset_guardp(lft_id_gp, tmp_device_real_part); 
             thrust_device::vector<real_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
-            rgt_id_gp = std::move(tmp_device_real_part.get_guard());
+            reset_guardp(rgt_id_gp, tmp_device_real_part);
             thrust_device::vector<real_t> &rgt_id(rgt_id_gp->get());
 
             // save ids of SDs to copy

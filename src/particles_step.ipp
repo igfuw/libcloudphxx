@@ -91,7 +91,7 @@ namespace libcloudphxx
         */
       }
 
-      n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
 
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
         if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
@@ -314,8 +314,8 @@ namespace libcloudphxx
 
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("libcloudph++: turbulent advection does not work in 0D");
-        
-      n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
+
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
 
       // dt defined in opts_init can be overriden by dt in opts
       pimpl->adjust_timesteps(opts.dt);

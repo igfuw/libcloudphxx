@@ -14,7 +14,7 @@ namespace libcloudphxx
     {   
       // --- calc liquid water content before src ---
       hskpng_sort(); 
-      drv_gp.reset(&(tmp_device_real_cell.get_guard()));
+      reset_guardp(drv_gp, tmp_device_real_cell); 
       thrust_device::vector<real_t> &drv = drv_gp->get();
 
       thrust::fill(drv.begin(), drv.end(), real_t(0.));

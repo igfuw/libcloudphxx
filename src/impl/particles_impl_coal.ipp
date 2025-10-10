@@ -278,7 +278,7 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> 
         &scl(scl_g.get()), // scale factor for probablility
-        &col(col_g.get()); // number of collisions, used in chemistry, NOTE: it's the same as u01, so it overwrites already used random numbers
+        &col(col_g.get()); // number of collisions, used in chemistry,
                            // 1st one of a pair stores number of collisions, 2nd one stores info on which one has greater multiplicity
       thrust_device::vector<thrust_size_t> 
         &off(off_g.get()); // offset for getting index of particle within a cell
@@ -354,8 +354,9 @@ namespace libcloudphxx
       > zip_rw_t;
 
       // tossing n_part/2 random numbers for comparing with probability of collisions in a pair of droplets
-      auto u01g = tmp_device_real_part.get_guard();
-      thrust_device::vector<real_t> &u01 = u01g.get();
+      // auto u01g = tmp_device_real_part.get_guard();
+      // thrust_device::vector<real_t> &u01 = u01g.get();
+      thrust_device::vector<real_t> &u01(col); // inplace output - u01 needed to check if collision happened, later overwritten with the number of collisions
       rand_u01(u01, n_part);
 
       zip_ro_t zip_ro_it(

@@ -101,7 +101,7 @@ namespace libcloudphxx
 
       // cell-wise change in state
       auto dstate_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &dstate(dstate_g->get());
+      thrust_device::vector<real_t> &dstate(dstate_g.get());
       // init dstate with 0s
       thrust::fill(dstate.begin(), dstate.end(), real_t(0));
       // calc sum of pdstate in each cell

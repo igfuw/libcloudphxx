@@ -51,7 +51,8 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
+      // reset_guardp(n_filtered_gp, tmp_device_real_part);
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::copy(
@@ -74,7 +75,7 @@ namespace libcloudphxx
 
       // transforming n -> n if within range, else 0
       if(!cons)
-        n_filtered_gp = std::move(tmp_device_real_part.get_guard());
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
 
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
@@ -115,7 +116,7 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::transform(
@@ -138,7 +139,7 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      n_filtered_gp = std::move(tmp_device_real_part.get_guard());
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
       
       {

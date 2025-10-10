@@ -153,7 +153,7 @@ namespace libcloudphxx
     {
       namespace arg = thrust::placeholders;
       auto concentration_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &concentration(concentration_g->get());
+      thrust_device::vector<real_t> &concentration(concentration_g.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
       thrust::transform(

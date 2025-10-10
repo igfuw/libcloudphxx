@@ -122,18 +122,21 @@ namespace libcloudphxx
       // acquire temporary arrays to store sstp_delta
       if (step == 0)
       {
-        sstp_dlt_rv_gp.reset(&(tmp_device_real_part.get_guard()));
-        dlt[0] = &sstp_dlt_rv_gp->get();
-        sstp_dlt_th_gp.reset(&(tmp_device_real_part.get_guard()));
-        dlt[1] = &sstp_dlt_th_gp->get();
-        sstp_dlt_rhod_gp.reset(&(tmp_device_real_part.get_guard()));
-        dlt[2] = &sstp_dlt_rhod_gp->get();
+        reset_guardp(sstp_dlt_rv_gp, tmp_device_real_part); 
+        reset_guardp(sstp_dlt_th_gp, tmp_device_real_part); 
+        reset_guardp(sstp_dlt_rhod_gp, tmp_device_real_part); 
         if(opts_init.const_p)
         {
-          sstp_dlt_p_gp.reset(&(tmp_device_real_part.get_guard()));
-          dlt[3] = &sstp_dlt_p_gp->get();
+          reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
+          dlt[3] = &(sstp_dlt_p_gp->get());
         }
       }
+
+      dlt[0] = &(sstp_dlt_rv_gp->get());
+      dlt[1] = &(sstp_dlt_th_gp->get());
+      dlt[2] = &(sstp_dlt_rhod_gp->get());
+      if(opts_init.const_p)
+        dlt[3] = &(sstp_dlt_p_gp->get());
 
       for (int ix = 0; ix < (opts_init.const_p ? n : n-1); ++ix)
       {
@@ -177,9 +180,7 @@ namespace libcloudphxx
         sstp_dlt_th_gp.reset();
         sstp_dlt_rhod_gp.reset();
         if(opts_init.const_p)
-        {
           sstp_dlt_p_gp.reset();
-        }
       }
     }
 

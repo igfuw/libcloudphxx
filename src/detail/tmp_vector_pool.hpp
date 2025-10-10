@@ -17,17 +17,14 @@ namespace libcloudphxx
         };
         std::vector<entry> pool;
     public:
-        tmp_vector_pool(size_t pool_size = 1) {
-            for (size_t i = 0; i < pool_size; ++i)
-                pool.emplace_back();
-        }
+        tmp_vector_pool(size_t pool_size = 1): pool(pool_size, 0) {}
 
         // Add a new vector to the pool
         // void add_vector(size_t vec_size) {
         //     pool.emplace_back(vec_size);
         // }
         void add_vector() {
-            pool.emplace_back();
+            pool.emplace_back(0);
         }
 
         void resize(size_t n) {
@@ -44,6 +41,7 @@ namespace libcloudphxx
 
         // Acquire an available vector, returns its index
         size_t acquire() {
+            std::cerr << "tmp_vector_pool: acquiring vector from pool of size " << pool.size() << "\n";
             for (size_t i = 0; i < pool.size(); ++i) {
                 if (!pool[i].in_use) {
                     pool[i].in_use = true;
@@ -109,7 +107,17 @@ namespace libcloudphxx
         guard get_guard() {
             return guard(*this);
         }
+        guard* get_guardp() {
+            return new guard(*this);
+        }
     };
+    
+    // helper function to reset a guard pointer, but first destroy the old guard
+    template<typename GuardPtr, typename Pool>
+    void reset_guardp(GuardPtr& guard_ptr, Pool& pool) {
+        guard_ptr.reset(); // destroy old guard
+        guard_ptr.reset(pool.get_guardp()); // acquire new guard
+    }
   };
 };
 

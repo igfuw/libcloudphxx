@@ -164,7 +164,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       assert(pimpl->selected_before_counting);
 
-      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
+      thrust_device::vector<real_t> &n_filtered = pimpl->n_filtered_gp->get();
 
       // similar to hskpng_count
       pimpl->hskpng_sort();
@@ -429,7 +429,7 @@ namespace libcloudphxx
 
       // temporary vector to store vt
       auto tmp_vt_g = pimpl->tmp_device_real_part.get_guard();
-      thrust_device::vector<real_t> &tmp_vt = tmp_vt_g.get
+      thrust_device::vector<real_t> &tmp_vt = tmp_vt_g.get();
       thrust::copy(pimpl->vt.begin(), pimpl->vt.end(), tmp_vt.begin());
     
       thrust::transform(

@@ -43,8 +43,8 @@ namespace libcloudphxx
     { 
       auto lambda_D_g = tmp_device_real_cell.get_guard();
       auto lambda_K_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &lambda_D(lambda_D_g->get()); 
-      thrust_device::vector<real_t> &lambda_K(lambda_K_g->get()); 
+      thrust_device::vector<real_t> &lambda_D(lambda_D_g.get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_g.get()); 
 
       thrust::transform(T.begin(), T.end(), lambda_D.begin(), detail::common__mean_free_path__lambda_D<real_t>());
       thrust::transform(T.begin(), T.end(), p.begin(), lambda_K.begin(), detail::common__mean_free_path__lambda_K<real_t>());
