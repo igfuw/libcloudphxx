@@ -79,12 +79,11 @@ namespace libcloudphxx
         wp,  // turbulent perturbation of velocity
         ssp, // turbulent perturbation of supersaturation
         dot_ssp, // time derivative of the turbulent perturbation of supersaturation
-        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio
+        sstp_tmp_rv, // either rv_old or advection-caused change in water vapour mixing ratio; NOTE: not using tmp_ vectors for this, because either size of the vector is ncell (for per-cell substepping) or size is npart, but value needs to be remembered between model steps (for per-particle)
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time; // time this SD has been within a cloud
-      // TODO: sstp_tmp_X could be reused after condensation; create additional temporary arrays within tmp_device_real_part and use them as sstp_tmp (add a guard that protects them during condesnation, just like sstp_tmp_X_gp). same goes for sstp_tmp_chem_X 
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -444,7 +443,7 @@ namespace libcloudphxx
         // init number of temporary real vctrs
         if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
           tmp_device_real_part.add_vector();
-        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch)
+        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
           tmp_device_real_part.add_vector();
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {

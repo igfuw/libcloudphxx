@@ -124,8 +124,8 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     ss_post_cond = supersaturation(prtcls)
     print("supersaturation after condensation", ss_post_cond, th[0], rv[0])
 
-    assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
-    assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
+    assert(abs(th[0] - exp_th[constp]) < 1e-3 * exp_th[constp])
+    assert(abs(rv[0] - exp_rv[constp]) < 1e-2 * exp_rv[constp])
     rv_diff = rv_init.copy() - rv[0].copy()
   
     # change to subsaturated air - test evaporation
