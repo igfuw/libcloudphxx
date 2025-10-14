@@ -29,6 +29,28 @@ namespace libcloudphxx
         };
       };
 
+      // The condition for time-dependent immersion freezing (Arabas et al., 2025)
+      template<class real_t>
+      struct time_dep_freeze_cond
+      {
+        common::ice_nucleation::INP_t INP_type;
+        real_t dt;
+
+        time_dep_freeze_cond(common::ice_nucleation::INP_t INP_type, real_t dt)
+          : INP_type(INP_type), dt(dt) {}
+
+        BOOST_GPU_ENABLED
+        bool operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
+        {
+          const real_t &rnd        = thrust::get<0>(tpl); // random number between [0, 1]
+          const real_t &rd2_insol  = thrust::get<1>(tpl); // radius squared of insoluble particle
+          const real_t &T          = thrust::get<2>(tpl); // temperature
+
+          return rnd < common::ice_nucleation::p_freeze<real_t>(INP_type, rd2_insol, T, dt);
+        }
+      };
+
+
       // The condition for melting
       template<class real_t>
       class melting_cond
