@@ -14,9 +14,9 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      // The condition for immersion freezing
+      // The condition for singular immersion freezing (Shima et al., 2020)
       template<class real_t>
-      class immersion_freeze_cond
+      class singular_freeze_cond
       {
       public:
         BOOST_GPU_ENABLED
@@ -62,7 +62,7 @@ namespace libcloudphxx
           const real_t T        = thrust::get<6>(tpl);
           const real_t RH       = thrust::get<7>(tpl);
 
-          if (detail::immersion_freeze_cond<real_t>()(thrust::make_tuple(T_freeze, T, RH)))
+          if (detail::singular_freeze_cond<real_t>()(thrust::make_tuple(T_freeze, T, RH)))
           {
             ice = real_t(1);
             rw2  = real_t(0);
