@@ -126,10 +126,7 @@ namespace libcloudphxx
         reset_guardp(sstp_dlt_th_gp, tmp_device_real_part); 
         reset_guardp(sstp_dlt_rhod_gp, tmp_device_real_part); 
         if(opts_init.const_p)
-        {
           reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
-          dlt[3] = &(sstp_dlt_p_gp->get());
-        }
       }
 
       dlt[0] = &(sstp_dlt_rv_gp->get());

@@ -215,6 +215,10 @@ namespace libcloudphxx
           }
         }
 
+        // destroy guards to temporary arrays used in condensation (they were created in hskpng_mfp)
+        pimpl->lambda_D_gp.reset();
+        pimpl->lambda_K_gp.reset();
+
         nancheck(pimpl->th, " th after cond");
         nancheck(pimpl->rv, " rv after cond");
 

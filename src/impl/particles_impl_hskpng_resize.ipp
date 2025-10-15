@@ -29,7 +29,6 @@ namespace libcloudphxx
 
       for(auto &vec: resize_size_vctrs)
         vec->resize(n_part);
-
     }
   };
 };

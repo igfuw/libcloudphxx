@@ -224,7 +224,9 @@ namespace libcloudphxx
         sstp_dlt_p_gp,
         drv_gp,
         lft_id_gp,
-        rgt_id_gp;
+        rgt_id_gp,
+        lambda_D_gp,
+        lambda_K_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard

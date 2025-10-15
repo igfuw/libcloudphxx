@@ -41,7 +41,7 @@ namespace libcloudphxx
 
         // Acquire an available vector, returns its index
         size_t acquire() {
-            std::cerr << "tmp_vector_pool: acquiring vector from pool of size " << pool.size() << "\n";
+//            std::cerr << "tmp_vector_pool: acquiring vector from pool of size " << pool.size() << "\n";
             for (size_t i = 0; i < pool.size(); ++i) {
                 if (!pool[i].in_use) {
                     pool[i].in_use = true;

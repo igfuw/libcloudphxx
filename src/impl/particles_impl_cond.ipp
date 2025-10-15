@@ -18,10 +18,8 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
-      auto lambda_D_g = tmp_device_real_cell.get_guard();
-      auto lambda_K_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &lambda_D(lambda_D_g.get()); 
-      thrust_device::vector<real_t> &lambda_K(lambda_K_g.get()); 
+      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
       
       // --- calc liquid water content before cond ---
       hskpng_sort(); 

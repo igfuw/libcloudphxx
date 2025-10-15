@@ -37,11 +37,8 @@ namespace libcloudphxx
       const pres_iter &pi,
       const RH_iter &rhi
     ) { 
-
-      auto lambda_D_g = tmp_device_real_cell.get_guard();
-      auto lambda_K_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &lambda_D(lambda_D_g.get()); 
-      thrust_device::vector<real_t> &lambda_K(lambda_K_g.get()); 
+      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
