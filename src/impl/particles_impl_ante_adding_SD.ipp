@@ -14,7 +14,9 @@ namespace libcloudphxx
     {   
       // --- calc liquid water content before src ---
       hskpng_sort(); 
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called before a call to after_adding_SD...
+      reset_guardp(drv_gp, tmp_device_real_cell); 
+      thrust_device::vector<real_t> &drv = drv_gp->get();
+
       thrust::fill(drv.begin(), drv.end(), real_t(0.));
 
       moms_all();

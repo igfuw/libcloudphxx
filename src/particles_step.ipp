@@ -91,6 +91,8 @@ namespace libcloudphxx
         */
       }
 
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
+
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
         if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
 
@@ -213,7 +215,7 @@ namespace libcloudphxx
             pimpl->sstp_step_exact(step);
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
+            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step); 
           } 
 
           // post condensation - update th and rv
@@ -271,9 +273,13 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond); // how can we make it work with adaptive? 0-th step, calculated for adaptation, was done without ssp
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
+            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
           }
         }
+
+        // destroy guards to temporary arrays used in condensation (they were created in hskpng_mfp)
+        pimpl->lambda_D_gp.reset();
+        pimpl->lambda_K_gp.reset();
 
         nancheck(pimpl->th, " th after cond");
         nancheck(pimpl->rv, " rv after cond");
@@ -293,7 +299,6 @@ namespace libcloudphxx
           pimpl->chem_vol_ante();
           // set flag for those SD that are big enough to have chemical reactions
           pimpl->chem_flag_ante();
-          // NOTE: volume and flag are stored in temporary arrays (tmp_device_real_part and tmp_device_n_part), so these arrays should not be changed until chemistry is done
 
           if (opts.chem_dsl)
           {
@@ -322,6 +327,7 @@ namespace libcloudphxx
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
           }
+          pimpl->chem_post_step();
         }
       }
 
@@ -374,6 +380,8 @@ namespace libcloudphxx
 
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("libcloudph++: turbulent advection does not work in 0D");
+
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
 
       // dt defined in opts_init can be overriden by dt in opts
       pimpl->adjust_timesteps(opts.dt);
@@ -493,8 +501,6 @@ namespace libcloudphxx
       else pimpl->rlx_stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
-      // distmem version overwrites i and tmp_device_size_part
-      // and they both need to be unchanged untill distmem copies
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;

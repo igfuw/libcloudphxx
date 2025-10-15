@@ -60,7 +60,8 @@ namespace libcloudphxx
       thrust::sequence(sorted_id.begin(), sorted_id.end());
      
       // tmp vector with sorted rd3
-      thrust_device::vector<real_t> &sorted_rd3(tmp_device_real_part);
+      auto sorted_rd3_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &sorted_rd3 = sorted_rd3_g.get();
 
       // use sorted_rd3 as tmp copy of rd3
       thrust::copy(
@@ -308,7 +309,9 @@ namespace libcloudphxx
 
         // randomly select which old SD will be increased
         // overwrites sorted_rd3
-        rand_u01(count_bins);
+        auto u01g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &u01 = u01g.get();
+        rand_u01(u01, count_bins);
 
         // TODO: merge the following transforms into one
         
