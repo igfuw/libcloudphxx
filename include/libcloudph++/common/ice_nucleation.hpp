@@ -65,7 +65,7 @@ namespace libcloudphxx
         ) {
 
         real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
-        real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T)/ const_cp::p_vs<real_t>(T); // water activity
+        real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvins)/ const_cp::p_vs<real_t>(T * si::kelvins); // water activity
 
         if (INP_type == INP_t::mineral)
         {
