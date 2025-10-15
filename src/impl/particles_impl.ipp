@@ -227,7 +227,8 @@ namespace libcloudphxx
         rgt_id_gp,
         lambda_D_gp,
         lambda_K_gp,
-        rw_mom3_gp;
+        rw_mom3_gp,
+        rw3_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -452,6 +453,7 @@ namespace libcloudphxx
         {
           tmp_device_real_part.add_vector();
           tmp_device_real_part.add_vector();
+          tmp_device_real_part.add_vector();
           if(opts_init.const_p)
             tmp_device_real_part.add_vector();
         }
@@ -602,7 +604,7 @@ namespace libcloudphxx
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       template<class pres_iter, class RH_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_rv(thrust_device::vector<real_t> &);
