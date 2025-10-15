@@ -211,7 +211,7 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
+            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
           }
         }
 

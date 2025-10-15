@@ -226,7 +226,8 @@ namespace libcloudphxx
         lft_id_gp,
         rgt_id_gp,
         lambda_D_gp,
-        lambda_K_gp;
+        lambda_K_gp,
+        rw_mom3_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -357,7 +358,7 @@ namespace libcloudphxx
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
-        tmp_device_real_cell(3) // 3 temporary vectors of this type; NOTE: default is 1
+        tmp_device_real_cell(4) // 4 temporary vectors of this type; NOTE: default constructor creates 1
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -600,7 +601,7 @@ namespace libcloudphxx
       void subs(const real_t &dt);
 
       void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<class pres_iter, class RH_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
