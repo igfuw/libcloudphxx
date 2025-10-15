@@ -14,58 +14,10 @@ namespace libcloudphxx
   {
     namespace detail
     {
-      // The condition for singular immersion freezing (Shima et al., 2020)
-      template<class real_t>
-      class singular_freeze_cond
-      {
-      public:
-        BOOST_GPU_ENABLED
-        bool operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)  // tpl is a tuple of 3 elements: (T_freeze, ambient T, ambient RH)
-        {
-          if (thrust::get<0>(tpl) >=  thrust::get<1>(tpl) && thrust::get<2>(tpl) >= real_t(1))  // returns true if T_freeze >= ambient T and ambient RH >= 1
-            return true;
-          else
-            return false;
-        };
-      };
-
-      // The condition for time-dependent immersion freezing (Arabas et al., 2025)
-      template<class real_t>
-      struct time_dep_freeze_cond
-      {
-        common::ice_nucleation::INP_t INP_type;
-        real_t dt;
-
-        time_dep_freeze_cond(common::ice_nucleation::INP_t INP_type, real_t dt)
-          : INP_type(INP_type), dt(dt) {}
-
-        BOOST_GPU_ENABLED
-        bool operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
-        {
-          const real_t &rnd        = thrust::get<0>(tpl); // random number between [0, 1]
-          const real_t &rd2_insol  = thrust::get<1>(tpl); // radius squared of insoluble particle
-          const real_t &T          = thrust::get<2>(tpl); // temperature
-
-          return rnd < common::ice_nucleation::p_freeze<real_t>(INP_type, rd2_insol, T, dt);
-        }
-      };
-
-
-      // The condition for melting
-      template<class real_t>
-      class melting_cond
-      {
-      public:
-        BOOST_GPU_ENABLED
-        bool operator()(const real_t &T) const
-        {
-          return (T > real_t(273.15));
-        };
-      };
-
+      // Singular immersion freezing (Shima et al., 2020)
       // Functor to update ice flag, rw2, a, c, rho_i, of frozen droplets
       template<class real_t>
-      class freezing_update
+      class singular_freeze
       {
       public:
         BOOST_GPU_ENABLED
@@ -84,7 +36,47 @@ namespace libcloudphxx
           const real_t T        = thrust::get<6>(tpl);
           const real_t RH       = thrust::get<7>(tpl);
 
-          if (detail::singular_freeze_cond<real_t>()(thrust::make_tuple(T_freeze, T, RH)))
+          if (T_freeze >=  T && RH >= real_t(1)) // condition for freezing
+          {
+            ice = real_t(1);
+            rw2  = real_t(0);
+            rho_i = common::moist_air::rho_i<real_t>().value();
+            a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
+            c   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
+          }
+        }
+      };
+
+      // Time-dependent immersion freezing (Arabas et al., 2025)
+      // Functor to update ice flag, rw2, a, c, rho_i, of frozen droplets
+      template<class real_t>
+      class time_dep_freeze
+      {
+        const real_t dt;
+        //const common::ice_nucleation::INP_t INP_type;
+
+      public:
+        BOOST_GPU_ENABLED
+        time_dep_freeze(const real_t &dt) : dt(dt)
+        {}
+
+        BOOST_GPU_ENABLED
+        void operator()(thrust::tuple<
+            real_t&, real_t&, real_t&, real_t&, real_t&, // to be updated (ice, rw2, a, c, rho_i)
+            const real_t&, const real_t&, const real_t& // rd2_insol, u01, T
+          > tpl) const
+        {
+          auto& ice   = thrust::get<0>(tpl);
+          auto& rw2   = thrust::get<1>(tpl);
+          auto& a     = thrust::get<2>(tpl);
+          auto& c     = thrust::get<3>(tpl);
+          auto& rho_i = thrust::get<4>(tpl);
+
+          const real_t rd2_insol = thrust::get<5>(tpl);
+          const real_t u01 = thrust::get<6>(tpl);
+          const real_t T  = thrust::get<7>(tpl);
+
+          if (u01 < common::ice_nucleation::p_freeze<real_t>(common::ice_nucleation::INP_t::mineral, rd2_insol, T, dt))
           {
             ice = real_t(1);
             rw2  = real_t(0);
@@ -97,7 +89,7 @@ namespace libcloudphxx
 
       // Functor to update ice flag, rw2, a, c, rho_i, of melted ice
       template<class real_t>
-      class melting_update
+      class melt
       {
       public:
         BOOST_GPU_ENABLED
@@ -112,7 +104,7 @@ namespace libcloudphxx
           auto& c     = thrust::get<3>(tpl);
           auto& rho_i = thrust::get<4>(tpl);
 
-          if (detail::melting_cond<real_t>()(thrust::get<5>(tpl)))
+          if (thrust::get<5>(tpl) > real_t(273.15)) // if T > 0 C
           {
             ice = real_t(0);
             rw2  = pow(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>() * c , real_t(2./3.)) * pow(a , real_t(4./3.));
@@ -127,7 +119,7 @@ namespace libcloudphxx
 
     // Immersion freezing and melting
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::ice_nucl_melt() {
+    void particles_t<real_t, device>::impl::ice_nucl_melt(const bool time_dep_ice_nucl) {
 
       hskpng_sort();
 
@@ -148,29 +140,60 @@ namespace libcloudphxx
       );
 
       // Change liquid droplets to ice under the freezing condition
-      thrust::for_each(
-        thrust::make_zip_iterator(thrust::make_tuple(
-          ice.begin(),
-          rw2.begin(),
-          ice_a.begin(),
-          ice_c.begin(),
-          ice_rho.begin(),
-          T_freeze.begin(),
-          thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-          thrust::make_permutation_iterator(RH.begin(), ijk.begin())
-        )),
-        thrust::make_zip_iterator(thrust::make_tuple(
-          ice.begin(),
-          rw2.begin(),
-          ice_a.begin(),
-          ice_c.begin(),
-          ice_rho.begin(),
-          T_freeze.begin(),
-          thrust::make_permutation_iterator(T.begin(), ijk.begin()),
-          thrust::make_permutation_iterator(RH.begin(), ijk.begin())
-        )) + n_part,
-          detail::freezing_update<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if freezing condition satisfied
-      );
+
+      if (time_dep_ice_nucl) // time dependent freezing based on Arabas et al., 2025
+      {
+        rand_u01(n_part); // random numbers between [0,1] for each particle
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            ice.begin(),
+            rw2.begin(),
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            rd2_insol.begin(),
+            u01.begin(),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin())
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            ice.begin(),
+            rw2.begin(),
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            rd2_insol.begin(),
+            u01.begin(),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin())
+          )) + n_part,
+            detail::time_dep_freeze<real_t>(dt)  // functor for updating (ice, rw2, a, c, rho_i) if freezing condition satisfied
+        );
+      }
+      else  // singular freezing based on Shima et al., 2020
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            ice.begin(),
+            rw2.begin(),
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            T_freeze.begin(),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            ice.begin(),
+            rw2.begin(),
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            T_freeze.begin(),
+            thrust::make_permutation_iterator(T.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+          )) + n_part,
+            detail::singular_freeze<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if freezing condition satisfied
+        );
+      }
 
       // Change ice to liquid droplets under the melting condition
       thrust::for_each(
@@ -190,7 +213,7 @@ namespace libcloudphxx
           ice_rho.begin(),
           thrust::make_permutation_iterator(T.begin(), ijk.begin())
         )) + n_part,
-          detail::melting_update<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if melting condition satisfied
+          detail::melt<real_t>()  // functor for updating (ice, rw2, a, c, rho_i) if melting condition satisfied
       );
 
       // Compute per-cell 3rd moment of liquid droplets after freezing/melting. It is stored in count_mom
