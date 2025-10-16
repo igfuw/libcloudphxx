@@ -129,7 +129,6 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     rv_diff = rv_init.copy() - rv[0].copy()
   
     # change to subsaturated air - test evaporation
-    rv[0]   = 0.006 # 0.002
     rv[0]   = 0.002
     rv_init = rv.copy()
 

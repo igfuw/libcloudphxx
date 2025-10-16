@@ -215,7 +215,7 @@ namespace libcloudphxx
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
         exact_sstp_cond(false),
-        sstp_cond_mix(false),
+        sstp_cond_mix(true),
         adaptive_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
