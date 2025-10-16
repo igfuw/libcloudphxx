@@ -438,19 +438,44 @@ namespace libcloudphxx
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
 
-        // init number of temporary real vctrs
-        if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
-          tmp_device_real_part.add_vector();
-        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
-          tmp_device_real_part.add_vector();
+        // number of required temporary real vectors of size npart
+        int tmp_drp_no = 1;
+        if(n_dims == 2) 
+          tmp_drp_no = std::max(tmp_drp_no, 2);
+        if(opts_init.chem_switch) 
+          tmp_drp_no = std::max(tmp_drp_no, 2);
+        if(allow_sstp_cond) 
+          tmp_drp_no = std::max(tmp_drp_no, 2);
+        if(n_dims == 3)
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        if(opts_init.turb_cond_switch)
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        if(distmem())
+          tmp_drp_no = std::max(tmp_drp_no, 3);
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
-        {
-          tmp_device_real_part.add_vector();
-          tmp_device_real_part.add_vector();
-          tmp_device_real_part.add_vector();
-          if(opts_init.const_p)
-            tmp_device_real_part.add_vector();
-        }
+          tmp_drp_no = std::max(tmp_drp_no, 6);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
+          tmp_drp_no = std::max(tmp_drp_no, 7);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && !opts_init.sstp_cond_mix)
+          tmp_drp_no = std::max(tmp_drp_no, 7);
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && !opts_init.sstp_cond_mix && opts_init.const_p)
+          tmp_drp_no = std::max(tmp_drp_no, 8);
+
+        tmp_device_real_part.add_vectors(tmp_drp_no-1); // -1 because 1 is already created in the ctor
+
+        // // init number of temporary real vctrs
+        // if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
+        //   tmp_device_real_part.add_vector();
+        // if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
+        //   tmp_device_real_part.add_vector();
+        // if(allow_sstp_cond && opts_init.exact_sstp_cond)
+        // {
+        //   tmp_device_real_part.add_vector(3);
+        //   if(opts_init.const_p)
+        //     tmp_device_real_part.add_vector();
+        //   // if(opts_init.sstp_cond_mix)
+        //   //   tmp_device_real_part.add_vector();
+        // }
 
         resize_size_vctrs.insert(&ijk);
         resize_size_vctrs.insert(&sorted_ijk);
