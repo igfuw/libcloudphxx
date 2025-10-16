@@ -119,6 +119,7 @@ namespace libcloudphxx
         */
       }
       else
+        // condensation for liquid droplets
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -133,6 +134,39 @@ namespace libcloudphxx
           detail::advance_rw2<real_t>(dt, RH_max)
         );
       nancheck(rw2, "rw2 after condensation (no sub-steps");
+
+      // deposition for ice crystals
+      thrust::transform(
+        thrust::make_zip_iterator(
+          thrust::make_tuple(
+            ice_a.begin(),
+            ice_c.begin()
+          )
+        ),
+        thrust::make_zip_iterator(
+        thrust::make_tuple(
+          ice_a.end(),
+          ice_c.end()
+        )
+      ),
+        thrust::make_zip_iterator(
+          thrust::make_tuple(
+            hlpr_zip_iter,
+            thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
+          )
+        ),
+        thrust::make_zip_iterator(
+          thrust::make_tuple(
+            ice_a.begin(),
+            ice_c.begin()
+          )
+        ),
+        detail::advance_ice_ac<real_t>(dt, RH_max)
+      );
+      nancheck(ice_a, "ice_a after deposition (no sub-steps");
+      nancheck(ice_c, "ice_c after deposition (no sub-steps");
 
       // Compute per-cell 3rd moment of liquid droplets after condensation. It is stored in count_mom
       moms_eq0(ice.begin()); // choose particles with ice=0

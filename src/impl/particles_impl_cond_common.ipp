@@ -309,6 +309,45 @@ namespace libcloudphxx
           return rw2_new;
         }
       };
+
+      template <typename real_t>
+      struct advance_ice_ac
+      {
+        const real_t dt, RH_max;
+
+        advance_ice_ac(const real_t &dt, const real_t &RH_max)
+          : dt(dt), RH_max(RH_max) {}
+
+        BOOST_GPU_ENABLED
+        thrust::tuple<real_t, real_t> operator()(
+            const thrust::tuple<real_t, real_t> &ac_old,
+            const thrust::tuple<
+                thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>,
+                real_t, real_t, real_t> &tpl
+        ) const
+        {
+#if !defined(__NVCC__)
+          using std::max;
+          using std::isnan;
+          using std::isinf;
+#endif
+          const real_t a_old = thrust::get<0>(ac_old);
+          const real_t c_old = thrust::get<1>(ac_old);
+
+          advance_rw2_minfun<real_t> f_a(dt, a_old * a_old, tpl, RH_max);
+          advance_rw2_minfun<real_t> f_c(dt, c_old * c_old, tpl, RH_max);
+
+          const real_t da_dt = (f_a.drw2_dt(a_old * a_old * si::square_metres) / (2 * a_old * si::metres)).value();
+          const real_t dc_dt = (f_c.drw2_dt(c_old * c_old * si::square_metres) / (2 * c_old * si::metres)).value();
+
+          // forward Euler for simplicity
+          const real_t a_new = max(a_old + dt * da_dt, real_t(1e-9));
+          const real_t c_new = max(c_old + dt * dc_dt, real_t(1e-9));
+
+          return thrust::make_tuple(a_new, c_new);
+        }
+      };
+
     };
   };  
 };

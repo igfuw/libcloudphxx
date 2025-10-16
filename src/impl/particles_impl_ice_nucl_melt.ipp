@@ -119,7 +119,7 @@ namespace libcloudphxx
 
     // Immersion freezing and melting
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::ice_nucl_melt(const bool time_dep_ice_nucl) {
+    void particles_t<real_t, device>::impl::ice_nucl_melt(const real_t &dt, const bool time_dep_ice_nucl) {
 
       hskpng_sort();
 
