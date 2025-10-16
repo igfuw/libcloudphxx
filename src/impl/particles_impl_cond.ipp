@@ -24,8 +24,6 @@ namespace libcloudphxx
       
       // --- calc liquid water content before cond ---
       hskpng_sort(); 
-      auto drv_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &drv = drv_g.get();
       if(step == 0)
         reset_guardp(rw_mom3_gp, tmp_device_real_cell);
       thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();      
@@ -33,30 +31,19 @@ namespace libcloudphxx
       // calculating the 3rd wet moment before condensation
       if(step == 0)
       {
-        moms_all();
-        moms_calc(rw2.begin(), real_t(3./2.));
-        nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
-
-        // fill with 0s if not all cells have particles
+        rw_mom3_ante_change(); // also blocks the tmp array that stores change of 3rd moment of rw (drw_mom3_gp)
         if(count_n!=n_cell)  
-        {
-          thrust::fill(drv.begin(), drv.end(), real_t(0.));
           thrust::fill(rw_mom3.begin(), rw_mom3.end(), real_t(0.));
-        }
           
-        // drv = -rw_mom3 precond
-        thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
-          thrust::negate<real_t>()
-        );
       }
       else // copy rw_mom3 from previous step
       {
-        // drv = -rw_mom3 precond
+        reset_guardp(drw_mom3_gp, tmp_device_real_cell);
+        thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
+        // drw_mom3 = -rw_mom3 precond
         thrust::transform(
           rw_mom3.begin(), rw_mom3.end(), 
-          drv.begin(),
+          drw_mom3.begin(),
           thrust::negate<real_t>()
         );
       }
@@ -115,6 +102,7 @@ namespace libcloudphxx
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
       // calculating the 3rd wet moment after condensation
+      thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
       moms_calc(rw2.begin(), real_t(3./2.));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
@@ -128,24 +116,24 @@ namespace libcloudphxx
         // adding the third moment after condensation to dm_3
         thrust::transform(
           rw_mom3.begin(), rw_mom3.end(), 
-          drv.begin(),
-          drv.begin(),
+          drw_mom3.begin(),
+          drw_mom3.begin(),
           thrust::plus<real_t>()
         );
       }
-      else // last step, calculate change in 3rd moment and update th and rv
+      else // last step, calculate change and directly add it without storing rw_mom3
       {
         thrust::transform(
           count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+          thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // input - 2nd arg
+          thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // output
           thrust::plus<real_t>()
         );
         rw_mom3_gp.reset(); // destroy guard to tmp array that stored 3rd moment of rw
       }
 
       // update th and rv according to changes in third specific wet moment
-      update_th_rv(drv);
+      update_th_rv();
 
     }
   };  

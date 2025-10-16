@@ -214,11 +214,11 @@ namespace libcloudphxx
         sstp_dlt_th_gp,
         sstp_dlt_rhod_gp,
         sstp_dlt_p_gp,
-        drv_gp,
         lft_id_gp,
         rgt_id_gp,
         lambda_D_gp,
         lambda_K_gp,
+        drw_mom3_gp,
         rw_mom3_gp,
         rw3_gp;
 
@@ -601,7 +601,9 @@ namespace libcloudphxx
       void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       template<class pres_iter, class RH_iter>
       void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
-      void update_th_rv(thrust_device::vector<real_t> &);
+      void rw_mom3_ante_change();
+      void rw_mom3_post_change();
+      void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_incloud_time(const real_t &dt);

@@ -126,6 +126,8 @@
 #include "impl/particles_impl_rlx_dry_distros.ipp"
 #include "impl/particles_impl_update_incloud_time.ipp"
 #include "impl/particles_impl_adjust_timesteps.ipp"
+#include "impl/particles_impl_rw_mom3_ante_change.ipp"
+#include "impl/particles_impl_rw_mom3_post_change.ipp"
 
 // MPI copy
 #include "impl/particles_impl_pack.ipp"

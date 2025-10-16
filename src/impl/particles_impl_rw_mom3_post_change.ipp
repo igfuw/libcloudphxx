@@ -10,20 +10,20 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::ante_adding_SD()
+    void particles_t<real_t, device>::impl::rw_mom3_post_change()
     {   
-      rw_mom3_ante_change(); // save 3rd wet moment  
+      thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
 
-      // drv = -tot_vol_bfr + dry_vol_bfr
-/*
-      moms_calc(rd3.begin(), 1);
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.));
+
+      // drw_mom3 = -rw_mom3_ante + rw_mom3_post
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // 2nd arg
-        thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+        thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // 2nd arg
+        thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // output
         thrust::plus<real_t>()
       );
-*/
     }
   };  
 };

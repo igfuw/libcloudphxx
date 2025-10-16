@@ -34,21 +34,21 @@ namespace libcloudphxx
     // update th and rv according to change in 3rd specific wet moments
     // particles have to be sorted
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::update_th_rv(
-      thrust_device::vector<real_t> &drv // change in water vapor mixing ratio
-    ) 
+    void particles_t<real_t, device>::impl::update_th_rv() 
     {   
       if(!sorted) throw std::runtime_error("libcloudph++: update_th_rv called on an unsorted set");
-      nancheck(drv, "update_th_rv: input drv");
+
+      thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
+      nancheck(drw_mom3, "update_th_rv: input drw_mom3");
 
       // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
       thrust::transform(
-        drv.begin(), drv.end(),                  // input - 1st arg
+        drw_mom3.begin(), drw_mom3.end(),                  // input - 1st arg
         thrust::make_constant_iterator<real_t>(  // input - 2nd arg
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>()
         ),
-        drv.begin(),                             // output
+        drw_mom3.begin(),                             // output
         thrust::multiplies<real_t>()
       );  
 
@@ -56,7 +56,7 @@ namespace libcloudphxx
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
       thrust::transform(
         rv.begin(), rv.end(),  // input - 1st arg
-        drv.begin(),           // input - 2nd arg
+        drw_mom3.begin(),           // input - 2nd arg
         rv.begin(),            // output
         thrust::plus<real_t>() 
       );
@@ -76,7 +76,7 @@ namespace libcloudphxx
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(  
-              drv.begin(),      // 
+              drw_mom3.begin(),      // 
               T.begin(),        // dth = drv * d_th_d_rv(T, th)
               th.begin()        //
             )),
@@ -86,6 +86,7 @@ namespace libcloudphxx
           thrust::plus<real_t>()
         );
       }
+      drw_mom3_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
       nancheck(th, "update_th_rv: th after update");
     }
 
