@@ -350,6 +350,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("variable_dt_switch", &lgr::opts_init_t<real_t>::variable_dt_switch)
       .def_readwrite("const_p", &lgr::opts_init_t<real_t>::const_p)
       .def_readwrite("th_dry", &lgr::opts_init_t<real_t>::th_dry)
+      .def_readwrite("sstp_cond_mix", &lgr::opts_init_t<real_t>::sstp_cond_mix)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)
