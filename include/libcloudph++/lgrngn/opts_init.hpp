@@ -99,7 +99,8 @@ namespace libcloudphxx
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
            ice_switch,         // if true, ice is allowed
-           exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           time_dep_ice_nucl;  // it true, time-dependent immersion freezing, if false, singular immersion freezing
            
       int sstp_chem;
       real_t chem_rho;
@@ -204,6 +205,7 @@ namespace libcloudphxx
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
         ice_switch(false),
+        time_dep_ice_nucl(false),
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),

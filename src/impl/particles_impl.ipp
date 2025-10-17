@@ -617,7 +617,7 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
-      void ice_nucl_melt(const real_t &dt, const bool time_dep_ice_nucl); // 0 for singular freezing, 1 for time-dependent
+      void ice_nucl_melt(const real_t &dt);
 
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond);

@@ -119,7 +119,7 @@ namespace libcloudphxx
 
     // Immersion freezing and melting
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::ice_nucl_melt(const real_t &dt, const bool time_dep_ice_nucl) {
+    void particles_t<real_t, device>::impl::ice_nucl_melt(const real_t &dt) {
 
       hskpng_sort();
 
@@ -141,7 +141,7 @@ namespace libcloudphxx
 
       // Change liquid droplets to ice under the freezing condition
 
-      if (time_dep_ice_nucl) // time dependent freezing based on Arabas et al., 2025
+      if (opts_init.time_dep_ice_nucl) // time dependent freezing based on Arabas et al., 2025
       {
         rand_u01(n_part); // random numbers between [0,1] for each particle
         thrust::for_each(
