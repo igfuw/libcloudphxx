@@ -10,22 +10,6 @@ namespace libcloudphxx
   namespace lgrngn
   {
 
-    namespace detail
-    {
-
-      template<class real_t>
-      class ice_vol
-      {
-      public:
-        BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t> &tpl)  // tpl is a tuple (a, c)
-        {
-          return thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl);  // a * a * c
-        }
-      };
-    }
-
-
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::cond(
       const real_t &dt,

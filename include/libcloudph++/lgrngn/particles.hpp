@@ -198,6 +198,9 @@ namespace libcloudphxx
       void diag_wp_mom(const int&);
       void diag_incloud_time_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
+      void diag_ice_a_mom(const int &k);
+      void diag_ice_c_mom(const int &k);
+      void diag_ice_vol();
 
       void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();

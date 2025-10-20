@@ -42,7 +42,7 @@ namespace libcloudphxx
       opts_t() : 
         adve(true), sedi(true), subs(false), cond(true), coal(true), src(false), rlx(false), rcyc(false),
         chem_dsl(false), chem_dsc(false), chem_rct(false),
-        turb_adve(false), turb_cond(false), turb_coal(false), ice_nucl(false),
+        turb_adve(false), turb_cond(false), turb_coal(false), ice_nucl(true),
         RH_max(44), // :) (anything greater than 1.1 would be enough
         dt(-1) // negative means that we do not override dt in this step
       {
