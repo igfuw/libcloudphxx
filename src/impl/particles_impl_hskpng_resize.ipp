@@ -19,14 +19,16 @@ namespace libcloudphxx
           pair.first->resize(n_part, pair.second);
       }
 
-      for(auto &vec: resize_real_vctrs)
-        vec->resize(n_part);
+//      for(auto &vec: resize_real_vctrs)
+//        vec->resize(n_part);
+      tmp_device_real_part.resize(n_part);
+      tmp_device_n_part.resize(n_part);
+      // tmp_device_size_part.resize(n_part);
+      tmp_host_size_part.resize(n_part);
+      tmp_host_real_part.resize(n_part);
 
       for(auto &vec: resize_size_vctrs)
         vec->resize(n_part);
-
-      // its unsigned int vector, probably only one we will use, hence no resize_t_vctrs helper used
-      tmp_device_n_part.resize(n_part);
     }
   };
 };

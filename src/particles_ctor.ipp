@@ -82,10 +82,13 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     real_t *particles_t<real_t, device>::outbuf() 
     {
-      pimpl->fill_outbuf();
+      auto outbuf_g = pimpl->tmp_host_real_cell.get_guard();
+      thrust::host_vector<real_t> &outbuf = outbuf_g.get();
+
+      pimpl->fill_outbuf(outbuf);
       // restore the count_num and count_ijk arrays
       pimpl->hskpng_count();
-      return &(*(pimpl->tmp_host_real_cell.begin()));
+      return &(*(outbuf.begin()));
     }
 
     template <typename real_t, backend_t device>

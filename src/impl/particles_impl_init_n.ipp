@@ -50,9 +50,14 @@ namespace libcloudphxx
     )
     {
       // temporary space on the host 
-      thrust::host_vector<real_t> tmp_real(n_part_to_init);
-      thrust::host_vector<thrust_size_t> tmp_ijk(n_part_to_init);
-      thrust::host_vector<real_t> &tmp_rhod(tmp_host_real_cell);
+      auto tmp_real_g = tmp_host_real_part.get_guard();
+      thrust::host_vector<real_t> &tmp_real = tmp_real_g.get();
+
+      auto tmp_ijk_g = tmp_host_size_part.get_guard();
+      thrust::host_vector<thrust_size_t> &tmp_ijk = tmp_ijk_g.get();
+
+      auto tmp_rhod_g = tmp_host_real_cell.get_guard();
+      thrust::host_vector<real_t> &tmp_rhod = tmp_rhod_g.get();
 
       thrust::copy(
       rhod.begin(), rhod.end(), // from
@@ -70,7 +75,7 @@ namespace libcloudphxx
       
       // evaluating n_of_lnrd_stp
       thrust::transform(
-        tmp_real.begin(), tmp_real.end(), // input 
+        tmp_real.begin(), tmp_real.begin() + n_part_to_init, // input 
         tmp_real.begin(),                 // output
         detail::eval_and_multiply<real_t>(n_of_lnrd_stp, multiplier)
       );
@@ -82,7 +87,7 @@ namespace libcloudphxx
         // correcting STP -> actual ambient conditions
         if(!opts_init.aerosol_independent_of_rhod)
           thrust::transform(
-            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+            tmp_real.begin(), tmp_real.begin() + n_part_to_init,            // input - 1st arg
             thrust::make_permutation_iterator( // input - 2nd arg
               tmp_rhod.begin(), 
               tmp_ijk.begin()
@@ -94,7 +99,7 @@ namespace libcloudphxx
         // accounting for the aerosol concentration profile
         if(opts_init.aerosol_conc_factor.size()>0)
           thrust::transform(
-            tmp_real.begin(), tmp_real.end(),            // input - 1st arg
+            tmp_real.begin(), tmp_real.begin() + n_part_to_init,            // input - 1st arg
             thrust::make_permutation_iterator( // input - 2nd arg
               opts_init.aerosol_conc_factor.begin(), 
               thrust::make_transform_iterator(tmp_ijk.begin(), arg::_1 % opts_init.nz) // k index
@@ -114,7 +119,7 @@ namespace libcloudphxx
           );
 
           thrust::transform(
-            tmp_real.begin(), tmp_real.end(), 
+            tmp_real.begin(), tmp_real.begin() + n_part_to_init, 
             thrust::make_permutation_iterator( // input - 2nd arg
               tmp_rhod.begin(), 
               tmp_ijk.begin()
@@ -127,7 +132,7 @@ namespace libcloudphxx
       // host -> device (includes casting from real_t to uint! and rounding)
       thrust::copy(
           thrust::make_transform_iterator(tmp_real.begin(), arg::_1 + real_t(0.5)),
-          thrust::make_transform_iterator(tmp_real.end(), arg::_1 + real_t(0.5)),
+          thrust::make_transform_iterator(tmp_real.begin() + n_part_to_init, arg::_1 + real_t(0.5)),
           n.begin() + n_part_old
         ); 
       }
@@ -147,7 +152,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_count)
     {
       namespace arg = thrust::placeholders;
-      thrust_device::vector<real_t> &concentration(tmp_device_real_cell);
+      auto concentration_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &concentration(concentration_g.get());
       thrust::fill(concentration.begin(), concentration.end(), conc);
       conc_to_number(concentration);
       thrust::transform(

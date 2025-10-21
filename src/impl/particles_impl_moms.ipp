@@ -51,7 +51,9 @@ namespace libcloudphxx
     {
       hskpng_sort(); 
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      // reset_guardp(n_filtered_gp, tmp_device_real_part);
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::copy(
         n.begin(), n.end(),
@@ -72,7 +74,10 @@ namespace libcloudphxx
       hskpng_sort(); 
 
       // transforming n -> n if within range, else 0
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      if(!cons)
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
+
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       if(!cons)
         thrust::transform(
@@ -111,7 +116,8 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       thrust::transform(
         n.begin(), n.end(),                      // input - 1st arg
@@ -133,7 +139,8 @@ namespace libcloudphxx
     {
       hskpng_sort();
 
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      reset_guardp(n_filtered_gp, tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
       
       {
         namespace arg = thrust::placeholders;
@@ -197,8 +204,7 @@ namespace libcloudphxx
     {
       assert(selected_before_counting);
 
-      // same as above
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::const_iterator,

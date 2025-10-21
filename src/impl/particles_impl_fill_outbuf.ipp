@@ -10,28 +10,27 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::fill_outbuf()
+    void particles_t<real_t, device>::impl::fill_outbuf(thrust::host_vector<real_t> &outbuf)
     {
-      thrust::fill(tmp_host_real_cell.begin(), tmp_host_real_cell.end(), 0);
-
-#if defined(__NVCC__)
-      thrust::copy(
-        count_ijk.begin(), count_ijk.end(), // from
-        tmp_host_size_cell.begin()
-      );
-#endif
+      thrust::fill(outbuf.begin(), outbuf.end(), 0);
 
 #if !defined(__NVCC__)
       thrust_device::vector<thrust_size_t> &pi(count_ijk);
 #else
-      thrust::host_vector<thrust_size_t> &pi(tmp_host_size_cell);
+      auto pi_g = tmp_host_size_cell.get_guard();
+      thrust::host_vector<thrust_size_t> &pi(pi_g.get());
+      thrust::copy(
+        count_ijk.begin(), count_ijk.end(), // from
+        pi.begin()
+      );
 #endif
+
 
       thrust::copy(
 	count_mom.begin(),               // input - begin
 	count_mom.begin() + count_n,     // input - end
 	thrust::make_permutation_iterator(  // output
-	  tmp_host_real_cell.begin(),         // data
+	  outbuf.begin(),         // data
 	  pi.begin()                          // permutation
 	)
       );

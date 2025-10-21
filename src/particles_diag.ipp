@@ -164,7 +164,7 @@ namespace libcloudphxx
       namespace arg = thrust::placeholders;
       assert(pimpl->selected_before_counting);
 
-      thrust_device::vector<real_t> &n_filtered(pimpl->tmp_device_real_part);
+      thrust_device::vector<real_t> &n_filtered = pimpl->n_filtered_gp->get();
 
       // similar to hskpng_count
       pimpl->hskpng_sort();
@@ -248,7 +248,9 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_RH_ge_Sc()
     {
       // intentionally using the same tmp vector as inside moms_cmp below
-      thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
+      // thrust_device::vector<real_t> &RH_minus_Sc(pimpl->tmp_device_real_part);
+      auto RH_minus_Sc_g = pimpl->tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &RH_minus_Sc = RH_minus_Sc_g.get();
 
       // computing RH_minus_Sc for each particle
       thrust::transform(
@@ -277,7 +279,9 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_rw_ge_rc()
     {
       // intentionally using the same tmp vector as inside moms_cmp below
-      thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
+      // thrust_device::vector<real_t> &rc2(pimpl->tmp_device_real_part);
+      auto rc2_g = pimpl->tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &rc2 = rc2_g.get();
 
       // computing rc2 for each particle
       thrust::transform(
@@ -424,7 +428,8 @@ namespace libcloudphxx
       pimpl->hskpng_vterm_all();
 
       // temporary vector to store vt
-      thrust::host_vector<real_t> tmp_vt(pimpl->n_part);
+      auto tmp_vt_g = pimpl->tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &tmp_vt = tmp_vt_g.get();
       thrust::copy(pimpl->vt.begin(), pimpl->vt.end(), tmp_vt.begin());
     
       thrust::transform(
@@ -440,8 +445,6 @@ namespace libcloudphxx
  
       // copy back stored vterm
       thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
-      // release the memory
-      tmp_vt.erase(tmp_vt.begin(), tmp_vt.end());
     }   
 
     // get max rw in each cell
