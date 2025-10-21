@@ -4,6 +4,7 @@
 #                   also makes substepping important!
 
 import sys
+import os
 sys.path.insert(0, "../../../build/bindings/python/")
 sys.path.insert(0, "../../bindings/python/")
 
@@ -15,6 +16,8 @@ import timeit
 
 from libcloudphxx import lgrngn
 from libcloudphxx import common
+
+import pandas as pd
 
 # wrapper for timing excecution time
 def wrapper(func, opts, th, rv, rhod):
@@ -50,6 +53,7 @@ opts_init.dt = 1
 opts_init.sd_conc = int(1e3)
 opts_init.n_sd_max = opts_init.sd_conc
 
+# backend = lgrngn.backend_t.CUDA
 backend = lgrngn.backend_t.serial
 
 opts.adve = False
@@ -217,9 +221,21 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing):
     # after evaporation, only larger mode particles should have r > 0.5 microns
     assert(act_conc(prtcls) == gccn_conc(prtcls))
     print('execution time: ', exectime)
-    
-    return ss_post_cond, th[0] - th_init[0] - th_diff[0], rv[0] - rv_init[0] - rv_diff[0], act_conc_post_cond, mean_r_post_cond, second_r_post_cond, third_r_post_cond
 
+    results = {
+      'ss': ss_post_cond,
+      'th_diff': th[0] - th_init[0] - th_diff[0],
+      'rv_diff': rv[0] - rv_init[0] - rv_diff[0],
+      'act': act_conc_post_cond,
+      'mr': mean_r_post_cond,
+      'sr': second_r_post_cond,
+      'tr': third_r_post_cond,
+      'exectime': exectime,       
+    }
+    
+    return results
+
+records = []
 
 # for mixing in [True, False]: # communicate changes in rv an theta between SDs after each substep?
 for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
@@ -228,11 +244,19 @@ for mixing in [False, True]: # communicate changes in rv an theta between SDs af
       for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
         if(mixing == False and exact_sstp == False):
            continue # mixing can be turned off only with exact substepping
-        ss, th_diff_1  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 1, exact_sstp, constp, mixing)
-        print(ss, th_diff_1  , rv_diff, act, mr, sr, tr)
-        assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-        assert(abs(rv_diff) < exp_rv_diff[mixing][constp])
-        assert(abs(th_diff_1) < 7e-3)
+        
+        results = test(RH_formula, 100, 1, exact_sstp, constp, mixing)
+        print(results)
+        results['mixing'] = mixing
+        results['constp'] = constp
+        results['exact_sstp'] = exact_sstp
+        results['RH_formula'] = RH_formula
+        results['sstp_count'] = 1
+        records.append(results)
+
+        assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
+        assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
+        assert(abs(results['th_diff']) < 7e-3)
 
         # expected concentration of droplets with r>0.5um
         exp_act ={ True: {        # constp
@@ -293,17 +317,23 @@ for mixing in [False, True]: # communicate changes in rv an theta between SDs af
                           } 
                 }
 
-        assert(abs(act - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
-        assert(abs(mr - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
-        assert(abs(sr - exp_sr[constp][RH_formula]) < 1.2e-3 * exp_sr[constp][RH_formula])
-        assert(abs(tr - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
+        assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
+        assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
+        assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.2e-3 * exp_sr[constp][RH_formula])
+        assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
 
+        results = test(RH_formula, 100, 10, exact_sstp, constp, mixing)
+        print(results)
+        results['mixing'] = mixing
+        results['constp'] = constp
+        results['exact_sstp'] = exact_sstp
+        results['RH_formula'] = RH_formula
+        results['sstp_count'] = 10
+        records.append(results)
 
-        ss, th_diff_10  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 10, exact_sstp, constp, mixing)
-        print(ss, th_diff_10  , rv_diff, act, mr, sr, tr)
-        assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-        assert(abs(rv_diff) < exp_rv_diff[mixing][constp])
-        assert(abs(th_diff_10) < 5e-3 if mixing == True else 9e-3)
+        assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
+        assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
+        assert(abs(results['th_diff']) < 5e-3 if mixing == True else 9e-3)
 
 
         exp_act ={ True: {        # constp
@@ -363,16 +393,23 @@ for mixing in [False, True]: # communicate changes in rv an theta between SDs af
                 }
 
         if mixing: # without mixing, results are a bit different TODO: new expected values
-          assert(abs(act - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
-          assert(abs(mr - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
-          assert(abs(sr - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
-          assert(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
+          assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
+          assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
+          assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
+          assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
-        ss, th_diff_100  , rv_diff, act, mr, sr, tr = test(RH_formula, 100, 100, exact_sstp, constp, mixing)
-        print(ss, th_diff_100  , rv_diff, act, mr, sr, tr)
-        assert(ss_min < ss < ss_max) # GCCNs condensate even at ss<0
-        assert(abs(rv_diff) < exp_rv_diff[mixing][constp])
-        assert(abs(th_diff_10) < 5e-3 if mixing == True else 9e-3)
+        results = test(RH_formula, 100, 100, exact_sstp, constp, mixing)
+        print(results)
+        results['mixing'] = mixing
+        results['constp'] = constp
+        results['exact_sstp'] = exact_sstp
+        results['RH_formula'] = RH_formula
+        results['sstp_count'] = 100
+        records.append(results)
+
+        assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
+        assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
+        assert(abs(results['th_diff']) < 5e-3 if mixing == True else 9e-3)
 
         exp_act ={ True: {        # constp
                             lgrngn.RH_formula_t.pv_cc  : 16097,
@@ -432,11 +469,16 @@ for mixing in [False, True]: # communicate changes in rv an theta between SDs af
 
         # reduced precision due to differences in results between Linux and OSX
         if mixing:
-          assert(abs(act - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
-          assert(abs(mr - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
-          assert(abs(sr - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
-          assert(abs(tr - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
+          assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
+          assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
+          assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
+          assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
-
-
+# save results to a CSV file for plotting
+df = pd.DataFrame(records)
+df['sd_conc'] = opts_init.sd_conc  # Add the column to all rows at once
+df['RH_max'] = opts_init.RH_max
+df['dt'] = 1
+os.makedirs("test_results", exist_ok=True)
+df.to_csv("test_results/lgrngn_cond_substepping_results.csv", index=False)
 
