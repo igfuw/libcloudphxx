@@ -447,7 +447,7 @@ namespace libcloudphxx
         // init number of temporary real vctrs
         if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
           tmp_device_real_part.add_vector();
-        if((allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
+        if(opts_init.chem_switch || (allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
           tmp_device_real_part.add_vector();
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
         {
