@@ -14,7 +14,7 @@ namespace libcloudphxx
   {
     // init
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::dist_analysis_sd_conc(
+    void particles_t<real_t, device>::impl::init_dist_analysis_sd_conc(
       const common::unary_function<real_t> &n_of_lnrd_stp,
       const impl::n_t sd_conc,
       const real_t dt
@@ -77,7 +77,7 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::dist_analysis_const_multi(
+    void particles_t<real_t, device>::impl::init_dist_analysis_const_multi(
       const common::unary_function<real_t> &n_of_lnrd_stp
     )
     {

@@ -19,7 +19,7 @@ namespace libcloudphxx
       if(opts_init.sd_conc > 0)
         for (typename opts_init_t<real_t>::dry_distros_t::const_iterator ddi = opts_init.dry_distros.begin(); ddi != opts_init.dry_distros.end(); ++ddi)
         {
-            dist_analysis_sd_conc(
+            init_dist_analysis_sd_conc(
               *(ddi->second),
               opts_init.sd_conc
             );

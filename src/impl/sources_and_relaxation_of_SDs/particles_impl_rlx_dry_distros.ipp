@@ -101,7 +101,7 @@ namespace libcloudphxx
       real_t tot_lnrd_rng = 0.;
       for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
-        dist_analysis_sd_conc(
+        init_dist_analysis_sd_conc(
           *(std::get<0>(ddi->second)),
           opts_init.rlx_bins
         );
@@ -120,7 +120,7 @@ namespace libcloudphxx
         // analyze distribution to get rd_min and max needed for bin sizes
         // TODO: this was done a moment ago!
         // TODO2: this could be done once at the start of the simulation!
-        dist_analysis_sd_conc(
+        init_dist_analysis_sd_conc(
           n_of_lnrd_stp,
           opts_init.rlx_bins
         );

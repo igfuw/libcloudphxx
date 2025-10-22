@@ -11,21 +11,17 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_sd_conc(const common::unary_function<real_t> &fun, const real_t &tot_lnrd_rng)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_tail(const common::unary_function<real_t> &fun, const real_t log_rd_min_init)
     {
-      // analyze the distribution, TODO: just did it in init_SD_with_distros
-      dist_analysis_sd_conc(
-          fun,
-          opts_init.sd_conc
-        );
+      init_dist_analysis_const_multi(fun);
+ 
+      // overwrite calculated log_rd_min with external one (equal to log_rd_max of sd_conc init)
+      log_rd_min=log_rd_min_init;
       if(log_rd_min >= log_rd_max)
         throw std::runtime_error(detail::formatter() << "Distribution analysis error: rd_min(" << exp(log_rd_min) << ") >= rd_max(" << exp(log_rd_max) << ")");
       
       // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-        // adjust the multiplicity init coefficient to smaller number of SDs representing this kappa-type
-      real_t fraction = (log_rd_max - log_rd_min) / tot_lnrd_rng;
-      multiplier *= opts_init.sd_conc / int(fraction * opts_init.sd_conc + 0.5);
-      init_count_num_sd_conc(fraction);
+      init_count_num_const_multi(fun, 1); // const_multi=1 for tail prtcls
   
       // update no of particles
       // TODO: move to a separate function
@@ -38,10 +34,10 @@ namespace libcloudphxx
       init_ijk();
   
       // initialising dry radii (needs ijk)
-      init_dry_sd_conc();
-
+      init_dry_const_multi(fun);
+  
       // init multiplicities
-      init_n_sd_conc(fun); // TODO: document that n_of_lnrd_stp is expected!
+      init_n_const_multi(1); 
     }
   };
 };

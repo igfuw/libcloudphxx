@@ -21,7 +21,7 @@ namespace libcloudphxx
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
-      dist_analysis_sd_conc(
+      init_dist_analysis_sd_conc(
         *(opts_init.src_dry_distros.begin()->second),
         opts_init.src_sd_conc,
         dt
