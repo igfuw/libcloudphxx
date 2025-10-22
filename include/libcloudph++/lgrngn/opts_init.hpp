@@ -216,7 +216,7 @@ namespace libcloudphxx
         rlx_switch(false), 
         exact_sstp_cond(false),
         sstp_cond_mix(true),
-        adaptive_sstp_cond(false),
+        adaptive_sstp_cond(false), 
         turb_cond_switch(false),
         turb_adve_switch(false),
         turb_coal_switch(false),

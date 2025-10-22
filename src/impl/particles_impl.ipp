@@ -229,7 +229,8 @@ namespace libcloudphxx
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
-      > chem_flag_gp;
+      > chem_flag_gp,
+        sstp_cond_perparticle_gp;
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -274,7 +275,7 @@ namespace libcloudphxx
       // ids of sds to be copied with distmem
       // thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
 
-      thrust_device::vector<int> sstp_cond_per_cell; // number of cond substeps per cell (used in adaptive substepping)
+      // thrust_device::vector<int> sstp_cond_percell; // number of cond substeps per cell (used in adaptive substepping)
 
       // --- containters with vector pointers to help resize and copy vectors ---
 
@@ -416,7 +417,8 @@ namespace libcloudphxx
            distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
-           // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
+           if(opts_init.const_p)
+             distmem_real_vctrs.insert({&sstp_tmp_p, detail::no_initial_value});
         }
 
         if(opts_init.turb_adve_switch)

@@ -33,8 +33,8 @@ namespace libcloudphxx
         sstp_tmp_th.resize(n_cell);
         sstp_tmp_rh.resize(n_cell);
       }
-      if(opts_init.adaptive_sstp_cond)
-        sstp_cond_per_cell.resize(n_cell, opts_init.sstp_cond); // in adaptive substepping start with opts_init.sstp_cond substeps per cell
+      // if(opts_init.adaptive_sstp_cond)
+      //   sstp_cond_percell.resize(n_cell, opts_init.sstp_cond); // in adaptive substepping start with opts_init.sstp_cond substeps per cell
     }
   };
 };
