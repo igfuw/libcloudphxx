@@ -39,7 +39,7 @@ namespace libcloudphxx
       hskpng_vterm_invalid();
 
       // init _old values in per-particle substepping
-      init_sstp();
+      init_perparticle_sstp();
     }
   };  
 };

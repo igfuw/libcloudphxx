@@ -205,7 +205,6 @@ namespace libcloudphxx
         // tmp_device_size_part;
 
       // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
-      // tmp_vector_pool<thrust_device::vector<real_t>>::guard asd;
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<real_t>>::guard
       > n_filtered_gp,
@@ -220,7 +219,9 @@ namespace libcloudphxx
         lambda_K_gp,
         drw_mom3_gp,
         rw_mom3_gp,
-        rw3_gp;
+        rw3_gp,
+        drw3_gp,
+        Tp_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -539,8 +540,8 @@ namespace libcloudphxx
       void init_hskpng_ncell();
       void init_chem();
       void init_chem_aq();
-      void init_sstp();
-      void init_sstp_chem();
+      void init_perparticle_sstp();
+      void init_percell_sstp_chem();
       void init_kernel();
       void init_vterm();
 
@@ -621,13 +622,18 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      // condensation methods
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      void cond_perparticle_rw2_change(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<class pres_iter, class RH_iter>
-      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      void perparticle_advance_rw2(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
+      void set_perparticle_drw3_to_minus_rw3(const bool use_stored_rw3);
+      void add_perparticle_rw3_to_drw3(const bool store_rw3);
+      void apply_perparticle_rw3_change_to_perparticle_rv_and_th();
+      void apply_perparticle_cond_change_to_percell_rv_and_th();
       void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
@@ -655,11 +661,16 @@ namespace libcloudphxx
       void rlx(const real_t);
       void rlx_dry_distros(const real_t);
 
-      void sstp_step(const int &step);
-      void sstp_step_exact(const int &step);
-      void sstp_step_ssp(const real_t &dt);
+      // substepping methods
+      void acquire_arrays_for_perparticle_sstp();
+      void release_arrays_for_perparticle_sstp();
+      void calculate_noncond_perparticle_sstp_delta();
+      void apply_noncond_perparticle_sstp_delta();
+      void apply_perparticle_sgs_supersat(const real_t &dt);
+      void sstp_percell_step(const int &step);
+      void sstp_percell_step_exact(const int &step);
       void sstp_save();
-      void sstp_step_chem(const int &step);
+      void sstp_percell_step_chem(const int &step);
       void sstp_save_chem();
 
       void post_copy(const opts_t<real_t>&);

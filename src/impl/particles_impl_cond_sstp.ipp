@@ -12,7 +12,7 @@ namespace libcloudphxx
     namespace detail
     {
       template<class real_t>
-      struct RH_sgs// : thrust::unary_function<const thrust::tuple<real_t, real_t, real_t, real_t>&, real_t>
+      struct RH_sgs
       {
         RH<real_t> resolved_RH;
 
@@ -29,8 +29,65 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::set_perparticle_drw3_to_minus_rw3(const bool use_stored_rw3)
+    {
+      thrust_device::vector<real_t> &drw3 = drw3_gp->get();
+      if(!use_stored_rw3)
+      {
+        thrust::transform(
+          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+          drw3.begin(),
+          thrust::negate<real_t>()
+      );
+      }
+      else
+      {
+        thrust_device::vector<real_t> &rw3 = rw3_gp->get();
+        thrust::transform(
+          rw3.begin(), rw3.end(),
+          drw3.begin(),
+          thrust::negate<real_t>()
+        );
+      }
+    };
+
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::add_perparticle_rw3_to_drw3(const bool store_rw3)
+    {
+      thrust_device::vector<real_t> &drw3 = drw3_gp->get();
+      if(store_rw3)
+      {
+        thrust_device::vector<real_t> &rw3 = rw3_gp->get();
+        thrust::transform(
+          rw2.begin(), rw2.end(),
+          rw3.begin(),
+          detail::rw2torw3<real_t>()
+        );
+
+        thrust::transform(
+          rw3.begin(), rw3.end(),
+          drw3.begin(),
+          drw3.begin(),
+          thrust::plus<real_t>()
+        );
+      }
+      else
+      {
+        thrust::transform(
+          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+          drw3.begin(),
+          drw3.begin(),
+          thrust::plus<real_t>()
+        );
+      }
+    };
+
+    template <typename real_t, backend_t device>
     template <class pres_iter, class RH_iter>
-    void particles_t<real_t, device>::impl::cond_sstp_hlpr(
+    void particles_t<real_t, device>::impl::perparticle_advance_rw2(
       const real_t &dt,
       const real_t &RH_max,
       const thrust_device::vector<real_t> &Tp,
@@ -73,46 +130,16 @@ namespace libcloudphxx
 
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::cond_sstp(
+    void particles_t<real_t, device>::impl::cond_perparticle_rw2_change(
       const real_t &dt,
       const real_t &RH_max,
-      const bool turb_cond,
-      const int step
+      const bool turb_cond
     ) { 
 
       namespace arg = thrust::placeholders;
 
-      // prerequisite
-      hskpng_sort(); 
-      // particle's local change in rv
-      auto pdrv_g = tmp_device_real_part.get_guard();
-      thrust_device::vector<real_t> &pdrv = pdrv_g.get();
-      if(step == 0)
-        reset_guardp(rw3_gp, tmp_device_real_part);
-      thrust_device::vector<real_t> &rw3 = rw3_gp->get();
-
-      // -rw3_old
-      if(step == 0)
-      {
-        thrust::transform(
-          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
-          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
-          pdrv.begin(),
-          thrust::negate<real_t>()
-       );
-      }
-      else
-      {
-        thrust::transform(
-          rw3.begin(), rw3.end(),
-          pdrv.begin(),
-          thrust::negate<real_t>()
-        );
-      }
-
       // vector for each particle's T
-      auto Tp_g = tmp_device_real_part.get_guard();
-      thrust_device::vector<real_t> &Tp = Tp_g.get();
+      thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
       // calc Tp
       if(opts_init.th_dry)
@@ -154,7 +181,7 @@ namespace libcloudphxx
         );
 
         if(turb_cond)
-          cond_sstp_hlpr(dt, RH_max, Tp, 
+          perparticle_advance_rw2(dt, RH_max, Tp, 
             // particle-specific p
             pressure_iter,
             // particle-specific RH, resolved + SGS
@@ -169,7 +196,7 @@ namespace libcloudphxx
             )        
           ); 
         else // no RH SGS
-          cond_sstp_hlpr(dt, RH_max, Tp,
+          perparticle_advance_rw2(dt, RH_max, Tp,
             // particle-specific p
             pressure_iter,
             // particle-specific RH, resolved
@@ -186,7 +213,7 @@ namespace libcloudphxx
       else // opts_init.const_p
       {
         if(turb_cond)
-          cond_sstp_hlpr(dt, RH_max, Tp,
+          perparticle_advance_rw2(dt, RH_max, Tp,
             // particle-specific p
             sstp_tmp_p.begin(),
             // particle-specific RH, resolved + SGS
@@ -201,7 +228,7 @@ namespace libcloudphxx
             )        
           ); 
         else // no RH SGS
-          cond_sstp_hlpr(dt, RH_max, Tp,
+          perparticle_advance_rw2(dt, RH_max, Tp,
             // particle-specific p
             sstp_tmp_p.begin(),
             // particle-specific RH, resolved
@@ -215,45 +242,25 @@ namespace libcloudphxx
             )        
           ); 
       }
+    }
 
-      // rw3_new - rw3_old
-      if(step < sstp_cond - 1)
-      {
-        // rw3_new
-        thrust::transform(
-          rw2.begin(), rw2.end(),
-          rw3.begin(),
-          detail::rw2torw3<real_t>()
-        );
 
-        thrust::transform(
-          rw3.begin(), rw3.end(),
-          pdrv.begin(),
-          pdrv.begin(),
-          thrust::plus<real_t>()
-        );
-      }
-      else // last step, no need to store rw3
-      {
-        thrust::transform(
-          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
-          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
-          pdrv.begin(),
-          pdrv.begin(),
-          thrust::plus<real_t>()
-        );
-        rw3_gp.reset(); // destroy guard to tmp array that stored rw3
-      }
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::apply_perparticle_rw3_change_to_perparticle_rv_and_th()
+    {
+      namespace arg = thrust::placeholders;
+      thrust_device::vector<real_t> &drw3 = drw3_gp->get();
+      thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
       // calc - 4/3 * pi * rho_w * n * (rw3_new - rw3_old) / (dV * rhod)
       thrust::transform(
-        pdrv.begin(), pdrv.end(),                  // input - 1st arg
+        drw3.begin(), drw3.end(),                  // input - 1st arg
         thrust::make_zip_iterator(thrust::make_tuple(
           sstp_tmp_rh.begin(),                                        // rhod
           n.begin(),                                                  // n
           thrust::make_permutation_iterator(dv.begin(), ijk.begin()) // dv
         )),
-        pdrv.begin(),                             // output
+        drw3.begin(),                             // output
         detail::rw3diff2drv<real_t>(
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>(), n_dims
@@ -261,40 +268,56 @@ namespace libcloudphxx
       );  
 
       if(opts_init.sstp_cond_mix)
-        update_pstate(sstp_tmp_rv, pdrv); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
+        update_pstate(sstp_tmp_rv, drw3); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
       else  // thermodynamic changes between substeps are local to the droplet
         thrust::transform(
-          pdrv.begin(), pdrv.end(),
+          drw3.begin(), drw3.end(),
           sstp_tmp_rv.begin(),
           sstp_tmp_rv.begin(),
           thrust::plus<real_t>()
         );
 
-      // calc particle-specific change in th based on pdrv
+      // calc particle-specific change in th based on drw3
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple(  
-          pdrv.begin(),       //  
+          drw3.begin(),       //  
           Tp.begin(),         // dth = drv * d_th_d_rv(T, th)
           sstp_tmp_th.begin() //  
         )), 
         thrust::make_zip_iterator(thrust::make_tuple(  
-          pdrv.end(),       //  
+          drw3.end(),       //  
           Tp.end(),         // dth = drv * d_th_d_rv(T, th)
           sstp_tmp_th.end() //  
         )), 
-        pdrv.begin(), // in-place
+        drw3.begin(), // in-place
         detail::dth<real_t>()
       );
 
       if(opts_init.sstp_cond_mix)
-        update_pstate(sstp_tmp_th, pdrv); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
+        update_pstate(sstp_tmp_th, drw3); // apply change in rv to sstp_tmp_rv, implies mixing within the cell
       else  // thermodynamic changes between substeps are local to the droplet
         thrust::transform(
-          pdrv.begin(), pdrv.end(),
+          drw3.begin(), drw3.end(),
           sstp_tmp_th.begin(),
           sstp_tmp_th.begin(),
           thrust::plus<real_t>()
         );
+    }
+
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::apply_perparticle_cond_change_to_percell_rv_and_th()
+    {
+      if(opts_init.sstp_cond_mix)
+      {
+        update_state(rv, sstp_tmp_rv);
+        update_state(th, sstp_tmp_th);
+      }
+      else
+      {
+        rw_mom3_post_change();  
+        update_th_rv();
+      }
     }
   };  
 };

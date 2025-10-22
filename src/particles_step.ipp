@@ -183,43 +183,90 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
+        // prerequisite
+        pimpl->hskpng_sort();
+
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
         //       that would make it easy to do in exact (per-cell) substepping
         pimpl->hskpng_mfp(); 
 
-        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1) // apply substeps per-particle logic
+        if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->opts_init.adaptive_sstp_cond)) // apply substeps per-particle logic
         {
           if(!pimpl->opts_init.sstp_cond_mix)
-            pimpl->rw_mom3_ante_change(); // save 3rd wet moment before condensation
+            pimpl->rw_mom3_ante_change(); // save 3rd wet moment before condensation (in drw_mom3_gp)
+
+          pimpl->acquire_arrays_for_perparticle_sstp(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
+          pimpl->calculate_noncond_perparticle_sstp_delta(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact(); returns change / sstp_count; make it just change and multiply afterwards?
+
+          // look for correct number of substeps
+//          if(opts_init.adaptive_sstp_cond)
+//          {
+//             pimpl->set_perparticle_sstp_count(1); // initialize to 1 substep
+
+//             do{ // TODO: all of these functions should work only on not converged particles
+//               pimpl->apply_noncond_perparticle_sstp_delta(); // *1 if step=0; else *-0.5? also depends on sstp_count!
+//               // TODO:
+//               // if(opts.turb_cond)
+//               //   pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond); 
+
+//               // TODO: check pdrw2 and not pdrw3 for convergence? wouldnt need to calculate rw3 ...
+//               pimpl->set_perparticle_pdrw2_to_minus_rw2(false); // in pdrv (change to pdrw3?) ; as in cond_sstp(), but drw2 here, not drw2!; false means we calculate rw3 from rw2
+//               pimpl->cond_perparticle_rw2_change(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); // TODO: sstp_cond
+//               pimpl->add_perparticle_rw2_to_pdrw2(false); // as in cond_sstp(); store pdrv
+//               if(not_first_step)
+//                 pimpl->check_for_perparticle_drw2_convergence(); // compare new and old drw3 to see if substepping was enough
+//               pimpl->store_perparticle_drw2_as_old(); // store it in rw3, since it is not needed in substep adaptation
+//               // TODO: condition for convergence?
+//               // pimpl->apply_perparticle_rw3_change_to_perparticle_rv_and_th(step); // as in cond_sstp()
+//             } while(pimpl->any_perparticle_drw2_not_converged() && pimpl->increase_perparticle_sstp_count(2)); // double sstp count for not converged particles
+//           }
+//           pimpl->halve_perparticle_sstp_count_for_convergent_particles(); // convergence tested for n and n*2 ssteps; if convverged, n is enough
+//           // in drw2 we have correct drw2 for each particle; in sstp_count we have number of substeps needed;
+//           // in the first subsequent step we can skip cond_perparticle_rw2_change for converged particles, and add stored drw3 (or make it drw2?) instead
+
+
+// //            pimpl->sstp_percell_step(0);
+// //            save_dth_change
+// //            save_state
+// //            sstp_cond_found=0
+// //            do
+// //            {
+// //              if(!sstp_cond_found /* per-cell! */):
+// //                double_sstp_cond
+// //                pimpl->sstp_percell_step(0); // step 0 again, may cause troubles!
+// //                save_dth_change
+// //                sstp_cound_found = calc_diff(2*newdth - dth) < rel_eps;
+// //                if(!sstp_cond_found)
+// //                  save_state
+// //                else
+// //                  restore_state
+// //            }
+// //            while(sstp_cound_found.any==0)
+// //          }
+//           }
           
-          // actual condensation calculation
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {   
-            pimpl->sstp_step_exact(step);
+            pimpl->apply_noncond_perparticle_sstp_delta();
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step); 
+              pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
+            pimpl->set_perparticle_drw3_to_minus_rw3(/*use_stored_rw3=*/ step>0); 
+            pimpl->cond_perparticle_rw2_change(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
+            pimpl->add_perparticle_rw3_to_drw3(/*store_rw3=*/ step < pimpl->sstp_cond - 1); 
+            pimpl->apply_perparticle_rw3_change_to_perparticle_rv_and_th(); 
           } 
 
-          // post condensation - update th and rv
-          if(pimpl->opts_init.sstp_cond_mix)
-          {
-            pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
-            pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
-          }
-          else
-          {
-            pimpl->rw_mom3_post_change();  
-            pimpl->update_th_rv();
-          }
+          pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
+
+          pimpl->release_arrays_for_perparticle_sstp();
         }
         else // apply per-cell sstp logic
         {
           // look for correct number of substeps
 //          if(opts_init.adaptive_sstp_cond)
 //          {
-//            pimpl->sstp_step(0);
+//            pimpl->sstp_percell_step(0);
 //            save_dth_change
 //            save_state
 //            sstp_cond_found=0
@@ -227,7 +274,7 @@ namespace libcloudphxx
 //            {
 //              if(!sstp_cond_found /* per-cell! */):
 //                double_sstp_cond
-//                pimpl->sstp_step(0); // step 0 again, may cause troubles!
+//                pimpl->sstp_percell_step(0); // step 0 again, may cause troubles!
 //                save_dth_change
 //                sstp_cound_found = calc_diff(2*newdth - dth) < rel_eps;
 //                if(!sstp_cond_found)
@@ -241,9 +288,9 @@ namespace libcloudphxx
 //          for (int step = opts_init.adaptive_sstp_cond ? 1 : 0; step < opts_init.adaptive_sstp_cond ? pimpl->sstp_cond_per_cell.max() : pimpl->sstp_cond; ++step) 
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {
-            pimpl->sstp_step(step);
+            pimpl->sstp_percell_step(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond); // how can we make it work with adaptive? 0-th step, calculated for adaptation, was done without ssp
+              pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
           }
@@ -275,7 +322,7 @@ namespace libcloudphxx
           if (opts.chem_dsl)
           {
             //adjust trace gases to substepping
-            pimpl->sstp_step_chem(step);
+            pimpl->sstp_percell_step_chem(step);
 
             //dissolving trace gases (Henrys law)
             pimpl->chem_henry(pimpl->dt / pimpl->sstp_chem);

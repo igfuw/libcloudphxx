@@ -33,7 +33,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_sstp_chem()
+    void particles_t<real_t, device>::impl::init_percell_sstp_chem()
     {   
       if (!allow_sstp_chem) return;
 
@@ -50,7 +50,7 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::sstp_step_chem(
+    void particles_t<real_t, device>::impl::sstp_percell_step_chem(
       const int &step
     )
     {   

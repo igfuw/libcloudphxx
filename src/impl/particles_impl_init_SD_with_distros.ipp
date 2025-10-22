@@ -70,7 +70,7 @@ namespace libcloudphxx
       
       // init for substepping for chem reactions
       if(opts_init.chem_switch){
-       init_sstp_chem();
+       init_percell_sstp_chem();
       }
 
       // calculate initail volume (helper for Henry in chem)
