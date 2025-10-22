@@ -102,6 +102,9 @@ namespace libcloudphxx
 
       virtual void diag_dry_mom(const int&)                                     { assert(false); }
       virtual void diag_wet_mom(const int&)                                     { assert(false); }
+      virtual void diag_ice_a_mom(const int&)                                   { assert(false); }
+      virtual void diag_ice_c_mom(const int&)                                   { assert(false); }
+      virtual void diag_ice_vol()                                               { assert(false); }
       virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
       virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
       virtual void diag_precip_rate()                                           { assert(false); }
@@ -192,15 +195,15 @@ namespace libcloudphxx
       void diag_water_cons();
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_ice_a_mom(const int &k);
+      void diag_ice_c_mom(const int &k);
+      void diag_ice_vol();
       void diag_kappa_mom(const int &k);
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);
       void diag_wp_mom(const int&);
       void diag_incloud_time_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
-      void diag_ice_a_mom(const int &k);
-      void diag_ice_c_mom(const int &k);
-      void diag_ice_vol();
 
       void diag_chem(const enum common::chem::chem_species_t&);
       void diag_rw_ge_rc();
@@ -296,6 +299,9 @@ namespace libcloudphxx
       void diag_water_cons();
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_ice_a_mom(const int &k);
+      void diag_ice_c_mom(const int &k);
+      void diag_ice_vol();
       void diag_kappa_mom(const int&);
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);

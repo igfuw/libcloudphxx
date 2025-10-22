@@ -234,17 +234,23 @@ namespace libcloudphxx
         return *arg->opts_init;
       }
 
+      // set dry distros from a dict with (kappa, rd_insol) as key
       template <typename real_t>
-      void set_dd( // dry_distro
+      void set_dd(
         lgr::opts_init_t<real_t> *arg,
-        const bp::dict &kappa_func)
+        const bp::dict &kappa_func) // a dict keyed by (kappa, rd_insol)
       {
         arg->dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
+        {
+          bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[i]);
+          const real_t kappa = bp::extract<real_t>(key[0]);
+          const real_t rd_insol = bp::extract<real_t>(key[1]);
           arg->dry_distros.emplace(
-            std::make_pair(real_t(bp::extract<real_t>(kappa_func.keys()[i])), 0),  // assume ice=0
+            std::make_pair(kappa, rd_insol),
             std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
+        }
       }
 
 // src_dry_distros moved from opts_init to opts
@@ -263,19 +269,27 @@ namespace libcloudphxx
       }
       */
 
+      // set dry sizes from a dict with (kappa, rd_insol) as key
       template <typename real_t>
-      void set_ds( // dry_sizes
+      void set_ds(
         lgr::opts_init_t<real_t> *arg,
-        const bp::dict &kappa_func
+        const bp::dict &kappa_func // a dict keyed by (kappa, rd_insol)
       )
       {
         arg->dry_sizes.clear();
         if(len(kappa_func.keys()) == 0)
           return;
 
-        // loop over kappas
+        // loop over kappas and rd_insol
         for (int j = 0; j < len(kappa_func.keys()); ++j)
         {
+
+          // extract the key tuple (kappa, rd_insol)
+          const bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[j]);
+          const real_t kappa    = bp::extract<real_t>(key[0]);
+          const real_t rd_insol = bp::extract<real_t>(key[1]);
+
+          // extract size : {conc, count} dict for this (kappa, rd_insol)
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<real_t, std::pair<real_t, int>> size_conc_map;
 
@@ -288,8 +302,7 @@ namespace libcloudphxx
             const int count   = bp::extract<int>   (conc_count_list[1]);
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count); 
           }
-          const real_t kappa = bp::extract<real_t>(kappa_func.keys()[j]);
-          arg->dry_sizes[std::make_pair(kappa, 0)] = size_conc_map; // assume ice=0
+          arg->dry_sizes[std::make_pair(kappa, rd_insol)] = size_conc_map;
         }
       }
 

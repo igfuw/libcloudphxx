@@ -24,6 +24,7 @@ opts_init = lgrngn.opts_init_t()
 kappa1 = .61
 kappa2 = 1.28
 kappa3 = 0.8
+rd_insol = 0.5e-6
 rho_stp = 1.2248
 opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
