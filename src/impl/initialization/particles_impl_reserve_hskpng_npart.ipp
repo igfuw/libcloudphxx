@@ -64,8 +64,6 @@ namespace libcloudphxx
         {
           sstp_tmp_p.reserve(opts_init.n_sd_max);
         }
-        if(opts_init.adaptive_sstp_cond)
-          sstp_cond_perparticle.reserve(opts_init.n_sd_max);
       }
       // reserve memory for in/out buffers
       // for courant_x = 0.1 and n_sd_max, overkill?
