@@ -29,7 +29,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      if(!use_unconverged_mask)
+      if constexpr (!use_unconverged_mask)
         thrust::transform(
           rw2.begin(), rw2.end(),
           thrust::make_zip_iterator(thrust::make_tuple(
@@ -53,7 +53,7 @@ namespace libcloudphxx
           unconverged_mask.begin(),
           rw2.begin(),
           detail::advance_rw2<real_t>(dt, RH_max),
-          thrust::identity<bool>()
+          cuda::std::identity()
         );
       }
     }

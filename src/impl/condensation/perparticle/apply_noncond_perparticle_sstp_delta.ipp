@@ -23,7 +23,7 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (opts_init.const_p ? n : n-1); ++ix)
       {
-        if(!use_unconverged_mask)
+        if constexpr (!use_unconverged_mask)
           thrust::transform(
             tmp[ix]->begin(), tmp[ix]->end(),
             dlt[ix]->begin(),
@@ -39,7 +39,7 @@ namespace libcloudphxx
             unconverged_mask.begin(),
             tmp[ix]->begin(),
             arg::_1 + multiplier * arg::_2,
-            thrust::identity<bool>()
+            cuda::std::identity()
           );
         }
       }

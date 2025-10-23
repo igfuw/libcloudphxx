@@ -27,7 +27,7 @@ namespace libcloudphxx
       }
       else
       {
-        if(!use_unconverged_mask)
+        if constexpr (!use_unconverged_mask)
           thrust::transform(
             thrust::make_transform_iterator(rw2.begin(), detail::rw2torwX<real_t, power>()),
             thrust::make_transform_iterator(rw2.end(), detail::rw2torwX<real_t, power>()),
@@ -45,7 +45,7 @@ namespace libcloudphxx
             unconverged_mask.begin(),
             drwX.begin(),
             thrust::plus<real_t>(),
-            thrust::identity<bool>()
+            cuda::std::identity()
           );
         }
       }

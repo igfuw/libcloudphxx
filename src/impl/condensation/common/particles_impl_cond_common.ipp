@@ -29,7 +29,7 @@ namespace libcloudphxx
           mlt(mlt), n_dims(n_dims) {}
  
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rw3diff, const thrust::tuple<real_t, real_t, real_t> &tpl)
+        real_t operator()(const real_t &rw3diff, const thrust::tuple<real_t, real_t, real_t> &tpl) noexcept
         {
           if(n_dims > 0)
             return mlt * rw3diff * thrust::get<1>(tpl) / thrust::get<0>(tpl) / thrust::get<2>(tpl);
@@ -42,7 +42,7 @@ namespace libcloudphxx
       struct rw2torwX
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rw2)
+        real_t operator()(const real_t &rw2) noexcept
         {
 #if !defined(__NVCC__)
           using std::pow;
@@ -55,7 +55,7 @@ namespace libcloudphxx
       struct rw2torwX<real_t, 3>
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rw2)
+        real_t operator()(const real_t &rw2) noexcept
         {
 #if !defined(__NVCC__)
           using std::sqrt;
@@ -68,7 +68,7 @@ namespace libcloudphxx
       struct rw2torwX<real_t, 2>
       {
         BOOST_GPU_ENABLED
-        real_t operator()(const real_t &rw2)
+        real_t operator()(const real_t &rw2) noexcept
         {
           return rw2;
         }
@@ -117,7 +117,7 @@ namespace libcloudphxx
         {}
 
         BOOST_GPU_ENABLED
-        quantity<divide_typeof_helper<si::area, si::time>::type, real_t> drw2_dt(const quantity<si::area, real_t> &rw2) const
+        quantity<divide_typeof_helper<si::area, si::time>::type, real_t> drw2_dt(const quantity<si::area, real_t> &rw2) const noexcept
         {
           using namespace common::maxwell_mason;
           using namespace common::kappa_koehler;

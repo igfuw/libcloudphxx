@@ -14,7 +14,7 @@ namespace libcloudphxx
         {}
 
         BOOST_GPU_ENABLED 
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) 
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) noexcept
         {
           return resolved_RH(thrust::make_tuple(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl))) + thrust::get<3>(tpl);
         }
@@ -35,7 +35,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
       // calculate perparticle temperature; TODO: skip it and use theta in advance_rw2?
-      if(!use_unconverged_mask)
+      if constexpr (!use_unconverged_mask)
       {
         if(opts_init.th_dry)
         {
@@ -71,7 +71,7 @@ namespace libcloudphxx
             unconverged_mask.begin(),
             Tp.begin(),
             detail::common__theta_dry__T_rhod<real_t>(), 
-            thrust::identity<bool>()
+            cuda::std::identity()
           );  
         }
         else
@@ -85,7 +85,7 @@ namespace libcloudphxx
             unconverged_mask.begin(),
             Tp.begin(),
             detail::common__theta_std__T_p<real_t>(), 
-            thrust::identity<bool>()
+            cuda::std::identity()
           );
         }
       }
