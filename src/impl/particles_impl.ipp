@@ -219,8 +219,8 @@ namespace libcloudphxx
         lambda_K_gp,
         drw_mom3_gp,
         rw_mom3_gp,
-        rw3_gp,
-        drw3_gp,
+        rwX_gp,
+        drwX_gp,
         Tp_gp;
 
       std::unique_ptr<
@@ -229,8 +229,9 @@ namespace libcloudphxx
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
-      > chem_flag_gp,
-        sstp_cond_perparticle_gp;
+      > chem_flag_gp, // could be bool (?)
+        sstp_cond_perparticle_gp,
+        sstp_cond_unconverged_mask_gp; // could be bool
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -627,13 +628,16 @@ namespace libcloudphxx
       // condensation methods
       void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      template<bool use_unconverged_mask = false>
       void cond_perparticle_rw2_change(const real_t &dt, const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
+      template<bool use_unconverged_mask = false, class pres_iter, class RH_iter>
       void perparticle_advance_rw2(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
-      void set_perparticle_drw3_to_minus_rw3(const bool use_stored_rw3);
-      void add_perparticle_rw3_to_drw3(const bool store_rw3);
+      template<int power, bool use_unconverged_mask = false>
+      void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
+      template<int power, bool use_unconverged_mask = false>
+      void add_perparticle_rwX_to_drwX(const bool store_rw3);
       void apply_perparticle_rw3_change_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
       void update_th_rv();
@@ -667,7 +671,9 @@ namespace libcloudphxx
       void acquire_arrays_for_perparticle_sstp();
       void release_arrays_for_perparticle_sstp();
       void calculate_noncond_perparticle_sstp_delta();
-      void apply_noncond_perparticle_sstp_delta();
+      template<bool use_unconverged_mask = false>
+      void apply_noncond_perparticle_sstp_delta(const real_t &multiplier);
+      template<bool use_unconverged_mask = false>
       void apply_perparticle_sgs_supersat(const real_t &dt);
       void sstp_percell_step(const int &step);
       void sstp_percell_step_exact(const int &step);

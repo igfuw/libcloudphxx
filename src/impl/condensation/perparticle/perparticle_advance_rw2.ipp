@@ -3,7 +3,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    template <class pres_iter, class RH_iter>
+    template <bool use_unconverged_mask, class pres_iter, class RH_iter>
     void particles_t<real_t, device>::impl::perparticle_advance_rw2(
       const real_t &dt,
       const real_t &RH_max,
@@ -29,16 +29,33 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      thrust::transform(
-        rw2.begin(), rw2.end(),
-        thrust::make_zip_iterator(thrust::make_tuple(
-          hlpr_zip_iter,
-          pi,
-          rhi
-        )), 
-        rw2.begin(),
-        detail::advance_rw2<real_t>(dt, RH_max)
-      );
+      if(!use_unconverged_mask)
+        thrust::transform(
+          rw2.begin(), rw2.end(),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            hlpr_zip_iter,
+            pi,
+            rhi
+          )), 
+          rw2.begin(),
+          detail::advance_rw2<real_t>(dt, RH_max)
+        );
+      else
+      {
+        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
+        thrust::transform_if(
+          rw2.begin(), rw2.end(),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            hlpr_zip_iter,
+            pi,
+            rhi
+          )), 
+          unconverged_mask.begin(),
+          rw2.begin(),
+          detail::advance_rw2<real_t>(dt, RH_max),
+          thrust::identity<bool>()
+        );
+      }
     }
   };
 };

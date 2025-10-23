@@ -205,18 +205,18 @@ namespace libcloudphxx
 //             pimpl->set_perparticle_sstp_count(1); // initialize to 1 substep
 
 //             do{ // TODO: all of these functions should work only on not converged particles
-//               pimpl->apply_noncond_perparticle_sstp_delta(); // *1 if step=0; else *-0.5? also depends on sstp_count!
+//               pimpl->apply_noncond_perparticle_sstp_delta<true>(); // *1 if step=0; else *-0.5? also depends on sstp_count!
 //               // TODO:
 //               // if(opts.turb_cond)
-//               //   pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond); 
+//               //   pimpl->apply_perparticle_sgs_supersat<true>(pimpl->dt / pimpl->sstp_cond); 
 
 //               // TODO: check pdrw2 and not pdrw3 for convergence? wouldnt need to calculate rw3 ...
-//               pimpl->set_perparticle_pdrw2_to_minus_rw2(false); // in pdrv (change to pdrw3?) ; as in cond_sstp(), but drw2 here, not drw2!; false means we calculate rw3 from rw2
-//               pimpl->cond_perparticle_rw2_change(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); // TODO: sstp_cond
-//               pimpl->add_perparticle_rw2_to_pdrw2(false); // as in cond_sstp(); store pdrv
+//               pimpl->set_perparticle_drwX_to_minus_rwX<2, true>(false); // in pdrv (change to pdrw3?) ; as in cond_sstp(), but drw2 here, not drw2!; false means we calculate rw3 from rw2
+//               pimpl->cond_perparticle_rw2_change<true>(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); // TODO: sstp_cond
+//               pimpl->add_perparticle_rwX_to_drwX<2, true>(false); // as in cond_sstp(); store pdrv
 //               if(not_first_step)
 //                 pimpl->check_for_perparticle_drw2_convergence(); // compare new and old drw3 to see if substepping was enough
-//               pimpl->store_perparticle_drw2_as_old(); // store it in rw3, since it is not needed in substep adaptation
+//               pimpl->store_perparticle_drw2_as_old<true>(); // store it in rw3, since it is not needed in substep adaptation
 //               // TODO: condition for convergence?
 //               // pimpl->apply_perparticle_rw3_change_to_perparticle_rv_and_th(step); // as in cond_sstp()
 //             } while(pimpl->any_perparticle_drw2_not_converged() && pimpl->increase_perparticle_sstp_count(2)); // double sstp count for not converged particles
@@ -245,15 +245,15 @@ namespace libcloudphxx
 // //            while(sstp_cound_found.any==0)
 // //          }
 //           }
-          
+          // TODO: sstp_cond can differ per particle here!
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {   
-            pimpl->apply_noncond_perparticle_sstp_delta();
+            pimpl->apply_noncond_perparticle_sstp_delta(real_t(1) / pimpl->sstp_cond);
             if(opts.turb_cond)
               pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
-            pimpl->set_perparticle_drw3_to_minus_rw3(/*use_stored_rw3=*/ step>0); 
+            pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0); 
             pimpl->cond_perparticle_rw2_change(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
-            pimpl->add_perparticle_rw3_to_drw3(/*store_rw3=*/ step < pimpl->sstp_cond - 1); 
+            pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1); 
             pimpl->apply_perparticle_rw3_change_to_perparticle_rv_and_th(); 
           } 
 

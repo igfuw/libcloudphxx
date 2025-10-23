@@ -23,6 +23,7 @@ namespace libcloudphxx
 
 
     template <typename real_t, backend_t device>
+    template <bool use_unconverged_mask>
     void particles_t<real_t, device>::impl::cond_perparticle_rw2_change(
       const real_t &dt,
       const real_t &RH_max,
@@ -33,28 +34,63 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
-      if(opts_init.th_dry)
+      // calculate perparticle temperature; TODO: skip it and use theta in advance_rw2?
+      if(!use_unconverged_mask)
       {
-        thrust::transform(
-          sstp_tmp_th.begin(), sstp_tmp_th.end(),
-          sstp_tmp_rh.begin(),
-          Tp.begin(),
-          detail::common__theta_dry__T_rhod<real_t>() 
-        );  
+        if(opts_init.th_dry)
+        {
+          thrust::transform(
+            sstp_tmp_th.begin(), sstp_tmp_th.end(),
+            sstp_tmp_rh.begin(),
+            Tp.begin(),
+            detail::common__theta_dry__T_rhod<real_t>() 
+          );  
+        }
+        else
+        {
+          thrust::transform(
+            sstp_tmp_th.begin(), sstp_tmp_th.end(),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              sstp_tmp_rv.begin(),
+              sstp_tmp_p.begin()
+            )),
+            Tp.begin(),
+            detail::common__theta_std__T_p<real_t>() 
+          );
+        }
       }
       else
       {
-        thrust::transform(
-          sstp_tmp_th.begin(), sstp_tmp_th.end(),
-          thrust::make_zip_iterator(thrust::make_tuple(
-            sstp_tmp_rv.begin(),
-            sstp_tmp_p.begin()
-          )),
-          Tp.begin(),
-          detail::common__theta_std__T_p<real_t>() 
-        );
+        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
+
+        if(opts_init.th_dry)
+        {
+          thrust::transform_if(
+            sstp_tmp_th.begin(), sstp_tmp_th.end(),
+            sstp_tmp_rh.begin(),
+            unconverged_mask.begin(),
+            Tp.begin(),
+            detail::common__theta_dry__T_rhod<real_t>(), 
+            thrust::identity<bool>()
+          );  
+        }
+        else
+        {
+          thrust::transform_if(
+            sstp_tmp_th.begin(), sstp_tmp_th.end(),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              sstp_tmp_rv.begin(),
+              sstp_tmp_p.begin()
+            )),
+            unconverged_mask.begin(),
+            Tp.begin(),
+            detail::common__theta_std__T_p<real_t>(), 
+            thrust::identity<bool>()
+          );
+        }
       }
 
+      // advance rw2
       if(!opts_init.const_p)
       {
         auto pressure_iter = thrust::make_transform_iterator(
@@ -67,7 +103,7 @@ namespace libcloudphxx
         );
 
         if(turb_cond)
-          perparticle_advance_rw2(dt, RH_max, Tp,
+          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
             pressure_iter,
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -80,7 +116,7 @@ namespace libcloudphxx
             )        
           ); 
         else
-          perparticle_advance_rw2(dt, RH_max, Tp,
+          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
             pressure_iter,
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -95,7 +131,7 @@ namespace libcloudphxx
       else
       {
         if(turb_cond)
-          perparticle_advance_rw2(dt, RH_max, Tp,
+          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
             sstp_tmp_p.begin(),
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -108,7 +144,7 @@ namespace libcloudphxx
             )        
           ); 
         else
-          perparticle_advance_rw2(dt, RH_max, Tp,
+          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
             sstp_tmp_p.begin(),
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(

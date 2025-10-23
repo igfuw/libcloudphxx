@@ -28,7 +28,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(scl[ix]->begin(), ijk.end()),
         tmp[ix]->begin(),
         dlt[ix]->begin(),
-        (arg::_1 - arg::_2) / sstp
+        (arg::_1 - arg::_2) // / sstp
         );
     }
     }

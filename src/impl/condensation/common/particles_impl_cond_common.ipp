@@ -38,8 +38,21 @@ namespace libcloudphxx
         }
       };
 
+      template<class real_t, int power>
+      struct rw2torwX
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2)
+        {
+#if !defined(__NVCC__)
+          using std::pow;
+#endif
+          return pow(rw2, real_t(power) / real_t(2));
+        }
+      };
+
       template<class real_t>
-      struct rw2torw3 //: thrust::unary_function<const real_t&, real_t>
+      struct rw2torwX<real_t, 3>
       {
         BOOST_GPU_ENABLED
         real_t operator()(const real_t &rw2)
@@ -47,8 +60,17 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
-          const real_t rw = sqrt(rw2);
-          return rw2 * rw;
+          return rw2 * sqrt(rw2);
+        }
+      };
+
+      template<class real_t>
+      struct rw2torwX<real_t, 2>
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2)
+        {
+          return rw2;
         }
       };
         
