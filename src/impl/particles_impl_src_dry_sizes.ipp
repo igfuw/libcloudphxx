@@ -24,8 +24,8 @@ namespace libcloudphxx
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
       for (auto dsi = sds.cbegin(); dsi != sds.cend(); ++dsi)
       {
-        const real_t &kappa(dsi->first.first);
-        const real_t &rd_insol(dsi->first.second);
+        const real_t &kappa(dsi->first.kappa);
+        const real_t &rd_insol(dsi->first.rd_insol);
         const auto &size_number_map(dsi->second);
 
         // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, rd_insol) pair

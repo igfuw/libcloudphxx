@@ -20,7 +20,8 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
 
       if (opts_init.src_type == src_t::matching && !sdd.empty() &&
-          sdd.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
+      sdd.begin()->first.kappa != opts_init.dry_distros.begin()->first.kappa ||
+      sdd.begin()->first.rd_insol != opts_init.dry_distros.begin()->first.rd_insol) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
 
       if(opts_init.src_type == src_t::matching)
         src_dry_distros_matching(sdd);

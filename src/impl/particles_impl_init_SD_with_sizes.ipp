@@ -22,8 +22,8 @@ namespace libcloudphxx
       // loop over (kappa, rd_insol) pairs
       for (auto dsi = opts_init.dry_sizes.cbegin(); dsi != opts_init.dry_sizes.cend(); ++dsi)
       {
-        const real_t &kappa(dsi->first.first);
-        const real_t &rd_insol(dsi->first.second);
+        const real_t &kappa(dsi->first.kappa);
+        const real_t &rd_insol(dsi->first.rd_insol);
         const auto &size_number_map(dsi->second);
 
         // loop over the "size : {concentration, count}" pairs for this (kappa, rd_insol) pair

@@ -247,7 +247,7 @@ namespace libcloudphxx
           const real_t kappa = bp::extract<real_t>(key[0]);
           const real_t rd_insol = bp::extract<real_t>(key[1]);
           arg->dry_distros.emplace(
-            std::make_pair(kappa, rd_insol),
+            libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol},
             std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
         }
@@ -302,7 +302,7 @@ namespace libcloudphxx
             const int count   = bp::extract<int>   (conc_count_list[1]);
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count); 
           }
-          arg->dry_sizes[std::make_pair(kappa, rd_insol)] = size_conc_map;
+          arg->dry_sizes[libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol}] = size_conc_map;
         }
       }
 

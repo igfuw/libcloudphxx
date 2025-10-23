@@ -219,8 +219,11 @@ namespace libcloudphxx
 
           // init other peoperties of SDs that didnt have a match
           init_kappa(
-            p_sdd->first.first
-          ); 
+            p_sdd->first.kappa
+          );
+          init_insol_dry_sizes(
+            p_sdd->first.rd_insol
+          );
 
           if(opts_init.diag_incloud_time)
             init_incloud_time();
