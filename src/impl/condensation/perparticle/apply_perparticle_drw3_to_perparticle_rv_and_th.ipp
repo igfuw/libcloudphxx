@@ -3,10 +3,11 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::apply_perparticle_rw3_change_to_perparticle_rv_and_th()
+    void particles_t<real_t, device>::impl::apply_perparticle_drw3_to_perparticle_rv_and_th()
     {
       namespace arg = thrust::placeholders;
-      thrust_device::vector<real_t> &drw3 = drwX_gp->get(); // drwX needs to be drw3 here
+      thrust_device::vector<real_t> &drw2 = drw2_gp->get(); 
+      thrust_device::vector<real_t> &drw3 = drw3_gp->get(); 
       thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
       thrust::transform(

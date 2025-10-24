@@ -4,7 +4,7 @@ namespace libcloudphxx
   {
     template <typename real_t, backend_t device>
     template <bool use_unconverged_mask, class pres_iter, class RH_iter>
-    void particles_t<real_t, device>::impl::perparticle_advance_rw2(
+    void particles_t<real_t, device>::impl::perparticle_drw2(
       const real_t &dt,
       const real_t &RH_max,
       const thrust_device::vector<real_t> &Tp,
@@ -13,6 +13,7 @@ namespace libcloudphxx
     ) { 
       thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
       thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
+      thrust_device::vector<real_t> &drw2 = drw2_gp->get();
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
@@ -37,12 +38,12 @@ namespace libcloudphxx
             pi,
             rhi
           )), 
-          rw2.begin(),
-          detail::advance_rw2<real_t>(dt, RH_max)
+          drw2.begin(),
+          detail::advance_rw2<real_t, false>(dt, RH_max)
         );
       else
       {
-        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
+        const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
         thrust::transform_if(
           rw2.begin(), rw2.end(),
           thrust::make_zip_iterator(thrust::make_tuple(
@@ -51,8 +52,8 @@ namespace libcloudphxx
             rhi
           )), 
           unconverged_mask.begin(),
-          rw2.begin(),
-          detail::advance_rw2<real_t>(dt, RH_max),
+          drw2.begin(),
+          detail::advance_rw2<real_t, false>(dt, RH_max),
           cuda::std::identity()
         );
       }

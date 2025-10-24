@@ -219,8 +219,10 @@ namespace libcloudphxx
         lambda_K_gp,
         drw_mom3_gp,
         rw_mom3_gp,
-        rwX_gp,
-        drwX_gp,
+        // rwX_gp,
+        // drwX_gp,
+        drw2_gp,
+        drw3_gp,
         Tp_gp;
 
       std::unique_ptr<
@@ -230,8 +232,8 @@ namespace libcloudphxx
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
       > chem_flag_gp, // could be bool (?)
-        sstp_cond_perparticle_gp,
-        sstp_cond_unconverged_mask_gp; // could be bool
+        perparticle_cond_sstp_gp,
+        cond_sstp_unconverged_mask_gp; // could be bool
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -626,23 +628,27 @@ namespace libcloudphxx
       void subs(const real_t &dt);
 
       // condensation methods
-      void cond_dm3_helper();
+      // void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       template<bool use_unconverged_mask = false>
-      void cond_perparticle_rw2_change(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_perparticle_drw2(const real_t &dt, const real_t &RH_max, const bool turb_cond);
       template<bool use_unconverged_mask = false, class pres_iter, class RH_iter>
-      void perparticle_advance_rw2(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      void perparticle_drw2(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      void cond_perparticle_drw3_from_drw2();
+      void apply_perparticle_drw2();
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
-      template<int power, bool use_unconverged_mask = false>
-      void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
-      template<int power, bool use_unconverged_mask = false>
-      void add_perparticle_rwX_to_drwX(const bool store_rw3);
-      void apply_perparticle_rw3_change_to_perparticle_rv_and_th();
+      // template<int power, bool use_unconverged_mask = false>
+      // void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
+      // template<int power, bool use_unconverged_mask = false>
+      // void add_perparticle_rwX_to_drwX(const bool store_rw3);
+      void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
       void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+      void set_perparticle_cond_sstp(const unsigned int &n) noexcept;
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+
       void update_incloud_time(const real_t &dt);
 
       void coal(const real_t &dt, const bool &turb_coal);

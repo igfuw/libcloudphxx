@@ -24,7 +24,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     template <bool use_unconverged_mask>
-    void particles_t<real_t, device>::impl::cond_perparticle_rw2_change(
+    void particles_t<real_t, device>::impl::cond_perparticle_drw2(
       const real_t &dt,
       const real_t &RH_max,
       const bool turb_cond
@@ -34,7 +34,7 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
-      // calculate perparticle temperature; TODO: skip it and use theta in advance_rw2?
+      // calculate perparticle temperature; TODO: skip it and use theta in drw2?
       if constexpr (!use_unconverged_mask)
       {
         if(opts_init.th_dry)
@@ -61,7 +61,7 @@ namespace libcloudphxx
       }
       else
       {
-        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
+        const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
 
         if(opts_init.th_dry)
         {
@@ -103,7 +103,7 @@ namespace libcloudphxx
         );
 
         if(turb_cond)
-          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
+          perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
             pressure_iter,
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -116,7 +116,7 @@ namespace libcloudphxx
             )        
           ); 
         else
-          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
+          perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
             pressure_iter,
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -131,7 +131,7 @@ namespace libcloudphxx
       else
       {
         if(turb_cond)
-          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
+          perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
             sstp_tmp_p.begin(),
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(
@@ -144,7 +144,7 @@ namespace libcloudphxx
             )        
           ); 
         else
-          perparticle_advance_rw2<use_unconverged_mask>(dt, RH_max, Tp,
+          perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
             sstp_tmp_p.begin(),
             thrust::make_transform_iterator(
               thrust::make_zip_iterator(thrust::make_tuple(

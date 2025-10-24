@@ -32,7 +32,7 @@ namespace libcloudphxx
           );
         else
         {
-          const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
+          const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
           thrust::transform_if(
             tmp[ix]->begin(), tmp[ix]->end(),
             dlt[ix]->begin(),

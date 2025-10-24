@@ -171,7 +171,7 @@ namespace libcloudphxx
         }
       };
 
-      template <typename real_t>
+      template <typename real_t, bool apply = true>
       struct advance_rw2
       {
         const real_t dt, RH_max;
@@ -232,7 +232,13 @@ namespace libcloudphxx
           }
 #endif
 
-          if (drw2 == 0) return rw2_old;
+          if (drw2 == 0)
+          {
+            if constexpr (apply)
+              return rw2_old;
+            else
+              return real_t(0);
+          }
 
           const real_t rd = cbrt(thrust::get<4>(tpl_in));
           const real_t rd2 = rd*rd;
@@ -242,7 +248,13 @@ namespace libcloudphxx
             b =          rw2_old + max(real_t(0), config.cond_mlt * drw2);
 
           // numerics (drw2 != 0 but a==b)
-          if (a == b) return rw2_old;
+          if (a == b)
+          {
+            if constexpr (apply)
+              return rw2_old;
+            else
+              return real_t(0);
+          }
 
           real_t fa, fb;
 
@@ -310,7 +322,10 @@ namespace libcloudphxx
             assert(0);
           }
 #endif
-          return rw2_new;
+          if constexpr (apply)
+            return rw2_new;
+          else
+            return rw2_new - rw2_old;
         }
       };
     };

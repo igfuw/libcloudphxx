@@ -12,14 +12,16 @@ namespace libcloudphxx
       if(opts_init.const_p)
           reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
 
-      reset_guardp(rwX_gp, tmp_device_real_part);
-      reset_guardp(drwX_gp, tmp_device_real_part);
+      // reset_guardp(rwX_gp, tmp_device_real_part);
+      // reset_guardp(drwX_gp, tmp_device_real_part);
+      reset_guardp(drw2_gp, tmp_device_real_part);
+      reset_guardp(drw3_gp, tmp_device_real_part);
       reset_guardp(Tp_gp, tmp_device_real_part);
 
       if(opts_init.adaptive_sstp_cond)
       {
-          reset_guardp(sstp_cond_perparticle_gp, tmp_device_n_part);
-          reset_guardp(sstp_cond_unconverged_mask_gp, tmp_device_n_part);
+          reset_guardp(perparticle_cond_sstp_gp, tmp_device_n_part);
+          reset_guardp(cond_sstp_unconverged_mask_gp, tmp_device_n_part);
       }
     }
   };
