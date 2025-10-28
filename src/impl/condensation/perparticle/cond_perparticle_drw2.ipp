@@ -27,7 +27,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::cond_perparticle_drw2(
       const real_t &dt,
       const real_t &RH_max,
-      const bool turb_cond
+      const bool turb_cond,
+      thrust_device::vector<real_t> &drw2
     ) { 
 
       namespace arg = thrust::placeholders;
@@ -113,7 +114,8 @@ namespace libcloudphxx
                 ssp.begin()
               )),
               detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
+            ),
+            drw2
           ); 
         else
           perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
@@ -125,7 +127,8 @@ namespace libcloudphxx
                 Tp.begin()
               )),
               detail::RH<real_t>(opts_init.RH_formula)
-            )        
+            ),
+            drw2
           ); 
       }
       else
@@ -140,8 +143,9 @@ namespace libcloudphxx
                 Tp.begin(),
                 ssp.begin()
               )),
-              detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
+              detail::RH_sgs<real_t>(opts_init.RH_formula)              
+            ),
+            drw2
           ); 
         else
           perparticle_drw2<use_unconverged_mask>(dt, RH_max, Tp,
@@ -152,8 +156,9 @@ namespace libcloudphxx
                 sstp_tmp_rv.begin(),
                 Tp.begin()
               )),
-              detail::RH<real_t>(opts_init.RH_formula)
-            )        
+              detail::RH<real_t>(opts_init.RH_formula)              
+            ),
+            drw2
           ); 
       }
     }

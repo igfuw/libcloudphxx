@@ -140,6 +140,7 @@ namespace libcloudphxx
                                     aerosol_conc_factor; // profile of aerosol concentration factor
 
       // time steps to be used, considering that opts.dt can override opts_init.dt
+      // sstp_cond not used if opts_init.adaptive_sstp_cond == true, then theres sstp_cond for each SD
       real_t dt;
       int sstp_cond, sstp_coal, sstp_chem;
 
@@ -354,8 +355,11 @@ namespace libcloudphxx
         SGS_mix_len(_opts_init.SGS_mix_len),
         aerosol_conc_factor(_opts_init.aerosol_conc_factor),
         adve_scheme(_opts_init.adve_scheme),
-        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch || _opts_init.adaptive_sstp_cond),
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
+        sstp_cond(_opts_init.sstp_cond),
+        sstp_coal(_opts_init.sstp_coal),
+        sstp_chem(_opts_init.sstp_chem),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
         tmp_device_real_cell(4) // 4 temporary vectors of this type; NOTE: default constructor creates 1
@@ -631,9 +635,15 @@ namespace libcloudphxx
       // void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       template<bool use_unconverged_mask = false>
-      void cond_perparticle_drw2(const real_t &dt, const real_t &RH_max, const bool turb_cond);
+      void cond_perparticle_drw2(
+        const real_t &dt, const real_t &RH_max, const bool turb_cond,
+        thrust_device::vector<real_t> &drw2
+      );
       template<bool use_unconverged_mask = false, class pres_iter, class RH_iter>
-      void perparticle_drw2(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      void perparticle_drw2(
+        const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi,
+        thrust_device::vector<real_t> &drw2
+      );
       void cond_perparticle_drw3_from_drw2();
       void apply_perparticle_drw2();
       void rw_mom3_ante_change();
@@ -644,9 +654,20 @@ namespace libcloudphxx
       // void add_perparticle_rwX_to_drwX(const bool store_rw3);
       void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
+      void check_for_perparticle_drw2_convergence(
+        const thrust_device::vector<real_t> &drw2,
+        thrust_device::vector<real_t> &drw2_old,
+        const real_t dt_ratio
+      );
+      bool perparticle_drw2_all_converged();
+      void set_perparticle_unconverged() noexcept;
+      void store_unconverged_perparticle_drw2_as_old(
+        const thrust_device::vector<real_t> &drw2,
+        thrust_device::vector<real_t> &drw2_old
+      );
       void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      void set_perparticle_cond_sstp(const unsigned int &n) noexcept;
+      void set_unconverged_perparticle_sstp_cond(const unsigned int &n) noexcept;
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void update_incloud_time(const real_t &dt);

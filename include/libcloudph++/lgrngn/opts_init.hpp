@@ -47,7 +47,8 @@ namespace libcloudphxx
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
-      // no. of substeps 
+      // no. of substeps for condensation/coalescence. If adaptive_sstp_cond=true, sstp_cond is the maximum no. of substeps.
+      // If dt changes during simulation (by supplying opts.dt), no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond
       int sstp_cond, sstp_coal; 
 
       // Lagrangian domain extents
@@ -216,7 +217,7 @@ namespace libcloudphxx
         rlx_switch(false), 
         exact_sstp_cond(false),
         sstp_cond_mix(true),
-        adaptive_sstp_cond(false), 
+        adaptive_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
         turb_coal_switch(false),

@@ -9,11 +9,12 @@ namespace libcloudphxx
       const real_t &RH_max,
       const thrust_device::vector<real_t> &Tp,
       const pres_iter &pi,
-      const RH_iter &rhi
+      const RH_iter &rhi,
+      thrust_device::vector<real_t> &drw2
     ) { 
       thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
       thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
-      thrust_device::vector<real_t> &drw2 = drw2_gp->get();
+      // thrust_device::vector<real_t> &drw2 = drw2_gp->get();
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
