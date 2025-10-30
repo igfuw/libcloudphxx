@@ -66,9 +66,7 @@ namespace libcloudphxx
           // particle-specific p
           pi,
           // particle-specific RH
-          rhi,
-          // particle-specific RH_i
-          rhii
+          rhi
         )), 
         rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)

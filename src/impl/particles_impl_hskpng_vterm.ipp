@@ -45,7 +45,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl // (T, p, rhod, eta)
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
@@ -102,10 +102,6 @@ namespace libcloudphxx
               break;
           }
 
-          // ice terminal velocity = droplet terminal velocity * rho_ice/rho_water
-          if(thrust::get<4>(tpl) == 1)
-            vt *= real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
-
           return vt;
         }   
       }; 
@@ -121,7 +117,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl // (vt_0, p, rhod, eta)
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
@@ -144,11 +140,6 @@ namespace libcloudphxx
             default:
               vt = 0.; //sanity checks done in pimpl constructor
           }
-
-          // ice terminal velocity = droplet terminal velocity * rho_ice/rho_water
-          if(thrust::get<4>(tpl) == 1)
-            vt *= real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
-
           return vt;
         }   
       }; 

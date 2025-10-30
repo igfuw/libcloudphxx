@@ -109,8 +109,7 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
             )
           ), 
           rw2.begin(),                    // output
@@ -136,7 +135,6 @@ namespace libcloudphxx
           thrust::make_tuple(
             hlpr_zip_iter,
             thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
             thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
           )
         ),

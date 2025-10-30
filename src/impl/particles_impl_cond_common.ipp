@@ -256,7 +256,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, real_t> &tpl
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -266,11 +266,8 @@ namespace libcloudphxx
           using std::isinf;
 #endif
 
-          // Skip ice particles (with rw2=0)
-          if (rw2_old <= 0) return rw2_old;
-
           auto& tpl_in = thrust::get<0>(tpl);
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max);
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
@@ -291,9 +288,8 @@ namespace libcloudphxx
               "kpa: %g  "
               "vt: %g  "
               "lambda_D: %g  "
-              "lambda_K: %g  "
-              "RH_i: %g\n",
-               drw2, rw2_old, dt, RH_max, 
+              "lambda_K: %g\n",
+               drw2, rw2_old, dt, RH_max,
                thrust::get<0>(tpl_in), // rhod
                thrust::get<1>(tpl_in), // rv
                thrust::get<2>(tpl_in), // T
@@ -304,8 +300,7 @@ namespace libcloudphxx
                thrust::get<5>(tpl_in), // kpa
                thrust::get<6>(tpl_in), // vt
                thrust::get<7>(tpl_in), // lambda_D
-               thrust::get<8>(tpl_in), // lambda_K
-               thrust::get<3>(tpl)     // RH_i
+               thrust::get<8>(tpl_in)  // lambda_K
             );
             assert(0);
           }
@@ -406,7 +401,7 @@ namespace libcloudphxx
             const thrust::tuple<real_t, real_t> &ac_old,
             const thrust::tuple<
                 thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>,
-                real_t, real_t, real_t> &tpl
+                real_t, real_t> &tpl
         ) const
         {
 #if !defined(__NVCC__)
