@@ -178,8 +178,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
-            ice.begin()
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // condition argument
           vt.begin(),                                             // output
@@ -195,8 +194,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
-            ice.begin()
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // condition argument
           vt.begin(),                                             // output
@@ -224,8 +222,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
-            ice.begin()
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
           )),                                                     // input - 2nd arg   
           vt.begin(),                                             // output
           detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity)
@@ -238,8 +235,7 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin()),
-            ice.begin()
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
           )),                                                     // input - 2nd arg
           vt.begin(),                                             // output
           detail::common__vterm__vt<real_t>(opts_init.terminal_velocity)

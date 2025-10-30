@@ -85,7 +85,6 @@ namespace libcloudphxx
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
         incloud_time, // time this SD has been within a cloud
-        ice, // 0 - water 1 - ice; bool would suffice, but we are lazy
         rd2_insol, // dry radii squared of insoluble aerosol
         T_freeze, // freezing temperature
         ice_a, // equatorial radius of ice
@@ -460,7 +459,6 @@ namespace libcloudphxx
 
         if(opts_init.ice_switch)
         {
-          distmem_real_vctrs.insert({&ice, detail::no_initial_value});
           distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
@@ -507,7 +505,6 @@ namespace libcloudphxx
       void init_ijk();
       void init_xyz();
       void init_kappa(const real_t &);
-      void init_ice(const real_t &);
       void init_insol_dry_sizes(real_t);
       void init_T_freeze();
       void init_a_c_rho_ice();

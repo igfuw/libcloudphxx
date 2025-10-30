@@ -55,8 +55,7 @@ namespace libcloudphxx
         kpa.begin(),
         vt.begin(),
         thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin()),
-        ice.begin()  // ice can be nonsense if ice_swtich==0, because it is not assigned...
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
       // calculating drop growth in a timestep using backward Euler 

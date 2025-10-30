@@ -69,15 +69,13 @@ namespace libcloudphxx
         const quantity<si::dimensionless,     real_t> RH_max;
         const quantity<si::length,            real_t> lambda_D;
         const quantity<si::length,            real_t> lambda_K;
-        const bool ice;
-        const quantity<si::dimensionless,     real_t> RH_i;
 
         // ctor
         BOOST_GPU_ENABLED
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
@@ -93,8 +91,6 @@ namespace libcloudphxx
           RH(      thrust::get<2>(tpl)),
           lambda_D(thrust::get<7>(thrust::get<0>(tpl)) * si::metres),
           lambda_K(thrust::get<8>(thrust::get<0>(tpl)) * si::metres),
-          ice(thrust::get<9>(thrust::get<0>(tpl))),
-          RH_i(    thrust::get<3>(tpl)),
           RH_max(RH_max)
         {}
 
@@ -130,26 +126,16 @@ namespace libcloudphxx
           const quantity<common::thermal_conductivity, real_t> 
             K = K_0<real_t>() * beta(lambda_K / rw) * (Nu(Pr, Re) / 2);
 
-          if(!ice)
-            return real_t(2) * rdrdt( 
-              D,
-              K,
-              rhod * rv, 
-              T, 
-              p, 
-              RH > RH_max ? RH_max : RH, 
-              a_w(rw3, rd3, kpa),
-              klvntrm(rw, T)
-            );
-          else
-            return real_t(2) * rdrdt_i( 
-              D,
-              K,
-              rhod * rv, 
-              T, 
-              p, 
-              RH_i > RH_max ? RH_max : RH_i 
-            );
+          return real_t(2) * rdrdt(
+            D,
+            K,
+            rhod * rv,
+            T,
+            p,
+            RH > RH_max ? RH_max : RH,
+            a_w(rw3, rd3, kpa),
+            klvntrm(rw, T)
+          );
         }
 
         // backward Euler scheme:
@@ -164,6 +150,102 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct advance_rw2_minfun_ice
+      {
+        const quantity<si::area,              real_t> r2_old;
+        const quantity<si::time,              real_t> dt;
+        const quantity<si::mass_density,      real_t> rhod;
+        const quantity<si::dimensionless,     real_t> rv;
+        const quantity<si::temperature,       real_t> T;
+        const quantity<si::pressure,          real_t> p;
+        const quantity<si::dimensionless,     real_t> RH_i;
+        const quantity<si::dynamic_viscosity, real_t> eta;
+        const quantity<si::volume,            real_t> rd3;
+        const quantity<si::dimensionless,     real_t> kpa;
+        const quantity<si::velocity,          real_t> vt;
+        const quantity<si::dimensionless,     real_t> RH_max;
+        const quantity<si::length,            real_t> lambda_D;
+        const quantity<si::length,            real_t> lambda_K;
+
+        // ctor
+        BOOST_GPU_ENABLED
+        advance_rw2_minfun_ice(
+          const real_t &dt,
+          const real_t &rw2,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
+          const real_t &RH_max
+        ) :
+          dt(dt * si::seconds),
+          r2_old(rw2 * si::square_metres),
+          rhod(    thrust::get<0>(thrust::get<0>(tpl)) * si::kilograms / si::cubic_metres),
+          rv(      thrust::get<1>(thrust::get<0>(tpl))),
+          T(       thrust::get<2>(thrust::get<0>(tpl)) * si::kelvins),
+          eta(     thrust::get<3>(thrust::get<0>(tpl)) * si::pascals * si::seconds),
+          rd3(     thrust::get<4>(thrust::get<0>(tpl)) * si::cubic_metres),
+          kpa(     thrust::get<5>(thrust::get<0>(tpl))),
+          vt(      thrust::get<6>(thrust::get<0>(tpl)) * si::metres_per_second),
+          p(       thrust::get<1>(tpl) * si::pascals),
+          RH_i(      thrust::get<2>(tpl)),
+          lambda_D(thrust::get<7>(thrust::get<0>(tpl)) * si::metres),
+          lambda_K(thrust::get<8>(thrust::get<0>(tpl)) * si::metres),
+          RH_max(RH_max)
+        {}
+
+        BOOST_GPU_ENABLED
+        quantity<divide_typeof_helper<si::area, si::time>::type, real_t> drw2_dt(const quantity<si::area, real_t> &rw2) const
+        {
+          using namespace common::maxwell_mason;
+          using namespace common::kappa_koehler;
+          using namespace common::kelvin;
+          using common::moist_air::D_0;
+          using common::moist_air::K_0;
+          using common::moist_air::c_pd;
+          using common::transition_regime::beta;
+          using common::ventil::Sh;
+          using common::ventil::Nu;
+#if !defined(__NVCC__)
+          using std::sqrt;
+#endif
+
+          const quantity<si::length, real_t> rw  = sqrt(real_t(rw2 / si::square_metres)) * si::metres;
+          const quantity<si::volume, real_t> rw3 = rw * rw * rw;;
+
+          // TODO: common::moist_air:: below should not be needed
+          // TODO: ventilation as option
+          const quantity<si::dimensionless, real_t>
+            Re = common::ventil::Re(vt, rw, rhod, eta),
+            Sc = common::ventil::Sc(eta, rhod, D_0<real_t>()), // TODO? cache
+            Pr = common::ventil::Pr(eta, c_pd<real_t>(), K_0<real_t>()); // TODO? cache
+
+          const quantity<common::diffusivity, real_t>
+            D = D_0<real_t>() * beta(lambda_D / rw) * (Sh(Sc, Re) / 2);
+
+          const quantity<common::thermal_conductivity, real_t>
+            K = K_0<real_t>() * beta(lambda_K / rw) * (Nu(Pr, Re) / 2);
+
+          return real_t(2) * rdrdt_i(
+            D,
+            K,
+            rhod * rv,
+            T,
+            p,
+            RH_i > RH_max ? RH_max : RH_i
+          );
+        }
+
+        // backward Euler scheme:
+      // rw2_new = rw2_old + f_rw2(rw2_new) * dt
+      // rw2_new = rw2_old + 2 * rw * f_rw(rw2_new) * dt
+        BOOST_GPU_ENABLED
+        real_t operator()(const real_t &rw2_unitless) const
+        {
+          const quantity<si::area, real_t> rw2 = rw2_unitless * si::square_metres;
+          return (r2_old + dt * drw2_dt(rw2) - rw2) / si::square_metres;
+        }
+      };
+
+
+      template <typename real_t>
       struct advance_rw2
       {
         const real_t dt, RH_max;
@@ -174,7 +256,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, real_t> &tpl
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, real_t> &tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -210,7 +292,6 @@ namespace libcloudphxx
               "vt: %g  "
               "lambda_D: %g  "
               "lambda_K: %g  "
-              "ice: %g  "
               "RH_i: %g\n",
                drw2, rw2_old, dt, RH_max, 
                thrust::get<0>(tpl_in), // rhod
@@ -224,7 +305,6 @@ namespace libcloudphxx
                thrust::get<6>(tpl_in), // vt
                thrust::get<7>(tpl_in), // lambda_D
                thrust::get<8>(tpl_in), // lambda_K
-               thrust::get<9>(tpl_in), // ice
                thrust::get<3>(tpl)     // RH_i
             );
             assert(0);
@@ -325,7 +405,7 @@ namespace libcloudphxx
         thrust::tuple<real_t, real_t> operator()(
             const thrust::tuple<real_t, real_t> &ac_old,
             const thrust::tuple<
-                thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>,
+                thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>,
                 real_t, real_t, real_t> &tpl
         ) const
         {
@@ -341,8 +421,8 @@ namespace libcloudphxx
           if (a_old <= 0 || c_old <= 0)
             return ac_old;
 
-          advance_rw2_minfun<real_t> f_a(dt, a_old * a_old, tpl, RH_max);
-          advance_rw2_minfun<real_t> f_c(dt, c_old * c_old, tpl, RH_max);
+          advance_rw2_minfun_ice<real_t> f_a(dt, a_old * a_old, tpl, RH_max);
+          advance_rw2_minfun_ice<real_t> f_c(dt, c_old * c_old, tpl, RH_max);
 
           const real_t da_dt = (f_a.drw2_dt(a_old * a_old * si::square_metres) / (2 * a_old * si::metres)).value();
           const real_t dc_dt = (f_c.drw2_dt(c_old * c_old * si::square_metres) / (2 * c_old * si::metres)).value();

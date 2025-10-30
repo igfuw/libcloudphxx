@@ -63,7 +63,6 @@
 #include "impl/particles_impl_init_dry_const_multi.ipp"
 #include "impl/particles_impl_init_dry_dry_sizes.ipp"
 #include "impl/particles_impl_init_kappa.ipp"
-#include "impl/particles_impl_init_ice.ipp"
 #include "impl/particles_impl_init_insol_dry_sizes.ipp"
 #include "impl/particles_impl_init_T_freeze.ipp"
 #include "impl/particles_impl_init_a_c_rho_ice.ipp"

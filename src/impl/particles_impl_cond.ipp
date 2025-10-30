@@ -29,7 +29,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &drv_ice(tmp_device_real_cell3);
 
       // Compute per-cell 3rd moment of liquid droplets before condensation. It is stored in count_mom
-      moms_eq0(ice.begin()); // choose particles with ice=0
+      moms_eq0(ice_a.begin()); // choose liquid particles (ice_a=0)
       moms_calc(rw2.begin(), real_t(3./2.));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
       if(count_n!=n_cell) {
@@ -43,7 +43,7 @@ namespace libcloudphxx
       );
 
       // Compute per-cell 3rd moment of ice before deposition. It is stored in count_mom
-      moms_gt0(ice.begin()); // choose particles with ice=1
+      moms_gt0(ice_a.begin()); // choose ice particles (ice_a>0)
       moms_calc(thrust::make_transform_iterator(
         thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
         ),
@@ -69,8 +69,7 @@ namespace libcloudphxx
         kpa.begin(),
         vt.begin(),
         thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
-        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin()),
-        ice.begin()
+        thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
       // calculating drop growth in a timestep using backward Euler
@@ -153,7 +152,7 @@ namespace libcloudphxx
       nancheck(ice_c, "ice_c after deposition (no sub-steps");
 
       // Compute per-cell 3rd moment of liquid droplets after condensation. It is stored in count_mom
-      moms_eq0(ice.begin()); // choose particles with ice=0
+      moms_eq0(ice_a.begin()); // choose liquid particles (ice_a=0)
       moms_calc(rw2.begin(), real_t(3./2.));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
@@ -166,7 +165,7 @@ namespace libcloudphxx
       );
 
       // Compute per-cell 3rd moment of ice after deposition. It is stored in count_mom
-      moms_gt0(ice.begin()); // choose particles with ice=1
+      moms_gt0(ice_a.begin()); // choose ice particles (ice_a>0)
       moms_calc(thrust::make_transform_iterator(
         thrust::make_zip_iterator(thrust::make_tuple(ice_a.begin(), ice_c.begin())), detail::ice_vol<real_t>()
         ),
