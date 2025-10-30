@@ -151,21 +151,34 @@ namespace libcloudphxx
     // selects particles for which vec[i] > 0
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_gt0(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons
     )
     {
       hskpng_sort();
-
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       {
         namespace arg = thrust::placeholders;
-        thrust::transform(
-          n.begin(), n.end(),                      // input - 1st arg
-          vec_bgn,                                 // input - 2nd arg
-          n_filtered.begin(),                      // output
-          arg::_1 * (arg::_2 > 0)                 // op
-        );
+
+        if(!cons)
+        {
+          thrust::transform(
+            n.begin(), n.end(),                  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 > 0)                 // op
+          );
+        }
+        else
+        {
+          thrust::transform(
+            n_filtered.begin(), n_filtered.end(),  // input - 1st arg
+            vec_bgn,                               // input - 2nd arg
+            n_filtered.begin(),                    // output
+            arg::_1 * (arg::_2 > 0)               // op
+          );
+        }
       }
       selected_before_counting = true;
     }
@@ -173,21 +186,34 @@ namespace libcloudphxx
     // selects particles for which vec[i] = 0
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::moms_eq0(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons
     )
     {
       hskpng_sort();
-
       thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
 
       {
         namespace arg = thrust::placeholders;
-        thrust::transform(
-          n.begin(), n.end(),                      // input - 1st arg
-          vec_bgn,                                 // input - 2nd arg
-          n_filtered.begin(),                      // output
-          arg::_1 * (arg::_2 == 0)                 // op
-        );
+
+        if(!cons)
+        {
+          thrust::transform(
+            n.begin(), n.end(),                  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 == 0)                 // op
+          );
+        }
+        else
+        {
+          thrust::transform(
+            n_filtered.begin(), n_filtered.end(),  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 == 0)                 // op
+          );
+        }
       }
       selected_before_counting = true;
     }

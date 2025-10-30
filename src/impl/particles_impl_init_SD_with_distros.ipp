@@ -57,7 +57,6 @@ namespace libcloudphxx
 
       if (opts_init.ice_switch)
       {
-        init_ice(real_t(0));
         init_insol_dry_sizes(kpa_rd_insol.rd_insol);
         init_a_c_rho_ice();
       }

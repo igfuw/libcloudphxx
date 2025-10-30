@@ -562,10 +562,12 @@ namespace libcloudphxx
         const typename thrust_device::vector<real_t>::iterator &vec_bgn
       );
       void moms_gt0(
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const bool cons = false
       );
       void moms_eq0(
-        const typename thrust_device::vector<real_t>::iterator &vec_bgn
+        const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+        const bool cons = false
       );
       void moms_rng(
         const real_t &min, const real_t &max, 
