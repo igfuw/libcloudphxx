@@ -101,7 +101,6 @@ namespace libcloudphxx
               vt = 0.; //sanity checks done in pimpl constructor
               break;
           }
-
           return vt;
         }   
       }; 
@@ -142,7 +141,26 @@ namespace libcloudphxx
           }
           return vt;
         }   
-      }; 
+      };
+
+      template <typename real_t>
+      struct common__vterm__ice
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(
+        const real_t &ice_a,
+         const thrust::tuple<real_t, real_t, real_t, real_t> &tpl // (T, p, rhod, eta)
+        ) {
+           return common::vterm::vt_beard77_fact(
+                  sqrt(ice_a)           * si::metres, // TODO: consider caching rw?
+                  thrust::get<1>(tpl) * si::pascals,
+                  thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
+                  thrust::get<3>(tpl) * si::pascals * si::seconds
+                ) * (common::vterm::vt_beard77_v0(sqrt(ice_a) * si::metres) / si::metres_per_second)
+                  * real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
+      }
+    };
+
    };
 
 
