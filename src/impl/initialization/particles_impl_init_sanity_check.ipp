@@ -158,10 +158,10 @@ namespace libcloudphxx
 
       if(opts_init.sstp_cond < 1)
         throw std::runtime_error("libcloudph++: opts_init.sstp_cond needs to be greater than 0");
-      if(opts_init.adaptive_sstp_cond && opts_init.exact_sstp_cond)
-        throw std::runtime_error("libcloudph++: Adaptive condensation substepping does not work for per-particle substepping (yet) (opts_init.adaptive_sstp_cond and opts_init.exact_sstp_cond can't both be true");
-      if(opts_init.adaptive_sstp_cond && opts_init.sstp_cond > 1 && (opts_init.sstp_cond & (opts_init.sstp_cond-1) != 0))
-        throw std::runtime_error("libcloudph++: In adaptive condensation substepping, number of substeps has to be either 1 or a power of 2. Adjust initial number of substeps (opts_init.sstp_cond)");
+      if(opts_init.adaptive_sstp_cond && !opts_init.exact_sstp_cond)
+        throw std::runtime_error("libcloudph++: Adaptive condensation substepping (opts_init.adaptive_sstp_cond) works oly for per-particle substepping (opts_init.exact_sstp_cond)");
+      // if(opts_init.adaptive_sstp_cond && opts_init.sstp_cond > 1 && (opts_init.sstp_cond & (opts_init.sstp_cond-1) != 0))
+      //   throw std::runtime_error("libcloudph++: In adaptive condensation substepping, number of substeps has to be either 1 or a power of 2. Adjust initial number of substeps (opts_init.sstp_cond)");
       if(!opts_init.sstp_cond_mix && !opts_init.exact_sstp_cond)
         throw std::runtime_error("libcloudph++: Mixing of rv and th (opts_init.sstp_cond_mix) can only be disable for per-particle substepping (opts_init.exact_sstp_cond)");
       if(opts_init.sstp_cond_mix && opts_init.adaptive_sstp_cond && opts_init.exact_sstp_cond)

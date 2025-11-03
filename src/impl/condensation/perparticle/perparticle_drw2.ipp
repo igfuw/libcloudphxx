@@ -40,11 +40,11 @@ namespace libcloudphxx
             rhi
           )), 
           drw2.begin(),
-          detail::advance_rw2<real_t, false>(dt, RH_max)
+          detail::advance_rw2<real_t, false>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       else
       {
-        const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
+        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
         thrust::transform_if(
           rw2.begin(), rw2.end(),
           thrust::make_zip_iterator(thrust::make_tuple(
@@ -54,7 +54,7 @@ namespace libcloudphxx
           )), 
           unconverged_mask.begin(),
           drw2.begin(),
-          detail::advance_rw2<real_t, false>(dt, RH_max),
+          detail::advance_rw2<real_t, false>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter),
           cuda::std::identity()
         );
       }

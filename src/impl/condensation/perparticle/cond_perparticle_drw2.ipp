@@ -9,6 +9,7 @@ namespace libcloudphxx
       {
         RH<real_t> resolved_RH;
 
+        BOOST_GPU_ENABLED 
         RH_sgs(RH_formula_t RH_formula):
           resolved_RH(RH_formula)
         {}
@@ -62,7 +63,7 @@ namespace libcloudphxx
       }
       else
       {
-        const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
+        const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
 
         if(opts_init.th_dry)
         {

@@ -25,6 +25,8 @@ namespace libcloudphxx
       {
         real_t mlt;
         int n_dims;
+        
+        BOOST_GPU_ENABLED
         rw3diff2drv(const real_t &mlt, const int &n_dims):
           mlt(mlt), n_dims(n_dims) {}
  
@@ -174,10 +176,12 @@ namespace libcloudphxx
       template <typename real_t, bool apply = true>
       struct advance_rw2
       {
-        const real_t dt, RH_max;
-        detail::config<real_t> config;
+        const real_t dt, RH_max, cond_mlt;
+        const common::detail::eps_tolerance<real_t> eps_tolerance;
+        const uintmax_t n_iter;
 
-        advance_rw2(const real_t &dt, const real_t &RH_max) : dt(dt), RH_max(RH_max) {}
+        BOOST_GPU_ENABLED
+        advance_rw2(const real_t &dt, const real_t &RH_max, const common::detail::eps_tolerance<real_t> &eps_tolerance, const real_t &cond_mlt, const uintmax_t &n_iter_) : dt(dt), RH_max(RH_max), eps_tolerance(eps_tolerance), cond_mlt(cond_mlt), n_iter(n_iter_) {}
 
         BOOST_GPU_ENABLED
         real_t operator()(
@@ -244,8 +248,8 @@ namespace libcloudphxx
           const real_t rd2 = rd*rd;
  
           const real_t 
-            a = max(rd2, rw2_old + min(real_t(0), config.cond_mlt * drw2)),
-            b =          rw2_old + max(real_t(0), config.cond_mlt * drw2);
+            a = max(rd2, rw2_old + min(real_t(0), cond_mlt * drw2)),
+            b =          rw2_old + max(real_t(0), cond_mlt * drw2);
 
           // numerics (drw2 != 0 but a==b)
           if (a == b)
@@ -301,11 +305,12 @@ namespace libcloudphxx
           // root-finding ill posed => explicit Euler 
           if (fa * fb > 0) rw2_new = rw2_old + drw2;
           // otherwise implicit Euler
-          else
+          else          
           {
-            uintmax_t n_iter = config.n_iter;
-            rw2_new = common::detail::toms748_solve(f, a, b, fa, fb, config.eps_tolerance, n_iter);
+            auto _n_iter = n_iter; // we need a copy because toms748_solve expects non-const ref (n_iter is modified by it)
+            rw2_new = common::detail::toms748_solve(f, a, b, fa, fb, eps_tolerance, _n_iter);
           }
+          
           // check if it doesn't evaporate too much
           if(rw2_new < rd2) rw2_new = rd2;
 

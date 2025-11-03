@@ -9,7 +9,7 @@ namespace libcloudphxx
       reset_guardp(sstp_dlt_rv_gp, tmp_device_real_part); 
       reset_guardp(sstp_dlt_th_gp, tmp_device_real_part); 
       reset_guardp(sstp_dlt_rhod_gp, tmp_device_real_part); 
-      if(opts_init.const_p)
+      // if(opts_init.const_p)
           reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
 
       // reset_guardp(rwX_gp, tmp_device_real_part);
@@ -20,8 +20,8 @@ namespace libcloudphxx
 
       if(opts_init.adaptive_sstp_cond)
       {
-          reset_guardp(perparticle_cond_sstp_gp, tmp_device_n_part);
-          reset_guardp(cond_sstp_unconverged_mask_gp, tmp_device_n_part);
+          reset_guardp(perparticle_sstp_cond_gp, tmp_device_n_part);
+          reset_guardp(sstp_cond_unconverged_mask_gp, tmp_device_n_part);
       }
     }
   };

@@ -9,7 +9,7 @@ namespace libcloudphxx
       {
         // with mixing, all SDs in a cell should arrive at the same sstp_tmp_rv/th;
         // however, there may be some small divergences, as we see some differences in results
-        // of the physics/lgrngn_cond_sstp.py test between per-cell and per-particle substepping with sstp_cond_mix=True;
+        // of the physics/lgrngn_sstp_cond.py test between per-cell and per-particle substepping with sstp_cond_mix=True;
         // these differences started to appear after changing the way how drw3 is applied to rv and th in per-particle substepping
         // (commit e78392573eedc6acd74861d5a5ae57a82d2edff0). This commit did not affect per-particle substepping without mixing.
         // Discussed divergences can be decreased (but not completly removed) by updating cell rv/th based on mom3, as done without mixing.

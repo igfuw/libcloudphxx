@@ -233,8 +233,8 @@ namespace libcloudphxx
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
       > chem_flag_gp, // could be bool (?)
-        perparticle_cond_sstp_gp,
-        cond_sstp_unconverged_mask_gp; // could be bool
+        perparticle_sstp_cond_gp,
+        sstp_cond_unconverged_mask_gp; // could be bool
 
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
@@ -424,7 +424,7 @@ namespace libcloudphxx
            distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
-           if(opts_init.const_p)
+          //  if(opts_init.const_p)
              distmem_real_vctrs.insert({&sstp_tmp_p, detail::no_initial_value});
         }
 
@@ -463,15 +463,15 @@ namespace libcloudphxx
         if(distmem())
           tmp_drp_no = std::max(tmp_drp_no, 3);
         if(allow_sstp_cond && opts_init.exact_sstp_cond)
-          tmp_drp_no = std::max(tmp_drp_no, 6);
-        if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
-          tmp_drp_no = std::max(tmp_drp_no, 7);
-        if(allow_sstp_cond && opts_init.exact_sstp_cond && !opts_init.sstp_cond_mix)
-          tmp_drp_no = std::max(tmp_drp_no, 7);
-        if(allow_sstp_cond && opts_init.exact_sstp_cond && !opts_init.sstp_cond_mix && opts_init.const_p)
-          tmp_drp_no = std::max(tmp_drp_no, 8);
+          tmp_drp_no = std::max(tmp_drp_no, 8); // why 8? not 7?
+        // if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
+        //   tmp_drp_no = std::max(tmp_drp_no, 7);
 
         tmp_device_real_part.add_vectors(tmp_drp_no-1); // -1 because 1 is already created in the ctor
+
+        if(opts_init.exact_sstp_cond && opts_init.adaptive_sstp_cond)
+          tmp_device_n_part.add_vectors(2);
+          
 
         // // init number of temporary real vctrs
         // if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
@@ -644,6 +644,7 @@ namespace libcloudphxx
         const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi,
         thrust_device::vector<real_t> &drw2
       );
+      void perparticle_nomixing_sstp_cond(const opts_t<real_t> &);
       void cond_perparticle_drw3_from_drw2();
       void apply_perparticle_drw2();
       void rw_mom3_ante_change();
@@ -654,7 +655,7 @@ namespace libcloudphxx
       // void add_perparticle_rwX_to_drwX(const bool store_rw3);
       void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
-      void check_for_perparticle_drw2_convergence(
+      void check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(
         const thrust_device::vector<real_t> &drw2,
         thrust_device::vector<real_t> &drw2_old,
         const real_t dt_ratio
@@ -698,6 +699,7 @@ namespace libcloudphxx
       void acquire_arrays_for_perparticle_sstp();
       void release_arrays_for_perparticle_sstp();
       void calculate_noncond_perparticle_sstp_delta();
+      void reset_perparticle_sstp_tmp_and_ssp_before_substepping();
       template<bool use_unconverged_mask = false>
       void apply_noncond_perparticle_sstp_delta(const real_t &multiplier);
       template<bool use_unconverged_mask = false>

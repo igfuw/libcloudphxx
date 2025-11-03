@@ -162,6 +162,7 @@ namespace libcloudphxx
           moms_rng(rd3_min, rd3_max, rd3.begin(), n_part_pre_relax, true);
           // calculate 0-th non-specific moment of rd3 (number of droplets in a cell) of droplets in this rd3 and kappa range
           moms_calc(rd3.begin(), n_part_pre_relax, 0, false);
+          n_filtered_gp.reset(); // n_filtered not needed anymore
 
           // horizontal sum of this moment
           thrust::fill(hor_sum.begin(), hor_sum.end(), 0);

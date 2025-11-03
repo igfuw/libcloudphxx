@@ -191,81 +191,78 @@ namespace libcloudphxx
         //       that would make it easy to do in exact (per-cell) substepping
         pimpl->hskpng_mfp();
 
-        if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->opts_init.adaptive_sstp_cond)) // apply substeps per-particle logic
+        // apply substeps per-particle logic
+        if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1)) 
         {
           if(!pimpl->opts_init.sstp_cond_mix)
+          {
             pimpl->rw_mom3_ante_change(); // save 3rd wet moment before condensation (in drw_mom3_gp)
+            pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
+          }
 
           pimpl->acquire_arrays_for_perparticle_sstp(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
           pimpl->calculate_noncond_perparticle_sstp_delta(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact(); returns change / sstp_count; make it just change and multiply afterwards?
 
-        //   // look for correct number of substeps
-        //  if(pimpl->opts_init.adaptive_sstp_cond)
-        //  {
-        //     auto &drw2 = pimpl->drw3_gp->get(); // drw3 not needed when adapting, so reuse it here
-        //     auto &drw2_old = pimpl->drw2_gp->get(); // drw2 used intentionally, because after convergence we want to have drw2 from previous tested substep count
+          // adaptive per-particle substepping, look for correct number of substeps per particle
+          if(pimpl->opts_init.adaptive_sstp_cond)
+          {
+            auto &drw2 = pimpl->drw3_gp->get(); // drw3 not needed when adapting, so reuse it here
+            auto &drw2_old = pimpl->drw2_gp->get(); // drw2 used intentionally, because after convergence we want to have drw2 from previous tested substep count
 
-        //     pimpl->set_perparticle_unconverged(); // all particles unconverged at start
+            pimpl->set_perparticle_unconverged(); // all particles unconverged at start
 
-        //     for(int _sstp_cond = 1; _sstp_cond <= pimpl->opts_init.sstp_cond; _sstp_cond*=2) // opts_init.sstp_cond considered max number of substeps if adaptation is used
-        //     {
-        //       pimpl->set_unconverged_perparticle_sstp_cond(_sstp_cond);
-        //       pimpl->template apply_noncond_perparticle_sstp_delta<true>(_sstp_cond == 1 ? 1 : -real_t(1)/_sstp_cond); // _sstp_cond needs to double per each iteration
-        //       if(opts.turb_cond)
-        //         pimpl->template apply_perparticle_sgs_supersat<true>(_sstp_cond == 1 ? pimpl->dt : -pimpl->dt/_sstp_cond); // same as above
+            // TODO: dont do this in a loop for all particles, which requires unnecessary synchronization after each iteration
+            //       instead, do a "loop" independently per particle until convergence is reached (e.g. one for_each call?)
+            for(int _sstp_cond = 1; _sstp_cond <= pimpl->opts_init.sstp_cond; _sstp_cond*=2) // opts_init.sstp_cond considered max number of substeps if adaptation is used
+            {
+              pimpl->set_unconverged_perparticle_sstp_cond(_sstp_cond);
+              pimpl->template apply_noncond_perparticle_sstp_delta<true>(_sstp_cond == 1 ? 1 : -real_t(1)/_sstp_cond); // _sstp_cond needs to double per each iteration
+              if(opts.turb_cond)
+                pimpl->template apply_perparticle_sgs_supersat<true>(_sstp_cond == 1 ? pimpl->dt : -pimpl->dt/_sstp_cond); // same as above
 
-        //       pimpl->template cond_perparticle_drw2<true>(pimpl->dt / _sstp_cond, opts.RH_max, opts.turb_cond, drw2);
-        //       if(_sstp_cond > 1)
-        //         pimpl->check_for_perparticle_drw2_convergence(drw2, drw2_old, 2);
-        //       if(pimpl->perparticle_drw2_all_converged())
-        //         break; 
-        //       pimpl->store_unconverged_perparticle_drw2_as_old(drw2, drw2_old);
-        //     }
-        //     debug::print(pimpl->perparticle_cond_sstp_gp->get());
-        //   }
-//           pimpl->halve_perparticle_sstp_count_for_convergent_particles(); // convergence tested for n and n*2 ssteps; if convverged, n is enough
-//           // in drw2 we have correct drw2 for each particle; in sstp_count we have number of substeps needed;
+              pimpl->template cond_perparticle_drw2<true>(pimpl->dt / _sstp_cond, opts.RH_max, opts.turb_cond, drw2);
+              if(_sstp_cond > 1)
+                pimpl->check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(drw2, drw2_old, 2);
+              if(pimpl->perparticle_drw2_all_converged())
+                break; 
+              pimpl->store_unconverged_perparticle_drw2_as_old(drw2, drw2_old);
+            }
+            printf("%g\n", thrust::reduce(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end(), real_t(0), thrust::plus<real_t>()) / real_t(pimpl->n_part));
+            // debug::print(pimpl->perparticle_sstp_cond_gp->get());
+            // reset sstp_tmp and ssp to state before substepping
+            pimpl->reset_perparticle_sstp_tmp_and_ssp_before_substepping();
+
+//           // in drw2, we have correct drw2 for each particle; in sstp_count we have number of substeps needed;
 //           // in the first subsequent step we can skip cond_perparticle_rw2_change for converged particles, and add stored drw3 (or make it drw2?) instead
 //           // sstp_tmp and ssp are one step too far ?
+            // pimpl->set_unconverged_perparticle_sstp_cond(pimpl->sstp_cond); // temporary as adaptation is disabled
 
-
-// //            pimpl->sstp_percell_step(0);
-// //            save_dth_change
-// //            save_state
-// //            sstp_cond_found=0
-// //            do
-// //            {
-// //              if(!sstp_cond_found /* per-cell! */):
-// //                double_sstp_cond
-// //                pimpl->sstp_percell_step(0); // step 0 again, may cause troubles!
-// //                save_dth_change
-// //                sstp_cound_found = calc_diff(2*newdth - dth) < rel_eps;
-// //                if(!sstp_cond_found)
-// //                  save_state
-// //                else
-// //                  restore_state
-// //            }
-// //            while(sstp_cound_found.any==0)
-// //          }
-//           }
-
-          // TODO: sstp_cond can differ per particle here!
-          for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {
-            pimpl->apply_noncond_perparticle_sstp_delta(real_t(1) / pimpl->sstp_cond);
-            if(opts.turb_cond)
-              pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
-            // pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
-            pimpl->cond_perparticle_drw2(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
-            pimpl->cond_perparticle_drw3_from_drw2();
-            pimpl->apply_perparticle_drw2();
-            // pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
-            pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
+            // Do condensation in one loop over SDs, since each SD can have different numbr of steps.
+            // One loop avoids synchronization between SDs after each substep. 
+            // However, this is slow on GPU, but fast on CPU, probably because function within this loop over SDs takes 20+ arguments and 
+            // memory access slows it down (particularly on GPU?). Also, on loop allows CPU to do all work on one SD before moving to another,
+            // improving cache usage (?). GPU works on all SDs in parallel (?), so cache looping over substeps doesnt bother it (?).
+            // We decide to do a substep loop solution, because we optimize for GPUs and we dont want to maintain two versions of the code.
+            // Also, efficiency loss from on large loop is greater on GPU than the gain of it on CPU.
+            pimpl->perparticle_nomixing_sstp_cond(opts);
           }
-
-          pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
-
+          else // per-particle substepping without adaptation
+          {
+            for (int step = 0; step < pimpl->sstp_cond; ++step) 
+            {
+              pimpl->apply_noncond_perparticle_sstp_delta(real_t(1) / pimpl->sstp_cond);
+              if(opts.turb_cond)
+                pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
+              // pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+              pimpl->cond_perparticle_drw2(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
+              pimpl->cond_perparticle_drw3_from_drw2();
+              pimpl->apply_perparticle_drw2();
+              // pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
+            }
+          }
           pimpl->release_arrays_for_perparticle_sstp();
+          pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
         }
         else // apply per-cell sstp logic
         {

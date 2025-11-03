@@ -126,6 +126,7 @@
 #include "impl/condensation/perparticle/acquire_arrays_for_perparticle_sstp.ipp"
 #include "impl/condensation/perparticle/release_arrays_for_perparticle_sstp.ipp"
 #include "impl/condensation/perparticle/calculate_noncond_perparticle_sstp_delta.ipp"
+#include "impl/condensation/perparticle/reset_perparticle_sstp_tmp_and_ssp_before_substepping.ipp"
 #include "impl/condensation/perparticle/apply_noncond_perparticle_sstp_delta.ipp"
 // #include "impl/condensation/perparticle/set_perparticle_drw3_to_minus_rw3.ipp"
 // #include "impl/condensation/perparticle/add_perparticle_rw3_to_drw3.ipp"
@@ -136,10 +137,11 @@
 #include "impl/condensation/perparticle/cond_perparticle_drw3_from_drw2.ipp"
 #include "impl/condensation/perparticle/apply_perparticle_drw3_to_perparticle_rv_and_th.ipp"
 #include "impl/condensation/perparticle/apply_perparticle_cond_change_to_percell_rv_and_th.ipp"
-#include "impl/condensation/perparticle/check_for_perparticle_drw2_convergence.ipp"
+#include "impl/condensation/perparticle/check_for_perparticle_drw2_convergence_and_decrease_sstp_cond.ipp"
 #include "impl/condensation/perparticle/perparticle_drw2_all_converged.ipp"
 #include "impl/condensation/perparticle/store_perparticle_drw2_as_old.ipp"
 #include "impl/condensation/perparticle/set_perparticle_unconverged.ipp"
+#include "impl/condensation/perparticle/perparticle_nomixing_sstp_cond.ipp"
 
 #include "impl/sedimentation/particles_impl_sedi.ipp"
 

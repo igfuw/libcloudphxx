@@ -24,11 +24,11 @@ namespace libcloudphxx
     {
         const real_t sstp = sstp_cond;
         thrust::transform(
-        thrust::make_permutation_iterator(scl[ix]->begin(), ijk.begin()),
-        thrust::make_permutation_iterator(scl[ix]->begin(), ijk.end()),
-        tmp[ix]->begin(),
-        dlt[ix]->begin(),
-        (arg::_1 - arg::_2) // / sstp
+          thrust::make_permutation_iterator(scl[ix]->begin(), ijk.begin()),
+          thrust::make_permutation_iterator(scl[ix]->begin(), ijk.end()),
+          tmp[ix]->begin(),
+          dlt[ix]->begin(),
+          (arg::_1 - arg::_2) // / sstp
         );
     }
     }

@@ -11,7 +11,6 @@ namespace libcloudphxx
 
       const int n = 4;
       thrust_device::vector<real_t>
-          *scl[n] = { &rv,          &th,          &rhod,        &p          },
           *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
           *dlt[n];
 
@@ -32,7 +31,7 @@ namespace libcloudphxx
           );
         else
         {
-          const auto &unconverged_mask = cond_sstp_unconverged_mask_gp->get();
+          const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
           thrust::transform_if(
             tmp[ix]->begin(), tmp[ix]->end(),
             dlt[ix]->begin(),

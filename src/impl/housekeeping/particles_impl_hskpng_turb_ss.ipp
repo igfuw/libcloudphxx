@@ -54,6 +54,8 @@ namespace libcloudphxx
       // calc relaxation times (only in cells that contain any SDs) stored in count_mom
       moms_all();
       moms_calc(rw2.begin(), real_t(1./2), false);
+      n_filtered_gp.reset(); // n_filtered not needed anymore
+      
       thrust::transform(
         count_mom.begin(),
         count_mom.begin() + count_n,

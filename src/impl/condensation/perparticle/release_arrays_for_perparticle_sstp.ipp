@@ -9,7 +9,7 @@ namespace libcloudphxx
       sstp_dlt_rv_gp.reset();
       sstp_dlt_th_gp.reset();
       sstp_dlt_rhod_gp.reset();
-      if(opts_init.const_p)
+      // if(opts_init.const_p)
           sstp_dlt_p_gp.reset();
 
       // rwX_gp.reset();
@@ -20,8 +20,8 @@ namespace libcloudphxx
 
       if(opts_init.adaptive_sstp_cond)
       {
-          perparticle_cond_sstp_gp.reset();
-          cond_sstp_unconverged_mask_gp.reset();
+          perparticle_sstp_cond_gp.reset();
+          sstp_cond_unconverged_mask_gp.reset();
       }
     }
   };

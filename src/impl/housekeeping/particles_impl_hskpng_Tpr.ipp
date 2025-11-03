@@ -135,6 +135,7 @@ namespace libcloudphxx
         // an alternative implementation with formula choice at functor call
         const RH_formula_t RH_formula;
         // the type of formula to be used for RH
+        BOOST_GPU_ENABLED 
         RH(RH_formula_t RH_formula):
           RH_formula(RH_formula)
         {}

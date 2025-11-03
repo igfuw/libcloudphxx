@@ -83,7 +83,7 @@ namespace libcloudphxx
             )
           ), 
           rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max)
+          detail::advance_rw2<real_t>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       }
       else
@@ -97,13 +97,13 @@ namespace libcloudphxx
             )
           ), 
           rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max)
+          detail::advance_rw2<real_t>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
       // calculating the 3rd wet moment after condensation
       thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
-      moms_calc(rw2.begin(), real_t(3./2.));
+      moms_calc(rw2.begin(), real_t(3./2.)); // we rely on that moms_all() was called in rw_mom3_ante_change()
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
       if(step < sstp_cond - 1)
