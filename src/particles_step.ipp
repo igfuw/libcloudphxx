@@ -213,30 +213,35 @@ namespace libcloudphxx
 
             // TODO: dont do this in a loop for all particles, which requires unnecessary synchronization after each iteration
             //       instead, do a "loop" independently per particle until convergence is reached (e.g. one for_each call?)
-            for(int _sstp_cond = 1; _sstp_cond <= pimpl->opts_init.sstp_cond; _sstp_cond*=2) // opts_init.sstp_cond considered max number of substeps if adaptation is used
+            for(int _sstp_cond = 1; _sstp_cond <= pimpl->sstp_cond; _sstp_cond*=2) // opts_init.sstp_cond considered max number of substeps if adaptation is used
             {
               pimpl->set_unconverged_perparticle_sstp_cond(_sstp_cond);
               pimpl->template apply_noncond_perparticle_sstp_delta<true>(thrust::make_constant_iterator(_sstp_cond == 1 ? 1 : -_sstp_cond)); // _sstp_cond needs to double per each iteration
               if(opts.turb_cond)
                 pimpl->template apply_perparticle_sgs_supersat<true>(thrust::make_constant_iterator(_sstp_cond == 1 ? 1 : - _sstp_cond)); // same as above
 
-              pimpl->template cond_perparticle_drw2<true>(thrust::make_constant_iterator(_sstp_cond), opts.RH_max, opts.turb_cond, drw2);
+              pimpl->template cond_perparticle_drw2<true>(thrust::make_constant_iterator(_sstp_cond), opts.RH_max, opts.turb_cond, 
+                pimpl->sstp_cond == 1 ? drw2_old : drw2); // if we only do one adaptation step (e.g. if we turn on adaptation only to use sstp_cond_act), we save directly to drw2_gp
               if(_sstp_cond > 1)
+              {
                 pimpl->check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(drw2, drw2_old, 2);
-              if(pimpl->perparticle_drw2_all_converged())
-                break; 
-              pimpl->store_unconverged_perparticle_drw2_as_old(drw2, drw2_old);
+                if(pimpl->perparticle_drw2_all_converged())
+                  break; 
+              }
+              if(pimpl->sstp_cond > 1)
+                pimpl->store_unconverged_perparticle_drw2_as_old(drw2, drw2_old);
             }
+            pimpl->reset_perparticle_sstp_tmp_and_ssp_before_substepping(); // TODO: reuse it and not reset?
+          
 //           // in drw2, we have correct drw2 for each particle; in sstp_count we have number of substeps needed;
 //           // in the first subsequent step we can skip cond_perparticle_rw2_change for converged particles, and add stored drw3 (or make it drw2?) instead
 //           // sstp_tmp and ssp are one step too far ?
 
             pimpl->set_activating_perparticle_sstp_cond(pimpl->sstp_cond_act); // SDs that de/activate in this timestep need full number of substeps;
             
-            printf("average perparticle_sstp_cond: %g\n", thrust::reduce(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end(), real_t(0), thrust::plus<real_t>()) / real_t(pimpl->n_part));
+            // printf("average perparticle_sstp_cond: %g\n", thrust::reduce(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end(), real_t(0), thrust::plus<real_t>()) / real_t(pimpl->n_part));
             // debug::print(pimpl->perparticle_sstp_cond_gp->get());
             // reset sstp_tmp and ssp to state before substepping
-            pimpl->reset_perparticle_sstp_tmp_and_ssp_before_substepping();
 
 
             // TEMP: revert to full number of substeps
@@ -280,7 +285,7 @@ namespace libcloudphxx
             //     pimpl->flag_sstp_done(step_plus_one);
             // }
           }
-          else // per-particle substepping without adaptation
+          else // per-particle substepping with same sstp_cond for all SDs (no adaptation, nosstp_cond_act)
           {
             for (int step = 0; step < pimpl->sstp_cond; ++step) 
             {
@@ -329,7 +334,7 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->template apply_perparticle_sgs_supersat<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+            pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
           }
         }
 
