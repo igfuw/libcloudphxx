@@ -51,6 +51,10 @@ namespace libcloudphxx
       // If dt changes during simulation (by supplying opts.dt), no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond
       int sstp_cond, sstp_coal; 
 
+      // no. of condensation substeps for SDs that activate/deactivate in this timestep
+      // only work in adaptive_sstp_cond mode. If it's smaller than sstp_cond, then sstp_cond is used instead.
+      int sstp_cond_act; 
+
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
@@ -208,7 +212,7 @@ namespace libcloudphxx
         aerosol_independent_of_rhod(false), 
         sd_const_multi(0),
         dt(0),   
-        sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        sstp_cond(1), sstp_coal(1), sstp_chem(1), sstp_cond_act(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
         subs_switch(false),  // subsidence turned off by default

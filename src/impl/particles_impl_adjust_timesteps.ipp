@@ -17,6 +17,7 @@ namespace libcloudphxx
       sstp_cond = _dt > 0 ? std::ceil(sstp_cond * _dt / dt) : sstp_cond;
       sstp_coal = _dt > 0 ? std::ceil(sstp_coal * _dt / dt) : sstp_coal;
       sstp_chem = _dt > 0 ? std::ceil(sstp_chem * _dt / dt) : sstp_chem;
+      sstp_cond_act = _dt > 0 ? std::ceil(sstp_cond_act * _dt / dt) : sstp_cond_act;
       // dt defined in opts_init can be overriden by dt passed to this function
       dt = _dt > 0 ? _dt : opts_init.dt;
     }

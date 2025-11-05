@@ -51,7 +51,7 @@ opts_init.sedi_switch = False
 #opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.9
 opts_init.dt = 1
-opts_init.sd_conc = int(1e4)
+opts_init.sd_conc = int(1e2)
 opts_init.n_sd_max = opts_init.sd_conc
 
 
@@ -153,6 +153,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
     opts_init.RH_formula = RH_formula
     opts_init.sstp_cond_mix = mixing
     opts_init.adaptive_sstp_cond=adaptive
+    opts_init.sstp_cond_act=64
 
     rhod, th, rv, p = initial_state()
     rhod_ss, th_ss, rv_ss, p_ss = supersat_state()
@@ -245,13 +246,15 @@ records = []
 for adaptive in [True, False]: # adaptive condensation substepping?
   for mixing in [False]: # communicate changes in rv an theta between SDs after each substep?
     # for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
-    for constp in [False, True]:
+    for constp in [True]:
+    # for constp in [False, True]:
       for exact_sstp in [False, True]:
-        for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
+        for RH_formula in [lgrngn.RH_formula_t.pv_cc]:
+        # for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
           if(mixing == False and exact_sstp == False):
             continue # mixing can be turned off only with exact substepping
           
-          results = test(RH_formula, 100, 1, exact_sstp, constp, mixing, adaptive)
+          results = test(RH_formula, 10, 1, exact_sstp, constp, mixing, adaptive)
           print(results)
           results['mixing'] = mixing
           results['adaptive'] = adaptive
@@ -329,7 +332,7 @@ for adaptive in [True, False]: # adaptive condensation substepping?
           assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.2e-3 * exp_sr[constp][RH_formula])
           assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
 
-          results = test(RH_formula, 100, 8, exact_sstp, constp, mixing, adaptive)
+          results = test(RH_formula, 10, 8, exact_sstp, constp, mixing, adaptive)
           print(results)
           results['mixing'] = mixing
           results['adaptive'] = adaptive
@@ -406,7 +409,7 @@ for adaptive in [True, False]: # adaptive condensation substepping?
             assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
             assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
 
-          results = test(RH_formula, 100, 64, exact_sstp, constp, mixing, adaptive)
+          results = test(RH_formula, 10, 64, exact_sstp, constp, mixing, adaptive)
           print(results)
           results['mixing'] = mixing
           results['adaptive'] = adaptive

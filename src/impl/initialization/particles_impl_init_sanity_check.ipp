@@ -166,6 +166,8 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: Mixing of rv and th (opts_init.sstp_cond_mix) can only be disable for per-particle substepping (opts_init.exact_sstp_cond)");
       if(opts_init.sstp_cond_mix && opts_init.adaptive_sstp_cond && opts_init.exact_sstp_cond)
         throw std::runtime_error("libcloudph++: Adaptive cond substepping (opts_init.adaptive_sstp_cond) with per-particle substepping (opts_init.exact_sstp_cond) requires mixing of th and rv between subteps (opts_init.sstp_cond_mix) to be disabled");
+      if(opts_init.sstp_cond_act > 1 && (opts_init.sstp_cond_mix || !opts_init.exact_sstp_cond))
+        throw std::runtime_error("libcloudph++: number of substeps for activation (opts_init.sstp_cond_act) can be greater than 1 only if mixing of rv and th (opts_init.sstp_cond_mix) is disabled and if per-particle condensation substepping is used (opts_init.exact_sstp_cond)");
     }
   };
 };
