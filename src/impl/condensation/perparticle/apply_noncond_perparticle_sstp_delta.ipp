@@ -3,13 +3,28 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
+    namespace detail
+    {
+      template <typename real_t>
+      
+      struct add_dlt_to_tmp
+      { 
+        BOOST_GPU_ENABLED
+        real_t operator() (real_t tmp, thrust::tuple<real_t, int> dlt_sstp_tpl) const noexcept
+        {
+          return tmp + thrust::get<0>(dlt_sstp_tpl) / thrust::get<1>(dlt_sstp_tpl);
+        }
+      };
+    }
+
     template <typename real_t, backend_t device>
-    template <bool use_unconverged_mask>
-    void particles_t<real_t, device>::impl::apply_noncond_perparticle_sstp_delta(const real_t &multiplier)
+    template <bool use_unconverged_mask, class it_t>
+    void particles_t<real_t, device>::impl::apply_noncond_perparticle_sstp_delta(const it_t sstp_cond_it)
     {
       namespace arg = thrust::placeholders;
 
       const int n = 4;
+
       thrust_device::vector<real_t>
           *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
           *dlt[n];
@@ -25,19 +40,26 @@ namespace libcloudphxx
         if constexpr (!use_unconverged_mask)
           thrust::transform(
             tmp[ix]->begin(), tmp[ix]->end(),
-            dlt[ix]->begin(),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              dlt[ix]->begin(),
+              sstp_cond_it
+            )),
             tmp[ix]->begin(),
-            arg::_1 + multiplier * arg::_2
+            detail::add_dlt_to_tmp<real_t>{}
           );
         else
         {
           const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
           thrust::transform_if(
             tmp[ix]->begin(), tmp[ix]->end(),
-            dlt[ix]->begin(),
+            thrust::make_zip_iterator(thrust::make_tuple(
+              dlt[ix]->begin(),
+              sstp_cond_it
+            )),
+            // dlt[ix]->begin(),
             unconverged_mask.begin(),
             tmp[ix]->begin(),
-            arg::_1 + multiplier * arg::_2,
+            detail::add_dlt_to_tmp<real_t>{},
             cuda::std::identity()
           );
         }

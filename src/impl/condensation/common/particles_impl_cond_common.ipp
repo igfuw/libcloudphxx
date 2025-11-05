@@ -5,7 +5,7 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-#include <thrust/iterator/transform_iterator.h>
+// #include <thrust/iterator/transform_iterator.h>
 #include <libcloudph++/common/maxwell-mason.hpp>
 #include <libcloudph++/common/kappa_koehler.hpp>
 #include <libcloudph++/common/kelvin_term.hpp>
@@ -99,7 +99,7 @@ namespace libcloudphxx
         advance_rw2_minfun(
           const real_t &dt,
           const real_t &rw2,
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl,
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, unsigned int> &tpl, // last argument (number of substeps) is not used!
           const real_t &RH_max
         ) : 
           dt(dt * si::seconds), 
@@ -186,7 +186,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(
           const real_t &rw2_old, 
-          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t> &tpl
+          const thrust::tuple<thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t>, real_t, real_t, unsigned int> &tpl
         ) const {
 #if !defined(__NVCC__)
           using std::min;
@@ -196,9 +196,10 @@ namespace libcloudphxx
           using std::isinf;
 #endif
 
+          const real_t dt_in_substep = dt / thrust::get<3>(tpl); // adjust dt for substepping
           auto& tpl_in = thrust::get<0>(tpl);
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
-          const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
+          const advance_rw2_minfun<real_t> f(dt_in_substep, rw2_old, tpl, RH_max); 
+          const real_t drw2 = dt_in_substep * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
           if(isnan(drw2) || isinf(drw2))
@@ -207,6 +208,7 @@ namespace libcloudphxx
             printf("nan/inf drw2 in cond: %g  "
               "rw2_old: %g  "
               "dt: %g  "
+              "dt_in_substep: %g  "
               "RH_max: %g  "
               "rhod: %g  "
               "rv: %g  "
@@ -219,7 +221,7 @@ namespace libcloudphxx
               "vt: %g  "
               "lambda_D: %g  "
               "lambda_K: %g\n",
-               drw2, rw2_old, dt, RH_max, 
+               drw2, rw2_old, dt, dt_in_substep, RH_max, 
                thrust::get<0>(tpl_in), // rhod
                thrust::get<1>(tpl_in), // rv
                thrust::get<2>(tpl_in), // T
@@ -270,6 +272,7 @@ namespace libcloudphxx
               "rw2_old: %g  "
               "rd2: %g  "
               "dt: %g  "
+              "dt_in_substep: %g  "
               "RH_max: %g  "
               "rhod: %g  "
               "rv: %g  "
@@ -280,7 +283,7 @@ namespace libcloudphxx
               "rd3: %g  "
               "kpa: %g  "
               "vt: %g\n",
-               a, b, drw2, rw2_old, rd2, dt, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
+               a, b, drw2, rw2_old, rd2, dt, dt_in_substep, RH_max, thrust::get<0>(tpl_in),thrust::get<1>(tpl_in),
                thrust::get<2>(tpl_in),thrust::get<1>(tpl),thrust::get<2>(tpl),thrust::get<3>(tpl_in),
                thrust::get<4>(tpl_in),thrust::get<5>(tpl_in),thrust::get<6>(tpl_in)
             );

@@ -55,9 +55,9 @@ opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
 
-backend = lgrngn.backend_t.CUDA
-# backend = lgrngn.backend_t.OpenMP
-#backend = lgrngn.backend_t.serial
+# backend = lgrngn.backend_t.CUDA
+backend = lgrngn.backend_t.OpenMP
+# backend = lgrngn.backend_t.serial
 
 opts.adve = False
 opts.sedi = False

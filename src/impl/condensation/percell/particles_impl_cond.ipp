@@ -79,7 +79,8 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              RH_plus_ssp.begin()
+              RH_plus_ssp.begin(),
+              thrust::make_constant_iterator(sstp_cond) // same number of substeps for all SDs
             )
           ), 
           rw2.begin(),                    // output
@@ -93,7 +94,8 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
+              thrust::make_constant_iterator(sstp_cond)
             )
           ), 
           rw2.begin(),                    // output

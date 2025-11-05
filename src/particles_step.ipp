@@ -216,11 +216,11 @@ namespace libcloudphxx
             for(int _sstp_cond = 1; _sstp_cond <= pimpl->opts_init.sstp_cond; _sstp_cond*=2) // opts_init.sstp_cond considered max number of substeps if adaptation is used
             {
               pimpl->set_unconverged_perparticle_sstp_cond(_sstp_cond);
-              pimpl->template apply_noncond_perparticle_sstp_delta<true>(_sstp_cond == 1 ? 1 : -real_t(1)/_sstp_cond); // _sstp_cond needs to double per each iteration
+              pimpl->template apply_noncond_perparticle_sstp_delta<true>(thrust::make_constant_iterator(_sstp_cond == 1 ? 1 : -_sstp_cond)); // _sstp_cond needs to double per each iteration
               if(opts.turb_cond)
-                pimpl->template apply_perparticle_sgs_supersat<true>(_sstp_cond == 1 ? pimpl->dt : -pimpl->dt/_sstp_cond); // same as above
+                pimpl->template apply_perparticle_sgs_supersat<true>(thrust::make_constant_iterator(_sstp_cond == 1 ? 1 : - _sstp_cond)); // same as above
 
-              pimpl->template cond_perparticle_drw2<true>(pimpl->dt / _sstp_cond, opts.RH_max, opts.turb_cond, drw2);
+              pimpl->template cond_perparticle_drw2<true>(thrust::make_constant_iterator(_sstp_cond), opts.RH_max, opts.turb_cond, drw2);
               if(_sstp_cond > 1)
                 pimpl->check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(drw2, drw2_old, 2);
               if(pimpl->perparticle_drw2_all_converged())
@@ -237,24 +237,49 @@ namespace libcloudphxx
 //           // sstp_tmp and ssp are one step too far ?
             // pimpl->set_unconverged_perparticle_sstp_cond(pimpl->sstp_cond); // temporary as adaptation is disabled
 
-            // Do condensation in one loop over SDs, since each SD can have different numbr of steps.
+            // -- number of substeps has been found; do the actual substepping --
+
+            // Method 1: Do condensation in one loop over SDs, since each SD can have different numbr of steps.
             // One loop avoids synchronization between SDs after each substep. 
             // However, this is slow on GPU, but fast on CPU, probably because function within this loop over SDs takes 20+ arguments and 
             // memory access slows it down (particularly on GPU?). Also, on loop allows CPU to do all work on one SD before moving to another,
             // improving cache usage (?). GPU works on all SDs in parallel (?), so cache looping over substeps doesnt bother it (?).
             // We decide to do a substep loop solution, because we optimize for GPUs and we dont want to maintain two versions of the code.
             // Also, efficiency loss from on large loop is greater on GPU than the gain of it on CPU.
-            pimpl->perparticle_nomixing_sstp_cond(opts);
+            // NOTE: search for number of substeps could also be done in this loop
+            // pimpl->perparticle_nomixing_sstp_cond(opts);
+
+            // Method 2: loop over substeps. NOTE: very similar to per-particle loop without adaptation!
+            pimpl->set_perparticle_unconverged(); // unconverged will now mean that there are still steps left to do
+            const auto &perparticle_sstp_cond = pimpl->perparticle_sstp_cond_gp->get();
+            auto sstp_cond_max_it = thrust::max_element(perparticle_sstp_cond.begin(), perparticle_sstp_cond.end());
+            int sstp_cond_max = *sstp_cond_max_it;
+            std::cerr << "max sstp cond: " << *sstp_cond_max_it << std::endl;
+            // int sstp_cond_max = *(thrust::max_element(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end()));
+            // printf("max iters: %g", sstp_cond_max);
+            for (int step = 0; step < sstp_cond_max; ++step)  
+            {
+              pimpl->template apply_noncond_perparticle_sstp_delta<true>(perparticle_sstp_cond.begin());
+              if(opts.turb_cond)
+                pimpl->template apply_perparticle_sgs_supersat<true>(perparticle_sstp_cond.begin());
+              // pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+              pimpl->template cond_perparticle_drw2<true>(perparticle_sstp_cond.begin(), opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
+              pimpl->template cond_perparticle_drw3_from_drw2<true>();
+              pimpl->template apply_perparticle_drw2<true>();
+              // pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              pimpl->template apply_perparticle_drw3_to_perparticle_rv_and_th<true>();
+              pimpl->flag_sstp_done(step);
+            }
           }
           else // per-particle substepping without adaptation
           {
             for (int step = 0; step < pimpl->sstp_cond; ++step) 
             {
-              pimpl->apply_noncond_perparticle_sstp_delta(real_t(1) / pimpl->sstp_cond);
+              pimpl->template apply_noncond_perparticle_sstp_delta<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
               if(opts.turb_cond)
-                pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
+                pimpl->template apply_perparticle_sgs_supersat<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
               // pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
-              pimpl->cond_perparticle_drw2(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
+              pimpl->template cond_perparticle_drw2<false>(thrust::make_constant_iterator(pimpl->sstp_cond), opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
               pimpl->cond_perparticle_drw3_from_drw2();
               pimpl->apply_perparticle_drw2();
               // pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
@@ -293,7 +318,7 @@ namespace libcloudphxx
           {
             pimpl->sstp_percell_step(step);
             if(opts.turb_cond)
-              pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
+              pimpl->template apply_perparticle_sgs_supersat<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
           }
