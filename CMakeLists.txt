@@ -390,11 +390,15 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
-enable_testing()
+option(LIBCLOUDPHXX_DISABLE_BINDINGS "Disable compilation of Python bindings" OFF)
 
-add_subdirectory(tests)
 add_subdirectory(include) 
-add_subdirectory(bindings) 
+
+if(NOT LIBCLOUDPHXX_DISABLE_BINDINGS) # some tests require bindings, so we disable them too
+  enable_testing()
+  add_subdirectory(bindings) 
+  add_subdirectory(tests)
+endif()
 
 ############################################################################################
 
