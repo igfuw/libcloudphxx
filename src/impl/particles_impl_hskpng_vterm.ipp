@@ -190,7 +190,7 @@ namespace libcloudphxx
             return common__vterm__ice<real_t>()(ice_a, ice_c, rho_i, env);
           }
           else if(vt_eq == vt_t::beard77fast) {
-            return common__vterm__vt__cached<real_t>(vt_eq)(rw2, env);
+            throw std::runtime_error("beard77fast doesn't work with ice switch = True");
           }
           else {
             return common__vterm__vt<real_t>(vt_eq)(rw2, env);
@@ -203,50 +203,75 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
-    {   
+    {
       namespace arg = thrust::placeholders;
 
-      if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
+      if (opts_init.ice_switch)
       {
-        thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
-        // get cached bin number
-        thrust::transform_if(
-          rw2.begin(), rw2.end(),
-          vt.begin(),
-          vt0_bin.begin(),
-          detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin),
-          arg::_1 == real_t(detail::invalid)
-        );
-        // calc the vt
-        thrust::transform_if(
-          rw2.begin(), rw2.end(),                                 // input - 1st arg
-          thrust::make_zip_iterator(thrust::make_tuple(
-            thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
-            thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
-            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
-          )),                                                     // input - 2nd arg   
-          vt.begin(),                                             // condition argument
-          vt.begin(),                                             // output
-          detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity),
-          arg::_1 == real_t(detail::invalid)
-        );
-      }
-      // non-cached vt
-      else
-        thrust::transform_if(
-          rw2.begin(), rw2.end(),                                 // input - 1st arg
-          thrust::make_zip_iterator(thrust::make_tuple(
+        auto zipped = thrust::make_zip_iterator(thrust::make_tuple(
+            rw2.begin(),
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
-          )),                                                     // input - 2nd arg   
-          vt.begin(),                                             // condition argument
-          vt.begin(),                                             // output
-          detail::common__vterm__vt<real_t>(opts_init.terminal_velocity),
-          arg::_1 == real_t(detail::invalid)
+          ));
+        auto zipped_end = zipped + rw2.size();
+
+        thrust::transform(
+          zipped,
+          zipped_end,
+          vt.begin(),
+          detail::select_vt<real_t>(opts_init.terminal_velocity)
         );
+      }
+      else
+      {
+
+        if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
+        {
+          thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
+          // get cached bin number
+          thrust::transform_if(
+            rw2.begin(), rw2.end(),
+            vt.begin(),
+            vt0_bin.begin(),
+            detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin),
+            arg::_1 == real_t(detail::invalid)
+          );
+          // calc the vt
+          thrust::transform_if(
+            rw2.begin(), rw2.end(),                                 // input - 1st arg
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
+              thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
+              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            )),                                                     // input - 2nd arg
+            vt.begin(),                                             // condition argument
+            vt.begin(),                                             // output
+            detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity),
+            arg::_1 == real_t(detail::invalid)
+          );
+        }
+        // non-cached vt
+        else
+          thrust::transform_if(
+            rw2.begin(), rw2.end(),                                 // input - 1st arg
+            thrust::make_zip_iterator(thrust::make_tuple(
+              thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+              thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
+              thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+            )),                                                     // input - 2nd arg
+            vt.begin(),                                             // condition argument
+            vt.begin(),                                             // output
+            detail::common__vterm__vt<real_t>(opts_init.terminal_velocity),
+            arg::_1 == real_t(detail::invalid)
+          );
+      }
     }
 
     template <typename real_t, backend_t device>

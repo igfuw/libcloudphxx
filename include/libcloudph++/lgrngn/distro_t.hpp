@@ -11,6 +11,10 @@ namespace libcloudphxx
           real_t kappa;
           real_t rd_insol;
 
+      kappa_rd_insol_t(real_t kappa_, real_t rd_insol_)
+      : kappa(kappa_), rd_insol(rd_insol_)
+      {}
+
       bool operator<(const kappa_rd_insol_t &other) const
       {
         if (kappa != other.kappa) return kappa < other.kappa;
