@@ -51,13 +51,13 @@ opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.95
 opts_init.dt = 1
-opts_init.sd_conc = int(1e3)
+opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
 
-# backend = lgrngn.backend_t.CUDA
+backend = lgrngn.backend_t.CUDA
 # backend = lgrngn.backend_t.OpenMP
-backend = lgrngn.backend_t.serial
+# backend = lgrngn.backend_t.serial
 
 opts.adve = False
 opts.sedi = False
