@@ -457,14 +457,14 @@ namespace libcloudphxx
         if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
         if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
 
-        distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
 
         if(opts_init.ice_switch)
         {
+          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
-          if (opts_init.time_dep_ice_nucl == false)
+          if (! opts_init.time_dep_ice_nucl)
             {distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});}
         }
       }
