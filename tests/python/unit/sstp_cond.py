@@ -19,7 +19,8 @@ def test(turb_cond):
   print('turb_cond = ', turb_cond)
   opts_init = lgrngn.opts_init_t()
   kappa = .61
-  opts_init.dry_distros = {kappa:lognormal}
+  rd_insol = 0.
+  opts_init.dry_distros = {(kappa, rd_insol):lognormal}
   opts_init.coal_switch=0
   opts_init.sedi_switch=0
   opts_init.dt = 1

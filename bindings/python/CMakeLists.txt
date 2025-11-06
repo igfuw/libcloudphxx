@@ -93,6 +93,6 @@ set_property(TARGET cloudphxx PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Python_SITEARCH is an absolute path, we manually prepend install prefix
 install ( TARGETS cloudphxx
    LIBRARY
-     DESTINATION "${CMAKE_INSTALL_PREFIX}${Python3_SITEARCH}"
+     DESTINATION "${Python3_SITEARCH}"
      COMPONENT library
 )
