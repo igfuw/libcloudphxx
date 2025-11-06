@@ -266,6 +266,9 @@ namespace libcloudphxx
           using std::isinf;
 #endif
 
+          // Skip ice particles
+          if (rw2_old <= 0) return rw2_old;
+
           auto& tpl_in = thrust::get<0>(tpl);
           const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max);
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
