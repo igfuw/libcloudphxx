@@ -118,7 +118,8 @@ namespace libcloudphxx
       hskpng_sort();
 
       // A vector to store liquid 3rd moments
-      thrust_device::vector<real_t> &drw(tmp_device_real_cell);
+      auto drw_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &drw = drw_g.get();
 
       // Compute per-cell 3rd moment of liquid droplets (sum of n*r^3) before freezing/melting. It is stored in count_mom
       moms_eq0(ice_a.begin()); // choose liquid particles (ice_a=0)
@@ -137,7 +138,9 @@ namespace libcloudphxx
 
       if (opts_init.time_dep_ice_nucl) // time dependent freezing based on Arabas et al., 2025
       {
-        rand_u01(n_part); // random numbers between [0,1] for each particle
+        auto u01g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &u01 = u01g.get();
+        rand_u01(u01, n_part); // random numbers between [0,1] for each particle
         thrust::for_each(
           thrust::make_zip_iterator(thrust::make_tuple(
             rw2.begin(),

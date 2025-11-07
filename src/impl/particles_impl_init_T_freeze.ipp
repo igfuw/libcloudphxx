@@ -20,7 +20,9 @@ namespace libcloudphxx
       const INP_t inp_type = INP_t::mineral; //TODO: INP type as argument, to support different partcle types
 
       // random numbers between [0,1] for sampling
-      rand_u01(n_part_to_init);
+      auto u01g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &u01 = u01g.get();
+      rand_u01(u01, n_part_to_init);
 
       thrust::transform(
         thrust::make_zip_iterator(thrust::make_tuple(rd2_insol.begin() + n_part_old, u01.begin() + n_part_old)),

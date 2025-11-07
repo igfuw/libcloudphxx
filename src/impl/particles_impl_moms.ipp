@@ -163,7 +163,11 @@ namespace libcloudphxx
     )
     {
       hskpng_sort();
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+
+      if(!cons)
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
+
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       {
         namespace arg = thrust::placeholders;
@@ -198,7 +202,11 @@ namespace libcloudphxx
     )
     {
       hskpng_sort();
-      thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+
+      if(!cons)
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
+
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
       {
         namespace arg = thrust::placeholders;
