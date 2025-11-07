@@ -148,6 +148,11 @@ namespace libcloudphxx
           {
 	          namespace arg = thrust::placeholders;
 
+            reset_guardp(lft_id_gp, tmp_device_real_part); 
+            thrust_device::vector<real_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+            reset_guardp(rgt_id_gp, tmp_device_real_part);
+            thrust_device::vector<real_t> &rgt_id(rgt_id_gp->get());
+
             // save ids of SDs to copy
             lft_count = thrust::copy_if(
               zero, zero+n_part,
@@ -233,7 +238,8 @@ namespace libcloudphxx
               {
                 namespace arg = thrust::placeholders;
 
-                thrust_device::vector<real_t> &n_filtered(tmp_device_real_part);
+                auto n_filtered_g = tmp_device_real_part.get_guard();
+                thrust_device::vector<real_t> &n_filtered = n_filtered_g.get();
 
                 thrust::fill(n_filtered.begin(), n_filtered.end(), 0.);
 

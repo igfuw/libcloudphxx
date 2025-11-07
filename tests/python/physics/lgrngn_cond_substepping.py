@@ -149,6 +149,8 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp):
       # which in general is not true in constp, but is true at init so we use it here
       th[0] = common.th_dry2std(th[0], rv[0])
       th_ss[0] = common.th_dry2std(th_ss[0], rv_ss[0])
+      opts_init.const_p = True
+      opts_init.th_dry = False
 
     prtcls = lgrngn.factory(backend, opts_init)
 

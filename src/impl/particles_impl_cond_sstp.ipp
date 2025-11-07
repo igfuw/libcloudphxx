@@ -38,9 +38,8 @@ namespace libcloudphxx
       const RH_iter &rhi,
       const RHi_iter &rhii
     ) { 
-
-      thrust_device::vector<real_t> &lambda_D(tmp_device_real_cell1); // real_cell used in cond.ipp
-      thrust_device::vector<real_t> &lambda_K(tmp_device_real_cell2); // real_cell used in cond.ipp
+      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
+      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
@@ -78,7 +77,8 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::cond_sstp(
       const real_t &dt,
       const real_t &RH_max,
-      const bool turb_cond
+      const bool turb_cond,
+      const int step
     ) { 
 
       namespace arg = thrust::placeholders;
@@ -86,20 +86,37 @@ namespace libcloudphxx
       // prerequisite
       hskpng_sort(); 
       // particle's local change in rv
-      thrust_device::vector<real_t> &pdrv(tmp_device_real_part4);
+      auto pdrv_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &pdrv = pdrv_g.get();
+      if(step == 0)
+        reset_guardp(rw3_gp, tmp_device_real_part);
+      thrust_device::vector<real_t> &rw3 = rw3_gp->get();
+
       // -rw3_old
-      thrust::transform(
-        thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
-        thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
-        pdrv.begin(),
-        thrust::negate<real_t>()
-      );
+      if(step == 0)
+      {
+        thrust::transform(
+          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+          pdrv.begin(),
+          thrust::negate<real_t>()
+       );
+      }
+      else
+      {
+        thrust::transform(
+          rw3.begin(), rw3.end(),
+          pdrv.begin(),
+          thrust::negate<real_t>()
+        );
+      }
 
       // vector for each particle's T
-      thrust_device::vector<real_t> &Tp(tmp_device_real_part3);
+      auto Tp_g = tmp_device_real_part.get_guard();
+      thrust_device::vector<real_t> &Tp = Tp_g.get();
 
       // calc Tp
-      if(!const_p) // variable pressure
+      if(opts_init.th_dry)
       {
         thrust::transform(
           sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
@@ -108,7 +125,7 @@ namespace libcloudphxx
           detail::common__theta_dry__T_rhod<real_t>() 
         );  
       }
-      else // external pressure profile
+      else // th_std
       {
         // T = dry2std(th_d, rv) * exner(p_tot)
         thrust::transform(
@@ -118,13 +135,13 @@ namespace libcloudphxx
             sstp_tmp_p.begin()                                         // input - third arg
           )),
           Tp.begin(),                                                  // output
-          detail::common__theta_dry__T_p<real_t>() 
+          detail::common__theta_std__T_p<real_t>() 
         );
       }
 
 
       // calculating drop growth in a timestep using backward Euler 
-      if(!const_p)
+      if(!opts_init.const_p)
       {
         // particle-specific pressure iterator, used twice
         // TODO: store the value somewhere?
@@ -182,7 +199,7 @@ namespace libcloudphxx
             )        
           ); 
       }
-      else // const_p
+      else // opts_init.const_p
       {
         if(turb_cond)
         ;
@@ -232,14 +249,34 @@ namespace libcloudphxx
           */
       }
 
-      // calc rw3_new - rw3_old
-      thrust::transform(
-        thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
-        thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
-        pdrv.begin(),
-        pdrv.begin(),
-        thrust::plus<real_t>()
-      );
+      // rw3_new - rw3_old
+      if(step < sstp_cond - 1)
+      {
+        // rw3_new
+        thrust::transform(
+          rw2.begin(), rw2.end(),
+          rw3.begin(),
+          detail::rw2torw3<real_t>()
+        );
+
+        thrust::transform(
+          rw3.begin(), rw3.end(),
+          pdrv.begin(),
+          pdrv.begin(),
+          thrust::plus<real_t>()
+        );
+      }
+      else // last step, no need to store rw3
+      {
+        thrust::transform(
+          thrust::make_transform_iterator(rw2.begin(), detail::rw2torw3<real_t>()),
+          thrust::make_transform_iterator(rw2.end(), detail::rw2torw3<real_t>()),
+          pdrv.begin(),
+          pdrv.begin(),
+          thrust::plus<real_t>()
+        );
+        rw3_gp.reset(); // destroy guard to tmp array that stored rw3
+      }
 
       // calc - 4/3 * pi * rho_w * n * (rw3_new - rw3_old) / (dV * rhod)
       thrust::transform(

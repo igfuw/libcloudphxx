@@ -221,11 +221,16 @@ namespace libcloudphxx
       std::vector<std::thread> threads;
       for (int i = 0; i < this->opts_init->dev_count; ++i)
       {
+        auto &ipimpl = pimpl->particles[i]->pimpl;
+        reset_guardp(ipimpl->outbuf_gp, ipimpl->tmp_host_real_cell);
+        thrust::host_vector<real_t> &outbuf(ipimpl->outbuf_gp->get());
+
         threads.emplace_back(
           detail::set_device_and_run, i, 
           std::bind(
             &particles_t<real_t, CUDA>::impl::fill_outbuf,
-            &(*(pimpl->particles[i]->pimpl))
+            &(*(pimpl->particles[i]->pimpl)),
+            outbuf
           )
         );
       }
@@ -233,11 +238,14 @@ namespace libcloudphxx
 
       for(auto &p : pimpl->particles) // TODO: perform this copy in parallell?
       {
+        thrust::host_vector<real_t> &outbuf(p->pimpl->outbuf_gp->get());
+
         thrust::copy(
-          p->pimpl->tmp_host_real_cell.begin(),
-          p->pimpl->tmp_host_real_cell.end(),
+          outbuf.begin(),
+          outbuf.end(),
           pimpl->real_n_cell_tot.begin() + p->pimpl->n_cell_bfr
         );
+        p->pimpl->outbuf_gp.reset(); // release the guard
       }
       return &(*(pimpl->real_n_cell_tot.begin()));
     }

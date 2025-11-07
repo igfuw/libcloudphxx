@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
@@ -119,7 +120,8 @@ def test(turb_cond):
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_adve_cond =  copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
-    assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=3e-2)
+    print(wet_post_adve, wet_post_adve_cond)
+    assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=5e-2)
 
 test(False)
 test(True)

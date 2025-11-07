@@ -38,6 +38,6 @@ if(USE_MPI)
 endif()
 
 add_subdirectory(unit)
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfoPortable")
   add_subdirectory(physics)
 endif()

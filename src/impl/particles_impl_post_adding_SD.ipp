@@ -12,7 +12,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::post_adding_SD()
     {   
-      thrust_device::vector<real_t> &drv(tmp_device_real_cell1); // NOTE: this can't be changed by any function called since ante_adding_SD() was called.....
+      thrust_device::vector<real_t> &drv = drv_gp->get();
 
       // --- after source particles are no longer sorted ---
       sorted = false;
@@ -52,6 +52,8 @@ namespace libcloudphxx
 
       // init _old values in per-particle substepping
       init_sstp();
+
+      drv_gp.reset(); // release the tmp array that stored drv
     }
   };  
 };

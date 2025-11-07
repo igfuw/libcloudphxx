@@ -100,30 +100,18 @@ namespace libcloudphxx
 
         rng(int seed)
         {
-          {
-            int status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32);
-            assert(status == CURAND_STATUS_SUCCESS /* && "curandCreateGenerator failed"*/);
-            _unused(status);
-          }
-          {
-            int status = curandSetPseudoRandomGeneratorSeed(gen, seed);
-            assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
-            _unused(status);
-          }
+          gpuErrchk(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_MTGP32));
+          gpuErrchk(curandSetPseudoRandomGeneratorSeed(gen, seed));
         }
 
         void reseed(int seed)
         {
-          int status = curandSetPseudoRandomGeneratorSeed(gen, seed);
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandSetPseudoRandomGeneratorSeed failed"*/);
-          _unused(status);
+          gpuErrchk(curandSetPseudoRandomGeneratorSeed(gen, seed));
         }
 
         ~rng()
         {
-          int status = curandDestroyGenerator(gen); 
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandDestroyGenerator failed"*/);
-          _unused(status);
+          gpuErrchk(curandDestroyGenerator(gen));
         }
 
         void generate_n(
@@ -131,9 +119,7 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
-          _unused(status);
+          gpuErrchk(curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n)); // (0,1] range
           // shift into the expected [0,1) range
           namespace arg = thrust::placeholders;
           thrust::transform(v.begin(), v.begin() + n, v.begin(), float(1) - arg::_1);
@@ -144,9 +130,7 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n); // (0,1] range
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
-          _unused(status);
+          gpuErrchk(curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n)); // (0,1] range
           // shift into the expected [0,1) range
           namespace arg = thrust::placeholders;
           thrust::transform(v.begin(), v.begin() + n, v.begin(), double(1) - arg::_1);
@@ -157,9 +141,7 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateNormal(gen, thrust::raw_pointer_cast(v.data()), n, float(0), float(1));
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
-          _unused(status);
+          gpuErrchk(curandGenerateNormal(gen, thrust::raw_pointer_cast(v.data()), n, float(0), float(1)));
         }
 
         void generate_normal_n(
@@ -167,9 +149,7 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerateNormalDouble(gen, thrust::raw_pointer_cast(v.data()), n, double(0), double(1));
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
-          _unused(status);
+          gpuErrchk(curandGenerateNormalDouble(gen, thrust::raw_pointer_cast(v.data()), n, double(0), double(1)));
         }
 
         void generate_n(
@@ -177,9 +157,7 @@ namespace libcloudphxx
           const thrust_size_t n
         )
         {
-          int status = curandGenerate(gen, thrust::raw_pointer_cast(v.data()), n);
-          assert(status == CURAND_STATUS_SUCCESS /* && "curandGenerateUniform failed"*/);
-          _unused(status);
+          gpuErrchk(curandGenerate(gen, thrust::raw_pointer_cast(v.data()), n));
         }
 #endif
       };

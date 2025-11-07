@@ -57,8 +57,7 @@ namespace libcloudphxx
       if (opts_init.chem_switch && opts_init.src_type!=src_t::off)
         throw std::runtime_error("libcloudph++: chemistry and aerosol source are not compatible");
 
-//      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
-//        throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
+ //     if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())//       throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
 //
 //      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
 //        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
@@ -150,6 +149,11 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: rlx_timescale <= 0");        
       if(opts_init.rlx_switch && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: CCN relaxation does not work with chemistry");
+
+      if(opts_init.const_p && p.is_null())
+        throw std::runtime_error("libcloudph++: In const_p option, pressure profile must be passed (p in init())");
+      if(!opts_init.const_p && !p.is_null())
+        throw std::runtime_error("libcloudph++: pressure profile was passed in init(), but the constant pressure option was not used");
 
       if(opts_init.ice_switch)
       {

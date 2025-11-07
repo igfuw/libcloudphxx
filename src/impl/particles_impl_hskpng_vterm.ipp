@@ -50,58 +50,48 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
-
-          real_t vt;
-
           // TODO: move the formula selection to the functor's constructor to avoid the switch in each function call,
           //       see how it is done in RH calculation in hskpng_Tpr
           switch(vt_eq)
           {
             case(vt_t::beard76):
-              vt = common::vterm::vt_beard76(
+              return common::vterm::vt_beard76(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<1>(tpl) * si::pascals,
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                 thrust::get<3>(tpl) * si::pascals * si::seconds
               ) / si::metres_per_second;
-              break;
 
             case(vt_t::beard77):
-              vt = 
+              return 
                 common::vterm::vt_beard77_fact(
                   sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                   thrust::get<1>(tpl) * si::pascals,
                   thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                   thrust::get<3>(tpl) * si::pascals * si::seconds
                 ) * (common::vterm::vt_beard77_v0(sqrt(rw2) * si::metres) / si::metres_per_second);
-              break;
 
             case(vt_t::khvorostyanov_spherical):
-              vt = common::vterm::vt_khvorostyanov(
+              return common::vterm::vt_khvorostyanov(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                 thrust::get<3>(tpl) * si::pascals * si::seconds,
                 true
               ) / si::metres_per_second;
-              break;
 
             case(vt_t::khvorostyanov_nonspherical):
-              vt = common::vterm::vt_khvorostyanov(
+              return common::vterm::vt_khvorostyanov(
                 sqrt(rw2)           * si::metres, // TODO: consider caching rw?
                 thrust::get<0>(tpl) * si::kelvins,
                 thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                 thrust::get<3>(tpl) * si::pascals * si::seconds,
                 false
               ) / si::metres_per_second;
-              break;
-
             default:
-              vt = 0.; //sanity checks done in pimpl constructor
-              break;
+              return 0.; //sanity checks done in pimpl constructor
           }
-          return vt;
         }   
       }; 
 
@@ -121,25 +111,20 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
           using std::sqrt;
 #endif
-
-          real_t vt;
-
           switch(vt_eq)
           {
             case(vt_t::beard77fast):
-              vt = 
+              return 
                 common::vterm::vt_beard77_fact(
                   sqrt(rw2)           * si::metres,
                   thrust::get<1>(tpl) * si::pascals,
                   thrust::get<2>(tpl) * si::kilograms / si::cubic_metres,
                   thrust::get<3>(tpl) * si::pascals * si::seconds
                 ) * thrust::get<0>(tpl); // cached vt_0
-              break;
 
             default:
-              vt = 0.; //sanity checks done in pimpl constructor
+              return 0.; //sanity checks done in pimpl constructor
           }
-          return vt;
         }   
       };
 
@@ -204,6 +189,12 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
     {
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
+
       namespace arg = thrust::placeholders;
 
       if (opts_init.ice_switch)
@@ -232,7 +223,8 @@ namespace libcloudphxx
 
         if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
         {
-          thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
+          auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
+          thrust_device::vector<real_t> &vt0_bin(vt0_bin_g.get());
           // get cached bin number
           thrust::transform_if(
             rw2.begin(), rw2.end(),
@@ -260,7 +252,7 @@ namespace libcloudphxx
         else
           thrust::transform_if(
             rw2.begin(), rw2.end(),                                 // input - 1st arg
-            thrust::make_zip_iterator(thrust::make_tuple(
+            zip_it_t(thrust::make_tuple(
               thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
               thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
@@ -276,7 +268,13 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_all()
-    {
+    {   
+      typedef thrust::permutation_iterator<
+        typename thrust_device::vector<real_t>::iterator,
+        typename thrust_device::vector<thrust_size_t>::iterator
+      > pi_t;
+      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
+
       if (opts_init.ice_switch)
       {
         auto zipped = thrust::make_zip_iterator(thrust::make_tuple(
@@ -302,7 +300,10 @@ namespace libcloudphxx
       {
         if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
         {
-          thrust_device::vector<thrust_size_t> &vt0_bin(tmp_device_size_part);
+          // auto vt0_bin_g = tmp_device_size_part.get_guard();
+          // thrust_device::vector<thrust_size_t> &vt0_bin(vt0_bin_g.get());
+          auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
+          thrust_device::vector<real_t> &vt0_bin(vt0_bin_g.get());
           // get cached bin number
           thrust::transform(
             rw2.begin(), rw2.end(),
@@ -325,7 +326,7 @@ namespace libcloudphxx
         else
           thrust::transform(
             rw2.begin(), rw2.end(),                                 // input - 1st arg
-            thrust::make_zip_iterator(thrust::make_tuple(
+            zip_it_t(thrust::make_tuple(
               thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
               thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
               thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),

@@ -184,6 +184,10 @@ namespace libcloudphxx
       // relaxation time scale [s]
       real_t rlx_timescale;
 
+      // NOTE: only tested combinations are: th_dry == true && const_p == false; th_dry == false && const_p == true
+      bool th_dry  = true, // if true, input and output theta are dry-air potential temperature; if false, they are 'standard' potential temperature
+           const_p = false; // if true, pressure is equal to a supplied profile except for solving velocity (e.g. anelastic model); if false, pressure comes from the gas equation
+
       // -- ctors ---
 
       // ctor with defaults (C++03 compliant) ...

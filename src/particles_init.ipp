@@ -14,10 +14,10 @@ namespace libcloudphxx
     // init
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::init(
-      const arrinfo_t<real_t> th,
+      const arrinfo_t<real_t> th,        // dry-air (if opts_init.th_dry==true) or (else) 'standard' potential temperature
       const arrinfo_t<real_t> rv,
       const arrinfo_t<real_t> rhod,
-      const arrinfo_t<real_t> p,         // pressure profile [in Pascals], needed if pressure perturbations are neglected in condensation (e.g. anelastic model)
+      const arrinfo_t<real_t> p,         // pressure profile [in Pascals], needed if opts_init.const_p == true
                                          // defaults to NULL-NULL pair (variable pressure)
       const arrinfo_t<real_t> courant_x, // might be NULL
       const arrinfo_t<real_t> courant_y, // might be NULL
@@ -31,10 +31,8 @@ namespace libcloudphxx
       if(pimpl->opts_init.rng_seed_init_switch)
         pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
 
-      // is a constant pressure profile used?
-      pimpl->const_p = !p.is_null();
       // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
-      if(pimpl->const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
+      if(pimpl->opts_init.const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
         pimpl->distmem_real_vctrs.insert({&pimpl->sstp_tmp_p, detail::no_initial_value});
 
       // initialising Eulerian-Lagrangian coupling
@@ -42,7 +40,7 @@ namespace libcloudphxx
       pimpl->init_e2l(th,   &pimpl->th);
       pimpl->init_e2l(rv,   &pimpl->rv);
       pimpl->init_e2l(rhod, &pimpl->rhod);
-      if(pimpl->const_p)
+      if(pimpl->opts_init.const_p)
         pimpl->init_e2l(p, &pimpl->p);
 
 #if !defined(__NVCC__)

@@ -97,11 +97,13 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
     rhod, th, rv, p = initial_state()
     rv_init = rv.copy()
 
-    # in constp mode, th_std is expected instead of th_dry
+    # constp mode works with th_std, not th_dry (at least that's the typical way...)
     if constp == True:
       # dry/std conversions assume p = rhod (Rd + rv * Rv) T
       # which in general is not true in constp, but is true at init so we use it here
       th[0] = common.th_dry2std(th[0], rv[0])
+      opts_init.const_p = True
+      opts_init.th_dry = False
 
     th_init = th.copy()
     prtcls = lgrngn.factory(backend, opts_init)
@@ -120,7 +122,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
       opts.cond = True
-  #    print step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0]
+      # print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
 
     ss_post_cond = supersaturation(prtcls)
     print("supersaturation after condensation", ss_post_cond, th[0], rv[0])
@@ -137,7 +139,7 @@ def test(RH_formula, _step_count, substep_count, exact_substep, constp, opts_dt)
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
+      # print(step, supersaturation(prtcls), temperature(prtcls), pressure(prtcls), th[0], rv[0])
 
     ss_post_evap = supersaturation(prtcls)
     print("supersaturation after evaporation", ss_post_evap, th[0], rv[0])

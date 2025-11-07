@@ -169,13 +169,14 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("r_c0", &b1m::opts_t<real_t>::r_c0)
       .def_readwrite("r_eps", &b1m::opts_t<real_t>::r_eps)
       .def_readwrite("nwtrph_iters", &b1m::opts_t<real_t>::nwtrph_iters)
+      .def_readwrite("const_p", &b1m::opts_t<real_t>::const_p)
+      .def_readwrite("th_dry", &b1m::opts_t<real_t>::th_dry)
+      .def_readwrite("adj_nwtrph", &b1m::opts_t<real_t>::adj_nwtrph)
       ;
     bp::def("adj_cellwise", blk_1m::adj_cellwise<arr_t>);
-    bp::def("adj_cellwise_constp", blk_1m::adj_cellwise_constp<arr_t>);
-    bp::def("adj_cellwise_nwtrph", blk_1m::adj_cellwise_nwtrph<arr_t>);
     bp::def("rhs_cellwise", blk_1m::rhs_cellwise<arr_t>);
-    bp::def("rhs_cellwise_nwtrph", blk_1m::rhs_cellwise_nwtrph<arr_t>);
-    bp::def("rhs_cellwise_nwtrph_ice", blk_1m::rhs_cellwise_nwtrph_ice<arr_t>);
+    bp::def("rhs_cellwise_revap", blk_1m::rhs_cellwise_revap<arr_t>);
+    bp::def("rhs_cellwise_ice", blk_1m::rhs_cellwise_ice<arr_t>);
     bp::def("rhs_columnwise", blk_1m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
     bp::def("rhs_columnwise_ice", blk_1m::rhs_columnwise_ice<arr_t>);
 
@@ -198,6 +199,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("sedi", &b2m::opts_t<real_t>::sedi)
       .def_readwrite("RH_max", &b2m::opts_t<real_t>::RH_max)
       .add_property("dry_distros", &blk_2m::get_dd<real_t>, &blk_2m::set_dd<real_t>)
+      .def_readwrite("const_p", &b2m::opts_t<real_t>::const_p)
+      .def_readwrite("th_dry", &b2m::opts_t<real_t>::th_dry)
     ;
     bp::def("rhs_cellwise", blk_2m::rhs_cellwise<arr_t>);
     bp::def("rhs_columnwise", blk_2m::rhs_columnwise<arr_t>); // TODO: handle the returned flux
@@ -348,6 +351,8 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("variable_dt_switch", &lgr::opts_init_t<real_t>::variable_dt_switch)
       .def_readwrite("ice_switch", &lgr::opts_init_t<real_t>::ice_switch)
       .def_readwrite("time_dep_ice_nucl", &lgr::opts_init_t<real_t>::time_dep_ice_nucl)
+      .def_readwrite("const_p", &lgr::opts_init_t<real_t>::const_p)
+      .def_readwrite("th_dry", &lgr::opts_init_t<real_t>::th_dry)
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)

@@ -20,7 +20,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         *fr[n] = { &rv,          &th,          &rhod,        &p          },
         *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
-      for (int ix = 0; ix < ( (const_p && opts_init.exact_sstp_cond) ? n : n-1); ++ix) // TODO: var_rho
+      for (int ix = 0; ix < ( (opts_init.const_p && opts_init.exact_sstp_cond) ? n : n-1); ++ix) // TODO: var_rho
       {
         if(opts_init.exact_sstp_cond) // per-particle version
           thrust::copy(
@@ -47,7 +47,7 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         *fr[n] = { &rv,          &th,          &rhod,        &p          },
         *to[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p };
-      for (int ix = 0; ix < ( (const_p) ? n : n-1); ++ix) // TODO: var_rho
+      for (int ix = 0; ix < ( (opts_init.const_p) ? n : n-1); ++ix) // TODO: var_rho
       {
         thrust::copy(
           thrust::make_permutation_iterator(fr[ix]->begin(), ijk.begin()+n_part_old),
@@ -117,11 +117,28 @@ namespace libcloudphxx
       thrust_device::vector<real_t>
         *scl[n] = { &rv,          &th,          &rhod,        &p          },
         *tmp[n] = { &sstp_tmp_rv, &sstp_tmp_th, &sstp_tmp_rh, &sstp_tmp_p },
-        *dlt[n] = { &tmp_device_real_part, &tmp_device_real_part1, &tmp_device_real_part2, &tmp_device_real_part5 };
+        *dlt[n];
 
-      for (int ix = 0; ix < (const_p ? n : n-1); ++ix)
+      // acquire temporary arrays to store sstp_delta
+      if (step == 0)
+      {
+        reset_guardp(sstp_dlt_rv_gp, tmp_device_real_part); 
+        reset_guardp(sstp_dlt_th_gp, tmp_device_real_part); 
+        reset_guardp(sstp_dlt_rhod_gp, tmp_device_real_part); 
+        if(opts_init.const_p)
+          reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
+      }
+
+      dlt[0] = &(sstp_dlt_rv_gp->get());
+      dlt[1] = &(sstp_dlt_th_gp->get());
+      dlt[2] = &(sstp_dlt_rhod_gp->get());
+      if(opts_init.const_p)
+        dlt[3] = &(sstp_dlt_p_gp->get());
+
+      for (int ix = 0; ix < (opts_init.const_p ? n : n-1); ++ix)
       {
         const real_t sstp = sstp_cond;
+
       	if (step == 0)
       	{
       	  // sstp_tmp_scl = dscl_adv (i.e. delta, i.e. new - old)
@@ -151,6 +168,16 @@ namespace libcloudphxx
       	    arg::_1 + arg::_2                     // op: rv = rv + drv_adv
       	  );
       	}
+      }
+
+      // release temporary arrays that stored sstp_delta
+      if (step == sstp_cond-1)
+      {
+        sstp_dlt_rv_gp.reset();
+        sstp_dlt_th_gp.reset();
+        sstp_dlt_rhod_gp.reset();
+        if(opts_init.const_p)
+          sstp_dlt_p_gp.reset();
       }
     }
 
