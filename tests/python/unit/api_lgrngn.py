@@ -70,6 +70,7 @@ print("chem_switch = ", opts_init.chem_switch)
 print("coal_switch = ", opts_init.coal_switch)
 print("sedi_switch = ", opts_init.sedi_switch)
 print("subs_switch = ", opts_init.subs_switch)
+print("ice_switch = ", opts_init.ice_switch)
 print("src_type = ", opts_init.src_type)
 
 print("exact_sstp_cond = ", opts_init.exact_sstp_cond)
@@ -387,6 +388,29 @@ assert sum(frombuffer(prtcls.outbuf())) == 64
 opts_init.turb_coal_switch=False
 opts.turb_coal=False
 
+# ----------
+# 0D ice
+print("0D ice")
+th   = arr_t([263.])
+opts_init.ice_switch = True
+opts_init.coal_switch = False
+opts.ice_nucl = True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == 1
+print(frombuffer(prtcls.outbuf()))
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == 64
+
+opts_init.ice_switch=False
+opts.ice_nucl=False
+opts_init.coal_switch = True
+
 
 
 # ----------
@@ -665,8 +689,12 @@ assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 fro
 
 # test if get_attr work and if kappas are set correctly
 kappa = asarray(prtcls.get_attr("kappa"))
-assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
-assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
+# assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
+# assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
+n = 32 * opts_init.nx * opts_init.ny * opts_init.nz
+assert (kappa[:n] == kappa1).all()
+assert (kappa[n:2*n] == kappa2).all()
+assert (kappa[2*n:] == kappa1).all()
 
 
 # ----------
@@ -710,3 +738,28 @@ assert (frombuffer(prtcls.outbuf())[0] == 84).all() # 64 from dry_distro and 20 
 opts_init.sd_conc = sd_conc_old
 opts_init.sd_const_multi = 0
 opts_init.dry_sizes = dict()
+
+
+# ----------
+# 3D ice
+print("3D ice")
+th_arr   = arr_t([[263.,  263.   ],     [263.,  263.  ]])
+th   = arr_t([th_arr,   th_arr  ])
+opts_init.ice_switch = True
+opts_init.coal_switch = False
+opts.ice_nucl = True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+print(frombuffer(prtcls.outbuf()))
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+
+opts_init.ice_switch = False
+opts_init.coal_switch = True
+opts.ice_nucl = False
