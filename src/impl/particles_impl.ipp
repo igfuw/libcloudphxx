@@ -645,7 +645,7 @@ namespace libcloudphxx
         const sstp_iter sstpi, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi,
         thrust_device::vector<real_t> &drw2
       );
-      void perparticle_nomixing_sstp_cond(const opts_t<real_t> &);
+      void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
       template<bool use_unconverged_mask = false>
       void cond_perparticle_drw3_from_drw2();
       template<bool use_unconverged_mask = false>

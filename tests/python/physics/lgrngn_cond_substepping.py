@@ -55,8 +55,8 @@ opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
 
-backend = lgrngn.backend_t.CUDA
-# backend = lgrngn.backend_t.OpenMP
+# backend = lgrngn.backend_t.CUDA
+backend = lgrngn.backend_t.OpenMP
 # backend = lgrngn.backend_t.serial
 
 opts.adve = False
@@ -67,22 +67,22 @@ opts.chem = False
 opts.RH_max = 1.005
 # opts.RH_max = 0.9
 
-#expected theta and rv after condensation:
-exp_th = { True : 298.884, # constp
-           False: 300.115}   # varp
-exp_rv = { True : 9.05e-3, # constp
-           False: 9.06e-3}  # varp
-exp_rv_diff = { True:            # mixing per substep
-                  {True : 1e-6,  # constp
-                   False: 5e-9}, # varp
-                False:           # no mixing per substep
-                  {True : 2e-6,  # constp
-                   False: 4e-6}  # varp
-              }
+# #expected theta and rv after condensation:
+# exp_th = { True : 298.884, # constp
+#            False: 300.115}   # varp
+# exp_rv = { True : 9.05e-3, # constp
+#            False: 9.06e-3}  # varp
+# exp_rv_diff = { True:            # mixing per substep
+#                   {True : 1e-6,  # constp
+#                    False: 5e-9}, # varp
+#                 False:           # no mixing per substep
+#                   {True : 2e-6,  # constp
+#                    False: 4e-6}  # varp
+#               }
 
-# range of supersat after condesation
-ss_max = -0.71
-ss_min = -0.96
+# # range of supersat after condesation
+# ss_max = -0.71
+# ss_min = -0.96
 
 
 def supersaturation(prtcls):
@@ -146,7 +146,7 @@ def supersat_state():
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, adaptive, sstp_cond_act):
     print("[RH_formula = ", RH_formula,"]")
-    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "mixing per substep = ", mixing, "adaptive substep no. = ", adaptive)
+    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "mixing per substep = ", mixing, "adaptive substep no. = ", adaptive, "sstp_cond_act = ", sstp_cond_act)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
@@ -154,6 +154,9 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
     opts_init.sstp_cond_mix = mixing
     opts_init.adaptive_sstp_cond=adaptive
     opts_init.sstp_cond_act=sstp_cond_act
+
+    # opts_init.rd_min=1e-10
+    # opts_init.rd_max=1e-5
 
     rhod, th, rv, p = initial_state()
     rhod_ss, th_ss, rv_ss, p_ss = supersat_state()
@@ -244,14 +247,15 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
 records = []
 
 for adaptive in [True, False]: # adaptive condensation substepping?
-  # for mixing in [False]: # communicate changes in rv an theta between SDs after each substep?
   for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
     for constp in [True]:
     # for constp in [False, True]:
       for exact_sstp in [False, True]:
         for RH_formula in [lgrngn.RH_formula_t.pv_cc]:
         # for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
-          for sstp_cond in [1, 2, 8, 32, 100]:
+          for sstp_cond in [1, 2, 3, 4, 6, 8, 32]:
+          # for sstp_cond in [1, 2, 8, 32, 100]:
+            # for sstp_cond_act in [1]:
             for sstp_cond_act in [1, 8]:
               if(mixing == False and exact_sstp == False):
                 continue # mixing can be turned off only with exact substepping

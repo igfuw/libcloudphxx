@@ -142,7 +142,7 @@
 #include "impl/condensation/perparticle/perparticle_drw2_all_converged.ipp"
 #include "impl/condensation/perparticle/store_perparticle_drw2_as_old.ipp"
 #include "impl/condensation/perparticle/set_perparticle_unconverged.ipp"
-#include "impl/condensation/perparticle/perparticle_nomixing_sstp_cond.ipp"
+#include "impl/condensation/perparticle/perparticle_nomixing_adaptive_sstp_cond.ipp"
 #include "impl/condensation/perparticle/flag_sstp_done.ipp"
 
 #include "impl/sedimentation/particles_impl_sedi.ipp"
