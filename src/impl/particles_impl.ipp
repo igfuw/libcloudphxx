@@ -92,7 +92,8 @@ namespace libcloudphxx
         vt,  // terminal velocity
         vt_0, // sea level term velocity according to Beard 1977, compute once
         dv,  // grid-cell volumes (per grid cell)
-        incloud_time; // time this SD has been within a cloud
+        incloud_time, // time this SD has been within a cloud
+        rc2; // critical radius squared (estimated for temperature from opts_init.rc2_T)
 
       // dry radii distribution characteristics
       real_t log_rd_min, // logarithm of the lower bound of the distr
@@ -355,12 +356,13 @@ namespace libcloudphxx
         SGS_mix_len(_opts_init.SGS_mix_len),
         aerosol_conc_factor(_opts_init.aerosol_conc_factor),
         adve_scheme(_opts_init.adve_scheme),
-        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1 || _opts_init.variable_dt_switch || _opts_init.adaptive_sstp_cond),
-        allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1), // || _opts_init.variable_dt_switch || _opts_init.adaptive_sstp_cond),
+        allow_sstp_chem(_opts_init.sstp_chem > 1), // || _opts_init.variable_dt_switch),
         sstp_cond(_opts_init.sstp_cond),
         sstp_coal(_opts_init.sstp_coal),
         sstp_chem(_opts_init.sstp_chem),
-        sstp_cond_act(std::max(_opts_init.sstp_cond_act, _opts_init.sstp_cond)),
+        // sstp_cond_act(std::max(_opts_init.sstp_cond_act, _opts_init.sstp_cond)),
+        sstp_cond_act(_opts_init.sstp_cond_act),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
         tmp_device_real_cell(4) // 4 temporary vectors of this type; NOTE: default constructor creates 1
@@ -445,6 +447,11 @@ namespace libcloudphxx
          
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
+
+        if(opts_init.sstp_cond_act > 1 && allow_sstp_cond)
+        {
+          distmem_real_vctrs.insert({&rc2, detail::invalid});
+        }
 
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
@@ -572,6 +579,7 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_approximate_rc2_invalid();
       void hskpng_tke();
       void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
@@ -652,7 +660,7 @@ namespace libcloudphxx
       void apply_perparticle_drw2();
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
-      void flag_sstp_done(const int step);
+      // void flag_sstp_done(const int step);
       // template<int power, bool use_unconverged_mask = false>
       // void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
       // template<int power, bool use_unconverged_mask = false>
@@ -660,21 +668,21 @@ namespace libcloudphxx
       template<bool use_unconverged_mask = false>
       void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
-      void check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(
-        const thrust_device::vector<real_t> &drw2,
-        thrust_device::vector<real_t> &drw2_old,
-        const real_t dt_ratio
-      );
-      bool perparticle_drw2_all_converged();
-      void set_perparticle_unconverged() noexcept;
-      void store_unconverged_perparticle_drw2_as_old(
-        const thrust_device::vector<real_t> &drw2,
-        thrust_device::vector<real_t> &drw2_old
-      );
+      // void check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(
+      //   const thrust_device::vector<real_t> &drw2,
+      //   thrust_device::vector<real_t> &drw2_old,
+      //   const real_t dt_ratio
+      // );
+      // bool perparticle_drw2_all_converged();
+      // void set_perparticle_unconverged() noexcept;
+      // void store_unconverged_perparticle_drw2_as_old(
+      //   const thrust_device::vector<real_t> &drw2,
+      //   thrust_device::vector<real_t> &drw2_old
+      // );
       void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      void set_unconverged_perparticle_sstp_cond(const unsigned int &n) noexcept;
-      void set_activating_perparticle_sstp_cond(const unsigned int &n);
+      // void set_unconverged_perparticle_sstp_cond(const unsigned int &n) noexcept;
+      // void set_activating_perparticle_sstp_cond(const unsigned int &n);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void update_incloud_time(const real_t &dt);
@@ -705,7 +713,7 @@ namespace libcloudphxx
       void acquire_arrays_for_perparticle_sstp();
       void release_arrays_for_perparticle_sstp();
       void calculate_noncond_perparticle_sstp_delta();
-      void reset_perparticle_sstp_tmp_and_ssp_before_substepping();
+      // void reset_perparticle_sstp_tmp_and_ssp_before_substepping();
       template<bool use_unconverged_mask, class it_t>
       void apply_noncond_perparticle_sstp_delta(const it_t sstp_cond_it);
       template<bool use_unconverged_mask, class it_t>

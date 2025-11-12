@@ -8,7 +8,7 @@ namespace libcloudphxx
       struct perparticle_nomixing_adaptive_sstp_cond_loop
       {
         const bool th_dry, const_p, turb_cond, adaptive_sstp_cond;
-        const real_t dt, RH_max, cond_mlt;
+        const real_t dt, RH_max, cond_mlt, sstp_cond_adapt_drw2_eps, sstp_cond_adapt_drw2_max;
         const common::detail::eps_tolerance<real_t> eps_tolerance;
         const int n_dims, sstp_cond_max, sstp_cond_act;
         const RH_formula_t RH_formula;
@@ -20,9 +20,12 @@ namespace libcloudphxx
           const int n_dims,
           const real_t &dt,
           const int &sstp_cond_max,
+          const int &sstp_cond_act,
           const common::detail::eps_tolerance<real_t> &eps_tolerance, 
           const real_t &cond_mlt, 
-          const uintmax_t &n_iter
+          const uintmax_t &n_iter,
+          const real_t &sstp_cond_adapt_drw2_eps,
+          const real_t &sstp_cond_adapt_drw2_max
         ) : th_dry(opts_init.th_dry),
             const_p(opts_init.const_p),
             turb_cond(opts.turb_cond),
@@ -34,8 +37,10 @@ namespace libcloudphxx
             cond_mlt(cond_mlt),
             n_iter(n_iter),
             adaptive_sstp_cond(opts_init.adaptive_sstp_cond),
-            sstp_cond_act(opts_init.sstp_cond_act),
-            sstp_cond_max(sstp_cond_max)
+            sstp_cond_act(sstp_cond_act),
+            sstp_cond_max(sstp_cond_max),
+            sstp_cond_adapt_drw2_eps(sstp_cond_adapt_drw2_eps),
+            sstp_cond_adapt_drw2_max(sstp_cond_adapt_drw2_max)
         {}
 
         template<class tpl_t>
@@ -65,6 +70,7 @@ namespace libcloudphxx
           const real_t &rd3 = thrust::get<9>(thrust::get<1>(tpl));
           const real_t &kpa = thrust::get<0>(thrust::get<2>(tpl));
           const real_t &vt = thrust::get<1>(thrust::get<2>(tpl));
+          const real_t &rc2 = thrust::get<2>(thrust::get<2>(tpl));
 
           // Two helper functions
           auto apply_noncond_perparticle_sstp_delta = [&] (const real_t &multiplier) -> void
@@ -153,14 +159,17 @@ namespace libcloudphxx
 
               if(sstp_cond_try > 1) // check for convergence 
               {
-                static constexpr real_t tol = static_cast<real_t>(1e-9); // 1e-3 // TODO: config or opts_init parameter
-                if(cuda::std::abs(drw2_new * 2 - drw2) <= tol * rw2) // drw2 relative to rw2 converged
+                // static constexpr real_t tol = static_cast<real_t>(1e-9); // 1e-3 // TODO: config or opts_init parameter
+                if((cuda::std::abs(drw2_new * 2 - drw2) <= sstp_cond_adapt_drw2_eps * rw2) // drw2 relative to rw2 converged
+                    && cuda::std::abs(drw2 < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
                 // if(cuda::std::abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
                 {
+                  // ;
                   sstp_cond = sstp_cond_try / 2;
                   apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            
-                  // converged = true;
                   first_cond_step_done_in_adaptation = true;
+                  // first_cond_step_done_in_adaptation = false;
+                  // fprintf(stderr, "rd3: %g converged with sstp_cond = %u drw2: %g drw2_new: %g rw2: %g\n", rd3, sstp_cond, drw2, drw2_new, rw2);
                   break;
                 }
                 drw2 = drw2_new;                
@@ -171,10 +180,10 @@ namespace libcloudphxx
             if(sstp_cond_act > 1)
             // --> pimpl->set_activating_perparticle_sstp_cond(pimpl->sstp_cond_act); 
             {
-              real_t &rc2 = drw3; // reuse drw3 as it is still not needed here
+              // real_t &rc2 = drw3; // reuse drw3 as it is still not needed here
               // TODO: how much does rc depend on T? maybe skip this dependance and calc rc2 only if rd changes?
               // rc2 = detail::rw3_cr<real_t>()(rd3, thrust::make_tuple(kpa, Tp));
-              rc2 = 1;
+              // rc2 = 1;
 
 
               if ( ( rw2 < rc2 && (rw2 + sstp_cond * drw2) > rc2 ) || 
@@ -297,7 +306,8 @@ namespace libcloudphxx
           )),
           thrust::make_zip_iterator(thrust::make_tuple(
             kpa.begin(),
-            vt.begin()
+            vt.begin(),
+            rc2.begin()
           ))
         ));
 
@@ -305,7 +315,7 @@ namespace libcloudphxx
         pptcl_nomix_sstp_cond_args_zip,
         pptcl_nomix_sstp_cond_args_zip + n_part,
         detail::perparticle_nomixing_adaptive_sstp_cond_loop<real_t>(
-          opts_init, opts, n_dims, dt, sstp_cond, config.eps_tolerance, config.cond_mlt, config.n_iter
+          opts_init, opts, n_dims, dt, sstp_cond, sstp_cond_act, config.eps_tolerance, config.cond_mlt, config.n_iter, config.sstp_cond_adapt_drw2_eps, config.sstp_cond_adapt_drw2_max
         )
       );
     }

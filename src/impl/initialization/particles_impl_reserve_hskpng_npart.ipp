@@ -36,6 +36,11 @@ namespace libcloudphxx
         dot_ssp.reserve(opts_init.n_sd_max);
       }
 
+      if(sstp_cond_act > 1 && allow_sstp_cond)
+      {
+        rc2.reserve(opts_init.n_sd_max);
+      }
+
       vt.reserve(opts_init.n_sd_max);
 
       sorted_id.reserve(opts_init.n_sd_max);

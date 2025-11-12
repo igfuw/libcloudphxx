@@ -48,12 +48,15 @@ namespace libcloudphxx
       real_t dx, dy, dz, dt;
 
       // no. of substeps for condensation/coalescence. If adaptive_sstp_cond=true, sstp_cond is the maximum no. of substeps.
-      // If dt changes during simulation (by supplying opts.dt), no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond
       int sstp_cond, sstp_coal; 
-
       // no. of condensation substeps for SDs that activate/deactivate in this timestep
-      // only work in adaptive_sstp_cond mode. If it's smaller than sstp_cond, then sstp_cond is used instead.
+      // only work in adaptive_sstp_cond mode.
       int sstp_cond_act; 
+      // no. of substeps for chemistry
+      int sstp_chem;
+      // Note: If dt changes during simulation (by supplying opts.dt), 
+      //       no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond, 
+      //       but only if initially sstp_cond/coal/chem/cond_act > 1
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -106,7 +109,6 @@ namespace libcloudphxx
            sstp_cond_mix,      // if true, th and rv of all SDs in a cell after each timestep (instant mixing at substep timescale), else update it only after all substeps
            adaptive_sstp_cond;    // if true, use adaptive number of substeps for condensation
            
-      int sstp_chem;
       real_t chem_rho;
 
       // do we want to track the time SDs spend inside clouds
@@ -145,6 +147,7 @@ namespace libcloudphxx
       bool open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
            periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
 
+      real_t rc2_T = 10; // temperature [C] at which rc2 is calculated
 
       // --- aerosol source stuff ---
 

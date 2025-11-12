@@ -7,9 +7,9 @@ namespace libcloudphxx
       template<typename real_t>
       struct convergence_checker
       {
-        static constexpr real_t tol = static_cast<real_t>(1e-6); // 1e-3 // TODO: config or opts_init parameter
-        real_t dt_ratio;
-        convergence_checker(const real_t dt_ratio_) : dt_ratio(dt_ratio_) {}
+        // static constexpr real_t tol = static_cast<real_t>(1e-6); // 1e-3 // TODO: config or opts_init parameter
+        real_t dt_ratio, sstp_cond_adapt_eps;
+        convergence_checker(const real_t dt_ratio_, const real_t sstp_cond_adapt_eps_) : dt_ratio(dt_ratio_), sstp_cond_adapt_eps(sstp_cond_adapt_eps_) {}
 
         template<class tpl_t>
         BOOST_GPU_ENABLED bool operator()(unsigned int &sstp_cond, tpl_t rw2_drw2_new_old) noexcept
@@ -20,7 +20,8 @@ namespace libcloudphxx
           if
           (
             // cuda::std::abs(drw2_new * dt_ratio - drw2_old) > tol * cuda::std::abs(drw2_old) || // drw2 not converged
-            cuda::std::abs(drw2_new * dt_ratio - drw2_old) > tol * rw2 // drw2 relative to rw2 not converged
+            cuda::std::abs(drw2_new * dt_ratio - drw2_old) > sstp_cond_adapt_eps * rw2 // drw2 relative to rw2 not converged
+            // TODO: check for drw2 < const * rw2, as in perparticle_nomixing_adaptive_sstp_cond_loop
           ) 
             return true; // not converged
           else // converged
@@ -50,7 +51,7 @@ namespace libcloudphxx
         )),
         unconverged_mask.begin(),
         unconverged_mask.begin(),
-        detail::convergence_checker<real_t>(dt_ratio),
+        detail::convergence_checker<real_t>(dt_ratio, config.sstp_cond_adapt_eps),
         cuda::std::identity()
       );
     }

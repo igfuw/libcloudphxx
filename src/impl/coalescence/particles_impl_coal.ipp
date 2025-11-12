@@ -30,6 +30,19 @@ namespace libcloudphxx
         }
       };
 
+      struct invalidator // set value of some parameter to invalid in the SD that had its parameters changed (other than multiplicity)
+      {
+        template<class tpl_t>
+        BOOST_GPU_ENABLED
+        void operator()(tpl_t tpl)
+        {
+          if(thrust::get<2>(tpl) <= 0) return; // do nothing if no collisions or first one passed was a SD with an uneven number in the cell
+          thrust::get<3>(tpl) == na_ge_nb ?    // does the first SD of the pair have greater multiplicity?
+            thrust::get<1>(tpl) = detail::invalid: 
+            thrust::get<0>(tpl) = detail::invalid;
+        }
+      };
+
       struct summator
       {
         template<class tpl_t>
@@ -509,6 +522,26 @@ namespace libcloudphxx
           detail::selector()
         );
         nancheck(incloud_time, "incloud_time - post coalescence");
+      }
+
+      // invalidate rc2 due to changed rd3 and kappa
+      if(opts_init.sstp_cond_act > 1 && allow_sstp_cond) // rc2 only used in adaptive activation substepping
+      {
+        thrust::for_each(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(rc2.begin(), sorted_id.begin()),   
+            thrust::make_permutation_iterator(rc2.begin(), sorted_id.begin())+1,
+            col.begin(),                                                        
+            col.begin()+1
+          )),
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(rc2.begin(), sorted_id.begin()),   
+            thrust::make_permutation_iterator(rc2.begin(), sorted_id.begin())+1,
+            col.begin(),                                                        
+            col.begin()+1
+          )) + n_part -1,
+          detail::invalidator()
+        );
       }
     }
   };  

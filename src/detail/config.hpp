@@ -32,6 +32,9 @@ namespace libcloudphxx
 
         const real_t rlx_conc_tolerance = 0.1; // tolerance of the relaxation scheme; new SD will be created if missing_conc/expected_conc > tolerance
 
+        const real_t sstp_cond_adapt_drw2_eps = 1e-3; // tolerance for adaptive substepping in condensation (drw2_err <= sstp_cond_adapt_eps * rw2)
+        const real_t sstp_cond_adapt_drw2_max = 5; // tolerance for adaptive substepping in condensation (drw2 < sstp_cond_adapt_drw2_max * rw2)
+
         // ctor
         config():
           vt0_ln_r_min(log(5e-7)),

@@ -54,6 +54,8 @@ opts_init.dt = 1
 opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
+# opts_init.rc2_T = 0 # results are the same for 0C to 100C
+
 
 # backend = lgrngn.backend_t.CUDA
 backend = lgrngn.backend_t.OpenMP
@@ -145,8 +147,8 @@ def supersat_state():
     return rhod, th, rv, p
 
 def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, adaptive, sstp_cond_act):
-    print("[RH_formula = ", RH_formula,"]")
-    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "mixing per substep = ", mixing, "adaptive substep no. = ", adaptive, "sstp_cond_act = ", sstp_cond_act)
+    print("[RH_formula = ", RH_formula,"]", flush=True)
+    print("step_count = ", step_count, " substep_count = ", substep_count, "exact substepping = ", exact_substep, "constp = ", constp, "mixing per substep = ", mixing, "adaptive substep no. = ", adaptive, "sstp_cond_act = ", sstp_cond_act, flush=True)
 
     opts_init.sstp_cond=substep_count
     opts_init.exact_sstp_cond=exact_substep
@@ -190,10 +192,13 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
     exectime = 0
     opts.cond = 0
     for step in arange(step_count):
+      # print("step ", step, flush=True)
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      if step == 9:
+      # print("act conc post step:", act_conc(prtcls), flush=True)
+      # if step == 9:
+      if step == 3:
         # some parameters are analyzed after 10 steps, before small CCNs evaporate
         act_conc_post_cond = act_conc(prtcls)
         mean_r_post_cond = mean_r(prtcls)
@@ -247,16 +252,19 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
 records = []
 
 for adaptive in [True, False]: # adaptive condensation substepping?
-  for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
+  # for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
+  for mixing in [False]: # communicate changes in rv an theta between SDs after each substep?
     for constp in [True]:
     # for constp in [False, True]:
       for exact_sstp in [False, True]:
         for RH_formula in [lgrngn.RH_formula_t.pv_cc]:
         # for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
-          for sstp_cond in [1, 2, 3, 4, 6, 8, 32]:
+          # for sstp_cond in [1, 4, 32]:
+          for sstp_cond in [1, 2, 3, 4, 6, 8, 32, 128]:
           # for sstp_cond in [1, 2, 8, 32, 100]:
             # for sstp_cond_act in [1]:
             for sstp_cond_act in [1, 8]:
+            # for sstp_cond_act in [1, 2]:
               if(mixing == False and exact_sstp == False):
                 continue # mixing can be turned off only with exact substepping
               if(exact_sstp == False and adaptive == True):

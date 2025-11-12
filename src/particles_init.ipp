@@ -113,6 +113,9 @@ namespace libcloudphxx
       pimpl->init_vterm(); // init cached vt0 for the Beard fast vt formula
       pimpl->hskpng_vterm_invalid(); // init vt of SD
 
+      // initialising rc2, needed for cond with sstp_cond_act > 1
+      pimpl->hskpng_approximate_rc2_invalid();
+
       // save _old for cond substepping
       pimpl->sstp_save();
 

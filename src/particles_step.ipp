@@ -209,7 +209,11 @@ namespace libcloudphxx
             // Method 1: Do condensation in one loop over SDs, since each SD can have different numbr of steps.
             // One loop avoids synchronization between SDs after each substep. 
             pimpl->perparticle_nomixing_adaptive_sstp_cond(opts);
-            printf("average perparticle_sstp_cond: %g\n", thrust::reduce(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end(), real_t(0), thrust::plus<real_t>()) / real_t(pimpl->n_part));
+            // printf("average perparticle_sstp_cond: %g\n", thrust::reduce(pimpl->perparticle_sstp_cond_gp->get().begin(), pimpl->perparticle_sstp_cond_gp->get().end(), real_t(0), thrust::plus<real_t>()) / real_t(pimpl->n_part));
+            // debug::print(pimpl->n);
+            // debug::print(pimpl->rw2);
+            // debug::print(pimpl->rd3);
+            // debug::print(pimpl->perparticle_sstp_cond_gp->get());
 
             // Method 2: loop over substeps.
 //             auto &drw2 = pimpl->drw3_gp->get(); // drw3 not needed when adapting, so reuse it here
@@ -479,6 +483,9 @@ namespace libcloudphxx
           ++(pimpl->sstp_coal);
           *(pimpl->increase_sstp_coal) = false;
         }
+
+        // update rc2 (due to kappa and rd3 changes)
+        pimpl->hskpng_approximate_rc2_invalid();
       }
 
       if (opts.turb_adve || opts.turb_cond)
