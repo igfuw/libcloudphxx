@@ -2,6 +2,10 @@
 # and low RH_max to see how substepping affects activation
 # it's with GCCNs - large differences between Tetens and Clau-Clap in this case!
 #                   also makes substepping important!
+#
+# Usage:
+#   python lgrngn_cond_substepping.py              # Run tests and save results
+#   python lgrngn_cond_substepping.py --save-ref   # Also save results as reference data
 
 import sys
 import os
@@ -51,7 +55,7 @@ opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.95
 opts_init.dt = 1
-opts_init.sd_conc = int(1e4)
+opts_init.sd_conc = int(1e3)
 opts_init.n_sd_max = opts_init.sd_conc
 
 opts_init.rc2_T = 10 # results are the same for 0C to 100C
@@ -70,24 +74,6 @@ opts.coal = False
 opts.chem = False
 opts.RH_max = 1.005
 # opts.RH_max = 0.9
-
-# #expected theta and rv after condensation:
-# exp_th = { True : 298.884, # constp
-#            False: 300.115}   # varp
-# exp_rv = { True : 9.05e-3, # constp
-#            False: 9.06e-3}  # varp
-# exp_rv_diff = { True:            # mixing per substep
-#                   {True : 1e-6,  # constp
-#                    False: 5e-9}, # varp
-#                 False:           # no mixing per substep
-#                   {True : 2e-6,  # constp
-#                    False: 4e-6}  # varp
-#               }
-
-# # range of supersat after condesation
-# ss_max = -0.71
-# ss_min = -0.96
-
 
 def supersaturation(prtcls):
     prtcls.diag_RH()
@@ -198,9 +184,7 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
-      # print("act conc post step:", act_conc(prtcls), flush=True)
-      # if step == 9:
-      if step == 3:
+      if step == 9:
         # some parameters are analyzed after 10 steps, before small CCNs evaporate
         act_conc_post_cond = act_conc(prtcls)
         mean_r_post_cond = mean_r(prtcls)
@@ -209,13 +193,13 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
       if step == 0:
         print("initial supersaturation", supersaturation(prtcls))
         opts.cond = 1
-#      print step, supersaturation(prtcls), th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
     
     ss_post_cond = supersaturation(prtcls)
     print("supersaturation after condensation", ss_post_cond, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls))
 
-    assert(abs(th[0] - exp_th[constp]) < 1e-4 * exp_th[constp])
-    assert(abs(rv[0] - exp_rv[constp]) < 1e-3 * exp_rv[constp])
+    th_post_cond = th[0]
+    rv_post_cond = rv[0]
+
     rv_diff = rv_init.copy() - rv[0].copy()
     th_diff = th_init.copy() - th[0].copy()
   
@@ -230,12 +214,9 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
       wrapped = wrapper(prtcls.step_sync, opts, th, rv, rhod)
       exectime += timeit.timeit(wrapped, number=1)
       prtcls.step_async(opts)
- #     print step, supersaturation(prtcls), th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls)
 
     ss_post_evap = supersaturation(prtcls)
     print("supersaturation after evaporation", ss_post_evap, th[0], rv[0], mean_r(prtcls), second_r(prtcls), third_r(prtcls), act_conc(prtcls), gccn_conc(prtcls))
-    # after evaporation, only larger mode particles should have r > 0.5 microns
-    assert(act_conc(prtcls) == gccn_conc(prtcls))
     print('execution time: ', exectime)
 
     results = {
@@ -246,7 +227,11 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
       'mr': mean_r_post_cond,
       'sr': second_r_post_cond,
       'tr': third_r_post_cond,
-      'exectime': exectime,       
+      'exectime': exectime,     
+      'act_post_evap': act_conc(prtcls),
+      'gccn_post_evap': gccn_conc(prtcls),
+      'th_post_cond': th_post_cond,
+      'rv_post_cond': rv_post_cond,
     }
     
     return results
@@ -254,19 +239,12 @@ def test(RH_formula, step_count, substep_count, exact_substep, constp, mixing, a
 records = []
 
 for adaptive in [True, False]: # adaptive condensation substepping?
-  # for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
-  for mixing in [False]: # communicate changes in rv an theta between SDs after each substep?
-    for constp in [True]:
-    # for constp in [False, True]:
+  for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
+    for constp in [False, True]:
       for exact_sstp in [False, True]:
-        for RH_formula in [lgrngn.RH_formula_t.pv_cc]:
-        # for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
-          # for sstp_cond in [1, 4, 32]:
-          for sstp_cond in [1, 2, 3, 4, 6, 8, 32, 128]:
-          # for sstp_cond in [1, 2, 8, 32, 100]:
-            # for sstp_cond_act in [1]:
+        for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
+          for sstp_cond in [1, 2, 3, 4, 6, 8, 32]:
             for sstp_cond_act in [1, 8]:
-            # for sstp_cond_act in [1, 2]:
               if(mixing == False and exact_sstp == False):
                 continue # mixing can be turned off only with exact substepping
               if(exact_sstp == False and adaptive == True):
@@ -287,233 +265,19 @@ for adaptive in [True, False]: # adaptive condensation substepping?
               results['sstp_cond_act'] = sstp_cond_act
               records.append(results)
 
-          # assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
-          # assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
-          # assert(abs(results['th_diff']) < 7e-3)
-
-          # # expected concentration of droplets with r>0.5um
-          # exp_act ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 40809,
-          #                     lgrngn.RH_formula_t.rv_cc  : 40809,
-          #                     lgrngn.RH_formula_t.pv_tet : 40809,
-          #                     lgrngn.RH_formula_t.rv_tet : 8128,
-          #                 },
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 40809,
-          #                     lgrngn.RH_formula_t.rv_cc  : 40809,
-          #                     lgrngn.RH_formula_t.pv_tet : 40809,
-          #                     lgrngn.RH_formula_t.rv_tet : 8125,
-          #                   }
-          #         }
-          # # expected mean radius of droplets with r>0.5um
-          # exp_mr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.141,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.156,
-          #                     lgrngn.RH_formula_t.pv_tet : 2.767,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.170,
-          #                 },
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 2.905,
-          #                     lgrngn.RH_formula_t.rv_cc  : 2.92,
-          #                     lgrngn.RH_formula_t.pv_tet : 2.417,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.099,
-          #                   }
-          #         }
-
-          # # expected second moment of droplets with r>0.5um
-          # exp_sr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 1.662e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 1.668e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 1.528e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.760e-11,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 1.559e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 1.564e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 1.421e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.641e-11,
-          #                   } 
-          #         }
-
-          # # expected third moment of droplets with r>0.5um
-          # exp_tr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 1.226e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 1.228e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 1.179e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.662e-16,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 1.173e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 1.174e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 1.131e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.513e-16,
-          #                   } 
-          #         }
-
-          # assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1e-3 * exp_act[constp][RH_formula])
-          # assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1e-3 * exp_mr[constp][RH_formula])
-          # assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.2e-3 * exp_sr[constp][RH_formula])
-          # assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 2e-3 * exp_tr[constp][RH_formula])
-
-          # results = test(RH_formula, 10, 8, exact_sstp, constp, mixing, adaptive)
-          # print(results)
-          # results['mixing'] = mixing
-          # results['adaptive'] = adaptive
-          # results['constp'] = constp
-          # results['exact_sstp'] = exact_sstp
-          # results['RH_formula'] = RH_formula
-          # results['sstp_count'] = 8
-          # records.append(results)
-
-          # assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
-          # assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
-          # assert(abs(results['th_diff']) < 5e-3 if mixing == True else 9e-3)
-
-
-          # exp_act ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 16561,
-          #                     lgrngn.RH_formula_t.rv_cc  : 17036,
-          #                     lgrngn.RH_formula_t.pv_tet : 9485,
-          #                     lgrngn.RH_formula_t.rv_tet : 8125,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 14931,
-          #                     lgrngn.RH_formula_t.rv_cc  : 15502,
-          #                     lgrngn.RH_formula_t.pv_tet : 8131,
-          #                     lgrngn.RH_formula_t.rv_tet : 8125,
-          #                   } 
-          #         }
-
-          # exp_mr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 4.726,
-          #                     lgrngn.RH_formula_t.rv_cc  : 4.642,
-          #                     lgrngn.RH_formula_t.pv_tet : 7.200,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.212,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 4.878,
-          #                     lgrngn.RH_formula_t.rv_cc  : 4.743,
-          #                     lgrngn.RH_formula_t.pv_tet : 8.191,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.133,
-          #                   } 
-          #         }
-
-          # exp_sr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.526e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.435e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 5.961e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.828e-11,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.78e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.646e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 6.8e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.699e-11,
-          #                   } 
-          #         }
-
-          # exp_tr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 2.948e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 2.867e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 5.054e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.749e-16,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.166e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.051e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 5.72e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.585e-16,
-          #                   } 
-          #         }
-
-          # if mixing: # without mixing, results are a bit different TODO: new expected values
-          #   assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
-          #   assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
-          #   assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
-          #   assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
-
-          # results = test(RH_formula, 10, 64, exact_sstp, constp, mixing, adaptive)
-          # print(results)
-          # results['mixing'] = mixing
-          # results['adaptive'] = adaptive
-          # results['constp'] = constp
-          # results['exact_sstp'] = exact_sstp
-          # results['RH_formula'] = RH_formula
-          # results['sstp_count'] = 64
-          # records.append(results)
-
-          # assert(ss_min < results['ss'] < ss_max) # GCCNs condensate even at ss<0
-          # assert(abs(results['rv_diff']) < exp_rv_diff[mixing][constp])
-          # assert(abs(results['th_diff']) < 5e-3 if mixing == True else 9e-3)
-
-          # exp_act ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 16097,
-          #                     lgrngn.RH_formula_t.rv_cc  : 16404,
-          #                     lgrngn.RH_formula_t.pv_tet : 8979,
-          #                     lgrngn.RH_formula_t.rv_tet : 8125,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 13040,
-          #                     lgrngn.RH_formula_t.rv_cc  : 13751,
-          #                     lgrngn.RH_formula_t.pv_tet : 8123,
-          #                     lgrngn.RH_formula_t.rv_tet : 8125,
-          #                   } 
-          #         }
-
-          # exp_mr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 4.792,
-          #                     lgrngn.RH_formula_t.rv_cc  : 4.741,
-          #                     lgrngn.RH_formula_t.pv_tet : 7.572,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.222,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 5.438,
-          #                     lgrngn.RH_formula_t.rv_cc  : 5.203,
-          #                     lgrngn.RH_formula_t.pv_tet : 8.2095,
-          #                     lgrngn.RH_formula_t.rv_tet : 8.145,
-          #                   } 
-          #         }
-
-          # exp_sr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.622e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.560e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 6.307e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.844e-11,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 4.324e-11,
-          #                     lgrngn.RH_formula_t.rv_cc  : 4.105e-11,
-          #                     lgrngn.RH_formula_t.pv_tet : 6.8239e-11,
-          #                     lgrngn.RH_formula_t.rv_tet : 6.717e-11,
-          #                   } 
-          #         }
-
-          # exp_tr ={ True: {        # constp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.041e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 2.985e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 5.357e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.768e-16,
-          #                 }, 
-          #           False: {        # varp
-          #                     lgrngn.RH_formula_t.pv_cc  : 3.64e-16,
-          #                     lgrngn.RH_formula_t.rv_cc  : 3.452e-16,
-          #                     lgrngn.RH_formula_t.pv_tet : 5.7412e-16,
-          #                     lgrngn.RH_formula_t.rv_tet : 5.609e-16,
-          #                   } 
-          #         }
-
-          # # reduced precision due to differences in results between Linux and OSX
-          # if mixing:
-          #   assert(abs(results['act'] - exp_act[constp][RH_formula]) < 1.5e-2 * exp_act[constp][RH_formula])
-          #   assert(abs(results['mr'] - exp_mr[constp][RH_formula]) < 1.5e-2 * exp_mr[constp][RH_formula])
-          #   assert(abs(results['sr'] - exp_sr[constp][RH_formula]) < 1.5e-2 * exp_sr[constp][RH_formula])
-          #   assert(abs(results['tr'] - exp_tr[constp][RH_formula]) < 1.5e-2 * exp_tr[constp][RH_formula])
-
-# save results to a CSV file for plotting
+# save results to a CSV file for refdata comparison and for plotting
 df = pd.DataFrame(records)
 df['sd_conc'] = opts_init.sd_conc  # Add the column to all rows at once
 df['RH_max'] = opts_init.RH_max
 df['dt'] = 1
 os.makedirs("test_results", exist_ok=True)
 df.to_csv("test_results/lgrngn_cond_substepping_results.csv", index=False)
+
+# Optionally save as reference data
+if '--save-ref' in sys.argv:
+  print("\nSaving results as reference data...")
+  df.to_csv("refdata/lgrngn_cond_substepping_refdata.csv", index=False)
+  print("Reference data saved to: test_results/lgrngn_cond_substepping_refdata.csv")
+  print("Future runs can be compared against this reference using:")
+  print("  python lgrngn_cond_substepping_test.py")
 
