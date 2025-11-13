@@ -11,8 +11,6 @@
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-//#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
-//#include <boost/numeric/odeint/util/resizer.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust.hpp>
 
 #include <map>
@@ -641,7 +639,6 @@ namespace libcloudphxx
       void subs(const real_t &dt);
 
       // condensation methods
-      // void cond_dm3_helper();
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       template<bool use_unconverged_mask, class sstp_iter>
       void cond_perparticle_drw2(
@@ -660,29 +657,11 @@ namespace libcloudphxx
       void apply_perparticle_drw2();
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
-      // void flag_sstp_done(const int step);
-      // template<int power, bool use_unconverged_mask = false>
-      // void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
-      // template<int power, bool use_unconverged_mask = false>
-      // void add_perparticle_rwX_to_drwX(const bool store_rw3);
       template<bool use_unconverged_mask = false>
       void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
-      // void check_for_perparticle_drw2_convergence_and_decrease_sstp_cond(
-      //   const thrust_device::vector<real_t> &drw2,
-      //   thrust_device::vector<real_t> &drw2_old,
-      //   const real_t dt_ratio
-      // );
-      // bool perparticle_drw2_all_converged();
-      // void set_perparticle_unconverged() noexcept;
-      // void store_unconverged_perparticle_drw2_as_old(
-      //   const thrust_device::vector<real_t> &drw2,
-      //   thrust_device::vector<real_t> &drw2_old
-      // );
       void update_th_rv();
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
-      // void set_unconverged_perparticle_sstp_cond(const unsigned int &n) noexcept;
-      // void set_activating_perparticle_sstp_cond(const unsigned int &n);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
 
       void update_incloud_time(const real_t &dt);
@@ -713,7 +692,6 @@ namespace libcloudphxx
       void acquire_arrays_for_perparticle_sstp();
       void release_arrays_for_perparticle_sstp();
       void calculate_noncond_perparticle_sstp_delta();
-      // void reset_perparticle_sstp_tmp_and_ssp_before_substepping();
       template<bool use_unconverged_mask, class it_t>
       void apply_noncond_perparticle_sstp_delta(const it_t sstp_cond_it);
       template<bool use_unconverged_mask, class it_t>
