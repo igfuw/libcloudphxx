@@ -8,6 +8,42 @@ This directory contains tests for condensation with various substepping configur
 - `lgrngn_cond_substepping_test.py` - Comparison script that validates results against reference data
 - `lgrngn_cond_substepping_plot.py` - Plotting script to visualize results
 
+## Running Tests
+
+### From the source directory
+
+```bash
+cd tests/python/physics
+
+# Run the test and generate results
+python lgrngn_cond_substepping.py
+
+# Compare with reference data
+python lgrngn_cond_substepping_test.py
+
+# Generate plots
+python lgrngn_cond_substepping_plot.py
+```
+
+### From the build directory (CMake test suite)
+
+```bash
+cd build
+
+# Run all tests (includes lgrngn_cond_substepping and lgrngn_cond_substepping_test)
+ctest
+
+# Run only the condensation substepping tests
+ctest -R lgrngn_cond_substepping
+
+# Run with verbose output
+ctest -R lgrngn_cond_substepping -V
+```
+
+The CMake test suite automatically runs both:
+1. `lgrngn_cond_substepping` - generates results
+2. `lgrngn_cond_substepping_test` - compares results with reference data (depends on the first test)
+
 ## Workflow
 
 ### 1. Run the test and generate results

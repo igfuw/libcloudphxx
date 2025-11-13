@@ -10,3 +10,5 @@ foreach(test test_coal coalescence_golovin coalescence_hall_davis_no_waals lgrng
   )
 endforeach()
 
+set_tests_properties(lgrngn_cond_substepping_test PROPERTIES DEPENDS lgrngn_cond_substepping)
+set_tests_properties(lgrngn_cond_substepping_plot PROPERTIES DEPENDS lgrngn_cond_substepping)

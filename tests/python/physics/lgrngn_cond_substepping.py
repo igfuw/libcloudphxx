@@ -276,7 +276,12 @@ df.to_csv("test_results/lgrngn_cond_substepping_results.csv", index=False)
 # Optionally save as reference data
 if '--save-ref' in sys.argv:
   print("\nSaving results as reference data...")
-  df.to_csv("refdata/lgrngn_cond_substepping_refdata.csv", index=False)
+# Get the directory where this script is located
+  script_dir = os.path.dirname(os.path.abspath(__file__))    
+  refdata_dir = os.path.join(script_dir, "refdata")
+  os.makedirs(refdata_dir, exist_ok=True)
+  refdata_file = os.path.join(refdata_dir, "lgrngn_cond_substepping_refdata.csv")
+  df.to_csv(refdata_file, index=False)
   print("Reference data saved to: test_results/lgrngn_cond_substepping_refdata.csv")
   print("Future runs can be compared against this reference using:")
   print("  python lgrngn_cond_substepping_test.py")

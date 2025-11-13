@@ -266,7 +266,12 @@ def main():
     
     # Define file paths
     results_file = "test_results/lgrngn_cond_substepping_results.csv"
-    refdata_file = "refdata/lgrngn_cond_substepping_refdata.csv"
+
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))    
+    # Define file paths relative to script location
+    refdata_file = os.path.join(script_dir, "refdata", "lgrngn_cond_substepping_refdata.csv")
+    
     
     # Check if reference data exists
     if not os.path.exists(refdata_file):
