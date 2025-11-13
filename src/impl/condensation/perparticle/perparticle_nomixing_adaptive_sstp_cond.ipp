@@ -109,11 +109,9 @@ namespace libcloudphxx
               detail::RH<real_t>(RH_formula)(
                 thrust::make_tuple(sstp_tmp_p, sstp_tmp_rv, Tp)
               );
-
-            // // printf("RH: %g\n", static_cast<double>(RH));
               
             drw2_out =
-              detail::advance_rw2<real_t, false>(dt, RH_max, eps_tolerance, cond_mlt, n_iter)(
+              detail::advance_rw2<real_t, false>(dt / _sstp_cond, RH_max, eps_tolerance, cond_mlt, n_iter)(
                 rw2,
                 thrust::make_tuple(
                   thrust::make_tuple(
@@ -128,8 +126,7 @@ namespace libcloudphxx
                     lambda_K
                   ),
                   sstp_tmp_p,
-                  RH,
-                  _sstp_cond
+                  RH                  
                 )
               ); 
             return Tp;

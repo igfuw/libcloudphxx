@@ -3,23 +3,8 @@ namespace libcloudphxx
 {
   namespace lgrngn
   {
-    namespace detail
-    {
-      template <typename real_t>
-      
-      struct add_dlt_to_tmp
-      { 
-        BOOST_GPU_ENABLED
-        real_t operator() (real_t tmp, thrust::tuple<real_t, int> dlt_sstp_tpl) const noexcept
-        {
-          return tmp + thrust::get<0>(dlt_sstp_tpl) / thrust::get<1>(dlt_sstp_tpl);
-        }
-      };
-    }
-
     template <typename real_t, backend_t device>
-    template <bool use_unconverged_mask, class it_t>
-    void particles_t<real_t, device>::impl::apply_noncond_perparticle_sstp_delta(const it_t sstp_cond_it)
+    void particles_t<real_t, device>::impl::apply_noncond_perparticle_sstp_delta()
     {
       namespace arg = thrust::placeholders;
 
@@ -37,32 +22,12 @@ namespace libcloudphxx
 
       for (int ix = 0; ix < (opts_init.const_p ? n : n-1); ++ix)
       {
-        if constexpr (!use_unconverged_mask)
-          thrust::transform(
-            tmp[ix]->begin(), tmp[ix]->end(),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              dlt[ix]->begin(),
-              sstp_cond_it
-            )),
-            tmp[ix]->begin(),
-            detail::add_dlt_to_tmp<real_t>{}
-          );
-        else
-        {
-          const auto &unconverged_mask = sstp_cond_unconverged_mask_gp->get();
-          thrust::transform_if(
-            tmp[ix]->begin(), tmp[ix]->end(),
-            thrust::make_zip_iterator(thrust::make_tuple(
-              dlt[ix]->begin(),
-              sstp_cond_it
-            )),
-            // dlt[ix]->begin(),
-            unconverged_mask.begin(),
-            tmp[ix]->begin(),
-            detail::add_dlt_to_tmp<real_t>{},
-            cuda::std::identity()
-          );
-        }
+        thrust::transform(
+          tmp[ix]->begin(), tmp[ix]->end(),
+          dlt[ix]->begin(),
+          tmp[ix]->begin(),
+          arg::_1 + arg::_2 / sstp_cond
+        );
       }
     }
   };

@@ -216,10 +216,10 @@ namespace libcloudphxx
           {
             for (int step = 0; step < pimpl->sstp_cond; ++step) 
             {
-              pimpl->template apply_noncond_perparticle_sstp_delta<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
+              pimpl->apply_noncond_perparticle_sstp_delta();
               if(opts.turb_cond)
-                pimpl->template apply_perparticle_sgs_supersat<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
-              pimpl->template cond_perparticle_drw2<false>(thrust::make_constant_iterator(pimpl->sstp_cond), opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
+                pimpl->apply_perparticle_sgs_supersat();
+              pimpl->cond_perparticle_drw2(opts.RH_max, opts.turb_cond);
               pimpl->cond_perparticle_drw3_from_drw2();
               pimpl->apply_perparticle_drw2();
               pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
@@ -234,7 +234,7 @@ namespace libcloudphxx
           {
             pimpl->sstp_percell_step(step);
             if(opts.turb_cond)
-              pimpl->template apply_perparticle_sgs_supersat<false>(thrust::make_constant_iterator(pimpl->sstp_cond));
+              pimpl->apply_perparticle_sgs_supersat();
             pimpl->hskpng_Tpr(); 
             pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
           }

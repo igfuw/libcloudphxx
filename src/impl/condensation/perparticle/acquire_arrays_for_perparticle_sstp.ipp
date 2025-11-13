@@ -21,7 +21,6 @@ namespace libcloudphxx
       if(opts_init.adaptive_sstp_cond)
       {
           reset_guardp(perparticle_sstp_cond_gp, tmp_device_n_part);
-          reset_guardp(sstp_cond_unconverged_mask_gp, tmp_device_n_part);
       }
     }
   };

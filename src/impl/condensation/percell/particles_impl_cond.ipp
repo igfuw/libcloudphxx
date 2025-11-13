@@ -79,12 +79,11 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              RH_plus_ssp.begin(),
-              thrust::make_constant_iterator(sstp_cond) // same number of substeps for all SDs
+              RH_plus_ssp.begin()
             )
           ), 
           rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
+          detail::advance_rw2<real_t>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       }
       else
@@ -94,12 +93,11 @@ namespace libcloudphxx
             thrust::make_tuple(
               hlpr_zip_iter,
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-              thrust::make_permutation_iterator(RH.begin(), ijk.begin()),
-              thrust::make_constant_iterator(sstp_cond)
+              thrust::make_permutation_iterator(RH.begin(), ijk.begin())
             )
           ), 
           rw2.begin(),                    // output
-          detail::advance_rw2<real_t>(dt, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
+          detail::advance_rw2<real_t>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
