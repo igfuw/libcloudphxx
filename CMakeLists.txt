@@ -283,6 +283,8 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler -DUSE_MPI>)
   endif()
 
+  target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --extended-lambda>)
+
   target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
 
   # why was this added in the MPI PR? commented-out for now
