@@ -108,6 +108,9 @@ namespace libcloudphxx
            exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
            sstp_cond_mix,      // if true, th and rv of all SDs in a cell after each timestep (instant mixing at substep timescale), else update it only after all substeps
            adaptive_sstp_cond;    // if true, use adaptive number of substeps for condensation
+
+      real_t sstp_cond_adapt_drw2_eps = 1e-4; // tolerance for adaptive substepping in condensation (drw2_err <= sstp_cond_adapt_eps * rw2)
+      real_t sstp_cond_adapt_drw2_max = 4; // tolerance for adaptive substepping in condensation (drw2 < sstp_cond_adapt_drw2_max * rw2)
            
       real_t chem_rho;
 

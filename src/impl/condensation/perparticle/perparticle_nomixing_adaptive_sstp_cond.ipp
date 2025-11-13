@@ -23,9 +23,7 @@ namespace libcloudphxx
           const int &sstp_cond_act,
           const common::detail::eps_tolerance<real_t> &eps_tolerance, 
           const real_t &cond_mlt, 
-          const uintmax_t &n_iter,
-          const real_t &sstp_cond_adapt_drw2_eps,
-          const real_t &sstp_cond_adapt_drw2_max
+          const uintmax_t &n_iter
         ) : th_dry(opts_init.th_dry),
             const_p(opts_init.const_p),
             turb_cond(opts.turb_cond),
@@ -39,8 +37,8 @@ namespace libcloudphxx
             adaptive_sstp_cond(opts_init.adaptive_sstp_cond),
             sstp_cond_act(sstp_cond_act),
             sstp_cond_max(sstp_cond_max),
-            sstp_cond_adapt_drw2_eps(sstp_cond_adapt_drw2_eps),
-            sstp_cond_adapt_drw2_max(sstp_cond_adapt_drw2_max)
+            sstp_cond_adapt_drw2_eps(opts_init.sstp_cond_adapt_drw2_eps),
+            sstp_cond_adapt_drw2_max(opts_init.sstp_cond_adapt_drw2_max)
         {}
 
         template<class tpl_t>
@@ -156,17 +154,13 @@ namespace libcloudphxx
 
               if(sstp_cond_try > 1) // check for convergence 
               {
-                // static constexpr real_t tol = static_cast<real_t>(1e-9); // 1e-3 // TODO: config or opts_init parameter
                 if((cuda::std::abs(drw2_new * 2 - drw2) <= sstp_cond_adapt_drw2_eps * rw2) // drw2 relative to rw2 converged
                     && cuda::std::abs(drw2 < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
                 // if(cuda::std::abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
                 {
-                  // ;
                   sstp_cond = sstp_cond_try / 2;
                   apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            
                   first_cond_step_done_in_adaptation = true;
-                  // first_cond_step_done_in_adaptation = false;
-                  // fprintf(stderr, "rd3: %g converged with sstp_cond = %u drw2: %g drw2_new: %g rw2: %g\n", rd3, sstp_cond, drw2, drw2_new, rw2);
                   break;
                 }
                 drw2 = drw2_new;                
@@ -175,73 +169,35 @@ namespace libcloudphxx
 
             // override number of substeps for SDs that de/activate in this timestep;
             if(sstp_cond_act > 1)
-            // --> pimpl->set_activating_perparticle_sstp_cond(pimpl->sstp_cond_act); 
             {
-              // real_t &rc2 = drw3; // reuse drw3 as it is still not needed here
-              // TODO: how much does rc depend on T? maybe skip this dependance and calc rc2 only if rd changes?
-              // rc2 = detail::rw3_cr<real_t>()(rd3, thrust::make_tuple(kpa, Tp));
-              // rc2 = 1;
-
-
               if ( ( rw2 < rc2 && (rw2 + sstp_cond * drw2) > rc2 ) || 
                    ( rw2 > rc2 && (rw2 + sstp_cond * drw2) < rc2 ) )
               {
                 sstp_cond = sstp_cond_act;
                 first_cond_step_done_in_adaptation = false;
-                // apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop
-                // activates = true; 
               }
             }
-            // TODO: sstp_tmp and drw2 are not correct for these!
-
-            // if(first_cond_step_done_in_adaptation)
-            // {
-            //   // apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
-            //   apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            
-            // }
-            // else
             if(!first_cond_step_done_in_adaptation)
             {
               apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
             }
-
-            // pimpl->reset_perparticle_sstp_tmp_and_ssp_before_substepping(); // TODO: reuse it and not reset?
-          
-//           // in drw2, we have correct drw2 for each particle; in sstp_count we have number of substeps needed;
-//           // in the first subsequent step we can skip cond_perparticle_rw2_change for converged particles, and add stored drw3 (or make it drw2?) instead
-//           // sstp_tmp and ssp are one step too far ?
-
           }            
 
           delta_fraction_applied = real_t(1) / sstp_cond;
+
           // actual condensation substepping
           for(int step = 0; step < sstp_cond; ++step)
           {
-            // ---> pimpl->apply_noncond_perparticle_sstp_delta(real_t(1) / pimpl->sstp_cond);
-            // This idea wont work if sstp_cond is not a power of 2!!! then if notconverged, sstp_cond can be different than sstp_cond_max (?)
-            if(!first_cond_step_done_in_adaptation || step > 0) // || !adaptive_sstp_cond) // latter part would be required if we used this function also when not adapting (possible future extension)
+            if(!first_cond_step_done_in_adaptation || step > 0)
               apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
-            // sstp_tmp_rv += sstp_dlt_rv * (real_t(1) / sstp_cond);
-            // sstp_tmp_th += sstp_dlt_th * (real_t(1) / sstp_cond);
-            // sstp_tmp_rh += sstp_dlt_rhod * (real_t(1) / sstp_cond);
-            // if(const_p)
-            //   sstp_tmp_p += sstp_dlt_p * (real_t(1) / sstp_cond);
-              
-            // if(turb_cond)
-            // ---> pimpl->apply_perparticle_sgs_supersat(pimpl->dt / pimpl->sstp_cond);
-              // ssp += dot_ssp * dt * (real_t(1) / sstp_cond);
 
-            // ---> pimpl->cond_perparticle_drw2(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, pimpl->drw2_gp->get());
-            if(!first_cond_step_done_in_adaptation || step > 0) // || !adaptive_sstp_cond) // same as above
+            if(!first_cond_step_done_in_adaptation || step > 0) 
               cond_perparticle_drw2(sstp_cond, drw2);
             
-            // ---> pimpl->cond_perparticle_drw3_from_drw2();
             drw3 = detail::drw2_to_drw3<real_t>()(drw2, rw2);
 
-            // ---> pimpl->apply_perparticle_drw2();
             rw2 += drw2;
 
-            // ---> pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
             drw3 = detail::rw3diff2drv<real_t>(
               - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
               * real_t(4./3) * real_t(3.14159265358979323846264338), n_dims
@@ -312,7 +268,7 @@ namespace libcloudphxx
         pptcl_nomix_sstp_cond_args_zip,
         pptcl_nomix_sstp_cond_args_zip + n_part,
         detail::perparticle_nomixing_adaptive_sstp_cond_loop<real_t>(
-          opts_init, opts, n_dims, dt, sstp_cond, sstp_cond_act, config.eps_tolerance, config.cond_mlt, config.n_iter, config.sstp_cond_adapt_drw2_eps, config.sstp_cond_adapt_drw2_max
+          opts_init, opts, n_dims, dt, sstp_cond, sstp_cond_act, config.eps_tolerance, config.cond_mlt, config.n_iter
         )
       );
     }

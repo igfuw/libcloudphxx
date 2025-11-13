@@ -354,6 +354,9 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("th_dry", &lgr::opts_init_t<real_t>::th_dry)
       .def_readwrite("sstp_cond_mix", &lgr::opts_init_t<real_t>::sstp_cond_mix)
       .def_readwrite("adaptive_sstp_cond", &lgr::opts_init_t<real_t>::adaptive_sstp_cond)
+      .def_readwrite("sstp_cond_adapt_drw2_eps", &lgr::opts_init_t<real_t>::sstp_cond_adapt_drw2_eps)
+      .def_readwrite("sstp_cond_adapt_drw2_max", &lgr::opts_init_t<real_t>::sstp_cond_adapt_drw2_max)
+      
     ;
     bp::class_<lgr::particles_proto_t<real_t>/*, boost::noncopyable*/>("particles_proto_t")
       .add_property("opts_init", &lgrngn::get_oi<real_t>)

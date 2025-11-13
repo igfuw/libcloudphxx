@@ -54,7 +54,9 @@ opts_init.dt = 1
 opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
-# opts_init.rc2_T = 0 # results are the same for 0C to 100C
+opts_init.rc2_T = 10 # results are the same for 0C to 100C
+opts_init.sstp_cond_adapt_drw2_eps = 1e-4
+opts_init.sstp_cond_adapt_drw2_max = 4
 
 
 # backend = lgrngn.backend_t.CUDA
