@@ -368,7 +368,7 @@ namespace libcloudphxx
         allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
-        tmp_device_real_cell(5) // 5 temporary vectors of this type; NOTE: default constructor creates 1
+        tmp_device_real_cell(4) // 4 temporary vectors of this type; NOTE: default constructor creates 1
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
