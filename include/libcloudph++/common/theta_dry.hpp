@@ -64,10 +64,10 @@ namespace libcloudphxx
         return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
       }
 
-      // heat of sublimation
+      // heat of deposition
       template <typename real_t>
       BOOST_GPU_ENABLED
-      quantity<si::temperature, real_t> d_th_d_rv_subl(
+      quantity<si::temperature, real_t> d_th_d_rv_dep(
         const quantity<si::temperature, real_t> &T,
         const quantity<si::temperature, real_t> &th // theta dry!!!
       ) {

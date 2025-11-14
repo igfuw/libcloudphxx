@@ -234,7 +234,8 @@ namespace libcloudphxx
         lambda_D_gp,
         lambda_K_gp,
         rw_mom3_gp,
-        rw3_gp;
+        rw3_gp,
+        ice_vol_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -311,7 +312,7 @@ namespace libcloudphxx
       // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
 
-      enum class phase_change { condensation, sublimation }; // enum for choosing between phase change types
+      enum class phase_change { condensation, deposition }; // enum for choosing between phase change types
 
       // ctor
       impl(const opts_init_t<real_t> &_opts_init, const std::pair<detail::bcond_t, detail::bcond_t> &bcond, const int &mpi_rank, const int &mpi_size, const int &n_x_tot) : 

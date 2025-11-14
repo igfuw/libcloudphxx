@@ -158,8 +158,8 @@ namespace libcloudphxx
           auto drv_ice_g = tmp_device_real_cell.get_guard();
           thrust_device::vector<real_t> &drv_ice = drv_ice_g.get();
           if(step == 0)
-            reset_guardp(rw_mom3_gp, tmp_device_real_cell);
-          thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();
+            reset_guardp(ice_vol_gp, tmp_device_real_cell);
+          thrust_device::vector<real_t> &ice_vol = ice_vol_gp->get();
 
           // Compute per-cell 3rd moment of ice before deposition. It is stored in count_mom
           if(step == 0)
@@ -170,8 +170,11 @@ namespace libcloudphxx
               ),
               real_t(1));
             nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) before deposition");
+
+            // fill with 0s if not all cells have particles
             if(count_n!=n_cell) {
               thrust::fill(drv_ice.begin(), drv_ice.end(), real_t(0.));
+              thrust::fill(ice_vol.begin(), ice_vol.end(), real_t(0.));
             }
 
             thrust::transform(
@@ -180,11 +183,11 @@ namespace libcloudphxx
               thrust::negate<real_t>()
             );
           }
-          else // copy rw_mom3 from previous step
+          else // copy ice_vol from previous step
           {
-            // drv = -rw_mom3 precond
+            // drv = -ice_vol precond
             thrust::transform(
-              rw_mom3.begin(), rw_mom3.end(),
+              ice_vol.begin(), ice_vol.end(),
               drv_ice.begin(),
               thrust::negate<real_t>()
             );
@@ -230,16 +233,35 @@ namespace libcloudphxx
             real_t(1));
           nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) after deposition");
 
-          // Adding the third ice moment after deposition to drv_ice
-          thrust::transform(
-            count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-            thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // input - 2nd arg
-            thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // output
-            thrust::plus<real_t>()
-          );
+          // Adding the ice volume after deposition to drv_ice
+          if(step < sstp_cond - 1)
+          {
+            thrust::copy(
+              count_mom.begin(), count_mom.begin() + count_n,                        // input - 1st arg
+              thrust::make_permutation_iterator(ice_vol.begin(), count_ijk.begin())  // output
+            );
+
+            // adding the third moment after deposition to ice_vol
+            thrust::transform(
+              ice_vol.begin(), ice_vol.end(),
+              drv_ice.begin(),
+              drv_ice.begin(),
+              thrust::plus<real_t>()
+            );
+          }
+          else // last step, calculate change in 3rd moment and update th and rv
+          {
+            thrust::transform(
+              count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+              thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // input - 2nd arg
+              thrust::make_permutation_iterator(drv_ice.begin(), count_ijk.begin()), // output
+              thrust::plus<real_t>()
+            );
+            ice_vol_gp.reset(); // destroy guard to tmp array that stored ice_vol
+          }
 
           // update th and rv according to change in third specific wet moment
-          update_th_rv(drv_ice, impl::phase_change::sublimation);
+          update_th_rv(drv_ice, impl::phase_change::deposition);
         }
       }
     };

@@ -30,9 +30,9 @@ namespace libcloudphxx
           return drv * common::theta_dry::d_th_d_rv(T, th) / si::kelvins;
         }
       };
-      // change of th during sublimation
+      // change of th during deposition
       template <typename real_t>
-      struct dth_subl //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
+      struct dth_dep //: thrust::unary_function<const thrust::tuple<real_t, real_t, real_t>&, real_t>
         {
           BOOST_GPU_ENABLED
           real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
@@ -44,7 +44,7 @@ namespace libcloudphxx
             const quantity<si::temperature, real_t>
               th       = thrust::get<2>(tpl) * si::kelvins;
 
-            return drv * common::theta_dry::d_th_d_rv_subl(T, th) / si::kelvins;
+            return drv * common::theta_dry::d_th_d_rv_dep(T, th) / si::kelvins;
           }
         };
 
@@ -67,27 +67,44 @@ namespace libcloudphxx
       };
     };
 
-    // update th and rv after condensation / sublimation according to change in 3rd specific wet moments
+    // update th and rv after condensation / deposition according to change in 3rd specific wet moments
     // particles have to be sorted
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::update_th_rv(
       thrust_device::vector<real_t> &drv, // change in water vapor mixing ratio
-      phase_change phase // enum for cond/subl, the default is condensation
+      phase_change phase // enum for cond/dep, the default is condensation
     ) 
     {   
       if(!sorted) throw std::runtime_error("libcloudph++: update_th_rv called on an unsorted set");
       nancheck(drv, "update_th_rv: input drv");
 
-      // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
-      thrust::transform(
-        drv.begin(), drv.end(),                  // input - 1st arg
-        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-          - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
-          * real_t(4./3) * pi<real_t>()
-        ),
-        drv.begin(),                             // output
-        thrust::multiplies<real_t>()
-      );  
+      if (phase == phase_change::condensation)
+      {
+        // multiplying specific 3rd moms diff  by -rho_w*4/3*pi
+        thrust::transform(
+          drv.begin(), drv.end(),                  // input - 1st arg
+          thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+            - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+            * real_t(4./3) * pi<real_t>()
+          ),
+          drv.begin(),                             // output
+          thrust::multiplies<real_t>()
+        );
+      }
+      else if (phase == phase_change::deposition)
+      {
+        // multiplying specific 3rd moms diff  by -rho_i*4/3*pi
+        // TODO: use the effective ice density here?
+        thrust::transform(
+          drv.begin(), drv.end(),                  // input - 1st arg
+          thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+            - common::moist_air::rho_i<real_t>() / si::kilograms * si::cubic_metres
+            * real_t(4./3) * pi<real_t>()
+          ),
+          drv.begin(),                             // output
+          thrust::multiplies<real_t>()
+        );
+      }
 
       // updating rv 
       assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
@@ -125,7 +142,7 @@ namespace libcloudphxx
           thrust::plus<real_t>()
         );
       }
-      else if (phase == phase_change::sublimation)
+      else if (phase == phase_change::deposition)
       {
         thrust::transform(
           th.begin(), th.end(),          // input - 1st arg
@@ -135,7 +152,7 @@ namespace libcloudphxx
               T.begin(),        // dth = drv * d_th_d_rv(T, th)
               th.begin()        //
             )),
-            detail::dth_subl<real_t>()
+            detail::dth_dep<real_t>()
           ),
           th.begin(),                 // output
           thrust::plus<real_t>()
