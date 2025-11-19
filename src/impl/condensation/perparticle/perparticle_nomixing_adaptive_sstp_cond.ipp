@@ -71,7 +71,7 @@ namespace libcloudphxx
           const real_t &rc2 = thrust::get<2>(thrust::get<2>(tpl));
 
           // Two helper functions
-          auto apply_noncond_perparticle_sstp_delta = [&] (const real_t &multiplier) -> void
+          auto _apply_noncond_perparticle_sstp_delta = [&] (const real_t &multiplier) -> void
           {
             sstp_tmp_rv += sstp_dlt_rv * multiplier;
             sstp_tmp_th += sstp_dlt_th * multiplier;
@@ -82,7 +82,7 @@ namespace libcloudphxx
               ssp += dot_ssp * dt * multiplier;
           };
 
-          auto cond_perparticle_drw2 = [&] (
+          auto _cond_perparticle_drw2 = [&] (
             const unsigned int &_sstp_cond,
             real_t &drw2_out
           ) -> real_t
@@ -149,8 +149,8 @@ namespace libcloudphxx
             for(int sstp_cond_try = 1; sstp_cond_try <= sstp_cond_max; sstp_cond_try*=2)
             {
               delta_fraction_applied = sstp_cond_try == 1 ? 1 : -real_t(1) / sstp_cond_try;
-              apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
-              Tp = cond_perparticle_drw2(sstp_cond_try, sstp_cond_try == 1 ? drw2 : drw2_new);                    
+              _apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
+              Tp = _cond_perparticle_drw2(sstp_cond_try, sstp_cond_try == 1 ? drw2 : drw2_new);                    
 
               if(sstp_cond_try > 1) // check for convergence 
               {
@@ -159,7 +159,7 @@ namespace libcloudphxx
                 // if(cuda::std::abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
                 {
                   sstp_cond = sstp_cond_try / 2;
-                  apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            
+                  _apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            
                   first_cond_step_done_in_adaptation = true;
                   break;
                 }
@@ -179,7 +179,7 @@ namespace libcloudphxx
             }
             if(!first_cond_step_done_in_adaptation)
             {
-              apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
+              _apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
             }
           }            
 
@@ -189,10 +189,10 @@ namespace libcloudphxx
           for(int step = 0; step < sstp_cond; ++step)
           {
             if(!first_cond_step_done_in_adaptation || step > 0)
-              apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
+              _apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
 
             if(!first_cond_step_done_in_adaptation || step > 0) 
-              cond_perparticle_drw2(sstp_cond, drw2);
+              _cond_perparticle_drw2(sstp_cond, drw2);
             
             drw3 = detail::drw2_to_drw3<real_t>()(drw2, rw2);
 

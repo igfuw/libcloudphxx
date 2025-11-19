@@ -40,41 +40,41 @@ namespace libcloudphxx
         }
       };
 
-//       template<class real_t, int power>
-//       struct rw2torwX
-//       {
-//         BOOST_GPU_ENABLED
-//         real_t operator()(const real_t &rw2) noexcept
-//         {
-// #if !defined(__NVCC__)
-//           using std::pow;
-// #endif
-//           return pow(rw2, real_t(power) / real_t(2));
-//         }
-//       };
+       template<class real_t, int power>
+       struct rw2torwX
+       {
+         BOOST_GPU_ENABLED
+         real_t operator()(const real_t &rw2) noexcept
+         {
+ #if !defined(__NVCC__)
+           using std::pow;
+ #endif
+           return pow(rw2, real_t(power) / real_t(2));
+         }
+       };
 
-//       template<class real_t>
-//       struct rw2torwX<real_t, 3>
-//       {
-//         BOOST_GPU_ENABLED
-//         real_t operator()(const real_t &rw2) noexcept
-//         {
-// #if !defined(__NVCC__)
-//           using std::sqrt;
-// #endif
-//           return rw2 * sqrt(rw2);
-//         }
-//       };
+       template<class real_t>
+       struct rw2torwX<real_t, 3>
+       {
+         BOOST_GPU_ENABLED
+         real_t operator()(const real_t &rw2) noexcept
+         {
+ #if !defined(__NVCC__)
+           using std::sqrt;
+ #endif
+           return rw2 * sqrt(rw2);
+         }
+       };
 
-//       template<class real_t>
-//       struct rw2torwX<real_t, 2>
-//       {
-//         BOOST_GPU_ENABLED
-//         real_t operator()(const real_t &rw2) noexcept
-//         {
-//           return rw2;
-//         }
-//       };
+       template<class real_t>
+       struct rw2torwX<real_t, 2>
+       {
+         BOOST_GPU_ENABLED
+         real_t operator()(const real_t &rw2) noexcept
+         {
+           return rw2;
+         }
+       };
         
       template <typename real_t>
       struct advance_rw2_minfun

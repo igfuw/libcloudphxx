@@ -212,16 +212,17 @@ namespace libcloudphxx
 
             // Method 2: loop over substeps. code removed after commit 14dca57a637369a46fb4c89fc0941122bfbfcf52
           }
-          else // per-particle substepping (or no substepping) with same sstp_cond for all SDs (no adaptation, nosstp_cond_act, but mixing can be done)
+          else // per-particle substepping with same sstp_cond for all SDs (no adaptation, nosstp_cond_act, but mixing can be done)
           {
             for (int step = 0; step < pimpl->sstp_cond; ++step) 
             {
               pimpl->apply_noncond_perparticle_sstp_delta();
               if(opts.turb_cond)
                 pimpl->apply_perparticle_sgs_supersat();
-              pimpl->cond_perparticle_drw2(opts.RH_max, opts.turb_cond);
-              pimpl->cond_perparticle_drw3_from_drw2();
-              pimpl->apply_perparticle_drw2();
+
+              pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+              pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
+              pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
               pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
             }
           }
