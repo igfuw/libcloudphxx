@@ -219,10 +219,10 @@ namespace libcloudphxx
         lambda_K_gp,
         drw_mom3_gp,
         rw_mom3_gp,
-        // rwX_gp,
-        // drwX_gp,
-        drw2_gp,
-        drw3_gp,
+        rwX_gp,
+        drwX_gp,
+        // drw2_gp,
+        // drw3_gp,
         Tp_gp;
 
       std::unique_ptr<
@@ -639,14 +639,18 @@ namespace libcloudphxx
 
       // condensation methods
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      template<bool apply>
       void cond_perparticle_drw2(const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
+      template<bool apply, class pres_iter, class RH_iter>
       void perparticle_drw2(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
-      void cond_perparticle_drw3_from_drw2();
-      void apply_perparticle_drw2();
       void rw_mom3_ante_change();
       void rw_mom3_post_change();
+      template<int power>
+      void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
+      template<int power>
+      void add_perparticle_rwX_to_drwX(const bool store_rw3);
+
       void apply_perparticle_drw3_to_perparticle_rv_and_th();
       void apply_perparticle_cond_change_to_percell_rv_and_th();
       void update_th_rv();

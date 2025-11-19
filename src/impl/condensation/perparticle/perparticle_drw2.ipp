@@ -3,7 +3,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    template <class pres_iter, class RH_iter>
+    template <bool apply, class pres_iter, class RH_iter>
     void particles_t<real_t, device>::impl::perparticle_drw2(
       const real_t &RH_max,
       const thrust_device::vector<real_t> &Tp,
@@ -12,7 +12,12 @@ namespace libcloudphxx
     ) { 
       thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
       thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
-      thrust_device::vector<real_t> &drw2 = drw2_gp->get();
+
+      if constexpr(apply)
+        thrust_device::vector<real_t> &outvector = rw2;
+      else 
+        thrust_device::vector<real_t> &outvector = drw2_gp->get();
+
 
       namespace arg = thrust::placeholders;
 
@@ -38,8 +43,8 @@ namespace libcloudphxx
           pi,
           rhi
         )), 
-        drw2.begin(),
-        detail::advance_rw2<real_t, false>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
+        outvector.begin(),
+        detail::advance_rw2<real_t, apply>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
     }
   };
