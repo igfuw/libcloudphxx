@@ -65,7 +65,7 @@ namespace libcloudphxx
         sstp_tmp_rv.reserve(opts_init.n_sd_max);
         sstp_tmp_th.reserve(opts_init.n_sd_max);
         sstp_tmp_rh.reserve(opts_init.n_sd_max);
-        // if(opts_init.const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
+        if(opts_init.const_p) // in const_p pressure is not diagnostic (it's constant) - in per-particle sub-stepping it has to be substepped and we need two vectors to do that
         {
           sstp_tmp_p.reserve(opts_init.n_sd_max);
         }

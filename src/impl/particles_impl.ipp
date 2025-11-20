@@ -155,6 +155,8 @@ namespace libcloudphxx
       bool allow_sstp_cond,
            allow_sstp_chem;
 
+      bool sstp_cond_exact_nomix_adaptive; // whether per-particle substepping with no mixing and adaptive substepping is used
+
       // timestep counter
       n_t src_stp_ctr, rlx_stp_ctr;
 
@@ -355,6 +357,7 @@ namespace libcloudphxx
         adve_scheme(_opts_init.adve_scheme),
         allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1), // || _opts_init.variable_dt_switch || _opts_init.adaptive_sstp_cond),
         allow_sstp_chem(_opts_init.sstp_chem > 1), // || _opts_init.variable_dt_switch),
+        sstp_cond_exact_nomix_adaptive(_opts_init.exact_sstp_cond && (_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1) && _opts_init.adaptive_sstp_cond),
         sstp_cond(_opts_init.sstp_cond),
         sstp_coal(_opts_init.sstp_coal),
         sstp_chem(_opts_init.sstp_chem),
@@ -424,7 +427,7 @@ namespace libcloudphxx
            distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
-          //  if(opts_init.const_p)
+           if(opts_init.const_p)
              distmem_real_vctrs.insert({&sstp_tmp_p, detail::no_initial_value});
         }
 
@@ -467,8 +470,10 @@ namespace libcloudphxx
           tmp_drp_no = std::max(tmp_drp_no, 3);
         if(distmem())
           tmp_drp_no = std::max(tmp_drp_no, 3);
-        if(allow_sstp_cond && opts_init.exact_sstp_cond)
-          tmp_drp_no = std::max(tmp_drp_no, 8); // why 8? not 7?
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && sstp_cond_exact_nomix_adaptive)
+          tmp_drp_no = std::max(tmp_drp_no, 4); // why 5? not 4?
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && !sstp_cond_exact_nomix_adaptive)
+          tmp_drp_no = std::max(tmp_drp_no, 7); // why 8? not 7?
         // if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
         //   tmp_drp_no = std::max(tmp_drp_no, 7);
 

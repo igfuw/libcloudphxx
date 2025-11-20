@@ -46,29 +46,29 @@ namespace libcloudphxx
           tpl_t tpl
         ) //noexcept
         {
-          unsigned int &sstp_cond = thrust::get<0>(thrust::get<0>(tpl));
-          real_t &sstp_tmp_rv = thrust::get<1>(thrust::get<0>(tpl));
-          real_t &sstp_tmp_th = thrust::get<2>(thrust::get<0>(tpl));
-          real_t &sstp_tmp_rh = thrust::get<3>(thrust::get<0>(tpl));
-          real_t &sstp_tmp_p = thrust::get<4>(thrust::get<0>(tpl));
-          const real_t &sstp_dlt_rv = thrust::get<5>(thrust::get<0>(tpl));
-          const real_t &sstp_dlt_th = thrust::get<6>(thrust::get<0>(tpl));
-          const real_t &sstp_dlt_rhod = thrust::get<7>(thrust::get<0>(tpl));
-          const real_t &sstp_dlt_p = thrust::get<8>(thrust::get<0>(tpl));
-          real_t &ssp = thrust::get<9>(thrust::get<0>(tpl));
-          const real_t &dot_ssp = thrust::get<0>(thrust::get<1>(tpl));
-          // real_t &Tp = thrust::get<1>(thrust::get<1>(tpl));
-          // real_t &drwX = thrust::get<2>(thrust::get<1>(tpl));
-          // real_t &rwX = thrust::get<3>(thrust::get<1>(tpl));
-          real_t &rw2 = thrust::get<1>(thrust::get<1>(tpl));
-          const unsigned int &n = thrust::get<2>(thrust::get<1>(tpl));
-          const real_t &dv = thrust::get<3>(thrust::get<1>(tpl));
-          const real_t &lambda_D = thrust::get<4>(thrust::get<1>(tpl));
-          const real_t &lambda_K = thrust::get<5>(thrust::get<1>(tpl));
-          const real_t &rd3 = thrust::get<6>(thrust::get<1>(tpl));
-          const real_t &kpa = thrust::get<0>(thrust::get<2>(tpl));
-          const real_t &vt = thrust::get<1>(thrust::get<2>(tpl));
-          const real_t &rc2 = thrust::get<2>(thrust::get<2>(tpl));
+          // copy values into local variables
+          // variables that are not modified
+          const real_t sstp_dlt_rv = thrust::get<5>(thrust::get<0>(tpl));
+          const real_t sstp_dlt_th = thrust::get<6>(thrust::get<0>(tpl));
+          const real_t sstp_dlt_rhod = thrust::get<7>(thrust::get<0>(tpl));
+          const real_t sstp_dlt_p = thrust::get<8>(thrust::get<0>(tpl));
+          const auto n = thrust::get<2>(thrust::get<1>(tpl));
+          const real_t dv = thrust::get<3>(thrust::get<1>(tpl));
+          const real_t lambda_D = thrust::get<4>(thrust::get<1>(tpl));
+          const real_t lambda_K = thrust::get<5>(thrust::get<1>(tpl));
+          const real_t rd3 = thrust::get<6>(thrust::get<1>(tpl));
+          const real_t kpa = thrust::get<0>(thrust::get<2>(tpl));
+          const real_t vt = thrust::get<1>(thrust::get<2>(tpl));
+          const real_t dot_ssp = turb_cond ? thrust::get<0>(thrust::get<1>(tpl)) : 0;
+
+          // variables that are modified, we make local copies regardless and copy back at the end
+          unsigned int sstp_cond; // its set in this function, old value not important
+          real_t sstp_tmp_rv = thrust::get<1>(thrust::get<0>(tpl));
+          real_t sstp_tmp_th = thrust::get<2>(thrust::get<0>(tpl));
+          real_t sstp_tmp_rh = thrust::get<3>(thrust::get<0>(tpl));
+          real_t sstp_tmp_p = const_p ? thrust::get<4>(thrust::get<0>(tpl)) : 0;
+          real_t ssp = turb_cond ? thrust::get<9>(thrust::get<0>(tpl)) : 0;
+          real_t rw2 = thrust::get<1>(thrust::get<1>(tpl));
 
           real_t drw2, Tp, RH;
 
@@ -176,6 +176,8 @@ namespace libcloudphxx
             // override number of substeps for SDs that de/activate in this timestep;
             if(sstp_cond_act > 1)
             {
+              const real_t rc2 = thrust::get<2>(thrust::get<2>(tpl));
+
               if ( ( rw2 < rc2 && (rw2 + sstp_cond * drw2) > rc2 ) || 
                    ( rw2 > rc2 && (rw2 + sstp_cond * drw2) < rc2 ) )
               {
@@ -211,7 +213,7 @@ namespace libcloudphxx
               _calc_Tp();              
               _calc_sstp_tmp_p();
               _calc_RH();
-              
+
               rw2 = _advance_rw2(
                 rw2,
                 thrust::make_tuple(
@@ -255,6 +257,17 @@ namespace libcloudphxx
 
             sstp_tmp_th += drw3;
           }
+
+          // copy back modified variables
+          thrust::get<0>(thrust::get<0>(tpl)) = sstp_cond;
+          thrust::get<1>(thrust::get<0>(tpl)) = sstp_tmp_rv;
+          thrust::get<2>(thrust::get<0>(tpl)) = sstp_tmp_th;
+          thrust::get<3>(thrust::get<0>(tpl)) = sstp_tmp_rh;
+          if(const_p)
+            thrust::get<4>(thrust::get<0>(tpl)) = sstp_tmp_p;
+          if(turb_cond)
+            thrust::get<9>(thrust::get<0>(tpl)) = ssp;   
+          thrust::get<1>(thrust::get<1>(tpl)) = rw2;
         }
       };
     };

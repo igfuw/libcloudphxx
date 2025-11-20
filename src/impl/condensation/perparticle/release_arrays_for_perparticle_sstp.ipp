@@ -12,15 +12,16 @@ namespace libcloudphxx
       // if(opts_init.const_p)
           sstp_dlt_p_gp.reset();
 
-      rwX_gp.reset();
-      drwX_gp.reset();
-      // drw2_gp.reset();
-      // drw3_gp.reset();
-      Tp_gp.reset();
+      if(!sstp_cond_exact_nomix_adaptive)
+      {
+        rwX_gp.reset();
+        drwX_gp.reset();
+        Tp_gp.reset();
+      }
 
       if(opts_init.adaptive_sstp_cond)
       {
-          perparticle_sstp_cond_gp.reset();
+        perparticle_sstp_cond_gp.reset();
       }
     }
   };

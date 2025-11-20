@@ -12,11 +12,12 @@ namespace libcloudphxx
       // if(opts_init.const_p)
           reset_guardp(sstp_dlt_p_gp, tmp_device_real_part); 
 
-      reset_guardp(rwX_gp, tmp_device_real_part);
-      reset_guardp(drwX_gp, tmp_device_real_part);
-      //reset_guardp(drw2_gp, tmp_device_real_part);
-      //reset_guardp(drw3_gp, tmp_device_real_part);
-      reset_guardp(Tp_gp, tmp_device_real_part);
+      if(!sstp_cond_exact_nomix_adaptive)
+      {
+        reset_guardp(rwX_gp, tmp_device_real_part);
+        reset_guardp(drwX_gp, tmp_device_real_part);
+        reset_guardp(Tp_gp, tmp_device_real_part);
+      }
 
       if(opts_init.adaptive_sstp_cond)
       {

@@ -55,12 +55,12 @@ opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.95
 opts_init.dt = 1
-opts_init.sd_conc = int(1e3)
+opts_init.sd_conc = int(1e4)
 opts_init.n_sd_max = opts_init.sd_conc
 
 opts_init.rc2_T = 10 # results are the same for 0C to 100C
-opts_init.sstp_cond_adapt_drw2_eps = 1e-4
-opts_init.sstp_cond_adapt_drw2_max = 4
+opts_init.sstp_cond_adapt_drw2_eps = 1e-3 #1e-4
+opts_init.sstp_cond_adapt_drw2_max = 2 #4
 
 
 # backend = lgrngn.backend_t.CUDA
@@ -242,7 +242,8 @@ for adaptive in [True, False]: # adaptive condensation substepping?
   for mixing in [False, True]: # communicate changes in rv an theta between SDs after each substep?
     for constp in [False, True]:
       for exact_sstp in [False, True]:
-        for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
+        for RH_formula in [lgrngn.RH_formula_t.pv_cc]:
+        # for RH_formula in [lgrngn.RH_formula_t.pv_cc, lgrngn.RH_formula_t.rv_cc, lgrngn.RH_formula_t.pv_tet, lgrngn.RH_formula_t.rv_tet]:
           for sstp_cond in [1, 2, 3, 4, 6, 8, 32]:
             for sstp_cond_act in [1, 8]:
               if(mixing == False and exact_sstp == False):
