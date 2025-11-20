@@ -57,18 +57,20 @@ namespace libcloudphxx
           const real_t &sstp_dlt_p = thrust::get<8>(thrust::get<0>(tpl));
           real_t &ssp = thrust::get<9>(thrust::get<0>(tpl));
           const real_t &dot_ssp = thrust::get<0>(thrust::get<1>(tpl));
-          real_t &Tp = thrust::get<1>(thrust::get<1>(tpl));
-          real_t &drwX = thrust::get<2>(thrust::get<1>(tpl));
-          real_t &rwX = thrust::get<3>(thrust::get<1>(tpl));
-          real_t &rw2 = thrust::get<4>(thrust::get<1>(tpl));
-          const unsigned int &n = thrust::get<5>(thrust::get<1>(tpl));
-          const real_t &dv = thrust::get<6>(thrust::get<1>(tpl));
-          const real_t &lambda_D = thrust::get<7>(thrust::get<1>(tpl));
-          const real_t &lambda_K = thrust::get<8>(thrust::get<1>(tpl));
-          const real_t &rd3 = thrust::get<9>(thrust::get<1>(tpl));
+          // real_t &Tp = thrust::get<1>(thrust::get<1>(tpl));
+          // real_t &drwX = thrust::get<2>(thrust::get<1>(tpl));
+          // real_t &rwX = thrust::get<3>(thrust::get<1>(tpl));
+          real_t &rw2 = thrust::get<1>(thrust::get<1>(tpl));
+          const unsigned int &n = thrust::get<2>(thrust::get<1>(tpl));
+          const real_t &dv = thrust::get<3>(thrust::get<1>(tpl));
+          const real_t &lambda_D = thrust::get<4>(thrust::get<1>(tpl));
+          const real_t &lambda_K = thrust::get<5>(thrust::get<1>(tpl));
+          const real_t &rd3 = thrust::get<6>(thrust::get<1>(tpl));
           const real_t &kpa = thrust::get<0>(thrust::get<2>(tpl));
           const real_t &vt = thrust::get<1>(thrust::get<2>(tpl));
           const real_t &rc2 = thrust::get<2>(thrust::get<2>(tpl));
+
+          real_t drw2, Tp, RH;
 
           // helper functions
           auto _apply_noncond_perparticle_sstp_delta = [&] (const real_t &multiplier) -> void
@@ -100,9 +102,9 @@ namespace libcloudphxx
               );
           };
 
-          auto _calc_RH = [&] () -> real_t
+          auto _calc_RH = [&] () -> void
           {
-            return turb_cond ?
+            RH = turb_cond ?
               detail::RH_sgs<real_t>(RH_formula)(
                 thrust::make_tuple(sstp_tmp_p, sstp_tmp_rv, Tp, ssp)
               ) :
@@ -116,12 +118,11 @@ namespace libcloudphxx
           bool first_cond_step_done_in_adaptation = sstp_cond_max == 1 ? true : false; // actually its true if sstp_cond_max is a power of 2 (?)
           // bool activates = false;
 
-          real_t &drw2 = rwX;
           // look for correct number of substeps
           // NOTE: this function is actually only called when adaptive_sstp_cond == true, so we skip the check below
           // if(adaptive_sstp_cond)
           {
-            real_t &drw2_new = drwX; 
+            real_t drw2_new; 
             // real_t Tp; // temperature
 
             sstp_cond = sstp_cond_max; // start with max number of substeps, may be changed due to convergence or if droplets activate in this step
@@ -136,7 +137,7 @@ namespace libcloudphxx
 
             _calc_Tp();              
             _calc_sstp_tmp_p();
-            const real_t RH = _calc_RH();
+            _calc_RH();
             (sstp_cond_try == 1 ? drw2 : drw2_new) = 
               detail::advance_rw2<real_t, false>(dt / sstp_cond_try, RH_max, eps_tolerance, cond_mlt, n_iter)(
                 rw2,
@@ -190,8 +191,8 @@ namespace libcloudphxx
 
           delta_fraction_applied = real_t(1) / sstp_cond;
           auto _advance_rw2 = detail::advance_rw2<real_t, true>(dt / sstp_cond, RH_max, eps_tolerance, cond_mlt, n_iter);
-          real_t &rw3  = rwX; // same as drw2! drw2 needed only at the start of the first step
-          real_t &drw3 = drwX; 
+          real_t &rw3  = drw2; // drw2 needed only at the start of the first step
+          real_t drw3; 
 
           auto rw2torw3 = detail::rw2torwX<real_t, 3>();
 
@@ -209,7 +210,8 @@ namespace libcloudphxx
               _apply_noncond_perparticle_sstp_delta(delta_fraction_applied);
               _calc_Tp();              
               _calc_sstp_tmp_p();
-              const real_t RH = _calc_RH();
+              _calc_RH();
+              
               rw2 = _advance_rw2(
                 rw2,
                 thrust::make_tuple(
@@ -265,9 +267,9 @@ namespace libcloudphxx
       auto &sstp_dlt_th = sstp_dlt_th_gp->get();
       auto &sstp_dlt_rhod = sstp_dlt_rhod_gp->get();
       auto &sstp_dlt_p = sstp_dlt_p_gp->get();
-      auto &Tp = Tp_gp->get();
-      auto &drwX = drwX_gp->get();
-      auto &rwX = rwX_gp->get();
+      // auto &Tp = Tp_gp->get();
+      // auto &drwX = drwX_gp->get();
+      // auto &rwX = rwX_gp->get();
       const auto &lambda_D = lambda_D_gp->get(); 
       const auto &lambda_K = lambda_K_gp->get(); 
       
@@ -287,9 +289,9 @@ namespace libcloudphxx
           )),
           thrust::make_zip_iterator(thrust::make_tuple(
             dot_ssp.begin(),
-            Tp.begin(),
-            drwX.begin(),
-            rwX.begin(),
+            // Tp.begin(),
+            // drwX.begin(),
+            // rwX.begin(),
             rw2.begin(),
             n.begin(),
             thrust::make_permutation_iterator(dv.begin(), ijk.begin()),
