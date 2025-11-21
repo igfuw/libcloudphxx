@@ -35,7 +35,7 @@ namespace libcloudphxx
           const real_t T        = thrust::get<5>(tpl);
           const real_t RH       = thrust::get<6>(tpl);
 
-          if (T_freeze >=  T && RH >= real_t(1)) // condition for freezing
+          if (rw2 > real_t(0) && T_freeze >=  T && RH >= real_t(1)) // condition for freezing
           {
             rho_i = common::moist_air::rho_i<real_t>().value();
             a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
@@ -73,7 +73,7 @@ namespace libcloudphxx
           const real_t u01 = thrust::get<5>(tpl);
           const real_t T  = thrust::get<6>(tpl);
 
-          if (u01 < common::ice_nucleation::p_freeze<real_t>(common::ice_nucleation::INP_t::mineral, rd2_insol, T, dt))
+          if (rw2 > real_t(0) && u01 < common::ice_nucleation::p_freeze<real_t>(common::ice_nucleation::INP_t::mineral, rd2_insol, T, dt))
           {
             rho_i = common::moist_air::rho_i<real_t>().value();
             a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
@@ -99,7 +99,7 @@ namespace libcloudphxx
           auto& c     = thrust::get<2>(tpl);
           auto& rho_i = thrust::get<3>(tpl);
 
-          if (thrust::get<4>(tpl) > real_t(273.15)) // if T > 0 C
+          if (a*c > real_t(0) && thrust::get<4>(tpl) > real_t(273.15)) // if T > 0 C
           {
             rw2  = pow(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>() * c , real_t(2./3.)) * pow(a , real_t(4./3.));
             rho_i = real_t(0);
