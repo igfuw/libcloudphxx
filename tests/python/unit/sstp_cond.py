@@ -30,6 +30,8 @@ def test(turb_cond):
   opts_init.exact_sstp_cond = True # test would fail with per-cell sstp logic
   opts_init.turb_cond_switch = turb_cond
   spinup = 20
+
+  # opts_init.sstp_cond_mix = False
   
   backend = lgrngn.backend_t.serial
   
@@ -64,11 +66,15 @@ def test(turb_cond):
     rv[1,0] = 0.0095
     prtcls.init(th, rv, rhod, Cx=Cx, Cz=Cz)
   
-    #equilibrium wet moment post spinup
+    #wet moment post init
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_init = copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
     water_post_init = 1000. * 4./3. * pi * wet_post_init + rv
+    # print("liquid post init:", 1000. * 4./3. * pi * wet_post_init)
+    # print("rv post init:", rv)
+    # print("total post init:", water_post_init)
+
     
     #spinup to get equilibrium
     if(turb_cond):
@@ -82,12 +88,16 @@ def test(turb_cond):
       else:
         prtcls.step_sync(opts, th, rv)
     
-    #equilibrium wet moment post spinup
+    #wet moment post spinup
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_spin = copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
     water_post_spin = 1000. * 4./3. * pi * wet_post_spin + rv
-    assert allclose(water_post_spin, water_post_init, atol=0, rtol=1e-10) #some discrepancy due to water density
+    # print(water_post_init, water_post_spin)
+    # print("liquid post spin:", 1000. * 4./3. * pi * wet_post_spin)
+    # print("rv post spin:", rv)
+    # print("total post spin:", water_post_spin)
+    assert allclose(water_post_spin, water_post_init, atol=0, rtol=1e-10) 
     
     #advect SDs
     opts.adve=1

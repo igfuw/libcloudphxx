@@ -31,10 +31,6 @@ namespace libcloudphxx
       if(pimpl->opts_init.rng_seed_init_switch)
         pimpl->rng.reseed(pimpl->opts_init.rng_seed_init);
 
-      // if pressure comes from a profile, sstp_tmp_p also needs to be copied between distributed memories
-      if(pimpl->opts_init.const_p && pimpl->allow_sstp_cond && pimpl->opts_init.exact_sstp_cond)
-        pimpl->distmem_real_vctrs.insert({&pimpl->sstp_tmp_p, detail::no_initial_value});
-
       // initialising Eulerian-Lagrangian coupling
       pimpl->init_sync();  // also, init of ambient_chem vectors
       pimpl->init_e2l(th,   &pimpl->th);
@@ -116,6 +112,9 @@ namespace libcloudphxx
       //initialising vterm, needed for coal, sedi and cond
       pimpl->init_vterm(); // init cached vt0 for the Beard fast vt formula
       pimpl->hskpng_vterm_invalid(); // init vt of SD
+
+      // initialising rc2, needed for cond with sstp_cond_act > 1
+      pimpl->hskpng_approximate_rc2_invalid();
 
       // save _old for cond substepping
       pimpl->sstp_save();
