@@ -15,10 +15,10 @@ namespace libcloudphxx
       // calculate numerical integral with the trapezoidal rule
       // TODO: use thrust
       template<typename real_t>
-      real_t integrate(const common::unary_function<real_t> &fun, const real_t &min, const real_t &max, const real_t &bin_size)
+      real_t integrate(const common::unary_function<double> &fun, const real_t &min, const real_t &max, const real_t &bin_size)
       {
         const int n = (max - min) / bin_size; //no of bins
-        real_t integral = (fun(min) + fun(max)) / 2.;
+        double integral = (fun(min) + fun(max)) / 2.;
 
         for(int i=1; i<n; ++i)
           integral += fun(min + i * bin_size);
@@ -99,7 +99,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const common::unary_function<real_t> &n_of_lnrd_stp
+      const common::unary_function<double> &n_of_lnrd_stp
     )
     {
       const real_t integral = detail::integrate(n_of_lnrd_stp, log_rd_min, log_rd_max, config.bin_precision);
@@ -108,7 +108,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_count_num_const_multi(
-      const common::unary_function<real_t> &n_of_lnrd_stp,
+      const common::unary_function<double> &n_of_lnrd_stp,
       const thrust_size_t &const_multi
     )
     {

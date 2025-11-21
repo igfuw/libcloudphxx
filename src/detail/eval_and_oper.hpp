@@ -10,12 +10,12 @@ namespace libcloudphxx
       template <typename real_t>
       struct eval_and_mul
       {   
-        const common::unary_function<real_t> &fun;
+        const common::unary_function<double> &fun;
         const real_t &mul;
 
         // ctor
         eval_and_mul(
-          const common::unary_function<real_t> &fun, 
+          const common::unary_function<double> &fun, 
           const real_t &mul
         )
           : fun(fun), mul(mul)
@@ -32,12 +32,12 @@ namespace libcloudphxx
       template <typename real_t>
       struct eval_and_add
       {   
-        const common::unary_function<real_t> &fun;
+        const common::unary_function<double> &fun;
         const real_t &add;
 
         // ctor
         eval_and_add(
-          const common::unary_function<real_t> &fun, 
+          const common::unary_function<double> &fun, 
           const real_t &add
         )
           : fun(fun), add(add)

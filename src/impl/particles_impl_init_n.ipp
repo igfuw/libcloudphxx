@@ -22,14 +22,14 @@ namespace libcloudphxx
     namespace detail
     {
       template <typename real_t>
-      struct eval_and_multiply
+      struct eval_log_of_cubic_root_and_multiply
       {   
-        const common::unary_function<real_t> &fun;
+        const common::unary_function<double> &fun;
         const real_t &mul;
 
         // ctor
-        eval_and_multiply(
-          const common::unary_function<real_t> &fun, 
+        eval_log_of_cubic_root_and_multiply(
+          const common::unary_function<double> &fun, 
           const real_t &mul
         )
           : fun(fun), mul(mul)
@@ -46,7 +46,7 @@ namespace libcloudphxx
     // init
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_n_sd_conc(
-      const common::unary_function<real_t> &n_of_lnrd_stp 
+      const common::unary_function<double> &n_of_lnrd_stp 
     )
     {
       // temporary space on the host 
@@ -77,7 +77,7 @@ namespace libcloudphxx
       thrust::transform(
         tmp_real.begin(), tmp_real.begin() + n_part_to_init, // input 
         tmp_real.begin(),                 // output
-        detail::eval_and_multiply<real_t>(n_of_lnrd_stp, multiplier)
+        detail::eval_log_of_cubic_root_and_multiply<real_t>(n_of_lnrd_stp, multiplier)
       );
 
       {

@@ -30,7 +30,7 @@ namespace libcloudphxx
       // uses shared_ptr to make opts_init copyable
       typedef std::unordered_map<
         real_t,                // kappa
-        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
+        std::shared_ptr<unary_function<double>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
       > dry_distros_t;
       dry_distros_t dry_distros;
 
@@ -168,7 +168,7 @@ namespace libcloudphxx
       typedef std::unordered_map<
         real_t,                // kappa
         std::tuple<
-          std::shared_ptr<unary_function<real_t>>, // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
+          std::shared_ptr<unary_function<double>>, // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
           std::pair<real_t, real_t>, // kappa range of CCN considered to belong to this distribution, ranges of different members of the map need to be exclusive (TODO: add a check of this)
           std::pair<real_t, real_t>  // range of altitudes at which this relaxation acts
         >
