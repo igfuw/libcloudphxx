@@ -222,9 +222,15 @@ namespace libcloudphxx
           init_kappa(
             p_sdd->first.kappa
           );
-          init_insol_dry_sizes(
-            p_sdd->first.rd_insol
-          );
+          if (opts_init.ice_switch)
+          {
+            init_insol_dry_sizes(p_sdd->first.rd_insol);
+            init_a_c_rho_ice();
+            if (! opts_init.time_dep_ice_nucl)
+            {
+              init_T_freeze();
+            }
+          }
 
           if(opts_init.diag_incloud_time)
             init_incloud_time();

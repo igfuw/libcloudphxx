@@ -59,6 +59,10 @@ namespace libcloudphxx
       {
         init_insol_dry_sizes(kpa_rd_insol.rd_insol);
         init_a_c_rho_ice();
+        if (! opts_init.time_dep_ice_nucl)
+        {
+          init_T_freeze();
+        }
       }
       
       // initialising wet radii

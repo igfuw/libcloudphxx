@@ -37,10 +37,10 @@ namespace libcloudphxx
 
           if (T_freeze >=  T && RH >= real_t(1)) // condition for freezing
           {
-            rw2  = real_t(0);
             rho_i = common::moist_air::rho_i<real_t>().value();
             a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
             c   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
+            rw2  = real_t(0);
           }
         }
       };
@@ -75,10 +75,10 @@ namespace libcloudphxx
 
           if (u01 < common::ice_nucleation::p_freeze<real_t>(common::ice_nucleation::INP_t::mineral, rd2_insol, T, dt))
           {
-            rw2  = real_t(0);
             rho_i = common::moist_air::rho_i<real_t>().value();
             a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
             c   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
+            rw2  = real_t(0);
           }
         }
       };

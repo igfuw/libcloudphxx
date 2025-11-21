@@ -466,6 +466,10 @@ namespace libcloudphxx
           if(opts_init.const_p)
             tmp_device_real_part.add_vector();
         }
+        if (opts_init.ice_switch && opts_init.time_dep_ice_nucl)
+        {
+          tmp_device_real_part.add_vector();
+        }
 
         resize_size_vctrs.insert(&ijk);
         resize_size_vctrs.insert(&sorted_ijk);

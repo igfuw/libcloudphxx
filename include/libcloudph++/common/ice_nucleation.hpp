@@ -69,7 +69,7 @@ namespace libcloudphxx
 
         if (INP_type == INP_t::mineral)
         {
-          real_t J = std::pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw); // nucleation rate
+          real_t J = std::pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
           return 1 - std::exp(- J * A * dt);
         }
         else
