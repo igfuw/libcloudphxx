@@ -196,8 +196,10 @@ namespace libcloudphxx
             pimpl->sstp_step_exact(step);
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step); 
-          } 
+            if (pimpl->opts_init.ice_switch && opts.ice_nucl)
+              pimpl->ice_nucl_melt(pimpl->dt / pimpl->sstp_cond);
+            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+          }
           // copy sstp_tmp_rv and th to rv and th
           pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
           pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
@@ -210,7 +212,9 @@ namespace libcloudphxx
             pimpl->sstp_step(step);
             if(opts.turb_cond)
               pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->hskpng_Tpr(); 
+            pimpl->hskpng_Tpr();
+            if (pimpl->opts_init.ice_switch && opts.ice_nucl)
+              pimpl->ice_nucl_melt(pimpl->dt / pimpl->sstp_cond);
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
           }
         }
@@ -411,11 +415,8 @@ namespace libcloudphxx
         // sanity check
         if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("libcloudph++: aerosol source was switched off in opts_init");
 
-        // introduce new particles with the given time interval
-        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
-        }
+        // introduce new particles
+        pimpl->src(opts.src_dry_distros, opts.src_dry_sizes);
       }
 
       // aerosol relaxation, in sync since it changes th/rv

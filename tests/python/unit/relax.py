@@ -103,8 +103,9 @@ def test(opts_init):
 
 # test source with dry_distros
 kappa = .61
+rd_insol = 0.
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {kappa:lognormal}
+opts_init.dry_distros = {(kappa, rd_insol):lognormal}
 opts_init.rlx_dry_distros = {kappa: [lognormal_rlx, [0,2],[0,opts_init.dz]]}
 opts_init.sd_conc = 1024
 opts_init.rlx_bins = 1024

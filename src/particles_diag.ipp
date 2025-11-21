@@ -104,6 +104,18 @@ namespace libcloudphxx
           return sqrt(rw2);
         }
       };
+
+      template<class real_t>
+      class ice_vol
+      {
+      public:
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t> &tpl)  // tpl is a tuple (a, c)
+        {
+          return thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl);  // a * a * c
+        }
+      };
+
     }
 
     // records pressure
@@ -216,6 +228,20 @@ namespace libcloudphxx
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
     }
 
+    // selects ice particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice()
+    {
+      pimpl->moms_gt0(pimpl->ice_a.begin()); // ice_a greater than 0
+    }
+
+    // selects water particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water()
+    {
+      pimpl->moms_eq0(pimpl->ice_a.begin()); // ice_a equal to 0
+    }
+
     // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_dry_rng_cons(const real_t &r_min, const real_t &r_max)
@@ -241,6 +267,20 @@ namespace libcloudphxx
     void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
     {
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
+    }
+
+    // selects ice particles from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_cons()
+    {
+      pimpl->moms_gt0(pimpl->ice_a.begin(), true); // ice_a greater than 0
+    }
+
+    // selects water particles from particles previously selected 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water_cons()
+    {
+      pimpl->moms_eq0(pimpl->ice_a.begin(), true); // ice_a equal to 0
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -314,6 +354,30 @@ namespace libcloudphxx
     {
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
+
+    // computes n-th moment of the ice equatorial radius spectrum for the selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_mom(const int &n)
+    {
+      pimpl->moms_calc(pimpl->ice_a.begin(), n);
+    }
+
+    // computes n-th moment of the ice polar radius spectrum for the selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_mom(const int &n)
+    {
+      pimpl->moms_calc(pimpl->ice_c.begin(), n);
+    }
+
+     // computes ice volume
+    template <typename real_t, backend_t device>
+      void particles_t<real_t, device>::diag_ice_vol()
+     {
+      pimpl->moms_calc(thrust::make_transform_iterator(
+        thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin())), detail::ice_vol<real_t>()
+        ),
+        real_t(1));
+     }
 
     // compute n-th moment of kappa for selected particles
     template <typename real_t, backend_t device>

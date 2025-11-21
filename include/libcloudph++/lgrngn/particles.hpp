@@ -85,7 +85,9 @@ namespace libcloudphxx
       virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
       virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
       virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
-      // The 3 following functions are for consecutive selection of SDs.
+      virtual void diag_ice()                                                   { assert(false); }
+      virtual void diag_water()                                                 { assert(false); }
+      // The following functions are for consecutive selection of SDs.
       // It allows the user to select SDs based on multiple characteristics, e.g. wet radius (0.5, 1) and kappa (0.1, 0.2):
       // diag_wet_rng(0.5, 1); diag_kappa_rng_cons(0.1, 0.2);
       // NOTE: the call with "cons" needs to be right after the previous call to diag_X_rng!
@@ -95,9 +97,14 @@ namespace libcloudphxx
       virtual void diag_dry_rng_cons(const real_t&, const real_t&)              { assert(false); }
       virtual void diag_wet_rng_cons(const real_t&, const real_t&)              { assert(false); }
       virtual void diag_kappa_rng_cons(const real_t&, const real_t&)            { assert(false); }
+      virtual void diag_ice_cons()                                              { assert(false); }
+      virtual void diag_water_cons()                                            { assert(false); }
 
       virtual void diag_dry_mom(const int&)                                     { assert(false); }
       virtual void diag_wet_mom(const int&)                                     { assert(false); }
+      virtual void diag_ice_a_mom(const int&)                                   { assert(false); }
+      virtual void diag_ice_c_mom(const int&)                                   { assert(false); }
+      virtual void diag_ice_vol()                                               { assert(false); }
       virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
       virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
       virtual void diag_precip_rate()                                           { assert(false); }
@@ -179,11 +186,18 @@ namespace libcloudphxx
       void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice();
+      void diag_water();
       void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_cons();
+      void diag_water_cons();
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_ice_a_mom(const int &k);
+      void diag_ice_c_mom(const int &k);
+      void diag_ice_vol();
       void diag_kappa_mom(const int &k);
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);
@@ -276,11 +290,18 @@ namespace libcloudphxx
       void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice();
+      void diag_water();
       void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_cons();
+      void diag_water_cons();
       void diag_dry_mom(const int &k);
       void diag_wet_mom(const int &k);
+      void diag_ice_a_mom(const int &k);
+      void diag_ice_c_mom(const int &k);
+      void diag_ice_vol();
       void diag_kappa_mom(const int&);
       void diag_up_mom(const int&);
       void diag_vp_mom(const int&);
