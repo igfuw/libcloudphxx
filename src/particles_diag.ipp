@@ -112,7 +112,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl)  // tpl is a tuple (a, c)
         {
-          return thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl);  // a * a * c
+          return real_t(4./3) * pi<real_t>() * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl);  // a * a * c
         }
       };
 
