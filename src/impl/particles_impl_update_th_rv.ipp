@@ -93,12 +93,11 @@ namespace libcloudphxx
       }
       else if (phase == phase_change::deposition)
       {
-        // multiplying specific 3rd moms diff  by -rho_i*4/3*pi
-        // TODO: use the effective ice density here?
+        // drv is already multiplied by 4/3 * pi * rho_i
         thrust::transform(
           drv.begin(), drv.end(),                  // input - 1st arg
           thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-            - common::moist_air::rho_i<real_t>() / si::kilograms * si::cubic_metres
+            -  si::cubic_metres / si::kilograms
           ),
           drv.begin(),                             // output
           thrust::multiplies<real_t>()

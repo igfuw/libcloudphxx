@@ -47,17 +47,14 @@ namespace libcloudphxx
       };
 
       template<class real_t>
-      struct count_ice_vol
+      struct count_ice_mass
             {
-              count_ice_vol() {}
+              count_ice_mass() {}
 
               template <typename tuple>
               BOOST_GPU_ENABLED
-              real_t operator()(const tuple &tup) // tup is a tuple (n, ice_a, ice_c)
+              real_t operator()(const tuple &tup) // tup is a tuple (n, ice_a, ice_c, ice_rho)
               {
-      #if !defined(__NVCC__)
-                using std::pow;
-      #endif
                 return 4./3.
       #if !defined(__NVCC__)
                   * pi<real_t>()
@@ -66,7 +63,8 @@ namespace libcloudphxx
       #endif
                   * thrust::get<0>(tup)                       // n
                   * thrust::get<1>(tup) * thrust::get<1>(tup) // a^2
-                  * thrust::get<2>(tup);                      //c
+                  * thrust::get<2>(tup)                       //c
+                  * thrust::get<3>(tup);                      //rho_i
               }
             };
 
@@ -291,14 +289,14 @@ namespace libcloudphxx
 
                 if (opts_init.ice_switch)
                 {
-                  // add total ice volume that fell out in this step
-                  output_puddle[common::outice_vol] +=
+                  // add total ice mass that fell out in this step
+                  output_puddle[common::outice_mass] +=
                     thrust::transform_reduce(
                       thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.begin(), ice_a.begin(), ice_c.begin())),           // input start
+                        n_filtered.begin(), ice_a.begin(), ice_c.begin(), ice_rho.begin())), // input start
                       thrust::make_zip_iterator(thrust::make_tuple(
-                        n_filtered.begin(), ice_a.begin(), ice_c.begin())) + n_part,  // input end
-                      detail::count_ice_vol<real_t>(),   // operation
+                        n_filtered.begin(), ice_a.begin(), ice_c.begin(), ice_rho.begin())) + n_part, // input end
+                      detail::count_ice_mass<real_t>(),   // operation
                       real_t(0),                                     // init val
                       thrust::plus<real_t>()
                     );

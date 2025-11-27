@@ -235,7 +235,7 @@ namespace libcloudphxx
         lambda_K_gp,
         rw_mom3_gp,
         rw3_gp,
-        ice_vol_gp;
+        ice_mass_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard

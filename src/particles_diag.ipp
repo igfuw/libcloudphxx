@@ -106,13 +106,15 @@ namespace libcloudphxx
       };
 
       template<class real_t>
-      class ice_vol
+      class ice_mass
       {
       public:
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t> &tpl)  // tpl is a tuple (a, c)
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)  // tpl is a tuple (a, c, rho)
         {
-          return real_t(4./3) * pi<real_t>() * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl);  // a * a * c
+          return real_t(4./3) * pi<real_t>()
+          * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl) // a^2 * c
+          * thrust::get<2>(tpl);  // rho
         }
       };
 
@@ -371,10 +373,11 @@ namespace libcloudphxx
 
      // computes ice volume
     template <typename real_t, backend_t device>
-      void particles_t<real_t, device>::diag_ice_vol()
+      void particles_t<real_t, device>::diag_ice_mass()
      {
       pimpl->moms_calc(thrust::make_transform_iterator(
-        thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin())), detail::ice_vol<real_t>()
+        thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(), pimpl->ice_rho.begin())),
+        detail::ice_mass<real_t>()
         ),
         real_t(1));
      }
