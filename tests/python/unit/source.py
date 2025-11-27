@@ -51,6 +51,7 @@ def test(opts_init):
   opts_init.adve_switch = 0;
   opts_init.cond_switch = 0;
   opts_init.sedi_switch = 0;
+  opts_init.ice_switch = 0;
   
   opts = lgrngn.opts_t()
   
@@ -59,6 +60,7 @@ def test(opts_init):
   opts.sedi = 0;
   opts.coal = 0;
   opts.cond = 0;
+  opts.ice_nucl = 0;
   
   rhod = arr_t([[  1.,    1.  ],[   1.,     1.  ]])
   th   = arr_t([[300.,  300.  ],[ 300.,   300.  ]])
@@ -92,12 +94,13 @@ def test(opts_init):
   return sd_conc, wet_mom0, wet_mom1
 
 kappa = .61
+rd_insol = 0.5e-6
 
 # ----------- test source with dry_distros simple ------------------
 print(' --- dry_distros simple src ---')
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {kappa:lognormal}
-opts_init.src_dry_distros = {kappa:lognormal_src}
+opts_init.dry_distros = {(kappa, rd_insol):lognormal}
+opts_init.src_dry_distros = {(kappa, rd_insol):lognormal_src}
 opts_init.sd_conc = 1024
 opts_init.src_sd_conc = 512
 opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=nz=2
@@ -122,8 +125,8 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 # --------------- test source with dry_distros matching ------------------
 print(' --- dry_distros matching src ---')
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {kappa:lognormal}
-opts_init.src_dry_distros = {kappa:lognormal_src}
+opts_init.dry_distros = {(kappa, rd_insol):lognormal}
+opts_init.src_dry_distros = {(kappa, rd_insol):lognormal_src}
 opts_init.sd_conc = 1024
 opts_init.src_sd_conc = 512
 opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=nz=2
@@ -148,8 +151,8 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 # --------- test source with dry_sizes ------------
 print(' --- dry_sizes src ---')
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_sizes = {kappa : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
-opts_init.src_dry_sizes = {kappa : {1.e-6  : [0.3, 10], 15.e-6 : [0.1, 5]}}
+opts_init.dry_sizes = {(kappa, rd_insol) : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
+opts_init.src_dry_sizes = {(kappa, rd_insol) : {1.e-6  : [0.3, 10], 15.e-6 : [0.1, 5]}}
 opts_init.n_sd_max=240
 opts_init.src_type = lgrngn.src_t.simple; # dry sizes works the same for simple and matching (no matching done)
 

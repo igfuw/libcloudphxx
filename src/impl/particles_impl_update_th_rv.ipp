@@ -97,7 +97,7 @@ namespace libcloudphxx
         thrust::transform(
           drv.begin(), drv.end(),                  // input - 1st arg
           thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-            -  si::cubic_metres / si::kilograms
+            -  real_t(1)
           ),
           drv.begin(),                             // output
           thrust::multiplies<real_t>()
