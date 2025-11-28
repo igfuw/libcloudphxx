@@ -62,18 +62,22 @@ namespace libcloudphxx
       const real_t rd2_insol,    // radius squared of insoluble particle in m^2
       const real_t T,            // temperature in kelvin
       const real_t dt            // time step in seconds
-        ) {
-
-        real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
-        real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvins)/ const_cp::p_vs<real_t>(T * si::kelvins); // water activity
-
-        if (INP_type == INP_t::mineral)
+        )
+      {
+        if (rd2_insol > real_t(0))
         {
-          real_t J = std::pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
-          return 1 - std::exp(- J * A * dt);
+          real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
+          real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvins)/ const_cp::p_vs<real_t>(T * si::kelvins); // water activity
+          if (INP_type == INP_t::mineral)
+          {
+            real_t J = std::pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
+            return 1 - std::exp(- J * A * dt);
+          }
+          else
+            throw std::runtime_error("INP type not implemented");
         }
         else
-          throw std::runtime_error("INP type not implemented");
+          return T > real_t(235.15) ? real_t(0) : real_t(1); // homogeneous freezing at -38 C
       }
 
 
