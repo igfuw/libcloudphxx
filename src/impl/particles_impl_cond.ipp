@@ -116,6 +116,7 @@ namespace libcloudphxx
             detail::advance_rw2<real_t>(dt, RH_max)
           );
           nancheck(rw2, "rw2 after condensation (no sub-steps");
+        }
 
           // Compute per-cell 3rd moment of liquid droplets after condensation. It is stored in count_mom
           moms_gt0(rw2.begin()); // choose liquid particles (rw2>0)
@@ -152,7 +153,7 @@ namespace libcloudphxx
           // update th and rv according to change in third specific wet moment
           update_th_rv(drv_liq, impl::phase_change::condensation);
         }
-      }
+
 
         if (opts_init.ice_switch)
         {
