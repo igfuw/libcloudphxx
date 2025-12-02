@@ -121,7 +121,7 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
 */
 
   opts_init.dry_distros.emplace( 
-    0.001, // kappa
+    (0.001, 0.), // kappa, rd_insol
     std::make_shared<log_dry_radii<double>>() // distribution
   );
 
