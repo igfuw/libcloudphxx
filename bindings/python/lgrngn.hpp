@@ -334,11 +334,11 @@ namespace libcloudphxx
           const real_t kappa    = bp::extract<real_t>(key[0]);
           const real_t rd_insol = bp::extract<real_t>(key[1]);
 
-          // extract size : {conc, count} dict for this (kappa, rd_insol)
+          // extract size : {conc, count, supstp_src} dict for this (kappa, rd_insol)
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<double, std::tuple<real_t, int, int>> size_conc_map;
 
-          // turn the size : {conc, count} dict into a size : {conc, count} map
+          // turn the size : {conc, count, supstp_src} dict into a size : {conc, count, supstp_src} map
           for (int i = 0; i < len(size_conc.keys()); ++i)
           {
             const bp::list conc_count_list = bp::extract<bp::list>(size_conc.values()[i]);

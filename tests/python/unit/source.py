@@ -29,8 +29,10 @@ def lognormal_src(lnr):
     -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
   ) / log(stdev) / sqrt(2*pi);
 
-def test(opts_init):
-  opts_init.supstp_src = 50
+kappa = .61
+rd_insol = 0.5e-6
+
+def test(opts_init, opts):
   opts_init.rng_seed = int(time())
   opts_init.dt = 1
   opts_init.nx = 2;
@@ -52,8 +54,6 @@ def test(opts_init):
   opts_init.cond_switch = 0;
   opts_init.sedi_switch = 0;
   opts_init.ice_switch = 0;
-  
-  opts = lgrngn.opts_t()
   
   opts.adve = 0;
   opts.chem = 0;
@@ -93,20 +93,19 @@ def test(opts_init):
 
   return sd_conc, wet_mom0, wet_mom1
 
-kappa = .61
-rd_insol = 0.5e-6
-
 # ----------- test source with dry_distros simple ------------------
 print(' --- dry_distros simple src ---')
 opts_init = lgrngn.opts_init_t()
+opts = lgrngn.opts_t()
 opts_init.dry_distros = {(kappa, rd_insol):lognormal}
-opts_init.src_dry_distros = {(kappa, rd_insol):lognormal_src}
 opts_init.sd_conc = 1024
-opts_init.src_sd_conc = 512
-opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=nz=2
-opts_init.src_type = lgrngn.src_t.simple;
+src_sd_conc = 512
+supstp_src = 50
+opts.src_dry_distros = {(kappa, rd_insol):(lognormal_src, src_sd_conc, supstp_src)}
+opts_init.n_sd_max = int((opts_init.sd_conc * 2 + src_sd_conc * 2) * 2) # assuming nx=nz=2
+opts_init.src_type = lgrngn.src_t.simple
 
-sd_conc, wet_mom0, wet_mom1 = test(opts_init)
+sd_conc, wet_mom0, wet_mom1 = test(opts_init, opts)
 
 print('diag_sd_conc', sd_conc)
 if not(sd_conc[0] == 2048 and sd_conc[2] == 2048):
@@ -125,14 +124,16 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 # --------------- test source with dry_distros matching ------------------
 print(' --- dry_distros matching src ---')
 opts_init = lgrngn.opts_init_t()
+opts = lgrngn.opts_t()
 opts_init.dry_distros = {(kappa, rd_insol):lognormal}
-opts_init.src_dry_distros = {(kappa, rd_insol):lognormal_src}
 opts_init.sd_conc = 1024
-opts_init.src_sd_conc = 512
-opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.src_sd_conc * 2) * 2) # assuming nx=nz=2
-opts_init.src_type = lgrngn.src_t.matching;
+src_sd_conc = 512
+supstp_src = 50
+opts.src_dry_distros = {(kappa, rd_insol):(lognormal_src, src_sd_conc, supstp_src)}
+opts_init.n_sd_max = int((opts_init.sd_conc * 2 + src_sd_conc * 2) * 2) # assuming nx=nz=2
+opts_init.src_type = lgrngn.src_t.matching
 
-sd_conc, wet_mom0, wet_mom1 = test(opts_init)
+sd_conc, wet_mom0, wet_mom1 = test(opts_init, opts)
 
 print('diag_sd_conc', sd_conc)
 if not((sd_conc[0] == 1164 or sd_conc[0] == 1165) and (sd_conc[2] == 1164 or sd_conc[2] == 1165)):
@@ -151,13 +152,15 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 # --------- test source with dry_sizes ------------
 print(' --- dry_sizes src ---')
 opts_init = lgrngn.opts_init_t()
+opts = lgrngn.opts_t()
+supstp_src = 50
 opts_init.dry_sizes = {(kappa, rd_insol) : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
-opts_init.src_dry_sizes = {(kappa, rd_insol) : {1.e-6  : [0.3, 10], 15.e-6 : [0.1, 5]}}
+opts.src_dry_sizes = {(kappa, rd_insol) : {1.e-6  : [0.3, 10, supstp_src], 15.e-6 : [0.1, 5, supstp_src]}}
 opts_init.n_sd_max=240
-opts_init.src_type = lgrngn.src_t.simple; # dry sizes works the same for simple and matching (no matching done)
+opts_init.src_type = lgrngn.src_t.simple # dry sizes works the same for simple and matching (no matching done)
 
 
-sd_conc, wet_mom0, wet_mom1 = test(opts_init)
+sd_conc, wet_mom0, wet_mom1 = test(opts_init, opts)
 
 print('diag_sd_conc', sd_conc)
 if not((sd_conc[0] == 60) and (sd_conc[2] == 60)):
