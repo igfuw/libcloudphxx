@@ -59,8 +59,8 @@ opts_init.sd_conc = int(1e3)
 opts_init.n_sd_max = opts_init.sd_conc
 
 opts_init.rc2_T = 10 # results are the same for 0C to 100C
-opts_init.sstp_cond_adapt_drw2_eps = 1e-3 #1e-4
-opts_init.sstp_cond_adapt_drw2_max = 2 #4
+opts_init.sstp_cond_adapt_drw2_eps = 1e-3 #1e-3
+opts_init.sstp_cond_adapt_drw2_max = 2 #2
 
 
 # backend = lgrngn.backend_t.CUDA
@@ -264,6 +264,8 @@ for adaptive in [True, False]: # adaptive condensation substepping?
               results['RH_formula'] = RH_formula
               results['sstp_cond'] = sstp_cond
               results['sstp_cond_act'] = sstp_cond_act
+              results['sstp_cond_adapt_drw2_eps'] = opts_init.sstp_cond_adapt_drw2_eps
+              results['sstp_cond_adapt_drw2_max'] = opts_init.sstp_cond_adapt_drw2_max
               records.append(results)
 
 # save results to a CSV file for refdata comparison and for plotting
