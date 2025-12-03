@@ -19,11 +19,17 @@ namespace libcloudphxx
       const real_t rd2_insol,     // radius squared of insoluble particle in m^2
       const real_t rand           // random number between [0, 1]
         ) {
-        real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
+        real_t A = real_t(4)
+        #if !defined(__NVCC__)
+            * pi<real_t>()
+        #else
+            * CUDART_PI
+        #endif
+        * rd2_insol; // surface area of the insoluble particle
 
-        if (INP_type == INP_t::mineral && A > std::numeric_limits<real_t>::epsilon())
+        if (INP_type == INP_t::mineral && A > real_t(1e-20))
         {
-          return (real_t(273.15) + (real_t(8.934) - std::log(- std::log(1 - rand) / A) ) / real_t(0.517)) * si::kelvins;
+          return (real_t(273.15) + (real_t(8.934) - log(- log(real_t(1.) - rand) / A) ) / real_t(0.517)) * si::kelvin;
         }
         else
         {
@@ -66,15 +72,21 @@ namespace libcloudphxx
       {
         if (rd2_insol > real_t(0))
         {
-          real_t A = real_t(4) * pi<real_t>() * rd2_insol; // surface area of the insoluble particle
-          real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvins)/ const_cp::p_vs<real_t>(T * si::kelvins); // water activity
+          real_t A = real_t(4)
+          #if !defined(__NVCC__)
+              * pi<real_t>()
+          #else
+              * CUDART_PI
+          #endif
+          * rd2_insol; // surface area of the insoluble particle
+          real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvin)/ const_cp::p_vs<real_t>(T * si::kelvin); // water activity
           if (INP_type == INP_t::mineral)
           {
-            real_t J = std::pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
-            return 1 - std::exp(- J * A * dt);
+            real_t J = pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
+            return 1 - exp(- J * A * dt);
           }
           else
-            throw std::runtime_error("INP type not implemented");
+            return real_t(0.); // TODO: other INP types
         }
         else
           return T > real_t(235.15) ? real_t(0) : real_t(1); // homogeneous freezing at -38 C

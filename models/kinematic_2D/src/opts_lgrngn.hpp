@@ -297,7 +297,7 @@ void setopts_micro(
 */
 
   rt_params.cloudph_opts_init.dry_distros.emplace(
-    setup.kappa, // key
+    libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{setup.kappa, 0.}, // kappa, rd_insol
     std::make_shared<config::log_dry_radii<config::real_t>> (setup)
   );
 
