@@ -174,16 +174,14 @@ namespace libcloudphxx
           if(rw2 == 0 && ice_a > 0 && ice_c > 0) {
             return common__vterm__ice<real_t>()(ice_a, ice_c, rho_i, env);
           }
-          else if(vt_eq == vt_t::beard77fast) {
+          if(vt_eq == vt_t::beard77fast) {
             #ifndef __CUDA_ARCH__
                         throw std::runtime_error("beard77fast doesn't work with ice switch = True");
             #else
                         assert(false && "beard77fast doesn't work with ice switch = True");
             #endif
           }
-          else {
-            return common__vterm__vt<real_t>(vt_eq)(rw2, env);
-          }
+          return common__vterm__vt<real_t>(vt_eq)(rw2, env);
         }
       };
 

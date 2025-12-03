@@ -52,7 +52,7 @@ namespace libcloudphxx
           const real_t &rd2_insol = thrust::get<0>(tpl);  // from rd2 vector
           const real_t &rand         = thrust::get<1>(tpl);  // from rand vector
 
-          return ice_nucleation::T_freeze_CDF_inv<real_t>(
+          return ice_nucleation::template T_freeze_CDF_inv<real_t>(
             INP_type,
             rd2_insol,
             rand
