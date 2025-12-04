@@ -21,6 +21,7 @@ rd_insol = 0.
 Opts_init.dry_distros = {(kappa, rd_insol):lognormal}
 Opts_init.coal_switch = False
 Opts_init.sedi_switch = True
+Opts_init.ice_switch = False
 Opts_init.terminal_velocity = lgrngn.vt_t.beard76
 
 Opts_init.dt = 1
@@ -45,6 +46,7 @@ Opts.cond = False
 Opts.coal = False
 Opts.chem = False
 Opts.rcyc = False
+Opts.ice_nucl = False
 
 Rhod =   1. * np.ones((Opts_init.nx, Opts_init.nz))
 Th   = 300. * np.ones((Opts_init.nx, Opts_init.nz))
@@ -69,7 +71,10 @@ tab_out = np.copy(np.frombuffer(prtcls.outbuf()).reshape(Opts_init.nx, Opts_init
 
 assert(tab_out[0][0] == 0.)
 
-puddle_expected_per_cell = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 7.087802417148837e-05, 9: 5.630090090571395e-06, 10: 815411.5, 11: 0.0}
+puddle_expected_per_cell = {'HNO3': 0.0, 'NH3': 0.0, 'CO2': 0.0, 'SO2': 0.0, 'H2O2': 0.0, 'O3': 0.0, 'S_VI': 0.0, 'H': 0.0,
+                            'liquid_volume': 7.087802417148837e-05, 'dry_volume': 5.630090090571395e-06,
+                            'particle_number': 815411.5, 'liquid_number': 815411.5,
+                            'ice_mass': 0.0, 'ice_number': 0.0}
 
 for a in puddle:
   print(puddle[a], Opts_init.nx * puddle_expected_per_cell[a])

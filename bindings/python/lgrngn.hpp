@@ -222,7 +222,7 @@ namespace libcloudphxx
         map_t map = arg->diag_puddle();
         bp::dict dict;
         for(auto& x : map)
-          dict[static_cast<int>(x.first)] = x.second;
+          dict[cmn::output_names.at(x.first)] = x.second;
         return dict;     
       }
 

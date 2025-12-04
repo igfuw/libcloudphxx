@@ -422,8 +422,10 @@ namespace libcloudphxx
           advance_rw2_minfun_ice<real_t> f_a(dt, a_old * a_old, tpl, RH_max);
           advance_rw2_minfun_ice<real_t> f_c(dt, c_old * c_old, tpl, RH_max);
 
-          const real_t da_dt = (f_a.drw2_dt(a_old * a_old * si::square_metres) / (2 * a_old * si::metres)).value();
-          const real_t dc_dt = (f_c.drw2_dt(c_old * c_old * si::square_metres) / (2 * c_old * si::metres)).value();
+          const real_t da_dt = (f_a.drw2_dt(a_old * a_old * si::square_metres) / (2 * a_old * si::metres))
+                                * si::seconds / si::metres;
+          const real_t dc_dt = (f_c.drw2_dt(c_old * c_old * si::square_metres) / (2 * c_old * si::metres))
+                                * si::seconds / si::metres;
 
           // forward Euler for simplicity
           const real_t a_new = max(a_old + dt * da_dt, real_t(1e-9));
