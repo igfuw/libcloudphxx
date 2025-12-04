@@ -56,7 +56,7 @@ namespace libcloudphxx
             INP_type,
             rd2_insol,
             rand
-          ).value();
+          ) / si::kelvin;
         }
       };
 
