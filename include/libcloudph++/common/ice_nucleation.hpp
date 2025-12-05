@@ -60,12 +60,14 @@ namespace libcloudphxx
         }
       };
 
-      // Probability of time-dependent freezing as in Arabas et al., 2025
+      // Probability of time-dependent freezing,
+      // heterogeneous as in Arabas et al., 2025 and homogeneous as in Koop & Murray, 2016
       template <typename real_t>
       BOOST_GPU_ENABLED
       real_t p_freeze(
       const INP_t& INP_type,     // type of ice nucleating particle
       const real_t rd2_insol,    // radius squared of insoluble particle in m^2
+      const real_t rw2,          // wet radius squared in m^2
       const real_t T,            // temperature in kelvin
       const real_t dt            // time step in seconds
         )
@@ -82,14 +84,29 @@ namespace libcloudphxx
           real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvin)/ const_cp::p_vs<real_t>(T * si::kelvin); // water activity
           if (INP_type == INP_t::mineral)
           {
-            real_t J = pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
-            return 1 - exp(- J * A * dt);
+            real_t J_het = pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
+            return 1 - exp(- J_het * A * dt);
           }
           else
             return real_t(0.); // TODO: other INP types
         }
         else
-          return T > real_t(235.15) ? real_t(0) : real_t(1); // homogeneous freezing at -38 C
+        {
+          real_t V = real_t(4/3)
+          #if !defined(__NVCC__)
+              * pi<real_t>()
+          #else
+              * CUDART_PI
+          #endif
+          * pow(rw2, real_t(3/2)); // droplet volume
+
+          real_t dT = T - real_t(273.15);
+          real_t x = - real_t(3020.684) - real_t(425.921)*pow(dT,real_t(1)) - real_t(25.9779)*pow(dT,real_t(2))
+                      - real_t(0.868451)*pow(dT,real_t(3)) - real_t(0.0166203)*pow(dT,real_t(4))
+                      - real_t(0.000171736)*pow(dT,real_t(5)) - real_t(0.000000746953)*pow(dT,real_t(6));
+          real_t J_hom = pow(real_t(10), x) * real_t(1e6); // nucleation rate
+          return 1 - exp(- J_hom * V * dt);
+        }
       }
 
 
@@ -103,14 +120,16 @@ namespace libcloudphxx
           : INP_type(INP_type), dt(dt) {}
 
         BOOST_GPU_ENABLED
-        real_t operator()(const thrust::tuple<real_t, real_t> &tpl) const
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
         {
           const real_t &rd2_insol = thrust::get<0>(tpl);  // radius squared of insoluble particle
-          const real_t &T         = thrust::get<1>(tpl);  // temperature in kelvin
+          const real_t &rw2       = thrust::get<1>(tpl);  // wet radius squared
+          const real_t &T         = thrust::get<2>(tpl);  // temperature in kelvin
 
           return ice_nucleation::p_freeze<real_t>(
             INP_type,
             rd2_insol,
+            rw2,
             T,
             dt
           );
