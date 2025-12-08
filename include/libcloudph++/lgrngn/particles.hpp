@@ -84,6 +84,8 @@ namespace libcloudphxx
       virtual void diag_RH_ge_Sc()                                              { assert(false); }
       virtual void diag_dry_rng(const real_t&, const real_t&)                   { assert(false); }
       virtual void diag_wet_rng(const real_t&, const real_t&)                   { assert(false); }
+      virtual void diag_ice_a_rng(const real_t&, const real_t&)                 { assert(false); }
+      virtual void diag_ice_c_rng(const real_t&, const real_t&)                 { assert(false); }
       virtual void diag_kappa_rng(const real_t&, const real_t&)                 { assert(false); }
       virtual void diag_ice()                                                   { assert(false); }
       virtual void diag_water()                                                 { assert(false); }
@@ -96,6 +98,8 @@ namespace libcloudphxx
       //        and Boost Python does not work well with virtual member functions that have default arguments
       virtual void diag_dry_rng_cons(const real_t&, const real_t&)              { assert(false); }
       virtual void diag_wet_rng_cons(const real_t&, const real_t&)              { assert(false); }
+      virtual void diag_ice_a_rng_cons(const real_t&, const real_t&)            { assert(false); }
+      virtual void diag_ice_c_rng_cons(const real_t&, const real_t&)            { assert(false); }
       virtual void diag_kappa_rng_cons(const real_t&, const real_t&)            { assert(false); }
       virtual void diag_ice_cons()                                              { assert(false); }
       virtual void diag_water_cons()                                            { assert(false); }
@@ -185,11 +189,15 @@ namespace libcloudphxx
       void diag_RH();
       void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_a_rng(const real_t &a_mi, const real_t &a_mx);
+      void diag_ice_c_rng(const real_t &c_mi, const real_t &c_mx);
       void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_ice();
       void diag_water();
       void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_a_rng_cons(const real_t &a_mi, const real_t &a_mx);
+      void diag_ice_c_rng_cons(const real_t &c_mi, const real_t &c_mx);
       void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_ice_cons();
       void diag_water_cons();
@@ -289,11 +297,15 @@ namespace libcloudphxx
       void diag_RH();
       void diag_dry_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_a_rng(const real_t &a_mi, const real_t &a_mx);
+      void diag_ice_c_rng(const real_t &c_mi, const real_t &c_mx);
       void diag_kappa_rng(const real_t &r_mi, const real_t &r_mx);
       void diag_ice();
       void diag_water();
       void diag_dry_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_wet_rng_cons(const real_t &r_mi, const real_t &r_mx);
+      void diag_ice_a_rng_cons(const real_t &a_mi, const real_t &a_mx);
+      void diag_ice_c_rng_cons(const real_t &c_mi, const real_t &c_mx);
       void diag_kappa_rng_cons(const real_t &r_mi, const real_t &r_mx);
       void diag_ice_cons();
       void diag_water_cons();

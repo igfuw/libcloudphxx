@@ -228,6 +228,20 @@ namespace libcloudphxx
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), false);
     }
 
+    // selects particles with (ice_a >= a_min && ice_a < a_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_rng(const real_t &a_min, const real_t &a_max)
+    {
+      pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), false);
+    }
+
+    // selects particles with (ice_c >= c_min && ice_c < c_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_rng(const real_t &c_min, const real_t &c_max)
+    {
+      pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), false);
+    }
+
     // selects particles with (kpa >= kpa_min && kpa < kpa_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
@@ -267,6 +281,20 @@ namespace libcloudphxx
       using std::pow;
 #endif
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), true);
+    }
+
+    // selects particles with (ice_a >= a_min && ice_a < a_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_rng_cons(const real_t &a_min, const real_t &a_max)
+    {
+      pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), true);
+    }
+
+    // selects particles with (ice_c >= c_min && ice_c < c_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_rng_cons(const real_t &c_min, const real_t &c_max)
+    {
+      pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), true);
     }
 
     // selects particles with (kpa >= kpa_min && kpa < kpa_max) from particles previously selected
