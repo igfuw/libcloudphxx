@@ -112,6 +112,7 @@ namespace libcloudphxx
       virtual void diag_wet_mass_dens(const real_t&, const real_t&)             { assert(false); }
       virtual void diag_chem(const enum common::chem::chem_species_t&)          { assert(false); }
       virtual void diag_precip_rate()                                           { assert(false); }
+      virtual void diag_precip_rate_ice_mass()                                  { assert(false); }
       virtual void diag_kappa_mom(const int&)                                   { assert(false); }
       virtual void diag_up_mom(const int&)                                      { assert(false); }
       virtual void diag_vp_mom(const int&)                                      { assert(false); }
@@ -218,6 +219,7 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
+      void diag_precip_rate_ice_mass();
       void diag_max_rw();
       void diag_vel_div();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();
@@ -328,6 +330,7 @@ namespace libcloudphxx
       void diag_RH_ge_Sc();
       void diag_all();
       void diag_precip_rate();
+      void diag_precip_rate_ice_mass();
       void diag_max_rw();
       void diag_vel_div();
       std::map<libcloudphxx::common::output_t, real_t> diag_puddle();

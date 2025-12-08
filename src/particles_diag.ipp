@@ -75,6 +75,24 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct precip_rate_ice
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)  // tpl is a tuple (a, c, rho, vt)
+        {
+          return real_t(4./3)
+          #if !defined(__NVCC__)
+            * pi<real_t>()
+          #else
+            * CUDART_PI
+          #endif
+          * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl) // a^2 * c
+          * thrust::get<2>(tpl)  // rho
+          * thrust::get<3>(tpl); // vt
+        }
+      };
+
+      template <typename real_t>
       struct RH_minus_Sc
       {
         BOOST_GPU_ENABLED
@@ -545,7 +563,23 @@ namespace libcloudphxx
  
       // copy back stored vterm
       thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
-    }   
+    }
+
+    // compute 1st (non-specific) moment of ice_mass * vt of all SDs
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_precip_rate_ice_mass()
+    {
+      // updating terminal velocities
+      pimpl->hskpng_vterm_all();
+
+      pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
+      pimpl->moms_calc(thrust::make_transform_iterator(
+            thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(),
+              pimpl->ice_rho.begin(), pimpl->vt.begin())),
+            detail::precip_rate_ice<real_t>()
+            ),
+            real_t(1), false);
+    }
 
     // get max rw in each cell
     template <typename real_t, backend_t device>
