@@ -36,9 +36,7 @@ opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.rng_seed_init = 456
 opts_init.rng_seed_init_switch = True
-opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.rlx_dry_distros = {kappa1:[lognormal, [0,2], [0,opts_init.dz]]}
-opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
 opts_init.diag_incloud_time = True
 
@@ -107,6 +105,8 @@ opts.chem_gas = {
 }
 print("chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2])
 print("chem_gas = ", opts.chem_gas)
+
+opts.src_dry_distros = {(kappa1, rd_insol):(lognormal, 64, 1)}
 
 # --------- test runs -----------
 

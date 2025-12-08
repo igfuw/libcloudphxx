@@ -32,10 +32,10 @@ namespace libcloudphxx
       // overriding dt from opts_init
       real_t dt;
 
-      // aerosol source distro per unit time
+      // aerosol source dry sizes defined with a distribution, number of SD and supstp
       src_dry_distros_t<real_t> src_dry_distros;
 
-      // dry sizes of droplets added from the source
+      // aerosol source dry sizes defined with a size-number pair, number of SD and supstp
       src_dry_sizes_t<real_t> src_dry_sizes;
 
       // ctor with defaults (C++03 compliant) ...
