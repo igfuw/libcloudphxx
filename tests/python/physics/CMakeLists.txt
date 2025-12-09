@@ -1,7 +1,7 @@
 #TODO: search scipy?
 
 # non-pytest tests
-foreach(test test_coal coalescence_golovin coalescence_hall_davis_no_waals lgrngn_cond lgrngn_cond_substepping puddle) # the coalescence_onishi_hall test is turned off as not specific enough
+foreach(test test_coal coalescence_golovin coalescence_hall_davis_no_waals lgrngn_cond lgrngn_cond_substepping lgrngn_cond_substepping_test lgrngn_cond_substepping_plot puddle) # the coalescence_onishi_hall test is turned off as not specific enough
   #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}
@@ -10,3 +10,5 @@ foreach(test test_coal coalescence_golovin coalescence_hall_davis_no_waals lgrng
   )
 endforeach()
 
+set_tests_properties(lgrngn_cond_substepping_test PROPERTIES DEPENDS lgrngn_cond_substepping)
+set_tests_properties(lgrngn_cond_substepping_plot PROPERTIES DEPENDS lgrngn_cond_substepping)

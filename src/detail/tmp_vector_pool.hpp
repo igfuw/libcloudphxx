@@ -19,12 +19,10 @@ namespace libcloudphxx
     public:
         tmp_vector_pool(size_t pool_size = 1): pool(pool_size, 0) {}
 
-        // Add a new vector to the pool
-        // void add_vector(size_t vec_size) {
-        //     pool.emplace_back(vec_size);
-        // }
-        void add_vector() {
-            pool.emplace_back(0);
+        void add_vectors(size_t no_vectors = 1) {
+            for (size_t i = 0; i < no_vectors; ++i) {
+                pool.emplace_back(0);
+            }
         }
 
         void resize(size_t n) {

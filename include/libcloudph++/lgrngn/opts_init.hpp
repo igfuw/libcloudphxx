@@ -47,8 +47,16 @@ namespace libcloudphxx
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
-      // no. of substeps 
+      // no. of substeps for condensation/coalescence. If adaptive_sstp_cond=true, sstp_cond is the maximum no. of substeps.
       int sstp_cond, sstp_coal; 
+      // no. of condensation substeps for SDs that activate/deactivate in this timestep
+      // only work in adaptive_sstp_cond mode.
+      int sstp_cond_act; 
+      // no. of substeps for chemistry
+      int sstp_chem;
+      // Note: If dt changes during simulation (by supplying opts.dt), 
+      //       no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond, 
+      //       but only if initially sstp_cond/coal/chem/cond_act > 1
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -97,9 +105,13 @@ namespace libcloudphxx
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
-           exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           sstp_cond_mix,      // if true, th and rv of all SDs in a cell after each timestep (instant mixing at substep timescale), else update it only after all substeps
+           adaptive_sstp_cond;    // if true, use adaptive number of substeps for condensation
+
+      real_t sstp_cond_adapt_drw2_eps = 1e-4; // tolerance for adaptive substepping in condensation (drw2_err <= sstp_cond_adapt_eps * rw2)
+      real_t sstp_cond_adapt_drw2_max = 4; // tolerance for adaptive substepping in condensation (drw2 < sstp_cond_adapt_drw2_max * rw2)
            
-      int sstp_chem;
       real_t chem_rho;
 
       // do we want to track the time SDs spend inside clouds
@@ -138,6 +150,7 @@ namespace libcloudphxx
       bool open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
            periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
 
+      real_t rc2_T = 10; // temperature [C] at which rc2 is calculated
 
       // --- aerosol source stuff ---
 
@@ -205,7 +218,7 @@ namespace libcloudphxx
         aerosol_independent_of_rhod(false), 
         sd_const_multi(0),
         dt(0),   
-        sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        sstp_cond(1), sstp_coal(1), sstp_chem(1), sstp_cond_act(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
         subs_switch(false),  // subsidence turned off by default
@@ -213,6 +226,8 @@ namespace libcloudphxx
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
         exact_sstp_cond(false),
+        sstp_cond_mix(true),
+        adaptive_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
         turb_coal_switch(false),
