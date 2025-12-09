@@ -14,11 +14,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src_dry_sizes(const src_dry_sizes_t<real_t> &sds)
     {
-//      using dry_sizes_t = typename opts_t<real_t>::dry_sizes_t;
-//      using real_t  = typename dry_sizes_t::key_type;
-//      using size_number_t = typename dry_sizes_t::mapped_type;
-      //using conc_multi_t = typename size_number_t::mapped_type;
-
 
       // loop over (kappa, rd_insol) pairs
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)

@@ -107,6 +107,7 @@
 #include "impl/particles_impl_cond_common.ipp"
 #include "impl/particles_impl_cond.ipp"
 #include "impl/particles_impl_cond_sstp.ipp"
+#include "impl/particles_impl_ice_dep.ipp"
 #include "impl/particles_impl_ice_nucl_melt.ipp"
 #include "impl/particles_impl_sedi.ipp"
 #include "impl/particles_impl_subs.ipp"

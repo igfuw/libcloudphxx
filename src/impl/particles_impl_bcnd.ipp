@@ -320,14 +320,7 @@ namespace libcloudphxx
                       thrust::plus<real_t>()
                     );
                 }
-                
-                /*
-                output_puddle[common::outliq_num] += 
-                  thrust::reduce(
-                    n_filtered.begin(),            // input start
-                    n_filtered.begin() + n_part    // input end
-                  );
-                  */
+
 
                 if(opts_init.chem_switch)
                 {
