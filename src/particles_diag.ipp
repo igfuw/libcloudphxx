@@ -422,9 +422,9 @@ namespace libcloudphxx
       pimpl->moms_calc(pimpl->ice_c.begin(), n);
     }
 
-     // computes ice volume
+     // computes ice mixing ratio
     template <typename real_t, backend_t device>
-      void particles_t<real_t, device>::diag_ice_mass()
+      void particles_t<real_t, device>::diag_ice_mix_ratio()
      {
       pimpl->moms_calc(thrust::make_transform_iterator(
         thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(), pimpl->ice_rho.begin())),

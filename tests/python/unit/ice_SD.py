@@ -53,7 +53,7 @@ for time_dep_switch in [True, False]:
         prtcls.step_sync(opts, th, rv, rhod)
         prtcls.step_async(opts)
     prtcls.diag_all()
-    prtcls.diag_ice_mass()
+    prtcls.diag_ice_mix_ratio()
     ri = np.frombuffer(prtcls.outbuf())
     print("ice mixing ratio ", ri[0] * 1e3, "g/kg")
     print("water vapor mixing ratio ", rv[0] * 1e3, "g/kg")

@@ -418,7 +418,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_water_cons",    &lgr::particles_proto_t<real_t>::diag_water_cons)
       .def("diag_ice_a_mom",    &lgr::particles_proto_t<real_t>::diag_ice_a_mom)
       .def("diag_ice_c_mom",    &lgr::particles_proto_t<real_t>::diag_ice_c_mom)
-      .def("diag_ice_mass",    &lgr::particles_proto_t<real_t>::diag_ice_mass)
+      .def("diag_ice_mix_ratio",    &lgr::particles_proto_t<real_t>::diag_ice_mix_ratio)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
       .def("get_attr",    &lgr::particles_proto_t<real_t>::get_attr)
     ;
