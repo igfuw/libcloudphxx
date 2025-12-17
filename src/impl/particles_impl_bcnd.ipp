@@ -209,8 +209,8 @@ namespace libcloudphxx
                   n.begin(), n.end(),               // input 1
                   z.begin(),                        // stencil
                   n_filtered.begin(),               // output
-                  cuda::std::identity(),       // operation
-//                  cuda::std::identity(),          // operation
+                  // cuda::std::identity(),       // operation
+                  thrust::identity<n_t>(),          // operation
                   arg::_1 < opts_init.z0            // condition
                 );
 

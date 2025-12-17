@@ -180,7 +180,8 @@ namespace libcloudphxx
          chem_flag.begin(),                                                                // stencil
          chem_bgn[H],                                                                      // output
          detail::chem_electroneutral<real_t>(),                                            // op
-         cuda::std::identity()
+        //  cuda::std::identity()
+         thrust::identity<unsigned int>()
         );
       }
 
