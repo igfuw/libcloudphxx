@@ -54,7 +54,7 @@ namespace libcloudphxx
       init_ijk();
       init_dry_sd_conc(); 
 
-      // init other peoperties of SDs that didnt have a match
+      // init other properties of SDs that didnt have a match
       init_kappa(
         p_sdd->first.kappa
       );

@@ -218,7 +218,7 @@ namespace libcloudphxx
           n_part -= count_bins;
           hskpng_resize_npart();
 
-          // init other peoperties of SDs that didnt have a match
+          // init other properties of SDs that didnt have a match
           init_kappa(
             p_sdd->first.kappa
           );

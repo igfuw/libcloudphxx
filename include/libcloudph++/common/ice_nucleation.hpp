@@ -92,13 +92,13 @@ namespace libcloudphxx
         }
         else
         {
-          real_t V = real_t(4/3)
+          real_t V = real_t(4./3.)
           #if !defined(__NVCC__)
               * pi<real_t>()
           #else
               * CUDART_PI
           #endif
-          * pow(rw2, real_t(3/2)); // droplet volume
+          * pow(rw2, real_t(3./2.)); // droplet volume
 
           real_t dT = T - real_t(273.15);
           real_t x = - real_t(3020.684) - real_t(425.921)*pow(dT,real_t(1)) - real_t(25.9779)*pow(dT,real_t(2))
