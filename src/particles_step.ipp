@@ -220,9 +220,11 @@ namespace libcloudphxx
             pimpl->hskpng_Tpr();
             pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
             if (pimpl->opts_init.ice_switch)
+            {
               if (opts.turb_cond)
                 throw std::runtime_error("libcloudph++:deposition doesnt work with turb_cond");
               pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
+            }
           }
         }
 
