@@ -14,9 +14,10 @@ namespace libcloudphxx
     {
       // memory allocation, p already resized in init_sync()
       T.resize(n_cell);
-      RH.resize(n_cell); 
-      RH_i.resize(n_cell);
+      RH.resize(n_cell);
       eta.resize(n_cell);
+      if (opts_init.ice_switch)
+        RH_i.resize(n_cell);
 
       count_ijk.resize(n_cell);
       count_num.resize(n_cell);

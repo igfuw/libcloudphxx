@@ -266,6 +266,8 @@ namespace libcloudphxx
           detail::RH<real_t>(opts_init.RH_formula)
         );
 
+        if(opts_init.ice_switch)
+        {
         // RH_i
         thrust::transform(
           zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
@@ -277,6 +279,7 @@ namespace libcloudphxx
             opts_init.RH_formula
           )
         );
+          }
       }
  
       // dynamic viscosity
