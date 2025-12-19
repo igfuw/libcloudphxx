@@ -18,7 +18,9 @@ namespace libcloudphxx
       outliq_vol,
       outdry_vol,
       outprtcl_num,
-      outice_vol
+      outice_mass,
+      outliq_num,
+      outice_num
     };
 
     const std::map<output_t, std::string> output_names
@@ -34,7 +36,9 @@ namespace libcloudphxx
       {outliq_vol, "liquid_volume"},
       {outdry_vol, "dry_volume"},
       {outprtcl_num, "particle_number"},
-      {outice_vol, "ice_volume"}
+      {outice_mass, "ice_mass"},
+      {outliq_num, "liquid_number"},
+      {outice_num, "ice_number"}
     };
 
     inline output_t get_output_enum(const std::string& name)

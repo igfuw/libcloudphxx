@@ -35,7 +35,8 @@ def lognormal(lnr):
   return n_tot * exp(
     -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
   ) / log(stdev) / sqrt(2*pi);
-kappa = .61 #TODO - check 
+kappa = .61
+rd_insol = 0.
 # rho = 1.8 # TODO
 
 chem_gas = {
@@ -47,7 +48,7 @@ chem_gas = {
 # running all three
 for rhs in [
   rhs_blk_2m(dt), 
-  rhs_lgrngn(dt, sd_conc, {kappa:lognormal}, chem_gas)
+  rhs_lgrngn(dt, sd_conc, {(kappa, rd_insol):lognormal}, chem_gas)
 ]:
   parcel(p_d, th_d, r_v, w, dt, nt, rhs)
   print(p_d, arr_t([th_dry2std(th_d[0], r_v[0])]), r_v)

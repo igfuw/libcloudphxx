@@ -41,9 +41,10 @@ def lognormal2(lnr):
 opts = lgrngn.opts_t()
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {.61:lognormal, 1.28:lognormal2} # normal mode + GCCNs
+opts_init.dry_distros = {(.61,0.):lognormal, (1.28,0.):lognormal2} # normal mode + GCCNs
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
+opts_init.ice_switch = False
 opts_init.RH_max = 1.0001
 opts_init.dt = 1
 opts_init.sd_conc = int(1e3)
@@ -56,6 +57,7 @@ opts.sedi = False
 opts.cond = True
 opts.coal = False
 opts.chem = False
+opts.ice_nucl = False
 #opts.RH_max = 1.005
 
 #expected theta and rv after condensation:

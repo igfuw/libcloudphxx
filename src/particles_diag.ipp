@@ -75,6 +75,24 @@ namespace libcloudphxx
       };
 
       template <typename real_t>
+      struct precip_rate_ice
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)  // tpl is a tuple (a, c, rho, vt)
+        {
+          return real_t(4./3)
+          #if !defined(__NVCC__)
+            * pi<real_t>()
+          #else
+            * CUDART_PI
+          #endif
+          * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl) // a^2 * c
+          * thrust::get<2>(tpl)  // rho
+          * thrust::get<3>(tpl); // vt
+        }
+      };
+
+      template <typename real_t>
       struct RH_minus_Sc
       {
         BOOST_GPU_ENABLED
@@ -104,6 +122,25 @@ namespace libcloudphxx
           return sqrt(rw2);
         }
       };
+
+      template<class real_t>
+      class ice_mass
+      {
+      public:
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl)  // tpl is a tuple (a, c, rho)
+        {
+          return real_t(4./3)
+          #if !defined(__NVCC__)
+            * pi<real_t>()
+          #else
+            * CUDART_PI
+          #endif
+          * thrust::get<0>(tpl) * thrust::get<0>(tpl) * thrust::get<1>(tpl) // a^2 * c
+          * thrust::get<2>(tpl);  // rho
+        }
+      };
+
     }
 
     // records pressure
@@ -209,11 +246,39 @@ namespace libcloudphxx
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), false);
     }
 
+    // selects particles with (ice_a >= a_min && ice_a < a_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_rng(const real_t &a_min, const real_t &a_max)
+    {
+      pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), false);
+    }
+
+    // selects particles with (ice_c >= c_min && ice_c < c_max)
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_rng(const real_t &c_min, const real_t &c_max)
+    {
+      pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), false);
+    }
+
     // selects particles with (kpa >= kpa_min && kpa < kpa_max)
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_kappa_rng(const real_t &kpa_min, const real_t &kpa_max)
     {
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), false);
+    }
+
+    // selects ice particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice()
+    {
+      pimpl->moms_gt0(pimpl->ice_a.begin()); // ice_a greater than 0
+    }
+
+    // selects water particles 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water()
+    {
+      pimpl->moms_eq0(pimpl->ice_a.begin()); // ice_a equal to 0
     }
 
     // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
@@ -236,11 +301,39 @@ namespace libcloudphxx
       pimpl->moms_rng(pow(r_min, 2), pow(r_max, 2), pimpl->rw2.begin(), true);
     }
 
+    // selects particles with (ice_a >= a_min && ice_a < a_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_rng_cons(const real_t &a_min, const real_t &a_max)
+    {
+      pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), true);
+    }
+
+    // selects particles with (ice_c >= c_min && ice_c < c_max) from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_rng_cons(const real_t &c_min, const real_t &c_max)
+    {
+      pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), true);
+    }
+
     // selects particles with (kpa >= kpa_min && kpa < kpa_max) from particles previously selected
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_kappa_rng_cons(const real_t &kpa_min, const real_t &kpa_max)
     {
       pimpl->moms_rng(kpa_min, kpa_max, pimpl->kpa.begin(), true);
+    }
+
+    // selects ice particles from particles previously selected
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_cons()
+    {
+      pimpl->moms_gt0(pimpl->ice_a.begin(), true); // ice_a greater than 0
+    }
+
+    // selects water particles from particles previously selected 
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_water_cons()
+    {
+      pimpl->moms_eq0(pimpl->ice_a.begin(), true); // ice_a equal to 0
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -314,6 +407,31 @@ namespace libcloudphxx
     {
       pimpl->moms_calc(pimpl->rw2.begin(), n/2.);
     }
+
+    // computes n-th moment of the ice equatorial radius spectrum for the selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_a_mom(const int &n)
+    {
+      pimpl->moms_calc(pimpl->ice_a.begin(), n);
+    }
+
+    // computes n-th moment of the ice polar radius spectrum for the selected particles
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_ice_c_mom(const int &n)
+    {
+      pimpl->moms_calc(pimpl->ice_c.begin(), n);
+    }
+
+     // computes ice mixing ratio
+    template <typename real_t, backend_t device>
+      void particles_t<real_t, device>::diag_ice_mix_ratio()
+     {
+      pimpl->moms_calc(thrust::make_transform_iterator(
+        thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(), pimpl->ice_rho.begin())),
+        detail::ice_mass<real_t>()
+        ),
+        real_t(1));
+     }
 
     // compute n-th moment of kappa for selected particles
     template <typename real_t, backend_t device>
@@ -445,7 +563,23 @@ namespace libcloudphxx
  
       // copy back stored vterm
       thrust::copy(tmp_vt.begin(), tmp_vt.end(), pimpl->vt.begin());
-    }   
+    }
+
+    // compute 1st (non-specific) moment of ice_mass * vt of all SDs
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_precip_rate_ice_mass()
+    {
+      // updating terminal velocities
+      pimpl->hskpng_vterm_all();
+
+      pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
+      pimpl->moms_calc(thrust::make_transform_iterator(
+            thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(),
+              pimpl->ice_rho.begin(), pimpl->vt.begin())),
+            detail::precip_rate_ice<real_t>()
+            ),
+            real_t(1), false);
+    }
 
     // get max rw in each cell
     template <typename real_t, backend_t device>

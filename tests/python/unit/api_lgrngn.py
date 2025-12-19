@@ -24,8 +24,9 @@ opts_init = lgrngn.opts_init_t()
 kappa1 = .61
 kappa2 = 1.28
 kappa3 = 0.8
+rd_insol = 0.5e-6
 rho_stp = 1.2248
-opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
+opts_init.dry_distros = {(kappa1, rd_insol): lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.adve_scheme = lgrngn.as_t.euler
@@ -35,9 +36,7 @@ opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.rng_seed_init = 456
 opts_init.rng_seed_init_switch = True
-opts_init.src_dry_distros = {kappa1:lognormal}
 opts_init.rlx_dry_distros = {kappa1:[lognormal, [0,2], [0,opts_init.dz]]}
-opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
 opts_init.diag_incloud_time = True
 
@@ -69,6 +68,7 @@ print("chem_switch = ", opts_init.chem_switch)
 print("coal_switch = ", opts_init.coal_switch)
 print("sedi_switch = ", opts_init.sedi_switch)
 print("subs_switch = ", opts_init.subs_switch)
+print("ice_switch = ", opts_init.ice_switch)
 print("src_type = ", opts_init.src_type)
 
 print("exact_sstp_cond = ", opts_init.exact_sstp_cond)
@@ -105,6 +105,8 @@ opts.chem_gas = {
 }
 print("chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2])
 print("chem_gas = ", opts.chem_gas)
+
+opts.src_dry_distros = {(kappa1, rd_insol):(lognormal, 64, 1)}
 
 # --------- test runs -----------
 
@@ -241,8 +243,8 @@ opts_init.sd_conc = sd_conc_old
 # 0D dry_sizes init with two kappas
 print("0D dry sizes")
 opts_init.dry_distros = dict()
-opts_init.dry_sizes = {kappa1 : {1.e-6  : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 10]},
-                       kappa2 : {1.2e-6 : [20. * rho_stp, 10], 12.e-6 : [15. * rho_stp, 15]}}
+opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6  : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 10]},
+                       (kappa2, rd_insol) : {1.2e-6 : [20. * rho_stp, 10], 12.e-6 : [15. * rho_stp, 15]}}
 
 sd_conc_old = opts_init.sd_conc
 opts_init.sd_conc = 0
@@ -301,14 +303,14 @@ assert isclose(k, n * kappa1, rtol=1e-20)
 # go back to distros init
 opts_init.sd_conc = sd_conc_old
 opts_init.dry_sizes = dict()
-opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
+opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
 
 
 
 # ----------
 # 0D dry_sizes + sd_conc init
 print("0D dry_sizes + sd_conc")
-opts_init.dry_sizes = {kappa3 : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, rd_insol) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -326,7 +328,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 0D dry_sizes + sd_conc + tail
 print("0D dry_sizes + sd_conc + tail")
-opts_init.dry_sizes = {kappa3 : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, rd_insol): {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 opts_init.sd_conc_large_tail = 1
 
 prtcls = lgrngn.factory(backend, opts_init)
@@ -346,7 +348,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 0D dry_sizes + const_multi init
 print("0D dry_sizes + const_multi")
-opts_init.dry_sizes = {kappa3 : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, rd_insol) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
@@ -385,6 +387,29 @@ assert sum(frombuffer(prtcls.outbuf())) == 64
 
 opts_init.turb_coal_switch=False
 opts.turb_coal=False
+
+# ----------
+# 0D ice
+print("0D ice")
+th   = arr_t([263.])
+opts_init.ice_switch = True
+opts_init.coal_switch = False
+opts.ice_nucl = True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == 1
+print(frombuffer(prtcls.outbuf()))
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == 64
+
+opts_init.ice_switch=False
+opts.ice_nucl=False
+opts_init.coal_switch = True
 
 
 
@@ -617,7 +642,7 @@ assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
 # 3D dry_sizes init
 print("3D dry sizes")
 opts_init.dry_distros = dict()
-opts_init.dry_sizes = {kappa1 : {1.e-6 : [30./ cell_vol * rho_stp, 30], 15.e-6 : [10. / cell_vol * rho_stp, 10]}}
+opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 30], 15.e-6 : [10. / cell_vol * rho_stp, 10]}}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -649,8 +674,8 @@ assert (frombuffer(prtcls.outbuf()) == 10 / cell_vol).all()
 # ----------
 # 3D dry_sizes + sd_conc init
 print("3D dry_sizes + sd_conc")
-opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
-opts_init.dry_sizes = {kappa1 : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp,  5]}}
+opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
+opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp,  5]}}
 opts_init.sd_conc = sd_conc_old
 opts_init.sd_const_multi = 0
 
@@ -664,8 +689,12 @@ assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 fro
 
 # test if get_attr work and if kappas are set correctly
 kappa = asarray(prtcls.get_attr("kappa"))
-assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
-assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
+# assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
+# assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
+n = 32 * opts_init.nx * opts_init.ny * opts_init.nz
+assert (kappa[:n] == kappa1).all()
+assert (kappa[n:2*n] == kappa2).all()
+assert (kappa[2*n:] == kappa1).all()
 
 
 # ----------
@@ -692,7 +721,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 3D dry_sizes + const_multi init
 print("3D dry_sizes + const_multi")
-opts_init.dry_sizes = {kappa1 : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp, 5]}}
 opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
@@ -709,3 +738,28 @@ assert (frombuffer(prtcls.outbuf())[0] == 84).all() # 64 from dry_distro and 20 
 opts_init.sd_conc = sd_conc_old
 opts_init.sd_const_multi = 0
 opts_init.dry_sizes = dict()
+
+
+# ----------
+# 3D ice
+print("3D ice")
+th_arr   = arr_t([[263.,  263.   ],     [263.,  263.  ]])
+th   = arr_t([th_arr,   th_arr  ])
+opts_init.ice_switch = True
+opts_init.coal_switch = False
+opts.ice_nucl = True
+prtcls = lgrngn.factory(backend, opts_init)
+prtcls.init(th, rv, rhod)
+prtcls.step_sync(opts, th, rv)
+prtcls.step_async(opts)
+
+prtcls.diag_all()
+prtcls.diag_sd_conc()
+assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
+print(frombuffer(prtcls.outbuf()))
+assert (frombuffer(prtcls.outbuf()) > 0).all()
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+
+opts_init.ice_switch = False
+opts_init.coal_switch = True
+opts.ice_nucl = False

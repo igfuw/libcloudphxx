@@ -20,8 +20,8 @@ namespace libcloudphxx
           resolved_RH(RH_formula)
         {}
 
-        BOOST_GPU_ENABLED 
-        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl) 
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
         {
           return resolved_RH(thrust::make_tuple(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl))) + thrust::get<3>(tpl);
         }
@@ -36,9 +36,9 @@ namespace libcloudphxx
       const thrust_device::vector<real_t> &Tp,
       const pres_iter &pi,
       const RH_iter &rhi
-    ) { 
-      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
-      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
+    ) {
+      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get());
+      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get());
 
       auto hlpr_zip_iter = thrust::make_zip_iterator(thrust::make_tuple(
         sstp_tmp_rh.begin(),
@@ -56,7 +56,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      // calculating drop growth in a timestep using backward Euler 
+      // calculating drop growth in a timestep using backward Euler
       thrust::transform(
         rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
         thrust::make_zip_iterator(thrust::make_tuple(      // input - 2nd arg
@@ -65,7 +65,7 @@ namespace libcloudphxx
           pi,
           // particle-specific RH
           rhi
-        )), 
+        )),
         rw2.begin(),                    // output
         detail::advance_rw2<real_t>(dt, RH_max)
       );
@@ -78,12 +78,12 @@ namespace libcloudphxx
       const real_t &RH_max,
       const bool turb_cond,
       const int step
-    ) { 
+    ) {
 
       namespace arg = thrust::placeholders;
 
       // prerequisite
-      hskpng_sort(); 
+      hskpng_sort();
       // particle's local change in rv
       auto pdrv_g = tmp_device_real_part.get_guard();
       thrust_device::vector<real_t> &pdrv = pdrv_g.get();
@@ -121,8 +121,8 @@ namespace libcloudphxx
           sstp_tmp_th.begin(), sstp_tmp_th.end(), // input - first arg
           sstp_tmp_rh.begin(),                    // input - second arg
           Tp.begin(),                             // output
-          detail::common__theta_dry__T_rhod<real_t>() 
-        );  
+          detail::common__theta_dry__T_rhod<real_t>()
+        );
       }
       else // th_std
       {
@@ -130,16 +130,16 @@ namespace libcloudphxx
         thrust::transform(
           sstp_tmp_th.begin(), sstp_tmp_th.end(),                      // input - first arg
           thrust::make_zip_iterator(thrust::make_tuple(
-            sstp_tmp_rv.begin(),                                       // input - second arg 
+            sstp_tmp_rv.begin(),                                       // input - second arg
             sstp_tmp_p.begin()                                         // input - third arg
           )),
           Tp.begin(),                                                  // output
-          detail::common__theta_std__T_p<real_t>() 
+          detail::common__theta_std__T_p<real_t>()
         );
       }
 
 
-      // calculating drop growth in a timestep using backward Euler 
+      // calculating drop growth in a timestep using backward Euler
       if(!opts_init.const_p)
       {
         // particle-specific pressure iterator, used twice
@@ -154,7 +154,7 @@ namespace libcloudphxx
         );
 
         if(turb_cond)
-          cond_sstp_hlpr(dt, RH_max, Tp, 
+          cond_sstp_hlpr(dt, RH_max, Tp,
             // particle-specific p
             pressure_iter,
             // particle-specific RH, resolved + SGS
@@ -166,8 +166,8 @@ namespace libcloudphxx
                 ssp.begin()
               )),
               detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
-          ); 
+            )
+          );
         else // no RH SGS
           cond_sstp_hlpr(dt, RH_max, Tp,
             // particle-specific p
@@ -180,8 +180,8 @@ namespace libcloudphxx
                 Tp.begin()
               )),
               detail::RH<real_t>(opts_init.RH_formula)
-            )        
-          ); 
+            )
+          );
       }
       else // opts_init.const_p
       {
@@ -198,8 +198,8 @@ namespace libcloudphxx
                 ssp.begin()
               )),
               detail::RH_sgs<real_t>(opts_init.RH_formula)
-            )        
-          ); 
+            )
+          );
         else // no RH SGS
           cond_sstp_hlpr(dt, RH_max, Tp,
             // particle-specific p
@@ -212,8 +212,8 @@ namespace libcloudphxx
                 Tp.begin()
               )),
               detail::RH<real_t>(opts_init.RH_formula)
-            )        
-          ); 
+            )
+          );
       }
 
       // rw3_new - rw3_old
@@ -258,23 +258,23 @@ namespace libcloudphxx
           - common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
           * real_t(4./3) * pi<real_t>(), n_dims
         )
-      );  
+      );
 
       // apply change in rv to sstp_tmp_rv
       update_pstate(sstp_tmp_rv, pdrv);
 
       // calc particle-specific change in th based on pdrv
       thrust::transform(
-        thrust::make_zip_iterator(thrust::make_tuple(  
-          pdrv.begin(),       //  
+        thrust::make_zip_iterator(thrust::make_tuple(
+          pdrv.begin(),       //
           Tp.begin(),         // dth = drv * d_th_d_rv(T, th)
-          sstp_tmp_th.begin() //  
-        )), 
-        thrust::make_zip_iterator(thrust::make_tuple(  
-          pdrv.end(),       //  
+          sstp_tmp_th.begin() //
+        )),
+        thrust::make_zip_iterator(thrust::make_tuple(
+          pdrv.end(),       //
           Tp.end(),         // dth = drv * d_th_d_rv(T, th)
-          sstp_tmp_th.end() //  
-        )), 
+          sstp_tmp_th.end() //
+        )),
         pdrv.begin(), // in-place
         detail::dth<real_t>()
       );
@@ -282,5 +282,5 @@ namespace libcloudphxx
       // apply change in th to sstp_tmp_th
       update_pstate(sstp_tmp_th, pdrv);
     }
-  };  
+  };
 };

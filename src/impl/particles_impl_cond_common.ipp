@@ -126,13 +126,13 @@ namespace libcloudphxx
           const quantity<common::thermal_conductivity, real_t> 
             K = K_0<real_t>() * beta(lambda_K / rw) * (Nu(Pr, Re) / 2);
 
-          return real_t(2) * rdrdt( 
+          return real_t(2) * rdrdt(
             D,
             K,
-            rhod * rv, 
-            T, 
-            p, 
-            RH > RH_max ? RH_max : RH, 
+            rhod * rv,
+            T,
+            p,
+            RH > RH_max ? RH_max : RH,
             a_w(rw3, rd3, kpa),
             klvntrm(rw, T)
           );
@@ -170,8 +170,11 @@ namespace libcloudphxx
           using std::isinf;
 #endif
 
+          // Skip ice particles
+          if (rw2_old <= 0) return rw2_old;
+
           auto& tpl_in = thrust::get<0>(tpl);
-          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max); 
+          const advance_rw2_minfun<real_t> f(dt, rw2_old, tpl, RH_max);
           const real_t drw2 = dt * f.drw2_dt(rw2_old * si::square_metres) * si::seconds / si::square_metres;
 
 #if !defined(NDEBUG)
@@ -193,7 +196,7 @@ namespace libcloudphxx
               "vt: %g  "
               "lambda_D: %g  "
               "lambda_K: %g\n",
-               drw2, rw2_old, dt, RH_max, 
+               drw2, rw2_old, dt, RH_max,
                thrust::get<0>(tpl_in), // rhod
                thrust::get<1>(tpl_in), // rv
                thrust::get<2>(tpl_in), // T
@@ -291,6 +294,7 @@ namespace libcloudphxx
           return rw2_new;
         }
       };
+
     };
   };  
 };

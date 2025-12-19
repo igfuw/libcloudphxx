@@ -33,15 +33,15 @@ def check_kappa_conc(prtcls, eps):
 opts_init = lgrngn.opts_init_t()
 kappa1 = .61
 kappa2 = 1.28
+rd_insol = 0.
 rho_stp = 1.2248
-opts_init.dry_distros = {kappa1:lognormal, kappa2:lognormal}
+opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.dt = 1
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 512
 opts_init.rng_seed = 396
-opts_init.src_sd_conc = 64
 opts_init.src_z1 = opts_init.dz
 opts_init.sedi_switch = False
 

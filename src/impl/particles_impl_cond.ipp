@@ -19,35 +19,34 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
-      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
-      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
-      
-      // --- calc liquid water content before cond ---
-      hskpng_sort(); 
-      auto drv_g = tmp_device_real_cell.get_guard();
-      thrust_device::vector<real_t> &drv = drv_g.get();
+      thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get());
+      thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get());
+
+      hskpng_sort();
+
+      // Vector to store 3rd moment
+      auto drv_liq_g = tmp_device_real_cell.get_guard();
+      thrust_device::vector<real_t> &drv_liq = drv_liq_g.get();
       if(step == 0)
         reset_guardp(rw_mom3_gp, tmp_device_real_cell);
-      thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();      
+      thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();
 
-      // calculating the 3rd wet moment before condensation
+      // Compute per-cell 3rd moment of liquid droplets before condensation. It is stored in count_mom
       if(step == 0)
       {
-        moms_all();
+        moms_gt0(rw2.begin()); // choose liquid particles (rw2>0)
         moms_calc(rw2.begin(), real_t(3./2.));
         nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) before condensation");
 
         // fill with 0s if not all cells have particles
-        if(count_n!=n_cell)  
-        {
-          thrust::fill(drv.begin(), drv.end(), real_t(0.));
+        if(count_n!=n_cell) {
+          thrust::fill(drv_liq.begin(), drv_liq.end(), real_t(0.));
           thrust::fill(rw_mom3.begin(), rw_mom3.end(), real_t(0.));
         }
-          
-        // drv = -rw_mom3 precond
+
         thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
+          count_mom.begin(), count_mom.begin() + count_n,
+          thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()),
           thrust::negate<real_t>()
         );
       }
@@ -55,8 +54,8 @@ namespace libcloudphxx
       {
         // drv = -rw_mom3 precond
         thrust::transform(
-          rw_mom3.begin(), rw_mom3.end(), 
-          drv.begin(),
+          rw_mom3.begin(), rw_mom3.end(),
+          drv_liq.begin(),
           thrust::negate<real_t>()
         );
       }
@@ -73,7 +72,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      // calculating drop growth in a timestep using backward Euler 
+      // calculating drop growth in a timestep using backward Euler
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
       {
@@ -86,6 +85,7 @@ namespace libcloudphxx
           arg::_1 + arg::_2
         );
 
+        // condensation for liquid droplets
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -94,12 +94,14 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               RH_plus_ssp.begin()
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt, RH_max)
         );
       }
       else
+      {
+        // condensation for liquid droplets
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -108,45 +110,47 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               thrust::make_permutation_iterator(RH.begin(), ijk.begin())
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt, RH_max)
         );
-      nancheck(rw2, "rw2 after condensation (no sub-steps");
-
-      // calculating the 3rd wet moment after condensation
-      moms_calc(rw2.begin(), real_t(3./2.));
-      nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
-
-      if(step < sstp_cond - 1)
-      {
-        thrust::copy(
-          count_mom.begin(), count_mom.begin() + count_n,                        // input - 1st arg
-          thrust::make_permutation_iterator(rw_mom3.begin(), count_ijk.begin())  // output
-        );
-
-        // adding the third moment after condensation to dm_3
-        thrust::transform(
-          rw_mom3.begin(), rw_mom3.end(), 
-          drv.begin(),
-          drv.begin(),
-          thrust::plus<real_t>()
-        );
-      }
-      else // last step, calculate change in 3rd moment and update th and rv
-      {
-        thrust::transform(
-          count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // input - 2nd arg
-          thrust::make_permutation_iterator(drv.begin(), count_ijk.begin()), // output
-          thrust::plus<real_t>()
-        );
-        rw_mom3_gp.reset(); // destroy guard to tmp array that stored 3rd moment of rw
+        nancheck(rw2, "rw2 after condensation (no sub-steps");
       }
 
-      // update th and rv according to changes in third specific wet moment
-      update_th_rv(drv);
+        // Compute per-cell 3rd moment of liquid droplets after condensation. It is stored in count_mom
+        moms_gt0(rw2.begin()); // choose liquid particles (rw2>0)
+        moms_calc(rw2.begin(), real_t(3./2.));
+        nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
-    }
-  };  
-};
+        // Adding the third liquid moment after condensation to drv_liq
+        if(step < sstp_cond - 1)
+        {
+          thrust::copy(
+            count_mom.begin(), count_mom.begin() + count_n,                        // input - 1st arg
+            thrust::make_permutation_iterator(rw_mom3.begin(), count_ijk.begin())  // output
+          );
+
+          // adding the third moment after condensation to dm_3
+          thrust::transform(
+            rw_mom3.begin(), rw_mom3.end(),
+            drv_liq.begin(),
+            drv_liq.begin(),
+            thrust::plus<real_t>()
+          );
+        }
+        else // last step, calculate change in 3rd moment and update th and rv
+        {
+          thrust::transform(
+            count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+            thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()), // input - 2nd arg
+            thrust::make_permutation_iterator(drv_liq.begin(), count_ijk.begin()), // output
+            thrust::plus<real_t>()
+          );
+          rw_mom3_gp.reset(); // destroy guard to tmp array that stored 3rd moment of rw
+        }
+
+        // update th and rv according to change in third specific wet moment
+        update_th_rv(drv_liq, impl::phase_change::condensation);
+      }
+    };
+  }
