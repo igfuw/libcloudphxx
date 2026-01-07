@@ -6,7 +6,7 @@
   * @brief initialisation routine for super droplets
   */
 
-#include <libcloudph++/lgrngn/ice_nucleation.hpp>
+#include <libcloudph++/common/ice_nucleation.hpp>
 
 namespace libcloudphxx
 {
@@ -15,7 +15,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_T_freeze() {
 
-      using namespace libcloudphxx::lgrngn::ice_nucleation;
+      using namespace libcloudphxx::common::ice_nucleation;
 
       // random numbers between [0,1] for sampling
       auto u01g = tmp_device_real_part.get_guard();

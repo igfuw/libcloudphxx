@@ -15,13 +15,14 @@
 #include "ccn_source.hpp"
 #include "distro_t.hpp"
 #include "../common/chem.hpp"
-#include "ice_nucleation.hpp"
+#include "../common/ice_nucleation.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
     using common::unary_function;
+    using common::ice_nucleation::INP_t;
 
 //<listing>
     template<typename real_t>
@@ -92,7 +93,7 @@ namespace libcloudphxx
            time_dep_ice_nucl;  // it true, time-dependent freezing, if false, singular freezing
 
       // ice nucleating particles type
-      ice_nucleation::INP_t inp_type;
+      INP_t inp_type;
            
       int sstp_chem;
       real_t chem_rho;
@@ -196,7 +197,7 @@ namespace libcloudphxx
         rlx_switch(false), 
         ice_switch(false),
         time_dep_ice_nucl(false),
-        inp_type(ice_nucleation::INP_t::mineral),
+        inp_type(INP_t::mineral),
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),

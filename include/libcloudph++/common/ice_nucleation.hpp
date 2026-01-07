@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../common/units.hpp"
-#include "../common/const_cp.hpp"
+#include "units.hpp"
+#include "const_cp.hpp"
 #include <thrust/tuple.h>
 
 namespace libcloudphxx
 {
-  namespace lgrngn
+  namespace common
   {
     namespace ice_nucleation
     {
@@ -82,7 +82,7 @@ namespace libcloudphxx
               * CUDART_PI
           #endif
           * rd2_insol; // surface area of the insoluble particle
-          real_t d_aw = real_t(1) - common::const_cp::p_vsi<real_t>(T * si::kelvin)/ common::const_cp::p_vs<real_t>(T * si::kelvin); // water activity
+          real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvin)/ const_cp::p_vs<real_t>(T * si::kelvin); // water activity
           if (INP_type == INP_t::mineral)
           {
             real_t J_het = pow(real_t(10), real_t(-1.35) + real_t(22.62) * d_aw) * real_t(1e4); // nucleation rate
