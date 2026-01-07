@@ -15,6 +15,7 @@
 #include "ccn_source.hpp"
 #include "distro_t.hpp"
 #include "../common/chem.hpp"
+#include "ice_nucleation.hpp"
 
 namespace libcloudphxx
 {
@@ -89,6 +90,9 @@ namespace libcloudphxx
            ice_switch,         // if true, ice is allowed
            exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
            time_dep_ice_nucl;  // it true, time-dependent freezing, if false, singular freezing
+
+      // ice nucleating particles type
+      ice_nucleation::INP_t inp_type;
            
       int sstp_chem;
       real_t chem_rho;
@@ -192,6 +196,7 @@ namespace libcloudphxx
         rlx_switch(false), 
         ice_switch(false),
         time_dep_ice_nucl(false),
+        inp_type(ice_nucleation::INP_t::mineral),
         exact_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),

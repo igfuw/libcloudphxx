@@ -6,7 +6,7 @@
   * @brief initialisation routine for super droplets
   */
 
-#include <libcloudph++/common/ice_nucleation.hpp>
+#include <libcloudph++/lgrngn/ice_nucleation.hpp>
 
 namespace libcloudphxx
 {
@@ -15,9 +15,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_T_freeze() {
 
-      using namespace libcloudphxx::common::ice_nucleation;
-
-      const INP_t inp_type = INP_t::mineral; //TODO: INP type as argument, to support different partcle types
+      using namespace libcloudphxx::lgrngn::ice_nucleation;
 
       // random numbers between [0,1] for sampling
       auto u01g = tmp_device_real_part.get_guard();
@@ -28,7 +26,7 @@ namespace libcloudphxx
         thrust::make_zip_iterator(thrust::make_tuple(rd2_insol.begin() + n_part_old, u01.begin() + n_part_old)),
         thrust::make_zip_iterator(thrust::make_tuple(rd2_insol.end(),   u01.end())),
         T_freeze.begin() + n_part_old,
-        T_freeze_CDF_inv_functor<real_t>(inp_type)
+        T_freeze_CDF_inv_functor<real_t>(opts_init.inp_type)
       );
     }
   };

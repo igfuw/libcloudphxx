@@ -51,11 +51,12 @@ namespace libcloudphxx
       class time_dep_freeze
       {
         const real_t dt;
-        //const common::ice_nucleation::INP_t INP_type;
+        const ice_nucleation::INP_t INP_type;
 
       public:
         BOOST_GPU_ENABLED
-        time_dep_freeze(const real_t &dt) : dt(dt)
+        time_dep_freeze(const real_t &dt, const ice_nucleation::INP_t INP_type)
+          : dt(dt), INP_type(INP_type)
         {}
 
         BOOST_GPU_ENABLED
@@ -73,7 +74,7 @@ namespace libcloudphxx
           const real_t u01 = thrust::get<5>(tpl);
           const real_t T  = thrust::get<6>(tpl);
 
-          if (rw2 > real_t(0) && u01 < common::ice_nucleation::p_freeze<real_t>(common::ice_nucleation::INP_t::mineral, rd2_insol, rw2, T, dt))
+          if (rw2 > real_t(0) && u01 < ice_nucleation::p_freeze<real_t>(INP_type, rd2_insol, rw2, T, dt))
           {
             rho_i = common::moist_air::rho_i<real_t>() * si::cubic_metres / si::kilograms;
             a   = pow(rw2, real_t(0.5)) * pow(common::moist_air::rho_w<real_t>() / common::moist_air::rho_i<real_t>(), real_t(1./3.));
@@ -160,7 +161,7 @@ namespace libcloudphxx
             u01.begin(),
             thrust::make_permutation_iterator(T.begin(), ijk.begin())
           )) + n_part,
-            detail::time_dep_freeze<real_t>(dt)  // functor for updating (rw2, a, c, rho_i) if freezing condition satisfied
+            detail::time_dep_freeze<real_t>(dt, opts_init.inp_type)  // functor for updating (rw2, a, c, rho_i) if freezing condition satisfied
         );
       }
       else  // singular freezing based on Shima et al., 2020
