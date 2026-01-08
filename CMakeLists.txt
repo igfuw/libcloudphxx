@@ -59,6 +59,10 @@ if (NOT CMAKE_CUDA_COMPILER)
   ")
 else()
   enable_language(CUDA)
+  # Check CUDA version
+  # if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 12.2)
+  #     message(FATAL_ERROR "CUDA >= 12.2 is required, but found ${CMAKE_CUDA_COMPILER_VERSION}") # needed for cuda::std::identity
+  # endif()
   set(CMAKE_CUDA_FLAGS_DEBUG "")
   set(CMAKE_CUDA_FLAGS_RELEASE "")
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
