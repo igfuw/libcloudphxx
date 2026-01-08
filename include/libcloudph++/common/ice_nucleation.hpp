@@ -1,7 +1,10 @@
 #pragma once
 
 #include "units.hpp"
+#include "macros.hpp"
+#include "earth.hpp"
 #include "const_cp.hpp"
+#include "kelvin_term.hpp"
 #include <thrust/tuple.h>
 
 namespace libcloudphxx
