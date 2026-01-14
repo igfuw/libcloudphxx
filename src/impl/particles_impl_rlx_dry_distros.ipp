@@ -219,12 +219,13 @@ namespace libcloudphxx
           n_part = n_part_old + n_part_to_init;
 
           // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
-          ijk.resize(n_part);
-          i.resize(n_part);
-          k.resize(n_part);
-          if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
-          rd3.resize(n_part);
-          n.resize(n_part);
+          // ijk.resize(n_part);
+          // i.resize(n_part);
+          // k.resize(n_part);
+          // if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
+          // rd3.resize(n_part);
+          // n.resize(n_part);
+          hskpng_resize_npart();
 
           // --- init k ---
           {
@@ -232,6 +233,7 @@ namespace libcloudphxx
             thrust_device::vector<thrust_size_t> &ptr(ptr_g.get());
             thrust::exclusive_scan(n_SD_to_create.begin(), n_SD_to_create.end(), ptr.begin()); // number of SDs in cells to init up to (i-1)
 
+            thrust_device::vector<thrust_size_t> &k(k_gp->get());
             thrust::for_each(
               thrust::make_zip_iterator(thrust::make_tuple(
                 n_SD_to_create.begin(), ptr.begin(), zero
@@ -273,8 +275,14 @@ namespace libcloudphxx
           thrust_device::vector<real_t> &u01 = u01g.get();
           rand_u01(u01, n_part_to_init * (n_dims)); // random numbers for: i, rd, j (j only in 3D)
 
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
           thrust::transform(u01.begin(), u01.begin() + n_part_to_init, i.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.nx));
-          if(n_dims==3) thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
+
+          if(n_dims==3)
+          {
+            thrust_device::vector<thrust_size_t> &j(j_gp->get());
+            thrust::transform(u01.begin() + 2*n_part_to_init, u01.begin() + 3*n_part_to_init, j.begin() + n_part_old, detail::multiply_by_constant_and_cast<real_t, thrust_size_t>(opts_init.ny));
+          }
 
           // raveling i, j & k into ijk; only of the new SD
           ravel_ijk(n_part_old);
@@ -298,7 +306,7 @@ namespace libcloudphxx
         // init other SD characteristics that don't have to be initialized in the bins loop
         n_part_old = n_part_pre_bins_loop;
         n_part_to_init = n_part - n_part_old;
-        hskpng_resize_npart();
+//        hskpng_resize_npart();
 
         init_SD_with_distros_finalize(kappa, false); // no need to unravel ijk there, becaues i j k are already initialized
 

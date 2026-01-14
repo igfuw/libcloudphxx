@@ -199,7 +199,7 @@ namespace libcloudphxx
                   chem_rhs_helper<real_t>(chem_iter, dt),
                   // condition
                   // cuda::std::identity()
-                  thrust::identity<unsigned int>()
+                  thrust::identity<thrust_size_t>()
                 );
 
 #if !defined(__NVCC__)
@@ -312,7 +312,7 @@ namespace libcloudphxx
         rd3.begin(),                                       //output
         detail::chem_new_rd3<real_t>(opts_init.chem_rho),  //op
         // cuda::std::identity()                   //condition
-        thrust::identity<unsigned int>()
+        thrust::identity<thrust_size_t>()
       );
 
 #if !defined(__NVCC__)

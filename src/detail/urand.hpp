@@ -63,7 +63,7 @@ namespace libcloudphxx
 
         void generate_n(
           thrust_device::vector<real_t> &u01, 
-          const thrust_size_t n
+          const unsigned int n
         ) {
           // note: generate_n copies the third argument!!!
           std::generate_n(u01.begin(), n, fnctr_u01({engine, dist_u01})); // [0,1) range 
@@ -71,7 +71,7 @@ namespace libcloudphxx
 
         void generate_normal_n(
           thrust_device::vector<real_t> &normal01, 
-          const thrust_size_t n
+          const unsigned int n
         ) {
           // note: generate_n copies the third argument!!!
           std::generate_n(normal01.begin(), n, fnctr_normal01({engine, dist_normal01})); 
@@ -79,7 +79,7 @@ namespace libcloudphxx
 
         void generate_n(
           thrust_device::vector<unsigned int> &un, 
-          const thrust_size_t n
+          const unsigned int n
         ) {
           // note: generate_n copies the third argument!!!
           std::generate_n(un.begin(), n, fnctr_un({engine, dist_un})); 
@@ -116,7 +116,7 @@ namespace libcloudphxx
 
         void generate_n(
           thrust_device::vector<float> &v, 
-          const thrust_size_t n
+          const unsigned int n
         )
         {
           gpuErrchk(curandGenerateUniform(gen, thrust::raw_pointer_cast(v.data()), n)); // (0,1] range
@@ -127,7 +127,7 @@ namespace libcloudphxx
 
         void generate_n(
           thrust_device::vector<double> &v, 
-          const thrust_size_t n
+          const unsigned int n
         )
         {
           gpuErrchk(curandGenerateUniformDouble(gen, thrust::raw_pointer_cast(v.data()), n)); // (0,1] range
@@ -138,7 +138,7 @@ namespace libcloudphxx
 
         void generate_normal_n(
           thrust_device::vector<float> &v, 
-          const thrust_size_t n
+          const unsigned int n
         )
         {
           gpuErrchk(curandGenerateNormal(gen, thrust::raw_pointer_cast(v.data()), n, float(0), float(1)));
@@ -146,7 +146,7 @@ namespace libcloudphxx
 
         void generate_normal_n(
           thrust_device::vector<double> &v, 
-          const thrust_size_t n
+          const unsigned int n
         )
         {
           gpuErrchk(curandGenerateNormalDouble(gen, thrust::raw_pointer_cast(v.data()), n, double(0), double(1)));
@@ -154,7 +154,7 @@ namespace libcloudphxx
 
         void generate_n(
           thrust_device::vector<unsigned int> &v, 
-          const thrust_size_t n
+          const unsigned int n
         )
         {
           gpuErrchk(curandGenerate(gen, thrust::raw_pointer_cast(v.data()), n));

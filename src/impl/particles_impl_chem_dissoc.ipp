@@ -181,7 +181,7 @@ namespace libcloudphxx
          chem_bgn[H],                                                                      // output
          detail::chem_electroneutral<real_t>(),                                            // op
         //  cuda::std::identity()
-         thrust::identity<unsigned int>()
+         thrust::identity<thrust_size_t>()
         );
       }
 

@@ -46,7 +46,8 @@ namespace libcloudphxx
       const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
       const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
       thrust_device::vector<thrust_size_t> 
-                  *ii[3] = { &i,           &j,           &k           };
+                  *ii[3] = { &(i_gp->get()),  &(j_gp->get()),  &(k_gp->get())};
+//      auto ii[] = { i_gp,           j_gp,           k_gp           };
 
       for (int ix = 0; ix < 3; ++ix)
       {
