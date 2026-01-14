@@ -20,12 +20,12 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::hskpng_remove_n0()
     {
       // TODO: init these vctrs once per run
-      std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
-      n_t_vctrs.insert(&ijk);
-
-      if (opts_init.nx != 0)  n_t_vctrs.insert(&i);
-      if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
-      if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
+//      std::set<thrust_device::vector<thrust_size_t>*> n_t_vctrs;
+//      n_t_vctrs.insert(&ijk);
+//
+//      if (opts_init.nx != 0)  n_t_vctrs.insert(&i);
+//      if (opts_init.ny != 0)  n_t_vctrs.insert(&j);
+//      if (opts_init.nz != 0)  n_t_vctrs.insert(&k);
 
       namespace arg = thrust::placeholders;
 
@@ -65,15 +65,15 @@ namespace libcloudphxx
       }
 
       // remove from n_t vectors
-      for(auto vec: n_t_vctrs)
-      { 
-        thrust::remove_if(
-          vec->begin(),
-          vec->begin() + n_part,
-          n.begin(),
-          arg::_1 == 0
-        );
-      }
+//      for(auto vec: n_t_vctrs)
+//      { 
+//        thrust::remove_if(
+//          vec->begin(),
+//          vec->begin() + n_part,
+//          n.begin(),
+//          arg::_1 == 0
+//        );
+//      }
 
       // remove from n and set new n_part
       auto new_end = thrust::remove_if(
@@ -89,6 +89,9 @@ namespace libcloudphxx
       // resize chem vectors and update chem iterators
       if(opts_init.chem_switch)
         init_chem();
+
+      // NOTE: hskpng_ijk needs to be called aftewards, as i,j,k,ijk were not removed, but were resized - they are undefined!
+      // TODO: call it here? bu remove_n0 is called multiple times in rcyc(), so more optimal to do it manually afterwards...
     }
   };  
 };

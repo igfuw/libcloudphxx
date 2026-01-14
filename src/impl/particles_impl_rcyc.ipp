@@ -135,6 +135,8 @@ namespace libcloudphxx
       // if not all were recycled, remove those with n==0
       if(n_flagged < n_to_rcyc)  hskpng_remove_n0();
       return n_to_rcyc;
+
+      // NOTE: hskpng_ijk needs to be called aftewards, as i,j,k,ijk were not copied!
     }
   };  
 };

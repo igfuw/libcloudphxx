@@ -32,15 +32,21 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ravel_ijk(const thrust_size_t begin_shift) // default = 0
     {
+      namespace arg = thrust::placeholders;
       switch (n_dims)
       {
         case 0: 
           break;
         case 1:
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
           thrust::copy(i.begin()+begin_shift, i.end(), ijk.begin()+begin_shift);
           break;
+        }
         case 2:
-          namespace arg = thrust::placeholders;
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
+          thrust_device::vector<thrust_size_t> &k(k_gp->get());
           thrust::transform(
             i.begin()+begin_shift, i.end(), // input - first arg
             k.begin()+begin_shift,          // input - second arg
@@ -48,8 +54,12 @@ namespace libcloudphxx
             arg::_1 * opts_init.nz + arg::_2   // assuming z varies first
           );
           break;
+        }
         case 3:
-          namespace arg = thrust::placeholders;
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
+          thrust_device::vector<thrust_size_t> &j(j_gp->get());
+          thrust_device::vector<thrust_size_t> &k(k_gp->get());
           thrust::transform(
             i.begin()+begin_shift, i.end(), // input - first arg
             j.begin()+begin_shift,          // input - second arg
@@ -65,6 +75,7 @@ namespace libcloudphxx
           );
           // TODO: replace these two transforms with single one
           break;
+        }
         default:
           assert(false);
       }
@@ -75,10 +86,14 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::unravel_ijk(const thrust_size_t begin_shift) // default = 0
     {
+      namespace arg = thrust::placeholders;
       switch(n_dims)
       {
         case 3:
-          namespace arg = thrust::placeholders;
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
+          thrust_device::vector<thrust_size_t> &j(j_gp->get());
+          thrust_device::vector<thrust_size_t> &k(k_gp->get());
           // y
           thrust::transform(
             ijk.begin() + begin_shift, ijk.end(), // input - first arg
@@ -98,7 +113,11 @@ namespace libcloudphxx
             arg::_1 / (opts_init.nz * opts_init.ny)    // z and y vary first
           );
           break;
+        }
         case 2:
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
+          thrust_device::vector<thrust_size_t> &k(k_gp->get());
           // z
           thrust::transform(
             ijk.begin() + begin_shift, ijk.end(), // input - first arg
@@ -112,8 +131,12 @@ namespace libcloudphxx
             arg::_1 / (opts_init.nz)
           );
           break;
+        }
         case 1:
+        {
+          thrust_device::vector<thrust_size_t> &i(i_gp->get());
           thrust::copy(ijk.begin() + begin_shift, ijk.end(), i.begin() + begin_shift); // only x
+        }
         case 0:
           break;
         default:
@@ -140,9 +163,24 @@ namespace libcloudphxx
         }
       } helper;
 
-      if (opts_init.nx != 0) helper(x, i, opts_init.dx);
-      if (opts_init.ny != 0) helper(y, j, opts_init.dy);
-      if (opts_init.nz != 0) helper(z, k, opts_init.dz);
+      if (opts_init.nx != 0) 
+      {
+        reset_guardp(i_gp, tmp_device_size_part);  // acquire tmp array to store i
+        thrust_device::vector<thrust_size_t> &i(i_gp->get());
+        helper(x, i, opts_init.dx);
+      }
+      if (opts_init.ny != 0) 
+      {
+        reset_guardp(j_gp, tmp_device_size_part);  // acquire tmp array to store j
+        thrust_device::vector<thrust_size_t> &j(j_gp->get());
+        helper(y, j, opts_init.dy);
+      }
+      if (opts_init.nz != 0) 
+      {
+        reset_guardp(k_gp, tmp_device_size_part);  // acquire tmp array to store k
+        thrust_device::vector<thrust_size_t> &k(k_gp->get());
+        helper(z, k, opts_init.dz);
+      }
 
       // raveling i, j & k into ijk
       ravel_ijk();

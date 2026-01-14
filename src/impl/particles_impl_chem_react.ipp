@@ -122,7 +122,7 @@ namespace libcloudphxx
       { 
         const real_t dt;
         const thrust_device::vector<real_t> &V;
-        const thrust_device::vector<unsigned int> &chem_flag;
+        const thrust_device::vector<thrust_size_t> &chem_flag;
  
         typedef thrust::permutation_iterator<
           typename thrust_device::vector<real_t>::iterator,
@@ -139,7 +139,7 @@ namespace libcloudphxx
           const thrust_device::vector<real_t> &V,
           const pi_t &T,
           const typename thrust_device::vector<real_t>::const_iterator &m_H,
-          const thrust_device::vector<unsigned int> &chem_flag
+          const thrust_device::vector<thrust_size_t> &chem_flag
         ) :
           dt(dt), V(V), T(T), m_H(m_H), n_part(V.size()), chem_flag(chem_flag)
         {}
@@ -199,7 +199,7 @@ namespace libcloudphxx
                   chem_rhs_helper<real_t>(chem_iter, dt),
                   // condition
                   // cuda::std::identity()
-                  thrust::identity<unsigned int>()
+                  thrust::identity<thrust_size_t>()
                 );
 
 #if !defined(__NVCC__)
@@ -261,7 +261,7 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
 
       thrust_device::vector<real_t> &V = V_gp->get();
-      thrust_device::vector<unsigned int> &chem_flag(chem_flag_gp->get());
+      thrust_device::vector<thrust_size_t> &chem_flag(chem_flag_gp->get());
 
       //non-equilibrium chemical reactions (oxidation)
       if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
@@ -312,7 +312,7 @@ namespace libcloudphxx
         rd3.begin(),                                       //output
         detail::chem_new_rd3<real_t>(opts_init.chem_rho),  //op
         // cuda::std::identity()                   //condition
-        thrust::identity<unsigned int>()
+        thrust::identity<thrust_size_t>()
       );
 
 #if !defined(__NVCC__)

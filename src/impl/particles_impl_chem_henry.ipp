@@ -249,7 +249,7 @@ namespace libcloudphxx
       using namespace common::molar_mass; // M-prefixed
       using namespace common::dissoc;     // K-prefixed
 
-      thrust_device::vector<unsigned int> &chem_flag(chem_flag_gp->get());
+      thrust_device::vector<thrust_size_t> &chem_flag(chem_flag_gp->get());
       const thrust_device::vector<real_t> &V = V_gp->get();
 
       if (opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off");
@@ -370,7 +370,7 @@ namespace libcloudphxx
           chem_flag.begin(),                                                                         //stencil
           chem_bgn[i],                                                                               // output
           detail::chem_Henry_fun<real_t>(i, H_[i], dHR_[i], M_gas_[i], M_aq_[i], D_[i], ac_[i], dt), // op
-          thrust::identity<unsigned int>()
+          thrust::identity<thrust_size_t>()
           // cuda::std::identity()
         );
 
