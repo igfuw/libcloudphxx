@@ -28,8 +28,8 @@ namespace libcloudphxx
       else
       {
         // generating a random sorting key
-        auto un_g = tmp_device_n_part.get_guard();
-        thrust_device::vector<unsigned int> &un = un_g.get();
+        auto un_g = tmp_device_size_part.get_guard();
+        thrust_device::vector<thrust_size_t> &un = un_g.get();
         rand_un(un, n_part);
 
         // sorting the sequence with the random key

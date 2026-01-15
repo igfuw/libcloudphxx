@@ -24,11 +24,11 @@ namespace libcloudphxx
         using engine_t = std::mt19937; // TODO: if real_t = double, use std::mt19937_64
         using dist_u01_t = std::uniform_real_distribution<real_t>;
         using dist_normal01_t = std::normal_distribution<real_t>;
-        using dist_un_t = std::uniform_int_distribution<unsigned int>;
+        using dist_size_t = std::uniform_int_distribution<thrust_size_t>;
         engine_t engine;
         dist_u01_t dist_u01;
         dist_normal01_t dist_normal01;
-        dist_un_t dist_un;
+        dist_size_t dist_size;
 
         struct fnctr_u01
         {
@@ -47,14 +47,14 @@ namespace libcloudphxx
         struct fnctr_un
         {
           engine_t &engine;
-          dist_un_t &dist_un;
-          real_t operator()() { return dist_un(engine); }
+          dist_size_t &dist_size;
+          real_t operator()() { return dist_size(engine); }
         };
 
         public:
 
         // ctor
-        rng(int seed) : engine(seed), dist_u01(0,1), dist_normal01(0,1), dist_un(0, std::numeric_limits<unsigned int>::max()) {}
+        rng(int seed) : engine(seed), dist_u01(0,1), dist_normal01(0,1), dist_size(0, std::numeric_limits<thrust_size_t>::max()) {}
 
         void reseed(int seed)
         {
@@ -82,7 +82,7 @@ namespace libcloudphxx
           const unsigned int n
         ) {
           // note: generate_n copies the third argument!!!
-          std::generate_n(un.begin(), n, fnctr_un({engine, dist_un})); 
+          std::generate_n(un.begin(), n, fnctr_un({engine, dist_size})); 
         }
 #endif
       };
