@@ -39,15 +39,15 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
+//              thrust_device::vector<thrust_size_t> &i(i_gp->get());
+  //            debug::print(i);
+
       thrust_device::vector<real_t> 
                   *v[3] = { &x,           &y,           &z           };
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };
       const real_t a[3] = { opts_init.x0, opts_init.y0, opts_init.z0 };
       const real_t b[3] = { opts_init.x1, opts_init.y1, opts_init.z1 };
       const real_t d[3] = { opts_init.dx, opts_init.dy, opts_init.dz };
-      thrust_device::vector<thrust_size_t> 
-                  *ii[3] = { &(i_gp->get()),  &(j_gp->get()),  &(k_gp->get())};
-//      auto ii[] = { i_gp,           j_gp,           k_gp           };
 
       for (int ix = 0; ix < 3; ++ix)
       {
@@ -61,11 +61,14 @@ namespace libcloudphxx
 	// shifting from [0,1] to random position within respective cell 
   // TODO: now the rand range is [0,1), include this here
         {
+          auto &cell_idx_gp = ix == 0 ? i_gp : (ix == 1 ? j_gp : k_gp);
+          thrust_device::vector<thrust_size_t> &cell_idx(cell_idx_gp->get());
+          
           namespace arg = thrust::placeholders;
 	  thrust::transform(
 	    u01.begin(), 
 	    u01.begin() + n_part_to_init,
-            ii[ix]->begin() + n_part_old, 
+            cell_idx.begin() + n_part_old, 
 	    v[ix]->begin() + n_part_old, 
             detail::pos_lgrngn_domain<real_t>(a[ix], b[ix], d[ix])
 	  );

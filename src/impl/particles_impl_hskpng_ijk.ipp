@@ -91,6 +91,10 @@ namespace libcloudphxx
       {
         case 3:
         {
+          reset_guardp(i_gp, tmp_device_size_part);  // acquire tmp array to store i
+          reset_guardp(j_gp, tmp_device_size_part);  
+          reset_guardp(k_gp, tmp_device_size_part);  
+
           thrust_device::vector<thrust_size_t> &i(i_gp->get());
           thrust_device::vector<thrust_size_t> &j(j_gp->get());
           thrust_device::vector<thrust_size_t> &k(k_gp->get());
@@ -116,6 +120,9 @@ namespace libcloudphxx
         }
         case 2:
         {
+          reset_guardp(i_gp, tmp_device_size_part);  // acquire tmp array to store i
+          reset_guardp(k_gp, tmp_device_size_part);  
+
           thrust_device::vector<thrust_size_t> &i(i_gp->get());
           thrust_device::vector<thrust_size_t> &k(k_gp->get());
           // z
@@ -134,7 +141,9 @@ namespace libcloudphxx
         }
         case 1:
         {
+          reset_guardp(i_gp, tmp_device_size_part);  // acquire tmp array to store i
           thrust_device::vector<thrust_size_t> &i(i_gp->get());
+
           thrust::copy(ijk.begin() + begin_shift, ijk.end(), i.begin() + begin_shift); // only x
         }
         case 0:

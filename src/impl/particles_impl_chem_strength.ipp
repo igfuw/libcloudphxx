@@ -16,7 +16,7 @@ namespace libcloudphxx
       { // helper for choosing which droplets are dilute and can have chemical reactions
         // calculates the ionic strength of droplets
         BOOST_GPU_ENABLED        
-        thrust_size_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const 
+        unsigned int operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t, real_t> &tpl) const 
         {
           using namespace common::molar_mass;
           using namespace common::dissoc;
@@ -70,8 +70,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::chem_flag_ante()
     { 
-      reset_guardp(chem_flag_gp, tmp_device_size_part); 
-      thrust_device::vector<thrust_size_t> &chem_flag(chem_flag_gp->get());
+      reset_guardp(chem_flag_gp, tmp_device_n_part); 
+      thrust_device::vector<unsigned int> &chem_flag(chem_flag_gp->get());
       thrust_device::vector<real_t> &V = V_gp->get();
 
       typedef thrust::permutation_iterator<
