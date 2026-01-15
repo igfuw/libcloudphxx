@@ -206,8 +206,8 @@ namespace libcloudphxx
       tmp_vector_pool<thrust_device::vector<real_t>>       
         tmp_device_real_part,
         tmp_device_real_cell;
-      //tmp_vector_pool<thrust_device::vector<unsigned int>>
-      //  tmp_device_n_part;
+      tmp_vector_pool<thrust_device::vector<unsigned int>>
+        tmp_device_n_part;
       tmp_vector_pool<thrust_device::vector<thrust_size_t>>
         tmp_device_size_cell,
         tmp_device_size_part;
@@ -232,18 +232,9 @@ namespace libcloudphxx
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
       > outbuf_gp;
 
-//      std::unique_ptr<
-//        typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
-//      > chem_flag_gp;
-
       std::unique_ptr<
-        typename tmp_vector_pool<thrust_device::vector<thrust_size_t>>::guard
-      > chem_flag_gp,
-        lft_id_gp,
-        rgt_id_gp,
-        i_gp,
-        j_gp,
-        k_gp;
+        typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
+      > chem_flag_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<thrust_size_t>>::guard
@@ -315,7 +306,7 @@ namespace libcloudphxx
       void rand_u01(thrust_device::vector<real_t> &u01, thrust_size_t n) { rng.generate_n(u01, n); }
 
       // fills un with n random integers uniformly distributed on the whole integer range
-      void rand_un(thrust_device::vector<thrust_size_t> &un, thrust_size_t n) { rng.generate_n(un, n); }
+      void rand_un(thrust_device::vector<unsigned int> &un, thrust_size_t n) { rng.generate_n(un, n); }
 
       // max(1, n)
       int m1(int n) { return n == 0 ? 1 : n; }
