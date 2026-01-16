@@ -12,8 +12,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::subs(const real_t &dt)
     {   
-      namespace arg = thrust::placeholders;
- 
+      namespace arg = thrust::placeholders; 
+      thrust_device::vector<thrust_size_t> &k(k_gp->get());
+
       // settling due to sedimentation + large-scale subsidence
       thrust::transform(
         z.begin(), z.end(),                    // position
