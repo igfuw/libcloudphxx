@@ -145,6 +145,7 @@ namespace libcloudphxx
           thrust_device::vector<thrust_size_t> &i(i_gp->get());
 
           thrust::copy(ijk.begin() + begin_shift, ijk.end(), i.begin() + begin_shift); // only x
+          break;
         }
         case 0:
           break;

@@ -109,12 +109,12 @@ namespace libcloudphxx
           {
 	          namespace arg = thrust::placeholders;
 
-            // release tmp vectors for reuse as lft/rgt_id; cell indices (i,j,k,ijk) are anyway udefined by distmem copy and will be recalculated in post_copy
+            // release tmp vectors for reuse as lft/rgt_id; cell indices (i,j,k,ijk) are anyway undefined by distmem copy and will be recalculated in post_copy
             i_gp.reset();
             k_gp.reset();
 
             reset_guardp(lft_id_gp, tmp_device_size_part); 
-            thrust_device::vector<thrust_size_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+            thrust_device::vector<thrust_size_t> &lft_id(lft_id_gp->get()); 
 
             reset_guardp(rgt_id_gp, tmp_device_size_part);
             thrust_device::vector<thrust_size_t> &rgt_id(rgt_id_gp->get());

@@ -219,12 +219,6 @@ namespace libcloudphxx
           n_part = n_part_old + n_part_to_init;
 
           // resize arrays set in the bins loop: cell indices and rd3, resize should be cheap, because we allocate a large chunk of memory at the start
-          // ijk.resize(n_part);
-          // i.resize(n_part);
-          // k.resize(n_part);
-          // if(n_dims==3) j.resize(n_part); // we dont check in i and k because relax works only in 2D and 3D
-          // rd3.resize(n_part);
-          // n.resize(n_part);
           hskpng_resize_npart();
 
           // --- init k ---

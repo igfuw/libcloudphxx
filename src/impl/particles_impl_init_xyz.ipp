@@ -39,9 +39,6 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_xyz()
     {
-//              thrust_device::vector<thrust_size_t> &i(i_gp->get());
-  //            debug::print(i);
-
       thrust_device::vector<real_t> 
                   *v[3] = { &x,           &y,           &z           };
       const int    n[3] = { opts_init.nx, opts_init.ny, opts_init.nz };

@@ -479,9 +479,6 @@ namespace libcloudphxx
         resize_size_vctrs.insert(&ijk);
         resize_size_vctrs.insert(&sorted_ijk);
         resize_size_vctrs.insert(&sorted_id);
-        //if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
-        //if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
-        //if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
       }
 
       void sanity_checks();

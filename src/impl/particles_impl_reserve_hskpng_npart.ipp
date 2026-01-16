@@ -13,9 +13,6 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::reserve_hskpng_npart()
     {
       // memory allocation
-      //if (opts_init.nx != 0) i.reserve(opts_init.n_sd_max); //
-      //if (opts_init.ny != 0) j.reserve(opts_init.n_sd_max); //  > TODO: are they needed at all?
-      //if (opts_init.nz != 0) k.reserve(opts_init.n_sd_max); //
       ijk.reserve(opts_init.n_sd_max);
 
       if (opts_init.nx != 0) x.reserve(opts_init.n_sd_max); 
