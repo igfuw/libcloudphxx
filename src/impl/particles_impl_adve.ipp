@@ -119,6 +119,8 @@ namespace libcloudphxx
           {
             const pi_real_size C_lft(courant_x.begin(), pi_size_size(lft.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
                                C_rgt(courant_x.begin(), pi_size_size(rgt.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
+            thrust_device::vector<thrust_size_t> &i(i_gp->get());
+
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(x.begin(), i.begin(), C_lft,        C_rgt       )), // input - begin
               thrust::make_zip_iterator(make_tuple(x.end(),   i.end(),   C_lft+n_part, C_rgt+n_part)), // input - end
@@ -131,6 +133,8 @@ namespace libcloudphxx
           {
             const pi_real_size C_fre(courant_y.begin(), pi_size_size(fre.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
                                C_hnd(courant_y.begin(), pi_size_size(hnd.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
+            thrust_device::vector<thrust_size_t> &j(j_gp->get());
+             
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(y.begin(), j.begin(), C_fre,        C_hnd       )), // input - begin
               thrust::make_zip_iterator(make_tuple(y.end(),   j.end(),   C_fre+n_part, C_hnd+n_part)), // input - end
@@ -143,6 +147,8 @@ namespace libcloudphxx
           {
             const pi_real_size C_abv(courant_z.begin(), pi_size_size(abv.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset)))),
                                C_blw(courant_z.begin(), pi_size_size(blw.begin(), thrust::make_transform_iterator(ijk.begin(), detail::add_val<thrust_size_t>(offset))));
+            thrust_device::vector<thrust_size_t> &k(k_gp->get());
+
             thrust::transform(
               thrust::make_zip_iterator(make_tuple(z.begin(), k.begin(), C_blw,        C_abv       )), // input - begin
               thrust::make_zip_iterator(make_tuple(z.end(),   k.end(),   C_blw+n_part, C_abv+n_part)), // input - end

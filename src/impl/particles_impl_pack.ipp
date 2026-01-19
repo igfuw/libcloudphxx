@@ -32,7 +32,7 @@ namespace libcloudphxx
       assert(out_n_bfr.size() >= lft_count * distmem_n_vctrs.size());
       assert(in_n_bfr.size() >= lft_count * distmem_n_vctrs.size());
 
-      thrust_device::vector<real_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+      thrust_device::vector<thrust_size_t> &lft_id(lft_id_gp->get()); 
 
       auto it = distmem_n_vctrs.begin();
       while (it != distmem_n_vctrs.end())
@@ -50,8 +50,9 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::pack_n_rgt()
     {
       assert(out_n_bfr.size() >= rgt_count * distmem_n_vctrs.size());
+      assert(in_n_bfr.size() >= rgt_count * distmem_n_vctrs.size());
       
-      thrust_device::vector<real_t> &rgt_id(rgt_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many availableassert(in_n_bfr.size() >= rgt_count * distmem_n_vctrs.size());
+      thrust_device::vector<thrust_size_t> &rgt_id(rgt_id_gp->get()); 
 
       auto it = distmem_n_vctrs.begin();
       while (it != distmem_n_vctrs.end())
@@ -71,7 +72,7 @@ namespace libcloudphxx
       assert(out_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
       assert(in_real_bfr.size() >= lft_count * distmem_real_vctrs.size());
       
-      thrust_device::vector<real_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+      thrust_device::vector<thrust_size_t> &lft_id(lft_id_gp->get()); 
 
       auto it = distmem_real_vctrs.begin();
       while (it != distmem_real_vctrs.end())
@@ -91,7 +92,7 @@ namespace libcloudphxx
       assert(out_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
       assert(in_real_bfr.size() >= rgt_count * distmem_real_vctrs.size());
 
-      thrust_device::vector<real_t> &rgt_id(rgt_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+      thrust_device::vector<thrust_size_t> &rgt_id(rgt_id_gp->get()); 
 
       auto it = distmem_real_vctrs.begin();
       while (it != distmem_real_vctrs.end())
@@ -108,7 +109,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::bcnd_remote_lft(const real_t &x0, const real_t &x1)
     {
-      thrust_device::vector<real_t> &lft_id(lft_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+      thrust_device::vector<thrust_size_t> &lft_id(lft_id_gp->get()); 
 
       thrust::transform(
         thrust::make_permutation_iterator(x.begin(), lft_id.begin()),
@@ -121,7 +122,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::bcnd_remote_rgt(const real_t &x1, const real_t &x0)
     {
-      thrust_device::vector<real_t> &rgt_id(rgt_id_gp->get()); // id type is thrust_size_t, but we use real_t tmp vector because there are many available
+      thrust_device::vector<thrust_size_t> &rgt_id(rgt_id_gp->get()); 
 
       thrust::transform(
         thrust::make_permutation_iterator(x.begin(), rgt_id.begin()),

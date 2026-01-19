@@ -105,7 +105,7 @@ namespace libcloudphxx
 
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
-        i, j, k, ijk, // Eulerian grid cell indices (always zero for 0D)
+        ijk, // Eulerian grid cell indices (always zero for 0D); i, j and k use temporary vectors from tmp_device_size_part via i_gp, j_gp and k_gp; TODO: make ijk, sorted_id and sorted_ijk also use such temporary vectors?
         sorted_id, sorted_ijk;
 
       // Arakawa-C grid helper vars
@@ -215,8 +215,8 @@ namespace libcloudphxx
       tmp_vector_pool<thrust_device::vector<unsigned int>>
         tmp_device_n_part;
       tmp_vector_pool<thrust_device::vector<thrust_size_t>>
-        tmp_device_size_cell;
-        // tmp_device_size_part;
+        tmp_device_size_cell,
+        tmp_device_size_part;
 
       // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
       // tmp_vector_pool<thrust_device::vector<real_t>>::guard asd;
@@ -229,8 +229,6 @@ namespace libcloudphxx
         sstp_dlt_rhod_gp,
         sstp_dlt_p_gp,
         drv_gp,
-        lft_id_gp,
-        rgt_id_gp,
         lambda_D_gp,
         lambda_K_gp,
         rw_mom3_gp,
@@ -245,6 +243,14 @@ namespace libcloudphxx
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
       > chem_flag_gp;
 
+      std::unique_ptr<
+        typename tmp_vector_pool<thrust_device::vector<thrust_size_t>>::guard
+      > lft_id_gp,
+        rgt_id_gp,
+        i_gp,
+        j_gp,
+        k_gp;
+
       // to simplify foreach calls
       const thrust::counting_iterator<thrust_size_t> zero;
 
@@ -258,7 +264,7 @@ namespace libcloudphxx
       std::pair<detail::bcond_t, detail::bcond_t> bcond;
 
       // number of particles to be copied left/right in distmem setup
-      unsigned int lft_count, rgt_count;
+      thrust_size_t lft_count, rgt_count;
 
       // nx in devices to the left of this one
       unsigned int n_x_bfr,
@@ -449,6 +455,16 @@ namespace libcloudphxx
          
         if(opts_init.diag_incloud_time)
           distmem_real_vctrs.insert({&incloud_time, detail::no_initial_value});
+         
+        if(opts_init.ice_switch)
+        {
+          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
+          distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
+          if (! opts_init.time_dep_ice_nucl)
+            {distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});}
+        }
 
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
@@ -471,23 +487,21 @@ namespace libcloudphxx
           tmp_device_real_part.add_vector();
         }
 
+        // init number of temporary size_t vctrs
+        // 1 needed if n_dims == 1 (i)
+        // 2 needed if distmem (lft_id, rgt_id)
+        // 2 needed if n_dims == 2 (i, k)
+        // 3 needed if n_dims == 3 (i, j, k)
+        // 1 already initialized by default ctor;
+        // NOTE: cell index (i,j,k) could reuse tmp_device_n_part, but then it would have to be recalculated after each random sort (maybe its not a problem?)
+        if(n_dims>=2 || distmem())
+          tmp_device_size_part.add_vector();
+        if(n_dims==3)
+          tmp_device_size_part.add_vector();
+
         resize_size_vctrs.insert(&ijk);
         resize_size_vctrs.insert(&sorted_ijk);
         resize_size_vctrs.insert(&sorted_id);
-        if (opts_init.nx != 0) resize_size_vctrs.insert(&i);
-        if (opts_init.ny != 0) resize_size_vctrs.insert(&j);
-        if (opts_init.nz != 0) resize_size_vctrs.insert(&k);
-
-
-        if(opts_init.ice_switch)
-        {
-          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
-          distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
-          distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
-          distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
-          if (! opts_init.time_dep_ice_nucl)
-            {distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});}
-        }
       }
 
       void sanity_checks();
