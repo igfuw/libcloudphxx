@@ -57,20 +57,11 @@ namespace libcloudphxx
       if (opts_init.chem_switch && opts_init.src_type!=src_t::off)
         throw std::runtime_error("libcloudph++: chemistry and aerosol source are not compatible");
 
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
-        throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
-
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
-        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
-
       if (opts_init.src_type==src_t::matching && opts_init.dry_distros.size() > 1)
         throw std::runtime_error("libcloudph++: For 'matching' CCN source, the initial aerosol distribution can only have one kappa value (na kappa matching done).");
 
       if (opts_init.src_type!=src_t::off && n_dims<2)
         throw std::runtime_error("libcloudph++: CCN source works in 2D and 3D only.");
-
-      if (opts_init.src_type==src_t::matching && !opts_init.src_dry_distros.empty() &&
-          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
 
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: chemistry and multiple kappa distributions are not compatible");
@@ -155,6 +146,18 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: In const_p option, pressure profile must be passed (p in init())");
       if(!opts_init.const_p && !p.is_null())
         throw std::runtime_error("libcloudph++: pressure profile was passed in init(), but the constant pressure option was not used");
+
+      if(opts_init.ice_switch)
+      {
+        if(opts_init.coal_switch) // because we dont know what to do when ice collides with water
+          throw std::runtime_error("libcloudph++: coalescence does not work with ice (turn off ice_switch or coal_switch).");
+        if(opts_init.rlx_switch) // because we dont account for ice/water when matching and initializing aerosols from relaxation
+          throw std::runtime_error("libcloudph++: relaxation does not work with ice.");
+        if(opts_init.src_type==src_t::matching) // because we dont account for ice/water when matching and initializing aerosols from this type of source
+          throw std::runtime_error("libcloudph++: 'matching' source type does not work with ice.");
+        if(opts_init.turb_cond_switch) // because we dont want to add SGS RH to RH_i
+          throw std::runtime_error("libcloudph++: SGS condensation does not work with ice.");
+      }
     }
   };
 };

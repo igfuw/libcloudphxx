@@ -97,7 +97,7 @@ flux = blk_1m.rhs_columnwise(opts, dot_rr, rhod, rr, dz)
 assert flux == 0
 assert dot_rr == dot_rr_old # no rain water -> no precip
 
-#test ice, TODO: separate file/test?
+#test RHS cellwise ice
 def test_rhs_cell_ice(opts, name):
   print("Testing RHS cellwise ice with " + name)
   th   = arr_t([230.])  #testing ice physics

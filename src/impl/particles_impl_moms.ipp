@@ -151,7 +151,85 @@ namespace libcloudphxx
           arg::_1 * (arg::_2 >= 0)                 // op
         );
       }
+      selected_before_counting = true;
+    }
 
+
+    // selects particles for which vec[i] > 0
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::moms_gt0(
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons
+    )
+    {
+      hskpng_sort();
+
+      if(!cons)
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
+
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
+
+      {
+        namespace arg = thrust::placeholders;
+
+        if(!cons)
+        {
+          thrust::transform(
+            n.begin(), n.end(),                  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 > 0)                 // op
+          );
+        }
+        else
+        {
+          thrust::transform(
+            n_filtered.begin(), n_filtered.end(),  // input - 1st arg
+            vec_bgn,                               // input - 2nd arg
+            n_filtered.begin(),                    // output
+            arg::_1 * (arg::_2 > 0)               // op
+          );
+        }
+      }
+      selected_before_counting = true;
+    }
+
+    // selects particles for which vec[i] = 0
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::moms_eq0(
+      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const bool cons
+    )
+    {
+      hskpng_sort();
+
+      if(!cons)
+        reset_guardp(n_filtered_gp, tmp_device_real_part);
+
+      thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
+
+      {
+        namespace arg = thrust::placeholders;
+
+        if(!cons)
+        {
+          thrust::transform(
+            n.begin(), n.end(),                  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 == 0)                 // op
+          );
+        }
+        else
+        {
+          thrust::transform(
+            n_filtered.begin(), n_filtered.end(),  // input - 1st arg
+            vec_bgn,                                 // input - 2nd arg
+            n_filtered.begin(),                      // output
+            arg::_1 * (arg::_2 == 0)                 // op
+          );
+        }
+      }
       selected_before_counting = true;
     }
 
@@ -195,8 +273,9 @@ namespace libcloudphxx
     };
 
     template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
     void particles_t<real_t, device>::impl::moms_calc(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const it_t &vec_bgn,
       const thrust_size_t npart,
       const real_t power,
       const bool specific
@@ -206,12 +285,6 @@ namespace libcloudphxx
 
       thrust_device::vector<real_t> &n_filtered = n_filtered_gp->get();
 
-      typedef thrust::permutation_iterator<
-        typename thrust_device::vector<real_t>::const_iterator,
-        typename thrust_device::vector<thrust_size_t>::iterator
-      > pi_t;
-      typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t> > zip_it_t;
-
       thrust::pair<
         thrust_device::vector<thrust_size_t>::iterator,
         typename thrust_device::vector<real_t>::iterator
@@ -220,9 +293,9 @@ namespace libcloudphxx
         sorted_ijk.begin(), sorted_ijk.begin()+npart,  
         // input - values
         thrust::make_transform_iterator(
-          zip_it_t(thrust::make_tuple(
-            pi_t(n_filtered.begin(),   sorted_id.begin()),
-            pi_t(vec_bgn,              sorted_id.begin())
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_permutation_iterator(n_filtered.begin(),   sorted_id.begin()),
+            thrust::make_permutation_iterator(vec_bgn,              sorted_id.begin())
           )),
           detail::moment_counter<real_t>(power)
         ),
@@ -314,8 +387,9 @@ namespace libcloudphxx
     }
 
     template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
     void particles_t<real_t, device>::impl::moms_calc(
-      const typename thrust_device::vector<real_t>::iterator &vec_bgn,
+      const it_t &vec_bgn,
       const real_t power,
       const bool specific
     )

@@ -29,9 +29,11 @@ opts = lgrngn.opts_t()
 
 opts_init = lgrngn.opts_init_t()
 kappa = .61
-opts_init.dry_distros = {kappa:lognormal}
+rd_insol = 0.
+opts_init.dry_distros = {(kappa, rd_insol):lognormal}
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
+opts_init.ice_switch = False
 opts_init.RH_max = 0.999 # to comply with the assert(RH<1) at init
 opts_init.dt = 1
 opts_init.sd_conc = int(1e2)
@@ -44,6 +46,7 @@ opts.sedi = False
 opts.cond = True
 opts.coal = False
 opts.chem = False
+opts.ice_nucl = False
 
 #expected theta and rv after condensation:
 exp_th = { True : 306.9, # constp
