@@ -22,19 +22,16 @@ namespace libcloudphxx
       thrust_device::vector<real_t> &lambda_D(lambda_D_gp->get()); 
       thrust_device::vector<real_t> &lambda_K(lambda_K_gp->get()); 
       
-      // --- calc liquid water content before cond ---
       hskpng_sort(); 
       if(step == 0)
         reset_guardp(rw_mom3_gp, tmp_device_real_cell);
-      thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();      
+      thrust_device::vector<real_t> &rw_mom3 = rw_mom3_gp->get();
 
-      // calculating the 3rd wet moment before condensation
-      if(step == 0)
+      // drw_mom3 = -rw_mom3 assumed to be done beforehand in save_liq_ice_content_before_change
+      if(step == 0) 
       {
-        rw_mom3_ante_change(); // also blocks the tmp array that stores change of 3rd moment of rw (drw_mom3_gp)
-        if(count_n!=n_cell)  
-          thrust::fill(rw_mom3.begin(), rw_mom3.end(), real_t(0.));
-          
+        if(count_n!=n_cell)  // NOTE: we rely that moms_calc was called recently (e.g. in save_liq_ice_content_before_change)
+          thrust::fill(rw_mom3.begin(), rw_mom3.end(), real_t(0.));          
       }
       else // copy rw_mom3 from previous step
       {
@@ -60,7 +57,7 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      // calculating drop growth in a timestep using backward Euler 
+      // calculating drop growth in a timestep using backward Euler
       // TODO: both calls almost identical, use std::bind or sth?
       if(turb_cond)
       {
@@ -73,6 +70,7 @@ namespace libcloudphxx
           arg::_1 + arg::_2
         );
 
+        // condensation for liquid droplets
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -81,12 +79,14 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               RH_plus_ssp.begin()
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
       }
       else
+      {
+        // condensation for liquid droplets
         thrust::transform(
           rw2.begin(), rw2.end(),         // input - 1st arg (zip not as 1st arg not to write zip.end()
           thrust::make_zip_iterator(      // input - 2nd arg
@@ -95,15 +95,17 @@ namespace libcloudphxx
               thrust::make_permutation_iterator(p.begin(), ijk.begin()),
               thrust::make_permutation_iterator(RH.begin(), ijk.begin())
             )
-          ), 
+          ),
           rw2.begin(),                    // output
           detail::advance_rw2<real_t>(dt / sstp_cond, RH_max, config.eps_tolerance, config.cond_mlt, config.n_iter)
         );
+      }
       nancheck(rw2, "rw2 after condensation (no sub-steps");
 
       // calculating the 3rd wet moment after condensation
       thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
-      moms_calc(rw2.begin(), real_t(3./2.)); // we rely on that moms_all() was called in rw_mom3_ante_change()
+      moms_all();
+      moms_calc(rw2.begin(), real_t(3./2.)); 
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd wet moment) after condensation");
 
       if(step < sstp_cond - 1)
@@ -132,9 +134,8 @@ namespace libcloudphxx
         rw_mom3_gp.reset(); // destroy guard to tmp array that stored 3rd moment of rw
       }
 
-      // update th and rv according to changes in third specific wet moment
-      update_th_rv();
-
-    }
-  };  
+      // update th and rv according to changes in third specific wet moment (drw_mom3)
+      // update_th_rv(impl::phase_change::condensation);
+    };
+  }
 };

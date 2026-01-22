@@ -24,13 +24,14 @@ def lognormal(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 kappa = .61
+rd_insol = 0.
 
 count = 0
 for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kernel_t.long,  lgrngn.kernel_t.hall, lgrngn.kernel_t.hall_davis_no_waals, lgrngn.kernel_t.golovin, lgrngn.kernel_t.onishi_hall, lgrngn.kernel_t.onishi_hall_davis_no_waals, lgrngn.kernel_t.vohl_davis_no_waals, lgrngn.kernel_t.hall_pinsky_cumulonimbus, lgrngn.kernel_t.hall_pinsky_stratocumulus]:
   print(kernel)
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
-  opts_init.dry_distros = {kappa:lognormal}
+  opts_init.dry_distros = {(kappa, rd_insol):lognormal}
   opts_init.sd_conc = 50
   opts_init.n_sd_max = 50
   opts_init.terminal_velocity=lgrngn.vt_t.beard76

@@ -19,7 +19,7 @@ namespace libcloudphxx
       }
       else
       {
-        rw_mom3_post_change();  
+        calc_liq_ice_content_change();  
         update_th_rv();
       }
     }

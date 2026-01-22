@@ -59,6 +59,10 @@ if (NOT CMAKE_CUDA_COMPILER)
   ")
 else()
   enable_language(CUDA)
+  # Check CUDA version
+  # if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 12.2)
+  #     message(FATAL_ERROR "CUDA >= 12.2 is required, but found ${CMAKE_CUDA_COMPILER_VERSION}") # needed for cuda::std::identity
+  # endif()
   set(CMAKE_CUDA_FLAGS_DEBUG "")
   set(CMAKE_CUDA_FLAGS_RELEASE "")
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "")
@@ -273,7 +277,7 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-fopenmp>)
   # Debug mode cuda flags
   elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic>)
+    target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -g -DTHRUST_DEBUG -lineinfo -Xcompiler=-fopenmp,-g,-Og,-rdynamic,-Wfatal-errors>)
   # Release mode cuda flags
   else()
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -DNDEBUG -O3 -use_fast_math -Xcompiler=-Ofast,-march=native,-DNDEBUG,-fopenmp>)
@@ -283,7 +287,7 @@ if (CMAKE_CUDA_COMPILER)
     target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler -DUSE_MPI>)
   endif()
 
-  target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --extended-lambda>)
+#  target_compile_options(cloudphxx_lgrngn PRIVATE  $<$<COMPILE_LANGUAGE:CUDA>: --extended-lambda>)
 
   target_compile_definitions(cloudphxx_lgrngn PRIVATE CUDA_FOUND)
 
@@ -392,11 +396,15 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
-enable_testing()
+option(LIBCLOUDPHXX_DISABLE_BINDINGS "Disable compilation of Python bindings" OFF)
 
-add_subdirectory(tests)
 add_subdirectory(include) 
-add_subdirectory(bindings) 
+
+if(NOT LIBCLOUDPHXX_DISABLE_BINDINGS) # some tests require bindings, so we disable them too
+  enable_testing()
+  add_subdirectory(bindings)
+  add_subdirectory(tests)
+endif()
 
 ############################################################################################
 

@@ -53,7 +53,8 @@
 
 // details
 #include "impl/particles_impl.ipp"
-#include "impl/particles_impl_sync.ipp"
+// TODO: move these to folders
+#include "impl/particles_impl_sync.ipp" 
 #include "impl/particles_impl_adjust_timesteps.ipp"
 
 #include "impl/initialization/particles_impl_init_dist_analysis.ipp"
@@ -81,6 +82,9 @@
 #include "impl/initialization/particles_impl_init_kernel.ipp"
 #include "impl/initialization/particles_impl_init_vterm.ipp"
 #include "impl/initialization/particles_impl_init_sanity_check.ipp"
+#include "impl/initialization/particles_impl_init_insol_dry_sizes.ipp"
+#include "impl/initialization/particles_impl_init_T_freeze.ipp"
+#include "impl/initialization/particles_impl_init_a_c_rho_ice.ipp"
 
 #include "impl/distributed_memory/particles_impl_xchng_domains.ipp"
 #include "impl/distributed_memory/particles_impl_xchng_courants.ipp"
@@ -110,8 +114,8 @@
 #include "impl/diagnose_SD_attributes/particles_impl_update_incloud_time.ipp"
 
 #include "impl/common/particles_impl_update_th_rv.ipp"
-#include "impl/common/particles_impl_rw_mom3_ante_change.ipp"
-#include "impl/common/particles_impl_rw_mom3_post_change.ipp"
+#include "impl/common/save_liq_ice_content_before_change.ipp"
+#include "impl/common/calc_liq_ice_content_change.ipp"
 
 #include "impl/boundary_conditions/particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 
@@ -158,4 +162,8 @@
 #include "impl/sources_and_relaxation_of_SDs/particles_impl_src_dry_sizes.ipp"
 #include "impl/sources_and_relaxation_of_SDs/particles_impl_rlx.ipp"
 #include "impl/sources_and_relaxation_of_SDs/particles_impl_rlx_dry_distros.ipp"
+
+#include "impl/ice/particles_impl_ice_dep.ipp"
+#include "impl/ice/particles_impl_ice_nucl_melt.ipp"
+
 

@@ -45,7 +45,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl // (T, p, rhod, eta)
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
@@ -106,7 +106,7 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED 
         real_t operator()(
           const real_t &rw2, 
-          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl
+          const thrust::tuple<real_t, real_t, real_t, real_t> &tpl // (vt_0, p, rhod, eta)
         ) {   
 #if !defined(__NVCC__)
           using std::sqrt;
@@ -126,13 +126,64 @@ namespace libcloudphxx
               return 0.; //sanity checks done in pimpl constructor
           }
         }   
-      }; 
+      };
+
+      template <typename real_t>
+      struct common__vterm__ice
+      {
+        BOOST_GPU_ENABLED
+        real_t operator()(const thrust::tuple<
+            real_t, real_t, real_t,  // ice_a, ice_c, rho_i
+            real_t, real_t, real_t, real_t   // T, p, rhod, eta
+          >& tpl) const
+        {
+          const real_t &ice_a = thrust::get<0>(tpl);
+          const real_t &ice_c = thrust::get<1>(tpl);
+          const real_t &rho_i = thrust::get<2>(tpl);
+          const real_t &T = thrust::get<3>(tpl);
+          const real_t &p = thrust::get<4>(tpl);
+          const real_t &rhod = thrust::get<5>(tpl);
+          const real_t &eta = thrust::get<6>(tpl);
+
+          return common::vterm::vt_beard76(
+               ice_a * si::metres,
+               T * si::kelvins,
+               p * si::pascals,
+               rhod * si::kilograms / si::cubic_metres,
+               eta * si::pascals * si::seconds
+             ) / si::metres_per_second
+            * real_t(common::moist_air::rho_i<real_t>() / common::moist_air::rho_w<real_t>());
+      }
+    };
+
+      template <typename real_t>
+      struct check_vt_invalid_rw2_zero
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const thrust::tuple<real_t, real_t>& tpl) const
+        {
+          return thrust::get<0>(tpl) == real_t(invalid) &&
+                 thrust::get<1>(tpl) == real_t(0);
+        }
+      };
+
+      template <typename real_t>
+      struct check_vt_invalid_rw2_nonzero
+      {
+        BOOST_GPU_ENABLED
+        bool operator()(const thrust::tuple<real_t, real_t>& tpl) const
+        {
+          return thrust::get<0>(tpl) == real_t(invalid) &&
+                 thrust::get<1>(tpl) > real_t(0);
+        }
+      };
+
    };
 
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::hskpng_vterm_invalid()
-    {   
+    {
       typedef thrust::permutation_iterator<
         typename thrust_device::vector<real_t>::iterator,
         typename thrust_device::vector<thrust_size_t>::iterator
@@ -141,6 +192,7 @@ namespace libcloudphxx
 
       namespace arg = thrust::placeholders;
 
+      // liquid droplets
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
         auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
@@ -148,10 +200,10 @@ namespace libcloudphxx
         // get cached bin number
         thrust::transform_if(
           rw2.begin(), rw2.end(),
-          vt.begin(),
+          thrust::make_zip_iterator(thrust::make_tuple(vt.begin(), rw2.begin())),
           vt0_bin.begin(),
           detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin),
-          arg::_1 == real_t(detail::invalid)
+          detail::check_vt_invalid_rw2_nonzero<real_t>()
         );
         // calc the vt
         thrust::transform_if(
@@ -161,11 +213,11 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
-          )),                                                     // input - 2nd arg   
-          vt.begin(),                                             // condition argument
+          )),                                                     // input - 2nd arg
+          thrust::make_zip_iterator(thrust::make_tuple(vt.begin(), rw2.begin())),  // stencil
           vt.begin(),                                             // output
           detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity),
-          arg::_1 == real_t(detail::invalid)
+          detail::check_vt_invalid_rw2_nonzero<real_t>()
         );
       }
       // non-cached vt
@@ -177,12 +229,36 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
-          )),                                                     // input - 2nd arg   
-          vt.begin(),                                             // condition argument
+          )),                                                     // input - 2nd arg
+          thrust::make_zip_iterator(thrust::make_tuple(vt.begin(), rw2.begin())),  // stencil
           vt.begin(),                                             // output
           detail::common__vterm__vt<real_t>(opts_init.terminal_velocity),
-          arg::_1 == real_t(detail::invalid)
+          detail::check_vt_invalid_rw2_nonzero<real_t>()
         );
+
+      // ice terminal velocity
+      if (opts_init.ice_switch)
+      {
+        auto zipped = thrust::make_zip_iterator(thrust::make_tuple(
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+          ));
+        auto zipped_end = zipped + ice_a.size();
+
+        thrust::transform_if(
+          zipped,
+          zipped_end,
+          thrust::make_zip_iterator(thrust::make_tuple(vt.begin(), rw2.begin())),
+          vt.begin(),
+          detail::common__vterm__ice<real_t>(),
+          detail::check_vt_invalid_rw2_zero<real_t>()
+        );
+      }
     }
 
     template <typename real_t, backend_t device>
@@ -193,7 +269,9 @@ namespace libcloudphxx
         typename thrust_device::vector<thrust_size_t>::iterator
       > pi_t;
       typedef thrust::zip_iterator<thrust::tuple<pi_t, pi_t, pi_t, pi_t> > zip_it_t;
+      namespace arg = thrust::placeholders;
 
+      // liquid droplets
       if(opts_init.terminal_velocity == vt_t::beard77fast) //use cached vt at sea level
       {
         // auto vt0_bin_g = tmp_device_size_part.get_guard();
@@ -201,26 +279,30 @@ namespace libcloudphxx
         auto vt0_bin_g = tmp_device_real_part.get_guard(); // should be thrust_size_t, but we have many real_ available (do we?)
         thrust_device::vector<real_t> &vt0_bin(vt0_bin_g.get());
         // get cached bin number
-        thrust::transform(
+        thrust::transform_if(
           rw2.begin(), rw2.end(),
+          rw2.begin(),
           vt0_bin.begin(),
-          detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin)
+          detail::get_vt0_bin<real_t>(config.vt0_ln_r_min, config.vt0_ln_r_max, config.vt0_n_bin),
+          arg::_1 > real_t(0)
         );
-        // calc the vt
-        thrust::transform(
-          rw2.begin(), rw2.end(),                                 // input - 1st arg
+        // calc the vt for liquid droplets
+        thrust::transform_if(
+          rw2.begin(), rw2.end(),                           // input - 1st arg
           thrust::make_zip_iterator(thrust::make_tuple(
             thrust::make_permutation_iterator(vt_0.begin(), vt0_bin.begin()),
             thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
-          )),                                                     // input - 2nd arg   
+          )),                                                     // input - 2nd arg
+          rw2.begin(),                                            // stencil
           vt.begin(),                                             // output
-          detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity)
+          detail::common__vterm__vt__cached<real_t>(opts_init.terminal_velocity),
+          arg::_1 > real_t(0)
         );
       }
       else
-        thrust::transform(
+        thrust::transform_if(
           rw2.begin(), rw2.end(),                                 // input - 1st arg
           zip_it_t(thrust::make_tuple(
             thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
@@ -228,9 +310,35 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
             thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
           )),                                                     // input - 2nd arg
+          rw2.begin(),                                            // stencil
           vt.begin(),                                             // output
-          detail::common__vterm__vt<real_t>(opts_init.terminal_velocity)
+          detail::common__vterm__vt<real_t>(opts_init.terminal_velocity),
+          arg::_1 > real_t(0)
         );
+
+      // ice terminal velocity
+      if (opts_init.ice_switch)
+      {
+        auto zipped = thrust::make_zip_iterator(thrust::make_tuple(
+            ice_a.begin(),
+            ice_c.begin(),
+            ice_rho.begin(),
+            thrust::make_permutation_iterator(T.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(p.begin(),    ijk.begin()),
+            thrust::make_permutation_iterator(rhod.begin(), ijk.begin()),
+            thrust::make_permutation_iterator(eta.begin(),  ijk.begin())
+          ));
+        auto zipped_end = zipped + ice_a.size();
+
+        thrust::transform_if(
+            zipped,
+            zipped_end,
+            rw2.begin(),          // stencil
+            vt.begin(),           // output
+            detail::common__vterm__ice<real_t>(),
+            arg::_1 == real_t(0)
+        );
+      }
     }
   };  
 };

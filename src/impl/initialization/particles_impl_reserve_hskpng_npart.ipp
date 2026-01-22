@@ -13,9 +13,6 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::reserve_hskpng_npart()
     {
       // memory allocation
-      if (opts_init.nx != 0) i.reserve(opts_init.n_sd_max); //
-      if (opts_init.ny != 0) j.reserve(opts_init.n_sd_max); //  > TODO: are they needed at all?
-      if (opts_init.nz != 0) k.reserve(opts_init.n_sd_max); //
       ijk.reserve(opts_init.n_sd_max);
 
       if (opts_init.nx != 0) x.reserve(opts_init.n_sd_max); 
@@ -40,6 +37,17 @@ namespace libcloudphxx
       {
         rc2.reserve(opts_init.n_sd_max);
       }
+      if(opts_init.ice_switch)
+      {
+        rd2_insol.reserve(opts_init.n_sd_max);
+        ice_a.reserve(opts_init.n_sd_max);
+        ice_c.reserve(opts_init.n_sd_max);
+        ice_rho.reserve(opts_init.n_sd_max);
+        if (! opts_init.time_dep_ice_nucl)
+        {
+          T_freeze.reserve(opts_init.n_sd_max);
+        }
+      }
 
       vt.reserve(opts_init.n_sd_max);
 
@@ -48,7 +56,7 @@ namespace libcloudphxx
       
       tmp_device_real_part.reserve(opts_init.n_sd_max);
       tmp_device_n_part.reserve(opts_init.n_sd_max);
-      // tmp_device_size_part.reserve(opts_init.n_sd_max);
+      tmp_device_size_part.reserve(opts_init.n_sd_max);
       tmp_host_size_part.reserve(opts_init.n_sd_max);
       tmp_host_real_part.reserve(opts_init.n_sd_max);
 

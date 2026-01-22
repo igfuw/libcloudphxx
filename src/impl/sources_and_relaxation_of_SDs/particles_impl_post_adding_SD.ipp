@@ -16,7 +16,7 @@ namespace libcloudphxx
       sorted = false;
 
       // --- calc liquid water content after src ---
-      rw_mom3_post_change();
+      calc_liq_ice_content_change();
 
       // drv = tot_vol_after - dry_vol_after - tot_vol_bfr + dry_vol_bfr
 /*

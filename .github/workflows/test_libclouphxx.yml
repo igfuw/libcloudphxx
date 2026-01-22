@@ -7,7 +7,23 @@ on:
     branches: [ master ]
 
 jobs:
+  #fetch Apptainer images
+  fetch_images:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        tag: ["uwlcm_ubuntu_24_04_cuda_12_9_0", "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"]
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: load UWLCM Singularity image
+      uses: igfuw/load_UWLCM_singularity_image@main
+      with:
+        path: ${{ github.workspace }}/singularity_images
+        tag: ${{ matrix.tag }}
+
   build_CUDA:
+    needs: fetch_images
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -22,7 +38,7 @@ jobs:
           app_opts: "--nv"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@master
@@ -31,10 +47,12 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        singularity_path: ${{ github.workspace }}/singularity_images
         tag: ${{ matrix.tag }}
         app_opts: ${{ matrix.app_opts }}
 
   build:
+    needs: fetch_images
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -54,7 +72,7 @@ jobs:
           cxx: "mpic++"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: build libcloudph++
       uses: igfuw/libcloudphxx_build@master
@@ -63,6 +81,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed 
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -72,7 +91,7 @@ jobs:
       run: tar -cvf build.tar build
 
     - name: Upload libcloudph++ build
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
         path: build.tar
@@ -93,10 +112,10 @@ jobs:
           tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
@@ -106,7 +125,7 @@ jobs:
     - name: load UWLCM Apptainer image
       uses: igfuw/load_UWLCM_singularity_image@main
       with:
-        path: ${{ github.workspace }}/apptainer_images
+        path: ${{ github.workspace }}/singularity_images
         tag: ${{ matrix.tag }}
 
     - name: Run unit tests
@@ -125,10 +144,10 @@ jobs:
         mpi: ["none"]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
@@ -143,7 +162,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++ repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/libmpdataxx
         path: libmpdataxx
@@ -154,6 +173,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
 
     - name: Configure kinematic_2D CMake
@@ -197,10 +217,10 @@ jobs:
 
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v7
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
@@ -210,7 +230,7 @@ jobs:
     - name: load UWLCM Apptainer image
       uses: igfuw/load_UWLCM_singularity_image@main
       with:
-        path: ${{ github.workspace }}/apptainer_images
+        path: ${{ github.workspace }}/singularity_images
 
     - name: Install libcloudph++
       run: sudo cmake --install build
@@ -229,7 +249,7 @@ jobs:
       run: echo ${PYTHONPATH}
 
     - name: checkout parcel repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/parcel
         path: parcel
@@ -254,6 +274,7 @@ jobs:
       run: apptainer exec -B${{ github.workspace }}/installed $SI python3 -m pytest -s -v unit_test_debug
 
   build_and_test_KiD-A:
+    needs: fetch_images
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -267,7 +288,7 @@ jobs:
 
     steps:
     - name: Checkout libcloudphxx PR
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0 
 
@@ -287,6 +308,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed 
 
     - name: Install libcloudph++
@@ -306,7 +328,7 @@ jobs:
       run: echo ${PYTHONPATH}
 
     - name: checkout KiD-libcloud repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/kid-libcloud
         path: kid-libcloud
@@ -316,6 +338,7 @@ jobs:
       run: apptainer exec -B${{ github.workspace }}/installed  $SI bash ./.travis_scripts/lwp_test.sh
 
   call_test_uwlcm_hlpr:
+    needs: fetch_images
     uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
     with:
       UWLCM_sha: "master"

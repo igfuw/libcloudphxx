@@ -12,7 +12,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ante_adding_SD()
     {   
-      rw_mom3_ante_change(); // save 3rd wet moment  
+      save_liq_ice_content_before_change();
 
       // drv = -tot_vol_bfr + dry_vol_bfr
 /*

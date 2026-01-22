@@ -57,20 +57,11 @@ namespace libcloudphxx
       if (opts_init.chem_switch && opts_init.src_type!=src_t::off)
         throw std::runtime_error("libcloudph++: chemistry and aerosol source are not compatible");
 
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.empty() && opts_init.src_dry_sizes.empty())
-        throw std::runtime_error("libcloudph++: CCN source enabled, but src_dry_distros and src_dry_sizes are empty");
-
-      if (opts_init.src_type!=src_t::off && opts_init.src_dry_distros.size() > 1)
-        throw std::runtime_error("libcloudph++: src_dry_distros can only have a single kappa value.");
-
       if (opts_init.src_type==src_t::matching && opts_init.dry_distros.size() > 1)
         throw std::runtime_error("libcloudph++: For 'matching' CCN source, the initial aerosol distribution can only have one kappa value (na kappa matching done).");
 
       if (opts_init.src_type!=src_t::off && n_dims<2)
         throw std::runtime_error("libcloudph++: CCN source works in 2D and 3D only.");
-
-      if (opts_init.src_type==src_t::matching && !opts_init.src_dry_distros.empty() &&
-          opts_init.src_dry_distros.begin()->first != opts_init.dry_distros.begin()->first) throw std::runtime_error("libcloudph++: For 'matching' CCN source, kappa of the source has to be the same as that of the initial profile (no kappa matching done)");
 
       if(opts_init.dry_distros.size() > 1 && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: chemistry and multiple kappa distributions are not compatible");
@@ -168,6 +159,20 @@ namespace libcloudphxx
         throw std::runtime_error("libcloudph++: Adaptive cond substepping (opts_init.adaptive_sstp_cond) with per-particle substepping (opts_init.exact_sstp_cond) requires mixing of th and rv between subteps (opts_init.sstp_cond_mix) to be disabled");
       if(opts_init.sstp_cond_act > 1 && (opts_init.sstp_cond_mix || !opts_init.exact_sstp_cond || !opts_init.adaptive_sstp_cond))
         throw std::runtime_error("libcloudph++: number of substeps for activation (opts_init.sstp_cond_act) can be greater than 1 only if mixing of rv and th (opts_init.sstp_cond_mix) is disabled and if per-particle condensation substepping is used (opts_init.exact_sstp_cond) and if adaptive substepping is used (opts_init.adaptive_sstp_cond)");
+
+      if(opts_init.ice_switch)
+      {
+        if(opts_init.coal_switch) // because we dont know what to do when ice collides with water
+          throw std::runtime_error("libcloudph++: coalescence does not work with ice (turn off ice_switch or coal_switch).");
+        if(opts_init.rlx_switch) // because we dont account for ice/water when matching and initializing aerosols from relaxation
+          throw std::runtime_error("libcloudph++: relaxation does not work with ice.");
+        if(opts_init.src_type==src_t::matching) // because we dont account for ice/water when matching and initializing aerosols from this type of source
+          throw std::runtime_error("libcloudph++: 'matching' source type does not work with ice.");
+        if(opts_init.turb_cond_switch) // because we dont want to add SGS RH to RH_i
+          throw std::runtime_error("libcloudph++: SGS condensation does not work with ice.");
+        if(opts_init.exact_sstp_cond)
+          throw std::runtime_error("libcloudph++: deposition works only with per-cell substepping");
+      }
     }
   };
 };

@@ -49,11 +49,12 @@ def lognormal2(lnr):
 opts = lgrngn.opts_t()
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {.61:lognormal, 1.28:lognormal2} # normal mode + GCCNs
+opts_init.dry_distros = {(.61,0.):lognormal, (1.28,0.):lognormal2} # normal mode + GCCNs
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.95
+opts_init.ice_switch = False
 opts_init.dt = 1
 opts_init.sd_conc = int(1e3)
 opts_init.n_sd_max = opts_init.sd_conc
@@ -74,6 +75,21 @@ opts.coal = False
 opts.chem = False
 opts.RH_max = 1.005
 # opts.RH_max = 0.9
+opts.ice_nucl = False
+#opts.RH_max = 1.005
+
+#expected theta and rv after condensation:
+exp_th = { True : 298.884, # constp
+           False: 300.115}   # varp
+exp_rv = { True : 9.05e-3, # constp
+           False: 9.06e-3}  # varp
+exp_rv_diff = { True : 1e-6, # constp
+                False: 5e-9}   # varp
+
+# range of supersat after condesation
+ss_max = -0.71
+ss_min = -0.96
+
 
 def supersaturation(prtcls):
     prtcls.diag_RH()

@@ -180,6 +180,10 @@ namespace libcloudphxx
       if (pimpl->opts_init.diag_incloud_time)
         pimpl->update_incloud_time(pimpl->dt);
 
+      // ice nucleation/melting
+      if (pimpl->opts_init.ice_switch && opts.ice_nucl)
+        pimpl->ice_nucl_melt(pimpl->dt);
+
       // condensation/evaporation 
       if (opts.cond) 
       {
@@ -193,10 +197,10 @@ namespace libcloudphxx
 
         // apply substeps per-particle logic
         if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->sstp_cond_act > 1)) 
-        {
+        {            
           if(!pimpl->opts_init.sstp_cond_mix)
           {
-            pimpl->rw_mom3_ante_change(); // save 3rd wet moment before condensation (in drw_mom3_gp)
+            pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
             pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
           }
 
@@ -229,7 +233,7 @@ namespace libcloudphxx
           pimpl->release_arrays_for_perparticle_sstp();
           pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
         }
-        else // apply per-cell sstp logic
+        else // apply per-cell sstp logic, always with mixing (sstp_cond_mix==true required)
         {
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {
@@ -237,7 +241,16 @@ namespace libcloudphxx
             if(opts.turb_cond)
               pimpl->apply_perparticle_sgs_supersat();
             pimpl->hskpng_Tpr(); 
+            if(step == 0)
+              pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
             pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
+            // pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+            if (pimpl->opts_init.ice_switch)
+            {
+              // pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
+              pimpl->ice_dep(pimpl->dt, opts.RH_max, step);
+            }
+            pimpl->update_th_rv();
           }
         }
 
@@ -440,11 +453,8 @@ namespace libcloudphxx
         // sanity check
         if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("libcloudph++: aerosol source was switched off in opts_init");
 
-        // introduce new particles with the given time interval
-        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
-        }
+        // introduce new particles
+        pimpl->src(opts.src_dry_distros, opts.src_dry_sizes);
       }
 
       // aerosol relaxation, in sync since it changes th/rv

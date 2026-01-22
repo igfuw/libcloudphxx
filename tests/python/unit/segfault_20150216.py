@@ -24,8 +24,9 @@ def lognormal(lnr):
     -pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev),2)
   ) / log(stdev) / sqrt(2*pi);
 kappa = .61
+rd_insol = 0.
 
-opts_init.dry_distros = {kappa:lognormal}
+opts_init.dry_distros = {(kappa, rd_insol):lognormal}
 opts_init.sd_conc = 50
 opts_init.n_sd_max = 50
 
