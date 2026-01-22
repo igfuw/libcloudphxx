@@ -112,7 +112,7 @@ namespace libcloudphxx
         rv.begin(),            // output
         thrust::plus<real_t>() 
       );
-      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+      negtozero(rv, "rv after post-cond updating rv");
       nancheck(rv, "update_th_rv: rv after update");
 
       // updating th

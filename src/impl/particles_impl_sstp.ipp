@@ -101,6 +101,7 @@ namespace libcloudphxx
             arg::_1 + arg::_2 / sstp              // op: rv = rv + drv_adv / sstp
           );
         }
+        negtozero((*scl[ix]), "Eulerian field after per-cell sstp_step");
       }
     }
 
@@ -168,6 +169,7 @@ namespace libcloudphxx
       	    arg::_1 + arg::_2                     // op: rv = rv + drv_adv
       	  );
       	}
+        negtozero((*tmp[ix]), "Eulerian field after per-particle sstp_step");
       }
 
       // release temporary arrays that stored sstp_delta

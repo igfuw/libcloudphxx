@@ -22,6 +22,7 @@
 #include "detail/kernel_onishi_nograv.hpp"
 #include "detail/bcond.hpp"
 #include "detail/checknan.hpp"
+#include "detail/negtozero.hpp"
 #include "detail/formatter.cpp"
 #include "detail/tpl_calc_wrapper.hpp"
 #include "detail/kernels.hpp"
