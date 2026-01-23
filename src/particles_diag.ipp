@@ -537,6 +537,13 @@ namespace libcloudphxx
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
+    // to get current value of sstp_coal, as it can change in const_multi runs
+    template <typename real_t, backend_t device>
+    int particles_t<real_t, device>::diag_sstp_coal()
+    {   
+      return pimpl->opts_init.sstp_coal;
+    }
+
     // compute 1st (non-specific) moment of rw^3 * vt of all SDs
     // TODO: replace it with simple diag vt?
     template <typename real_t, backend_t device>
