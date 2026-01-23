@@ -1,4 +1,5 @@
 import sys
+sys.path.insert(0, "../../../build/bindings/python/")
 sys.path.insert(0, "../../bindings/python/")
 
 from numpy import array as arr_t # ndarray dtype default to float64, while array's is int64!
@@ -155,22 +156,28 @@ for constp in [False, True]:
         ss, th_diff_1  , rv_diff = test(RH_formula, 40, 1, exact_sstp, constp, opts_dt)
         print(ss, th_diff_1  , rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         ss, th_diff_10 , rv_diff = test(RH_formula, 40, 10, exact_sstp, constp, opts_dt)
         print(ss, th_diff_10 , rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         ss, th_diff_100, rv_diff = test(RH_formula, 40, 100, exact_sstp, constp, opts_dt)
         print(ss, th_diff_100, rv_diff)
         assert(abs(ss) < 4.5e-3)
+#        assert(abs(rv_diff) < 2.5e-5)
         assert(abs(rv_diff) < 1e-9)
   
         if constp == False:
+#          assert(abs(th_diff_1) < 8e-2)
+#          assert(abs(th_diff_10) < 8e-3)
+#          assert(abs(th_diff_100) < 6e-3) # little gain
           assert(abs(th_diff_1) < 4.2e-2)
           assert(abs(th_diff_10) < 4.2e-3)
-          assert(abs(th_diff_100) < 4.2e-4)
+          assert(abs(th_diff_100) < 4.2e-4) 
         else :
           # TODO: why with constant pressure the error doesn't scale so well?
           #       is there a systematic error caused by the fact that with constant pressure,

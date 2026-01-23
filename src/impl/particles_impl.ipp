@@ -11,8 +11,6 @@
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-//#include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
-//#include <boost/numeric/odeint/util/resizer.hpp>
 #include <boost/numeric/odeint/external/thrust/thrust.hpp>
 
 #include <map>
@@ -83,7 +81,17 @@ namespace libcloudphxx
         sstp_tmp_th, // ditto for theta
         sstp_tmp_rh, // ditto for rho
         sstp_tmp_p, // ditto for pressure
+        sstp_tmp_chem_0, // ditto for trace gases
+        sstp_tmp_chem_1, // ditto for trace gases
+        sstp_tmp_chem_2, // ditto for trace gases
+        sstp_tmp_chem_3, // ditto for trace gases
+        sstp_tmp_chem_4, // ditto for trace gases
+        sstp_tmp_chem_5, // ditto for trace gases
+        vt,  // terminal velocity
+        vt_0, // sea level term velocity according to Beard 1977, compute once
+        dv,  // grid-cell volumes (per grid cell)
         incloud_time, // time this SD has been within a cloud
+        rc2, // critical radius squared (estimated for temperature from opts_init.rc2_T)
         rd2_insol, // dry radii squared of insoluble aerosol
         T_freeze, // freezing temperature
         ice_a, // equatorial radius of ice
@@ -95,22 +103,11 @@ namespace libcloudphxx
              log_rd_max, // logarithm of the upper bound of the distr
              multiplier; // multiplier calculated for the above values
 
-      // terminal velocity (per particle)
-      thrust_device::vector<real_t> vt; 
-      // sea level term velocity according to Beard 1977, compute once
-      thrust_device::vector<real_t> vt_0; 
-
-      // grid-cell volumes (per grid cell)
-      thrust_device::vector<real_t> dv;
-
       // housekeeping data (per particle)
       thrust_device::vector<thrust_size_t> 
         ijk, // Eulerian grid cell indices (always zero for 0D); i, j and k use temporary vectors from tmp_device_size_part via i_gp, j_gp and k_gp; TODO: make ijk, sorted_id and sorted_ijk also use such temporary vectors?
+        lft, rgt, abv, blw, fre, hnd, // Arakawa-C grid helper vars TODO: could be reused after advection!
         sorted_id, sorted_ijk;
-
-      // Arakawa-C grid helper vars
-      thrust_device::vector<thrust_size_t> 
-        lft, rgt, abv, blw, fre, hnd; // TODO: could be reused after advection!
 
       // moment-counting stuff
       thrust_device::vector<thrust_size_t> 
@@ -126,12 +123,6 @@ namespace libcloudphxx
         rhod,    // dry air density
         th,      // potential temperature (dry)
         rv,      // water vapour mixing ratio
-        sstp_tmp_chem_0, // ditto for trace gases
-        sstp_tmp_chem_1, // ditto for trace gases
-        sstp_tmp_chem_2, // ditto for trace gases
-        sstp_tmp_chem_3, // ditto for trace gases
-        sstp_tmp_chem_4, // ditto for trace gases
-        sstp_tmp_chem_5, // ditto for trace gases
         courant_x, 
         courant_y, 
         courant_z;
@@ -149,13 +140,14 @@ namespace libcloudphxx
         eta,// dynamic viscosity 
         diss_rate; // turbulent kinetic energy dissipation rate
 
-      thrust_device::vector<real_t> w_LS; // large-scale subsidence velocity profile
-      thrust_device::vector<real_t> SGS_mix_len; // SGS mixing length profile
-      thrust_device::vector<real_t> aerosol_conc_factor; // profile of aerosol concentration factor
+      thrust_device::vector<real_t> w_LS, // large-scale subsidence velocity profile
+                                    SGS_mix_len, // SGS mixing length profile
+                                    aerosol_conc_factor; // profile of aerosol concentration factor
 
       // time steps to be used, considering that opts.dt can override opts_init.dt
+      // sstp_cond not used if opts_init.adaptive_sstp_cond == true, then theres sstp_cond for each SD
       real_t dt;
-      int sstp_cond, sstp_coal, sstp_chem;
+      int sstp_cond, sstp_coal, sstp_chem, sstp_cond_act;
 
       // sorting needed only for diagnostics and coalescence
       bool sorted;
@@ -168,6 +160,8 @@ namespace libcloudphxx
       // is it allowed to do substepping, if not, some memory can be saved
       bool allow_sstp_cond,
            allow_sstp_chem;
+
+      bool sstp_cond_exact_nomix_adaptive; // whether per-particle substepping with no mixing and adaptive substepping is used
 
       // timestep counter
       n_t src_stp_ctr, rlx_stp_ctr;
@@ -219,7 +213,6 @@ namespace libcloudphxx
         tmp_device_size_part;
 
       // guards for temp vectors that are used in multiple functions and need to stay unchanged inbetween
-      // tmp_vector_pool<thrust_device::vector<real_t>>::guard asd;
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<real_t>>::guard
       > n_filtered_gp,
@@ -228,11 +221,18 @@ namespace libcloudphxx
         sstp_dlt_th_gp,
         sstp_dlt_rhod_gp,
         sstp_dlt_p_gp,
-        drv_gp,
+        // drv_gp,
         lambda_D_gp,
         lambda_K_gp,
+        drw_mom3_gp,
         rw_mom3_gp,
-        rw3_gp,
+        rwX_gp,
+        drwX_gp,
+        // drw2_gp,
+        // drw3_gp,
+        Tp_gp,
+        // rw3_gp,
+        d_ice_mass_gp,
         ice_mass_gp;
 
       std::unique_ptr<
@@ -241,7 +241,8 @@ namespace libcloudphxx
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<unsigned int>>::guard
-      > chem_flag_gp;
+      > chem_flag_gp, // could be bool (?)
+        perparticle_sstp_cond_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust_device::vector<thrust_size_t>>::guard
@@ -293,6 +294,8 @@ namespace libcloudphxx
 
       // ids of sds to be copied with distmem
       // thrust_device::vector<thrust_size_t> &lft_id, &rgt_id;
+
+      // thrust_device::vector<int> sstp_cond_percell; // number of cond substeps per cell (used in adaptive substepping)
 
       // --- containters with vector pointers to help resize and copy vectors ---
 
@@ -370,11 +373,26 @@ namespace libcloudphxx
         SGS_mix_len(_opts_init.SGS_mix_len),
         aerosol_conc_factor(_opts_init.aerosol_conc_factor),
         adve_scheme(_opts_init.adve_scheme),
-        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.variable_dt_switch),
-        allow_sstp_chem(_opts_init.sstp_chem > 1 || _opts_init.variable_dt_switch),
+        allow_sstp_cond(_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1), // || _opts_init.variable_dt_switch || _opts_init.adaptive_sstp_cond),
+        allow_sstp_chem(_opts_init.sstp_chem > 1), // || _opts_init.variable_dt_switch),
+        sstp_cond_exact_nomix_adaptive(_opts_init.exact_sstp_cond && (_opts_init.sstp_cond > 1 || _opts_init.sstp_cond_act > 1) && _opts_init.adaptive_sstp_cond),
+        sstp_cond(_opts_init.sstp_cond),
+        sstp_coal(_opts_init.sstp_coal),
+        sstp_chem(_opts_init.sstp_chem),
+        // sstp_cond_act(std::max(_opts_init.sstp_cond_act, _opts_init.sstp_cond)),
+        sstp_cond_act(_opts_init.sstp_cond_act),
         pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
-        tmp_device_real_cell(4) // 4 temporary vectors of this type; NOTE: default constructor creates 1
+        tmp_host_real_part("tmp_host_real_part"),
+        tmp_host_real_grid("tmp_host_real_grid"),
+        tmp_host_real_cell("tmp_host_real_cell"),
+        tmp_host_size_part("tmp_host_size_part"),
+        tmp_host_size_cell("tmp_host_size_cell"),
+        tmp_device_real_part("tmp_device_real_part"),
+        tmp_device_real_cell("tmp_device_real_cell", 4), // 4 temporary vectors of this type; NOTE: default constructor creates 1
+        tmp_device_n_part("tmp_device_n_part"),
+        tmp_device_size_cell("tmp_device_size_cell"),
+        tmp_device_size_part("tmp_device_size_part")        
       {
 
         // set 0 dev_count to mark that its not a multi_CUDA spawn
@@ -436,7 +454,8 @@ namespace libcloudphxx
            distmem_real_vctrs.insert({&sstp_tmp_rv, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_th, detail::no_initial_value});
            distmem_real_vctrs.insert({&sstp_tmp_rh, detail::no_initial_value});
-           // sstp_tmp_p needs to be added if a constant pressure profile is used, but this is only known after init - see particles_init
+           if(opts_init.const_p)
+             distmem_real_vctrs.insert({&sstp_tmp_p, detail::no_initial_value});
         }
 
         if(opts_init.turb_adve_switch)
@@ -466,27 +485,47 @@ namespace libcloudphxx
             {distmem_real_vctrs.insert({&T_freeze, detail::no_initial_value});}
         }
 
+        if(opts_init.sstp_cond_act > 1 && allow_sstp_cond)
+        {
+          distmem_real_vctrs.insert({&rc2, detail::invalid});
+        }
+
         // initializing distmem_n_vctrs - list of n_t vectors with properties of SDs that have to be copied/removed/recycled when a SD is copied/removed/recycled
         distmem_n_vctrs.insert(&n);
 
-        // init number of temporary real vctrs
-        if(opts_init.chem_switch || allow_sstp_cond || n_dims >= 2)
-          tmp_device_real_part.add_vector();
-        if(opts_init.chem_switch || (allow_sstp_cond && opts_init.exact_sstp_cond) || n_dims==3 || opts_init.turb_cond_switch || distmem())
-          tmp_device_real_part.add_vector();
-        if(allow_sstp_cond && opts_init.exact_sstp_cond)
-        {
-          tmp_device_real_part.add_vector();
-          tmp_device_real_part.add_vector();
-          tmp_device_real_part.add_vector();
-          if(opts_init.const_p)
-            tmp_device_real_part.add_vector();
-        }
-        if (opts_init.ice_switch && opts_init.time_dep_ice_nucl)
-        {
-          tmp_device_real_part.add_vector();
-        }
+        // number of required temporary real vectors of size npart
+        int tmp_drp_no = 1;
+        if(n_dims == 2) 
+          tmp_drp_no = std::max(tmp_drp_no, 2);
+        if(allow_sstp_cond) 
+          tmp_drp_no = std::max(tmp_drp_no, 2);
+        if(opts_init.ice_switch && opts_init.time_dep_ice_nucl)
+          tmp_drp_no = std::max(tmp_drp_no, 2); 
+        if(opts_init.chem_switch) 
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        if(n_dims == 3)
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        if(opts_init.turb_cond_switch)
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        if(distmem())
+          tmp_drp_no = std::max(tmp_drp_no, 3);
+        // if(opts_init.ice_switch)
+          // tmp_drp_no = std::max(tmp_drp_no, 8); // why so many?
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && sstp_cond_exact_nomix_adaptive)
+          tmp_drp_no = std::max(tmp_drp_no, 4); // why 5? not 4?
+        if(allow_sstp_cond && opts_init.exact_sstp_cond && !sstp_cond_exact_nomix_adaptive)
+          tmp_drp_no = std::max(tmp_drp_no, 7); // why 8? not 7?
+        // if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
+        //   tmp_drp_no = std::max(tmp_drp_no, 7);
+        tmp_device_real_part.add_vectors(tmp_drp_no-1); // -1 because 1 is already created in the ctor
 
+
+        if(opts_init.ice_switch)
+          tmp_device_real_cell.add_vectors(2);
+
+        if(opts_init.exact_sstp_cond && opts_init.adaptive_sstp_cond)
+          tmp_device_n_part.add_vectors(2);
+          
         // init number of temporary size_t vctrs
         // 1 needed if n_dims == 1 (i)
         // 2 needed if distmem (lft_id, rgt_id)
@@ -495,9 +534,9 @@ namespace libcloudphxx
         // 1 already initialized by default ctor;
         // NOTE: cell index (i,j,k) could reuse tmp_device_n_part, but then it would have to be recalculated after each random sort (maybe its not a problem?)
         if(n_dims>=2 || distmem())
-          tmp_device_size_part.add_vector();
+          tmp_device_size_part.add_vectors(1);
         if(n_dims==3)
-          tmp_device_size_part.add_vector();
+          tmp_device_size_part.add_vectors(1);
 
         resize_size_vctrs.insert(&ijk);
         resize_size_vctrs.insert(&sorted_ijk);
@@ -530,12 +569,12 @@ namespace libcloudphxx
       void init_n_const_multi(const thrust_size_t &);
       void init_n_dry_sizes(const real_t &conc, const thrust_size_t &sd_conc);
 
-      void dist_analysis_sd_conc(
+      void init_dist_analysis_sd_conc(
         const common::unary_function<real_t> &n_of_lnrd,
         const n_t sd_conc,
         const real_t dt = 1.
       );
-      void dist_analysis_const_multi(
+      void init_dist_analysis_const_multi(
         const common::unary_function<real_t> &n_of_lnrd 
       );
       void reserve_hskpng_npart();
@@ -561,8 +600,8 @@ namespace libcloudphxx
       void init_hskpng_ncell();
       void init_chem();
       void init_chem_aq();
-      void init_sstp();
-      void init_sstp_chem();
+      void init_perparticle_sstp();
+      void init_percell_sstp_chem();
       void init_kernel();
       void init_vterm();
 
@@ -583,6 +622,7 @@ namespace libcloudphxx
 
       void hskpng_vterm_all();
       void hskpng_vterm_invalid();
+      void hskpng_approximate_rc2_invalid();
       void hskpng_tke();
       void hskpng_turb_vel(const real_t &dt, const bool only_vertical = false);
       void hskpng_turb_dot_ss();
@@ -653,18 +693,38 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      // condensation methods
+      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      void cond_perparticle_advance_rw2(const real_t &RH_max, const bool turb_cond);
+      template<class pres_iter, class RH_iter>
+      void perparticle_advance_rw2(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
+      void save_liq_ice_content_before_change();
+      void calc_liq_ice_content_change();
+      template<int power>
+      void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
+      template<int power>
+      void add_perparticle_rwX_to_drwX(const bool store_rw3);
+
+      void apply_perparticle_drw3_to_perparticle_rv_and_th();
+      void apply_perparticle_cond_change_to_percell_rv_and_th();
+      void update_th_rv();
+// =======
       void ice_nucl_melt(const real_t &dt);
 
-      void cond_dm3_helper();
-      void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      // void cond_dm3_helper();
+      // void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
+      // void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       void ice_dep(const real_t &dt, const real_t &RH_max, const int step);
-      template<class pres_iter, class RH_iter>
-      void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
-      void update_th_rv(thrust_device::vector<real_t> &, phase_change = phase_change::condensation);
+      // template<class pres_iter, class RH_iter>
+      // void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_freezing(thrust_device::vector<real_t> &);
+      // void update_th_rv(thrust_device::vector<real_t> &, phase_change = phase_change::condensation);
+// >>>>>>> 41c117de670b134d0632608d7e48fd9050a852bc
+
       void update_state(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
       void update_pstate(thrust_device::vector<real_t> &, thrust_device::vector<real_t> &);
+
       void update_incloud_time(const real_t &dt);
 
       void coal(const real_t &dt, const bool &turb_coal);
@@ -689,11 +749,16 @@ namespace libcloudphxx
       void rlx(const real_t);
       void rlx_dry_distros(const real_t);
 
-      void sstp_step(const int &step);
-      void sstp_step_exact(const int &step);
-      void sstp_step_ssp(const real_t &dt);
+      // substepping methods
+      void acquire_arrays_for_perparticle_sstp();
+      void release_arrays_for_perparticle_sstp();
+      void calculate_noncond_perparticle_sstp_delta();
+      void apply_noncond_perparticle_sstp_delta();
+      void apply_perparticle_sgs_supersat();
+      void sstp_percell_step(const int &step);
+      void sstp_percell_step_exact(const int &step);
       void sstp_save();
-      void sstp_step_chem(const int &step);
+      void sstp_percell_step_chem(const int &step);
       void sstp_save_chem();
 
       void post_copy(const opts_t<real_t>&);

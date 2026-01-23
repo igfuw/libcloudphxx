@@ -187,44 +187,70 @@ namespace libcloudphxx
       // condensation/evaporation 
       if (opts.cond) 
       {
+        // prerequisite
+        pimpl->hskpng_sort();
+
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
         //       that would make it easy to do in exact (per-cell) substepping
-        pimpl->hskpng_mfp(); 
+        pimpl->hskpng_mfp();
 
-        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)
         // apply substeps per-particle logic
-        {
-          if (pimpl->opts_init.ice_switch)
-            throw std::runtime_error("libcloudph++: deposition works only with per-cell substepping");
-
-          for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {   
-            pimpl->sstp_step_exact(step);
-            if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+        if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->sstp_cond_act > 1)) 
+        {            
+          if(!pimpl->opts_init.sstp_cond_mix)
+          {
+            pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+            pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
           }
-          // copy sstp_tmp_rv and th to rv and th
-          pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
-          pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+
+          pimpl->acquire_arrays_for_perparticle_sstp(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
+          pimpl->calculate_noncond_perparticle_sstp_delta(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact(); returns change / sstp_count; make it just change and multiply afterwards?
+
+          // adaptive per-particle substepping
+          if(pimpl->opts_init.adaptive_sstp_cond)
+          {
+            // Method 1: Do condensation in one loop over SDs, since each SD can have different numbr of steps.
+            // One loop avoids synchronization between SDs after each substep. 
+            pimpl->perparticle_nomixing_adaptive_sstp_cond(opts);
+
+            // Method 2: loop over substeps. code removed after commit 14dca57a637369a46fb4c89fc0941122bfbfcf52
+          }
+          else // per-particle substepping with same sstp_cond for all SDs (no adaptation, nosstp_cond_act, but mixing can be done)
+          {
+            for (int step = 0; step < pimpl->sstp_cond; ++step) 
+            {
+              pimpl->apply_noncond_perparticle_sstp_delta();
+              if(opts.turb_cond)
+                pimpl->apply_perparticle_sgs_supersat();
+
+              pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+              pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
+              pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
+            }
+          }
+          pimpl->release_arrays_for_perparticle_sstp();
+          pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
         }
-        else
-        // apply per-cell sstp logic
+        else // apply per-cell sstp logic, always with mixing (sstp_cond_mix==true required)
         {
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {   
-            pimpl->sstp_step(step);
+          {
+            pimpl->sstp_percell_step(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->hskpng_Tpr();
-            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+              pimpl->apply_perparticle_sgs_supersat();
+            pimpl->hskpng_Tpr(); 
+            if(step == 0)
+              pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+            pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
+            // pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
             if (pimpl->opts_init.ice_switch)
             {
-              if (opts.turb_cond)
-                throw std::runtime_error("libcloudph++:deposition doesnt work with turb_cond");
-              pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
+              // pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
+              pimpl->ice_dep(pimpl->dt, opts.RH_max, step);
             }
+            pimpl->update_th_rv();
           }
         }
 
@@ -254,7 +280,7 @@ namespace libcloudphxx
           if (opts.chem_dsl)
           {
             //adjust trace gases to substepping
-            pimpl->sstp_step_chem(step);
+            pimpl->sstp_percell_step_chem(step);
 
             //dissolving trace gases (Henrys law)
             pimpl->chem_henry(pimpl->dt / pimpl->sstp_chem);
@@ -368,9 +394,12 @@ namespace libcloudphxx
         // done if number of collisions > 1 in const_multi mode
         if(*(pimpl->increase_sstp_coal))
         {
-          ++(pimpl->opts_init.sstp_coal);
+          ++(pimpl->sstp_coal);
           *(pimpl->increase_sstp_coal) = false;
         }
+
+        // update rc2 (due to kappa and rd3 changes)
+        pimpl->hskpng_approximate_rc2_invalid();
       }
 
       if (opts.turb_adve || opts.turb_cond)

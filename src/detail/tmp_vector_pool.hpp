@@ -16,15 +16,15 @@ namespace libcloudphxx
             entry(size_t n) : vec(n) {}
         };
         std::vector<entry> pool;
-    public:
-        tmp_vector_pool(size_t pool_size = 1): pool(pool_size, 0) {}
+        const std::string name;
 
-        // Add a new vector to the pool
-        // void add_vector(size_t vec_size) {
-        //     pool.emplace_back(vec_size);
-        // }
-        void add_vector() {
-            pool.emplace_back(0);
+    public:
+        tmp_vector_pool(std::string name, size_t pool_size = 1): pool(pool_size, 0), name(name) {}
+
+        void add_vectors(size_t no_vectors = 1) {
+            for (size_t i = 0; i < no_vectors; ++i) {
+                pool.emplace_back(0);
+            }
         }
 
         void resize(size_t n) {
@@ -41,14 +41,15 @@ namespace libcloudphxx
 
         // Acquire an available vector, returns its index
         size_t acquire() {
-//            std::cerr << "tmp_vector_pool: acquiring vector from pool of size " << pool.size() << "\n";
             for (size_t i = 0; i < pool.size(); ++i) {
                 if (!pool[i].in_use) {
                     pool[i].in_use = true;
                     return i;
                 }
             }
-            assert(false && "No available temporary vectors in pool!");
+            std::cerr << "LIBCLOUDPH++: tmp_vector_pool: No available temporary vectors in pool! Pool size: " << pool.size() << ". Pool name: " << name << " \n";
+            // assert(false && "No available temporary vectors in pool!");
+            assert(false);
             return size_t(-1);
         }
 

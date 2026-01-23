@@ -194,14 +194,14 @@ namespace libcloudphxx
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
-    // records super-droplet concentration per grid cell
+    // records super-droplet concentration (of selected SDs!) per grid cell
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_sd_conc()
     {
       namespace arg = thrust::placeholders;
       assert(pimpl->selected_before_counting);
 
-      thrust_device::vector<real_t> &n_filtered = pimpl->n_filtered_gp->get();
+      auto &n_filtered = pimpl->n_filtered_gp->get();
 
       // similar to hskpng_count
       pimpl->hskpng_sort();
@@ -537,11 +537,13 @@ namespace libcloudphxx
       thrust::sequence(pimpl->count_ijk.begin(), pimpl->count_ijk.end());
     }
 
-    // compute 1st (non-specific) moment of rw^3 * vt of all SDs
+    // compute 1st (non-specific) moment of rw^3 * vt of selected SDs
     // TODO: replace it with simple diag vt?
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate()
     {   
+      assert(pimpl->selected_before_counting);
+      
       // updating terminal velocities
       pimpl->hskpng_vterm_all();
 
@@ -558,7 +560,7 @@ namespace libcloudphxx
         detail::precip_rate<real_t>()
       );  
 
-      pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
+      // pimpl->moms_all(); // we need this here, because hskpng_vterm modifies tmp_device_real_part, which is used as n_filtered in moms_calc
       pimpl->moms_calc(pimpl->vt.begin(), 1., false);
  
       // copy back stored vterm
