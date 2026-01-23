@@ -36,7 +36,7 @@ namespace libcloudphxx
       {   
         assert(RH > .03); // kappa-koehler assumes well dissolved matter
         assert(RH < 1.); // no equilibrium over RH=100%
-        assert(kappa > 0); // pure-water case left out
+        assert(kappa >= 0); 
         return rd3 * (1 - RH * (1 - kappa)) / (1 - RH);
       }   
 
@@ -49,7 +49,7 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> kappa
       )
       {
-        assert(kappa > 0); // pure-water case left out
+        assert(kappa > 0);
         return (rw3 - rd3) / (rw3 - rd3 * (real_t(1) - kappa));
       }
 
@@ -134,7 +134,9 @@ namespace libcloudphxx
       )   
       {   
         assert(RH < 1); // no equilibrium over RH=100%
-        assert(kappa > 0); // pure-water case left out
+        assert(kappa >= 0);
+
+        if(kappa == 0) return rd3;
 
         return common::detail::toms748_solve(
           detail::rw3_eq_minfun<real_t>(RH, rd3, kappa, T), // the above-defined functor
@@ -154,7 +156,7 @@ namespace libcloudphxx
         quantity<si::temperature, real_t> T
       )   
       {   
-        assert(kappa > 0); // pure-water case left out
+        assert(kappa > 0);
 
         quantity<si::volume, double> rd3_dbl = static_cast<quantity<si::volume, double> >(rd3);
         quantity<si::temperature, double> T_dbl = static_cast<quantity<si::temperature, double> >(T);
@@ -175,7 +177,7 @@ namespace libcloudphxx
         quantity<si::temperature, real_t> T
       )
       {
-        assert(kappa > 0); // pure-water case left out
+        assert(kappa > 0);
 #if !defined(__NVCC__)
         using std::pow;
         using std::cbrt;

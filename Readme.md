@@ -35,6 +35,10 @@ is easiest done using CMake, and the following instructions assume
 you're using CMake. Some hints on CMake usage are included at the
 end of this file.
 
+Singularity images for building libcloudph++ are available at:
+
+https://zenodo.org/records/15591478
+
 The .travis.yml file shipped with the library contains a complete
 set of commands needed to build and execute all tests programs
 shipped with libcloudph++ on fresh Ubuntu and OSX installations -
@@ -111,5 +115,3 @@ Some CMake hints:
 
 - the output of commands executed by "make test" can be viewed with:
   $ less Testing/Temporary/LastTest.log
-
-

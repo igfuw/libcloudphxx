@@ -13,42 +13,41 @@
 #include "advection_scheme.hpp"
 #include "RH_formula.hpp"
 #include "ccn_source.hpp"
+#include "distro_t.hpp"
 #include "../common/chem.hpp"
+#include "../common/ice_nucleation.hpp"
 
 namespace libcloudphxx
 {
   namespace lgrngn
   {
     using common::unary_function;
+    using common::ice_nucleation::INP_t;
 
 //<listing>
     template<typename real_t>
     struct opts_init_t 
     {
-      // initial dry sizes of aerosol
-      // defined with a distribution
-      // uses shared_ptr to make opts_init copyable
-      typedef std::unordered_map<
-        real_t,                // kappa
-        std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
-      > dry_distros_t;
-      dry_distros_t dry_distros;
+      // initial dry sizes of aerosol defined with a distribution
+      dry_distros_t<real_t> dry_distros;
 
-      // defined with a size-number pair
-      typedef std::map<
-        real_t,                  // kappa
-        std::map<real_t,         // radius [m]
-          std::pair<real_t, int> // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
-        > 
-      > dry_sizes_t;
-      dry_sizes_t dry_sizes;
+      // initial dry sizes of aerosol defined with a size-number pair
+      dry_sizes_t<real_t> dry_sizes;
 
       // Eulerian component parameters
       int nx, ny, nz;
       real_t dx, dy, dz, dt;
 
-      // no. of substeps 
+      // no. of substeps for condensation/coalescence. If adaptive_sstp_cond=true, sstp_cond is the maximum no. of substeps.
       int sstp_cond, sstp_coal; 
+      // no. of condensation substeps for SDs that activate/deactivate in this timestep
+      // only work in adaptive_sstp_cond mode.
+      int sstp_cond_act; 
+      // no. of substeps for chemistry
+      int sstp_chem;
+      // Note: If dt changes during simulation (by supplying opts.dt), 
+      //       no. of substeps is adjusted accordingly to keep process timestep close to dt / sstp_cond, 
+      //       but only if initially sstp_cond/coal/chem/cond_act > 1
 
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
@@ -97,9 +96,18 @@ namespace libcloudphxx
            turb_adve_switch,   // if true, turbulent motion of SDs is modeled
            turb_cond_switch,   // if true, turbulent condensation of SDs is modeled
            turb_coal_switch,   // if true, turbulent coalescence kernels can be used
-           exact_sstp_cond;    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           ice_switch,         // if true, ice is allowed
+           exact_sstp_cond,    // if true, use per-particle sstp_cond logic, if false, use per-cell
+           sstp_cond_mix,      // if true, th and rv of all SDs in a cell after each timestep (instant mixing at substep timescale), else update it only after all substeps
+           adaptive_sstp_cond, // if true, use adaptive number of substeps for condensation
+           time_dep_ice_nucl;  // it true, time-dependent freezing, if false, singular freezing
+
+      real_t sstp_cond_adapt_drw2_eps = 1e-4; // tolerance for adaptive substepping in condensation (drw2_err <= sstp_cond_adapt_eps * rw2)
+      real_t sstp_cond_adapt_drw2_max = 4; // tolerance for adaptive substepping in condensation (drw2 < sstp_cond_adapt_drw2_max * rw2)
+
+      // ice nucleating particles type
+      INP_t inp_type;
            
-      int sstp_chem;
       real_t chem_rho;
 
       // do we want to track the time SDs spend inside clouds
@@ -138,28 +146,16 @@ namespace libcloudphxx
       bool open_side_walls,       // if true, side walls are "open", i.e. SD are removed at contact. Periodic otherwise.
            periodic_topbot_walls; // if true, top and bot walls are periodic. Open otherwise
 
+      real_t rc2_T = 10; // temperature [C] at which rc2 is calculated
 
       // --- aerosol source stuff ---
 
       // type of CCN source
       src_t src_type;
 
-      // source distro per unit time
-      dry_distros_t src_dry_distros;
-
-      // number of SDs created from src_dry_distros per cell per source iteration
-      unsigned long long src_sd_conc;
-
-      // dry sizes of droplets added from the source, STP_concentration created per unit time instead of the STP_concentration 
-      dry_sizes_t src_dry_sizes;
-
       // box in which aerosol from source will be created
       // will be rounded to cell number - cells are supposed to be uniform
       real_t src_x0, src_y0, src_z0, src_x1, src_y1, src_z1;
-  
-      // timestep interval at which source will be applied
-      int supstp_src;
-
 
       // --- aerosol relaxation stuff ---
       // initial dry sizes of aerosol
@@ -188,6 +184,10 @@ namespace libcloudphxx
       // relaxation time scale [s]
       real_t rlx_timescale;
 
+      // NOTE: only tested combinations are: th_dry == true && const_p == false; th_dry == false && const_p == true
+      bool th_dry  = true, // if true, input and output theta are dry-air potential temperature; if false, they are 'standard' potential temperature
+           const_p = false; // if true, pressure is equal to a supplied profile except for solving velocity (e.g. anelastic model); if false, pressure comes from the gas equation
+
       // -- ctors ---
 
       // ctor with defaults (C++03 compliant) ...
@@ -201,14 +201,19 @@ namespace libcloudphxx
         aerosol_independent_of_rhod(false), 
         sd_const_multi(0),
         dt(0),   
-        sstp_cond(1), sstp_coal(1), sstp_chem(1),         
+        sstp_cond(1), sstp_coal(1), sstp_chem(1), sstp_cond_act(1),
         chem_switch(false),  // chemical reactions turned off by default
         sedi_switch(true),  // sedimentation turned on by default
         subs_switch(false),  // subsidence turned off by default
         coal_switch(true),  // coalescence turned on by default
         src_type(src_t::off),  // source turned off by default
         rlx_switch(false), 
+        ice_switch(false),
+        time_dep_ice_nucl(false),
+        inp_type(INP_t::mineral),
         exact_sstp_cond(false),
+        sstp_cond_mix(true),
+        adaptive_sstp_cond(false),
         turb_cond_switch(false),
         turb_adve_switch(false),
         turb_coal_switch(false),
@@ -223,14 +228,12 @@ namespace libcloudphxx
         dev_count(0),
         dev_id(-1),
         n_sd_max(0),
-        src_sd_conc(0),
         src_x0(0),
         src_x1(0),
         src_y0(0),
         src_y1(0),
         src_z0(0),
         src_z1(0),
-        supstp_src(1),
         rlx_bins(0),
         rlx_timescale(1),
         rlx_sd_per_bin(0),

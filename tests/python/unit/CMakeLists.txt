@@ -1,11 +1,11 @@
 # non-pytest tests
-foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 col_kernels terminal_velocities uniform_init source sstp_cond multiple_kappas adve_scheme lgrngn_subsidence sat_adj_blk_1m diag_incloud_time relax)
+foreach(test api_blk_1m api_blk_2m api_lgrngn api_common segfault_20150216 col_kernels terminal_velocities uniform_init source sstp_cond multiple_kappas adve_scheme lgrngn_subsidence sat_adj_blk_1m diag_incloud_time relax blk_1m_ice ice_SD)
 
   #TODO: indicate that tests depend on the lib
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bindings/python" 
-    COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
   )
 endforeach()
 
@@ -16,7 +16,7 @@ if(NOT USE_MPI)
     add_test(
       NAME ${test}
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bindings/python" 
-      COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
+      COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
     )
   endforeach()
 endif()
@@ -27,6 +27,6 @@ foreach(test lgrngn_adve)
   add_test(
     NAME ${test}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bindings/python" 
-    COMMAND ${PYTHON_EXECUTABLE} "-m" "pytest" "-s" "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
+    COMMAND ${Python3_EXECUTABLE} "-m" "pytest" "-s" "${CMAKE_SOURCE_DIR}/tests/python/unit/${test}.py"
   )
 endforeach()

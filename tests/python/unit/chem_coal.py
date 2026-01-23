@@ -34,8 +34,9 @@ def expvolumelnr(lnr):
   return n_zero * 3.*np.power(r,3)/np.power(r_zero,3)*np.exp(- np.power((r/r_zero),3));
 
 kappa = 0.1
+rd_insol = 0.
 
-opts_init.dry_distros = {kappa:expvolumelnr}
+opts_init.dry_distros = {(kappa, rd_insol):expvolumelnr}
 
 opts_init.sd_conc = 64
 opts_init.n_sd_max = 64

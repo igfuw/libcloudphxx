@@ -272,6 +272,9 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
   else if (backend_str == "multi_CUDA") rt_params.backend = libcloudphxx::lgrngn::multi_CUDA;
 
+  rt_params.cloudph_opts_init.th_dry = true;
+  rt_params.cloudph_opts_init.const_p = false;
+
   rt_params.async = vm["async"].as<bool>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
@@ -294,7 +297,7 @@ void setopts_micro(
 */
 
   rt_params.cloudph_opts_init.dry_distros.emplace(
-    setup.kappa, // key
+    libcloudphxx::lgrngn::kappa_rd_insol_t<config::real_t>{setup.kappa, config::real_t(0.)}, // kappa, rd_insol
     std::make_shared<config::log_dry_radii<config::real_t>> (setup)
   );
 

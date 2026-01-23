@@ -80,6 +80,18 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_water()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_water);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_dry_rng_cons(
       const real_t &r_mi, const real_t &r_mx
     )
@@ -101,6 +113,18 @@ namespace libcloudphxx
     )
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_kappa_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_cons()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_cons);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_water_cons()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_water_cons);
     }
 
     template <typename real_t>
@@ -197,11 +221,16 @@ namespace libcloudphxx
       std::vector<std::thread> threads;
       for (int i = 0; i < this->opts_init->dev_count; ++i)
       {
+        auto &ipimpl = pimpl->particles[i]->pimpl;
+        reset_guardp(ipimpl->outbuf_gp, ipimpl->tmp_host_real_cell);
+        thrust::host_vector<real_t> &outbuf(ipimpl->outbuf_gp->get());
+
         threads.emplace_back(
           detail::set_device_and_run, i, 
           std::bind(
             &particles_t<real_t, CUDA>::impl::fill_outbuf,
-            &(*(pimpl->particles[i]->pimpl))
+            &(*(pimpl->particles[i]->pimpl)),
+            outbuf
           )
         );
       }
@@ -209,11 +238,14 @@ namespace libcloudphxx
 
       for(auto &p : pimpl->particles) // TODO: perform this copy in parallell?
       {
+        thrust::host_vector<real_t> &outbuf(p->pimpl->outbuf_gp->get());
+
         thrust::copy(
-          p->pimpl->tmp_host_real_cell.begin(),
-          p->pimpl->tmp_host_real_cell.end(),
+          outbuf.begin(),
+          outbuf.end(),
           pimpl->real_n_cell_tot.begin() + p->pimpl->n_cell_bfr
         );
+        p->pimpl->outbuf_gp.reset(); // release the guard
       }
       return &(*(pimpl->real_n_cell_tot.begin()));
     }

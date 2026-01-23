@@ -1,0 +1,79 @@
+// vim:filetype=cpp
+/** @file
+  * @copyright University of Warsaw
+  * @section LICENSE
+  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
+  */
+
+namespace libcloudphxx
+{
+  namespace lgrngn
+  {
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::impl::fill_outbuf(thrust::host_vector<real_t> &outbuf)
+    {
+      thrust::fill(outbuf.begin(), outbuf.end(), 0);
+
+#if !defined(__NVCC__)
+      thrust_device::vector<thrust_size_t> &pi(count_ijk);
+#else
+      auto pi_g = tmp_host_size_cell.get_guard();
+      thrust::host_vector<thrust_size_t> &pi(pi_g.get());
+      thrust::copy(
+        count_ijk.begin(), count_ijk.end(), // from
+        pi.begin()
+      );
+#endif
+
+
+      thrust::copy(
+	count_mom.begin(),               // input - begin
+	count_mom.begin() + count_n,     // input - end
+	thrust::make_permutation_iterator(  // output
+	  outbuf.begin(),         // data
+	  pi.begin()                          // permutation
+	)
+      );
+    }
+
+    template <typename real_t, backend_t device>
+    std::vector<real_t> particles_t<real_t, device>::impl::fill_attr_outbuf(const std::string &name)
+    {
+      const std::set<std::string> attr_names = {"rw2", "rd3", "kappa", "rd2_insol", "T_freeze", "ice_a", "ice_c", "ice_rho", "x", "y", "z"}; // TODO implement "n" - it is n_t type and others are real_t
+      if (std::find(std::begin(attr_names), std::end(attr_names), name) == std::end(attr_names))
+        throw std::runtime_error("Unknown attribute name passed to get_attr.");
+
+      if (!opts_init.ice_switch &&
+          (name == "ice_a" || name == "ice_c" || name == "ice_rho" || name == "rd2_insol" || name == "T_freeze"))
+      {
+        throw std::runtime_error("Requested ice attribute '" + name + "' but ice_switch is off.");
+      }
+      if (opts_init.time_dep_ice_nucl && name == "T_freeze")
+      {
+        throw std::runtime_error("Requested T_freeze but singular ice nucleation is off.");
+      }
+
+      const thrust_device::vector<real_t> &dv(
+        name == "rw2" ? rw2 : 
+        name == "rd3" ? rd3 : 
+        name == "kappa" ? kpa :
+        name == "rd2_insol" ? rd2_insol :
+        name == "T_freeze" ? T_freeze :
+        name == "ice_a" ? ice_a :
+        name == "ice_c" ? ice_c :
+        name == "ice_rho" ? ice_rho :
+        name == "x" ? x :
+        name == "y" ? y :
+        z); 
+
+      // NOTE: for host backends (i.e. undefined __NVCC__) we could return the vector directly, without a copy;
+      //       however, if output was done concurrently, values in the diagnosed vector might change after the call to fill_attr_outbuf.
+      std::vector<real_t> out(n_part);
+      thrust::copy(
+        dv.begin(), dv.end(),
+        out.begin()
+      );
+      return out;
+    }
+  };
+};

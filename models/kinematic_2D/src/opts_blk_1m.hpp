@@ -57,4 +57,8 @@ void setopts_micro(
     {solver_t::ix::rc, {"rc", "[kg kg-1]"}},
     {solver_t::ix::rr, {"rr", "[kg kg-1]"}}
   };
+
+  rt_params.cloudph_opts.adj_nwtrph = false;
+  rt_params.cloudph_opts.th_dry = true;
+  rt_params.cloudph_opts.const_p = false;
 }

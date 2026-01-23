@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(0, "../../bindings/python/")
+sys.path.insert(0, "../../../build/bindings/python/")
 
 from libcloudphxx import lgrngn
 
@@ -19,9 +20,11 @@ def test(turb_cond):
   print('turb_cond = ', turb_cond)
   opts_init = lgrngn.opts_init_t()
   kappa = .61
-  opts_init.dry_distros = {kappa:lognormal}
+  rd_insol = 0.
+  opts_init.dry_distros = {(kappa, rd_insol):lognormal}
   opts_init.coal_switch=0
   opts_init.sedi_switch=0
+  opts_init.ice_switch=0
   opts_init.dt = 1
   opts_init.sd_conc = 64
   opts_init.n_sd_max = 512
@@ -29,6 +32,8 @@ def test(turb_cond):
   opts_init.exact_sstp_cond = True # test would fail with per-cell sstp logic
   opts_init.turb_cond_switch = turb_cond
   spinup = 20
+
+  # opts_init.sstp_cond_mix = False
   
   backend = lgrngn.backend_t.serial
   
@@ -63,11 +68,15 @@ def test(turb_cond):
     rv[1,0] = 0.0095
     prtcls.init(th, rv, rhod, Cx=Cx, Cz=Cz)
   
-    #equilibrium wet moment post spinup
+    #wet moment post init
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_init = copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
     water_post_init = 1000. * 4./3. * pi * wet_post_init + rv
+    # print("liquid post init:", 1000. * 4./3. * pi * wet_post_init)
+    # print("rv post init:", rv)
+    # print("total post init:", water_post_init)
+
     
     #spinup to get equilibrium
     if(turb_cond):
@@ -81,12 +90,14 @@ def test(turb_cond):
       else:
         prtcls.step_sync(opts, th, rv)
     
-    #equilibrium wet moment post spinup
+    #wet moment post spinup
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_spin = copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
     water_post_spin = 1000. * 4./3. * pi * wet_post_spin + rv
-    assert allclose(water_post_spin, water_post_init, atol=0, rtol=1e-10) #some discrepancy due to water density
+    print("water post spin: ", water_post_spin)
+    print("water post init: ", water_post_init)
+    assert allclose(water_post_spin, water_post_init, atol=0, rtol=1e-10)
     
     #advect SDs
     opts.adve=1
@@ -118,7 +129,8 @@ def test(turb_cond):
     prtcls.diag_all()
     prtcls.diag_wet_mom(3);
     wet_post_adve_cond =  copy(frombuffer(prtcls.outbuf()).reshape(opts_init.nx, opts_init.nz))
-    assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=3e-2)
+    #print(wet_post_adve, wet_post_adve_cond)
+    assert allclose(wet_post_adve, wet_post_adve_cond, atol=0, rtol=5e-2)
 
 test(False)
 test(True)

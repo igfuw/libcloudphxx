@@ -54,13 +54,34 @@ namespace libcloudphxx
         //     rho/(1+r)      R(r)*(1+r)
       }
 
+      // heat of condensation
       template <typename real_t>
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> d_th_d_rv(
         const quantity<si::temperature, real_t> &T,
-        const quantity<si::temperature, real_t> &th // theta dry!!!
+        const quantity<si::temperature, real_t> &th // theta dry OR theta std (depends how T was calculated from th)
       ) {
         return - th / T * const_cp::l_v<real_t>(T) / c_pd<real_t>();
+      }
+
+      // heat of deposition
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> d_th_d_rv_dep(
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::temperature, real_t> &th // theta dry!!!
+      ) {
+        return - th / T * const_cp::l_s<real_t>(T) / c_pd<real_t>();
+      }
+
+      // heat of freezing
+      template <typename real_t>
+      BOOST_GPU_ENABLED
+      quantity<si::temperature, real_t> d_th_d_rw_freeze(
+        const quantity<si::temperature, real_t> &T,
+        const quantity<si::temperature, real_t> &th // theta dry!!!
+      ) {
+        return - th / T * const_cp::l_f<real_t>(T) / c_pd<real_t>();
       }
 
       template <typename real_t>

@@ -91,6 +91,8 @@ namespace libcloudphxx
         */
       }
 
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
+
       if (pimpl->l2e[&pimpl->diss_rate].size() == 0)
         if (!diss_rate.is_null()) pimpl->init_e2l(diss_rate, &pimpl->diss_rate);
 
@@ -178,6 +180,10 @@ namespace libcloudphxx
       if (pimpl->opts_init.diag_incloud_time)
         pimpl->update_incloud_time(pimpl->dt);
 
+      // ice nucleation/melting
+      if (pimpl->opts_init.ice_switch && opts.ice_nucl)
+        pimpl->ice_nucl_melt(pimpl->dt);
+
       // condensation/evaporation 
       if (opts.cond) 
       {
@@ -185,37 +191,76 @@ namespace libcloudphxx
         thrust::fill(pimpl->delta_revp25.begin(), pimpl->delta_revp25.end(), real_t(0));
         thrust::fill(pimpl->delta_revp32.begin(), pimpl->delta_revp32.end(), real_t(0));
 
+        // prerequisite
+        pimpl->hskpng_sort();
+
         // calculate mean free path needed for molecular correction
         // NOTE: this should be don per each substep, but right now there is no logic
         //       that would make it easy to do in exact (per-cell) substepping
-        pimpl->hskpng_mfp(); 
+        pimpl->hskpng_mfp();
 
-        if(pimpl->opts_init.exact_sstp_cond && pimpl->sstp_cond > 1)
         // apply substeps per-particle logic
-        {
-          for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {   
-            pimpl->sstp_step_exact(step);
-            if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
-            pimpl->cond_sstp(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond); 
-          } 
-          // copy sstp_tmp_rv and th to rv and th
-          pimpl->update_state(pimpl->rv, pimpl->sstp_tmp_rv);
-          pimpl->update_state(pimpl->th, pimpl->sstp_tmp_th);
+        if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->sstp_cond_act > 1)) 
+        {            
+          if(!pimpl->opts_init.sstp_cond_mix)
+          {
+            pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+            pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
+          }
+
+          pimpl->acquire_arrays_for_perparticle_sstp(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
+          pimpl->calculate_noncond_perparticle_sstp_delta(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact(); returns change / sstp_count; make it just change and multiply afterwards?
+
+          // adaptive per-particle substepping
+          if(pimpl->opts_init.adaptive_sstp_cond)
+          {
+            // Method 1: Do condensation in one loop over SDs, since each SD can have different numbr of steps.
+            // One loop avoids synchronization between SDs after each substep. 
+            pimpl->perparticle_nomixing_adaptive_sstp_cond(opts);
+
+            // Method 2: loop over substeps. code removed after commit 14dca57a637369a46fb4c89fc0941122bfbfcf52
+          }
+          else // per-particle substepping with same sstp_cond for all SDs (no adaptation, nosstp_cond_act, but mixing can be done)
+          {
+            for (int step = 0; step < pimpl->sstp_cond; ++step) 
+            {
+              pimpl->apply_noncond_perparticle_sstp_delta();
+              if(opts.turb_cond)
+                pimpl->apply_perparticle_sgs_supersat();
+
+              pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+              pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
+              pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
+            }
+          }
+          pimpl->release_arrays_for_perparticle_sstp();
+          pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
         }
-        else
-        // apply per-cell sstp logic
+        else // apply per-cell sstp logic, always with mixing (sstp_cond_mix==true required)
         {
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
-          {   
-            pimpl->sstp_step(step);
+          {
+            pimpl->sstp_percell_step(step);
             if(opts.turb_cond)
-              pimpl->sstp_step_ssp(pimpl->dt / pimpl->sstp_cond);
+              pimpl->apply_perparticle_sgs_supersat();
             pimpl->hskpng_Tpr(); 
-            pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond);
+            if(step == 0)
+              pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+            pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
+            // pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
+            if (pimpl->opts_init.ice_switch)
+            {
+              // pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
+              pimpl->ice_dep(pimpl->dt, opts.RH_max, step);
+            }
+            pimpl->update_th_rv();
           }
         }
+
+        // destroy guards to temporary arrays used in condensation (they were created in hskpng_mfp)
+        pimpl->lambda_D_gp.reset();
+        pimpl->lambda_K_gp.reset();
 
         nancheck(pimpl->th, " th after cond");
         nancheck(pimpl->rv, " rv after cond");
@@ -315,12 +360,11 @@ namespace libcloudphxx
           pimpl->chem_vol_ante();
           // set flag for those SD that are big enough to have chemical reactions
           pimpl->chem_flag_ante();
-          // NOTE: volume and flag are stored in temporary arrays (tmp_device_real_part and tmp_device_n_part), so these arrays should not be changed until chemistry is done
 
           if (opts.chem_dsl)
           {
             //adjust trace gases to substepping
-            pimpl->sstp_step_chem(step);
+            pimpl->sstp_percell_step_chem(step);
 
             //dissolving trace gases (Henrys law)
             pimpl->chem_henry(pimpl->dt / pimpl->sstp_chem);
@@ -344,6 +388,7 @@ namespace libcloudphxx
             //cleanup - TODO think of something better
             pimpl->chem_cleanup();
           }
+          pimpl->chem_post_step();
         }
       }
 
@@ -397,6 +442,8 @@ namespace libcloudphxx
       if(opts.turb_adve && pimpl->n_dims==0) 
         throw std::runtime_error("libcloudph++: turbulent advection does not work in 0D");
 
+      pimpl->n_filtered_gp.reset(); // n_filtered (used mostly in diag) not needed anymore, destroy the guard to a tmp array that stored it
+
       // dt defined in opts_init can be overriden by dt in opts
       pimpl->adjust_timesteps(opts.dt);
 
@@ -439,7 +486,7 @@ namespace libcloudphxx
         // done if number of collisions > 1 in const_multi mode
         if(*(pimpl->increase_sstp_coal))
         {
-          ++(pimpl->opts_init.sstp_coal);
+          ++(pimpl->sstp_coal);
           *(pimpl->increase_sstp_coal) = false;
         }
 
@@ -558,6 +605,9 @@ namespace libcloudphxx
             thrust::plus<real_t>()
           );
         }
+
+        // update rc2 (due to kappa and rd3 changes)
+        pimpl->hskpng_approximate_rc2_invalid();
       }
 
       if (opts.turb_adve || opts.turb_cond)
@@ -611,11 +661,8 @@ namespace libcloudphxx
         // sanity check
         if (pimpl->opts_init.src_type == src_t::off) throw std::runtime_error("libcloudph++: aerosol source was switched off in opts_init");
 
-        // introduce new particles with the given time interval
-        if(pimpl->src_stp_ctr % pimpl->opts_init.supstp_src == 0) 
-        {
-          pimpl->src(pimpl->opts_init.supstp_src * pimpl->dt);
-        }
+        // introduce new particles
+        pimpl->src(opts.src_dry_distros, opts.src_dry_sizes);
       }
 
       // aerosol relaxation, in sync since it changes th/rv
@@ -639,8 +686,6 @@ namespace libcloudphxx
       else pimpl->rlx_stp_ctr = 0; //reset the counter if source was turned off
 
       // boundary condition + accumulated rainfall to be returned
-      // distmem version overwrites i and tmp_device_size_part
-      // and they both need to be unchanged untill distmem copies
       pimpl->bcnd();
       
       // copy advected SDs using asynchronous MPI;
