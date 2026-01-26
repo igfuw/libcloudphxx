@@ -333,7 +333,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_water_cons()
     {
-      pimpl->moms_eq0(pimpl->ice_a.begin(), true); // ice_a equal to 0
+      pimpl->moms_gt0(pimpl->rw2.begin(), true); // rw2 greater than 0
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
