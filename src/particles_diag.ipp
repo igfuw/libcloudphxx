@@ -250,6 +250,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_a_rng(const real_t &a_min, const real_t &a_max)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), false);
     }
 
@@ -257,6 +259,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_c_rng(const real_t &c_min, const real_t &c_max)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), false);
     }
 
@@ -271,6 +275,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice()
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_gt0(pimpl->ice_a.begin()); // ice_a greater than 0
     }
 
@@ -278,7 +284,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_water()
     {
-      pimpl->moms_eq0(pimpl->ice_a.begin()); // ice_a equal to 0
+      pimpl->moms_gt0(pimpl->rw2.begin()); // rw2 greater than 0
     }
 
     // selects particles with (r_d >= r_min && r_d < r_max) from particles previously selected
@@ -305,6 +311,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_a_rng_cons(const real_t &a_min, const real_t &a_max)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_rng(a_min, a_max, pimpl->ice_a.begin(), true);
     }
 
@@ -312,6 +320,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_c_rng_cons(const real_t &c_min, const real_t &c_max)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_rng(c_min, c_max, pimpl->ice_c.begin(), true);
     }
 
@@ -326,6 +336,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_cons()
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_gt0(pimpl->ice_a.begin(), true); // ice_a greater than 0
     }
 
@@ -333,7 +345,7 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_water_cons()
     {
-      pimpl->moms_eq0(pimpl->ice_a.begin(), true); // ice_a equal to 0
+      pimpl->moms_gt0(pimpl->rw2.begin(), true); // rw2 greater than 0
     }
 
     // selects particles with RH >= Sc   (Sc - critical supersaturation)
@@ -412,6 +424,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_a_mom(const int &n)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_calc(pimpl->ice_a.begin(), n);
     }
 
@@ -419,6 +433,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_ice_c_mom(const int &n)
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_calc(pimpl->ice_c.begin(), n);
     }
 
@@ -426,6 +442,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
       void particles_t<real_t, device>::diag_ice_mix_ratio()
      {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
       pimpl->moms_calc(thrust::make_transform_iterator(
         thrust::make_zip_iterator(thrust::make_tuple(pimpl->ice_a.begin(), pimpl->ice_c.begin(), pimpl->ice_rho.begin())),
         detail::ice_mass<real_t>()
@@ -571,6 +589,9 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_precip_rate_ice_mass()
     {
+      if(pimpl->opts_init.ice_switch == false)
+        throw std::runtime_error("libcloudph++: ice is switched off in opts_init, but diag_ice was called");
+
       // updating terminal velocities
       pimpl->hskpng_vterm_all();
 
@@ -623,7 +644,8 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::diag_chem(const enum chem_species_t &c)
     {
-      if(pimpl->opts_init.chem_switch == false) throw std::runtime_error("libcloudph++: all chemistry was switched off in opts_init");
+      if(pimpl->opts_init.chem_switch == false)
+        throw std::runtime_error("libcloudph++: chemistry is switched off in opts_init, but diag_chem was called");
       pimpl->moms_calc(pimpl->chem_bgn[c], 1.);
     }
 
