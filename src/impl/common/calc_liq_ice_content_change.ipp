@@ -28,7 +28,7 @@ namespace libcloudphxx
 
       if(opts_init.ice_switch)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
 
         moms_gt0(ice_a.begin()); // choose ice particles (ice_a>0)
         moms_calc(thrust::make_transform_iterator(
@@ -40,8 +40,8 @@ namespace libcloudphxx
 
         thrust::transform(
           count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(d_ice_mass.begin(), count_ijk.begin()), // 2nd arg
-          thrust::make_permutation_iterator(d_ice_mass.begin(), count_ijk.begin()), // output
+          thrust::make_permutation_iterator(d_ice_mass_percell.begin(), count_ijk.begin()), // 2nd arg
+          thrust::make_permutation_iterator(d_ice_mass_percell.begin(), count_ijk.begin()), // output
           thrust::plus<real_t>()
         );
       }

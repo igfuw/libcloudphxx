@@ -232,8 +232,10 @@ namespace libcloudphxx
         // drw3_gp,
         Tp_gp,
         // rw3_gp,
+        ice_mass_gp,
+        ice_mass_percell_gp,
         d_ice_mass_gp,
-        ice_mass_gp;
+        d_ice_mass_percell_gp,
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard

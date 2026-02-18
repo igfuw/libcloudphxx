@@ -172,6 +172,9 @@ namespace libcloudphxx
       if(opts.turb_cond && !pimpl->opts_init.turb_cond_switch) 
         throw std::runtime_error("libcloudph++: turb_cond_swtich=False, but turb_cond==True");
 
+      if(opts.depo && !pimpl->opts_init.ice_switch) 
+        throw std::runtime_error("libcloudph++: opts.depo==true, but opts_init.ice_switch=False");
+
       pimpl->should_now_run_cond = false;
 
       // dt defined in opts_init can be overriden by dt in opts
@@ -185,7 +188,7 @@ namespace libcloudphxx
         pimpl->ice_nucl_melt(pimpl->dt);
 
       // condensation/evaporation 
-      if (opts.cond) 
+      if (opts.cond || opts.depo) 
       {
         // prerequisite
         pimpl->hskpng_sort();
@@ -200,7 +203,7 @@ namespace libcloudphxx
         {            
           if(!pimpl->opts_init.sstp_cond_mix)
           {
-            pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+            pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_percell_gp
             pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
           }
 
@@ -223,11 +226,22 @@ namespace libcloudphxx
               pimpl->apply_noncond_perparticle_sstp_delta();
               if(opts.turb_cond)
                 pimpl->apply_perparticle_sgs_supersat();
+              pimpl->calc_perparticle_T();
 
+              // condensation
               pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
               pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
               pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
-              pimpl->apply_perparticle_drw3_to_perparticle_rv_and_th();
+
+              // deposition
+              if(opts_depo)
+              {
+                pimpl->set_perparticle_d_ice_mass_to_minus_ice_mass(step>0);
+                pimpl->depo_perparticle_advance_ice_a_c(opts.RH_max, opts.turb_cond);
+                pimpl->add_perparticle_ice_mass_to_d_ice_mass(step < pimpl->sstp_cond - 1);
+              }
+
+              pimpl->apply_perparticle_drw3_and_d_ice_mass_to_perparticle_rv_and_th(opts.depo);
             }
           }
           pimpl->release_arrays_for_perparticle_sstp();
@@ -242,10 +256,10 @@ namespace libcloudphxx
               pimpl->apply_perparticle_sgs_supersat();
             pimpl->hskpng_Tpr(); 
             if(step == 0)
-              pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_gp
+              pimpl->save_liq_ice_content_before_change(); // in drw_mom3_gp and d_ice_mass_percell_gp
             pimpl->cond(pimpl->dt, opts.RH_max, opts.turb_cond, step);
             // pimpl->cond(pimpl->dt / pimpl->sstp_cond, opts.RH_max, opts.turb_cond, step);
-            if (pimpl->opts_init.ice_switch)
+            if (opts.depo) //pimpl->opts_init.ice_switch)
             {
               // pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
               pimpl->ice_dep(pimpl->dt, opts.RH_max, step);

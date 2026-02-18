@@ -32,8 +32,8 @@ namespace libcloudphxx
 
       if(opts_init.ice_switch)
       {
-        reset_guardp(d_ice_mass_gp, tmp_device_real_cell); 
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        reset_guardp(d_ice_mass_percell_gp, tmp_device_real_cell); 
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
 
         moms_gt0(ice_a.begin()); // choose ice particles (ice_a>0)
         moms_calc(thrust::make_transform_iterator(
@@ -46,13 +46,13 @@ namespace libcloudphxx
 
         // fill with 0s if not all cells have particles
         if(count_n!=n_cell) {
-          thrust::fill(d_ice_mass.begin(), d_ice_mass.end(), real_t(0.));
+          thrust::fill(d_ice_mass_percell.begin(), d_ice_mass_percell.end(), real_t(0.));
           // thrust::fill(ice_mass.begin(), ice_mass.end(), real_t(0.));
         }
 
         thrust::transform(
           count_mom.begin(), count_mom.begin() + count_n,
-          thrust::make_permutation_iterator(d_ice_mass.begin(), count_ijk.begin()),
+          thrust::make_permutation_iterator(d_ice_mass_percell.begin(), count_ijk.begin()),
           thrust::negate<real_t>()
         );
       }

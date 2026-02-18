@@ -26,22 +26,22 @@ namespace libcloudphxx
 
       // Vector to store 3rd moment
       if(step == 0)
-        reset_guardp(ice_mass_gp, tmp_device_real_cell);
-      thrust_device::vector<real_t> &ice_mass = ice_mass_gp->get();
+        reset_guardp(ice_mass_percell_gp, tmp_device_real_cell);
+      thrust_device::vector<real_t> &ice_mass_percell = ice_mass_percell_gp->get();
 
       if(step == 0)
       {
         if(count_n!=n_cell)  // NOTE: we rely that moms_calc was called recently (e.g. in save_liq_ice_content_before_change)
-          thrust::fill(ice_mass.begin(), ice_mass.end(), real_t(0.));        
+          thrust::fill(ice_mass_percell.begin(), ice_mass_percell.end(), real_t(0.));        
       }
       else // copy ice_mass from previous step
       {
-        reset_guardp(d_ice_mass_gp, tmp_device_real_cell);
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        reset_guardp(d_ice_mass_percell_gp, tmp_device_real_cell);
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
         // drv = -ice_mass precond
         thrust::transform(
-          ice_mass.begin(), ice_mass.end(),
-          d_ice_mass.begin(),
+          ice_mass_percell.begin(), ice_mass_percell.end(),
+          d_ice_mass_percell.begin(),
           thrust::negate<real_t>()
         );
       }
@@ -99,10 +99,10 @@ namespace libcloudphxx
         real_t(1));
       nancheck_range(count_mom.begin(), count_mom.begin() + count_n, "count_mom (3rd ice moment) after deposition");
 
-      // Adding the ice volume after deposition to d_ice_mass
+      // Adding the ice volume after deposition to d_ice_mass_percell
       if(step < sstp_cond - 1)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
         thrust::copy(
           count_mom.begin(), count_mom.begin() + count_n,                        // input - 1st arg
           thrust::make_permutation_iterator(ice_mass.begin(), count_ijk.begin())  // output
@@ -110,23 +110,23 @@ namespace libcloudphxx
 
         // adding the third moment after deposition to ice_mass
         thrust::transform(
-          ice_mass.begin(), ice_mass.end(),
-          d_ice_mass.begin(),
-          d_ice_mass.begin(),
+          ice_mass_percell.begin(), ice_mass_percell.end(),
+          d_ice_mass_percell.begin(),
+          d_ice_mass_percell.begin(),
           thrust::plus<real_t>()
         );
       }
       else // last step, calculate change in 3rd moment and update th and rv
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
         
         thrust::transform(
           count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-          thrust::make_permutation_iterator(d_ice_mass.begin(), count_ijk.begin()), // input - 2nd arg
-          thrust::make_permutation_iterator(d_ice_mass.begin(), count_ijk.begin()), // output
+          thrust::make_permutation_iterator(d_ice_mass_percell.begin(), count_ijk.begin()), // input - 2nd arg
+          thrust::make_permutation_iterator(d_ice_mass_percell.begin(), count_ijk.begin()), // output
           thrust::plus<real_t>()
         );
-        ice_mass_gp.reset(); // destroy guard to tmp array that stored ice_mass
+        ice_mass_percell_gp.reset(); // destroy guard to tmp array that stored ice_mass
       }
 
       }

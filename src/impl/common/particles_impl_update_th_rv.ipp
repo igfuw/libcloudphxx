@@ -103,15 +103,15 @@ namespace libcloudphxx
       // else if (phase == phase_change::deposition)
       // if(opts_init.ice_switch) // TODO: call update_th_rv once per cond/depo
       // {
-      //   thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
-      //   nancheck(d_ice_mass, "update_th_rv: input d_ice_mass");
+      //   thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
+      //   nancheck(d_ice_mass_percell, "update_th_rv: input d_ice_mass_percell");
 
       //   thrust::transform(
-      //     d_ice_mass.begin(), d_ice_mass.end(),                  // input - 1st arg
+      //     d_ice_mass_percell.begin(), d_ice_mass_percell.end(),                  // input - 1st arg
       //     thrust::make_constant_iterator<real_t>(  // input - 2nd arg
       //       -  real_t(1)
       //     ),
-      //     d_ice_mass.begin(),                             // output
+      //     d_ice_mass_percell.begin(),                             // output
       //     thrust::multiplies<real_t>()
       //   );
       // }
@@ -130,12 +130,12 @@ namespace libcloudphxx
       
       if(opts_init.ice_switch)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
-        nancheck(d_ice_mass, "update_th_rv: input d_ice_mass");
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
+        nancheck(d_ice_mass_percell, "update_th_rv: input d_ice_mass_percell");
 
         thrust::transform(
           rv.begin(), rv.end(),  // input - 1st arg
-          d_ice_mass.begin(),    // input - 2nd arg
+          d_ice_mass_percell.begin(),    // input - 2nd arg
           rv.begin(),            // output
           thrust::minus<real_t>() 
         );
@@ -170,13 +170,13 @@ namespace libcloudphxx
       // else if (phase == phase_change::deposition)
       if(opts_init.ice_switch)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
         thrust::transform(
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(
-              d_ice_mass.begin(),      //
-              T.begin(),        // dth = d_ice_mass * d_th_d_rv(T, th)
+              d_ice_mass_percell.begin(),      //
+              T.begin(),        // dth = d_ice_mass_percell * d_th_d_rv(T, th)
               th.begin()        //
             )),
             detail::dth_dep<real_t>()
@@ -186,7 +186,7 @@ namespace libcloudphxx
         );
       }      
       drw_mom3_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
-      d_ice_mass_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
+      d_ice_mass_percell_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
       nancheck(th, "update_th_rv: th after update");
     }
 
