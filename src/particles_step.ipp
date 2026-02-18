@@ -207,7 +207,7 @@ namespace libcloudphxx
             pimpl->n_filtered_gp.reset(); // n_filtered, acquired and filled in rw_mom3_ante_change, not needed anymore
           }
 
-          pimpl->acquire_arrays_for_perparticle_sstp(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
+          pimpl->acquire_arrays_for_perparticle_sstp(opts.cond, opts.depo); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact()
           pimpl->calculate_noncond_perparticle_sstp_delta(); // sstp_dlt_rv_gp, etc. ; as in sstp_percell_step_exact(); returns change / sstp_count; make it just change and multiply afterwards?
 
           // adaptive per-particle substepping
@@ -226,28 +226,31 @@ namespace libcloudphxx
               pimpl->apply_noncond_perparticle_sstp_delta();
               if(opts.turb_cond)
                 pimpl->apply_perparticle_sgs_supersat();
-              pimpl->calc_perparticle_T();
+              pimpl->calc_perparticle_T(); // TODO: implement it by moving code from cond_perparticle_advance_rw2
 
               // condensation
-              pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
-              pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
-              pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              if(opts.cond)
+              {
+                pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
+                pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
+                pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
+              }
 
               // deposition
-              if(opts_depo)
+              if(opts.depo)
               {
                 pimpl->set_perparticle_d_ice_mass_to_minus_ice_mass(step>0);
                 pimpl->depo_perparticle_advance_ice_a_c(opts.RH_max, opts.turb_cond);
                 pimpl->add_perparticle_ice_mass_to_d_ice_mass(step < pimpl->sstp_cond - 1);
               }
 
-              pimpl->apply_perparticle_drw3_and_d_ice_mass_to_perparticle_rv_and_th(opts.depo);
+              pimpl->apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(opts.cond, opts.depo);
             }
           }
-          pimpl->release_arrays_for_perparticle_sstp();
+          pimpl->release_arrays_for_perparticle_sstp(opts.cond, opts.depo);
           pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
         }
-        else // apply per-cell sstp logic, always with mixing (sstp_cond_mix==true required)
+        else // apply per-cell sstp logic, always with mixing
         {
           for (int step = 0; step < pimpl->sstp_cond; ++step) 
           {
