@@ -235,7 +235,7 @@ namespace libcloudphxx
         ice_mass_gp,
         ice_mass_percell_gp,
         d_ice_mass_gp,
-        d_ice_mass_percell_gp,
+        d_ice_mass_percell_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -695,11 +695,14 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      void calc_perparticle_T();
+
       // condensation methods
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void cond_perparticle_advance_rw2(const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
-      void perparticle_advance_rw2(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      template<bool ice>
+      void perparticle_advance_size(const real_t &RH_max, const bool turb_cond);
+      template<bool ice, class pres_iter, class RH_iter>
+      void perparticle_advance_hlpr(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
       void save_liq_ice_content_before_change();
       void calc_liq_ice_content_change();
@@ -707,8 +710,10 @@ namespace libcloudphxx
       void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
       template<int power>
       void add_perparticle_rwX_to_drwX(const bool store_rw3);
+      void set_perparticle_d_ice_mass_to_minus_ice_mass(const bool use_stored_ice_mass);
+      void add_perparticle_ice_mass_to_d_ice_mass(const bool store_ice_mass);
 
-      void apply_perparticle_drw3_to_perparticle_rv_and_th();
+      void apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(const bool rw3_changed, const bool ice_mass_changed);
       void apply_perparticle_cond_change_to_percell_rv_and_th();
       void update_th_rv();
 // =======
@@ -752,8 +757,8 @@ namespace libcloudphxx
       void rlx_dry_distros(const real_t);
 
       // substepping methods
-      void acquire_arrays_for_perparticle_sstp();
-      void release_arrays_for_perparticle_sstp();
+      void acquire_arrays_for_perparticle_sstp(const bool cond, const bool depo);
+      void release_arrays_for_perparticle_sstp(const bool cond, const bool depo);
       void calculate_noncond_perparticle_sstp_delta();
       void apply_noncond_perparticle_sstp_delta();
       void apply_perparticle_sgs_supersat();

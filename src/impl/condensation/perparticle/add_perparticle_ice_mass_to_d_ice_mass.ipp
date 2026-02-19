@@ -18,7 +18,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &ice_mass = ice_mass_gp->get();
 
         thrust::transform(
-          ice_mass_it.begin(), ice_mass_it.begin() + n_part
+          ice_mass_it, ice_mass_it + n_part,
           ice_mass.begin(),
           thrust::identity<real_t>()
         );
@@ -34,7 +34,7 @@ namespace libcloudphxx
       else
       {
         thrust::transform(
-          ice_mass_it.begin(), ice_mass_it.begin() + n_part
+          ice_mass_it, ice_mass_it + n_part,
           d_ice_mass.begin(),
           d_ice_mass.begin(),
           thrust::plus<real_t>()

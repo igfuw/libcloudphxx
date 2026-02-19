@@ -15,7 +15,7 @@ namespace libcloudphxx
           );
 
         thrust::transform(
-          ice_mass_it.begin(), ice_mass_it.begin() + n_part
+          ice_mass_it, ice_mass_it + n_part,
           d_ice_mass.begin(),
           thrust::negate<real_t>()
         );

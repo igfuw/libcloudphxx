@@ -3,14 +3,14 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(const bool drw3_changed, const bool d_ice_mass_changed)
+    void particles_t<real_t, device>::impl::apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(const bool rw3_changed, const bool ice_mass_changed)
     {
-      assert(drw3_changed || d_ice_mass_changed);
+      assert(rw3_changed || ice_mass_changed);
 
       namespace arg = thrust::placeholders;
       thrust_device::vector<real_t> &Tp = Tp_gp->get();
 
-      if(drw3_changed)
+      if(rw3_changed)
       {
         // get change in liquid water mass
         thrust_device::vector<real_t> &drw3 = drwX_gp->get(); 
@@ -18,15 +18,15 @@ namespace libcloudphxx
         thrust::transform(
           drw3.begin(), drw3.end(),
           drw3.begin(), // in-place!
-          -arg::_1 * common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
-          * real_t(4./3) * pi<real_t>(), n_dims
+          arg::_1 * (common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres)
+          * real_t(4./3) * pi<real_t>()
         );  
 
         // add the change in ice mass
-        if(d_ice_mass_changed)
+        if(ice_mass_changed)
           thrust::transform(
             drw3.begin(), drw3.end(),
-            d_ice_mass.begin,
+            d_ice_mass_gp->get().begin(),
             drw3.begin(),
             thrust::plus<real_t>()
           );
@@ -34,7 +34,7 @@ namespace libcloudphxx
       // else, theres no liquid water mass change, hence d_ice_mass already has ice mass change
 
       // calculate rv change from the change in liquid and solid water mass
-      thrust_device::vector<real_t> &drv = drw3_changed ? drwX_gp->get() : d_ice_mass_gp->get();  // NOTE: this leads to in-place changes of these vectors.
+      thrust_device::vector<real_t> &drv = rw3_changed ? drwX_gp->get() : d_ice_mass_gp->get();  // NOTE: this leads to in-place changes of these vectors.
       thrust::transform(
         drv.begin(), drv.end(),
         thrust::make_zip_iterator(thrust::make_tuple(
@@ -43,7 +43,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(dv.begin(), ijk.begin())
         )),
         drv.begin(),
-        detail::rw3diff2drv<real_t>(1)
+        detail::rw3diff2drv<real_t>(real_t(-1), n_dims)
       );  
 
       // apply rv change to rv (of this particle only or of all particles, depending on sstp_cond_mix)

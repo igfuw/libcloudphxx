@@ -232,7 +232,7 @@ namespace libcloudphxx
               if(opts.cond)
               {
                 pimpl->template set_perparticle_drwX_to_minus_rwX<3>(/*use_stored_rw3=*/ step>0);
-                pimpl->cond_perparticle_advance_rw2(opts.RH_max, opts.turb_cond);
+                pimpl->template perparticle_advance_size<false>(opts.RH_max, opts.turb_cond);
                 pimpl->template add_perparticle_rwX_to_drwX<3>(/*store_rw3=*/ step < pimpl->sstp_cond - 1);
               }
 
@@ -240,7 +240,7 @@ namespace libcloudphxx
               if(opts.depo)
               {
                 pimpl->set_perparticle_d_ice_mass_to_minus_ice_mass(step>0);
-                pimpl->depo_perparticle_advance_ice_a_c(opts.RH_max, opts.turb_cond);
+                pimpl->template perparticle_advance_size<true>(opts.RH_max, opts.turb_cond);
                 pimpl->add_perparticle_ice_mass_to_d_ice_mass(step < pimpl->sstp_cond - 1);
               }
 

@@ -105,7 +105,7 @@ namespace libcloudphxx
         thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
         thrust::copy(
           count_mom.begin(), count_mom.begin() + count_n,                        // input - 1st arg
-          thrust::make_permutation_iterator(ice_mass.begin(), count_ijk.begin())  // output
+          thrust::make_permutation_iterator(ice_mass_percell.begin(), count_ijk.begin())  // output
         );
 
         // adding the third moment after deposition to ice_mass

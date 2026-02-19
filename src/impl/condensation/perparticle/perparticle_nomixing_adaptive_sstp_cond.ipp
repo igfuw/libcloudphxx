@@ -105,10 +105,10 @@ namespace libcloudphxx
           auto _calc_RH = [&] () -> void
           {
             RH = turb_cond ?
-              detail::RH_sgs<real_t>(RH_formula)(
+              detail::RH_hlpr<real_t, false, true>(RH_formula)(
                 thrust::make_tuple(sstp_tmp_p, sstp_tmp_rv, Tp, ssp)
               ) :
-              detail::RH<real_t>(RH_formula)(
+              detail::RH_hlpr<real_t, false, false>(RH_formula)(
                 thrust::make_tuple(sstp_tmp_p, sstp_tmp_rv, Tp)
               );
           };
