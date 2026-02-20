@@ -43,7 +43,7 @@ namespace libcloudphxx
           thrust::make_permutation_iterator(dv.begin(), ijk.begin())
         )),
         drv.begin(),
-        detail::rw3diff2drv<real_t>(real_t(-1), n_dims)
+        detail::massdiff2drv<real_t>(real_t(-1), n_dims)
       );  
 
       // apply rv change to rv (of this particle only or of all particles, depending on sstp_cond_mix)
