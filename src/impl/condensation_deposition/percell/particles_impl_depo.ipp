@@ -14,6 +14,7 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::ice_dep(
       const real_t &dt,
       const real_t &RH_max,
+      const bool turb_cond,
       const int step
     ) {   
 
@@ -58,37 +59,54 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
       ));
 
-      // deposition for ice crystals
-      thrust::transform(
-        thrust::make_zip_iterator(
-          thrust::make_tuple(
-            ice_a.begin(),
-            ice_c.begin()
-          )
-        ),
-        thrust::make_zip_iterator(
-        thrust::make_tuple(
-          ice_a.end(),
-          ice_c.end()
-        )
-      ),
-        thrust::make_zip_iterator(
-          thrust::make_tuple(
-            hlpr_zip_iter,
-            thrust::make_permutation_iterator(p.begin(), ijk.begin()),
-            thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
-          )
-        ),
-        thrust::make_zip_iterator(
-          thrust::make_tuple(
-            ice_a.begin(),
-            ice_c.begin()
-          )
-        ),
-        detail::advance_ice_ac<real_t>(dt / sstp_cond, RH_max)
-      );
-      nancheck(ice_a, "ice_a after deposition (no sub-steps");
-      nancheck(ice_c, "ice_c after deposition (no sub-steps");
+      auto ice_ac_iter = thrust::make_zip_iterator(thrust::make_tuple(
+        ice_a.begin(),
+        ice_c.begin()
+      ));
+
+      if(turb_cond) // with SGS supersaturation
+      {
+        auto RH_i_plus_ssp_g = tmp_device_real_part.get_guard();
+        thrust_device::vector<real_t> &RH_i_plus_ssp = RH_i_plus_ssp_g.get();
+        thrust::transform(
+          ssp.begin(), ssp.end(),
+          thrust::make_permutation_iterator(RH_i.begin(), ijk.begin()),
+          RH_i_plus_ssp.begin(),
+          arg::_1 + arg::_2
+        );
+
+        thrust::transform(
+          ice_ac_iter,
+          ice_ac_iter + n_part,
+          thrust::make_zip_iterator(
+            thrust::make_tuple(
+              hlpr_zip_iter,
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              RH_i_plus_ssp.begin()
+            )
+          ),
+          ice_ac_iter,
+          detail::advance_ice_ac<real_t>(dt / sstp_cond, RH_max)
+        );
+      }
+      else // no SGS supersaturation
+      {
+        thrust::transform(
+          ice_ac_iter,
+          ice_ac_iter + n_part,
+          thrust::make_zip_iterator(
+            thrust::make_tuple(
+              hlpr_zip_iter,
+              thrust::make_permutation_iterator(p.begin(), ijk.begin()),
+              thrust::make_permutation_iterator(RH_i.begin(), ijk.begin())
+            )
+          ),
+          ice_ac_iter,
+          detail::advance_ice_ac<real_t>(dt / sstp_cond, RH_max)
+        );
+      }
+      nancheck(ice_a, "ice_a after deposition (no sub-steps)");
+      nancheck(ice_c, "ice_c after deposition (no sub-steps)");
 
       // Compute per-cell 3rd moment of ice after deposition. It is stored in count_mom
       moms_gt0(ice_a.begin()); // choose ice particles (ice_a>0)

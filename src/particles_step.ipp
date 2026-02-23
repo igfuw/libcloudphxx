@@ -265,7 +265,7 @@ namespace libcloudphxx
             if (opts.depo) //pimpl->opts_init.ice_switch)
             {
               // pimpl->ice_dep(pimpl->dt / pimpl->sstp_cond, opts.RH_max,  step);
-              pimpl->ice_dep(pimpl->dt, opts.RH_max, step);
+              pimpl->ice_dep(pimpl->dt, opts.RH_max, opts.turb_cond, step);
             }
             pimpl->update_th_rv();
           }
