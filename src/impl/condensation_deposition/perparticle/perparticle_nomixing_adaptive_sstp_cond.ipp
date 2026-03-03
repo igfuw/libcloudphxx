@@ -387,7 +387,7 @@ namespace libcloudphxx
 
               sstp_tmp_rv += dice_mass;
 
-              dice_mass = detail::dth<real_t>()(
+              dice_mass = detail::dth_dep<real_t>()(
                 thrust::make_tuple(dice_mass, Tp, sstp_tmp_th)
               );
 
