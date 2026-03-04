@@ -168,8 +168,8 @@ namespace libcloudphxx
           throw std::runtime_error("libcloudph++: relaxation does not work with ice.");
         if(opts_init.src_type==src_t::matching) // because we dont account for ice/water when matching and initializing aerosols from this type of source
           throw std::runtime_error("libcloudph++: 'matching' source type does not work with ice.");
-        // if(opts_init.turb_cond_switch) // because we dont want to add SGS RH to RH_i
-        //   throw std::runtime_error("libcloudph++: SGS condensation does not work with ice.");
+        if(opts_init.turb_cond_switch) // current code would simply add SGS RH to RH_i, but this is not correct (?); how are they related?
+          throw std::runtime_error("libcloudph++: SGS condensation does not work with ice.");
         // if(opts_init.adaptive_sstp_cond)
         //   throw std::runtime_error("libcloudph++: deposition does not work with adaptive substepping (opts_init.ice_switch==true implies that deposition may be modeled)");
       }
