@@ -65,7 +65,7 @@ namespace libcloudphxx
       // add the change in ice mass // TODO: very similar to the part for liquid water...
       if(ice_mass_changed)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_percell_gp->get();
+        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
         // calculate rv change from the change in solid water mass
         thrust::transform(
           d_ice_mass.begin(), d_ice_mass.end(),
@@ -106,11 +106,11 @@ namespace libcloudphxx
         );
       }
 
-      thrust_device::vector<real_t> &dth = rw3_changed ? drwX_gp->get() : d_ice_mass_percell_gp->get();
+      thrust_device::vector<real_t> &dth = rw3_changed ? drwX_gp->get() : d_ice_mass_gp->get();
       if(rw3_changed && ice_mass_changed)
         thrust::transform(
           dth.begin(), dth.end(),
-          d_ice_mass_percell_gp->get().begin(),
+          d_ice_mass_gp->get().begin(),
           dth.begin(),
           thrust::plus<real_t>()
         );
