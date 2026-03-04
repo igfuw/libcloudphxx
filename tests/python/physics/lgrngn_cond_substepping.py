@@ -21,7 +21,7 @@ import timeit
 from libcloudphxx import lgrngn
 from libcloudphxx import common
 
-import pandas as pd
+import csv
 
 # wrapper for timing excecution time
 def wrapper(func, opts, th, rv, rhod):
@@ -284,13 +284,29 @@ for adaptive in [True, False]: # adaptive condensation substepping?
               results['sstp_cond_adapt_drw2_max'] = opts_init.sstp_cond_adapt_drw2_max
               records.append(results)
 
+def _write_csv(path, rows):
+  os.makedirs(os.path.dirname(path), exist_ok=True)
+  # Collect fieldnames deterministically (preserve insertion order from first row, then add any missing keys)
+  fieldnames = []
+  seen = set()
+  for r in rows:
+    for k in r.keys():
+      if k not in seen:
+        fieldnames.append(k)
+        seen.add(k)
+  with open(path, "w", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=fieldnames)
+    w.writeheader()
+    for r in rows:
+      w.writerow(r)
+
 # save results to a CSV file for refdata comparison and for plotting
-df = pd.DataFrame(records)
-df['sd_conc'] = opts_init.sd_conc  # Add the column to all rows at once
-df['RH_max'] = opts_init.RH_max
-df['dt'] = 1
-os.makedirs("test_results", exist_ok=True)
-df.to_csv("test_results/lgrngn_cond_substepping_results.csv", index=False)
+for r in records:
+  r['sd_conc'] = opts_init.sd_conc
+  r['RH_max'] = opts_init.RH_max
+  r['dt'] = 1
+
+_write_csv("test_results/lgrngn_cond_substepping_results.csv", records)
 
 # Optionally save as reference data
 if '--save-ref' in sys.argv:
@@ -300,7 +316,7 @@ if '--save-ref' in sys.argv:
   refdata_dir = os.path.join(script_dir, "refdata")
   os.makedirs(refdata_dir, exist_ok=True)
   refdata_file = os.path.join(refdata_dir, "lgrngn_cond_substepping_refdata.csv")
-  df.to_csv(refdata_file, index=False)
+  _write_csv(refdata_file, records)
   print("Reference data saved to: test_results/lgrngn_cond_substepping_refdata.csv")
   print("Future runs can be compared against this reference using:")
   print("  python lgrngn_cond_substepping_test.py")
