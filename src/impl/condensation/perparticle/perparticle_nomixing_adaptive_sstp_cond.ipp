@@ -46,6 +46,10 @@ namespace libcloudphxx
           tpl_t tpl
         ) //noexcept
         {
+          #if !defined(__NVCC__)
+            using std::abs;
+	  #endif
+
           // copy values into local variables
           // variables that are not modified
           const real_t sstp_dlt_rv = thrust::get<5>(thrust::get<0>(tpl));
@@ -160,9 +164,9 @@ namespace libcloudphxx
 
               if(sstp_cond_try > 1) // check for convergence 
               {
-                if((cuda::std::abs(drw2_new * 2 - drw2) <= sstp_cond_adapt_drw2_eps * rw2) // drw2 relative to rw2 converged
-                    && cuda::std::abs(drw2 < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
-                // if(cuda::std::abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
+                if((abs(drw2_new * 2 - drw2) <= sstp_cond_adapt_drw2_eps * rw2) // drw2 relative to rw2 converged
+                    && abs(drw2 < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
+                // if(abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
                 {
                   sstp_cond = sstp_cond_try / 2;
                   _apply_noncond_perparticle_sstp_delta(-delta_fraction_applied); // revert last addition to get to a state after one step of converged number            

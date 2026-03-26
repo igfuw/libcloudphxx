@@ -34,7 +34,7 @@ namespace libcloudphxx
 
         if (INP_type == INP_t::mineral && A > real_t(1e-20))
         {
-          return (real_t(273.15) + (real_t(8.934) - log(- log(real_t(1.) - rand) / A) ) / real_t(0.517)) * si::kelvin;
+          return real_t(real_t(273.15) + (real_t(8.934) - log(- log(real_t(1.) - rand) / A) ) / real_t(0.517)) * si::kelvin;
         }
         else
         {
