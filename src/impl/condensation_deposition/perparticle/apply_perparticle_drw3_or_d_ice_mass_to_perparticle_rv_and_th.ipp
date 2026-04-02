@@ -18,7 +18,7 @@ namespace libcloudphxx
         thrust::transform(
           drw3.begin(), drw3.end(),
           drw3.begin(), // in-place!
-          arg::_1 * (common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres)
+          arg::_1 * real_t(common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres)
           * real_t(4./3) * pi<real_t>()
         );  
 
