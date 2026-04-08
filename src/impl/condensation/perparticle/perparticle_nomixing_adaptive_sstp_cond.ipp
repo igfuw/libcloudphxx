@@ -191,7 +191,7 @@ namespace libcloudphxx
             }
             if(!first_cond_step_done_in_adaptation)
             {
-              _apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
+              _apply_noncond_perparticle_sstp_delta(sstp_cond_max == 1 ? -delta_fraction_applied : delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2); If only one step was tried, whole change was applied; If more steps were tried, we are moving back from the entire step
             }
           }            
 
