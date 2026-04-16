@@ -165,7 +165,7 @@ namespace libcloudphxx
               if(sstp_cond_try > 1) // check for convergence 
               {
                 if((abs(drw2_new * 2 - drw2) <= sstp_cond_adapt_drw2_eps * rw2) // drw2 relative to rw2 converged
-                    && abs(drw2 < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
+                    && (abs(drw2) < sstp_cond_adapt_drw2_max * rw2)) // otherwise for small droplets (near activation?) drw2_new == 2*drw already for 2 substeps, but we ativate too many droplets
                 // if(abs(drw2_new * 2 - drw2) <= tol * drw2) // drw2 converged
                 {
                   sstp_cond = sstp_cond_try / 2;
