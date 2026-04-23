@@ -115,7 +115,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
@@ -147,7 +147,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
@@ -220,7 +220,7 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Download libcloudph++ build
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
