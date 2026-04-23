@@ -35,7 +35,7 @@ namespace libcloudphxx
         {
           if(n_dims > 0)
             return mlt * rw3diff * thrust::get<1>(tpl) / thrust::get<0>(tpl) / thrust::get<2>(tpl);
-          else // for parcel setup use 1/rhod instead of dv, dv will be updated in hskpng_Tpr in async
+          else // for parcel setup an implicit assumption is that it's 1kg of air!!
             return mlt * rw3diff * thrust::get<1>(tpl);
         }
       };
