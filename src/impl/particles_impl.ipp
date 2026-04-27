@@ -442,6 +442,7 @@ namespace libcloudphxx
         distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
         distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
         distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
+        distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
 
         distmem_real_vctrs.insert({&vt,  detail::invalid});
 
@@ -477,7 +478,6 @@ namespace libcloudphxx
          
         if(opts_init.ice_switch)
         {
-          distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});

@@ -47,10 +47,10 @@ namespace libcloudphxx
 
           // init kappa and rd_insol
           init_kappa(kappa);
+          init_insol_dry_sizes(rd_insol);
 
           if (opts_init.ice_switch)
           {
-            init_insol_dry_sizes(rd_insol);
             init_a_c_rho_ice();
             if (! opts_init.time_dep_ice_nucl)
             {
