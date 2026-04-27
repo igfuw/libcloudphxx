@@ -57,6 +57,7 @@ namespace libcloudphxx
             thrust::tuple<
               typename thrust_device::vector<real_t>::iterator,
               typename thrust_device::vector<real_t>::iterator,
+              typename thrust_device::vector<real_t>::iterator,
               pi_t,
               pi_t
             >

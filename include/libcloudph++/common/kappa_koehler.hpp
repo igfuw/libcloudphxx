@@ -149,7 +149,7 @@ namespace libcloudphxx
         return common::detail::toms748_solve(
           detail::rw3_eq_minfun<real_t>(RH, rd3, rd3_insol, kappa, T), // the above-defined functor
           real_t(rd3 / si::cubic_metres), // min
-          real_t(rw3_eq_nokelvin(rd3, kappa, RH) / si::cubic_metres) // max
+          real_t(rw3_eq_nokelvin(rd3, rd3_insol, kappa, RH) / si::cubic_metres) // max
         ) * si::cubic_metres;
       }
 
