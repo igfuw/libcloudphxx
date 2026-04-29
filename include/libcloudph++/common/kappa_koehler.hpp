@@ -52,7 +52,7 @@ namespace libcloudphxx
       )
       {
         assert(kappa > 0);
-        assert(rd3_insol < rw3);
+        assert(rw3 >= (rd3 + rd3_insol));
         return (rw3 - rd3 - rd3_insol) / (rw3 - rd3 * (real_t(1) - kappa) - rd3_insol);
       }
 
@@ -86,6 +86,18 @@ namespace libcloudphxx
             using std::pow;
             using std::cbrt;
 #endif
+            // std::cerr << "==============================" << std::endl;
+            // std::cerr << "toms for min : " << real_t((rd3 + rd3_insol) / si::cubic_metres) * real_t(1.000001) << std::endl;
+            // std::cerr << "max: " << real_t(rw3_eq_nokelvin(rd3, rd3_insol, kappa, RH) / si::cubic_metres) << std::endl;
+            // std::cerr << "T: " << real_t(T / si::kelvin) << std::endl;
+            // std::cerr << "RH: " << real_t(RH) << std::endl;
+            // std::cerr << "Seq: " << real_t(a_w(rw3 * si::cubic_metres, this->rd3, this->rd3_insol, this->kappa) * kelvin::klvntrm(real_t(cbrt(rw3)) * si::metres, this->T)) << std::endl;
+            // std::cerr << "minfun: " << real_t(RH) - real_t(a_w(rw3 * si::cubic_metres, this->rd3, this->rd3_insol, this->kappa) * kelvin::klvntrm(real_t(cbrt(rw3)) * si::metres, this->T)) << std::endl;
+            // std::cerr << "rw3: " << real_t(rw3) << std::endl;
+            // std::cerr << "rd3_insol: " << real_t(rd3_insol / si::cubic_meters) << std::endl;
+            // std::cerr << "rd3: " << real_t(rd3 / si::cubic_meters) << std::endl;
+            // std::cerr << "kappa: " << real_t(kappa) << std::endl;
+            // std::cerr << "Seq no insol: " << real_t(a_w(rw3 * si::cubic_metres, this->rd3, real_t(0) * si::cubic_meters, this->kappa) * kelvin::klvntrm(real_t(cbrt(rw3)) * si::metres, this->T)) << std::endl;
             return this->RH
               - a_w(rw3 * si::cubic_metres, this->rd3, this->rd3_insol, this->kappa)
               * kelvin::klvntrm(real_t(cbrt(rw3)) * si::metres, this->T); 
@@ -148,7 +160,7 @@ namespace libcloudphxx
 
         return common::detail::toms748_solve(
           detail::rw3_eq_minfun<real_t>(RH, rd3, rd3_insol, kappa, T), // the above-defined functor
-          real_t(rd3 / si::cubic_metres), // min
+          real_t((rd3 + rd3_insol) / si::cubic_metres) * real_t(1.000001), // min
           real_t(rw3_eq_nokelvin(rd3, rd3_insol, kappa, RH) / si::cubic_metres) // max
         ) * si::cubic_metres;
       }
