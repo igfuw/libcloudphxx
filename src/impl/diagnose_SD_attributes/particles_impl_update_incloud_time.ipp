@@ -43,12 +43,12 @@ namespace libcloudphxx
       thrust::transform(
         rd3.begin(), rd3.end(), // input - 1st arg
         thrust::make_zip_iterator(make_tuple(
-          kpa.begin(), 
+          rd3_insol.begin(),
+          kpa.begin(),
           thrust::make_permutation_iterator(
             T.begin(),
             ijk.begin()
-          ),
-          rd3_insol.begin()
+          )
         )),                                   // input - 2nd arg 
         rc2.begin(),                          // output
         detail::rw3_cr<real_t>()              // op
