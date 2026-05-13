@@ -76,8 +76,7 @@ void parse_moms(
   std::vector<std::pair<std::string, std::string>> min_maxnum;
   outmom_t<config::real_t> &moms =
     opt == "out_dry" ? rt_params.out_dry :
-      opt == "out_wet" ? rt_params.out_wet :
-        rt_params.out_ice;
+      rt_params.out_wet;
 
   const bool result = qi::phrase_parse(first, last, 
     *(
@@ -141,10 +140,9 @@ void parse_moms(
 
   outmom_t<config::real_t> &moms =
     opt == "out_dry" ? rt_params.out_dry :
-      opt == "out_wet" ? rt_params.out_wet :
-        opt == "out_ice" ? rt_params.out_ice :
-          opt == "out_chem" ? rt_params.out_chem :
-            rt_params.out_wet_pH;
+      opt == "out_wet" ? rt_params.out_wet : 
+         opt == "out_chem" ? rt_params.out_chem :
+           rt_params.out_wet_pH;
 
   const bool result = qi::phrase_parse(first, last, 
     *(
@@ -200,7 +198,7 @@ void setopts_micro_chem(
     {solver_t::ix::th, {"th", "[K]"}},
     {solver_t::ix::rv, {"rv", "[kg kg-1]"}}
   };
-  out_set = {"out_dry", "out_wet", "out_ice"};
+  out_set = {"out_dry", "out_wet"};
 }
 
 template <class solver_t, class ct_params_t>
@@ -219,7 +217,7 @@ void setopts_micro_chem(
     {solver_t::ix::NH3g,  {"NH3g", "[dimesnionless]"}},
     {solver_t::ix::HNO3g, {"HNO3g","[dimensionless]"}}
   };
-  out_set = {"out_dry", "out_wet", "out_ice", "out_chem", "out_wet_pH"};
+  out_set = {"out_dry", "out_wet", "out_chem", "out_wet_pH"};
 }
 
 // simulation and output parameters for micro=lgrngn
@@ -248,10 +246,6 @@ void setopts_micro(
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     ("chem_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.chem_switch) , "aqueous chemistry (1=on, 0=off)")
-    ("ice_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.ice_switch) , "enable ice (1=on, 0=off)")
-    ("ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts.ice_nucl) , "ice nucleation (1=on, 0=off)")
-    ("time_dep_ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts_init.time_dep_ice_nucl) , "time dependent ice nucleation (1=on, 0=off)")
-    ("depo", po::value<bool>()->default_value(rt_params.cloudph_opts.depo) , "ice depositional growth (1=on, 0=off)")
     // free parameters
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -261,7 +255,6 @@ void setopts_micro(
     // output
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
-    ("out_ice", po::value<std::string>()->default_value(".1e-6:1|0,1,2,3"),  "ice semi-axis ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet_pH", po::value<std::string>()->default_value("0:1|0"), "wet radius ranges for output of H+ and S_VI)")
     ("out_chem", po::value<std::string>()->default_value("0:1|0"),   "dry radius ranges for which chem mass is outputted")
     // collision and sedimentation
@@ -304,7 +297,7 @@ void setopts_micro(
 */
 
   rt_params.cloudph_opts_init.dry_distros.emplace(
-    libcloudphxx::lgrngn::kappa_rd_insol_t<config::real_t>{setup.kappa, setup.rd_insol / si::meters}, // kappa, rd_insol
+    libcloudphxx::lgrngn::kappa_rd_insol_t<config::real_t>{setup.kappa, config::real_t(0.)}, // kappa, rd_insol
     std::make_shared<config::log_dry_radii<config::real_t>> (setup)
   );
 
@@ -313,10 +306,6 @@ void setopts_micro(
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
-  rt_params.cloudph_opts_init.ice_switch = vm["ice_switch"].as<bool>();
-  rt_params.cloudph_opts.ice_nucl = vm["ice_nucl"].as<bool>();
-  rt_params.cloudph_opts_init.time_dep_ice_nucl = vm["time_dep_ice_nucl"].as<bool>();
-  rt_params.cloudph_opts.depo = vm["depo"].as<bool>();
 
   rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();

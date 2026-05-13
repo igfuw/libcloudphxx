@@ -46,7 +46,6 @@ namespace config
     //aerosol chemical composition parameters (needed for activation)
     // for lgrngn:
     quantity<si::dimensionless, real_t> kappa; // CCN-derived value from Table 1 in Petters and Kreidenweis 2007
-    quantity<si::length, real_t> rd_insol; // insoluble dry radius
     // for blk_2m:
     quantity<si::dimensionless, real_t> chem_b; //ammonium sulphate //chem_b = 1.33; // sodium chloride
     // for lagrangian simulations with aq. chemistry

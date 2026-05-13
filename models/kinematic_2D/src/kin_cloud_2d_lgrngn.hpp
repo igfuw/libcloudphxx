@@ -27,7 +27,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
-  bool coal, sedi, ice_switch, ice_nucl, time_dep_ice_nucl, depo;
+  bool coal, sedi;
 
   // helper methods
   void diag()
@@ -76,32 +76,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
         {
           prtcls->diag_wet_mom(mom);
           this->record_aux(aux_name("rw", rng_num, mom), prtcls->outbuf());
-        }
-        rng_num++;
-      }
-      // ice_a
-      int rng_num = 0;
-      for (auto &rng_moms : params.out_ice)
-      {
-        auto &rng(rng_moms.first);
-        prtcls->diag_ice_a_rng(rng.first / si::metres, rng.second / si::metres);
-        for (auto &mom : rng_moms.second)
-        {
-          prtcls->diag_ice_a_mom(mom);
-          this->record_aux(aux_name("ice_a", rng_num, mom), prtcls->outbuf());
-        }
-        rng_num++;
-      }
-      // ice_c
-      int rng_num = 0;
-      for (auto &rng_moms : params.out_ice)
-      {
-        auto &rng(rng_moms.first);
-        prtcls->diag_ice_c_rng(rng.first / si::metres, rng.second / si::metres);
-        for (auto &mom : rng_moms.second)
-        {
-          prtcls->diag_ice_c_mom(mom);
-          this->record_aux(aux_name("ice_c", rng_num, mom), prtcls->outbuf());
         }
         rng_num++;
       }
@@ -155,10 +129,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
   {
     coal = params.cloudph_opts.coal;
     sedi = params.cloudph_opts.sedi;
-    ice_switch = params.cloudph_opts_init.ice_switch;
-    ice_nucl = params.cloudph_opts.ice_nucl;
-    time_dep_ice_nucl = params.cloudph_opts_init.time_dep_ice_nucl;
-    depo = params.cloudph_opts.depo;
 
     parent_t::hook_ante_loop(nt); 
 
@@ -181,7 +151,6 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
       this->record_aux_const("n1_stp",   this->setup.n1_stp * si::cubic_metres);
       this->record_aux_const("n2_stp",   this->setup.n2_stp * si::cubic_metres);
       this->record_aux_const("kappa",    this->setup.kappa);
-      this->record_aux_const("rd_insol",    this->setup.rd_insol / si::metres);
 
       assert(params.backend != -1);
       assert(params.dt != 0); 
@@ -333,7 +302,7 @@ class kin_cloud_2d_lgrngn : public kin_cloud_2d_common<ct_params_t>
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
-    outmom_t<real_t> out_dry, out_wet, out_ice;
+    outmom_t<real_t> out_dry, out_wet;
   };
 
   protected:
