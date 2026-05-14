@@ -101,7 +101,7 @@ namespace libcloudphxx
         dv,  // grid-cell volumes (per grid cell)
         incloud_time, // time this SD has been within a cloud
         rc2, // critical radius squared (estimated for temperature from opts_init.rc2_T)
-        rd2_insol, // dry radii squared of insoluble aerosol
+        rd3_insol, // dry radii cubed of insoluble aerosol
         T_freeze, // freezing temperature
         ice_a, // equatorial radius of ice
         ice_c, // polar radius of ice
@@ -460,6 +460,8 @@ namespace libcloudphxx
         distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
         distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
         distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
+        distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
+
         distmem_real_vctrs.insert({&delta_revp20, detail::no_initial_value});
         distmem_real_vctrs.insert({&delta_revp25, detail::no_initial_value});
         distmem_real_vctrs.insert({&delta_revp32, detail::no_initial_value});
@@ -504,7 +506,6 @@ namespace libcloudphxx
          
         if(opts_init.ice_switch)
         {
-          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});

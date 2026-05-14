@@ -57,6 +57,7 @@ namespace libcloudphxx
           const real_t lambda_D = thrust::get<4>(thrust::get<1>(tpl));
           const real_t lambda_K = thrust::get<5>(thrust::get<1>(tpl));
           const real_t rd3 = thrust::get<6>(thrust::get<1>(tpl));
+          const real_t rd3_insol = thrust::get<7>(thrust::get<1>(tpl));
           const real_t kpa = thrust::get<0>(thrust::get<2>(tpl));
           const real_t vt = thrust::get<1>(thrust::get<2>(tpl));
           const real_t dot_ssp = turb_cond ? thrust::get<0>(thrust::get<1>(tpl)) : 0;
@@ -154,7 +155,8 @@ namespace libcloudphxx
                     kpa,
                     vt,
                     lambda_D,
-                    lambda_K
+                    lambda_K,
+                    rd3_insol
                   ),
                   sstp_tmp_p,
                   RH,
@@ -195,7 +197,7 @@ namespace libcloudphxx
             }
             if(!first_cond_step_done_in_adaptation)
             {
-              _apply_noncond_perparticle_sstp_delta(delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2)
+              _apply_noncond_perparticle_sstp_delta(sstp_cond_max == 1 ? -delta_fraction_applied : delta_fraction_applied); // revert to state before adaptation loop (beacause sstp_cond == sstp_cond_max and sstp_cond_max may not be a power of 2); If only one step was tried, whole change was applied; If more steps were tried, we are moving back from the entire step
             }
           }            
 
@@ -234,7 +236,8 @@ namespace libcloudphxx
                     kpa,
                     vt,
                     lambda_D,
-                    lambda_K
+                    lambda_K,
+                    rd3_insol
                   ),
                   sstp_tmp_p,
                   RH,
@@ -326,7 +329,8 @@ namespace libcloudphxx
             thrust::make_permutation_iterator(dv.begin(), ijk.begin()),
             thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
             thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin()),
-            rd3.begin()
+            rd3.begin(),
+            rd3_insol.begin()
           )),
           thrust::make_zip_iterator(thrust::make_tuple(
             kpa.begin(),
