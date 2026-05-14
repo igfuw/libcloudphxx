@@ -80,6 +80,22 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_a_rng(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_a_rng, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_c_rng(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_c_rng, r_mi, r_mx);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_ice()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice);
@@ -116,6 +132,22 @@ namespace libcloudphxx
     }
 
     template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_a_rng_cons(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_a_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_c_rng_cons(
+      const real_t &r_mi, const real_t &r_mx
+    )
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_c_rng_cons, r_mi, r_mx);
+    }
+
+    template <typename real_t>
     void particles_t<real_t, multi_CUDA>::diag_ice_cons()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_cons);
@@ -137,6 +169,18 @@ namespace libcloudphxx
     void particles_t<real_t, multi_CUDA>::diag_wet_mom(const int &k)
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_wet_mom, k);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_c_mom(const int &k)
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_c_mom, k);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_a_mom(const int &k)
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_a_mom, k);
     }
  
     template <typename real_t>
@@ -175,6 +219,12 @@ namespace libcloudphxx
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_wet_mass_dens, a, b);
     }
 
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_ice_mix_ratio()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_ice_mix_ratio);
+    }
+
     // ...
 //</listing>
 
@@ -206,6 +256,12 @@ namespace libcloudphxx
     void particles_t<real_t, multi_CUDA>::diag_precip_rate()
     {
       pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_precip_rate);
+    }
+
+    template <typename real_t>
+    void particles_t<real_t, multi_CUDA>::diag_precip_rate_ice_mass()
+    {
+      pimpl->mcuda_run(&particles_t<real_t, CUDA>::diag_precip_rate_ice_mass);
     }
 
     template <typename real_t>
