@@ -27,6 +27,7 @@ opts_init = lgrngn.opts_init_t()
 opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
+opts_init.ice_switch = False
 opts_init.RH_max = 0.999 # to comply with the assert(RH<1) at init
 opts_init.dt = 0.1
 opts_init.sd_conc = int(1e2)
