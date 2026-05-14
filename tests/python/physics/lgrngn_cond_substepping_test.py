@@ -27,19 +27,6 @@ def _to_bool(v):
     raise ValueError(f"Cannot parse boolean from: {v!r}")
 
 
-def _to_number_or_str(v):
-    """Best-effort parse to float; keep original string if not numeric."""
-    if v is None:
-        return ""
-    s = str(v).strip()
-    if s == "":
-        return ""
-    try:
-        return float(s)
-    except ValueError:
-        return s
-
-
 def _config_key(row, config_cols):
     key = []
     for c in config_cols:
@@ -129,7 +116,6 @@ def compare_results(results_file, refdata_file, tolerances=None):
 
     results_map = {}
     for r in results_rows:
-        print(r)
         k = _config_key(r, config_cols)
         if k in results_map:
             print(f"Error: Duplicate configuration in results: {dict(zip(config_cols, k))}")

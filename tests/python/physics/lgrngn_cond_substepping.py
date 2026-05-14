@@ -317,7 +317,7 @@ if '--save-ref' in sys.argv:
   os.makedirs(refdata_dir, exist_ok=True)
   refdata_file = os.path.join(refdata_dir, "lgrngn_cond_substepping_refdata.csv")
   _write_csv(refdata_file, records)
-  print("Reference data saved to: test_results/lgrngn_cond_substepping_refdata.csv")
+  print(f"Reference data saved to: {refdata_file}")
   print("Future runs can be compared against this reference using:")
   print("  python lgrngn_cond_substepping_test.py")
 
