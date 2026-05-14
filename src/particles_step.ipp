@@ -232,6 +232,7 @@ namespace libcloudphxx
           }
           pimpl->release_arrays_for_perparticle_sstp();
           pimpl->apply_perparticle_cond_change_to_percell_rv_and_th();
+          pimpl->n_filtered_gp.reset(); // used in apply_perparticle_cond_change_to_percell_rv_and_th, not needed anymore
         }
         else // apply per-cell sstp logic, always with mixing (sstp_cond_mix==true required)
         {
