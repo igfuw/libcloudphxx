@@ -45,7 +45,7 @@ def _config_key(row, config_cols):
     for c in config_cols:
         if c in ("mixing", "constp", "exact_sstp", "adaptive"):
             key.append(_to_bool(row[c]))
-        elif c in ("RH_formula", "sstp_cond", "sstp_cond_act"):
+        elif c in ("sstp_cond", "sstp_cond_act"):
             # Those are integers in practice, but allow float-in-CSV (e.g. "1.0")
             key.append(int(float(row[c])))
         else:
@@ -129,6 +129,7 @@ def compare_results(results_file, refdata_file, tolerances=None):
 
     results_map = {}
     for r in results_rows:
+        print(r)
         k = _config_key(r, config_cols)
         if k in results_map:
             print(f"Error: Duplicate configuration in results: {dict(zip(config_cols, k))}")

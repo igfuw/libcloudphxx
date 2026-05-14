@@ -39,12 +39,13 @@ variables = [
     ('exectime', 'Execution time [s]'),
 ]
 
-RH_formula_names = {
-    0 : "pv_cc", 1: "rv_cc", 2 :"pv_tet", 3 : "rv_tet"
-}
+# RH_formula_names = {
+#     0 : "pv_cc", 1: "rv_cc", 2 :"pv_tet", 3 : "rv_tet"
+# }
 
 group_cols = ['mixing', 'constp', 'exact_sstp', 'adaptive', 'sstp_cond_act']
-RH_formulas = sorted({ _to_int(r['RH_formula']) for r in rows })
+# RH_formulas = sorted({ _to_int(r['RH_formula']) for r in rows })
+RH_formulas = sorted({ r['RH_formula'] for r in rows })
 
 os.makedirs("test_results/plots", exist_ok=True)
 
@@ -63,7 +64,7 @@ for var, ylabel in variables:
     axs = axs.flatten()
     for i, RH_formula in enumerate(RH_formulas):
         ax = axs[i]
-        subrows = [r for r in rows if _to_int(r['RH_formula']) == RH_formula]
+        subrows = [r for r in rows if r['RH_formula'] == RH_formula]
 
         grouped = {}
         for r in subrows:
@@ -78,7 +79,8 @@ for var, ylabel in variables:
             x = [_to_int(r['sstp_cond']) for r in group_sorted]
             y = [_to_float(r[var]) for r in group_sorted]
             ax.plot(x, y, marker='o', label=label, linestyle='--')
-        ax.set_title(f'RH_formula={RH_formula_names[RH_formula]}')
+        # ax.set_title(f'RH_formula={RH_formula_names[RH_formula]}')
+        ax.set_title(f'RH_formula={RH_formula}')
         ax.set_xlabel('Number of substeps')
         ax.set_ylabel(ylabel)
         ax.set_xscale('log')
