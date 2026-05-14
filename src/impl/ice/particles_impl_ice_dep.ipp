@@ -5,12 +5,6 @@
   * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
   */
 
-// #include <thrust/iterator/transform_iterator.h>
-// #include <libcloudph++/common/maxwell-mason.hpp>
-// #include <libcloudph++/common/kappa_koehler.hpp>
-// #include <libcloudph++/common/kelvin_term.hpp>
-// #include <libcloudph++/common/transition_regime.hpp>
-// #include <libcloudph++/common/ventil.hpp>
 
 namespace libcloudphxx
 {
@@ -31,8 +25,6 @@ namespace libcloudphxx
       hskpng_sort();
 
       // Vector to store 3rd moment
-      // auto d_ice_mass_g = tmp_device_real_cell.get_guard();
-      // thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_g.get();
       if(step == 0)
         reset_guardp(ice_mass_gp, tmp_device_real_cell);
       thrust_device::vector<real_t> &ice_mass = ice_mass_gp->get();
@@ -137,8 +129,6 @@ namespace libcloudphxx
         ice_mass_gp.reset(); // destroy guard to tmp array that stored ice_mass
       }
 
-      // update th and rv according to change in third specific moment
-      // update_th_rv(d_ice_mass, impl::phase_change::deposition);
       }
     };
   }
