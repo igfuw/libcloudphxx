@@ -85,9 +85,12 @@ namespace libcloudphxx
 #if !defined(__NVCC__)
             using std::pow;
             using std::cbrt;
+            using std::max;
+#else
+            using thrust::max;
 #endif
 
-            real_t rw3_safe = std::max(rw3, real_t((this->rd3 + this->rd3_insol) / si::cubic_metres));
+            real_t rw3_safe = max(rw3, real_t((this->rd3 + this->rd3_insol) / si::cubic_metres));
             return this->RH
               - a_w(rw3_safe * si::cubic_metres, this->rd3, this->rd3_insol, this->kappa)
               * kelvin::klvntrm(real_t(cbrt(rw3_safe)) * si::metres, this->T);
@@ -146,7 +149,7 @@ namespace libcloudphxx
         assert(RH < 1); // no equilibrium over RH=100%
         assert(kappa >= 0);
 
-        if(kappa == 0) return rd3;
+        if(kappa == 0) return rd3 + rd3_insol;
 
         return common::detail::toms748_solve(
           detail::rw3_eq_minfun<real_t>(RH, rd3, rd3_insol, kappa, T), // the above-defined functor

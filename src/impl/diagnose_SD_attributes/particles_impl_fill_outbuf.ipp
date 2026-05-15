@@ -44,7 +44,7 @@ namespace libcloudphxx
         throw std::runtime_error("Unknown attribute name passed to get_attr.");
 
       if (!opts_init.ice_switch &&
-          (name == "ice_a" || name == "ice_c" || name == "ice_rho" || name == "rd3_insol" || name == "T_freeze"))
+          (name == "ice_a" || name == "ice_c" || name == "ice_rho" || name == "T_freeze"))
       {
         throw std::runtime_error("Requested ice attribute '" + name + "' but ice_switch is off.");
       }
