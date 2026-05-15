@@ -52,12 +52,7 @@ namespace libcloudphxx
       )
       {
         assert(kappa > 0);
-#if !defined(__NVCC__)
-        const real_t eps = std::numeric_limits<real_t>::epsilon();
-#else
-        const real_t eps = thrust::numeric_limits<real_t>::epsilon();
-#endif
-        assert(rw3 >= rd3 + rd3_insol - eps * si::cubic_metres);
+        assert(rw3 >= rd3 + rd3_insol - std::numeric_limits<real_t>::epsilon() * si::cubic_metres);
         return (rw3 - rd3 - rd3_insol) / (rw3 - rd3 * (real_t(1) - kappa) - rd3_insol);
       }
 
