@@ -316,7 +316,7 @@ namespace libcloudphxx
       }
 #endif
       assert(count_n <= n_cell);
-      if(specific)
+      if(specific && n_dims>0) // parcel (n_dims==0) implicitly assumes 1kg of air
       {
         // dividing by dv
         thrust::transform(
