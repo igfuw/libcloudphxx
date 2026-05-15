@@ -12,6 +12,9 @@ Compilation of libcloudph++ requires:
 - Thrust C++ library
 - Boost C++ libraries
 
+For build instructions (also using Spack or Singularity), see:
+https://github.com/igfuw/UWLCM/blob/master/build_instructions.md
+
 Compilation of the Python bindings for libcloudph++ (enabled
 by default) further requires:
 - Python interpretter and development files
