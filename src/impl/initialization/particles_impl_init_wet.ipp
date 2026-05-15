@@ -22,19 +22,20 @@ namespace libcloudphxx
        rw2_eq(const real_t &RH_max) : RH_max(RH_max) {}
 
        BOOST_GPU_ENABLED 
-       real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t> &tpl)
+       real_t operator()(const thrust::tuple<real_t, real_t, real_t, real_t, real_t> &tpl)
        {
 #if !defined(__NVCC__)
          using std::min;
          using std::pow;
 #endif
          const quantity<si::volume,        real_t> rd3 = thrust::get<0>(tpl) * si::cubic_metres;
-         const quantity<si::dimensionless, real_t> kpa = thrust::get<1>(tpl); 
-         const quantity<si::dimensionless, real_t> RH  = min(thrust::get<2>(tpl), RH_max);
-         const quantity<si::temperature,   real_t> T   = thrust::get<3>(tpl) * si::kelvins;
+         const quantity<si::volume,        real_t> rd3_insol = thrust::get<1>(tpl) * si::cubic_metres;
+         const quantity<si::dimensionless, real_t> kpa = thrust::get<2>(tpl);
+         const quantity<si::dimensionless, real_t> RH  = min(thrust::get<3>(tpl), RH_max);
+         const quantity<si::temperature,   real_t> T   = thrust::get<4>(tpl) * si::kelvins;
 
          return pow(common::kappa_koehler::rw3_eq( 
-           rd3, kpa, RH, T 
+           rd3, rd3_insol, kpa, RH, T
          ) / si::cubic_metres, real_t(2./3));
        }
       }; 
@@ -56,13 +57,15 @@ namespace libcloudphxx
             thrust::tuple<
               typename thrust_device::vector<real_t>::iterator,
               typename thrust_device::vector<real_t>::iterator,
+              typename thrust_device::vector<real_t>::iterator,
               pi_t,
               pi_t
             >
           > zip_it_t;
 
           zip_it_t zip_it(thrust::make_tuple(
-            rd3.begin() + n_part_old, 
+            rd3.begin() + n_part_old,
+            rd3_insol.begin() + n_part_old,
             kpa.begin() + n_part_old, 
             pi_t(RH.begin(), ijk.begin() + n_part_old),
             pi_t(T.begin(),  ijk.begin() + n_part_old)
