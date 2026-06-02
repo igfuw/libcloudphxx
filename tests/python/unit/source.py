@@ -30,7 +30,7 @@ def lognormal_src(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 kappa = .61
-rd_insol = 0.5e-6
+rd_insol = 0.
 
 def test(opts_init, opts):
   opts_init.rng_seed = int(time())

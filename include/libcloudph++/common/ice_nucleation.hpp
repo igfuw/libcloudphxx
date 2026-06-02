@@ -21,7 +21,7 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       quantity<si::temperature, real_t> T_freeze_CDF_inv(
       const INP_t& INP_type,      // type of ice nucleating particle
-      const real_t rd2_insol,     // radius squared of insoluble particle in m^2
+      const real_t rd3_insol,     // radius cubed of insoluble particle in m^3
       const real_t rand           // random number between [0, 1]
         ) {
         real_t A = real_t(4)
@@ -30,7 +30,7 @@ namespace libcloudphxx
         #else
             * CUDART_PI
         #endif
-        * rd2_insol; // surface area of the insoluble particle
+        * pow(rd3_insol, real_t(2./3.)); // surface area of the insoluble particle
 
         if (INP_type == INP_t::mineral && A > real_t(1e-20))
         {
@@ -54,12 +54,12 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t> &tpl) const
         {
-          const real_t &rd2_insol = thrust::get<0>(tpl);  // from rd2 vector
+          const real_t &rd3_insol = thrust::get<0>(tpl);  // from rd3 vector
           const real_t &rand         = thrust::get<1>(tpl);  // from rand vector
 
           return ice_nucleation::template T_freeze_CDF_inv<real_t>(
             INP_type,
-            rd2_insol,
+            rd3_insol,
             rand
           ) / si::kelvin;
         }
@@ -71,13 +71,13 @@ namespace libcloudphxx
       BOOST_GPU_ENABLED
       real_t p_freeze(
       const INP_t& INP_type,     // type of ice nucleating particle
-      const real_t rd2_insol,    // radius squared of insoluble particle in m^2
+      const real_t rd3_insol,    // radius cubed of insoluble particle in m^3
       const real_t rw2,          // wet radius squared in m^2
       const real_t T,            // temperature in kelvin
       const real_t dt            // time step in seconds
         )
       {
-        if (rd2_insol > real_t(0))
+        if (rd3_insol > real_t(0))
         {
           real_t A = real_t(4)
           #if !defined(__NVCC__)
@@ -85,7 +85,7 @@ namespace libcloudphxx
           #else
               * CUDART_PI
           #endif
-          * rd2_insol; // surface area of the insoluble particle
+          * pow(rd3_insol, real_t(2./3.)); // surface area of the insoluble particle
           real_t d_aw = real_t(1) - const_cp::p_vsi<real_t>(T * si::kelvin)/ const_cp::p_vs<real_t>(T * si::kelvin); // water activity
           if (INP_type == INP_t::mineral)
           {
@@ -127,13 +127,13 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(const thrust::tuple<real_t, real_t, real_t> &tpl) const
         {
-          const real_t &rd2_insol = thrust::get<0>(tpl);  // radius squared of insoluble particle
+          const real_t &rd3_insol = thrust::get<0>(tpl);  // radius cubed of insoluble particle
           const real_t &rw2       = thrust::get<1>(tpl);  // wet radius squared
           const real_t &T         = thrust::get<2>(tpl);  // temperature in kelvin
 
           return ice_nucleation::p_freeze<real_t>(
             INP_type,
-            rd2_insol,
+            rd3_insol,
             rw2,
             T,
             dt
