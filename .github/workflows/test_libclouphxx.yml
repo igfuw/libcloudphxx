@@ -254,7 +254,7 @@ jobs:
         repository: igfuw/parcel
         path: parcel
 
-    - run: mkdir parcel/plots/outputs
+    - run: mkdir -p parcel/plots/outputs
 
     - name: run parcel unit_test
       working-directory: ${{github.workspace}}/parcel
