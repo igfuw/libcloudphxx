@@ -52,7 +52,8 @@ namespace libcloudphxx
       )
       {
         assert(kappa > 0);
-        assert(rw3 >= rd3 + rd3_insol - std::numeric_limits<real_t>::epsilon() * si::cubic_metres);
+        if ((rw3 - rd3 - rd3_insol) / si::cubic_meters  <= std::nextafter(real_t(0),real_t(1)))
+          return real_t(0.);
         return (rw3 - rd3 - rd3_insol) / (rw3 - rd3 * (real_t(1) - kappa) - rd3_insol);
       }
 
