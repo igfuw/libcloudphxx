@@ -234,20 +234,20 @@ namespace libcloudphxx
         return *arg->opts_init;
       }
 
-      // set dry distros from a dict with (kappa, rd_insol) as key
+      // set dry distros from a dict with (kappa, soluble_fraction) as key
       template <typename real_t>
       void set_dd(
         lgr::opts_init_t<real_t> *arg,
-        const bp::dict &kappa_func) // a dict keyed by (kappa, rd_insol)
+        const bp::dict &kappa_func) // a dict keyed by (kappa, soluble_fraction)
       {
         arg->dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
         {
           bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[i]);
           const real_t kappa = bp::extract<real_t>(key[0]);
-          const real_t rd_insol = bp::extract<real_t>(key[1]);
+          const real_t soluble_fraction = bp::extract<real_t>(key[1]);
           arg->dry_distros.emplace(
-            libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol},
+            libcloudphxx::lgrngn::kappa_soluble_fraction_t<real_t>{kappa, soluble_fraction},
             std::make_shared<detail::pyunary<real_t>>(kappa_func.values()[i])
           );
         }
@@ -257,7 +257,7 @@ namespace libcloudphxx
       template <typename real_t>
       void set_sdd( // src_dry_distro
         lgr::opts_t<real_t> *arg,
-        const bp::dict &kappa_func) // a dict keyed by (kappa, rd_insol)
+        const bp::dict &kappa_func) // a dict keyed by (kappa, soluble_fraction)
       {
         arg->src_dry_distros.clear();
         for (int i = 0; i < len(kappa_func.keys()); ++i)
@@ -265,12 +265,12 @@ namespace libcloudphxx
           bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[i]);
           bp::tuple val = bp::extract<bp::tuple>(kappa_func.values()[i]);
           const real_t kappa = bp::extract<real_t>(key[0]);
-          const real_t rd_insol = bp::extract<real_t>(key[1]);
+          const real_t soluble_fraction = bp::extract<real_t>(key[1]);
 
           const int sd_conc   = bp::extract<int>(val[1]);
           const int supstp    = bp::extract<int>(val[2]);
           arg->src_dry_distros.emplace(
-            libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol},
+            libcloudphxx::lgrngn::kappa_soluble_fraction_t<real_t>{kappa, soluble_fraction},
             std::make_tuple(std::static_pointer_cast<libcloudphxx::common::unary_function<real_t>>(
           std::make_shared<detail::pyunary<real_t>>(val[0])),
               sd_conc, supstp)
@@ -278,27 +278,27 @@ namespace libcloudphxx
         }
       }
 
-      // set dry sizes from a dict with (kappa, rd_insol) as key
+      // set dry sizes from a dict with (kappa, soluble_fraction) as key
       template <typename real_t>
       void set_ds(
         lgr::opts_init_t<real_t> *arg,
-        const bp::dict &kappa_func // a dict keyed by (kappa, rd_insol)
+        const bp::dict &kappa_func // a dict keyed by (kappa, soluble_fraction)
       )
       {
         arg->dry_sizes.clear();
         if(len(kappa_func.keys()) == 0)
           return;
 
-        // loop over kappas and rd_insol
+        // loop over kappas and soluble_fraction
         for (int j = 0; j < len(kappa_func.keys()); ++j)
         {
 
-          // extract the key tuple (kappa, rd_insol)
+          // extract the key tuple (kappa, soluble_fraction)
           const bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[j]);
-          const real_t kappa    = bp::extract<real_t>(key[0]);
-          const real_t rd_insol = bp::extract<real_t>(key[1]);
+          const real_t kappa            = bp::extract<real_t>(key[0]);
+          const real_t soluble_fraction = bp::extract<real_t>(key[1]);
 
-          // extract size : {conc, count} dict for this (kappa, rd_insol)
+          // extract size : {conc, count} dict for this (kappa, soluble_fraction)
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<real_t, std::pair<real_t, int>> size_conc_map;
 
@@ -311,7 +311,7 @@ namespace libcloudphxx
             const int count   = bp::extract<int>   (conc_count_list[1]);
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_pair(conc, count); 
           }
-          arg->dry_sizes[libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol}] = size_conc_map;
+          arg->dry_sizes[libcloudphxx::lgrngn::kappa_soluble_fraction_t<real_t>{kappa, soluble_fraction}] = size_conc_map;
         }
       }
 
@@ -319,22 +319,22 @@ namespace libcloudphxx
       template <typename real_t>
       void set_sds( // src_dry_sizes
         lgr::opts_t<real_t> *arg,
-        const bp::dict &kappa_func // a dict keyed by (kappa, rd_insol)
+        const bp::dict &kappa_func // a dict keyed by (kappa, soluble_fraction)
       )
       {
         arg->src_dry_sizes.clear();
         if(len(kappa_func.keys()) == 0)
           return;
 
-        // loop over kappas and rd_insol
+        // loop over kappas and soluble_fraction
         for (int j = 0; j < len(kappa_func.keys()); ++j)
         {
-          // extract the key tuple (kappa, rd_insol)
+          // extract the key tuple (kappa, soluble_fraction)
           const bp::tuple key = bp::extract<bp::tuple>(kappa_func.keys()[j]);
-          const real_t kappa    = bp::extract<real_t>(key[0]);
-          const real_t rd_insol = bp::extract<real_t>(key[1]);
+          const real_t kappa            = bp::extract<real_t>(key[0]);
+          const real_t soluble_fraction = bp::extract<real_t>(key[1]);
 
-          // extract size : {conc, count, supstp_src} dict for this (kappa, rd_insol)
+          // extract size : {conc, count, supstp_src} dict for this (kappa, soluble_fraction)
           const bp::dict size_conc = bp::extract<bp::dict>(kappa_func.values()[j]);
           std::map<double, std::tuple<real_t, int, int>> size_conc_map;
 
@@ -348,7 +348,7 @@ namespace libcloudphxx
             const int supstp  = bp::extract<int>   (conc_count_list[2]);
             size_conc_map[bp::extract<real_t>(size_conc.keys()[i])] = std::make_tuple(conc, count, supstp);
           }
-          arg->src_dry_sizes[libcloudphxx::lgrngn::kappa_rd_insol_t<real_t>{kappa, rd_insol}] = size_conc_map;
+          arg->src_dry_sizes[libcloudphxx::lgrngn::kappa_soluble_fraction_t<real_t>{kappa, soluble_fraction}] = size_conc_map;
         }
       }
 

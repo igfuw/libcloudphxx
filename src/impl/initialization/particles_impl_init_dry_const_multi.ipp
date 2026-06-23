@@ -46,7 +46,7 @@ namespace libcloudphxx
 
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::init_dry_const_multi(
-      const common::unary_function<real_t> &n_of_lnrd_stp 
+      const common::unary_function<real_t> &n_of_lnrd_stp
     )
     {
       // calculate cumulative distribution function

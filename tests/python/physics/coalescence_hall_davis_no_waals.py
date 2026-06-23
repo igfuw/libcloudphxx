@@ -52,9 +52,9 @@ th   = 300. * np.ones((opts_init.nx, opts_init.nz))
 rv   = 0.01 * np.ones((opts_init.nx, opts_init.nz))
 
 kappa = 0 #1e-10
-rd_insol = 0.
+soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, rd_insol):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
 
 opts_init.sd_conc = pow(2,14)
 opts_init.n_sd_max = opts_init.sd_conc

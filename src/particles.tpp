@@ -82,7 +82,7 @@
 #include "impl/initialization/particles_impl_init_kernel.ipp"
 #include "impl/initialization/particles_impl_init_vterm.ipp"
 #include "impl/initialization/particles_impl_init_sanity_check.ipp"
-#include "impl/initialization/particles_impl_init_insol_dry_sizes.ipp"
+#include "impl/initialization/particles_impl_init_insol.ipp"
 #include "impl/initialization/particles_impl_init_T_freeze.ipp"
 #include "impl/initialization/particles_impl_init_a_c_rho_ice.ipp"
 

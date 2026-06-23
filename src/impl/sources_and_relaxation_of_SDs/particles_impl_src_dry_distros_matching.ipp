@@ -46,10 +46,12 @@ namespace libcloudphxx
     // if any SDs with dry radius similar to the one to be added are present,
     // we increase their multiplicity instead of adding new SDs
     // TODO: make it work for sdd.size()>1
+    // -------- TODO: match not only sizes of old particles, but also kappas, rd_insol, chemical composition... --------
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::src_dry_distros_matching(const src_dry_distros_t<real_t> &sdd)
     {   
       auto p_sdd = sdd.cbegin();
+      assert(p_sdd->first.soluble_fraction == 1); // partial solubility in matching source not implemented yet 
 
       // add the source only once every number of steps
       assert(get<2>(p_sdd->second) > 0);
@@ -59,9 +61,6 @@ namespace libcloudphxx
 
       // set number of SDs to init; use count_num as storage
       init_count_num_src(get<1>(p_sdd->second));
-
-
-      // -------- TODO: match not only sizes of old particles, but also kappas and chemical composition... --------
 
       // --- sort already existing SDs; primary key ijk, secondary rd ---
       // TODO: do all of this only on SDs in cells below src_z1?
@@ -101,6 +100,7 @@ namespace libcloudphxx
 
       // analyze distribution to get rd_min and max needed for bin sizes
       // TODO: this could be done once at the beginning of the simulation
+      // TODO: take rd_insol into account here?
       init_dist_analysis_sd_conc(
         *get<0>(p_sdd->second),
         get<1>(p_sdd->second),
@@ -221,11 +221,12 @@ namespace libcloudphxx
 
           // init other properties of SDs that didnt have a match
           init_kappa(
-            p_sdd->first.kappa
+            p_sdd->first.kappa,
+            p_sdd->first.soluble_fraction
           );
           if (opts_init.ice_switch)
           {
-            init_insol_dry_sizes(p_sdd->first.rd_insol);
+            init_insol(p_sdd->first.soluble_fraction);
             init_a_c_rho_ice();
             if (! opts_init.time_dep_ice_nucl)
             {

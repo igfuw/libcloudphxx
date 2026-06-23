@@ -101,7 +101,7 @@ namespace libcloudphxx
         dv,  // grid-cell volumes (per grid cell)
         incloud_time, // time this SD has been within a cloud
         rc2, // critical radius squared (estimated for temperature from opts_init.rc2_T)
-        rd3_insol, // dry radii cubed of insoluble aerosol
+        rd2_insol, // dry radii squared of insoluble aerosol
         T_freeze, // freezing temperature
         ice_a, // equatorial radius of ice
         ice_c, // polar radius of ice
@@ -460,7 +460,6 @@ namespace libcloudphxx
         distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
         distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
         distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
-        distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
 
         distmem_real_vctrs.insert({&delta_revp20, detail::no_initial_value});
         distmem_real_vctrs.insert({&delta_revp25, detail::no_initial_value});
@@ -506,6 +505,7 @@ namespace libcloudphxx
          
         if(opts_init.ice_switch)
         {
+          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
@@ -576,7 +576,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const kappa_rd_insol_t<real_t> &, const bool unravel_ijk = true);
+      void init_SD_with_distros_finalize(const kappa_soluble_fraction_t<real_t> &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -608,8 +608,8 @@ namespace libcloudphxx
       void reserve_hskpng_npart();
       void init_ijk();
       void init_xyz();
-      void init_kappa(const real_t &);
-      void init_insol_dry_sizes(real_t);
+      void init_kappa(const real_t, const real_t);
+      void init_insol(real_t);
       void init_T_freeze();
       void init_a_c_rho_ice();
       void init_incloud_time();

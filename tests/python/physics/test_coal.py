@@ -29,9 +29,9 @@ rv = 0.01 * np.ones((1,))
 
 kappa1 = 0.1
 kappa2 = 0.9
-rd_insol = 0.
+soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa1, rd_insol):expvolumelnr, (kappa2, rd_insol):expvolumelnr}
+opts_init.dry_distros = {(kappa1, soluble_fraction):expvolumelnr, (kappa2, soluble_fraction):expvolumelnr}
 
 opts_init.sd_conc = pow(2,14)
 opts_init.n_sd_max = pow(2,14)

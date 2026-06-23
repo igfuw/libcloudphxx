@@ -51,8 +51,6 @@ namespace libcloudphxx
         thrust::make_permutation_iterator(rv.begin(), ijk.begin()),
         thrust::make_permutation_iterator(T.begin(), ijk.begin()),
         thrust::make_permutation_iterator(eta.begin(), ijk.begin()),
-        rd3.begin(),
-        kpa.begin(),
         vt.begin(),
         thrust::make_permutation_iterator(lambda_D.begin(), ijk.begin()),
         thrust::make_permutation_iterator(lambda_K.begin(), ijk.begin())
