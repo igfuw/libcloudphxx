@@ -51,9 +51,11 @@ namespace libcloudphxx
         quantity<si::dimensionless, real_t> kappa
       )
       {
-        assert(kappa > 0);
+        assert(kappa >= 0);
         if ((rw3 - rd3 - rd3_insol) / si::cubic_meters  <= std::nextafter(real_t(0),real_t(1)))
           return real_t(0.);
+        if (kappa == real_t(0))
+          return real_t(1.);
         return (rw3 - rd3 - rd3_insol) / (rw3 - rd3 * (real_t(1) - kappa) - rd3_insol);
       }
 
