@@ -193,8 +193,10 @@ namespace libcloudphxx
           switch (RH_formula)
           {
             case RH_formula_t::pv_cc:
+            case RH_formula_t::pv_tet:
               return RHi_pv_cc<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
             case RH_formula_t::rv_cc:
+            case RH_formula_t::rv_tet:
               return RHi_rv_cc<real_t>(thrust::get<0>(tpl), thrust::get<1>(tpl), thrust::get<2>(tpl));
             // NOTE: no Tetens formulas for ice
             default:
@@ -269,18 +271,14 @@ namespace libcloudphxx
 
         if(opts_init.ice_switch)
         {
-        // RH_i
-        thrust::transform(
-          zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
-          zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end
-          RH_i.begin(),                                                      // output
-          detail::RH_i<real_t>(
-            opts_init.RH_formula == RH_formula_t::pv_tet ? RH_formula_t::pv_cc :
-            opts_init.RH_formula == RH_formula_t::rv_tet ? RH_formula_t::rv_cc :
-            opts_init.RH_formula
-          )
-        );
-          }
+          // RH_i
+          thrust::transform(
+            zip_it_t(thrust::make_tuple(p.begin(), rv.begin(), T.begin())),  // input - begin
+            zip_it_t(thrust::make_tuple(p.end(),   rv.end(),   T.end()  )),  // input - end
+            RH_i.begin(),                                                      // output
+            detail::RH_i<real_t>(opts_init.RH_formula)
+          );
+        }
       }
  
       // dynamic viscosity

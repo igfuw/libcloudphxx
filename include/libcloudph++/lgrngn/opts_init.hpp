@@ -81,7 +81,7 @@ namespace libcloudphxx
       // super-droplet advection scheme
       as_t adve_scheme;
 
-      // RH formula
+      // RH formula, for ice, pv_tet and rv_tet work as pv_cc and rv_cc, respectively, because there is no Tetens formula for ice
       RH_formula_t RH_formula;
 //</listing>
  

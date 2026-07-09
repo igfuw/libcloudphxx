@@ -22,6 +22,9 @@ namespace libcloudphxx
       // TODO: add a loop to allow sdd.size>1
       auto p_sdd = sdd.cbegin();
 
+      if(p_sdd->first.soluble_fraction < 0 || p_sdd->first.soluble_fraction > 1)
+        throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_distros must be in [0, 1]");
+
       // add the source only once every number of steps
       assert(get<2>(p_sdd->second) > 0);
       if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;

@@ -23,6 +23,9 @@ namespace libcloudphxx
         BOOST_GPU_ENABLED
         real_t operator()(real_t rd3_val) const
         {
+          #if !defined(__NVCC__)
+          using std::pow;
+          #endif
           return pow(insol_fraction * rd3_val, real_t(2) / real_t(3));
         }
       };

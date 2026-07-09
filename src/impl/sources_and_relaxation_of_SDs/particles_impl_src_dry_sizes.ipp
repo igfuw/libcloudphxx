@@ -23,6 +23,9 @@ namespace libcloudphxx
         const real_t &soluble_fraction(dsi->first.soluble_fraction);
         const auto &size_number_map(dsi->second);
 
+        if(soluble_fraction < 0 || soluble_fraction > 1)
+          throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_sizes must be in [0, 1]");
+
         // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, soluble_fraction) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
