@@ -732,8 +732,8 @@ namespace libcloudphxx
       template<bool ice, class pres_iter, class RH_iter>
       void perparticle_advance_hlpr(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
-      void save_liq_ice_content_before_change();
-      void calc_liq_ice_content_change();
+      void save_liq_ice_content_before_change(const bool cond, const bool depo);
+      void calc_liq_ice_content_change(const bool cond, const bool depo);
       template<int power>
       void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
       template<int power>
@@ -742,8 +742,8 @@ namespace libcloudphxx
       void add_perparticle_ice_mass_to_d_ice_mass(const bool store_ice_mass);
 
       void apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(const bool rw3_changed, const bool ice_mass_changed);
-      void apply_perparticle_cond_change_to_percell_rv_and_th();
-      void update_th_rv();
+      void apply_perparticle_cond_change_to_percell_rv_and_th(const bool cond, const bool depo);
+      void update_th_rv(const bool cond, const bool depo);
 // =======
       void ice_nucl_melt(const real_t &dt);
 

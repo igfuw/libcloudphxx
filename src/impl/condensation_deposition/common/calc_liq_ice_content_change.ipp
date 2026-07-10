@@ -10,23 +10,26 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::calc_liq_ice_content_change()
+    void particles_t<real_t, device>::impl::calc_liq_ice_content_change(const bool cond, const bool depo)
     {   
       // TODO: assert that save_liq_ice_content_before_change was called beforehand?
-      thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
+      if(cond)
+      {
+        thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
 
-      moms_all();
-      moms_calc(rw2.begin(), real_t(3./2.));
+        moms_all();
+        moms_calc(rw2.begin(), real_t(3./2.));
 
-      // drw_mom3 = -rw_mom3_ante + rw_mom3_post
-      thrust::transform(
-        count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
-        thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // 2nd arg
-        thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // output
-        thrust::plus<real_t>()
-      );
+        // drw_mom3 = -rw_mom3_ante + rw_mom3_post
+        thrust::transform(
+          count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
+          thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // 2nd arg
+          thrust::make_permutation_iterator(drw_mom3.begin(), count_ijk.begin()), // output
+          thrust::plus<real_t>()
+        );
+      }
 
-      if(opts_init.ice_switch)
+      if(depo)
       {
         thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
 

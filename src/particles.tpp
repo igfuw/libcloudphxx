@@ -113,15 +113,14 @@
 #include "impl/diagnose_SD_attributes/particles_impl_fill_outbuf.ipp"
 #include "impl/diagnose_SD_attributes/particles_impl_update_incloud_time.ipp"
 
-#include "impl/common/particles_impl_update_th_rv.ipp"
-#include "impl/common/save_liq_ice_content_before_change.ipp"
-#include "impl/common/calc_liq_ice_content_change.ipp"
-
 #include "impl/boundary_conditions/particles_impl_bcnd.ipp" // bcnd has to be b4 adve for periodic struct; move it to separate file in detail...
 
 #include "impl/advection/particles_impl_adve.ipp"
 #include "impl/advection/particles_impl_turb_adve.ipp"
 
+#include "impl/condensation_deposition/common/particles_impl_update_th_rv.ipp"
+#include "impl/condensation_deposition/common/save_liq_ice_content_before_change.ipp"
+#include "impl/condensation_deposition/common/calc_liq_ice_content_change.ipp"
 #include "impl/condensation_deposition/common/apply_perparticle_sgs_supersat.ipp"
 #include "impl/condensation_deposition/common/cond_depo_common.ipp"
 #include "impl/condensation_deposition/common/particles_impl_cond_common.ipp"
