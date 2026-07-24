@@ -99,7 +99,7 @@ namespace libcloudphxx
 
       // calc sum of ln(rd) ranges of all relax distributions
       real_t tot_lnrd_rng = 0.;
-      for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
+      for (auto ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
         init_dist_analysis_sd_conc(
           *(std::get<0>(ddi->second)),
@@ -111,7 +111,7 @@ namespace libcloudphxx
       const auto n_part_pre_relax = n_part;
 
       // initialize SDs of each kappa-type
-      for (typename opts_init_t<real_t>::rlx_dry_distros_t::const_iterator ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
+      for (auto ddi = opts_init.rlx_dry_distros.begin(); ddi != opts_init.rlx_dry_distros.end(); ++ddi)
       {
         const auto &kappa(ddi->first);
         assert(kappa >= 0);
@@ -303,8 +303,8 @@ namespace libcloudphxx
         n_part_to_init = n_part - n_part_old;
 //        hskpng_resize_npart();
 
-        init_SD_with_distros_finalize(lgrngn::kappa_rd_insol_t<real_t>{kappa, real_t(0)}, false); // no need to unravel ijk there, because i j k are already initialized
-                                                     // TODO: we assume that relaxation produces water (not ice)
+        init_SD_with_distros_finalize(lgrngn::kappa_soluble_fraction_t<real_t>{kappa, real_t(1)}, false); // no need to unravel ijk there, because i j k are already initialized
+                                                     // TODO: we assume that relaxation produces water (not ice), and that soluble_fraction==1 for produced aerosols
 
         // TODO: asserts of newly added SD parameters? e.g. how many SD, how big is multiplicity etc.
       } // end of the distros loop

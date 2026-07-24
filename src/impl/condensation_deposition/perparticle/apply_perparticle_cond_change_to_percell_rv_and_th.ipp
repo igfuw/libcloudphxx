@@ -3,7 +3,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::apply_perparticle_cond_change_to_percell_rv_and_th()
+    void particles_t<real_t, device>::impl::apply_perparticle_cond_change_to_percell_rv_and_th(const bool cond, const bool depo)
     {
       if(opts_init.sstp_cond_mix)
       {
@@ -19,8 +19,8 @@ namespace libcloudphxx
       }
       else
       {
-        calc_liq_ice_content_change();  
-        update_th_rv();
+        calc_liq_ice_content_change(cond, depo);  
+        update_th_rv(cond, depo);
       }
     }
   };

@@ -68,9 +68,9 @@ th = 300. * np.ones((1,))
 rv = 0.01 * np.ones((1,))
 
 kappa = 1e-10
-rd_insol = 0.
+soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, rd_insol):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
 
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.terminal_velocity = lgrngn.vt_t.beard77

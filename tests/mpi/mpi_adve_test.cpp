@@ -121,7 +121,7 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
 */
 
   opts_init.dry_distros.emplace( 
-    libcloudphxx::lgrngn::kappa_rd_insol_t<double>{double(0.001), double(0.)}, // kappa, rd_insol
+    libcloudphxx::lgrngn::kappa_soluble_fraction_t<double>{double(0.001), double(1.)}, // kappa, soluble_fraction
     std::make_shared<log_dry_radii<double>>() // distribution
   );
 

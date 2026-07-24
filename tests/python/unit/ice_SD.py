@@ -20,8 +20,8 @@ backend = lgrngn.backend_t.serial
 opts = lgrngn.opts_t()
 
 kappa = .61
-rd_insol = 0.5e-6
-opts_init.dry_distros = {(kappa, rd_insol): lognormal}
+soluble_fraction = 0.7
+opts_init.dry_distros = {(kappa, soluble_fraction): lognormal}
 opts_init.dt = 0.1
 opts_init.sd_conc = 100
 opts_init.n_sd_max = 1000

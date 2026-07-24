@@ -71,7 +71,7 @@ namespace libcloudphxx
     // particles have to be sorted
     template <typename real_t, backend_t device>
 // <<<<<<< HEAD:src/impl/common/particles_impl_update_th_rv.ipp
-    void particles_t<real_t, device>::impl::update_th_rv() 
+    void particles_t<real_t, device>::impl::update_th_rv(const bool cond, const bool depo) 
 // =======
     // void particles_t<real_t, device>::impl::update_th_rv(
       // thrust_device::vector<real_t> &drv, // change in water vapor mixing ratio
@@ -86,56 +86,59 @@ namespace libcloudphxx
 
       // if (phase == phase_change::condensation)
       
-      thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
-      nancheck(drw_mom3, "update_th_rv: input drw_mom3");
-
-      // multiplying specific 3rd moms diff  by rho_w*4/3*pi to get -drv
-      thrust::transform(
-        drw_mom3.begin(), drw_mom3.end(),        // input - 1st arg
-        thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-          common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
-          * real_t(4./3) * pi<real_t>()
-        ),
-        drw_mom3.begin(),                             // output
-        thrust::multiplies<real_t>()
-      );
-      
-      // else if (phase == phase_change::deposition)
-      // if(opts_init.ice_switch) // TODO: call update_th_rv once per cond/depo
-      // {
-      //   thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
-      //   nancheck(d_ice_mass, "update_th_rv: input d_ice_mass");
-
-      //   thrust::transform(
-      //     d_ice_mass.begin(), d_ice_mass.end(),                  // input - 1st arg
-      //     thrust::make_constant_iterator<real_t>(  // input - 2nd arg
-      //       -  real_t(1)
-      //     ),
-      //     d_ice_mass.begin(),                             // output
-      //     thrust::multiplies<real_t>()
-      //   );
-      // }
-
-      // TODO: drv = drw_mom3 or one from deposition
-
-      // updating rv 
-      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
-      thrust::transform(
-        rv.begin(), rv.end(),  // input - 1st arg
-        drw_mom3.begin(),           // input - 2nd arg
-        rv.begin(),            // output
-        thrust::minus<real_t>() 
-      );
-      assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
-      
-      if(opts_init.ice_switch)
+      if(cond)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
-        nancheck(d_ice_mass, "update_th_rv: input d_ice_mass");
+        thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
+        nancheck(drw_mom3, "update_th_rv: input drw_mom3");
+
+        // multiplying specific 3rd moms diff  by rho_w*4/3*pi to get -drv
+        thrust::transform(
+          drw_mom3.begin(), drw_mom3.end(),        // input - 1st arg
+          thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+            common::moist_air::rho_w<real_t>() / si::kilograms * si::cubic_metres
+            * real_t(4./3) * pi<real_t>()
+          ),
+          drw_mom3.begin(),                             // output
+          thrust::multiplies<real_t>()
+        );
+      
+        // else if (phase == phase_change::deposition)
+        // if(opts_init.ice_switch) // TODO: call update_th_rv once per cond/depo
+        // {
+        //   thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
+        //   nancheck(d_ice_mass_percell, "update_th_rv: input d_ice_mass_percell");
+
+        //   thrust::transform(
+        //     d_ice_mass_percell.begin(), d_ice_mass_percell.end(),                  // input - 1st arg
+        //     thrust::make_constant_iterator<real_t>(  // input - 2nd arg
+        //       -  real_t(1)
+        //     ),
+        //     d_ice_mass_percell.begin(),                             // output
+        //     thrust::multiplies<real_t>()
+        //   );
+        // }
+
+        // TODO: drv = drw_mom3 or one from deposition
+
+        // updating rv 
+        assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+        thrust::transform(
+          rv.begin(), rv.end(),  // input - 1st arg
+          drw_mom3.begin(),           // input - 2nd arg
+          rv.begin(),            // output
+          thrust::minus<real_t>() 
+        );
+        assert(*thrust::min_element(rv.begin(), rv.end()) >= 0);
+      }
+      
+      if(depo)
+      {
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
+        nancheck(d_ice_mass_percell, "update_th_rv: input d_ice_mass_percell");
 
         thrust::transform(
           rv.begin(), rv.end(),  // input - 1st arg
-          d_ice_mass.begin(),    // input - 2nd arg
+          d_ice_mass_percell.begin(),    // input - 2nd arg
           rv.begin(),            // output
           thrust::minus<real_t>() 
         );
@@ -152,31 +155,35 @@ namespace libcloudphxx
       // apply dth
       // if (phase == phase_change::condensation)
       // {
-      thrust::transform(
-        th.begin(), th.end(),          // input - 1st arg
-        thrust::make_transform_iterator(
-          zip_it_t(thrust::make_tuple(
-            // TODO: which one
-            drw_mom3.begin(), //   
-            T.begin(),        // -dth = -drv * d_th_d_rv(T, th)
-            th.begin()        //
-          )),
-          detail::dth<real_t>()
-        ),
-        th.begin(),                 // output
-        thrust::minus<real_t>() // dth = -(-dth)
-      );
-      // }
-      // else if (phase == phase_change::deposition)
-      if(opts_init.ice_switch)
+      if(cond)
       {
-        thrust_device::vector<real_t> &d_ice_mass = d_ice_mass_gp->get();
+        thrust_device::vector<real_t> &drw_mom3 = drw_mom3_gp->get();
         thrust::transform(
           th.begin(), th.end(),          // input - 1st arg
           thrust::make_transform_iterator(
             zip_it_t(thrust::make_tuple(
-              d_ice_mass.begin(),      //
-              T.begin(),        // dth = d_ice_mass * d_th_d_rv(T, th)
+              // TODO: which one
+              drw_mom3.begin(), //   
+              T.begin(),        // -dth = -drv * d_th_d_rv(T, th)
+              th.begin()        //
+            )),
+            detail::dth<real_t>()
+          ),
+          th.begin(),                 // output
+          thrust::minus<real_t>() // dth = -(-dth)
+        );
+      }
+      // }
+      // else if (phase == phase_change::deposition)
+      if(depo)
+      {
+        thrust_device::vector<real_t> &d_ice_mass_percell = d_ice_mass_percell_gp->get();
+        thrust::transform(
+          th.begin(), th.end(),          // input - 1st arg
+          thrust::make_transform_iterator(
+            zip_it_t(thrust::make_tuple(
+              d_ice_mass_percell.begin(),      //
+              T.begin(),        // dth = d_ice_mass_percell * d_th_d_rv(T, th)
               th.begin()        //
             )),
             detail::dth_dep<real_t>()
@@ -185,8 +192,8 @@ namespace libcloudphxx
           thrust::minus<real_t>()
         );
       }      
-      drw_mom3_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
-      d_ice_mass_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
+      if(cond) drw_mom3_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
+      if(depo) d_ice_mass_percell_gp.reset(); // destroy guard to tmp array that stored change in 3rd moment of rw
       nancheck(th, "update_th_rv: th after update");
     }
 

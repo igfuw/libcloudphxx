@@ -30,7 +30,7 @@ def lognormal_src(lnr):
   ) / log(stdev) / sqrt(2*pi);
 
 kappa = .61
-rd_insol = 0.
+soluble_fraction = 1.
 
 def test(opts_init, opts):
   opts_init.rng_seed = int(time())
@@ -97,11 +97,11 @@ def test(opts_init, opts):
 print(' --- dry_distros simple src ---')
 opts_init = lgrngn.opts_init_t()
 opts = lgrngn.opts_t()
-opts_init.dry_distros = {(kappa, rd_insol):lognormal}
+opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
 opts_init.sd_conc = 1024
 src_sd_conc = 512
 supstp_src = 50
-opts.src_dry_distros = {(kappa, rd_insol):(lognormal_src, src_sd_conc, supstp_src)}
+opts.src_dry_distros = {(kappa, soluble_fraction):(lognormal_src, src_sd_conc, supstp_src)}
 opts_init.n_sd_max = int((opts_init.sd_conc * 2 + src_sd_conc * 2) * 2) # assuming nx=nz=2
 opts_init.src_type = lgrngn.src_t.simple
 
@@ -125,11 +125,11 @@ if (abs( (7.84 / 2.12) - (wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3
 print(' --- dry_distros matching src ---')
 opts_init = lgrngn.opts_init_t()
 opts = lgrngn.opts_t()
-opts_init.dry_distros = {(kappa, rd_insol):lognormal}
+opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
 opts_init.sd_conc = 1024
 src_sd_conc = 512
 supstp_src = 50
-opts.src_dry_distros = {(kappa, rd_insol):(lognormal_src, src_sd_conc, supstp_src)}
+opts.src_dry_distros = {(kappa, soluble_fraction):(lognormal_src, src_sd_conc, supstp_src)}
 opts_init.n_sd_max = int((opts_init.sd_conc * 2 + src_sd_conc * 2) * 2) # assuming nx=nz=2
 opts_init.src_type = lgrngn.src_t.matching
 
@@ -154,8 +154,8 @@ print(' --- dry_sizes src ---')
 opts_init = lgrngn.opts_init_t()
 opts = lgrngn.opts_t()
 supstp_src = 50
-opts_init.dry_sizes = {(kappa, rd_insol) : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
-opts.src_dry_sizes = {(kappa, rd_insol) : {1.e-6  : [0.3, 10, supstp_src], 15.e-6 : [0.1, 5, supstp_src]}}
+opts_init.dry_sizes = {(kappa, soluble_fraction) : {1.e-6  : [30., 20], 15.e-6 : [10., 10]}}
+opts.src_dry_sizes = {(kappa, soluble_fraction) : {1.e-6  : [0.3, 10, supstp_src], 15.e-6 : [0.1, 5, supstp_src]}}
 opts_init.n_sd_max=240
 opts_init.src_type = lgrngn.src_t.simple # dry sizes works the same for simple and matching (no matching done)
 

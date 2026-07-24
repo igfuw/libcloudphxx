@@ -39,6 +39,7 @@ namespace libcloudphxx
       }
       if(opts_init.ice_switch)
       {
+        rd2_insol.reserve(opts_init.n_sd_max);
         ice_a.reserve(opts_init.n_sd_max);
         ice_c.reserve(opts_init.n_sd_max);
         ice_rho.reserve(opts_init.n_sd_max);
@@ -63,7 +64,6 @@ namespace libcloudphxx
       rw2.reserve(opts_init.n_sd_max);
       n.reserve(opts_init.n_sd_max);
       kpa.reserve(opts_init.n_sd_max);
-      rd3_insol.reserve(opts_init.n_sd_max);
 
       if(opts_init.diag_incloud_time)
         incloud_time.reserve(opts_init.n_sd_max);

@@ -15,15 +15,18 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::src_dry_sizes(const src_dry_sizes_t<real_t> &sds)
     {
 
-      // loop over (kappa, rd_insol) pairs
+      // loop over (kappa, soluble_fraction) pairs
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
       for (auto dsi = sds.cbegin(); dsi != sds.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.kappa);
-        const real_t &rd_insol(dsi->first.rd_insol);
+        const real_t &soluble_fraction(dsi->first.soluble_fraction);
         const auto &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, rd_insol) pair
+        if(soluble_fraction < 0 || soluble_fraction > 1)
+          throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_sizes must be in [0, 1]");
+
+        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, soluble_fraction) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // add the source only once every number of steps
@@ -45,15 +48,15 @@ namespace libcloudphxx
           // init ijk vector using count_num, also n_part and resize n_part vectors
           init_ijk();
   
-          // initialising dry radii (needs ijk)
+          // initialising dry radii (needs ijk); dry_sizes defines total dry radius
           init_dry_dry_sizes(sni->first);
 
-          // init kappa and rd_insol
-          init_kappa(kappa);
+          // init kappa
+          init_kappa(kappa, soluble_fraction);
 
           if (opts_init.ice_switch)
           {
-            init_insol_dry_sizes(rd_insol);
+            init_insol(soluble_fraction);
             init_a_c_rho_ice();
             if (! opts_init.time_dep_ice_nucl)
             {

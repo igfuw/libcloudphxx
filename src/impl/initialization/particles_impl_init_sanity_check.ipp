@@ -69,6 +69,14 @@ namespace libcloudphxx
       if(opts_init.dry_distros.size() == 0 && opts_init.dry_sizes.size() == 0)
         throw std::runtime_error("libcloudph++: Both dry_distros and dry_sizes are undefined");
 
+      for(auto &dist : opts_init.dry_distros)
+        if(dist.first.soluble_fraction < 0 || dist.first.soluble_fraction > 1)
+          throw std::runtime_error("libcloudph++: soluble_fraction in dry_distros must be in [0, 1]");
+
+      for(auto &size : opts_init.dry_sizes)
+        if(size.first.soluble_fraction < 0 || size.first.soluble_fraction > 1)
+          throw std::runtime_error("libcloudph++: soluble_fraction in dry_sizes must be in [0, 1]");
+
       if(opts_init.sd_conc_large_tail && opts_init.sd_conc == 0)
         throw std::runtime_error("libcloudph++: Sd_conc_large_tail make sense only with sd_conc init (i.e. sd_conc>0)");
 
@@ -142,6 +150,17 @@ namespace libcloudphxx
       if(opts_init.rlx_switch && opts_init.chem_switch)
         throw std::runtime_error("libcloudph++: CCN relaxation does not work with chemistry");
 
+      if(opts_init.chem_switch)
+      {
+        for(auto &dist : opts_init.dry_distros)
+          if(dist.first.soluble_fraction < 1)
+            throw std::runtime_error("libcloudph++: insoluble aerosol (defined in opts_init.dry_distros) does not work with chemistry");
+
+        for(auto &size : opts_init.dry_sizes)
+          if(size.first.soluble_fraction < 1)
+            throw std::runtime_error("libcloudph++: insoluble aerosol (defined in opts_init.dry_sizes) does not work with chemistry");
+      }
+
       if(opts_init.const_p && p.is_null())
         throw std::runtime_error("libcloudph++: In const_p option, pressure profile must be passed (p in init())");
       if(!opts_init.const_p && !p.is_null())
@@ -168,10 +187,10 @@ namespace libcloudphxx
           throw std::runtime_error("libcloudph++: relaxation does not work with ice.");
         if(opts_init.src_type==src_t::matching) // because we dont account for ice/water when matching and initializing aerosols from this type of source
           throw std::runtime_error("libcloudph++: 'matching' source type does not work with ice.");
-        if(opts_init.turb_cond_switch) // because we dont want to add SGS RH to RH_i
+        if(opts_init.turb_cond_switch) // current code would simply add SGS RH to RH_i, but this is not correct (?); how are they related?
           throw std::runtime_error("libcloudph++: SGS condensation does not work with ice.");
-        if(opts_init.exact_sstp_cond)
-          throw std::runtime_error("libcloudph++: deposition works only with per-cell substepping");
+        // if(opts_init.adaptive_sstp_cond)
+        //   throw std::runtime_error("libcloudph++: deposition does not work with adaptive substepping (opts_init.ice_switch==true implies that deposition may be modeled)");
       }
     }
   };

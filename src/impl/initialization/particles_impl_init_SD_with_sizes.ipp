@@ -19,14 +19,14 @@ namespace libcloudphxx
       //using conc_multi_t = typename size_number_t::mapped_type;
 
 
-      // loop over (kappa, rd_insol) pairs
+      // loop over (kappa, soluble_fraction) pairs
       for (auto dsi = opts_init.dry_sizes.cbegin(); dsi != opts_init.dry_sizes.cend(); ++dsi)
       {
         const real_t &kappa(dsi->first.kappa);
-        const real_t &rd_insol(dsi->first.rd_insol);
+        const real_t &soluble_fraction(dsi->first.soluble_fraction);
         const auto &size_number_map(dsi->second);
 
-        // loop over the "size : {concentration, count}" pairs for this (kappa, rd_insol) pair
+        // loop over the "size : {concentration, count}" pairs for this (kappa, soluble_fraction) pair
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // init number of SDs of this kappa in cells
@@ -45,12 +45,13 @@ namespace libcloudphxx
           // initialising dry radii (needs ijk)
           init_dry_dry_sizes(sni->first);
 
-          // init kappa and rd_insol
-          init_kappa(kappa);
-          init_insol_dry_sizes(rd_insol);
+          // init kappa
+          init_kappa(kappa, soluble_fraction);
 
           if (opts_init.ice_switch)
           {
+            init_insol(soluble_fraction);
+
             init_a_c_rho_ice();
             if (! opts_init.time_dep_ice_nucl)
             {

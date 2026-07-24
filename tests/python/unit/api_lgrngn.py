@@ -24,9 +24,9 @@ opts_init = lgrngn.opts_init_t()
 kappa1 = .61
 kappa2 = 1.28
 kappa3 = 0.8
-rd_insol = 0.5e-6
+soluble_fraction = 0.5
 rho_stp = 1.2248
-opts_init.dry_distros = {(kappa1, rd_insol): lognormal}
+opts_init.dry_distros = {(kappa1, soluble_fraction): lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.adve_scheme = lgrngn.as_t.euler
@@ -106,7 +106,7 @@ opts.chem_gas = {
 print("chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2])
 print("chem_gas = ", opts.chem_gas)
 
-opts.src_dry_distros = {(kappa1, rd_insol):(lognormal, 64, 1)}
+opts.src_dry_distros = {(kappa1, soluble_fraction):(lognormal, 64, 1)}
 
 # --------- test runs -----------
 
@@ -243,8 +243,8 @@ opts_init.sd_conc = sd_conc_old
 # 0D dry_sizes init with two kappas
 print("0D dry sizes")
 opts_init.dry_distros = dict()
-opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6  : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 10]},
-                       (kappa2, rd_insol) : {1.2e-6 : [20. * rho_stp, 10], 12.e-6 : [15. * rho_stp, 15]}}
+opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6  : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 10]},
+                       (kappa2, soluble_fraction) : {1.2e-6 : [20. * rho_stp, 10], 12.e-6 : [15. * rho_stp, 15]}}
 
 sd_conc_old = opts_init.sd_conc
 opts_init.sd_conc = 0
@@ -264,53 +264,30 @@ print(frombuffer(prtcls.outbuf()))
 assert (prtcls_tot == 75.) # 25 SDs have multiplicity = 2 and 25 have multiplicity = 1
 assert (sd_tot == 50.) 
 
-prtcls.diag_dry_rng(1e-6, 1.1e-6);
-prtcls.diag_wet_mom(0)
-n = frombuffer(prtcls.outbuf()).copy()
-prtcls.diag_kappa_mom(1)
-k = frombuffer(prtcls.outbuf())
-print(n, k)
-assert (n == 30 ).all()
-assert isclose(k, n * kappa1, rtol=1e-20)
+for rd, kappa, n_stp in [(1e-6, kappa1, 30), (15.e-6, kappa1, 10), (1.2e-6, kappa2, 20), (12.e-6, kappa2, 15)]:
+    print("testig rd: ", rd, " kappa: ", kappa, " n_stp: ", n_stp)
+    prtcls.diag_dry_rng(rd - 1e-9, rd + 1e-9)
+    prtcls.diag_wet_mom(0)
+    n = frombuffer(prtcls.outbuf()).copy()
+    prtcls.diag_kappa_mom(1)
+    k_mean = frombuffer(prtcls.outbuf()) / n
+    kpa_effective = soluble_fraction * kappa # insoluble part has kappa=0 
+    print(n, k_mean, kpa_effective)
+    assert (n == n_stp ).all()
+    assert isclose(k_mean, kpa_effective, rtol=1e-10)
 
-prtcls.diag_dry_rng(1.2e-6, 1.3e-6);
-prtcls.diag_wet_mom(0)
-n = frombuffer(prtcls.outbuf()).copy()
-prtcls.diag_kappa_mom(1)
-k = frombuffer(prtcls.outbuf())
-print(n, k)
-assert (n == 20 ).all()
-assert isclose(k, n * kappa2, rtol=1e-20)
-
-prtcls.diag_dry_rng(12e-6, 13e-6);
-prtcls.diag_wet_mom(0)
-n = frombuffer(prtcls.outbuf()).copy()
-prtcls.diag_kappa_mom(1)
-k = frombuffer(prtcls.outbuf())
-print(n, k)
-assert (n == 15 ).all()
-assert isclose(k, n * kappa2, rtol=1e-20)
-
-prtcls.diag_dry_rng(15e-6, 15.1e-6);
-prtcls.diag_wet_mom(0)
-n = frombuffer(prtcls.outbuf()).copy()
-prtcls.diag_kappa_mom(1)
-k = frombuffer(prtcls.outbuf())
-print(n, k)
-assert (n == 10 ).all()
-assert isclose(k, n * kappa1, rtol=1e-20)
 
 # go back to distros init
 opts_init.sd_conc = sd_conc_old
 opts_init.dry_sizes = dict()
-opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
+opts_init.dry_distros = {(kappa1, soluble_fraction):lognormal, (kappa2, soluble_fraction):lognormal}
 
 
 
 # ----------
 # 0D dry_sizes + sd_conc init
 print("0D dry_sizes + sd_conc")
-opts_init.dry_sizes = {(kappa3, rd_insol) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, soluble_fraction) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -328,7 +305,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 0D dry_sizes + sd_conc + tail
 print("0D dry_sizes + sd_conc + tail")
-opts_init.dry_sizes = {(kappa3, rd_insol): {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, soluble_fraction): {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 opts_init.sd_conc_large_tail = 1
 
 prtcls = lgrngn.factory(backend, opts_init)
@@ -348,7 +325,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 0D dry_sizes + const_multi init
 print("0D dry_sizes + const_multi")
-opts_init.dry_sizes = {(kappa3, rd_insol) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa3, soluble_fraction) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
 opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
@@ -642,7 +619,7 @@ assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
 # 3D dry_sizes init
 print("3D dry sizes")
 opts_init.dry_distros = dict()
-opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 30], 15.e-6 : [10. / cell_vol * rho_stp, 10]}}
+opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6 : [30./ cell_vol * rho_stp, 30], 15.e-6 : [10. / cell_vol * rho_stp, 10]}}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -674,8 +651,9 @@ assert (frombuffer(prtcls.outbuf()) == 10 / cell_vol).all()
 # ----------
 # 3D dry_sizes + sd_conc init
 print("3D dry_sizes + sd_conc")
-opts_init.dry_distros = {(kappa1, rd_insol):lognormal, (kappa2, rd_insol):lognormal}
-opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp,  5]}}
+soluble_fraction = 1 # no insoluble aerosol from now on
+opts_init.dry_distros = {(kappa1, soluble_fraction):lognormal, (kappa2, soluble_fraction):lognormal}
+opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp,  5]}}
 opts_init.sd_conc = sd_conc_old
 opts_init.sd_const_multi = 0
 
@@ -721,7 +699,7 @@ opts_init.dry_sizes = dict()
 # ----------
 # 3D dry_sizes + const_multi init
 print("3D dry_sizes + const_multi")
-opts_init.dry_sizes = {(kappa1, rd_insol) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp, 5]}}
+opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp, 5]}}
 opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
 opts_init.sd_const_multi = int(prtcls_per_cell / 64) 

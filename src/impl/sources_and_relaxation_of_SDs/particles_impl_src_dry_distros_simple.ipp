@@ -22,6 +22,9 @@ namespace libcloudphxx
       // TODO: add a loop to allow sdd.size>1
       auto p_sdd = sdd.cbegin();
 
+      if(p_sdd->first.soluble_fraction < 0 || p_sdd->first.soluble_fraction > 1)
+        throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_distros must be in [0, 1]");
+
       // add the source only once every number of steps
       assert(get<2>(p_sdd->second) > 0);
       if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
@@ -54,13 +57,18 @@ namespace libcloudphxx
       init_ijk();
       init_dry_sd_conc(); 
 
-      // init other properties of SDs that didnt have a match
+      init_n_sd_conc(
+        *get<0>(p_sdd->second)
+      ); 
+
+      // init other properties of SDs
       init_kappa(
-        p_sdd->first.kappa
+        p_sdd->first.kappa,
+        p_sdd->first.soluble_fraction
       );
       if (opts_init.ice_switch)
       {
-        init_insol_dry_sizes(p_sdd->first.rd_insol);
+        init_insol(p_sdd->first.soluble_fraction);
         init_a_c_rho_ice();
         if (! opts_init.time_dep_ice_nucl)
         {
@@ -70,10 +78,6 @@ namespace libcloudphxx
 
       if(opts_init.diag_incloud_time)
         init_incloud_time();
-
-      init_n_sd_conc(
-        *get<0>(p_sdd->second)
-      ); 
 
       // init rw
       init_wet();

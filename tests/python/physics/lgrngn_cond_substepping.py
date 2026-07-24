@@ -49,7 +49,7 @@ def lognormal2(lnr):
 opts = lgrngn.opts_t()
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {(.61,0.):lognormal, (1.28,0.):lognormal2} # normal mode + GCCNs
+opts_init.dry_distros = {(.61,1.):lognormal, (1.28,1.):lognormal2} # normal mode + GCCNs
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001

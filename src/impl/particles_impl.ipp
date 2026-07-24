@@ -92,7 +92,7 @@ namespace libcloudphxx
         dv,  // grid-cell volumes (per grid cell)
         incloud_time, // time this SD has been within a cloud
         rc2, // critical radius squared (estimated for temperature from opts_init.rc2_T)
-        rd3_insol, // dry radii cubed of insoluble aerosol
+        rd2_insol, // dry radii squared of insoluble aerosol
         T_freeze, // freezing temperature
         ice_a, // equatorial radius of ice
         ice_c, // polar radius of ice
@@ -232,8 +232,10 @@ namespace libcloudphxx
         // drw3_gp,
         Tp_gp,
         // rw3_gp,
+        ice_mass_gp,
+        ice_mass_percell_gp,
         d_ice_mass_gp,
-        ice_mass_gp;
+        d_ice_mass_percell_gp;
 
       std::unique_ptr<
         typename tmp_vector_pool<thrust::host_vector<real_t>>::guard
@@ -442,7 +444,6 @@ namespace libcloudphxx
         distmem_real_vctrs.insert({&rd3, detail::no_initial_value});
         distmem_real_vctrs.insert({&rw2, detail::no_initial_value});
         distmem_real_vctrs.insert({&kpa, detail::no_initial_value});
-        distmem_real_vctrs.insert({&rd3_insol, detail::no_initial_value});
 
         distmem_real_vctrs.insert({&vt,  detail::invalid});
 
@@ -478,6 +479,7 @@ namespace libcloudphxx
          
         if(opts_init.ice_switch)
         {
+          distmem_real_vctrs.insert({&rd2_insol, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_a, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_c, detail::no_initial_value});
           distmem_real_vctrs.insert({&ice_rho, detail::no_initial_value});
@@ -494,13 +496,13 @@ namespace libcloudphxx
         distmem_n_vctrs.insert(&n);
 
         // number of required temporary real vectors of size npart
-        int tmp_drp_no = 1;
-        if(n_dims == 2) 
-          tmp_drp_no = std::max(tmp_drp_no, 2);
-        if(allow_sstp_cond) 
-          tmp_drp_no = std::max(tmp_drp_no, 2);
-        if(opts_init.ice_switch && opts_init.time_dep_ice_nucl)
-          tmp_drp_no = std::max(tmp_drp_no, 2); 
+        int tmp_drp_no = 2;
+        //if(n_dims == 2) 
+        //  tmp_drp_no = std::max(tmp_drp_no, 2);
+        //if(allow_sstp_cond) 
+        //  tmp_drp_no = std::max(tmp_drp_no, 2);
+        //if(opts_init.ice_switch && opts_init.time_dep_ice_nucl)
+        //  tmp_drp_no = std::max(tmp_drp_no, 2); 
         if(opts_init.chem_switch) 
           tmp_drp_no = std::max(tmp_drp_no, 3);
         if(n_dims == 3)
@@ -548,7 +550,7 @@ namespace libcloudphxx
       void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
       void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const kappa_rd_insol_t<real_t> &, const bool unravel_ijk = true);
+      void init_SD_with_distros_finalize(const kappa_soluble_fraction_t<real_t> &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -580,8 +582,8 @@ namespace libcloudphxx
       void reserve_hskpng_npart();
       void init_ijk();
       void init_xyz();
-      void init_kappa(const real_t &);
-      void init_insol_dry_sizes(real_t);
+      void init_kappa(const real_t, const real_t);
+      void init_insol(real_t);
       void init_T_freeze();
       void init_a_c_rho_ice();
       void init_incloud_time();
@@ -693,29 +695,34 @@ namespace libcloudphxx
       void sedi(const real_t &dt);
       void subs(const real_t &dt);
 
+      void calc_perparticle_T();
+
       // condensation methods
       void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void cond_perparticle_advance_rw2(const real_t &RH_max, const bool turb_cond);
-      template<class pres_iter, class RH_iter>
-      void perparticle_advance_rw2(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
+      template<bool ice>
+      void perparticle_advance_size(const real_t &RH_max, const bool turb_cond);
+      template<bool ice, class pres_iter, class RH_iter>
+      void perparticle_advance_hlpr(const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void perparticle_nomixing_adaptive_sstp_cond(const opts_t<real_t> &);
-      void save_liq_ice_content_before_change();
-      void calc_liq_ice_content_change();
+      void save_liq_ice_content_before_change(const bool cond, const bool depo);
+      void calc_liq_ice_content_change(const bool cond, const bool depo);
       template<int power>
       void set_perparticle_drwX_to_minus_rwX(const bool use_stored_rw3);
       template<int power>
       void add_perparticle_rwX_to_drwX(const bool store_rw3);
+      void set_perparticle_d_ice_mass_to_minus_ice_mass(const bool use_stored_ice_mass);
+      void add_perparticle_ice_mass_to_d_ice_mass(const bool store_ice_mass);
 
-      void apply_perparticle_drw3_to_perparticle_rv_and_th();
-      void apply_perparticle_cond_change_to_percell_rv_and_th();
-      void update_th_rv();
+      void apply_perparticle_drw3_or_d_ice_mass_to_perparticle_rv_and_th(const bool rw3_changed, const bool ice_mass_changed);
+      void apply_perparticle_cond_change_to_percell_rv_and_th(const bool cond, const bool depo);
+      void update_th_rv(const bool cond, const bool depo);
 // =======
       void ice_nucl_melt(const real_t &dt);
 
       // void cond_dm3_helper();
       // void cond(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       // void cond_sstp(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
-      void ice_dep(const real_t &dt, const real_t &RH_max, const int step);
+      void ice_dep(const real_t &dt, const real_t &RH_max, const bool turb_cond, const int step);
       // template<class pres_iter, class RH_iter>
       // void cond_sstp_hlpr(const real_t &dt, const real_t &RH_max, const thrust_device::vector<real_t> &Tp, const pres_iter &pi, const RH_iter &rhi);
       void update_th_freezing(thrust_device::vector<real_t> &);
@@ -750,8 +757,8 @@ namespace libcloudphxx
       void rlx_dry_distros(const real_t);
 
       // substepping methods
-      void acquire_arrays_for_perparticle_sstp();
-      void release_arrays_for_perparticle_sstp();
+      void acquire_arrays_for_perparticle_sstp(const bool cond, const bool depo);
+      void release_arrays_for_perparticle_sstp(const bool cond, const bool depo);
       void calculate_noncond_perparticle_sstp_delta();
       void apply_noncond_perparticle_sstp_delta();
       void apply_perparticle_sgs_supersat();

@@ -148,7 +148,7 @@ Two methods are available:
 **1. Distribution-based (recommended):**
 ```cpp
 typedef std::unordered_map<
-  kappa_rd_insol_t<real_t>,   // (kappa - hygroscopicity parameter, rd_insol - insoluble dry radius)
+  kappa_soluble_fraction_t<real_t>,   // (kappa - hygroscopicity parameter, soluble_fraction - volume fraction of soluble part)
   std::shared_ptr<unary_function<real_t>>  // n(ln(rd)) @ STP
 > dry_distros_t;
 dry_distros_t dry_distros;
@@ -157,7 +157,7 @@ dry_distros_t dry_distros;
 **2. Size-number pairs:**
 ```cpp
 typedef std::map<
-  kappa_rd_insol_t<real_t>   // (kappa - hygroscopicity parameter, rd_insol - insoluble dry radius)
+  kappa_soluble_fraction_t<real_t>   // (kappa - hygroscopicity parameter, soluble_fraction - volume fraction of soluble part)
   std::map<real_t,  // radius [m]
     std::pair<real_t, int>  // STP concentration [1/m^3], number of SDs
   >

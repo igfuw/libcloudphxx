@@ -12,10 +12,12 @@ namespace libcloudphxx
     template <typename real_t, backend_t device>
     void particles_t<real_t, device>::impl::ante_adding_SD()
     {   
+/*
+ *    Commented, becauserRelease of latent heat and removal of vapour for humidification of added aerosols is neglected for simplicity 
+    
       save_liq_ice_content_before_change();
 
-      // drv = -tot_vol_bfr + dry_vol_bfr
-/*
+      // drv = -tot_vol_bfr + dry_vol_bfr; TODO: its not count_mom anymore, check save_liq_ice_content_before_change()
       moms_calc(rd3.begin(), 1);
       thrust::transform(
         count_mom.begin(), count_mom.begin() + count_n,                    // input - 1st arg
