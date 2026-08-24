@@ -250,6 +250,8 @@ namespace libcloudphxx
 #endif
           const real_t n = thrust::get<0>(tpl);
           const real_t x = thrust::get<1>(tpl);
+          if(xp == 0 && x == 0)
+            return n;
 #if !defined(NDEBUG)
           real_t res;
           if(x >= 0)
