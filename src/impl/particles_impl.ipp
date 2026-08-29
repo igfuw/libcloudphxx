@@ -516,7 +516,7 @@ namespace libcloudphxx
         if(allow_sstp_cond && opts_init.exact_sstp_cond && sstp_cond_exact_nomix_adaptive)
           tmp_drp_no = std::max(tmp_drp_no, 4); // why 5? not 4?
         if(allow_sstp_cond && opts_init.exact_sstp_cond && !sstp_cond_exact_nomix_adaptive)
-          tmp_drp_no = std::max(tmp_drp_no, 7); // why 8? not 7?
+          tmp_drp_no = std::max(tmp_drp_no, 10); // for some reason it fails for less than 10
         // if(allow_sstp_cond && opts_init.exact_sstp_cond && opts_init.const_p)
         //   tmp_drp_no = std::max(tmp_drp_no, 7);
         tmp_device_real_part.add_vectors(tmp_drp_no-1); // -1 because 1 is already created in the ctor
@@ -671,6 +671,17 @@ namespace libcloudphxx
         const it_t &vec_bgn,
         const real_t power,
         const bool specific = true
+      );
+      template<typename it_t> // iterator type
+      void SD_moms_calc(
+        const it_t &vec_bgn,
+        const thrust_size_t npart,
+        const real_t power
+      );
+      template<typename it_t> // iterator type
+      void SD_moms_calc(
+        const it_t &vec_bgn,
+        const real_t power
       );
 
       void mass_dens_estim(

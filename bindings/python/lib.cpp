@@ -131,10 +131,13 @@ BOOST_PYTHON_MODULE(libcloudphxx)
     bp::def("exner", &common::exner<real_t>);
     bp::def("p_v", &common::p_v<real_t>);
     bp::def("p_vs", &common::p_vs<real_t>);
+    bp::def("p_vsi", &common::p_vsi<real_t>);
     bp::def("r_vs", &common::r_vs<real_t>);
     bp::def("r_vsi", &common::r_vsi<real_t>);
     bp::def("p_vs_tet", &common::p_vs_tet<real_t>);
     bp::def("l_v", &common::l_v<real_t>);
+    bp::def("l_s", &common::l_s<real_t>);
+    bp::def("l_f", &common::l_f<real_t>);
     bp::def("T", &common::T<real_t>);
     bp::def("p", &common::p<real_t>);
     bp::def("visc", &common::visc<real_t>);
@@ -282,6 +285,7 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def_readwrite("turb_cond", &lgr::opts_t<real_t>::turb_cond)
       .def_readwrite("turb_coal", &lgr::opts_t<real_t>::turb_coal)
       .def_readwrite("ice_nucl", &lgr::opts_t<real_t>::ice_nucl)
+      .def_readwrite("depo", &lgr::opts_t<real_t>::depo)
       .def_readwrite("dt", &lgr::opts_t<real_t>::dt)
       .add_property("src_dry_distros", &lgrngn::get_sdd<real_t>, &lgrngn::set_sdd<real_t>)
       .add_property("src_dry_sizes", &lgrngn::get_ds<real_t>, &lgrngn::set_sds<real_t>)
@@ -427,7 +431,12 @@ BOOST_PYTHON_MODULE(libcloudphxx)
       .def("diag_water_cons",    &lgr::particles_proto_t<real_t>::diag_water_cons)
       .def("diag_ice_a_mom",    &lgr::particles_proto_t<real_t>::diag_ice_a_mom)
       .def("diag_ice_c_mom",    &lgr::particles_proto_t<real_t>::diag_ice_c_mom)
+      .def("diag_ice_a_rng",    &lgr::particles_proto_t<real_t>::diag_ice_a_rng)
+      .def("diag_ice_c_rng",    &lgr::particles_proto_t<real_t>::diag_ice_c_rng)
+      .def("diag_ice_a_rng_cons",    &lgr::particles_proto_t<real_t>::diag_ice_a_rng_cons)
+      .def("diag_ice_c_rng_cons",    &lgr::particles_proto_t<real_t>::diag_ice_c_rng_cons)
       .def("diag_ice_mix_ratio",    &lgr::particles_proto_t<real_t>::diag_ice_mix_ratio)
+      .def("diag_sstp_cond_mom",    &lgr::particles_proto_t<real_t>::diag_sstp_cond_mom)
       .def("outbuf",       &lgrngn::outbuf<real_t>)
       .def("get_attr",    &lgr::particles_proto_t<real_t>::get_attr)
     ;
