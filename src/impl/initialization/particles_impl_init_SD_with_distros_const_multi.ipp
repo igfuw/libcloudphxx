@@ -11,7 +11,7 @@ namespace libcloudphxx
   namespace lgrngn
   {
     template <typename real_t, backend_t device>
-    void particles_t<real_t, device>::impl::init_SD_with_distros_const_multi(const common::unary_function<real_t> &fun)
+    void particles_t<real_t, device>::impl::init_SD_with_distros_const_multi(const common::unary_function<real_t> &fun, const n_t sd_const_multi)
     {
       // analyze the distribution, TODO: just did it
       init_dist_analysis_const_multi(fun);
@@ -19,7 +19,7 @@ namespace libcloudphxx
         throw std::runtime_error(detail::formatter() << "Distribution analysis error: rd_min(" << exp(log_rd_min) << ") >= rd_max(" << exp(log_rd_max) << ")");
       
       // init number of SDs of this kappa in cells, TODO: due to rounding, we might end up with not exactly sd_conc SDs per cell...
-      init_count_num_const_multi(fun);
+      init_count_num_const_multi(fun, sd_const_multi);
   
       // update no of particles
       // TODO: move to a separate function
@@ -35,7 +35,7 @@ namespace libcloudphxx
       init_dry_const_multi(fun);
   
       // init multiplicities
-      init_n_const_multi(opts_init.sd_const_multi); 
+      init_n_const_multi(sd_const_multi);
     }
   };
 };

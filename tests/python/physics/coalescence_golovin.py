@@ -70,7 +70,7 @@ rv = 0.01 * np.ones((1,))
 kappa = 1e-10
 soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction, pow(2,14), 0):expvolumelnr}
 
 opts_init.kernel = lgrngn.kernel_t.golovin
 opts_init.terminal_velocity = lgrngn.vt_t.beard77
@@ -112,12 +112,11 @@ golovin_results = np.zeros(bins.size-1)
 for i in range(0,2): #loop to test sd_conc and const_multi options
   for opts_dt in [-1, simulation_time/2.]:  # -1 means opts_init.dt (==simulation_time) is used
     if(i==0):
-      opts_init.sd_conc = pow(2,14)
       opts_init.n_sd_max = pow(2,14)
     else:
-      opts_init.sd_conc = 0
-      opts_init.sd_const_multi = 1000
-      opts_init.n_sd_max = int(float(n_zero) / opts_init.sd_const_multi + 10)
+      sd_const_multi = 1000
+      opts_init.dry_distros = {(kappa, soluble_fraction, 0, sd_const_multi):expvolumelnr}
+      opts_init.n_sd_max = int(float(n_zero) / sd_const_multi + 10)
 
     opts.dt = opts_dt
     if opts_dt < 0:

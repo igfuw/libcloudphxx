@@ -36,9 +36,8 @@ def expvolumelnr(lnr):
 kappa = 0.1
 soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction, 64, 0):expvolumelnr}
 
-opts_init.sd_conc = 64
 opts_init.n_sd_max = 64
 
 opts_init.chem_switch = True

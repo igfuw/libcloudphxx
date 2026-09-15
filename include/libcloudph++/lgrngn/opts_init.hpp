@@ -52,9 +52,6 @@ namespace libcloudphxx
       // Lagrangian domain extents
       real_t x0, y0, z0, x1, y1, z1;
 
-      // no. of super-droplets per cell
-      unsigned long long sd_conc; 
- 
       // should more SDs be added to better represent large tail of the distribution
       bool sd_conc_large_tail;
 
@@ -64,9 +61,6 @@ namespace libcloudphxx
 
       // is it allowed to change dt during simulation through opts.dt
       bool variable_dt_switch;
-
-      // or, alternatively to sd_conc_mean, multiplicity of all SDs = const
-      unsigned long long  sd_const_multi;
 
       // max no. of super-droplets in the system
       // should be enough to store particles from sources
@@ -187,10 +181,8 @@ namespace libcloudphxx
         dx(1), dy(1), dz(1),
         x0(0), y0(0), z0(0),
         x1(1), y1(1), z1(1),
-        sd_conc(0), 
         sd_conc_large_tail(false), 
         aerosol_independent_of_rhod(false), 
-        sd_const_multi(0),
         dt(0),   
         sstp_cond(1), sstp_coal(1), sstp_chem(1), sstp_cond_act(1),
         chem_switch(false),  // chemical reactions turned off by default

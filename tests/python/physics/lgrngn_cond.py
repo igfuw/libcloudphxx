@@ -31,14 +31,13 @@ opts = lgrngn.opts_t()
 opts_init = lgrngn.opts_init_t()
 kappa = .61
 soluble_fraction = 1.
-opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
+opts_init.dry_distros = {(kappa, soluble_fraction, int(1e2), 0):lognormal}
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
 opts_init.ice_switch = False
 opts_init.RH_max = 0.999 # to comply with the assert(RH<1) at init
 opts_init.dt = 1
-opts_init.sd_conc = int(1e2)
-opts_init.n_sd_max = opts_init.sd_conc
+opts_init.n_sd_max = int(1e2)
 
 backend = lgrngn.backend_t.serial
 

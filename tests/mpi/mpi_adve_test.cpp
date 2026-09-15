@@ -90,8 +90,7 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
   //opts_init.nx = nx_min;
   //int nx_total = nx_min * size;
   opts_init.x1 = opts_init.nx * opts_init.dx;// nx_factor/2*(rank/2+1);
-  opts_init.sd_conc = 64;
-  opts_init.n_sd_max = 1000*opts_init.sd_conc;
+  opts_init.n_sd_max = 1000 * 64;
   opts_init.rng_seed = 4444 + rank;
   if(ndims>1)
   {
@@ -108,7 +107,6 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
   opts_init.dev_id = rank%n_devices; 
   //opts_init.dev_id = rank; 
   std::cout << "device id: " << opts_init.dev_id << std::endl;
-//  opts_init.sd_const_multi = 1;
 
 /*
   boost::assign::ptr_map_insert<
@@ -121,7 +119,7 @@ void test(backend_t backend, std::string back_name, int ndims, bool dir, int n_d
 */
 
   opts_init.dry_distros.emplace( 
-    libcloudphxx::lgrngn::kappa_soluble_fraction_t<double>{double(0.001), double(1.)}, // kappa, soluble_fraction
+    std::make_tuple(double(0.001), double(1.), 64ull, 0ull), // kappa, soluble_fraction, sd_conc, sd_const_multi
     std::make_shared<log_dry_radii<double>>() // distribution
   );
 

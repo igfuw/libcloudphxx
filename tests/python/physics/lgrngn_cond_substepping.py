@@ -49,15 +49,14 @@ def lognormal2(lnr):
 opts = lgrngn.opts_t()
 
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {(.61,1.):lognormal, (1.28,1.):lognormal2} # normal mode + GCCNs
+opts_init.dry_distros = {(.61,1., 500, 0):lognormal, (1.28,1., 500, 0):lognormal2} # normal mode + GCCNs
 opts_init.coal_switch = False
 opts_init.sedi_switch = False
 # opts_init.RH_max = 1.0001
 opts_init.RH_max = 0.95
 opts_init.ice_switch = False
 opts_init.dt = 1
-opts_init.sd_conc = int(1e3)
-opts_init.n_sd_max = opts_init.sd_conc
+opts_init.n_sd_max = int(1e3)
 
 opts_init.rc2_T = 10 # results are the same for 0C to 100C
 opts_init.sstp_cond_adapt_drw2_eps = 1e-3 #1e-3
@@ -302,7 +301,7 @@ def _write_csv(path, rows):
 
 # save results to a CSV file for refdata comparison and for plotting
 for r in records:
-  r['sd_conc'] = opts_init.sd_conc
+  r['sd_conc'] = 1000
   r['RH_max'] = opts_init.RH_max
   r['dt'] = 1
 

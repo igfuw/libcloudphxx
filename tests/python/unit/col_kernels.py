@@ -31,8 +31,7 @@ for kernel in [lgrngn.kernel_t.geometric, lgrngn.kernel_t.geometric, lgrngn.kern
   print(kernel)
   opts_init = lgrngn.opts_init_t()
   opts_init.dt = 1
-  opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
-  opts_init.sd_conc = 50
+  opts_init.dry_distros = {(kappa, soluble_fraction, 50, 0):lognormal}
   opts_init.n_sd_max = 50
   opts_init.terminal_velocity=lgrngn.vt_t.beard76
   opts_init.kernel = kernel

@@ -35,12 +35,11 @@ kappa1 = .61
 kappa2 = 1.28
 soluble_fraction = 1.
 rho_stp = 1.2248
-opts_init.dry_distros = {(kappa1, soluble_fraction):lognormal, (kappa2, soluble_fraction):lognormal}
+opts_init.dry_distros = {(kappa1, soluble_fraction, 32, 0):lognormal, (kappa2, soluble_fraction, 64, 0):lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.dt = 1
-opts_init.sd_conc = 64
-opts_init.n_sd_max = 512
+opts_init.n_sd_max = 1024
 opts_init.rng_seed = 396
 opts_init.src_z1 = opts_init.dz
 opts_init.sedi_switch = False
@@ -79,15 +78,16 @@ rv = 0.01 * ones((opts_init.nx, opts_init.ny, opts_init.nz), dtype=float64)
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
-check_kappa_conc(prtcls, 5e-3)
+check_kappa_conc(prtcls, 7e-3)
 
 # 3D const multi - number of SDs and number of particles
-opts_init.sd_conc = 0
 cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+sd_const_multi1 = int(prtcls_per_cell / 64)
+sd_const_multi2 = int(prtcls_per_cell / 32)
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, sd_const_multi1):lognormal, (kappa2, soluble_fraction, 0, sd_const_multi2):lognormal}
 n_cell = opts_init.nz * opts_init.nx * opts_init.ny
-opts_init.n_sd_max = int(n_cell * prtcls_per_cell / opts_init.sd_const_multi) # 2* because of two distributions
+opts_init.n_sd_max = int(n_cell * (n_tot * cell_vol / rho_stp / sd_const_multi1 + n_tot * cell_vol / rho_stp / sd_const_multi2))
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 

@@ -135,8 +135,7 @@ These options are set once at initialization and cannot be changed during the si
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `sd_conc` | `unsigned long long` | `0` | Number of super-droplets per cell |
-| `sd_const_multi` | `unsigned long long` | `0` | Alternative to `sd_conc`: constant multiplicity for all SDs |
+| `dry_distros[].sd_const_multi` | `unsigned long long` | `0` | Constant multiplicity for the distribution; cannot be used with that distribution's `sd_conc` |
 | `n_sd_max` | `unsigned long long` | `0` | Maximum number of super-droplets in the system (should account for sources) |
 | `sd_conc_large_tail` | `bool` | `false` | Add more SDs to better represent large tail of the distribution |
 | `rd_min`, `rd_max` | `real_t` | `-1` | Min/max dry radius of droplets [m]; negative = auto-detect |
@@ -147,8 +146,8 @@ Two methods are available:
 
 **1. Distribution-based (recommended):**
 ```cpp
-typedef std::unordered_map<
-  kappa_soluble_fraction_t<real_t>,   // (kappa - hygroscopicity parameter, soluble_fraction - volume fraction of soluble part)
+typedef std::map<
+  std::tuple<real_t, real_t, unsigned long long, unsigned long long>, // kappa, soluble_fraction, sd_conc, sd_const_multi
   std::shared_ptr<unary_function<real_t>>  // n(ln(rd)) @ STP
 > dry_distros_t;
 dry_distros_t dry_distros;
@@ -157,7 +156,7 @@ dry_distros_t dry_distros;
 **2. Size-number pairs:**
 ```cpp
 typedef std::map<
-  kappa_soluble_fraction_t<real_t>   // (kappa - hygroscopicity parameter, soluble_fraction - volume fraction of soluble part)
+  std::tuple<real_t, real_t>, // kappa, soluble_fraction
   std::map<real_t,  // radius [m]
     std::pair<real_t, int>  // STP concentration [1/m^3], number of SDs
   >
@@ -275,13 +274,11 @@ dry_sizes_t dry_sizes;
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `src_type` | `src_t` | `off` | Type of CCN source (`off`, `constant`, etc.) |
-| `src_dry_distros` | `dry_distros_t` | - | Source distribution per unit time |
+| `src_dry_distros` | `src_dry_distros_t` | - | Source distribution per unit time; map key is `(kappa, soluble_fraction, sd_conc, sd_const_multi, supstp)` and simple sources require exactly one of `sd_conc` or `sd_const_multi` to be nonzero |
 | `src_dry_sizes` | `dry_sizes_t` | - | Alternative source specification using size-number pairs |
-| `src_sd_conc` | `unsigned long long` | `0` | Number of SDs created per cell per source iteration |
 | `src_x0`, `src_x1` | `real_t` | `0` | Source box x-boundaries [m] (rounded to cell boundaries) |
 | `src_y0`, `src_y1` | `real_t` | `0` | Source box y-boundaries [m] |
 | `src_z0`, `src_z1` | `real_t` | `0` | Source box z-boundaries [m] |
-| `supstp_src` | `int` | `1` | Timestep interval for applying source |
 
 #### Aerosol Relaxation Options
 
@@ -385,7 +382,6 @@ opts_init.ny = 100;
 opts_init.nz = 100;
 opts_init.dx = opts_init.dy = opts_init.dz = 10;  // 10 m grid spacing
 opts_init.dt = 1.0;                                 // 1 s timestep
-opts_init.sd_conc = 64;                            // 64 SDs per cell
 opts_init.sstp_cond = 4;                           // 4 condensation substeps
 opts_init.adaptive_sstp_cond = true;               // Enable adaptive substepping
 opts_init.exact_sstp_cond = true;                  // Per-particle substepping
@@ -400,7 +396,7 @@ auto lognormal = [](double lnr) {
   return n_tot * exp(-pow((lnr - log(mean_r)), 2) / 2 / pow(log(stdev), 2))
          / log(stdev) / sqrt(2 * M_PI);
 };
-opts_init.dry_distros[0.61] = std::make_shared<decltype(lognormal)>(lognormal);
+opts_init.dry_distros[{0.61, 1., 64, 0}] = std::make_shared<decltype(lognormal)>(lognormal); // kappa, soluble_fraction, sd_conc, sd_const_multi
 
 // Runtime options (can change each step)
 libcloudphxx::lgrngn::opts_t<double> opts;

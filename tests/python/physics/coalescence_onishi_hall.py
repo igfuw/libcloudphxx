@@ -34,7 +34,6 @@ opts_init = lgrngn.opts_init_t()
 
 opts_init.dt = 1.
 opts_init.terminal_velocity = lgrngn.vt_t.beard77fast
-opts_init.sd_conc = 1024
 opts_init.n_sd_max = 1024
 
 t10_arr = np.zeros((2, n_runs))
@@ -45,7 +44,7 @@ rv   = 1. * np.ones((1,))
 rhod  = 1.22419 * np.ones((1,))
 diss_rate = epsilon * np.ones((1,))
 
-opts_init.dry_distros = {0.:expvolumelnr}
+opts_init.dry_distros = {(0., 1024, 0):expvolumelnr}
 
 Opts = lgrngn.opts_t()
 Opts.adve = False

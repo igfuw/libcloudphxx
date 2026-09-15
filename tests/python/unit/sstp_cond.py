@@ -21,12 +21,11 @@ def test(turb_cond):
   opts_init = lgrngn.opts_init_t()
   kappa = .61
   soluble_fraction = 1.
-  opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
+  opts_init.dry_distros = {(kappa, soluble_fraction, 64, 0):lognormal}
   opts_init.coal_switch=0
   opts_init.sedi_switch=0
   opts_init.ice_switch=0
   opts_init.dt = 1
-  opts_init.sd_conc = 64
   opts_init.n_sd_max = 512
   opts_init.rng_seed = 396
   opts_init.exact_sstp_cond = True # test would fail with per-cell sstp logic

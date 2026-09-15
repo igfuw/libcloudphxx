@@ -44,10 +44,9 @@ rhod = 1. * np.ones((opts_init.nx, opts_init.ny, opts_init.nz)) + .1 * np.mgrid[
 kappa = 1e-6
 soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction, 64, 0):expvolumelnr}
 
-opts_init.sd_conc = 64
-opts_init.n_sd_max = opts_init.sd_conc * opts_init.nx * opts_init.ny * opts_init.nz
+opts_init.n_sd_max = 64 * opts_init.nx * opts_init.ny * opts_init.nz
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)
@@ -67,9 +66,9 @@ for i in range(opts_init.nx * opts_init.ny * opts_init.nz):
      relative difference between water content in one of the cells and mean value greater than 15%: " \
      + str(abs(water_content - mean_water_content_sd_conc)/water_content) + " > 0.15")
 
-opts_init.sd_conc = 0
-opts_init.sd_const_multi = 100000
-opts_init.n_sd_max = int(opts_init.nx * opts_init.ny * opts_init.nz * (n_zero / opts_init.sd_const_multi  + 100)); #TODO: why do we need to add this 100? integral not correct?
+sd_const_multi = 100000
+opts_init.dry_distros = {(kappa, soluble_fraction, 0, sd_const_multi):expvolumelnr}
+opts_init.n_sd_max = int(opts_init.nx * opts_init.ny * opts_init.nz * (n_zero / sd_const_multi + 100)); #TODO: why do we need to add this 100? integral not correct?
 
 try:
   prtcls = lgrngn.factory(lgrngn.backend_t.OpenMP, opts_init)

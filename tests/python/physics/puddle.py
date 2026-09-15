@@ -18,7 +18,7 @@ def lognormal(lnr):
 Opts_init = lgrngn.opts_init_t()
 kappa = .61
 soluble_fraction = 1.
-Opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
+Opts_init.dry_distros = {(kappa, soluble_fraction, 10000, 0):lognormal}
 Opts_init.coal_switch = False
 Opts_init.sedi_switch = True
 Opts_init.ice_switch = False
@@ -34,8 +34,7 @@ Opts_init.z1 = Opts_init.nz * Opts_init.dz
 Opts_init.x1 = Opts_init.nx * Opts_init.dx
 
 Opts_init.rng_seed = int(time())
-Opts_init.sd_conc = 10000
-Opts_init.n_sd_max = Opts_init.sd_conc * (Opts_init.nx * Opts_init.nz)
+Opts_init.n_sd_max = 10000 * (Opts_init.nx * Opts_init.nz)
 Opts_init.dev_count = 2
 
 

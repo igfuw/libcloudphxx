@@ -383,7 +383,7 @@ namespace libcloudphxx
         sstp_chem(_opts_init.sstp_chem),
         // sstp_cond_act(std::max(_opts_init.sstp_cond_act, _opts_init.sstp_cond)),
         sstp_cond_act(_opts_init.sstp_cond_act),
-        pure_const_multi (((_opts_init.sd_conc) == 0) && (_opts_init.sd_const_multi > 0 || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
+        pure_const_multi (std::none_of(_opts_init.dry_distros.cbegin(), _opts_init.dry_distros.cend(), [](const auto &distro) { return std::get<2>(distro.first) > 0; }) && (std::any_of(_opts_init.dry_distros.cbegin(), _opts_init.dry_distros.cend(), [](const auto &distro) { return std::get<3>(distro.first) > 0; }) || _opts_init.dry_sizes.size() > 0)), // coal prob can be greater than one only in sd_conc simulations
         //tmp_device_real_part(6),
         tmp_host_real_part("tmp_host_real_part"),
         tmp_host_real_grid("tmp_host_real_grid"),
@@ -547,10 +547,10 @@ namespace libcloudphxx
 
       void sanity_checks();
       void init_SD_with_distros();
-      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const real_t &);
+      void init_SD_with_distros_sd_conc(const common::unary_function<real_t> &, const n_t);
       void init_SD_with_distros_tail(const common::unary_function<real_t> &, const real_t);
-      void init_SD_with_distros_const_multi(const common::unary_function<real_t> &);
-      void init_SD_with_distros_finalize(const kappa_soluble_fraction_t<real_t> &, const bool unravel_ijk = true);
+      void init_SD_with_distros_const_multi(const common::unary_function<real_t> &, const n_t);
+      void init_SD_with_distros_finalize(const std::tuple<real_t, real_t, unsigned long long, unsigned long long> &, const bool unravel_ijk = true);
       void init_SD_with_sizes();
       void init_sanity_check(
         const arrinfo_t<real_t>, const arrinfo_t<real_t>, const arrinfo_t<real_t>,
@@ -587,12 +587,12 @@ namespace libcloudphxx
       void init_T_freeze();
       void init_a_c_rho_ice();
       void init_incloud_time();
-      void init_count_num_sd_conc(const real_t & = 1);
-      void init_count_num_const_multi(const common::unary_function<real_t> &);
+      void init_count_num_sd_conc(const n_t);
       void init_count_num_const_multi(const common::unary_function<real_t> &, const thrust_size_t &);
       void init_count_num_dry_sizes(const std::pair<real_t, int> &);
       void init_count_num_hlpr(const real_t &, const thrust_size_t &);
       void init_count_num_src(const thrust_size_t &);
+      void init_count_num_src_const_multi(const common::unary_function<real_t> &, const thrust_size_t &, const real_t &);
       template <class arr_t>
       void conc_to_number(arr_t &arr); 
       void init_e2l(const arrinfo_t<real_t> &, thrust_device::vector<real_t>*, const int = 0, const int = 0, const int = 0, const long int = 0);

@@ -51,16 +51,18 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::src_dry_distros_matching(const src_dry_distros_t<real_t> &sdd)
     {   
       auto p_sdd = sdd.cbegin();
-      assert(p_sdd->first.soluble_fraction == 1); // partial solubility in matching source not implemented yet 
+      assert(std::get<1>(p_sdd->first) == 1); // partial solubility in matching source not implemented yet
+      if(get<3>(p_sdd->first) > 0)
+        throw std::runtime_error("libcloudph++: constant multiplicity source distributions are only supported with src_t::simple");
 
       // add the source only once every number of steps
-      assert(get<2>(p_sdd->second) > 0);
-      if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
+      assert(get<4>(p_sdd->first) > 0);
+      if(src_stp_ctr % get<4>(p_sdd->first) != 0) return;
 
-      const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;
+      const real_t sup_dt = get<4>(p_sdd->first) * opts_init.dt;
 
       // set number of SDs to init; use count_num as storage
-      init_count_num_src(get<1>(p_sdd->second));
+      init_count_num_src(get<2>(p_sdd->first));
 
       // --- sort already existing SDs; primary key ijk, secondary rd ---
       // TODO: do all of this only on SDs in cells below src_z1?
@@ -102,8 +104,8 @@ namespace libcloudphxx
       // TODO: this could be done once at the beginning of the simulation
       // TODO: take rd_insol into account here?
       init_dist_analysis_sd_conc(
-        *get<0>(p_sdd->second),
-        get<1>(p_sdd->second),
+        *p_sdd->second,
+        get<2>(p_sdd->first),
         sup_dt
       ); 
 
@@ -221,12 +223,12 @@ namespace libcloudphxx
 
           // init other properties of SDs that didnt have a match
           init_kappa(
-            p_sdd->first.kappa,
-            p_sdd->first.soluble_fraction
+            std::get<0>(p_sdd->first),
+            std::get<1>(p_sdd->first)
           );
           if (opts_init.ice_switch)
           {
-            init_insol(p_sdd->first.soluble_fraction);
+            init_insol(std::get<1>(p_sdd->first));
             init_a_c_rho_ice();
             if (! opts_init.time_dep_ice_nucl)
             {
@@ -238,7 +240,7 @@ namespace libcloudphxx
             init_incloud_time();
 
           init_n_sd_conc(
-            *get<0>(p_sdd->second)
+            *p_sdd->second
           ); // TODO: document that n_of_lnrd_stp is expected!
 
           // init rw
@@ -390,7 +392,7 @@ namespace libcloudphxx
 
         // init n of the copied SDs, but using the src distribution
         init_n_sd_conc(
-          *get<0>(p_sdd->second)
+          *p_sdd->second
         ); // TODO: document that n_of_lnrd_stp is expected!
 
         // add the just-initialized multiplicities to the old ones

@@ -21,9 +21,8 @@ opts = lgrngn.opts_t()
 
 kappa = .61
 soluble_fraction = 0.7
-opts_init.dry_distros = {(kappa, soluble_fraction): lognormal}
+opts_init.dry_distros = {(kappa, soluble_fraction, 100, 0):lognormal}
 opts_init.dt = 0.1
-opts_init.sd_conc = 100
 opts_init.n_sd_max = 1000
 opts_init.RH_max = 0.95
 

@@ -22,8 +22,8 @@ namespace libcloudphxx
       // loop over (kappa, soluble_fraction) pairs
       for (auto dsi = opts_init.dry_sizes.cbegin(); dsi != opts_init.dry_sizes.cend(); ++dsi)
       {
-        const real_t &kappa(dsi->first.kappa);
-        const real_t &soluble_fraction(dsi->first.soluble_fraction);
+        const real_t &kappa(std::get<0>(dsi->first));
+        const real_t &soluble_fraction(std::get<1>(dsi->first));
         const auto &size_number_map(dsi->second);
 
         // loop over the "size : {concentration, count}" pairs for this (kappa, soluble_fraction) pair

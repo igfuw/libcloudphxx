@@ -6,35 +6,19 @@ namespace libcloudphxx
   {
     using common::unary_function;
 
-    template <typename real_t>
-    struct kappa_soluble_fraction_t {
-          real_t kappa;
-          real_t soluble_fraction; // volume fraction of the soluble part (0-1)
-
-      kappa_soluble_fraction_t(real_t kappa_, real_t soluble_fraction_)
-      : kappa(kappa_), soluble_fraction(soluble_fraction_)
-      {}
-
-      bool operator<(const kappa_soluble_fraction_t &other) const
-      {
-        if (kappa != other.kappa) return kappa < other.kappa;
-        return soluble_fraction < other.soluble_fraction;
-      }
-        };
-
     // initial dry sizes of aerosol
     // defined with a distribution
     // uses shared_ptr to make opts_init copyable
     template<typename real_t>
     using dry_distros_t = std::map<
-      kappa_soluble_fraction_t<real_t>,              // (kappa, soluble_fraction); dry_distros defines total dry radius
+      std::tuple<real_t, real_t, unsigned long long, unsigned long long>, // kappa, soluble_fraction, sd_conc, sd_const_multi
       std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
     >;
 
     // defined with a size-number pair
     template<typename real_t>
     using dry_sizes_t = std::map<
-      kappa_soluble_fraction_t<real_t>, // (kappa, soluble_fraction); dry_sizes defines total dry radius
+      std::tuple<real_t, real_t>, // (kappa, soluble_fraction); dry_sizes defines total dry radius
       std::map<real_t,           // radius [m]
         std::pair<real_t, int>   // STP_concentration [1/m^3], number of SD that represent this radius kappa and concentration
       >
@@ -43,16 +27,16 @@ namespace libcloudphxx
     // similar, but for sources of aerosols after initialization
     template<typename real_t>
     using src_dry_distros_t = std::map<
-      kappa_soluble_fraction_t<real_t>,              // (kappa, soluble_fraction); src_dry_distros defines total dry radius
-      std::tuple<std::shared_ptr<unary_function<real_t>>, int, int> // 1st: n(ln(rd)) @ STP created per second; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true; 2nd: sd_conc for this distribution ; 3rd: supstp for this aerosol (interval in timesteps beween addition of these aerosols)
+      std::tuple<real_t, real_t, int, int, int>, // kappa, soluble_fraction, sd_conc, sd_const_multi, supstp
+      std::shared_ptr<unary_function<real_t>> // n(ln(rd)) @ STP created per second; alternatively it's n(ln(rd)) independent of rhod if aerosol_independent_of_rhod=true
     >;
 
     // defined with a size-number pair
     template<typename real_t>
     using src_dry_sizes_t = std::map<
-      kappa_soluble_fraction_t<real_t>, // (kappa, soluble_fraction); src_dry_sizes defines total dry radius
+      std::tuple<real_t, real_t, int>, // kappa, soluble_fraction, supstp
       std::map<real_t,           // radius [m]
-        std::tuple<real_t, int, int>   // STP_concentration [1/m^3] created per second, number of SD that represent this radius kappa and concentration, supstp
+        std::pair<real_t, int>   // STP_concentration [1/m^3] created per second, number of SD that represent this radius kappa and concentration
       >
     >;
 

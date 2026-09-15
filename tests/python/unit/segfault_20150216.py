@@ -26,8 +26,7 @@ def lognormal(lnr):
 kappa = .61
 soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
-opts_init.sd_conc = 50
+opts_init.dry_distros = {(kappa, soluble_fraction, 50, 0):lognormal}
 opts_init.n_sd_max = 50
 
 try:

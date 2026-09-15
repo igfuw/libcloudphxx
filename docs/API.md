@@ -76,7 +76,6 @@ opts_init.nz = 64;               // grid cells in z
 opts_init.dx = 100.0;            // cell size x [m]
 opts_init.dy = 100.0;            // cell size y [m]
 opts_init.dz = 100.0;            // cell size z [m]
-opts_init.sd_conc = 64;          // super-droplets per cell
 
 // Create particle system
 auto particles = libcloudphxx::lgrngn::factory<double>(
@@ -439,7 +438,7 @@ arrinfo_t<double> info_3d_v(arr_3d, str);
 
 See [USER_OPTIONS.md](USER_OPTIONS.md#lagrangian-lgrngn-initialization-options) for complete documentation of initialization options including:
 - Domain configuration (nx, ny, nz, dx, dy, dz)
-- Super-droplet configuration (sd_conc, sd_conc_mean)
+- Super-droplet configuration (per-distribution sd_conc, sd_const_multi)
 - Aerosol size distributions (dry_distros, dry_sizes)
 - Chemistry options (chem_switch, chem_rho)
 - GPU settings (dev_count, dev_id)
@@ -954,7 +953,6 @@ int main() {
     opts_init.dt = dt;
     opts_init.nx = nx; opts_init.ny = ny; opts_init.nz = nz;
     opts_init.dx = dx; opts_init.dy = dy; opts_init.dz = dz;
-    opts_init.sd_conc = 64;
     opts_init.dry_distros = {{0.04e-6, 60e6}};  // 40 nm mode
     opts_init.kappa = 0.61;
     

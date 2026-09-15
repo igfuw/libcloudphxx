@@ -26,12 +26,12 @@ kappa2 = 1.28
 kappa3 = 0.8
 soluble_fraction = 0.5
 rho_stp = 1.2248
-opts_init.dry_distros = {(kappa1, soluble_fraction): lognormal}
+sd_conc = 64
+opts_init.dry_distros = {(kappa1, soluble_fraction, sd_conc, 0):lognormal}
 opts_init.kernel = lgrngn.kernel_t.geometric
 opts_init.terminal_velocity = lgrngn.vt_t.beard76
 opts_init.adve_scheme = lgrngn.as_t.euler
 opts_init.dt = 1
-opts_init.sd_conc = 64
 opts_init.n_sd_max = int(1e6) # some space for tail SDs
 opts_init.rng_seed = 396
 opts_init.rng_seed_init = 456
@@ -53,12 +53,12 @@ print("x1 = ", opts_init.x1)
 print("y1 = ", opts_init.y1)
 print("z1 = ", opts_init.z1)
 
-print("sd_conc = ", opts_init.sd_conc)
+print("sd_conc = ", sd_conc)
 print("RH_max = ", opts_init.RH_max)
 print("rng_seed = ", opts_init.rng_seed)
 print("rng_seed_init = ", opts_init.rng_seed_init)
 print("kernel =", opts_init.kernel) 
-print("sd_conc =", opts_init.sd_conc)
+print("sd_conc =", sd_conc)
 print("terminal_velocity =", opts_init.terminal_velocity)
 print("adve_scheme =", opts_init.adve_scheme)
 print("chem_rho =", opts_init.chem_rho)
@@ -106,7 +106,7 @@ opts.chem_gas = {
 print("chem_gas[SO2] = ", opts.chem_gas[lgrngn.chem_species_t.SO2])
 print("chem_gas = ", opts.chem_gas)
 
-opts.src_dry_distros = {(kappa1, soluble_fraction):(lognormal, 64, 1)}
+opts.src_dry_distros = {(kappa1, soluble_fraction, 64, 0, 1):lognormal}
 
 # --------- test runs -----------
 
@@ -147,7 +147,7 @@ print('puddle: ', puddle)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
+assert frombuffer(prtcls.outbuf()) == sd_conc # parcel set-up
 
 # ----------
 # 0D (parcel) with explicit calls to sync_in and step_cond 
@@ -184,7 +184,7 @@ print('puddle: ', puddle)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert frombuffer(prtcls.outbuf()) == opts_init.sd_conc # parcel set-up
+assert frombuffer(prtcls.outbuf()) == sd_conc # parcel set-up
 
 
 # ----------
@@ -203,17 +203,16 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == 1
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) >= opts_init.sd_conc
+assert sum(frombuffer(prtcls.outbuf())) >= sd_conc
 
 
 
 # ----------
 # 0D const multi - number of SDs and number of particles
 print("0D const multi")
-sd_conc_old = opts_init.sd_conc
-opts_init.sd_conc = 0
 prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+sd_const_multi = int(prtcls_per_cell / 64)
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, sd_const_multi):lognormal}
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 prtcls.diag_all()
@@ -233,9 +232,8 @@ sd_tot = frombuffer(prtcls.outbuf()).sum()
 prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
-assert ((prtcls_tot / sd_tot)  == opts_init.sd_const_multi)
-opts_init.sd_const_multi = 0
-opts_init.sd_conc = sd_conc_old
+assert ((prtcls_tot / sd_tot)  == sd_const_multi)
+opts_init.dry_distros = {(kappa1, soluble_fraction, sd_conc, 0):lognormal}
 
 
 
@@ -246,8 +244,6 @@ opts_init.dry_distros = dict()
 opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6  : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 10]},
                        (kappa2, soluble_fraction) : {1.2e-6 : [20. * rho_stp, 10], 12.e-6 : [15. * rho_stp, 15]}}
 
-sd_conc_old = opts_init.sd_conc
-opts_init.sd_conc = 0
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
 
@@ -278,9 +274,8 @@ for rd, kappa, n_stp in [(1e-6, kappa1, 30), (15.e-6, kappa1, 10), (1.2e-6, kapp
 
 
 # go back to distros init
-opts_init.sd_conc = sd_conc_old
 opts_init.dry_sizes = dict()
-opts_init.dry_distros = {(kappa1, soluble_fraction):lognormal, (kappa2, soluble_fraction):lognormal}
+opts_init.dry_distros = {(kappa1, soluble_fraction, 64, 0):lognormal, (kappa2, soluble_fraction, 64, 0):lognormal}
 
 
 
@@ -295,7 +290,7 @@ prtcls.init(th, rv, rhod)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
+assert frombuffer(prtcls.outbuf())[0] == 148 # 128 from dry_distro and 20 from sizes
 
 # go back to distros init
 opts_init.dry_sizes = dict()
@@ -314,7 +309,7 @@ prtcls.init(th, rv, rhod)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert frombuffer(prtcls.outbuf())[0] > 84 # 64 from dry_distro and 20 from sizes + tail
+assert frombuffer(prtcls.outbuf())[0] > 148 # 128 from dry_distro and 20 from sizes + tail
 
 # go back to distros init
 opts_init.sd_conc_large_tail = 0
@@ -326,9 +321,10 @@ opts_init.dry_sizes = dict()
 # 0D dry_sizes + const_multi init
 print("0D dry_sizes + const_multi")
 opts_init.dry_sizes = {(kappa3, soluble_fraction) : {1.e-6 : [30. * rho_stp, 15], 15.e-6 : [10. * rho_stp, 5]}}
-opts_init.sd_conc = 0
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, 0):lognormal, (kappa2, soluble_fraction, 0, 0):lognormal}
 prtcls_per_cell = 2 * n_tot / rho_stp #rhod=1; 2* because of two distributions
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+sd_const_multi = int(prtcls_per_cell / 64)
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, sd_const_multi):lognormal, (kappa2, soluble_fraction, 0, sd_const_multi):lognormal}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -339,8 +335,7 @@ print(frombuffer(prtcls.outbuf()))
 assert frombuffer(prtcls.outbuf())[0] == 84 # 64 from dry_distro and 20 from sizes
 
 # go back to distros init
-opts_init.sd_conc = sd_conc_old
-opts_init.sd_const_multi = 0
+opts_init.dry_distros = {(kappa1, soluble_fraction, 32, 0):lognormal, (kappa2, soluble_fraction, 32, 0):lognormal}
 opts_init.dry_sizes = dict()
 
 
@@ -426,7 +421,7 @@ for it in range(2):
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nx
   print(frombuffer(prtcls.outbuf()))
   assert (frombuffer(prtcls.outbuf()) > 0).all()
-  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * opts_init.sd_conc
+  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nx * sd_conc
 
 # ----------
 # 2D (periodic horizontal domain)
@@ -476,7 +471,7 @@ for it in range(2):
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
   print(frombuffer(prtcls.outbuf()))
   assert (frombuffer(prtcls.outbuf()) > 0).all()
-  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc
+  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * sd_conc
   assert opts_init.nx == prtcls.opts_init.nx
 
 #TODO: test profile vs. 2D array
@@ -497,7 +492,7 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.sd_conc
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * sd_conc
 assert opts_init.nx == prtcls.opts_init.nx
 
 opts_init.turb_adve_switch=False
@@ -539,7 +534,7 @@ for it in range(2):
   assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
   print(frombuffer(prtcls.outbuf()))
   assert (frombuffer(prtcls.outbuf()) > 0).all()
-  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+  assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * sd_conc
 
 print("3D turb")
 eps   = arr_t([eps, eps])
@@ -557,7 +552,7 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * sd_conc
 
 opts_init.turb_adve_switch=False
 opts.turb_adve=False
@@ -579,17 +574,18 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) >= opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+assert sum(frombuffer(prtcls.outbuf())) >= opts_init.nz * opts_init.nx * opts_init.ny * sd_conc
 
 
 
 # ----------
 # 3D const multi - number of SDs and number of particles
 print("3D const multi")
-opts_init.sd_conc = 0
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, 0):lognormal, (kappa2, soluble_fraction, 0, 0):lognormal}
 cell_vol = opts_init.dx * opts_init.dy * opts_init.dz
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+sd_const_multi = int(prtcls_per_cell / 64)
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, sd_const_multi):lognormal, (kappa2, soluble_fraction, 0, sd_const_multi):lognormal}
 n_cell = opts_init.nz * opts_init.nx * opts_init.ny
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -611,7 +607,7 @@ sd_tot = frombuffer(prtcls.outbuf()).sum()
 prtcls.diag_all()
 prtcls.diag_wet_mom(0)
 prtcls_tot = frombuffer(prtcls.outbuf()).sum()
-assert ((prtcls_tot / sd_tot) * cell_vol  == opts_init.sd_const_multi)
+assert ((prtcls_tot / sd_tot) * cell_vol  == sd_const_multi)
 
 
 
@@ -652,10 +648,8 @@ assert (frombuffer(prtcls.outbuf()) == 10 / cell_vol).all()
 # 3D dry_sizes + sd_conc init
 print("3D dry_sizes + sd_conc")
 soluble_fraction = 1 # no insoluble aerosol from now on
-opts_init.dry_distros = {(kappa1, soluble_fraction):lognormal, (kappa2, soluble_fraction):lognormal}
+opts_init.dry_distros = {(kappa1, soluble_fraction, 64, 0):lognormal, (kappa2, soluble_fraction, 64, 0):lognormal}
 opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp,  5]}}
-opts_init.sd_conc = sd_conc_old
-opts_init.sd_const_multi = 0
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -663,13 +657,13 @@ prtcls.init(th, rv, rhod)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert (frombuffer(prtcls.outbuf()) == 84).all() # 64 from dry_distro and 20 from sizes
+assert (frombuffer(prtcls.outbuf()) == 148).all() # 128 from dry_distro and 20 from sizes
 
 # test if get_attr work and if kappas are set correctly
 kappa = asarray(prtcls.get_attr("kappa"))
 # assert (kappa[:(32*opts_init.nx*opts_init.ny*opts_init.nz)] == kappa2).all()
 # assert (kappa[(32*opts_init.nx*opts_init.ny*opts_init.nz):] == kappa1).all()
-n = 32 * opts_init.nx * opts_init.ny * opts_init.nz
+n = 64 * opts_init.nx * opts_init.ny * opts_init.nz
 assert (kappa[:n] == kappa1).all()
 assert (kappa[n:2*n] == kappa2).all()
 assert (kappa[2*n:] == kappa1).all()
@@ -687,7 +681,7 @@ prtcls.init(th, rv, rhod)
 prtcls.diag_all()
 prtcls.diag_sd_conc()
 print(frombuffer(prtcls.outbuf()))
-assert (frombuffer(prtcls.outbuf())[0] > 64 + 20).all() # 64 from dry_distro and 20 from sizes + tail
+assert (frombuffer(prtcls.outbuf())[0] > 128 + 20).all() # 128 from dry_distro and 20 from sizes + tail
 
 
 # go back to distros init
@@ -700,9 +694,10 @@ opts_init.dry_sizes = dict()
 # 3D dry_sizes + const_multi init
 print("3D dry_sizes + const_multi")
 opts_init.dry_sizes = {(kappa1, soluble_fraction) : {1.e-6 : [30./ cell_vol * rho_stp, 15], 15.e-6 : [10. / cell_vol * rho_stp, 5]}}
-opts_init.sd_conc = 0
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, 0):lognormal, (kappa2, soluble_fraction, 0, 0):lognormal}
 prtcls_per_cell = 2 * n_tot * cell_vol / rho_stp #rhod=1; 2* because of two distributions
-opts_init.sd_const_multi = int(prtcls_per_cell / 64) 
+sd_const_multi = int(prtcls_per_cell / 64)
+opts_init.dry_distros = {(kappa1, soluble_fraction, 0, sd_const_multi):lognormal, (kappa2, soluble_fraction, 0, sd_const_multi):lognormal}
 
 prtcls = lgrngn.factory(backend, opts_init)
 prtcls.init(th, rv, rhod)
@@ -713,8 +708,7 @@ print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf())[0] == 84).all() # 64 from dry_distro and 20 from sizes
 
 # go back to distros init
-opts_init.sd_conc = sd_conc_old
-opts_init.sd_const_multi = 0
+opts_init.dry_distros = {(kappa1, soluble_fraction, 32, 0):lognormal, (kappa2, soluble_fraction, 32, 0):lognormal}
 opts_init.dry_sizes = dict()
 
 
@@ -736,7 +730,7 @@ prtcls.diag_sd_conc()
 assert len(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny
 print(frombuffer(prtcls.outbuf()))
 assert (frombuffer(prtcls.outbuf()) > 0).all()
-assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * opts_init.sd_conc
+assert sum(frombuffer(prtcls.outbuf())) == opts_init.nz * opts_init.nx * opts_init.ny * sd_conc
 
 opts_init.ice_switch = False
 opts_init.coal_switch = True

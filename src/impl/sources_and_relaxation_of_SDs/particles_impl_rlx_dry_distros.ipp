@@ -303,7 +303,7 @@ namespace libcloudphxx
         n_part_to_init = n_part - n_part_old;
 //        hskpng_resize_npart();
 
-        init_SD_with_distros_finalize(lgrngn::kappa_soluble_fraction_t<real_t>{kappa, real_t(1)}, false); // no need to unravel ijk there, because i j k are already initialized
+        init_SD_with_distros_finalize(std::make_tuple(kappa, real_t(1), 0ull, 0ull), false); // no need to unravel ijk there, because i j k are already initialized
                                                      // TODO: we assume that relaxation produces water (not ice), and that soluble_fraction==1 for produced aerosols
 
         // TODO: asserts of newly added SD parameters? e.g. how many SD, how big is multiplicity etc.

@@ -105,9 +105,8 @@ def test(opts_init):
 kappa = .61
 soluble_fraction = 1.
 opts_init = lgrngn.opts_init_t()
-opts_init.dry_distros = {(kappa, soluble_fraction):lognormal}
+opts_init.dry_distros = {(kappa, soluble_fraction, 1024, 0):lognormal}
 opts_init.rlx_dry_distros = {kappa: [lognormal_rlx, [0,2],[0,opts_init.dz]]}
-opts_init.sd_conc = 1024
 opts_init.rlx_bins = 1024
 opts_init.rlx_timescale = 4 # whole simulation time is 2, so this means we should get half of the droplets added
 
@@ -117,7 +116,7 @@ opts_init.rlx_timescale = 4 # whole simulation time is 2, so this means we shoul
 print(' --- dry_distros rlx sd_per_bin = 1 ---')
 
 opts_init.rlx_sd_per_bin = 1
-opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.rlx_bins * opts_init.rlx_sd_per_bin * 2) * 2) # assuming nx=nz=2
+opts_init.n_sd_max = int((1024 * 2 + opts_init.rlx_bins * opts_init.rlx_sd_per_bin * 2) * 2) # assuming nx=nz=2
 
 sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 
@@ -147,7 +146,7 @@ if abs((wet_mom1[0] + wet_mom1[2]) / (wet_mom1[1] + wet_mom1[3]) - 1.5)  > 0.01:
 print(' --- dry_distros rlx sd_per_bin = 10 ---')
 
 opts_init.rlx_sd_per_bin = 10
-opts_init.n_sd_max = int((opts_init.sd_conc * 2 + opts_init.rlx_bins * opts_init.rlx_sd_per_bin * 2) * 2) # assuming nx=nz=2
+opts_init.n_sd_max = int((1024 * 2 + opts_init.rlx_bins * opts_init.rlx_sd_per_bin * 2) * 2) # assuming nx=nz=2
 
 sd_conc, wet_mom0, wet_mom1 = test(opts_init)
 

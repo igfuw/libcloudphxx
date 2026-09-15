@@ -22,25 +22,33 @@ namespace libcloudphxx
       // TODO: add a loop to allow sdd.size>1
       auto p_sdd = sdd.cbegin();
 
-      if(p_sdd->first.soluble_fraction < 0 || p_sdd->first.soluble_fraction > 1)
+      if(std::get<1>(p_sdd->first) < 0 || std::get<1>(p_sdd->first) > 1)
         throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_distros must be in [0, 1]");
 
+      const int sd_conc = get<2>(p_sdd->first);
+      const int sd_const_multi = get<3>(p_sdd->first);
+      const int supstp = get<4>(p_sdd->first);
+      if(sd_conc > 0 && sd_const_multi > 0)
+        throw std::runtime_error("libcloudph++: specify either sd_conc or sd_const_multi for each source dry distribution, not both");
+
       // add the source only once every number of steps
-      assert(get<2>(p_sdd->second) > 0);
-      if(src_stp_ctr % get<2>(p_sdd->second) != 0) return;
+      assert(supstp > 0);
+      if(src_stp_ctr % supstp != 0) return;
 
-      const real_t sup_dt = get<2>(p_sdd->second) * opts_init.dt;
+      const real_t sup_dt = supstp * opts_init.dt;
 
-      // set number of SDs to init; use count_num as storage
-      init_count_num_src(get<1>(p_sdd->second));
-
-      // analyze distribution to get rd_min and max needed for bin sizes
-      // TODO: this could be done once at the beginning of the simulation
-      init_dist_analysis_sd_conc(
-        *(get<0>(p_sdd->second)),
-        get<1>(p_sdd->second),
-        sup_dt
-      ); 
+      if(sd_conc > 0)
+      {
+        init_count_num_src(sd_conc);
+        init_dist_analysis_sd_conc(*p_sdd->second, sd_conc, sup_dt);
+      }
+      else if(sd_const_multi > 0)
+      {
+        init_dist_analysis_const_multi(*p_sdd->second);
+        init_count_num_src_const_multi(*p_sdd->second, sd_const_multi, sup_dt);
+      }
+      else
+        throw std::runtime_error("libcloudph++: specify either sd_conc or sd_const_multi for each source dry distribution");
 
       namespace arg = thrust::placeholders;
 
@@ -55,20 +63,25 @@ namespace libcloudphxx
 
       // init ijk and rd3 of new particles
       init_ijk();
-      init_dry_sd_conc(); 
-
-      init_n_sd_conc(
-        *get<0>(p_sdd->second)
-      ); 
+      if(sd_conc > 0)
+      {
+        init_dry_sd_conc();
+        init_n_sd_conc(*p_sdd->second);
+      }
+      else
+      {
+        init_dry_const_multi(*p_sdd->second);
+        init_n_const_multi(sd_const_multi);
+      }
 
       // init other properties of SDs
       init_kappa(
-        p_sdd->first.kappa,
-        p_sdd->first.soluble_fraction
+        std::get<0>(p_sdd->first),
+        std::get<1>(p_sdd->first)
       );
       if (opts_init.ice_switch)
       {
-        init_insol(p_sdd->first.soluble_fraction);
+        init_insol(std::get<1>(p_sdd->first));
         init_a_c_rho_ice();
         if (! opts_init.time_dep_ice_nucl)
         {

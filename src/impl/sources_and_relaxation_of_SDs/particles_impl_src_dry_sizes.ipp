@@ -15,25 +15,26 @@ namespace libcloudphxx
     void particles_t<real_t, device>::impl::src_dry_sizes(const src_dry_sizes_t<real_t> &sds)
     {
 
-      // loop over (kappa, soluble_fraction) pairs
+      // loop over (kappa, soluble_fraction, supstp) tuples
      // for (typename dry_sizes_t::const_iterator dsi = opts.src_dry_sizes.begin(); dsi != opts.src_dry_sizes.end(); ++dsi)
       for (auto dsi = sds.cbegin(); dsi != sds.cend(); ++dsi)
       {
-        const real_t &kappa(dsi->first.kappa);
-        const real_t &soluble_fraction(dsi->first.soluble_fraction);
+        const real_t &kappa(std::get<0>(dsi->first));
+        const real_t &soluble_fraction(std::get<1>(dsi->first));
+        const int supstp(std::get<2>(dsi->first));
         const auto &size_number_map(dsi->second);
 
         if(soluble_fraction < 0 || soluble_fraction > 1)
           throw std::runtime_error("libcloudph++: soluble_fraction in opts.src_dry_sizes must be in [0, 1]");
 
-        // loop over the "size : {concentration per second, multiplicity, supstp}" for this (kappa, soluble_fraction) pair
+        // loop over the "size : {concentration per second, multiplicity}" for this (kappa, soluble_fraction, supstp) tuple
         for (auto sni = size_number_map.cbegin(); sni != size_number_map.cend(); ++sni)
         {
           // add the source only once every number of steps
-          assert(get<2>(sni->second) > 0);
-          if(src_stp_ctr % get<2>(sni->second) != 0) continue;
+          assert(supstp > 0);
+          if(src_stp_ctr % supstp != 0) continue;
 
-          const real_t sup_dt = get<2>(sni->second) * opts_init.dt;
+          const real_t sup_dt = supstp * opts_init.dt;
 
           // init number of SDs of this kappa in cells
           init_count_num_src(get<1>(sni->second));
@@ -65,7 +66,7 @@ namespace libcloudphxx
           }
   
           // init multiplicities
-          init_n_dry_sizes(get<0>(sni->second)*sup_dt, get<1>(sni->second)); 
+          init_n_dry_sizes(sni->second.first * sup_dt, sni->second.second);
   
           // initialising wet radii
           init_wet();

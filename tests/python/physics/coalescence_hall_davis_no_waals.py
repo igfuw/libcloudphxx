@@ -54,10 +54,9 @@ rv   = 0.01 * np.ones((opts_init.nx, opts_init.nz))
 kappa = 0 #1e-10
 soluble_fraction = 1.
 
-opts_init.dry_distros = {(kappa, soluble_fraction):expvolumelnr}
+opts_init.dry_distros = {(kappa, soluble_fraction, pow(2,14), 0):expvolumelnr}
 
-opts_init.sd_conc = pow(2,14)
-opts_init.n_sd_max = opts_init.sd_conc
+opts_init.n_sd_max = pow(2,14)
 opts_init.kernel = lgrngn.kernel_t.hall_davis_no_waals
 
 opts = lgrngn.opts_t()
