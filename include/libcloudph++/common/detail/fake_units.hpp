@@ -61,8 +61,8 @@ namespace libcloudphxx
           struct qntt_t {};
        
           struct unit_t {
-              unit_t() {}
-            };
+              constexpr unit_t() = default;
+	  };
 
             // real_t vs. unit
           template <typename real_t>
@@ -122,8 +122,8 @@ namespace libcloudphxx
 // if needed since this file is included in cpp test fake_units
 #if defined(__NVCC__)
             __device__
-#endif
-          static const detail::unit_t 
+#endif	
+	  static constexpr detail::unit_t 
             cubic_metre, cubic_metres, cubic_meter, cubic_meters,
             joule, joules,
             kelvin, kelvins,
