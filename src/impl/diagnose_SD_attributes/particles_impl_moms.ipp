@@ -398,5 +398,57 @@ namespace libcloudphxx
     {
       moms_calc(vec_bgn, n_part, power, specific);
     }
+
+    // like moms_calc, but not accounting for multiplicity (n) and not dividing by volume (or air mass)
+    template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
+    void particles_t<real_t, device>::impl::SD_moms_calc( 
+      const it_t &vec_bgn,
+      const thrust_size_t npart,
+      const real_t power
+    )
+    {
+      thrust::pair<
+        thrust_device::vector<thrust_size_t>::iterator,
+        typename thrust_device::vector<real_t>::iterator
+      > it_pair = thrust::reduce_by_key(
+        // input - keys
+        sorted_ijk.begin(), sorted_ijk.begin()+npart,  
+        // input - values
+        thrust::make_transform_iterator(
+          thrust::make_zip_iterator(thrust::make_tuple(
+            thrust::make_constant_iterator<real_t>(1),
+            thrust::make_permutation_iterator(vec_bgn, sorted_id.begin())
+          )),
+          detail::moment_counter<real_t>(power)
+        ),
+        // output - keys
+        count_ijk.begin(),
+        // output - values
+        count_mom.begin()
+      );  
+
+      count_n = it_pair.first - count_ijk.begin();
+#if !defined(NDEBUG)
+      {
+        int nan_count = thrust::transform_reduce(count_mom.begin(), count_mom.begin() + count_n, isnaninf(), 0, thrust::plus<bool>());
+        if(nan_count>0)
+        {
+          std::cout << nan_count << " nan/inf numbers detected in count_mom after reduce_by_key " << std::endl;
+        }
+      }
+#endif
+      assert(count_n <= n_cell);
+    }
+
+    template <typename real_t, backend_t device>
+    template <typename it_t> // iterator type
+    void particles_t<real_t, device>::impl::SD_moms_calc(
+      const it_t &vec_bgn,
+      const real_t power
+    )
+    {
+      moms_calc(vec_bgn, n_part, power);
+    }
   };  
 };

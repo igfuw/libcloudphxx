@@ -118,6 +118,7 @@ namespace libcloudphxx
       virtual void diag_vp_mom(const int&)                                      { assert(false); }
       virtual void diag_wp_mom(const int&)                                      { assert(false); }
       virtual void diag_incloud_time_mom(const int&)                            { assert(false); } // requires opts_init.diag_incloud_time==true
+      virtual void diag_sstp_cond_mom(const int &k)                             { assert(false); }
       virtual void diag_max_rw()                                                { assert(false); }
       virtual void diag_vel_div()                                               { assert(false); }
       virtual std::map<libcloudphxx::common::output_t, real_t> diag_puddle()    { assert(false); return std::map<libcloudphxx::common::output_t, real_t>(); }
@@ -212,6 +213,7 @@ namespace libcloudphxx
       void diag_vp_mom(const int&);
       void diag_wp_mom(const int&);
       void diag_incloud_time_mom(const int &k);
+      void diag_sstp_cond_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
 
       void diag_chem(const enum common::chem::chem_species_t&);
@@ -321,6 +323,7 @@ namespace libcloudphxx
       void diag_vp_mom(const int&);
       void diag_wp_mom(const int&);
       void diag_incloud_time_mom(const int&);
+      void diag_sstp_cond_mom(const int &k);
       void diag_wet_mass_dens(const real_t&, const real_t&);
       std::vector<real_t> get_attr(const std::string &);
       real_t *outbuf();

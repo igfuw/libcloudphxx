@@ -654,5 +654,19 @@ namespace libcloudphxx
     {
       return pimpl->output_puddle;
     }
+
+    template <typename real_t, backend_t device>
+    void particles_t<real_t, device>::diag_sstp_cond_mom(const int &n)
+    {       
+      if(pimpl->opts_init.exact_sstp_cond && (pimpl->sstp_cond > 1 || pimpl->sstp_cond_act > 1) && pimpl->opts_init.adaptive_sstp_cond) 
+      {
+        if (pimpl->perparticle_sstp_cond_gp)
+        {
+          pimpl->SD_moms_calc(pimpl->perparticle_sstp_cond_gp->get().begin(), n);
+        }
+      }
+      else
+        assert(0 && "diag_sstp_cond_mom called, but adaptive substepping is off (opts_init.exact_sstp_cond && (opts_ini.sstp_cond > 1 || opts_ini.sstp_cond_act > 1) && opts_init.adaptive_sstp_cond) == False. Therefore number of substeps is defined by opts_init.sstp_cond.");
+    }   
   };
 };
